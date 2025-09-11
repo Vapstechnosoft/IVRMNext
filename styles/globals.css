@@ -1,0 +1,238 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+    font-family: Arial, Helvetica, sans-serif;
+}
+
+@layer base {
+    :root {
+        --background: 0 0% 100%;
+        --foreground: 20 14.3% 4.1%;
+        --card: 0 0% 100%;
+        --card-foreground: 20 14.3% 4.1%;
+        --popover: 0 0% 100%;
+        --popover-foreground: 20 14.3% 4.1%;
+        --primary: 248 78% 60%; /* #4F39F6 */
+        --primary-foreground: 0 0% 98%;
+        --secondary: 283 90% 53%; /* #9810FA */
+        --secondary-foreground: 0 0% 98%;
+        --tertiary: 219 97% 54%; /* #155DFC */
+        --tertiary-foreground: 0 0% 98%;
+        --muted: 60 4.8% 95.9%;
+        --muted-foreground: 25 5.3% 44.7%;
+        --accent: 60 4.8% 95.9%;
+        --accent-foreground: 24 9.8% 10%;
+        --destructive: 0 90% 50%;
+        --destructive-foreground: 60 9.1% 97.8%;
+        --border: 20 5.9% 90%;
+        --input: 20 5.9% 90%;
+        --ring: 248 78% 60%; /* Primary color for focus rings */
+        --radius: 0.6rem;
+        --success: 139 72% 46%;
+        --warning: 45 100% 50%;
+        --info: 209 16% 57%;
+        --error: 0 90% 50%;
+
+        --chart-1: 248 78% 60%;
+        --chart-2: 283 90% 53%;
+        --chart-3: 219 97% 54%;
+        --chart-4: 43 74% 66%;
+        --chart-5: 27 87% 67%;
+
+        --sidebar-background: 0 0% 100%;
+        --sidebar-foreground: 240 5.3% 26.1%;
+        --sidebar-primary: 248 78% 60%;
+        --sidebar-primary-foreground: 0 0% 98%;
+        --sidebar-accent: 60 4.8% 95.9%;
+        --sidebar-accent-foreground: 240 5.9% 10%;
+        --sidebar-border: 220 13% 91%;
+        --sidebar-ring: 248 78% 60%;
+    }
+    .dark {
+        --background: 20 14.3% 4.1%;
+        --foreground: 60 9.1% 97.8%;
+        --card: 20 14.3% 4.1%;
+        --card-foreground: 60 9.1% 97.8%;
+        --popover: 20 14.3% 4.1%;
+        --popover-foreground: 60 9.1% 97.8%;
+        --primary: 248 78% 60%; /* #4F39F6 */
+        --primary-foreground: 0 0% 98%;
+        --secondary: 283 90% 53%; /* #9810FA */
+        --secondary-foreground: 0 0% 98%;
+        --tertiary: 219 97% 54%; /* #155DFC */
+        --tertiary-foreground: 0 0% 98%;
+        --muted: 12 6.5% 15.1%;
+        --muted-foreground: 24 5.4% 63.9%;
+        --accent: 12 6.5% 15.1%;
+        --accent-foreground: 60 9.1% 97.8%;
+        --destructive: 0 90% 50%;
+        --destructive-foreground: 60 9.1% 97.8%;
+        --border: 12 6.5% 15.1%;
+        --input: 12 6.5% 15.1%;
+        --ring: 248 78% 60%; /* Primary color for focus rings */
+        --success: 139 72% 46%;
+        --warning: 45 100% 50%;
+        --info: 209 16% 57%;
+        --error: 0 90% 50%;
+
+        --chart-1: 248 78% 60%;
+        --chart-2: 283 90% 53%;
+        --chart-3: 219 97% 54%;
+        --chart-4: 280 65% 60%;
+        --chart-5: 340 75% 55%;
+
+        --sidebar-background: 20 14.3% 4.1%;
+        --sidebar-foreground: 60 9.1% 97.8%;
+        --sidebar-primary: 248 78% 60%;
+        --sidebar-primary-foreground: 0 0% 100%;
+        --sidebar-accent: 12 6.5% 15.1%;
+        --sidebar-accent-foreground: 60 9.1% 97.8%;
+        --sidebar-border: 12 6.5% 15.1%;
+        --sidebar-ring: 248 78% 60%;
+    }
+}
+
+@layer base {
+    * {
+        @apply border-border;
+        scrollbar-width: thin;
+        scrollbar-color: hsl(var(--border)) transparent;
+    }
+
+    body {
+        @apply text-base leading-normal text-foreground bg-background font-sans antialiased;
+    }
+
+    h1 {
+        @apply scroll-m-20 text-4xl font-extrabold tracking-tight lg:text-5xl;
+    }
+
+    h2 {
+        @apply scroll-m-20 pb-2 text-3xl font-bold tracking-tight first:mt-0;
+    }
+
+    h3 {
+        @apply scroll-m-20 text-2xl font-semibold tracking-tight;
+    }
+
+    h4 {
+        @apply scroll-m-20 text-xl font-semibold tracking-tight;
+    }
+
+    h5 {
+        @apply scroll-m-20 text-lg font-semibold tracking-tight;
+    }
+
+    h6 {
+        @apply scroll-m-20 text-base font-semibold tracking-tight;
+    }
+
+    p {
+        @apply leading-6;
+    }
+
+    small {
+        @apply text-sm font-medium leading-none;
+    }
+
+    /* Horizontal rule */
+    hr {
+        @apply my-4 border-border;
+    }
+
+    /* Card styles with proper borders for light mode */
+    .card {
+        @apply bg-card text-card-foreground rounded-lg border border-border shadow-sm;
+    }
+
+    .flex-start {
+        @apply flex flex-row items-center justify-start;
+    }
+
+    .flex-center {
+        @apply flex flex-row items-center justify-center;
+    }
+
+    .flex-end {
+        @apply flex flex-row items-center justify-end;
+    }
+
+    .flex-between {
+        @apply flex flex-row items-center justify-between;
+    }
+
+    .dropdown-item {
+        @apply relative flex select-none items-center gap-2 rounded-sm px-2 py-1.5 text-sm outline-none transition-colors focus:bg-accent focus:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50 [&>svg]:size-4 [&>svg]:shrink-0 cursor-pointer hover:bg-muted;
+    }
+
+    .menu-button {
+        @apply group-data-[collapsible=icon]:!size-8 group-data-[collapsible=icon]:!p-2 flex h-8 w-full items-center gap-2 overflow-hidden rounded-md p-2 text-left text-sm outline-none ring-sidebar-ring transition-[width,height,padding] hover:bg-sidebar-accent hover:text-sidebar-accent-foreground focus-visible:ring-2 active:bg-sidebar-accent active:text-sidebar-accent-foreground disabled:pointer-events-none disabled:opacity-50 group-has-[[data-sidebar=menu-action]]/menu-item:pr-8 aria-disabled:pointer-events-none aria-disabled:opacity-50 data-[active=true]:bg-sidebar-accent data-[active=true]:font-medium data-[active=true]:text-sidebar-accent-foreground data-[state=open]:hover:bg-sidebar-accent data-[state=open]:hover:text-sidebar-accent-foreground [&>span:last-child]:truncate [&>svg]:size-4 [&>svg]:shrink-0;
+    }
+
+    .menu-sub-button {
+        @apply -translate-x-px flex h-7 min-w-0 items-center gap-2 overflow-hidden rounded-md px-2 text-sidebar-foreground text-sm outline-none ring-sidebar-ring hover:bg-sidebar-accent hover:text-sidebar-accent-foreground focus-visible:ring-2 active:bg-sidebar-accent active:text-sidebar-accent-foreground disabled:pointer-events-none disabled:opacity-50 aria-disabled:pointer-events-none aria-disabled:opacity-50 data-[active=true]:bg-sidebar-accent data-[active=true]:text-sidebar-accent-foreground group-data-[collapsible=icon]:hidden [&>span:last-child]:truncate [&>svg]:size-4 [&>svg]:shrink-0 [&>svg]:text-sidebar-accent-foreground;
+    }
+
+    /* Gradient button utility for the linear gradient */
+    .btn-gradient {
+        background: linear-gradient(135deg, #155DFC 0%, #9810FA 50%, #155DFC 100%);
+        @apply text-white border-0 hover:opacity-90 transition-opacity;
+    }
+
+    /* Alternative gradient directions */
+    .btn-gradient-horizontal {
+        background: linear-gradient(90deg, #155DFC 0%, #9810FA 50%, #155DFC 100%);
+        @apply text-white border-0 hover:opacity-90 transition-opacity;
+    }
+
+    .btn-gradient-vertical {
+        background: linear-gradient(180deg, #155DFC 0%, #9810FA 50%, #155DFC 100%);
+        @apply text-white border-0 hover:opacity-90 transition-opacity;
+    }
+}
+
+td button[disabled] {
+    cursor: not-allowed !important;
+    /* text-decoration: line-through !important; */
+}
+
+/* Add this to your global CSS */
+@keyframes bell-ring {
+  0% { transform: rotate(0); }
+  10% { transform: rotate(10deg); }
+  20% { transform: rotate(-10deg); }
+  30% { transform: rotate(6deg); }
+  40% { transform: rotate(-6deg); }
+  50% { transform: rotate(3deg); }
+  60% { transform: rotate(-3deg); }
+  70% { transform: rotate(1deg); }
+  80% { transform: rotate(-1deg); }
+  90%, 100% { transform: rotate(0); }
+}
+
+.animate-bell {
+  animation: bell-ring 1s ease-in-out;
+}
+
+/* Add this to your globals.css */
+@keyframes firework-explode {
+    0% {
+      transform: translate(0, 0) rotate(var(--rotation));
+      opacity: 1;
+    }
+    100% {
+      transform: translate(var(--tx), var(--ty)) rotate(var(--rotation));
+      opacity: 0;
+    }
+}
+
+@keyframes blink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0; }
+}
+
+.animate-blink {
+    animation: blink 1s step-end infinite;
+}

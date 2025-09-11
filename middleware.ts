@@ -1,0 +1,84 @@
+import { NextResponse } from 'next/server';
+import type { NextRequest } from 'next/server';
+import { ROLES } from './constants';
+import { AUTH_ROUTES, ROUTES } from './constants/routes';
+import { auth } from './lib/auth';
+import { createRouterMatcher } from './lib/routeMatcher';
+
+const routeMatcher = createRouterMatcher([
+    { matcher: AUTH_ROUTES.SIGN_IN, auth: false },
+    { matcher: AUTH_ROUTES.TERMS, auth: false },
+    {
+        matcher: ROUTES.ADMISSION.MASTERS,
+        auth: true,
+        role: [ROLES.GENERAL_STAFF]
+    }
+]);
+
+export async function middleware(request: NextRequest) {
+    const session = await auth();
+    const { pathname } = request.nextUrl;
+
+    const isLoggedIn = session;
+    const userRole = session?.role;
+
+    // Check for which must be accessible even without login - allow access to page and its sub-paths
+    if (pathname === AUTH_ROUTES.TERMS) {
+        return NextResponse.next();
+    }
+
+    // Check for sign-in page access
+    if (pathname === AUTH_ROUTES.SIGN_IN) {
+        if (isLoggedIn) {
+            const redirectedFrom = request.nextUrl.searchParams.get('redirectedFrom');
+            if (redirectedFrom !== 'home') {
+                const redirectUrl = new URL('/', request.url);
+                redirectUrl.searchParams.set('redirectedFrom', 'signin');
+                return NextResponse.redirect(redirectUrl);
+            }
+            return NextResponse.next();
+        }
+        return NextResponse.next();
+    }
+
+    const matchedRoute = routeMatcher(pathname);
+
+    if (!matchedRoute) {
+        // If no route matches, continue or handle as needed (e.g., redirect to 404)
+        return NextResponse.next();
+    }
+
+    if (matchedRoute.auth && !isLoggedIn) {
+        // Redirect unauthenticated users to sign-in
+        const callbackUrl = encodeURIComponent(pathname);
+        return NextResponse.redirect(new URL(`${AUTH_ROUTES.SIGN_IN}?callbackUrl=${callbackUrl}`, request.url));
+    }
+
+    if (matchedRoute.role) {
+        const roles = Array.isArray(matchedRoute.role) ? matchedRoute.role : [matchedRoute.role];
+        if (userRole && !roles.includes(userRole)) {
+            // Redirect users without the required role
+            return NextResponse.redirect(new URL(ROUTES.DASHBOARD, request.url));
+        }
+    }
+
+    // Handle home redirection from sign-in
+    if (pathname === '/' && isLoggedIn) {
+        const redirectedFrom = request.nextUrl.searchParams.get('redirectedFrom');
+        if (redirectedFrom === AUTH_ROUTES.SIGN_IN) {
+            const cleanUrl = new URL('/', request.url);
+            return NextResponse.redirect(cleanUrl);
+        }
+    }
+
+    return NextResponse.next();
+}
+
+export const config = {
+    matcher: [
+        // Exclude Next.js internals, static files, and manifest.json
+        '/((?!_next|manifest\\.json|[^?]*\\.(?:html?|css|js(?!on)|jpe?g|webp|png|gif|svg|ttf|woff2?|ico|csv|docx?|xlsx?|zip|webmanifest)).*)',
+        // Always run for API routes
+        '/(api|trpc)(.*)'
+    ]
+};
