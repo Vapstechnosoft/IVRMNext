@@ -1,4 +1,4 @@
-import { loginSchema } from '@/schemas/auth';
+import { loginSchema } from '@/schemas/admission/preadmission/masters';
 import { getUserByEmail } from '@/server/user';
 import NextAuth, { AuthError, type NextAuthConfig } from 'next-auth';
 import Credentials from 'next-auth/providers/credentials';
@@ -67,7 +67,7 @@ export const authConfig: NextAuthConfig = {
     },
     cookies: {
         sessionToken: {
-            name: 'vaps-session-1.0',
+            name: 'tat-session-1.0',
             options: {
                 httpOnly: true,
                 secure: true,

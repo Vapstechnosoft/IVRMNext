@@ -1,3 +1,5 @@
+// pages/privacy-policy.tsx
+
 import { Card } from '@/components/ui/card';
 import Image from 'next/image';
 
@@ -10,8 +12,15 @@ export default function PrivacyPolicyPage() {
                 color: 'hsl(var(--foreground))'
             }}>
             <header className='mb-8 flex w-full max-w-4xl flex-col items-center space-y-4'>
-                <Image src='/icons/VAPS.png' alt='TAT Logo' width={120} height={120} className='rounded-md' priority />
-                <h1 className='text-center font-bold text-3xl'>VAPS</h1>
+                <Image
+                    src='https://trackandtraceapp.blob.core.windows.net/logo/TAT.png'
+                    alt='TAT Logo'
+                    width={120}
+                    height={120}
+                    className='rounded-md'
+                    priority
+                />
+                <h1 className='text-center font-bold text-3xl'>TAT</h1>
                 <h2 className='text-center font-bold text-3xl'>Privacy Policy</h2>
             </header>
 
@@ -23,7 +32,9 @@ export default function PrivacyPolicyPage() {
                 }}>
                 <section className='mb-8'>
                     <h2 className='mb-3 font-semibold text-xl'>WHAT INFORMATION DO WE COLLECT?</h2>
-                    <p className='mb-2 leading-relaxed'>WAPS collects the following user data to provide and enhance your experience:</p>
+                    <p className='mb-2 leading-relaxed'>
+                        TAT (Track and Trace) collects the following user data to provide and enhance your experience:
+                    </p>
                     <ul className='list-inside list-disc space-y-1'>
                         <li>
                             <strong>Location Data:</strong> Captured specifically for attendance tracking purposes to verify your presence

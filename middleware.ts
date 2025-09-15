@@ -8,6 +8,7 @@ import { createRouterMatcher } from './lib/routeMatcher';
 const routeMatcher = createRouterMatcher([
     { matcher: AUTH_ROUTES.SIGN_IN, auth: false },
     { matcher: AUTH_ROUTES.TERMS, auth: false },
+    { matcher: ROUTES.DASHBOARD, auth: true },
     {
         matcher: ROUTES.ADMISSION.MASTERS,
         auth: true,

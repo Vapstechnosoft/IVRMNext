@@ -1,5 +1,5 @@
-import { COMMON_QUERY_KEYS } from '@/constants/query-keys';
-import { getUserAccessiblePages } from '@/server/common';
+import { QUERY_KEYS } from '@/constants/query-keys';
+import { getCommonDropdown, getUserAccessibleModules, getUserNotificationList } from '@/server/common';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useEffect, useRef } from 'react';
 
@@ -13,19 +13,54 @@ export function usePrevious<T>(value: T): T | undefined {
     return ref.current;
 }
 
-export const useUserAccessiblePages = () => {
+export const useCommonDropdown = (name: string) => {
     const queryClient = useQueryClient();
 
     return {
         ...useQuery({
-            queryKey: [COMMON_QUERY_KEYS.USER_ACCESSIBLE_PAGES],
-            queryFn: async () => getUserAccessiblePages(),
+            queryKey: [name],
+            queryFn: async () => getCommonDropdown(name),
+            staleTime: 0
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [name]
+            });
+        }
+    };
+};
+
+export const useUserNotification = (priority?: string) => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [QUERY_KEYS.USER_NOTIFICATION, priority],
+            queryFn: async () => getUserNotificationList(priority),
+            staleTime: 0
+            // refetchInterval: 10000 // Refetch every 10 seconds
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [QUERY_KEYS.USER_NOTIFICATION]
+            });
+        }
+    };
+};
+
+export const useUserAccessibleModules = () => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [QUERY_KEYS.USER_ACCESSIBLE_MODULES],
+            queryFn: async () => getUserAccessibleModules(),
             staleTime: 0,
             refetchInterval: 10000 // Refetch every 10 seconds
         }),
         refetchAll: () => {
             return queryClient.invalidateQueries({
-                queryKey: [COMMON_QUERY_KEYS.USER_ACCESSIBLE_PAGES]
+                queryKey: [QUERY_KEYS.USER_ACCESSIBLE_MODULES]
             });
         }
     };

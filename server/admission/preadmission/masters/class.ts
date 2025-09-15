@@ -1,17 +1,12 @@
 'use server';
 
-import { api, type ApiResponse, getSearchParamsUrl } from '@/lib/apiService';
+import { api, ApiResponse, getSearchParamsUrl } from '@/lib/apiService';
 import type { ApiSearchparams } from '@/types';
-import type { IMasterClass, IMasterClassList } from '@/types/admission/masters';
-
-export async function addOrUpdateMasterClass(data: IMasterClass) {
-    const url = '/v1/admission/masters/class';
-    return await api.post<any>(url, data);
-}
+import type { IMasterClassList } from '@/types/admission/preadmission/masters';
 
 export async function getMasterClass(searchParams?: ApiSearchparams) {
     const urlParams = getSearchParamsUrl(searchParams ?? {});
-    const url = `/v1/admission/masters/class?${urlParams}`;
+    const url = `/v1/master_class?${urlParams}`;
     // return await api.get<IMasterClassList[]>(url);
 
     const response: ApiResponse<IMasterClassList[]> = {
@@ -49,11 +44,11 @@ export async function getMasterClass(searchParams?: ApiSearchparams) {
 }
 
 export async function deleteMasterClass(id: string) {
-    const url = `/v1/admission/masters/class/${id}`;
+    const url = `/v1/master_class/${id}`;
     return await api.delete(url);
 }
 
 export async function toggleMasterClass(id: string) {
-    const url = `/v1/admission/masters/class/active_inactive/${id}`;
+    const url = `/v1/master_class/active_inactive/${id}`;
     return await api.put(url);
 }

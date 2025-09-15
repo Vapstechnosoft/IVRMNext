@@ -16,7 +16,7 @@ export const env = createEnv({
 export const clientEnv = createEnv({
     emptyStringAsUndefined: true,
     client: {
-        NEXT_PUBLIC_APP_NODE_ENV: z.union([z.literal('development'), z.literal('qa'), z.literal('staging'), z.literal('production')]),
+        NEXT_PUBLIC_APP_NODE_ENV: z.union([z.literal('development'), z.literal('qa'), z.literal('production')]),
         NEXT_PUBLIC_API_BASE_URL: z.string()
     },
     experimental__runtimeEnv: {

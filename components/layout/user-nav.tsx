@@ -32,9 +32,12 @@ export function UserNav({ session }: { session: Session | null }) {
                     <div className='flex flex-col space-y-1'>
                         <p className='font-medium text-sm leading-none'>{session?.name}</p>
                         <p className='text-muted-foreground text-xs leading-none'>{session?.designation}</p>
+                        <p className='text-muted-foreground text-xs leading-none'>{session?.email}</p>
                     </div>
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
+
+                <DropdownMenuItem>Profile</DropdownMenuItem>
 
                 <DropdownMenuGroup>
                     <DropdownMenuItem className='flex-between gap-2'>

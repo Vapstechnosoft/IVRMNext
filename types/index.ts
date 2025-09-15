@@ -1,14 +1,5 @@
 import type { Role } from '@/constants';
 
-export interface NavItem {
-    id?: number;
-    name: string;
-    href?: string;
-    description?: string;
-    icon?: string;
-    items?: NavItem[];
-}
-
 export interface Option {
     label: string;
     value: string;
@@ -30,7 +21,6 @@ export type UserResponseData = {
     email: string;
     token: string;
     user_image: string | null;
-    navItems: NavItem[] | [];
     [key: string]: any;
 };
 
@@ -42,13 +32,51 @@ export type ApiSearchparams = {
     sort_direction?: string;
 };
 
-export interface IUserAccessibleMenus {
-    menu_name: string;
-    icon: string;
-    pages: IUserAccessiblePages[];
+export interface IDropdown {
+    id: number;
+    code: string;
+    name: string;
+    isSelected?: boolean;
+    mapping_order?: number;
+    drop_down_name?: string;
+    [key: string]: any;
 }
 
-export interface IUserAccessiblePages {
+export interface UserNotification {
+    id: number;
+    user_code: string;
+    user_name: string;
+    title: string;
+    message: string;
+    link?: string | null;
+    created_timestamp: string;
+    priority: string;
+}
+
+export interface IUserAccessibleModules {
+    id: number;
     name: string;
+    icon: string;
+    menu: AccessibleMenu[];
+}
+
+export interface AccessibleMenu {
+    id: number;
+    name: string;
+    icon: string;
+    sub_menu: AccessibleSubMenu[];
+}
+
+export interface AccessibleSubMenu {
+    id: number;
+    name: string;
+    icon: string;
+    pages: AccessiblePage[];
+}
+
+export interface AccessiblePage {
+    id: number;
+    name: string;
+    icon: string;
     url: string;
 }

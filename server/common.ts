@@ -1,23 +1,94 @@
 'use server';
-import { api, type ApiResponse } from '@/lib/apiService';
-import type { IUserAccessibleMenus } from '@/types';
+import { api, ApiResponse } from '@/lib/apiService';
+import type { IDropdown, IUserAccessibleModules, UserNotification } from '@/types';
 
-export async function getUserAccessiblePages() {
+export async function getCommonDropdown(name: string) {
+    const url = `/v1/common/common_drop_down_list/${name}`;
+    return await api.get<IDropdown[]>(url);
+}
+
+export async function getUserNotificationList(priority?: string) {
+    const url = `/v1/user_notification?priority=${priority ?? 'normal'}`;
+
+    return await api.get<UserNotification[]>(url);
+}
+
+export async function markReadUserNotification(id: number) {
+    const url = `/v1/user_notification/mark_read/${id}`;
+    return await api.put<any>(url);
+}
+
+export async function markAllReadUserNotification() {
+    const url = '/v1/user_notification/mark_all_read';
+    return await api.put<any>(url);
+}
+
+export async function getUserAccessibleModules() {
     const url = '/v1/login/user_accessible_pages';
 
-    // return await api.get<IUserAccessibleMenus[]>(url);
+    // return await api.get<IUserAccessibleModules[]>(url);
 
-    const response: ApiResponse<IUserAccessibleMenus[]> = {
+    const response: ApiResponse<IUserAccessibleModules[]> = {
         success: true,
         message: 'Data fetched successfully!!',
         data: [
             {
-                menu_name: 'N.A',
-                icon: 'N.A',
-                pages: [
-                    { name: 'Class', url: '/admission/masters/class' },
-                    { name: 'Section', url: '/admission/masters/section' },
-                    { name: 'Subject', url: '/admission/masters/subject' }
+                id: 1,
+                name: 'Admission',
+                icon: 'Settings',
+                menu: [
+                    {
+                        id: 1,
+                        name: 'Preadmission',
+                        icon: 'Settings',
+                        sub_menu: [
+                            {
+                                id: 1,
+                                name: 'Masters',
+                                icon: 'Settings',
+                                pages: [
+                                    {
+                                        id: 1,
+                                        name: 'Master Class',
+                                        icon: 'Settings',
+                                        url: '/admission/masters/class'
+                                    },
+                                    {
+                                        id: 2,
+                                        name: 'Master Section',
+                                        icon: 'Settings',
+                                        url: '/admission/masters/section'
+                                    }
+                                ]
+                            }
+                        ]
+                    },
+                    {
+                        id: 2,
+                        name: 'Enrollment',
+                        icon: 'Settings',
+                        sub_menu: [
+                            {
+                                id: 2,
+                                name: 'Transactions',
+                                icon: 'Settings',
+                                pages: [
+                                    {
+                                        id: 3,
+                                        name: 'Student Enrollment',
+                                        icon: 'Settings',
+                                        url: '/enrollment/transactions/student'
+                                    },
+                                    {
+                                        id: 4,
+                                        name: 'Student TC',
+                                        icon: 'Settings',
+                                        url: '/enrollment/transactions/student_tc'
+                                    }
+                                ]
+                            }
+                        ]
+                    }
                 ]
             }
         ]

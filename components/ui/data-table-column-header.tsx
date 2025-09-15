@@ -32,8 +32,8 @@ export function DataTableColumnHeader<TData, TValue>({ column, title, className 
     const isSortedAsc = column.getIsSorted() === 'asc';
     const isSortedDesc = column.getIsSorted() === 'desc';
 
-    // Check if column can be sorted or hidden
-    if (!column.getCanSort() && !column.getCanHide()) {
+    // Check if column can be sorted
+    if (!column.getCanSort()) {
         return <div className={cn(className)}>{title}</div>;
     }
 

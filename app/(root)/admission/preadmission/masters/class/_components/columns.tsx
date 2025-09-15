@@ -1,16 +1,15 @@
 'use client';
 
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuLabel, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import type { IMasterClassList } from '@/types/admission/preadmission/masters';
 import type { ColumnDef } from '@tanstack/react-table';
 import { MoreHorizontal } from 'lucide-react';
-import type { IMasterClassList } from '@/types/admission/masters';
-import UpdateMasterClassForm from './update-master-class-form';
-import ToggleMasterClassForm from './toggle-master-class-form';
-import DeleteMasterClassForm from './delete-master-class-form';
+import ToggleMasterClassForm from './toggle-form';
+import DeleteMasterClassForm from './delete-form';
+import { getStatusBadge } from '@/components/extras/helpers/helper';
 
 export const masterClassColumns: ColumnDef<IMasterClassList>[] = [
     {
@@ -57,12 +56,8 @@ export const masterClassColumns: ColumnDef<IMasterClassList>[] = [
     },
     {
         accessorKey: 'active_flag',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Status' />,
-        cell: ({ row }) => (
-            <Badge variant={row.getValue('active_flag') ? 'success' : 'destructive'}>
-                {row.getValue('active_flag') ? 'Active' : 'Inactive'}
-            </Badge>
-        ),
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Class Status' />,
+        cell: ({ row }) => <div>{getStatusBadge((row.getValue('active_flag') as boolean) === true ? 'active' : 'inactive')}</div>,
         enableSorting: true,
         enableHiding: true
     },
@@ -73,6 +68,7 @@ export const masterClassColumns: ColumnDef<IMasterClassList>[] = [
             return row;
         },
         enableSorting: false,
+        enableHiding: false,
         cell: ({ cell }: { cell: any }) => {
             return (
                 <DropdownMenu>
@@ -84,7 +80,6 @@ export const masterClassColumns: ColumnDef<IMasterClassList>[] = [
                     <DropdownMenuContent>
                         <DropdownMenuLabel>Actions</DropdownMenuLabel>
                         <div className='flex-justify-between flex-wrap gap-2'>
-                            <UpdateMasterClassForm cell={cell} />
                             <ToggleMasterClassForm cell={cell} />
                             <DeleteMasterClassForm cell={cell} />
                         </div>

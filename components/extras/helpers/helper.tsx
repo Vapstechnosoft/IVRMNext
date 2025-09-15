@@ -16,6 +16,10 @@ export const getStatusBadge = (status: string) => {
             return <Badge className='bg-orange-500'>Cancel Requested</Badge>;
         case 'requested':
             return <Badge className='bg-yellow-500'>Requested</Badge>;
+        case 'active':
+            return <Badge variant='success'>Active</Badge>;
+        case 'inactive':
+            return <Badge variant='destructive'>Inactive</Badge>;
         default:
             return <Badge className='bg-gray-500'>{status}</Badge>;
     }

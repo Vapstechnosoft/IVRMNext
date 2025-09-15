@@ -17,12 +17,12 @@ const nextConfig: NextConfig = {
         remotePatterns: [
             {
                 protocol: 'https',
-                hostname: 'trackandtraceapp.blob.core.windows.net',
+                hostname: 'app.blob.core.windows.net',
                 pathname: '/logo/**' // Allows images under /logo
             },
             {
                 protocol: 'https',
-                hostname: 'trackandtraceapp.blob.core.windows.net',
+                hostname: 'app.blob.core.windows.net',
                 pathname: '/trackandtracedev/**' // Allows images under /trackandtracedev
             }
         ]

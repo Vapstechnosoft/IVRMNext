@@ -11,7 +11,6 @@ declare module 'next-auth' {
         designation: string;
         token: string;
         user_image: string | null;
-        navItems: NavItem[] | [];
         expires: string;
     }
 
@@ -21,7 +20,6 @@ declare module 'next-auth' {
         role: Role;
         designation: string;
         token: string;
-        navItems: NavItem[] | [];
         user_image: string | null;
     }
 

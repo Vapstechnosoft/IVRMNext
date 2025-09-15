@@ -6,7 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { InputPassword } from '@/components/ui/extension/input-password';
 import { InputText } from '@/components/ui/extension/input-text';
 import { Label } from '@/components/ui/label';
-import { loginSchema } from '@/schemas/auth';
+import { loginSchema } from '@/schemas/admission/preadmission/masters';
 import { login } from '@/server/user';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { LogIn, TriangleAlert, UserRound } from 'lucide-react';

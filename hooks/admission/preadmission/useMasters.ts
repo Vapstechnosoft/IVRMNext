@@ -1,5 +1,5 @@
 import { ADMISSION_QUERY_KEYS } from '@/constants/query-keys';
-import { getMasterClass } from '@/server/admission/masters/class';
+import { getMasterClass } from '@/server/admission/preadmission/masters/class';
 import type { ApiSearchparams } from '@/types';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 

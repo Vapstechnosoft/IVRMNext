@@ -1,8 +1,9 @@
 import { ROUTES } from '@/constants/routes';
 import { auth } from '@/lib/auth';
 import { UserNav } from '../user-nav';
+import UserNotificationPage from '../user-notification';
 import Logo from './logo';
-import { ResponsiveNavigation } from './responsive-navigation';
+import { NavigationSystem } from './navigation-system';
 
 export default async function Navbar() {
     const session = await auth();
@@ -12,11 +13,9 @@ export default async function Navbar() {
             <div className='container flex min-h-14 items-center py-2'>
                 <div className='flex w-full items-center gap-4'>
                     <Logo className='flex-shrink-0 lg:scale-90' herf={ROUTES.DASHBOARD} />
-                    <ResponsiveNavigation />
-                </div>
-
-                <div className='flex flex-1 items-center justify-between space-x-2 md:justify-end'>
+                    <NavigationSystem />
                     <div className='ml-auto flex items-center gap-2 md:ml-auto md:gap-2'>
+                        <UserNotificationPage />
                         <UserNav session={session} />
                     </div>
                 </div>

@@ -1,8 +1,8 @@
 'use server';
 
-import { api, type ApiResponse } from '@/lib/apiService';
+import { api, ApiResponse } from '@/lib/apiService';
 import { signIn } from '@/lib/auth';
-import type { loginSchema } from '@/schemas/auth';
+import type { loginSchema } from '@/schemas/admission/preadmission/masters';
 import type { UserResponseData } from '@/types';
 import { AuthError } from 'next-auth';
 import { revalidatePath } from 'next/cache';
@@ -27,8 +27,7 @@ export async function getUserByEmail(email: string, password: string) {
             role: 'SUPER_ADMIN',
             designation: 'Super Admin',
             token: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJPcmdhbml6YXRpb25JZCI6IjEiLCJDb21wYW55SWQiOiIyIiwiSWQiOiIyNjYiLCJOYW1lIjoiU3RhZmYiLCJFbWFpbCI6InN0YWZmQGdtYWlsLmNvbSIsImp0aSI6IjU2ZTQzM2Q4LWMxYjYtNGVmMy04MWYwLWNlMzZjYzNjMzMzZSIsImV4cCI6MTc1OTkwMzEwNCwiaXNzIjoiVHJhY2tBbmRUcmFjZV9BUEkiLCJhdWQiOiJUcmFja0FuZFRyYWNlX1VzZXJzIn0.TUp80mWiGRJyMNwuoqSxph3FWKyZb_Gu2YRgSuP2r7g',
-            user_image: null,
-            navItems: []
+            user_image: null
         }
     };
     return response;
