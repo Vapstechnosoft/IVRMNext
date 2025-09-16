@@ -18,7 +18,6 @@ export default function MasterClassPage(props: {
             <div className='flex-between flex-wrap gap-4'>
                 <Heading title='Master Class' description='' />
             </div>
-
             <MasterClassTable searchParams={searchParams} />
         </div>
     );

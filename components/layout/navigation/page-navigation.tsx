@@ -53,15 +53,17 @@ export function PageNavigation() {
                 animate={{ opacity: 1, height: 'auto' }}
                 exit={{ opacity: 0, height: 0 }}
                 transition={{ duration: 0.3, ease: 'easeInOut' }}
-                className='sticky top-14 z-30 border-border border-b bg-accent/30 backdrop-blur-sm'>
-                <div className='container py-2'>
+                className='sticky top-14 z-30 border-border backdrop-blur-sm'>
+                <div className='container rounded-lg bg-gradient-purple-orange py-2'>
                     {/* Breadcrumb */}
-                    <div className='flex items-center gap-2 text-sm text-muted-foreground'>
-                        <span className='font-medium text-foreground'>{activeNavigation.module}</span>
+                    <div className='flex items-center gap-2 text-sm text-muted'>
+                        <span className='font-medium'>{activeNavigation.module}</span>
                         <ChevronRight className='w-4 h-4' />
                         <span>{activeNavigation.menu}</span>
                         <ChevronRight className='w-4 h-4' />
-                        <span className='text-primary font-medium'>{activeNavigation.subMenu}</span>
+                        <div className='underline underline-offset-4'>
+                            <span className='font-medium'>{activeNavigation.subMenu}</span>
+                        </div>
                     </div>
 
                     {/* Page Navigation */}
@@ -71,15 +73,15 @@ export function PageNavigation() {
                             <Button
                                 variant='outline'
                                 size='sm'
-                                className='flex-shrink-0 h-10 w-10 p-0 rounded-full shadow-md hover:shadow-lg transition-shadow'
+                                className='h-10 w-10 flex-shrink-0 rounded-full p-0 shadow-md transition-shadow hover:shadow-lg'
                                 onClick={() => scrollPages('left')}>
-                                <ChevronLeft className='w-4 h-4' />
+                                <ChevronLeft className='h-4 w-4' />
                             </Button>
 
                             {/* Scrollable Pages Container */}
                             <div
                                 ref={pageScrollRef}
-                                className='flex gap-3 overflow-x-auto scrollbar-hide flex-1 py-2 px-1'
+                                className='scrollbar-hide flex flex-1 gap-3 overflow-x-auto px-1 py-2'
                                 style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
                                 {activeNavigation.pages.map((page: any) => {
                                     const isCurrentPage = pathname === page.url;
@@ -90,10 +92,10 @@ export function PageNavigation() {
                                             <Card
                                                 className={cn(
                                                     'flex-shrink-0 cursor-pointer transition-all duration-200 hover:scale-105 hover:shadow-lg',
-                                                    'min-w-[150px] border-2',
+                                                    'min-w-[150px] border-2 text-nowrap',
                                                     isCurrentPage
-                                                        ? 'border-primary bg-primary/10 shadow-md'
-                                                        : 'border-border hover:border-primary/50'
+                                                        ? 'border-border hover:border-primary/50'
+                                                        : 'border border-accent/20 bg-primary/25'
                                                 )}>
                                                 <CardContent className='p-2 text-center'>
                                                     <div className='flex items-center gap-2'>
@@ -110,8 +112,8 @@ export function PageNavigation() {
                                                         )}
                                                         <span
                                                             className={cn(
-                                                                'text-sm font-medium transition-colors',
-                                                                isCurrentPage ? 'text-primary' : 'text-foreground'
+                                                                'font-medium text-sm transition-colors',
+                                                                isCurrentPage ? 'text-foreground' : 'text-muted'
                                                             )}>
                                                             {page.name}
                                                         </span>
