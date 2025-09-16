@@ -12,11 +12,10 @@ export default function Logo({ className = '', herf = '', size = 'text' }: LogoP
     const logoContent = (
         <div className={cn('mr-4 flex items-center gap-4 lg:mr-6', className)}>
             <Image
-                src='/icons/VAPS.png'
+                src='/assets/logo1.png'
                 alt='VAPS Logo'
-                width={size === 'icon' ? 48 : 64} // Adjust width based on size prop
-                height={size === 'icon' ? 48 : 64} // Adjust height based on size prop
-                className='h-12 w-12' // Default size class for consistency
+                width={size === 'icon' ? 48 : 80} // Adjust width based on size prop
+                height={size === 'icon' ? 48 : 80} // Adjust height based on size prop
             />
             {size === 'text' && <span className='hidden font-bold lg:inline-block lg:text-3xl'> VAPS</span>}
         </div>
