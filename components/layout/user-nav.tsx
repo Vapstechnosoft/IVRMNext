@@ -4,15 +4,12 @@ import { Button } from '@/components/ui/button';
 import {
     DropdownMenu,
     DropdownMenuContent,
-    DropdownMenuGroup,
-    DropdownMenuItem,
     DropdownMenuLabel,
     DropdownMenuSeparator,
     DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu';
 
 import type { Session } from 'next-auth';
-import ThemeToggleSwitch from '../ui/theme-toggle';
 import SignOut from './sign-out';
 
 export function UserNav({ session }: { session: Session | null }) {
@@ -30,20 +27,11 @@ export function UserNav({ session }: { session: Session | null }) {
             <DropdownMenuContent className='w-56' align='end' forceMount>
                 <DropdownMenuLabel className='font-normal'>
                     <div className='flex flex-col space-y-1'>
-                        <p className='font-medium text-sm leading-none'>{session?.name}</p>
-                        <p className='text-muted-foreground text-xs leading-none'>{session?.designation}</p>
-                        <p className='text-muted-foreground text-xs leading-none'>{session?.email}</p>
+                        <p className='font-medium text-sm leading-none'>Name: {session?.name}</p>
+                        <p className='text-muted-foreground text-xs leading-none'>Designation: {session?.designation}</p>
+                        <p className='text-muted-foreground text-xs leading-none'>Email: {session?.email}</p>
                     </div>
                 </DropdownMenuLabel>
-                <DropdownMenuSeparator />
-
-                <DropdownMenuItem>Profile</DropdownMenuItem>
-
-                <DropdownMenuGroup>
-                    <DropdownMenuItem className='flex-between gap-2'>
-                        Theme <ThemeToggleSwitch />
-                    </DropdownMenuItem>
-                </DropdownMenuGroup>
                 <DropdownMenuSeparator />
                 <SignOut />
             </DropdownMenuContent>

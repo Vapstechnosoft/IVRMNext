@@ -51,13 +51,32 @@ export async function getUserAccessibleModules() {
                                         id: 1,
                                         name: 'Master Class',
                                         icon: 'Settings',
-                                        url: '/admission/masters/class'
+                                        url: '/admission/preadmission/masters/class'
                                     },
                                     {
                                         id: 2,
                                         name: 'Master Section',
                                         icon: 'Settings',
                                         url: '/admission/masters/section'
+                                    }
+                                ]
+                            },
+                            {
+                                id: 2,
+                                name: 'Transactions',
+                                icon: 'Settings',
+                                pages: [
+                                    {
+                                        id: 1,
+                                        name: 'Master Class',
+                                        icon: 'Settings',
+                                        url: '/admission/preadmission/transactions/class'
+                                    },
+                                    {
+                                        id: 2,
+                                        name: 'Master Section',
+                                        icon: 'Settings',
+                                        url: '/admission/transactions/section'
                                     }
                                 ]
                             }

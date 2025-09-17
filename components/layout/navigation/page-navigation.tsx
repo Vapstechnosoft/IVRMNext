@@ -46,6 +46,11 @@ export function PageNavigation() {
         return null;
     }
 
+    if (pathname === '/' || pathname === null) {
+        setActiveNavigation(null);
+        return null;
+    }
+
     return (
         <AnimatePresence>
             <motion.div
@@ -53,7 +58,7 @@ export function PageNavigation() {
                 animate={{ opacity: 1, height: 'auto' }}
                 exit={{ opacity: 0, height: 0 }}
                 transition={{ duration: 0.3, ease: 'easeInOut' }}
-                className='sticky top-14 z-30 border-border backdrop-blur-sm'>
+                className='sticky top-16 z-20 border-border backdrop-blur-sm'>
                 <div className='container rounded-lg bg-gradient-purple-orange py-2'>
                     {/* Breadcrumb */}
                     <div className='flex items-center gap-2 text-sm text-muted'>

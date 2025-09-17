@@ -7,9 +7,10 @@ import { cn } from '@/lib/utils';
 import type { IUserAccessibleModules } from '@/types';
 import { AnimatePresence, motion } from 'framer-motion';
 import { ChevronDown, X } from 'lucide-react';
-import { useRouter } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { setNavigationContext } from './navigation-context';
+import { useUserAccessibleModules } from '@/hooks/common';
 
 interface SubMenu {
     id: number;
@@ -39,144 +40,18 @@ export interface ActiveNavigation {
 
 export function NavigationSystem() {
     const [activeDrawer, setActiveDrawer] = useState<string | null>(null);
+    const [activeModule, setActiveModule] = useState<string | null>(null);
     const router = useRouter();
+    const pathname = usePathname();
 
-    // Mock data - replace with your hook
-    const accessibleModule: IUserAccessibleModules = {
-        id: 1,
-        name: 'Admission',
-        icon: 'Settings',
-        menu: [
-            {
-                id: 1,
-                name: 'Preadmission',
-                icon: 'Settings',
-                sub_menu: [
-                    {
-                        id: 1,
-                        name: 'Masters',
-                        icon: 'Settings',
-                        pages: [
-                            {
-                                id: 1,
-                                name: 'Master Class',
-                                icon: 'Settings',
-                                url: '/admission/preadmission/masters/class'
-                            },
-                            {
-                                id: 2,
-                                name: 'Master Section',
-                                icon: 'Settings',
-                                url: '/admission/masters/section'
-                            }
-                        ]
-                    },
-                    {
-                        id: 2,
-                        name: 'Transactions',
-                        icon: 'Settings',
-                        pages: [
-                            {
-                                id: 1,
-                                name: 'Master Class',
-                                icon: 'Settings',
-                                url: '/admission/preadmission/transactions/class'
-                            },
-                            {
-                                id: 2,
-                                name: 'Master Section',
-                                icon: 'Settings',
-                                url: '/admission/transactions/section'
-                            }
-                        ]
-                    }
-                ]
-            },
-            {
-                id: 2,
-                name: 'Enrollment',
-                icon: 'Settings',
-                sub_menu: [
-                    {
-                        id: 2,
-                        name: 'Transactions',
-                        icon: 'Settings',
-                        pages: [
-                            {
-                                id: 3,
-                                name: 'Student Enrollment',
-                                icon: 'Settings',
-                                url: '/enrollment/transactions/student'
-                            },
-                            {
-                                id: 4,
-                                name: 'Student TC',
-                                icon: 'Settings',
-                                url: '/enrollment/transactions/student_tc'
-                            }
-                        ]
-                    }
-                ]
-            }
-        ]
-    };
-
-    // Additional modules for demo
-    const allModules = [
-        accessibleModule,
-        {
-            id: 2,
-            name: 'Academic',
-            icon: 'BookOpen',
-            menu: [
-                {
-                    id: 3,
-                    name: 'Curriculum',
-                    icon: 'Book',
-                    sub_menu: [
-                        {
-                            id: 3,
-                            name: 'Subjects',
-                            icon: 'FileText',
-                            pages: [
-                                { id: 5, name: 'Subject Master', icon: 'Plus', url: '/academic/subjects/master' },
-                                { id: 6, name: 'Subject Mapping', icon: 'Link', url: '/academic/subjects/mapping' }
-                            ]
-                        }
-                    ]
-                }
-            ]
-        },
-        {
-            id: 3,
-            name: 'Finance',
-            icon: 'DollarSign',
-            menu: [
-                {
-                    id: 4,
-                    name: 'Fees',
-                    icon: 'CreditCard',
-                    sub_menu: [
-                        {
-                            id: 4,
-                            name: 'Management',
-                            icon: 'Settings',
-                            pages: [
-                                { id: 7, name: 'Fee Structure', icon: 'List', url: '/finance/fees/structure' },
-                                { id: 8, name: 'Fee Collection', icon: 'Wallet', url: '/finance/fees/collection' }
-                            ]
-                        }
-                    ]
-                }
-            ]
-        }
-    ];
+    const { data: accessibleModule, isLoading: accessibleModuleLoading, error: accessibleModuleError } = useUserAccessibleModules();
 
     const handleModuleClick = (moduleName: string) => {
         if (activeDrawer === moduleName) {
             setActiveDrawer(null);
         } else {
             setActiveDrawer(moduleName);
+            setActiveModule(moduleName);
         }
     };
 
@@ -190,6 +65,7 @@ export function NavigationSystem() {
                 pages: subMenu.pages
             });
             setActiveDrawer(null);
+            setActiveModule(module.name);
             router.push(firstPageUrl);
         }
     };
@@ -200,6 +76,7 @@ export function NavigationSystem() {
             const target = event.target as Element;
             if (!target.closest('.navigation-drawer') && !target.closest('.nav-button')) {
                 setActiveDrawer(null);
+                setActiveModule(null);
             }
         };
 
@@ -209,12 +86,18 @@ export function NavigationSystem() {
         }
     }, [activeDrawer]);
 
+    if (activeModule !== null && activeDrawer === null && (pathname === '/' || pathname === null)) {
+        setActiveDrawer(null);
+        setActiveModule(null);
+        return null;
+    }
+
     return (
-        <div className='flex items-center justify-center flex-1'>
+        <div className='flex items-center justify-start flex-1'>
             <nav className='flex items-center space-x-1'>
-                {allModules.map((module) => {
+                {accessibleModule?.data?.map((module) => {
                     const IconComponent = getIconByName(module.icon);
-                    const isActive = activeDrawer === module.name;
+                    const isActive = activeModule === module.name;
 
                     return (
                         <Button
@@ -267,8 +150,8 @@ export function NavigationSystem() {
                                 </div>
 
                                 <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4'>
-                                    {allModules
-                                        .find((m) => m.name === activeDrawer)
+                                    {accessibleModule?.data
+                                        ?.find((m) => m.name === activeDrawer)
                                         ?.menu.map((menu) => (
                                             <Card key={menu.id} className='hover:shadow-md transition-shadow duration-200'>
                                                 <CardContent className='p-4'>
@@ -292,7 +175,7 @@ export function NavigationSystem() {
                                                                 className='w-full justify-start p-2 h-auto text-sm hover:bg-accent/50'
                                                                 onClick={() =>
                                                                     handleSubMenuClick(
-                                                                        allModules.find((m) => m.name === activeDrawer)!,
+                                                                        accessibleModule?.data?.find((m) => m.name === activeDrawer)!,
                                                                         menu,
                                                                         subMenu
                                                                     )

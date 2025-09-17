@@ -16,7 +16,7 @@ import { toast } from 'sonner';
 type NotificationPriority = 'high' | 'medium' | 'normal';
 
 export default function UserNotificationPage() {
-    const { data: notifications, isLoading: loading, refetch: refetchAll } = useUserNotification();
+    const { data: notifications, isLoading: loading, error: isError, refetch: refetchAll } = useUserNotification();
     const [open, setOpen] = useState(false);
     const [unreadCounts, setUnreadCounts] = useState({
         high: 0,
@@ -308,7 +308,7 @@ export default function UserNotificationPage() {
                             <div className='h-2 w-2 animate-bounce rounded-full bg-primary delay-150' />
                         </div>
                     </div>
-                ) : sortedNotifications?.length === 0 ? (
+                ) : sortedNotifications?.length === 0 && isError ? (
                     <div className='flex flex-col items-center justify-center p-8 text-center'>
                         <div className='mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-muted'>
                             <Bell className='h-6 w-6 text-muted-foreground' />
