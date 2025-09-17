@@ -22,7 +22,7 @@ export default function Providers({ children, session }: ProvidersProps) {
         }
     });
     return (
-        <NextThemesProvider attribute='class' defaultTheme='system' enableSystem disableTransitionOnChange>
+        <NextThemesProvider attribute='class' defaultTheme='light' enableSystem={false} disableTransitionOnChange>
             <QueryClientProvider client={queryClient}>
                 <SessionProvider session={session}>
                     <TooltipProvider delayDuration={0}>

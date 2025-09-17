@@ -67,29 +67,6 @@ const statsData = [
 ];
 
 export default function Dashboard() {
-    const [isDarkMode, setIsDarkMode] = useState(false);
-    const [mounted, setMounted] = useState(false);
-
-    useEffect(() => {
-        setMounted(true);
-        // Check system preference for dark mode
-        if (window.matchMedia?.('(prefers-color-scheme: dark)').matches) {
-            setIsDarkMode(true);
-        }
-    }, []);
-
-    useEffect(() => {
-        if (mounted) {
-            if (isDarkMode) {
-                document.documentElement.classList.add('dark');
-            } else {
-                document.documentElement.classList.remove('dark');
-            }
-        }
-    }, [isDarkMode, mounted]);
-
-    if (!mounted) return null;
-
     return (
         <div className='min-h-screen bg-background text-foreground transition-colors duration-300'>
             <Head>

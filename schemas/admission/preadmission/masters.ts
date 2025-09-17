@@ -9,9 +9,11 @@ export const loginSchema = z.object({
 export const masterClassSchema = {
     addOrUpdate: z.object({
         id: z.number().int({ message: 'Id is required' }).optional(),
-        code: createStringSchema('Code', 2, 50),
         name: createStringSchema('Name', 2, 50),
-        active_flag: z.boolean({ message: 'Active Flag is required' }).optional()
+        description: createStringSchema('Description', 2, 100),
+        cost: z.number().int({ message: 'Cost is required' }).optional(),
+        value_id: z.number().int({ message: 'Value is required' }),
+        multi_value_ids: z.array(z.string()).nonempty('Please at least one brand')
     }),
     delete: z.object({
         id: deleteIdSchema('id')

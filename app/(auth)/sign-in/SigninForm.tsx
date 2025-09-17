@@ -13,7 +13,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { ArrowUpRight, LockKeyhole, LogIn, TriangleAlert, GraduationCap } from 'lucide-react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
-import { useState, useTransition } from 'react';
+import { useEffect, useState, useTransition } from 'react';
 import { type SubmitHandler, useForm } from 'react-hook-form';
 import type { z } from 'zod';
 import Image from 'next/image';
@@ -26,6 +26,26 @@ export default function SigninForm() {
     const [error, setError] = useState<string | undefined>('');
     const [isPending, startTransition] = useTransition();
     const [rememberMe, setRememberMe] = useState(false);
+
+    const [isDarkMode, setIsDarkMode] = useState(false);
+    const [mounted, setMounted] = useState(false);
+
+    useEffect(() => {
+        setMounted(true);
+
+        if (window.matchMedia?.('(prefers-color-scheme: dark)').matches) {
+            setIsDarkMode(true);
+        }
+    }, []);
+
+    useEffect(() => {
+        if (mounted) {
+            if (isDarkMode) {
+                document.documentElement.classList.remove('dark');
+                document.documentElement.classList.add('light');
+            }
+        }
+    }, [isDarkMode, mounted]);
 
     const {
         reset,
@@ -177,12 +197,10 @@ export default function SigninForm() {
                                         disabled={isPending}
                                         variant='outline'
                                         toolTip='Preadmission Registration is not available yet.'
-                                        className='w-full h-12 border-2 border-gray-200 hover:border-blue-300 hover:bg-blue-50 transition-all duration-200 group'>
-                                        <LockKeyhole className='w-4 h-4 mr-2 text-gray-600 group-hover:text-blue-600' />
-                                        <span className='flex-1 text-gray-700 group-hover:text-blue-700 font-medium'>
-                                            Preadmission Registration
-                                        </span>
-                                        <ArrowUpRight className='w-4 h-4 text-gray-400 group-hover:text-blue-500 transition-all group-hover:translate-x-1' />
+                                        className='h-12 w-full border-2 border-gray-200 '>
+                                        <LockKeyhole className='mr-2 h-4 w-4 text-gray-600 ' />
+                                        <span className='flex-1 font-medium text-gray-400'>Preadmission Registration</span>
+                                        <ArrowUpRight className='h-4 w-4 text-gray-400' />
                                     </Button>
                                 </div>
                             </form>

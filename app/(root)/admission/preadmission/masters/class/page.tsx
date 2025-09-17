@@ -5,6 +5,7 @@ import { DataTable } from '@/components/ui/data-table/data-table';
 import { useMasterClass } from '@/hooks/admission/preadmission/useMasters';
 import { use } from 'react';
 import { masterClassColumns } from './_components/columns';
+import AddMasterClassForm from './_components/add-form';
 
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 
@@ -19,6 +20,9 @@ export default function MasterClassPage(props: {
                 <Heading title='Master Class' description='' />
             </div>
             <MasterClassTable searchParams={searchParams} />
+            <div>
+                <AddMasterClassForm />
+            </div>
         </div>
     );
 }

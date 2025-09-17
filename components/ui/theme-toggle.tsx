@@ -15,6 +15,10 @@ export default function ThemeToggleSwitch() {
         setMounted(true);
     }, []);
 
+    if (mounted && !theme) {
+        return null;
+    }
+
     if (!mounted) {
         return null;
     }
