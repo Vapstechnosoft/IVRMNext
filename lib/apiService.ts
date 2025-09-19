@@ -11,6 +11,16 @@ export interface ApiResponse<T> extends Partial<PaginationData> {
     [key: string]: unknown;
 }
 
+export interface ApiArrayResponse<T> extends Partial<PaginationData> {
+    success: boolean;
+    message: string;
+    data: {
+        $type: string;
+        $values: T[];
+    } | null;
+    [key: string]: unknown;
+}
+
 import { env } from '@/env';
 import { auth, signOut } from '@/lib/auth';
 import type { ApiSearchparams } from '@/types';
@@ -89,6 +99,30 @@ class ApiService {
         return this.request<T>('GET', url, config);
     }
 
+    public async getArray<T>(url: string, config?: AxiosRequestConfig): Promise<ApiResponse<T[]>> {
+        try {
+            const response = await this.instance.request<ApiArrayResponse<T>>({
+                method: 'GET',
+                url,
+                ...config
+            });
+
+            // Transform the response to extract $values and maintain the same structure
+            const transformedResponse: ApiResponse<T[]> = {
+                success: response.data.success,
+                message: response.data.message,
+                data: response.data.data?.$values || null,
+                total: response.data.total,
+                page: response.data.page,
+                page_Size: response.data.page_Size
+            };
+
+            return transformedResponse;
+        } catch (error) {
+            throw this.handleError(error);
+        }
+    }
+
     public async post<T>(url: string, data?: unknown, config?: AxiosRequestConfig): Promise<ApiResponse<T>> {
         return this.request<T>('POST', url, config, data);
     }
@@ -113,6 +147,7 @@ class ApiService {
  * Methods avaiable on the instance are:
  * //n request<T>(method: string, url: string, config?: AxiosRequestConfig, data?: unknown): Promise<ApiResponse<T>>
  * //n get<T>(url: string, config?: AxiosRequestConfig): Promise<ApiResponse<T>>
+ * //n getArray<T>(url: string, config?: AxiosRequestConfig): Promise<ApiResponse<T[]>>
  * //n post<T>(url: string, data?: unknown, config?: AxiosRequestConfig): Promise<ApiResponse<T>>
  * //n put<T>(url: string, data?: unknown, config?: AxiosRequestConfig): Promise<ApiResponse<T>>
  * //n delete<T>(url: string, config?: AxiosRequestConfig): Promise<ApiResponse<T>>

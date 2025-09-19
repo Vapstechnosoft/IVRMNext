@@ -16,6 +16,6 @@ export const masterClassSchema = {
         multi_value_ids: z.array(z.string()).nonempty('Please at least one brand')
     }),
     delete: z.object({
-        id: deleteIdSchema('id')
+        asmcL_Id: deleteIdSchema('asmcL_Id')
     })
 };

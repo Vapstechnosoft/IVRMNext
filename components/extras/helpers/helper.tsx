@@ -20,6 +20,10 @@ export const getStatusBadge = (status: string) => {
             return <Badge variant='success'>Active</Badge>;
         case 'inactive':
             return <Badge variant='destructive'>Inactive</Badge>;
+        case 'yes':
+            return <Badge variant='success'>Yes</Badge>;
+        case 'no':
+            return <Badge variant='destructive'>No</Badge>;
         default:
             return <Badge className='bg-gray-500'>{status}</Badge>;
     }

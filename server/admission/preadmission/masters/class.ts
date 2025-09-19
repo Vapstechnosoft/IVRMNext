@@ -1,46 +1,13 @@
 'use server';
 
-import { api, ApiResponse, getSearchParamsUrl } from '@/lib/apiService';
+import { api, type ApiResponse, getSearchParamsUrl } from '@/lib/apiService';
 import type { ApiSearchparams, IDropdown } from '@/types';
 import type { IMasterClassList } from '@/types/admission/preadmission/masters';
 
 export async function getMasterClass(searchParams?: ApiSearchparams) {
     const urlParams = getSearchParamsUrl(searchParams ?? {});
-    const url = `/v1/master_class?${urlParams}`;
-    // return await api.get<IMasterClassList[]>(url);
-
-    const response: ApiResponse<IMasterClassList[]> = {
-        success: true,
-        message: 'Data fetched successfully!!',
-        data: [
-            {
-                id: 1,
-                code: 'Class-001',
-                name: 'First Standard',
-                active_flag: true
-            },
-            {
-                id: 2,
-                code: 'Class-002',
-                name: 'Second Standard',
-                active_flag: false
-            },
-            {
-                id: 3,
-                code: 'Class-003',
-                name: 'Third Standard',
-                active_flag: true
-            },
-            {
-                id: 4,
-                code: 'Class-004',
-                name: 'Fourth Standard',
-                active_flag: false
-            }
-        ]
-    };
-
-    return response;
+    const url = `/School_M_ClassFacade/master_class_list/30?${urlParams}`;
+    return await api.getArray<IMasterClassList>(url);
 }
 
 export async function deleteMasterClass(id: string) {

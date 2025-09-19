@@ -29,7 +29,7 @@ export const masterClassColumns: ColumnDef<IMasterClassList>[] = [
         size: 24
     },
     {
-        accessorKey: 'id',
+        accessorKey: 'asmcL_Id',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Sl.No' />,
         cell: ({ row, table }) => {
             const pageIndex = table.getState().pagination.pageIndex;
@@ -41,23 +41,86 @@ export const masterClassColumns: ColumnDef<IMasterClassList>[] = [
         enableHiding: false
     },
     {
-        accessorKey: 'code',
+        accessorKey: 'asmcL_ClassCode',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Class Code' />,
-        cell: ({ row }) => <div>{row.getValue('code')}</div>,
+        cell: ({ row }) => <div>{row.getValue('asmcL_ClassCode')}</div>,
         enableSorting: true,
         enableHiding: true
     },
     {
-        accessorKey: 'name',
+        accessorKey: 'asmcL_ClassName',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Class Name' />,
-        cell: ({ row }) => <div>{row.getValue('name')}</div>,
+        cell: ({ row }) => <div>{row.getValue('asmcL_ClassName')}</div>,
         enableSorting: true,
         enableHiding: true
     },
     {
-        accessorKey: 'active_flag',
+        accessorKey: 'asmcL_Order',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Order' />,
+        cell: ({ row }) => <div>{row.getValue('asmcL_Order')}</div>,
+        enableSorting: true,
+        enableHiding: true
+    },
+    {
+        accessorKey: 'asmcL_MinAgeYear',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Min Age (Years)' />,
+        cell: ({ row }) => <div>{row.getValue('asmcL_MinAgeYear')}</div>,
+        enableSorting: true,
+        enableHiding: true
+    },
+    {
+        accessorKey: 'asmcL_MinAgeMonth',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Min Age (Months)' />,
+        cell: ({ row }) => <div>{row.getValue('asmcL_MinAgeMonth')}</div>,
+        enableSorting: true,
+        enableHiding: true
+    },
+    {
+        accessorKey: 'asmcL_MinAgeDays',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Min Age (Days)' />,
+        cell: ({ row }) => <div>{row.getValue('asmcL_MinAgeDays')}</div>,
+        enableSorting: true,
+        enableHiding: true
+    },
+    {
+        accessorKey: 'asmcL_MaxAgeYear',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Max Age (Years)' />,
+        cell: ({ row }) => <div>{row.getValue('asmcL_MaxAgeYear')}</div>,
+        enableSorting: true,
+        enableHiding: true
+    },
+    {
+        accessorKey: 'asmcL_MaxAgeMonth',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Max Age (Months)' />,
+        cell: ({ row }) => <div>{row.getValue('asmcL_MaxAgeMonth')}</div>,
+        enableSorting: true,
+        enableHiding: true
+    },
+    {
+        accessorKey: 'asmcL_MaxAgeDays',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Max Age (Days)' />,
+        cell: ({ row }) => <div>{row.getValue('asmcL_MaxAgeDays')}</div>,
+        enableSorting: true,
+        enableHiding: true
+    },
+    {
+        accessorKey: 'asmcL_MaxCapacity',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Max Capacity' />,
+        cell: ({ row }) => <div>{row.getValue('asmcL_MaxCapacity')}</div>,
+        enableSorting: true,
+        enableHiding: true
+    },
+    {
+        accessorKey: 'asmcL_PreadmFlag',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Pre-Admission Flag' />,
+        cell: ({ row }) => <div>{getStatusBadge((row.getValue('asmcL_PreadmFlag') as number) === 1 ? 'yes' : 'no')}</div>,
+        enableSorting: true,
+        enableHiding: true
+    },
+    {
+        accessorKey: 'asmcL_ActiveFlag',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Class Status' />,
-        cell: ({ row }) => <div>{getStatusBadge((row.getValue('active_flag') as boolean) === true ? 'active' : 'inactive')}</div>,
+        cell: ({ row }) => <div>{getStatusBadge((row.getValue('asmcL_ActiveFlag') as boolean) === true ? 'active' : 'inactive')}</div>,
         enableSorting: true,
         enableHiding: true
     },
