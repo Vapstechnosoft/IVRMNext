@@ -3,13 +3,14 @@
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuLabel, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import type { IMasterClassList } from '@/types/admission/preadmission/masters';
 import type { ColumnDef } from '@tanstack/react-table';
 import { MoreHorizontal, Edit } from 'lucide-react';
 import ToggleMasterClassForm from './toggle-form';
 import DeleteMasterClassForm from './delete-form';
 import { getStatusBadge } from '@/components/extras/helpers/helper';
+import { useState } from 'react';
 
 // Create a function that returns columns with edit handler
 export const createMasterClassColumns = (onEditClick?: (row: IMasterClassList) => void): ColumnDef<IMasterClassList>[] => [
@@ -132,41 +133,48 @@ export const createMasterClassColumns = (onEditClick?: (row: IMasterClassList) =
         enableSorting: false,
         enableHiding: false,
         cell: ({ getValue }) => {
-            const row = getValue();
-            return (
-                <DropdownMenu>
-                    <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
-                        <Button type='button' variant='ghost' className='h-8 w-8 p-0'>
-                            <MoreHorizontal className='h-4 w-4' />
-                        </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align='end' className='w-40' onCloseAutoFocus={(e) => e.preventDefault()}>
-                        <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                        <div className='flex flex-col gap-1'>
+            const ActionsCell = () => {
+                const [open, setOpen] = useState(false);
+                const row = getValue();
+
+                const handleEditClick = (e: React.MouseEvent) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    setOpen(false);
+                    setTimeout(() => {
+                        onEditClick?.(row as IMasterClassList);
+                    }, 100);
+                };
+
+                return (
+                    <DropdownMenu open={open} onOpenChange={setOpen}>
+                        <DropdownMenuTrigger asChild>
+                            <Button
+                                type='button'
+                                variant='ghost'
+                                className='h-8 w-8 p-0'
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                }}>
+                                <MoreHorizontal className='h-4 w-4' />
+                            </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align='end' className='w-40' onCloseAutoFocus={(e) => e.preventDefault()}>
+                            <DropdownMenuLabel>Actions</DropdownMenuLabel>
                             {onEditClick && (
-                                <Button
-                                    type='button'
-                                    variant='ghost'
-                                    size='sm'
-                                    onClick={(e) => {
-                                        e.stopPropagation();
-                                        onEditClick(row as IMasterClassList);
-                                    }}
-                                    className='w-full justify-start h-8 px-2'>
+                                <DropdownMenuItem onClick={handleEditClick} className='cursor-pointer'>
                                     <Edit className='h-4 w-4 mr-2' />
                                     Edit
-                                </Button>
+                                </DropdownMenuItem>
                             )}
-                            <div onClick={(e) => e.stopPropagation()}>
-                                <ToggleMasterClassForm cell={{ getValue: () => row }} />
-                            </div>
-                            <div onClick={(e) => e.stopPropagation()}>
-                                <DeleteMasterClassForm cell={{ getValue: () => row }} />
-                            </div>
-                        </div>
-                    </DropdownMenuContent>
-                </DropdownMenu>
-            );
+                            <ToggleMasterClassForm cell={{ getValue: () => row }} onAction={() => setOpen(false)} />
+                            <DeleteMasterClassForm cell={{ getValue: () => row }} onAction={() => setOpen(false)} />
+                        </DropdownMenuContent>
+                    </DropdownMenu>
+                );
+            };
+
+            return <ActionsCell />;
         }
     }
 ];

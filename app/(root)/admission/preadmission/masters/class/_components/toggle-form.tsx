@@ -1,6 +1,7 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
+import { DropdownMenuItem } from '@/components/ui/dropdown-menu';
 import { AdaptiveBody, AdaptiveDialog, AdaptiveFooter } from '@/components/ui/extension/adaptive-dialog';
 import { FormError } from '@/components/ui/extension/field';
 import { Switch } from '@/components/ui/switch';
@@ -16,7 +17,12 @@ import type { z } from 'zod';
 
 type FormFields = z.infer<typeof masterClassSchema.delete>;
 
-export default function ToggleMasterClassForm({ cell }: { cell: any }) {
+interface ToggleMasterClassFormProps {
+    cell: any;
+    onAction?: () => void;
+}
+
+export default function ToggleMasterClassForm({ cell, onAction }: ToggleMasterClassFormProps) {
     const [isDialogOpen, setIsDialogOpen] = useState(false);
     const [isActive, setIsActive] = useState(cell.getValue().active_flag);
     const [selectedRow, setSelectedRow] = useState<IMasterClassList | null | any>(null);
@@ -47,11 +53,12 @@ export default function ToggleMasterClassForm({ cell }: { cell: any }) {
             const { asmcL_Id } = data;
             const newStatus = !isActive;
 
-            const response = await toggleMasterClass(String(asmcL_Id));
+            const response = await toggleMasterClass(30, Number(asmcL_Id));
 
             if (response.success) {
                 toast.success(response.message);
                 setIsActive(newStatus);
+                onAction?.();
                 refetchAll();
                 closeDialog();
             } else {
@@ -64,10 +71,16 @@ export default function ToggleMasterClassForm({ cell }: { cell: any }) {
 
     return (
         <>
-            <div className='dropdown-item flex gap-1 px-1 py-2 '>
-                <Switch checked={isActive} onCheckedChange={handleToggle} className='scale-[0.75]' />
+            <DropdownMenuItem
+                onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    handleToggle();
+                }}
+                className='cursor-pointer gap-1'>
+                <Switch checked={isActive} className='scale-[0.75] pointer-events-none' />
                 {isActive ? 'Inactivate' : 'Activate'}
-            </div>
+            </DropdownMenuItem>
 
             {selectedRow && (
                 <AdaptiveDialog title='Active/Inactive Master Class' isOpen={isDialogOpen} onClose={closeDialog}>

@@ -15,17 +15,17 @@ export async function addOrUpdateMasterClass(data: any) {
     return await api.post<any>(url, data);
 }
 
-export async function getMasterClassDetails(id: number) {
-    const url = `/School_M_ClassFacade/get_details/${id}`;
+export async function getMasterClassDetails(mi_id: number) {
+    const url = `/School_M_ClassFacade/get_details/${mi_id}`;
     return await api.get<IMasterClassList>(url);
+}
+
+export async function toggleMasterClass(mi_id: number, id: number) {
+    const url = `/v1/master_class/toggle/${mi_id}/${id}`;
+    return await api.put(url);
 }
 
 export async function deleteMasterClass(id: string) {
     const url = `/v1/master_class/${id}`;
     return await api.delete(url);
-}
-
-export async function toggleMasterClass(id: string) {
-    const url = `/v1/master_class/active_inactive/${id}`;
-    return await api.put(url);
 }

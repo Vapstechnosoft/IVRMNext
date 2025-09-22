@@ -8,9 +8,28 @@ export async function getCommonDropdown(name: string) {
 }
 
 export async function getUserNotificationList(priority?: string) {
-    const url = `/v1/user_notification?priority=${priority ?? 'normal'}`;
+    // const url = `/v1/user_notification?priority=${priority ?? 'normal'}`;
 
-    return await api.get<UserNotification[]>(url);
+    // return await api.get<UserNotification[]>(url);
+
+    const response: ApiResponse<UserNotification[]> = {
+        success: true,
+        message: 'Data fetched successfully!!',
+        data: [
+            {
+                id: 1,
+                title: 'New Admission',
+                message: 'New Admission added successfully!!',
+                link: null,
+                created_timestamp: new Date(-1).toISOString(),
+                priority: 'normal',
+                user_code: 'Admin_001',
+                user_name: 'AdminVV'
+            }
+        ]
+    };
+
+    return await response;
 }
 
 export async function markReadUserNotification(id: number) {

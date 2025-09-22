@@ -1,6 +1,7 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
+import { DropdownMenuItem } from '@/components/ui/dropdown-menu';
 import { AdaptiveBody, AdaptiveDialog, AdaptiveFooter } from '@/components/ui/extension/adaptive-dialog';
 import { FormError } from '@/components/ui/extension/field';
 import { useMasterClass } from '@/hooks/admission/preadmission/useMasters';
@@ -16,7 +17,12 @@ import type { z } from 'zod';
 
 type FormFields = z.infer<typeof masterClassSchema.delete>;
 
-export default function DeleteMasterClassForm({ cell }: { cell: any }) {
+interface DeleteMasterClassFormProps {
+    cell: any;
+    onAction?: () => void; // Add this prop
+}
+
+export default function DeleteMasterClassForm({ cell, onAction }: DeleteMasterClassFormProps) {
     const [isDialogOpen, setIsDialogOpen] = useState(false);
     const [selectedRow, setSelectedRow] = useState<IMasterClassList | null | any>(null);
     const { refetchAll } = useMasterClass();
@@ -49,6 +55,7 @@ export default function DeleteMasterClassForm({ cell }: { cell: any }) {
 
             if (response.success) {
                 toast.success(response.message);
+                onAction?.();
                 refetchAll();
                 closeDialog();
             } else {
@@ -61,9 +68,16 @@ export default function DeleteMasterClassForm({ cell }: { cell: any }) {
 
     return (
         <>
-            <div className='dropdown-item flex gap-2 text-destructive' onClick={() => handleEdit(cell.getValue())}>
-                <Trash2 className='size-4 ' /> Delete
-            </div>
+            <DropdownMenuItem
+                onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    handleEdit(cell.getValue());
+                }}
+                className='cursor-pointer text-destructive focus:text-destructive focus:bg-destructive/10'>
+                <Trash2 className='h-4 w-4 mr-2' />
+                Delete
+            </DropdownMenuItem>
 
             {selectedRow && (
                 <AdaptiveDialog title='Delete Master Class' isOpen={isDialogOpen} onClose={closeDialog}>
