@@ -36,7 +36,7 @@ export default function MasterClassPage(props: {
 
     return (
         <div className='min-h-screen'>
-            <div className='container p-1 space-y-4'>
+            <div className='container space-y-4 p-1'>
                 {/* Header */}
                 <div className='flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between'>
                     <div className='space-y-1'>
@@ -48,8 +48,7 @@ export default function MasterClassPage(props: {
                     <Button
                         type='button'
                         onClick={handleAddClick}
-                        size='lg'
-                        className='transition-all duration-200 hover:scale-105 shadow-md hover:shadow-lg w-fit'>
+                        className='w-fit shadow-md transition-all duration-200 hover:scale-105 hover:shadow-lg'>
                         <Plus className='h-4 w-4' />
                         Add Master Class
                     </Button>

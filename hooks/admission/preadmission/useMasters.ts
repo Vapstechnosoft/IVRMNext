@@ -1,5 +1,5 @@
 import { ADMISSION_QUERY_KEYS } from '@/constants/query-keys';
-import { getMasterClass, getTestDropdown } from '@/server/admission/preadmission/masters/class';
+import { getMasterClass, getMasterClassDetails } from '@/server/admission/preadmission/masters/class';
 import type { ApiSearchparams } from '@/types';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 
@@ -20,19 +20,19 @@ export const useMasterClass = (searchParams?: ApiSearchparams) => {
     };
 };
 
-export const useTestDropdown = (asmay_id: number, mi_id: number) => {
+export const useMasterClassDetails = (id: number) => {
     const queryClient = useQueryClient();
 
     return {
         ...useQuery({
-            queryKey: [ADMISSION_QUERY_KEYS.TEST_DROPDOWN],
-            queryFn: async () => getTestDropdown(asmay_id, mi_id),
+            queryKey: [ADMISSION_QUERY_KEYS.MASTER_CLASS_DETAILS, id],
+            queryFn: async () => getMasterClassDetails(id),
             staleTime: 0,
-            enabled: !asmay_id && !mi_id
+            enabled: !!id
         }),
         refetchAll: () => {
             return queryClient.invalidateQueries({
-                queryKey: [ADMISSION_QUERY_KEYS.TEST_DROPDOWN]
+                queryKey: [ADMISSION_QUERY_KEYS.MASTER_CLASS_DETAILS]
             });
         }
     };

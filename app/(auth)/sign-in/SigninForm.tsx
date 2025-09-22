@@ -122,7 +122,6 @@ export default function SigninForm() {
                             <form onSubmit={handleSubmit(onSubmit)} className='space-y-6'>
                                 <div className='space-y-2'>
                                     <InputText
-                                        type='email'
                                         label='Email Address'
                                         placeholder='Enter your email'
                                         {...register('email')}
