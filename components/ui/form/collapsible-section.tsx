@@ -2,7 +2,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { ChevronDown, ChevronRight } from 'lucide-react';
-import { type ReactNode, useState } from 'react';
+import { type ReactNode, useState, useEffect } from 'react';
 
 interface CollapsibleSectionProps {
     title: string;
@@ -15,6 +15,7 @@ interface CollapsibleSectionProps {
     contentClassName?: string;
     variant?: 'default' | 'ghost' | 'outline';
     size?: 'sm' | 'md' | 'lg';
+    keepContentMounted?: boolean; // New prop to keep content mounted
 }
 
 export function CollapsibleSection({
@@ -27,9 +28,17 @@ export function CollapsibleSection({
     headerClassName = '',
     contentClassName = '',
     variant = 'default',
-    size = 'md'
+    size = 'md',
+    keepContentMounted = true // Default to true for forms
 }: CollapsibleSectionProps) {
     const [isOpen, setIsOpen] = useState(defaultOpen);
+    const [hasBeenOpened, setHasBeenOpened] = useState(defaultOpen);
+
+    useEffect(() => {
+        if (isOpen && !hasBeenOpened) {
+            setHasBeenOpened(true);
+        }
+    }, [isOpen, hasBeenOpened]);
 
     const handleOpenChange = (open: boolean) => {
         setIsOpen(open);
@@ -72,9 +81,17 @@ export function CollapsibleSection({
                         </div>
                     </CardHeader>
                 </CollapsibleTrigger>
-                <CollapsibleContent className='transition-all duration-200 data-[state=closed]:animate-collapsible-up data-[state=open]:animate-collapsible-down'>
-                    <CardContent className={`pt-0 ${contentClassName}`}>{children}</CardContent>
-                </CollapsibleContent>
+
+                {/* Conditionally render content based on keepContentMounted */}
+                {(keepContentMounted ? hasBeenOpened : isOpen) && (
+                    <CollapsibleContent
+                        className={
+                            'transition-all duration-200 data-[state=closed]:animate-collapsible-up data-[state=open]:animate-collapsible-down'
+                        }
+                        style={keepContentMounted && !isOpen ? { display: 'none' } : undefined}>
+                        <CardContent className={`pt-0 ${contentClassName}`}>{children}</CardContent>
+                    </CollapsibleContent>
+                )}
             </Card>
         </Collapsible>
     );

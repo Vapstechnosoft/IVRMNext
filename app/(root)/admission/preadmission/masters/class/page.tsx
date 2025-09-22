@@ -5,10 +5,12 @@ import { DataTable } from '@/components/ui/data-table/data-table';
 import { useMasterClass } from '@/hooks/admission/preadmission/useMasters';
 import { Database, Plus, RefreshCw, X } from 'lucide-react';
 import { use, useRef, useState } from 'react';
-import { masterClassColumns } from './_components/columns';
+import { createMasterClassColumns } from './_components/columns';
 import AddMasterClassForm from './_components/add-form';
+import UpdateMasterClassForm from './_components/update-form';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { Button } from '@/components/ui/button';
+import type { IMasterClassList } from '@/types/admission/preadmission/masters';
 
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 
@@ -16,22 +18,47 @@ export default function MasterClassPage(props: {
     searchParams: SearchParams;
 }) {
     const searchParams = use(props.searchParams);
-    const [isFormOpen, setIsFormOpen] = useState(false);
-    const formRef = useRef<HTMLDivElement>(null);
+    const [isAddFormOpen, setIsAddFormOpen] = useState(false);
+    const [isEditFormOpen, setIsEditFormOpen] = useState(false);
+    const [selectedRow, setSelectedRow] = useState<IMasterClassList | null>(null);
+    const addFormRef = useRef<HTMLDivElement>(null);
+    const editFormRef = useRef<HTMLDivElement>(null);
 
     const handleAddClick = () => {
-        setIsFormOpen(true);
-        // Scroll to form after state update
+        // Close edit form if open
+        setIsEditFormOpen(false);
+        setSelectedRow(null);
+
+        setIsAddFormOpen(true);
         setTimeout(() => {
-            formRef.current?.scrollIntoView({
+            addFormRef.current?.scrollIntoView({
                 behavior: 'smooth',
                 block: 'end'
             });
         }, 100);
     };
 
-    const handleFormClose = () => {
-        setIsFormOpen(false);
+    const handleEditClick = (row: IMasterClassList) => {
+        // Close add form if open
+        setIsAddFormOpen(false);
+
+        setSelectedRow(row);
+        setIsEditFormOpen(true);
+        setTimeout(() => {
+            editFormRef.current?.scrollIntoView({
+                behavior: 'smooth',
+                block: 'end'
+            });
+        }, 100);
+    };
+
+    const handleAddFormClose = () => {
+        setIsAddFormOpen(false);
+    };
+
+    const handleEditFormClose = () => {
+        setIsEditFormOpen(false);
+        setSelectedRow(null);
     };
 
     return (
@@ -62,30 +89,55 @@ export default function MasterClassPage(props: {
                     variant='default'
                     size='lg'
                     className='shadow-lg transition-shadow duration-300 hover:shadow-xl'
-                    headerClassName=''>
-                    <MasterClassTable searchParams={searchParams} />
+                    keepContentMounted={false}>
+                    <MasterClassTable searchParams={searchParams} onEditClick={handleEditClick} />
                 </CollapsibleSection>
 
                 {/* Add Form Section - Conditionally Rendered */}
-                {isFormOpen && (
-                    <div ref={formRef} className='slide-in-from-top-4 animate-in duration-300'>
+                {isAddFormOpen && (
+                    <div ref={addFormRef} className='slide-in-from-top-4 animate-in duration-300'>
                         <CollapsibleSection
                             title='Add New Master Class'
                             description='Fill in the details below to create a new master class'
                             defaultOpen={true}
                             variant='outline'
                             size='md'
-                            className='shadow-lg'
-                            headerClassName=''>
+                            className='shadow-lg'>
                             <div className='relative'>
                                 <Button
-                                    onClick={handleFormClose}
+                                    type='button'
+                                    onClick={handleAddFormClose}
                                     variant='ghost'
                                     size='sm'
                                     className='-top-[4rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
                                     <X className='h-4 w-4 text-destructive' /> Close
                                 </Button>
-                                <AddMasterClassForm onSuccess={handleFormClose} className='max-w-full' />
+                                <AddMasterClassForm onSuccess={handleAddFormClose} className='max-w-full' />
+                            </div>
+                        </CollapsibleSection>
+                    </div>
+                )}
+
+                {/* Edit Form Section - Conditionally Rendered */}
+                {isEditFormOpen && selectedRow && (
+                    <div ref={editFormRef} className='slide-in-from-top-4 animate-in duration-300'>
+                        <CollapsibleSection
+                            title='Edit Master Class'
+                            description={`Update details for ${selectedRow.asmcL_ClassName} (${selectedRow.asmcL_ClassCode})`}
+                            defaultOpen={true}
+                            variant='outline'
+                            size='md'
+                            className='border-primary/20 shadow-lg'>
+                            <div className='relative'>
+                                <Button
+                                    type='button'
+                                    onClick={handleEditFormClose}
+                                    variant='ghost'
+                                    size='sm'
+                                    className='-top-[4rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
+                                    <X className='h-4 w-4 text-destructive' /> Close
+                                </Button>
+                                <UpdateMasterClassForm selectedRow={selectedRow} onSuccess={handleEditFormClose} className='max-w-full' />
                             </div>
                         </CollapsibleSection>
                     </div>
@@ -95,30 +147,38 @@ export default function MasterClassPage(props: {
     );
 }
 
-function MasterClassTable({ searchParams }: { searchParams: any }) {
+function MasterClassTable({
+    searchParams,
+    onEditClick
+}: {
+    searchParams: any;
+    onEditClick: (row: IMasterClassList) => void;
+}) {
     const { data: response, isLoading: loading, error } = useMasterClass(searchParams);
 
     const responseData = response?.data || [];
     const totalItems = response?.total || 0;
 
+    const columnsWithEditHandler = createMasterClassColumns(onEditClick);
+
     if (loading) {
         return (
-            <div className='flex flex-col items-center justify-center py-12 space-y-4'>
+            <div className='flex flex-col items-center justify-center space-y-4 py-12'>
                 <RefreshCw className='h-8 w-8 animate-spin text-primary' />
-                <p className='text-sm text-muted-foreground'>Loading master classes...</p>
+                <p className='text-muted-foreground text-sm'>Loading master classes...</p>
             </div>
         );
     }
 
     if (error) {
         return (
-            <div className='flex flex-col items-center justify-center py-12 space-y-4'>
+            <div className='flex flex-col items-center justify-center space-y-4 py-12'>
                 <div className='rounded-full bg-destructive/10 p-3'>
                     <Database className='h-6 w-6 text-destructive' />
                 </div>
-                <div className='text-center space-y-2'>
+                <div className='space-y-2 text-center'>
                     <h3 className='font-semibold text-destructive'>Error Loading Data</h3>
-                    <p className='text-sm text-muted-foreground'>{error?.message || 'Failed to load master classes'}</p>
+                    <p className='text-muted-foreground text-sm'>{error?.message || 'Failed to load master classes'}</p>
                 </div>
             </div>
         );
@@ -153,10 +213,10 @@ function MasterClassTable({ searchParams }: { searchParams: any }) {
     }
 
     return (
-        <div className='rounded-lg bg-card overflow-hidden'>
+        <div className='overflow-hidden rounded-lg bg-card'>
             <DataTable
                 isLoading={false}
-                columns={masterClassColumns}
+                columns={columnsWithEditHandler}
                 data={responseData}
                 totalItems={totalItems}
                 showViewOptions={true}

@@ -43,9 +43,9 @@ export default function DeleteMasterClassForm({ cell }: { cell: any }) {
 
     const onSubmit: SubmitHandler<FormFields | any> = async (data: FormFields) => {
         try {
-            const { id } = data;
+            const { asmcL_Id } = data;
 
-            const response = await deleteMasterClass(String(id));
+            const response = await deleteMasterClass(String(asmcL_Id));
 
             if (response.success) {
                 toast.success(response.message);
@@ -69,10 +69,10 @@ export default function DeleteMasterClassForm({ cell }: { cell: any }) {
                 <AdaptiveDialog title='Delete Master Class' isOpen={isDialogOpen} onClose={closeDialog}>
                     <form onSubmit={handleSubmit(onSubmit)} className='flex flex-col gap-4'>
                         <AdaptiveBody className='flex flex-col gap-5'>
-                            <input type='text' hidden={true} {...register('id')} defaultValue={selectedRow.id} />
+                            <input type='text' hidden={true} {...register('asmcL_Id')} defaultValue={selectedRow.asmcL_Id} />
                             <p>Are you sure you want to delete {selectedRow.name}?</p>
 
-                            <FormError>{errors.id?.message}</FormError>
+                            <FormError>{errors.asmcL_Id?.message}</FormError>
                             <FormError>{errors.root?.message}</FormError>
                         </AdaptiveBody>
                         <AdaptiveFooter>

@@ -11,23 +11,15 @@ import autoTable from 'jspdf-autotable';
 import { DownloadIcon, FileSpreadsheet, FileText, Settings2, X } from 'lucide-react';
 import { parseAsString, useQueryState } from 'nuqs';
 import { DropdownMenu, DropdownMenuCheckboxItem, DropdownMenuContent, DropdownMenuTrigger } from '../dropdown-menu';
-import DataTableDeleteDialog from './data-table-delete-dialog';
 
 interface DataTableToolbarProps<TData> {
     table: Table<TData>;
     data: TData[];
     showExportOptions?: boolean;
     showViewOptions?: boolean;
-    handleDelete?: (selectedRows: TData[]) => void;
 }
 
-export function DataTableToolbar<TData>({
-    table,
-    data,
-    showExportOptions = true,
-    showViewOptions = true,
-    handleDelete
-}: DataTableToolbarProps<TData>) {
+export function DataTableToolbar<TData>({ table, data, showExportOptions = true, showViewOptions = true }: DataTableToolbarProps<TData>) {
     const [searchQuery, setSearchQuery] = useQueryState(
         tableSearchVariables.search,
         parseAsString.withOptions({ shallow: false }).withDefault('')
@@ -88,12 +80,6 @@ export function DataTableToolbar<TData>({
 
     const selectedRows = table.getSelectedRowModel().rows;
 
-    function handleDeleteFn() {
-        const selectedRowsData = selectedRows.map((row) => row.original);
-        handleDelete?.(selectedRowsData);
-        table.toggleAllPageRowsSelected(false);
-    }
-
     function handleUnselectAll() {
         table.toggleAllPageRowsSelected(false);
     }
@@ -120,7 +106,6 @@ export function DataTableToolbar<TData>({
                         <Button onClick={handleUnselectAll} variant='ghost' suffix={<X className='h-4 w-4' />} className='h-8 w-fit'>
                             Reset
                         </Button>
-                        <DataTableDeleteDialog selectedRows={selectedRows} deleteFn={handleDeleteFn} />
                     </div>
                 )}
 

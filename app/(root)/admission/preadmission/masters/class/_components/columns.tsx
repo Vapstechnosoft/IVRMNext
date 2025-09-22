@@ -6,12 +6,13 @@ import { DataTableColumnHeader } from '@/components/ui/data-table-column-header'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuLabel, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import type { IMasterClassList } from '@/types/admission/preadmission/masters';
 import type { ColumnDef } from '@tanstack/react-table';
-import { MoreHorizontal } from 'lucide-react';
+import { MoreHorizontal, Edit } from 'lucide-react';
 import ToggleMasterClassForm from './toggle-form';
 import DeleteMasterClassForm from './delete-form';
 import { getStatusBadge } from '@/components/extras/helpers/helper';
 
-export const masterClassColumns: ColumnDef<IMasterClassList>[] = [
+// Create a function that returns columns with edit handler
+export const createMasterClassColumns = (onEditClick?: (row: IMasterClassList) => void): ColumnDef<IMasterClassList>[] => [
     {
         id: 'select',
         header: ({ table }) => (
@@ -127,24 +128,41 @@ export const masterClassColumns: ColumnDef<IMasterClassList>[] = [
     {
         id: 'actions',
         header: 'Actions',
-        accessorFn: (row: any) => {
-            return row;
-        },
+        accessorFn: (row: IMasterClassList) => row,
         enableSorting: false,
         enableHiding: false,
-        cell: ({ cell }: { cell: any }) => {
+        cell: ({ getValue }) => {
+            const row = getValue();
             return (
                 <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                        <Button variant='ghost' className='h-8 w-8 p-0'>
+                    <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
+                        <Button type='button' variant='ghost' className='h-8 w-8 p-0'>
                             <MoreHorizontal className='h-4 w-4' />
                         </Button>
                     </DropdownMenuTrigger>
-                    <DropdownMenuContent>
+                    <DropdownMenuContent align='end' className='w-40' onCloseAutoFocus={(e) => e.preventDefault()}>
                         <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                        <div className='flex-justify-between flex-wrap gap-2'>
-                            <ToggleMasterClassForm cell={cell} />
-                            <DeleteMasterClassForm cell={cell} />
+                        <div className='flex flex-col gap-1'>
+                            {onEditClick && (
+                                <Button
+                                    type='button'
+                                    variant='ghost'
+                                    size='sm'
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        onEditClick(row as IMasterClassList);
+                                    }}
+                                    className='w-full justify-start h-8 px-2'>
+                                    <Edit className='h-4 w-4 mr-2' />
+                                    Edit
+                                </Button>
+                            )}
+                            <div onClick={(e) => e.stopPropagation()}>
+                                <ToggleMasterClassForm cell={{ getValue: () => row }} />
+                            </div>
+                            <div onClick={(e) => e.stopPropagation()}>
+                                <DeleteMasterClassForm cell={{ getValue: () => row }} />
+                            </div>
                         </div>
                     </DropdownMenuContent>
                 </DropdownMenu>
@@ -152,3 +170,6 @@ export const masterClassColumns: ColumnDef<IMasterClassList>[] = [
         }
     }
 ];
+
+// Keep the original export for backward compatibility
+export const masterClassColumns = createMasterClassColumns();

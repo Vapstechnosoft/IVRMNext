@@ -29,7 +29,6 @@ interface DataTableProps<TData, TValue> {
     showExportOptions?: boolean;
     showViewOptions?: boolean;
     columnPinning?: ColumnPinningState | undefined;
-    handleDelete?: (selectedRows: TData[]) => void;
 }
 
 export function DataTable<TData, TValue>({
@@ -40,8 +39,7 @@ export function DataTable<TData, TValue>({
     isLoading,
     showExportOptions = false,
     showViewOptions = true,
-    columnPinning,
-    handleDelete
+    columnPinning
 }: DataTableProps<TData, TValue>) {
     // Pagination state
     const [currentPage, setCurrentPage] = useQueryState(
@@ -102,13 +100,7 @@ export function DataTable<TData, TValue>({
     return (
         <div className='w-full space-y-2.5 overflow-auto'>
             {/* Toolbar with filters */}
-            <DataTableToolbar
-                table={table}
-                data={data}
-                showExportOptions={showExportOptions}
-                showViewOptions={showViewOptions}
-                handleDelete={handleDelete}
-            />
+            <DataTableToolbar table={table} data={data} showExportOptions={showExportOptions} showViewOptions={showViewOptions} />
 
             {/* Table and content */}
             {isLoading ? (

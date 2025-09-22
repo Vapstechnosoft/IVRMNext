@@ -65,7 +65,7 @@ export default function ToggleMasterClassForm({ cell }: { cell: any }) {
     return (
         <>
             <div className='dropdown-item flex gap-1 px-1 py-2 '>
-                <Switch checked={isActive} onCheckedChange={handleToggle} className='scale-[0.75] ' />
+                <Switch checked={isActive} onCheckedChange={handleToggle} className='scale-[0.75]' />
                 {isActive ? 'Inactivate' : 'Activate'}
             </div>
 
