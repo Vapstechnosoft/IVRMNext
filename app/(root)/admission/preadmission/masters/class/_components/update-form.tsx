@@ -11,6 +11,7 @@ import { addOrUpdateMasterClass } from '@/server/admission/preadmission/masters/
 import type { IMasterClassList } from '@/types/admission/preadmission/masters';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Save } from 'lucide-react';
+import { useEffect } from 'react';
 import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import type { z } from 'zod';
@@ -36,19 +37,27 @@ export default function UpdateMasterClassForm({ onSuccess, className = '', selec
         formState: { errors, isSubmitting }
     } = useForm<FormFields>({
         resolver: zodResolver(masterClassSchema.addOrUpdate),
-        mode: 'onChange',
-        defaultValues: {
-            asmcl_maxcapacity: 0,
-            asmcl_order: 0,
-            asmcl_minageyear: 0,
-            asmcl_minagemonth: 0,
-            asmcl_minagedays: 0,
-            asmcl_maxageyear: 0,
-            asmcl_maxagemonth: 0,
-            asmcl_maxagedays: 0,
-            asmcl_preadmflag: 0
-        }
+        mode: 'onChange'
     });
+
+    useEffect(() => {
+        if (classData?.data) {
+            reset({
+                asmcl_id: classData?.data.asmcL_Id,
+                asmcl_classcode: classData?.data.asmcL_ClassCode,
+                asmcl_classname: classData?.data.asmcL_ClassName,
+                asmcl_maxcapacity: classData?.data.asmcL_MaxCapacity,
+                asmcl_order: classData?.data.asmcL_Order,
+                asmcl_minageyear: classData?.data.asmcL_MinAgeYear,
+                asmcl_minagemonth: classData?.data.asmcL_MinAgeMonth,
+                asmcl_minagedays: classData?.data.asmcL_MinAgeDays,
+                asmcl_maxageyear: classData?.data.asmcL_MaxAgeYear,
+                asmcl_maxagemonth: classData?.data.asmcL_MaxAgeMonth,
+                asmcl_maxagedays: classData?.data.asmcL_MaxAgeDays,
+                asmcl_preadmflag: classData?.data.asmcL_PreadmFlag
+            });
+        }
+    }, [classData, reset, setValue]);
 
     const onSubmit: SubmitHandler<FormFields | any> = async (data: FormFields) => {
         try {
@@ -111,7 +120,7 @@ export default function UpdateMasterClassForm({ onSuccess, className = '', selec
                             required
                             id='asmcl_classcode'
                             {...register('asmcl_classcode')}
-                            defaultValue={classData?.data?.asmcL_ClassCode}
+                            defaultValue={row.asmcL_ClassCode}
                             error={errors.asmcl_classcode?.message}
                             className='transition-colors focus:ring-2 focus:ring-primary/20'
                         />
@@ -120,7 +129,7 @@ export default function UpdateMasterClassForm({ onSuccess, className = '', selec
                             required
                             id='asmcl_classname'
                             {...register('asmcl_classname')}
-                            defaultValue={classData?.data?.asmcL_ClassName}
+                            defaultValue={row.asmcL_ClassName}
                             error={errors.asmcl_classname?.message}
                             className='transition-colors focus:ring-2 focus:ring-primary/20'
                         />
@@ -133,7 +142,7 @@ export default function UpdateMasterClassForm({ onSuccess, className = '', selec
                                         label='Max Capacity'
                                         required
                                         id='asmcl_maxcapacity'
-                                        defaultValue={classData?.data?.asmcL_MaxCapacity}
+                                        defaultValue={row.asmcL_MaxCapacity || 0}
                                         onChange={(value) => field.onChange(value)}
                                         minValue={0}
                                     />
@@ -150,7 +159,7 @@ export default function UpdateMasterClassForm({ onSuccess, className = '', selec
                                         label='Class Order'
                                         required
                                         id='asmcl_order'
-                                        defaultValue={classData?.data?.asmcL_Order}
+                                        defaultValue={row.asmcL_Order}
                                         onChange={(value) => field.onChange(value)}
                                         minValue={0}
                                     />
@@ -169,7 +178,7 @@ export default function UpdateMasterClassForm({ onSuccess, className = '', selec
                                         label='Class Min Age (Year)'
                                         required
                                         id='asmcl_minageyear'
-                                        defaultValue={classData?.data?.asmcL_MinAgeYear}
+                                        defaultValue={row.asmcL_MinAgeYear}
                                         onChange={(value) => field.onChange(value)}
                                         minValue={0}
                                     />
@@ -186,7 +195,7 @@ export default function UpdateMasterClassForm({ onSuccess, className = '', selec
                                         label='Class Min Age (Month)'
                                         required
                                         id='asmcl_minagemonth'
-                                        defaultValue={classData?.data?.asmcL_MinAgeMonth}
+                                        defaultValue={row.asmcL_MinAgeMonth}
                                         onChange={(value) => field.onChange(value)}
                                         minValue={0}
                                     />
@@ -203,7 +212,7 @@ export default function UpdateMasterClassForm({ onSuccess, className = '', selec
                                         label='Class Min Age (Days)'
                                         required
                                         id='asmcl_minagedays'
-                                        defaultValue={classData?.data?.asmcL_MinAgeDays}
+                                        defaultValue={row.asmcL_MinAgeDays}
                                         onChange={(value) => field.onChange(value)}
                                         minValue={0}
                                     />
@@ -222,7 +231,7 @@ export default function UpdateMasterClassForm({ onSuccess, className = '', selec
                                         label='Class Max Age (Year)'
                                         required
                                         id='asmcl_maxageyear'
-                                        defaultValue={classData?.data?.asmcL_MaxAgeYear}
+                                        defaultValue={row.asmcL_MaxAgeYear}
                                         onChange={(value) => field.onChange(value)}
                                         minValue={0}
                                     />
@@ -239,7 +248,7 @@ export default function UpdateMasterClassForm({ onSuccess, className = '', selec
                                         label='Class Max Age (Month)'
                                         required
                                         id='asmcl_maxagemonth'
-                                        defaultValue={classData?.data?.asmcL_MaxAgeMonth}
+                                        defaultValue={row.asmcL_MaxAgeMonth}
                                         onChange={(value) => field.onChange(value)}
                                         minValue={0}
                                     />
@@ -256,7 +265,7 @@ export default function UpdateMasterClassForm({ onSuccess, className = '', selec
                                         label='Class Max Age (Days)'
                                         required
                                         id='asmcl_maxagedays'
-                                        defaultValue={classData?.data?.asmcL_MaxAgeDays}
+                                        defaultValue={row.asmcL_MaxAgeDays}
                                         onChange={(value) => field.onChange(value)}
                                         minValue={0}
                                     />
@@ -271,7 +280,7 @@ export default function UpdateMasterClassForm({ onSuccess, className = '', selec
                                 Preadmission Class <span className='ml-1 text-red-500'>*</span>
                             </Label>
                             <RadioGroup
-                                defaultValue={String(classData?.data?.asmcL_PreadmFlag)}
+                                defaultValue={String(row.asmcL_PreadmFlag)}
                                 onValueChange={(value) => setValue('asmcl_preadmflag', Number(value))}
                                 className='flex gap-4'>
                                 <div className='flex items-center space-x-2'>

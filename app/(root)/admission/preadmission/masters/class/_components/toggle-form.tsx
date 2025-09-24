@@ -1,7 +1,6 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
-import { DropdownMenuItem } from '@/components/ui/dropdown-menu';
 import { AdaptiveBody, AdaptiveDialog, AdaptiveFooter } from '@/components/ui/extension/adaptive-dialog';
 import { FormError } from '@/components/ui/extension/field';
 import { Switch } from '@/components/ui/switch';
@@ -14,21 +13,23 @@ import { useState } from 'react';
 import { type SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import type { z } from 'zod';
+import { DropdownMenuItem } from '@/components/ui/dropdown-menu';
 
 type FormFields = z.infer<typeof masterClassSchema.delete>;
 
 interface ToggleMasterClassFormProps {
     cell: any;
-    onAction?: () => void;
 }
 
-export default function ToggleMasterClassForm({ cell, onAction }: ToggleMasterClassFormProps) {
+export default function ToggleMasterClassForm({ cell }: ToggleMasterClassFormProps) {
     const [isDialogOpen, setIsDialogOpen] = useState(false);
     const [isActive, setIsActive] = useState(cell.getValue().active_flag);
     const [selectedRow, setSelectedRow] = useState<IMasterClassList | null | any>(null);
     const { refetchAll } = useMasterClass();
 
-    const handleToggle = () => {
+    const handleToggle = (e: React.MouseEvent) => {
+        e.preventDefault();
+        e.stopPropagation();
         setSelectedRow(cell.getValue());
         setIsDialogOpen(true);
     };
@@ -58,7 +59,6 @@ export default function ToggleMasterClassForm({ cell, onAction }: ToggleMasterCl
             if (response.success) {
                 toast.success(response.message);
                 setIsActive(newStatus);
-                onAction?.();
                 refetchAll();
                 closeDialog();
             } else {
@@ -71,22 +71,18 @@ export default function ToggleMasterClassForm({ cell, onAction }: ToggleMasterCl
 
     return (
         <>
-            <DropdownMenuItem
-                onClick={(e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    handleToggle();
-                }}
-                className='cursor-pointer gap-1'>
-                <Switch checked={isActive} className='scale-[0.75] pointer-events-none' />
-                {isActive ? 'Inactivate' : 'Activate'}
+            <DropdownMenuItem typeof='button' onClick={handleToggle} className='cursor-pointer' onSelect={(e) => e.preventDefault()}>
+                <div className='flex items-center gap-2'>
+                    <Switch checked={isActive} className='scale-[0.75] pointer-events-none' />
+                    {isActive ? 'Inactivate' : 'Activate'}
+                </div>
             </DropdownMenuItem>
 
             {selectedRow && (
                 <AdaptiveDialog title='Active/Inactive Master Class' isOpen={isDialogOpen} onClose={closeDialog}>
                     <form onSubmit={handleSubmit(onSubmit)} className='flex flex-col gap-4'>
                         <AdaptiveBody className='flex flex-col gap-5'>
-                            <input type='text' hidden={true} {...register('asmcL_Id')} defaultValue={selectedRow.id} />
+                            <input type='text' hidden={true} {...register('asmcL_Id')} defaultValue={selectedRow.asmcL_Id} />
                             <p>
                                 Are you sure you want to {isActive ? 'inactivate' : 'activate'} {selectedRow.name}?
                             </p>

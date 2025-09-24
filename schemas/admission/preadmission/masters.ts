@@ -9,8 +9,8 @@ export const loginSchema = z.object({
 export const masterClassSchema = {
     addOrUpdate: z.object({
         asmcl_id: z.number().int({ message: 'ASMCL_Id is required' }).optional(),
-        asmcl_classcode: createStringSchema('Code', 2, 100),
-        asmcl_classname: createStringSchema('Name', 2, 100),
+        asmcl_classcode: createStringSchema('Code', 1, 100),
+        asmcl_classname: createStringSchema('Name', 1, 100),
         asmcl_maxcapacity: z.number().int({ message: 'Max Capacity is required' }),
         asmcl_order: z.number().int({ message: 'Class Order is required' }),
         asmcl_minageyear: z.number().int({ message: 'Min Age Year is required' }),
