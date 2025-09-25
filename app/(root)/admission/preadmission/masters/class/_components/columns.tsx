@@ -157,7 +157,7 @@ export const createMasterClassColumns = (onEditClick?: (row: IMasterClassList) =
                                 Edit
                             </DropdownMenuItem>
                         )}
-                        <ToggleMasterClassForm cell={{ getValue: () => row }} />
+                        {/* <ToggleMasterClassForm cell={{ getValue: () => row }} /> */}
                     </DropdownMenuContent>
                 </DropdownMenu>
             );

@@ -5,7 +5,7 @@ import { FormError, Label } from '@/components/ui/extension/field';
 import { InputNumber } from '@/components/ui/extension/input-number';
 import { InputText } from '@/components/ui/extension/input-text';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { useMasterClass, useMasterClassDetails } from '@/hooks/admission/preadmission/useMasters';
+import { useMasterClass } from '@/hooks/admission/preadmission/useMasters';
 import { masterClassSchema } from '@/schemas/admission/preadmission/masters';
 import { addOrUpdateMasterClass } from '@/server/admission/preadmission/masters/class';
 import type { IMasterClassList } from '@/types/admission/preadmission/masters';
@@ -25,7 +25,6 @@ interface UpdateMasterClassFormProps {
 }
 
 export default function UpdateMasterClassForm({ onSuccess, className = '', selectedRow: row }: UpdateMasterClassFormProps) {
-    const { data: classData } = useMasterClassDetails(row.asmcL_Id);
     const { refetchAll } = useMasterClass();
 
     const {
@@ -41,23 +40,23 @@ export default function UpdateMasterClassForm({ onSuccess, className = '', selec
     });
 
     useEffect(() => {
-        if (classData?.data) {
+        if (row) {
             reset({
-                asmcl_id: classData?.data.asmcL_Id,
-                asmcl_classcode: classData?.data.asmcL_ClassCode,
-                asmcl_classname: classData?.data.asmcL_ClassName,
-                asmcl_maxcapacity: classData?.data.asmcL_MaxCapacity,
-                asmcl_order: classData?.data.asmcL_Order,
-                asmcl_minageyear: classData?.data.asmcL_MinAgeYear,
-                asmcl_minagemonth: classData?.data.asmcL_MinAgeMonth,
-                asmcl_minagedays: classData?.data.asmcL_MinAgeDays,
-                asmcl_maxageyear: classData?.data.asmcL_MaxAgeYear,
-                asmcl_maxagemonth: classData?.data.asmcL_MaxAgeMonth,
-                asmcl_maxagedays: classData?.data.asmcL_MaxAgeDays,
-                asmcl_preadmflag: classData?.data.asmcL_PreadmFlag
+                asmcl_id: row.asmcL_Id,
+                asmcl_classcode: row.asmcL_ClassCode,
+                asmcl_classname: row.asmcL_ClassName,
+                asmcl_maxcapacity: row.asmcL_MaxCapacity,
+                asmcl_order: row.asmcL_Order,
+                asmcl_minageyear: row.asmcL_MinAgeYear,
+                asmcl_minagemonth: row.asmcL_MinAgeMonth,
+                asmcl_minagedays: row.asmcL_MinAgeDays,
+                asmcl_maxageyear: row.asmcL_MaxAgeYear,
+                asmcl_maxagemonth: row.asmcL_MaxAgeMonth,
+                asmcl_maxagedays: row.asmcL_MaxAgeDays,
+                asmcl_preadmflag: row.asmcL_PreadmFlag
             });
         }
-    }, [classData, reset, setValue]);
+    }, [row, reset, setValue]);
 
     const onSubmit: SubmitHandler<FormFields | any> = async (data: FormFields) => {
         try {
