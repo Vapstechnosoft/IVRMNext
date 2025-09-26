@@ -18,14 +18,21 @@ type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 export default function MasterClassPage(props: { searchParams: SearchParams }) {
     const searchParams = use(props.searchParams);
 
+    const { data: response, isLoading, error } = useMasterClass(searchParams);
+
     return (
         <FormProvider>
-            <MasterClassPageContent searchParams={searchParams} />
+            <MasterClassPageContent response={response} isLoading={isLoading} error={error} />
         </FormProvider>
     );
 }
+interface MasterClassTableProps {
+    response: any;
+    isLoading: boolean;
+    error: any;
+}
 
-function MasterClassPageContent({ searchParams }: { searchParams: any }) {
+function MasterClassPageContent({ response, isLoading, error }: MasterClassTableProps) {
     const { openAddForm } = useFormContext();
 
     return (
@@ -56,7 +63,7 @@ function MasterClassPageContent({ searchParams }: { searchParams: any }) {
                     variant='default'
                     size='lg'
                     className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
-                    <MasterClassTable searchParams={searchParams} />
+                    <MasterClassTable response={response} isLoading={isLoading} error={error} />
                 </CollapsibleSection>
 
                 {/* Forms */}
@@ -113,17 +120,11 @@ function FormSections() {
     );
 }
 
-function MasterClassTable({
-    searchParams
-}: {
-    searchParams: any;
-}) {
-    const { data: response, isLoading: loading, error } = useMasterClass(searchParams);
-
+function MasterClassTable({ response, isLoading, error }: MasterClassTableProps) {
     const responseData = response?.data || [];
     const totalItems = response?.total || 0;
 
-    if (loading) {
+    if (isLoading) {
         return (
             <div className='flex flex-col items-center justify-center space-y-4 py-12'>
                 <RefreshCw className='h-8 w-8 animate-spin text-primary' />
