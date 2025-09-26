@@ -1,18 +1,15 @@
 'use client';
 
-import { Button } from '@/components/ui/button';
+import { getStatusBadge } from '@/components/extras/helpers/helper';
 import { Checkbox } from '@/components/ui/checkbox';
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { ActionButtons } from '@/components/ui/form/action-buttons';
+import { useFormContext } from '@/components/ui/form/form-provider';
 import type { IMasterClassList } from '@/types/admission/preadmission/masters';
 import type { ColumnDef } from '@tanstack/react-table';
-import { MoreHorizontal, Edit } from 'lucide-react';
-import { getStatusBadge } from '@/components/extras/helpers/helper';
-import { useState } from 'react';
-import ToggleMasterClassForm from './toggle-form';
+import { useCallback } from 'react';
 
-// Create a function that returns columns with edit handler
-export const createMasterClassColumns = (onEditClick?: (row: IMasterClassList) => void): ColumnDef<IMasterClassList>[] => [
+export const masterClassColumns: ColumnDef<IMasterClassList>[] = [
     {
         id: 'select',
         header: ({ table }) => (
@@ -128,42 +125,36 @@ export const createMasterClassColumns = (onEditClick?: (row: IMasterClassList) =
     {
         id: 'actions',
         header: 'Actions',
-        accessorFn: (row: IMasterClassList) => row,
+        accessorFn: (row: any) => row,
         enableSorting: false,
-        enableHiding: false,
-        cell: ({ getValue }) => {
-            const [open, setOpen] = useState(false);
-            const row = getValue();
-
-            const handleEditClick = () => {
-                setOpen(false);
-                setTimeout(() => {
-                    onEditClick?.(row as IMasterClassList);
-                }, 150);
-            };
-
-            return (
-                <DropdownMenu open={open} onOpenChange={setOpen}>
-                    <DropdownMenuTrigger asChild>
-                        <Button type='button' variant='ghost' className='h-8 w-8 p-0' onClick={(e) => e.stopPropagation()}>
-                            <MoreHorizontal className='h-4 w-4' />
-                        </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align='end' className='w-40'>
-                        <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                        {onEditClick && (
-                            <DropdownMenuItem onClick={handleEditClick} className='cursor-pointer'>
-                                <Edit className='h-4 w-4 mr-2' />
-                                Edit
-                            </DropdownMenuItem>
-                        )}
-                        {/* <ToggleMasterClassForm cell={{ getValue: () => row }} /> */}
-                    </DropdownMenuContent>
-                </DropdownMenu>
-            );
-        }
+        cell: ({ row }) => <ActionButtonsCell rowData={row.original} />
     }
 ];
 
-// Keep the original export for backward compatibility
-export const masterClassColumns = createMasterClassColumns();
+function ActionButtonsCell({ rowData }: { rowData: IMasterClassList }) {
+    const { openEditForm, openToggleForm } = useFormContext();
+
+    const handleEdit = useCallback(
+        (data: IMasterClassList) => {
+            openEditForm(data);
+        },
+        [openEditForm]
+    );
+
+    const handleToggle = useCallback(
+        (data: IMasterClassList) => {
+            openToggleForm(data);
+        },
+        [openToggleForm]
+    );
+
+    return (
+        <ActionButtons
+            rowData={rowData}
+            buttons={{ edit: true, toggle: true, delete: false }}
+            onEdit={handleEdit}
+            onToggle={handleToggle}
+            toggleConditionKey='asmcL_ActiveFlag'
+        />
+    );
+}

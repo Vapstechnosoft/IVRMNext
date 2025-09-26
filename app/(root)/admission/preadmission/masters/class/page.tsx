@@ -4,62 +4,29 @@ import { Heading } from '@/components/layout/heading';
 import { DataTable } from '@/components/ui/data-table/data-table';
 import { useMasterClass } from '@/hooks/admission/preadmission/useMasters';
 import { Database, Plus, RefreshCw, X } from 'lucide-react';
-import { use, useRef, useState } from 'react';
-import { createMasterClassColumns } from './_components/columns';
+import { use } from 'react';
 import AddMasterClassForm from './_components/add-form';
 import UpdateMasterClassForm from './_components/update-form';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { Button } from '@/components/ui/button';
-import type { IMasterClassList } from '@/types/admission/preadmission/masters';
+import { masterClassColumns } from './_components/columns';
+import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
+import ToggleMasterClassForm from './_components/toggle-form';
 
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 
-export default function MasterClassPage(props: {
-    searchParams: SearchParams;
-}) {
+export default function MasterClassPage(props: { searchParams: SearchParams }) {
     const searchParams = use(props.searchParams);
-    const [isAddFormOpen, setIsAddFormOpen] = useState(false);
-    const [isEditFormOpen, setIsEditFormOpen] = useState(false);
-    const [selectedRow, setSelectedRow] = useState<IMasterClassList | null>(null);
-    const addFormRef = useRef<HTMLDivElement>(null);
-    const editFormRef = useRef<HTMLDivElement>(null);
 
-    const handleAddClick = () => {
-        // Close edit form if open
-        setIsEditFormOpen(false);
-        setSelectedRow(null);
+    return (
+        <FormProvider>
+            <MasterClassPageContent searchParams={searchParams} />
+        </FormProvider>
+    );
+}
 
-        setIsAddFormOpen(true);
-        setTimeout(() => {
-            addFormRef.current?.scrollIntoView({
-                behavior: 'smooth',
-                block: 'end'
-            });
-        }, 100);
-    };
-
-    const handleEditClick = (row: IMasterClassList) => {
-        // Close add form if open
-        setIsAddFormOpen(false);
-
-        setSelectedRow(row);
-        setIsEditFormOpen(true);
-        setTimeout(() => {
-            editFormRef.current?.scrollIntoView({
-                behavior: 'smooth',
-                block: 'end'
-            });
-        }, 100);
-    };
-
-    const handleAddFormClose = () => {
-        setIsAddFormOpen(false);
-    };
-
-    const handleEditFormClose = () => {
-        setIsEditFormOpen(false);
-        setSelectedRow(null);
-    };
+function MasterClassPageContent({ searchParams }: { searchParams: any }) {
+    const { openAddForm } = useFormContext();
 
     return (
         <div className='min-h-screen'>
@@ -74,92 +41,87 @@ export default function MasterClassPage(props: {
                     </div>
                     <Button
                         type='button'
-                        onClick={handleAddClick}
+                        onClick={openAddForm}
                         className='w-fit shadow-md transition-all duration-200 hover:scale-105 hover:shadow-lg'>
                         <Plus className='h-4 w-4' />
                         Add Master Class
                     </Button>
                 </div>
 
-                {/* Data Table Section - Collapsible but default open */}
+                {/* Data Table Section */}
                 <CollapsibleSection
                     title='Master Classes Data'
                     description='View, search, and manage all master classes in the system'
                     defaultOpen={true}
                     variant='default'
                     size='lg'
-                    className='shadow-lg transition-shadow duration-300 hover:shadow-xl'
-                    keepContentMounted={false}>
-                    <MasterClassTable searchParams={searchParams} onEditClick={handleEditClick} />
+                    className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
+                    <MasterClassTable searchParams={searchParams} />
                 </CollapsibleSection>
 
-                {/* Add Form Section - Conditionally Rendered */}
-                {isAddFormOpen && (
-                    <div ref={addFormRef} className='slide-in-from-top-4 animate-in duration-300'>
-                        <CollapsibleSection
-                            title='Add New Master Class'
-                            description='Fill in the details below to create a new master class'
-                            defaultOpen={true}
-                            variant='outline'
-                            size='md'
-                            className='shadow-lg'>
-                            <div className='relative'>
-                                <Button
-                                    type='button'
-                                    onClick={handleAddFormClose}
-                                    variant='ghost'
-                                    size='sm'
-                                    className='-top-[4rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
-                                    <X className='h-4 w-4 text-destructive' /> Close
-                                </Button>
-                                <AddMasterClassForm onSuccess={handleAddFormClose} className='max-w-full' />
-                            </div>
-                        </CollapsibleSection>
-                    </div>
-                )}
-
-                {/* Edit Form Section - Conditionally Rendered */}
-                {isEditFormOpen && selectedRow && (
-                    <div ref={editFormRef} className='slide-in-from-top-4 animate-in duration-300'>
-                        <CollapsibleSection
-                            title='Edit Master Class'
-                            description={`Update details for ${selectedRow.asmcL_ClassName} (${selectedRow.asmcL_ClassCode})`}
-                            defaultOpen={true}
-                            variant='outline'
-                            size='md'
-                            className='border-primary/20 shadow-lg'>
-                            <div className='relative'>
-                                <Button
-                                    type='button'
-                                    onClick={handleEditFormClose}
-                                    variant='ghost'
-                                    size='sm'
-                                    className='-top-[4rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
-                                    <X className='h-4 w-4 text-destructive' /> Close
-                                </Button>
-                                <UpdateMasterClassForm selectedRow={selectedRow} onSuccess={handleEditFormClose} className='max-w-full' />
-                            </div>
-                        </CollapsibleSection>
-                    </div>
-                )}
+                {/* Forms */}
+                <FormSections />
             </div>
         </div>
     );
 }
 
+function FormSections() {
+    const { isAddFormOpen, isEditFormOpen, isToggleFormOpen, selectedRow, closeAddForm, closeEditForm, closeToggleForm } = useFormContext();
+
+    return (
+        <>
+            {/* Add Form */}
+            {isAddFormOpen && (
+                <CollapsibleSection
+                    title='Add New Master Class'
+                    description='Fill in the details below to create a new master class'
+                    defaultOpen={true}
+                    variant='outline'
+                    size='md'
+                    className='slide-in-from-top-4 animate-in shadow-lg duration-300'>
+                    <div className='relative'>
+                        <Button
+                            type='button'
+                            onClick={closeAddForm}
+                            variant='ghost'
+                            size='sm'
+                            className='-top-[4rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
+                            <X className='h-4 w-4 text-destructive' /> Close
+                        </Button>
+                        <AddMasterClassForm onSuccess={closeAddForm} />
+                    </div>
+                </CollapsibleSection>
+            )}
+
+            {/* Edit Form */}
+            {isEditFormOpen && selectedRow && (
+                <CollapsibleSection
+                    title='Edit Master Class'
+                    description={`Update details for ${selectedRow.asmcL_ClassName} (${selectedRow.asmcL_ClassCode})`}
+                    defaultOpen={true}
+                    variant='outline'
+                    size='md'
+                    className='border-primary/20 shadow-lg animate-in slide-in-from-top-4 duration-300'>
+                    <UpdateMasterClassForm selectedRow={selectedRow} onSuccess={closeEditForm} />
+                </CollapsibleSection>
+            )}
+
+            {/* Toggle Form */}
+            {isToggleFormOpen && selectedRow && <ToggleMasterClassForm rowData={selectedRow} onClose={closeToggleForm} />}
+        </>
+    );
+}
+
 function MasterClassTable({
-    searchParams,
-    onEditClick
+    searchParams
 }: {
     searchParams: any;
-    onEditClick: (row: IMasterClassList) => void;
 }) {
     const { data: response, isLoading: loading, error } = useMasterClass(searchParams);
 
     const responseData = response?.data || [];
     const totalItems = response?.total || 0;
-
-    const columnsWithEditHandler = createMasterClassColumns(onEditClick);
 
     if (loading) {
         return (
@@ -216,7 +178,7 @@ function MasterClassTable({
         <div className='overflow-hidden rounded-lg bg-card'>
             <DataTable
                 isLoading={false}
-                columns={columnsWithEditHandler}
+                columns={masterClassColumns}
                 data={responseData}
                 totalItems={totalItems}
                 showViewOptions={true}
