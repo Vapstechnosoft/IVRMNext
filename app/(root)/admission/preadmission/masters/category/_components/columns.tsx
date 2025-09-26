@@ -1,17 +1,14 @@
 'use client';
 
-import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { ActionButtons } from '@/components/ui/form/action-buttons';
+import { useFormContext } from '@/components/ui/form/form-provider';
 import type { IMasterCategoryList } from '@/types/admission/preadmission/masters';
 import type { ColumnDef } from '@tanstack/react-table';
-import { MoreHorizontal, Edit } from 'lucide-react';
-import { getStatusBadge } from '@/components/extras/helpers/helper';
-import { useState } from 'react';
+import { useCallback } from 'react';
 
-// Create a function that returns columns with edit handler
-export const createMasterCategoryColumns = (onEditClick?: (row: IMasterCategoryList) => void): ColumnDef<IMasterCategoryList>[] => [
+export const masterCategoryColumns: ColumnDef<IMasterCategoryList>[] = [
     {
         id: 'select',
         header: ({ table }) => (
@@ -29,7 +26,7 @@ export const createMasterCategoryColumns = (onEditClick?: (row: IMasterCategoryL
         size: 24
     },
     {
-        accessorKey: 'asmcL_Id',
+        accessorKey: 'amC_Id',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Sl.No' />,
         cell: ({ row, table }) => {
             const pageIndex = table.getState().pagination.pageIndex;
@@ -73,51 +70,38 @@ export const createMasterCategoryColumns = (onEditClick?: (row: IMasterCategoryL
         enableHiding: true
     },
     {
-        accessorKey: 'amC_ActiveFlag',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Category Status' />,
-        cell: ({ row }) => <div>{getStatusBadge((row.getValue('amC_ActiveFlag') as number) === 1 ? 'active' : 'inactive')}</div>,
-        enableSorting: true,
-        enableHiding: false
-    },
-    {
         id: 'actions',
-        header: 'Actions',
-        accessorFn: (row: IMasterCategoryList) => row,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Actions' className='text-center' />,
+        accessorFn: (row: any) => row,
         enableSorting: false,
-        enableHiding: false,
-        cell: ({ getValue }) => {
-            const [open, setOpen] = useState(false);
-            const row = getValue();
-
-            const handleEditClick = () => {
-                setOpen(false);
-                setTimeout(() => {
-                    onEditClick?.(row as IMasterCategoryList);
-                }, 150);
-            };
-
-            return (
-                <DropdownMenu open={open} onOpenChange={setOpen}>
-                    <DropdownMenuTrigger asChild>
-                        <Button type='button' variant='ghost' className='h-8 w-8 p-0' onClick={(e) => e.stopPropagation()}>
-                            <MoreHorizontal className='h-4 w-4' />
-                        </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align='end' className='w-40'>
-                        <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                        {onEditClick && (
-                            <DropdownMenuItem onClick={handleEditClick} className='cursor-pointer'>
-                                <Edit className='h-4 w-4 mr-2' />
-                                Edit
-                            </DropdownMenuItem>
-                        )}
-                        {/* <ToggleMasterCategoryForm cell={{ getValue: () => row }} /> */}
-                    </DropdownMenuContent>
-                </DropdownMenu>
-            );
-        }
+        cell: ({ row }) => <ActionButtonsCell rowData={row.original} />
     }
 ];
 
-// Keep the original export for backward compatibility
-export const masterCategoryColumns = createMasterCategoryColumns();
+function ActionButtonsCell({ rowData }: { rowData: IMasterCategoryList }) {
+    const { openEditForm, openToggleForm } = useFormContext<IMasterCategoryList>();
+
+    const handleEdit = useCallback(
+        (data: IMasterCategoryList) => {
+            openEditForm(data);
+        },
+        [openEditForm]
+    );
+
+    const handleToggle = useCallback(
+        (data: IMasterCategoryList) => {
+            openToggleForm(data);
+        },
+        [openToggleForm]
+    );
+
+    return (
+        <ActionButtons
+            rowData={rowData}
+            buttons={{ edit: true, toggle: true, delete: false }}
+            onEdit={handleEdit}
+            onToggle={handleToggle}
+            toggleConditionKey='amC_ActiveFlag'
+        />
+    );
+}

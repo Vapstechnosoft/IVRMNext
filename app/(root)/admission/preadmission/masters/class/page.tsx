@@ -113,7 +113,7 @@ function FormSections() {
                                 onClick={closeAddForm}
                                 variant='ghost'
                                 size='sm'
-                                className='-top-[4rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
+                                className='-top-[3.5rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
                                 <X className='h-4 w-4 text-destructive' /> Close
                             </Button>
                             <AddMasterClassForm onSuccess={closeAddForm} />
@@ -127,7 +127,6 @@ function FormSections() {
                 <div ref={editFormRef}>
                     <CollapsibleSection
                         title='Edit Master Class'
-                        description={`Update details for ${selectedRow.asmcL_ClassName} (${selectedRow.asmcL_ClassCode})`}
                         defaultOpen={true}
                         variant='outline'
                         size='md'
@@ -138,7 +137,7 @@ function FormSections() {
                                 onClick={closeEditForm}
                                 variant='ghost'
                                 size='sm'
-                                className='-top-[4rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
+                                className='-top-[3.5rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
                                 <X className='h-4 w-4 text-destructive' /> Close
                             </Button>
                             <UpdateMasterClassForm selectedRow={selectedRow} onSuccess={closeEditForm} />

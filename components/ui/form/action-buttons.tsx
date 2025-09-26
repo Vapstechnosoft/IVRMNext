@@ -1,9 +1,9 @@
 'use client';
 
-import { Edit, Trash2, Power, PowerOff } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { Edit, Power, PowerOff, Trash2 } from 'lucide-react';
 
 // Types for the component props
 interface ActionButtonsProps {
@@ -33,7 +33,9 @@ export function ActionButtons({
     size = 'sm',
     variant = 'ghost'
 }: ActionButtonsProps) {
-    const isActive = rowData?.[toggleConditionKey];
+    const activeValues = new Set([1, true]);
+
+    const isActive = activeValues.has(rowData?.[toggleConditionKey]);
 
     const handleEdit = () => {
         if (onEdit) {
@@ -64,7 +66,7 @@ export function ActionButtons({
                                 variant={variant}
                                 size={size}
                                 onClick={handleEdit}
-                                className='h-8 w-8 p-0 hover:bg-blue-50 hover:text-blue-600 transition-all duration-200 hover:scale-110 group'>
+                                className='group h-8 w-8 p-0 transition-all duration-200 hover:scale-110 hover:bg-blue-50 hover:text-blue-600'>
                                 <Edit className='h-4 w-4 transition-transform duration-200 group-hover:rotate-12' />
                             </Button>
                         </TooltipTrigger>
@@ -78,14 +80,14 @@ export function ActionButtons({
                 {buttons.toggle && (
                     <Tooltip>
                         <TooltipTrigger asChild>
-                            <div className='flex items-center gap-2 px-2 py-1 rounded-md hover:bg-gray-50 transition-all duration-200'>
-                                <div className='flex items-center gap-1 cursor-default'>
+                            <div className='flex items-center gap-2 rounded-md px-2 py-1 transition-all duration-200 hover:bg-gray-50'>
+                                <div className='flex cursor-default items-center gap-1'>
                                     {isActive ? (
                                         <Power className='h-3 w-3 text-green-600' />
                                     ) : (
                                         <PowerOff className='h-3 w-3 text-red-500' />
                                     )}
-                                    <span className={`text-xs font-medium ${isActive ? 'text-green-700' : 'text-red-600'}`}>
+                                    <span className={`font-medium text-xs ${isActive ? 'text-green-700' : 'text-red-600'}`}>
                                         {isActive ? 'Active' : 'Inactive'}
                                     </span>
                                 </div>
@@ -110,7 +112,7 @@ export function ActionButtons({
                                 variant={variant}
                                 size={size}
                                 onClick={handleDelete}
-                                className='h-8 w-8 p-0 hover:bg-red-50 hover:text-red-600 transition-all duration-200 hover:scale-110 group'>
+                                className='group h-8 w-8 p-0 transition-all duration-200 hover:scale-110 hover:bg-red-50 hover:text-red-600'>
                                 <Trash2 className='h-4 w-4 transition-transform duration-200 group-hover:rotate-12' />
                             </Button>
                         </TooltipTrigger>

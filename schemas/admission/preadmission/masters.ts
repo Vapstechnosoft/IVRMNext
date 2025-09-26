@@ -32,5 +32,8 @@ export const masterCategorySchema = {
         amC_Name: createStringSchema('Category Name', 1, 100),
         amC_Address: createStringSchema('Address', 1, 200),
         amC_Type: createStringSchema('Category Type', 1, 200)
+    }),
+    delete: z.object({
+        amC_Id: deleteIdSchema('amC_Id')
     })
 };

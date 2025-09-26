@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { FormError, Label } from '@/components/ui/extension/field';
 import { InputText } from '@/components/ui/extension/input-text';
 import { InputTextarea } from '@/components/ui/extension/input-textarea';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useMasterCategory } from '@/hooks/admission/preadmission/useMasters';
 import { masterCategorySchema } from '@/schemas/admission/preadmission/masters';
 import { addOrUpdateMasterCategory } from '@/server/admission/preadmission/masters/category';
@@ -12,7 +13,6 @@ import { Save } from 'lucide-react';
 import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import type { z } from 'zod';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 type FormFields = z.infer<typeof masterCategorySchema.addOrUpdate>;
 
@@ -108,10 +108,10 @@ export default function AddMasterCategoryForm({ onSuccess, className = '' }: Add
                                             <SelectValue placeholder='Select a Category' />
                                         </SelectTrigger>
                                         <SelectContent>
-                                            <SelectItem key={'school'} value={'school'}>
+                                            <SelectItem key={'School'} value={'School'}>
                                                 School
                                             </SelectItem>
-                                            <SelectItem key={'college'} value={'college'}>
+                                            <SelectItem key={'College'} value={'College'}>
                                                 College
                                             </SelectItem>
                                         </SelectContent>
