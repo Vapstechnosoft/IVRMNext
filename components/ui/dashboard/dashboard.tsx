@@ -1,27 +1,22 @@
-// pages/education-dashboard.jsx
-import { useState, useEffect } from 'react';
-import Head from 'next/head';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Button } from '@/components/ui/button';
-import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
-import { Switch } from '@/components/ui/switch';
-import { Label } from '@/components/ui/label';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Progress } from '@/components/ui/progress';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import Head from 'next/head';
 import {
-    BarChart,
     Bar,
-    LineChart,
-    Line,
-    PieChart,
-    Pie,
-    Cell,
-    XAxis,
-    YAxis,
+    BarChart,
     CartesianGrid,
-    Tooltip,
+    Cell,
     Legend,
-    ResponsiveContainer
+    Line,
+    LineChart,
+    Pie,
+    PieChart,
+    ResponsiveContainer,
+    Tooltip,
+    XAxis,
+    YAxis
 } from 'recharts';
 
 // Mock data for charts
@@ -76,28 +71,28 @@ export default function Dashboard() {
 
             <main className='container mx-auto px-4 py-8'>
                 <div className='mb-8'>
-                    <h2 className='text-3xl font-bold mb-2'>Education Dashboard</h2>
+                    <h2 className='mb-2 font-bold text-3xl'>Education Dashboard</h2>
                     <p className='text-muted-foreground'>Track and analyze educational performance metrics</p>
                 </div>
 
                 <Tabs defaultValue='dashboard' className='w-full'>
-                    <TabsList className='grid w-full max-w-md grid-cols-2 mb-8'>
+                    <TabsList className='mb-8 grid w-full max-w-md grid-cols-2'>
                         <TabsTrigger value='dashboard'>Dashboard</TabsTrigger>
                         <TabsTrigger value='static'>Static Reports</TabsTrigger>
                     </TabsList>
 
                     <TabsContent value='dashboard' className='space-y-8'>
                         {/* Stats Overview */}
-                        <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6'>
+                        <div className='grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4'>
                             {statsData.map((stat, index) => (
                                 <Card key={index} className='overflow-hidden transition-all duration-300 hover:shadow-lg'>
                                     <CardHeader className='flex flex-row items-center justify-between space-y-0 pb-2'>
-                                        <CardTitle className='text-sm font-medium'>{stat.title}</CardTitle>
+                                        <CardTitle className='font-medium text-sm'>{stat.title}</CardTitle>
                                         <span className='text-2xl'>{stat.icon}</span>
                                     </CardHeader>
                                     <CardContent>
-                                        <div className='text-2xl font-bold'>{stat.value}</div>
-                                        <p className='text-xs text-muted-foreground'>
+                                        <div className='font-bold text-2xl'>{stat.value}</div>
+                                        <p className='text-muted-foreground text-xs'>
                                             <span className='text-green-500'>{stat.change}</span> from last month
                                         </p>
                                     </CardContent>
@@ -106,7 +101,7 @@ export default function Dashboard() {
                         </div>
 
                         {/* Charts Section */}
-                        <div className='grid grid-cols-1 lg:grid-cols-2 gap-6'>
+                        <div className='grid grid-cols-1 gap-6 lg:grid-cols-2'>
                             {/* Student Performance Chart */}
                             <Card className='bg-gradient-to-br from-purple-50 to-orange-50 dark:from-purple-950/30 dark:to-orange-950/30'>
                                 <CardHeader>
@@ -171,7 +166,7 @@ export default function Dashboard() {
                         </div>
 
                         {/* Progress Section */}
-                        <div className='grid grid-cols-1 lg:grid-cols-2 gap-6'>
+                        <div className='grid grid-cols-1 gap-6 lg:grid-cols-2'>
                             {/* Grade Distribution */}
                             <Card>
                                 <CardHeader>
@@ -212,8 +207,8 @@ export default function Dashboard() {
                                     {courseProgressData.map((course, index) => (
                                         <div key={index} className='space-y-2'>
                                             <div className='flex-between'>
-                                                <span className='text-sm font-medium'>{course.course}</span>
-                                                <span className='text-sm text-muted-foreground'>{course.progress}%</span>
+                                                <span className='font-medium text-sm'>{course.course}</span>
+                                                <span className='text-muted-foreground text-sm'>{course.progress}%</span>
                                             </div>
                                             <Progress value={course.progress} className='h-2' />
                                         </div>
@@ -232,9 +227,9 @@ export default function Dashboard() {
                                 </CardHeader>
                                 <CardContent>
                                     <div className='space-y-6'>
-                                        <div className='p-6 bg-muted rounded-lg'>
-                                            <h3 className='text-xl font-semibold mb-4'>Key Findings</h3>
-                                            <ul className='space-y-2 list-disc list-inside'>
+                                        <div className='rounded-lg bg-muted p-6'>
+                                            <h3 className='mb-4 font-semibold text-xl'>Key Findings</h3>
+                                            <ul className='list-inside list-disc space-y-2'>
                                                 <li>Overall student performance improved by 12% compared to last year</li>
                                                 <li>Mathematics scores showed the highest growth at 18%</li>
                                                 <li>Student enrollment increased by 22% year-over-year</li>
@@ -242,34 +237,34 @@ export default function Dashboard() {
                                             </ul>
                                         </div>
 
-                                        <div className='grid grid-cols-1 md:grid-cols-3 gap-4'>
-                                            <div className='bg-gradient-purple-orange text-white p-4 rounded-lg text-center'>
+                                        <div className='grid grid-cols-1 gap-4 md:grid-cols-3'>
+                                            <div className='rounded-lg bg-gradient-purple-orange p-4 text-center text-white'>
                                                 <h4 className='font-semibold'>Attendance Rate</h4>
-                                                <p className='text-3xl font-bold mt-2'>94%</p>
+                                                <p className='mt-2 font-bold text-3xl'>94%</p>
                                             </div>
-                                            <div className='bg-gradient-orange-purple text-white p-4 rounded-lg text-center'>
+                                            <div className='rounded-lg bg-gradient-orange-purple p-4 text-center text-white'>
                                                 <h4 className='font-semibold'>Pass Rate</h4>
-                                                <p className='text-3xl font-bold mt-2'>87%</p>
+                                                <p className='mt-2 font-bold text-3xl'>87%</p>
                                             </div>
-                                            <div className='bg-gradient-radial from-purple-500 to-orange-500 text-white p-4 rounded-lg text-center'>
+                                            <div className='rounded-lg bg-gradient-radial from-purple-500 to-orange-500 p-4 text-center text-white'>
                                                 <h4 className='font-semibold'>Satisfaction</h4>
-                                                <p className='text-3xl font-bold mt-2'>92%</p>
+                                                <p className='mt-2 font-bold text-3xl'>92%</p>
                                             </div>
                                         </div>
 
                                         <div>
-                                            <h3 className='text-xl font-semibold mb-4'>Recommendations</h3>
+                                            <h3 className='mb-4 font-semibold text-xl'>Recommendations</h3>
                                             <div className='space-y-3'>
                                                 <div className='flex items-start space-x-3'>
-                                                    <Badge className='bg-primary mt-1'>1</Badge>
+                                                    <Badge className='mt-1 bg-primary'>1</Badge>
                                                     <p>Increase focus on science curriculum based on slightly lower performance metrics</p>
                                                 </div>
                                                 <div className='flex items-start space-x-3'>
-                                                    <Badge className='bg-secondary mt-1'>2</Badge>
+                                                    <Badge className='mt-1 bg-secondary'>2</Badge>
                                                     <p>Implement additional teacher training for digital instruction methods</p>
                                                 </div>
                                                 <div className='flex items-start space-x-3'>
-                                                    <Badge className='bg-primary mt-1'>3</Badge>
+                                                    <Badge className='mt-1 bg-primary'>3</Badge>
                                                     <p>Expand scholarship programs to maintain enrollment growth trajectory</p>
                                                 </div>
                                             </div>
