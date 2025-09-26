@@ -14,3 +14,14 @@ export interface IMasterClassList {
     asmcL_PreadmFlag: number;
     asmcL_ActiveFlag: boolean;
 }
+export interface IMasterCategoryList {
+    amC_Id: number;
+    mI_Id: number;
+    amC_Name: string;
+    amC_Address: string;
+    amC_Type: string;
+    amC_ActiveFlag: number;
+    amC_PAApplicationName: string;
+    createdDate: string;
+    updatedDate: string;
+}

@@ -25,3 +25,12 @@ export const masterClassSchema = {
         asmcL_Id: deleteIdSchema('asmcL_Id')
     })
 };
+
+export const masterCategorySchema = {
+    addOrUpdate: z.object({
+        amC_Id: z.number().int({ message: 'AMC_ID is required' }).optional(),
+        amC_Name: createStringSchema('Category Name', 1, 100),
+        amC_Address: createStringSchema('Address', 1, 200),
+        amC_Type: createStringSchema('Category Type', 1, 200)
+    })
+};

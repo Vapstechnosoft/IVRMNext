@@ -5,5 +5,5 @@ export const QUERY_KEYS = {
 
 export const ADMISSION_QUERY_KEYS = {
     MASTER_CLASS: 'master_class',
-    TEST_DROPDOWN: 'test_dropdown'
+    MASTER_CATEGORY: 'master_category'
 };

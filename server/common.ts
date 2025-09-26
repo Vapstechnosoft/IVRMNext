@@ -74,6 +74,12 @@ export async function getUserAccessibleModules() {
                                     },
                                     {
                                         id: 2,
+                                        name: 'Master Category',
+                                        icon: 'Settings',
+                                        url: '/admission/preadmission/masters/category'
+                                    },
+                                    {
+                                        id: 3,
                                         name: 'Master Section',
                                         icon: 'Settings',
                                         url: '/admission/masters/section'
