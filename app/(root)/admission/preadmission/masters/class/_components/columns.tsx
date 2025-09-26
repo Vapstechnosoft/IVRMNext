@@ -116,15 +116,8 @@ export const masterClassColumns: ColumnDef<IMasterClassList>[] = [
         enableHiding: true
     },
     {
-        accessorKey: 'asmcL_ActiveFlag',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Class Status' />,
-        cell: ({ row }) => <div>{getStatusBadge((row.getValue('asmcL_ActiveFlag') as boolean) === true ? 'active' : 'inactive')}</div>,
-        enableSorting: true,
-        enableHiding: true
-    },
-    {
         id: 'actions',
-        header: 'Actions',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Actions' className='text-center' />,
         accessorFn: (row: any) => row,
         enableSorting: false,
         cell: ({ row }) => <ActionButtonsCell rowData={row.original} />

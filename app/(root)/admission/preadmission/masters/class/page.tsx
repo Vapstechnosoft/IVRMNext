@@ -1,18 +1,18 @@
 'use client';
 
 import { Heading } from '@/components/layout/heading';
+import { Button } from '@/components/ui/button';
+import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/generic-data-table';
+import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
+import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
 import { useMasterClass } from '@/hooks/admission/preadmission/useMasters';
+import type { IMasterClassList } from '@/types/admission/preadmission/masters';
 import { Plus, X } from 'lucide-react';
 import { use } from 'react';
 import AddMasterClassForm from './_components/add-form';
-import UpdateMasterClassForm from './_components/update-form';
-import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
-import { Button } from '@/components/ui/button';
 import { masterClassColumns } from './_components/columns';
-import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
 import ToggleMasterClassForm from './_components/toggle-form';
-import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/generic-data-table';
-import type { IMasterClassList } from '@/types/admission/preadmission/masters';
+import UpdateMasterClassForm from './_components/update-form';
 
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 
@@ -45,10 +45,7 @@ function MasterClassPageContent({
                 {/* Header */}
                 <div className='flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between'>
                     <div className='space-y-1'>
-                        <Heading
-                            title='Master Class Management'
-                            description='Manage and organize your master classes with advanced filtering and controls'
-                        />
+                        <Heading title='Master Class Management' description='Manage and organize your master classes' />
                     </div>
                     <Button
                         type='button'
@@ -61,8 +58,6 @@ function MasterClassPageContent({
 
                 {/* Data Table Section */}
                 <CollapsibleSection
-                    title='Master Classes Data'
-                    description='View, search, and manage all master classes in the system'
                     defaultOpen={true}
                     variant='default'
                     size='lg'
@@ -136,7 +131,7 @@ function FormSections() {
                         defaultOpen={true}
                         variant='outline'
                         size='md'
-                        className='border-primary/20 shadow-lg animate-in slide-in-from-top-4 duration-300'>
+                        className='slide-in-from-top-4 animate-in border-primary/20 shadow-lg duration-300'>
                         <div className='relative'>
                             <Button
                                 type='button'

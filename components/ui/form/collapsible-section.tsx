@@ -1,11 +1,11 @@
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
-import { ChevronDown, ChevronRight } from 'lucide-react';
-import { type ReactNode, useState, useEffect } from 'react';
+import { ChevronRight } from 'lucide-react';
+import { type ReactNode, useEffect, useState } from 'react';
 
 interface CollapsibleSectionProps {
-    title: string;
+    title?: string;
     description?: string;
     children: ReactNode;
     defaultOpen?: boolean;
@@ -15,7 +15,7 @@ interface CollapsibleSectionProps {
     contentClassName?: string;
     variant?: 'default' | 'ghost' | 'outline';
     size?: 'sm' | 'md' | 'lg';
-    keepContentMounted?: boolean; // New prop to keep content mounted
+    keepContentMounted?: boolean;
 }
 
 export function CollapsibleSection({
@@ -29,7 +29,7 @@ export function CollapsibleSection({
     contentClassName = '',
     variant = 'default',
     size = 'md',
-    keepContentMounted = true // Default to true for forms
+    keepContentMounted = true
 }: CollapsibleSectionProps) {
     const [isOpen, setIsOpen] = useState(defaultOpen);
     const [hasBeenOpened, setHasBeenOpened] = useState(defaultOpen);
@@ -57,37 +57,33 @@ export function CollapsibleSection({
         outline: 'border-2 shadow-none'
     };
 
+    // Compact header when no title/description
+    const compactHeader = !title && !description ? 'py-2' : 'py-4';
+
     return (
         <Collapsible open={isOpen} onOpenChange={handleOpenChange} className={className}>
             <Card className={`${variantClasses[variant]} transition-all duration-200 ${className}`}>
                 <CollapsibleTrigger asChild>
                     <CardHeader
-                        className={`
-              cursor-pointer hover:bg-muted/50 transition-colors duration-200 
-              ${headerClassName}
-            `}>
-                        <div className='flex items-center justify-between'>
+                        className={`flex cursor-pointer flex-row items-center justify-between transition-colors duration-200 hover:bg-muted/50 ${compactHeader} ${headerClassName}
+                        `}>
+                        {(title || description) && (
                             <div className='space-y-1'>
-                                <h3 className={`font-semibold tracking-tight ${sizeClasses[size]}`}>{title}</h3>
-                                {description && <p className='text-sm text-muted-foreground'>{description}</p>}
+                                {title && <h3 className={`font-semibold tracking-tight ${sizeClasses[size]}`}>{title}</h3>}
+                                {description && <p className='text-muted-foreground text-sm'>{description}</p>}
                             </div>
-                            <Button variant='ghost' size='sm' className='h-8 w-8 p-0'>
-                                {isOpen ? (
-                                    <ChevronDown className='h-4 w-4 transition-transform duration-200' />
-                                ) : (
-                                    <ChevronRight className='h-4 w-4 transition-transform duration-200' />
-                                )}
-                            </Button>
-                        </div>
+                        )}
+                        <Button variant='ghost' size='sm' className='ml-auto h-8 w-8 p-0'>
+                            <ChevronRight
+                                className={`h-4 w-4 transform transition-transform duration-200 ${isOpen ? 'rotate-90' : 'rotate-0'}`}
+                            />
+                        </Button>
                     </CardHeader>
                 </CollapsibleTrigger>
 
-                {/* Conditionally render content based on keepContentMounted */}
                 {(keepContentMounted ? hasBeenOpened : isOpen) && (
                     <CollapsibleContent
-                        className={
-                            'transition-all duration-200 data-[state=closed]:animate-collapsible-up data-[state=open]:animate-collapsible-down'
-                        }
+                        className='transition-all duration-200 data-[state=closed]:animate-collapsible-up data-[state=open]:animate-collapsible-down'
                         style={keepContentMounted && !isOpen ? { display: 'none' } : undefined}>
                         <CardContent className={`pt-0 ${contentClassName}`}>{children}</CardContent>
                     </CollapsibleContent>

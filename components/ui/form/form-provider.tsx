@@ -1,6 +1,6 @@
 'use client';
 
-import { createContext, useContext, useState, useCallback, type ReactNode, useRef } from 'react';
+import { type ReactNode, createContext, useCallback, useContext, useRef, useState } from 'react';
 
 interface FormContextType<T = any> {
     // Form states
@@ -30,10 +30,11 @@ const FormContext = createContext<FormContextType | null>(null);
 
 interface FormProviderProps {
     children: ReactNode;
-    scrollToForm?: boolean; // Optional scroll behavior
+    scrollToForm?: boolean;
+    scrollToTopOnClose?: boolean;
 }
 
-export function FormProvider<T = any>({ children, scrollToForm = true }: FormProviderProps) {
+export function FormProvider<T = any>({ children, scrollToForm = true, scrollToTopOnClose = true }: FormProviderProps) {
     const [isAddFormOpen, setIsAddFormOpen] = useState(false);
     const [isEditFormOpen, setIsEditFormOpen] = useState(false);
     const [isToggleFormOpen, setIsToggleFormOpen] = useState(false);
@@ -57,13 +58,23 @@ export function FormProvider<T = any>({ children, scrollToForm = true }: FormPro
         [scrollToForm]
     );
 
+    const scrollToTop = useCallback(() => {
+        if (scrollToTopOnClose) {
+            window.scrollTo({
+                top: 0,
+                behavior: 'smooth'
+            });
+        }
+    }, [scrollToTopOnClose]);
+
     const closeAllForms = useCallback(() => {
         setIsAddFormOpen(false);
         setIsEditFormOpen(false);
         setIsToggleFormOpen(false);
         setIsDeleteFormOpen(false);
         setSelectedRow(null);
-    }, []);
+        scrollToTop();
+    }, [scrollToTop]);
 
     const openAddForm = useCallback(() => {
         closeAllForms();
@@ -73,7 +84,8 @@ export function FormProvider<T = any>({ children, scrollToForm = true }: FormPro
 
     const closeAddForm = useCallback(() => {
         setIsAddFormOpen(false);
-    }, []);
+        scrollToTop();
+    }, [scrollToTop]);
 
     const openEditForm = useCallback(
         (row: T) => {
@@ -88,7 +100,8 @@ export function FormProvider<T = any>({ children, scrollToForm = true }: FormPro
     const closeEditForm = useCallback(() => {
         setIsEditFormOpen(false);
         setSelectedRow(null);
-    }, []);
+        scrollToTop();
+    }, [scrollToTop]);
 
     const openToggleForm = useCallback((row: T) => {
         setSelectedRow(row);
@@ -98,7 +111,8 @@ export function FormProvider<T = any>({ children, scrollToForm = true }: FormPro
     const closeToggleForm = useCallback(() => {
         setIsToggleFormOpen(false);
         setSelectedRow(null);
-    }, []);
+        scrollToTop();
+    }, [scrollToTop]);
 
     const openDeleteForm = useCallback((row: T) => {
         setSelectedRow(row);
@@ -108,7 +122,8 @@ export function FormProvider<T = any>({ children, scrollToForm = true }: FormPro
     const closeDeleteForm = useCallback(() => {
         setIsDeleteFormOpen(false);
         setSelectedRow(null);
-    }, []);
+        scrollToTop();
+    }, [scrollToTop]);
 
     return (
         <FormContext.Provider
