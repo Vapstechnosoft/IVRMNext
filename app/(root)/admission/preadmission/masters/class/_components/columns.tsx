@@ -132,7 +132,7 @@ export const masterClassColumns: ColumnDef<IMasterClassList>[] = [
 ];
 
 function ActionButtonsCell({ rowData }: { rowData: IMasterClassList }) {
-    const { openEditForm, openToggleForm } = useFormContext();
+    const { openEditForm, openToggleForm } = useFormContext<IMasterClassList>();
 
     const handleEdit = useCallback(
         (data: IMasterClassList) => {

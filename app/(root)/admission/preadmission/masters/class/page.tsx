@@ -1,9 +1,8 @@
 'use client';
 
 import { Heading } from '@/components/layout/heading';
-import { DataTable } from '@/components/ui/data-table/data-table';
 import { useMasterClass } from '@/hooks/admission/preadmission/useMasters';
-import { Database, Plus, RefreshCw, X } from 'lucide-react';
+import { Plus, X } from 'lucide-react';
 import { use } from 'react';
 import AddMasterClassForm from './_components/add-form';
 import UpdateMasterClassForm from './_components/update-form';
@@ -12,28 +11,33 @@ import { Button } from '@/components/ui/button';
 import { masterClassColumns } from './_components/columns';
 import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
 import ToggleMasterClassForm from './_components/toggle-form';
+import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/generic-data-table';
+import type { IMasterClassList } from '@/types/admission/preadmission/masters';
 
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 
 export default function MasterClassPage(props: { searchParams: SearchParams }) {
     const searchParams = use(props.searchParams);
-
     const { data: response, isLoading, error } = useMasterClass(searchParams);
 
     return (
-        <FormProvider>
+        <FormProvider<IMasterClassList>>
             <MasterClassPageContent response={response} isLoading={isLoading} error={error} />
         </FormProvider>
     );
 }
-interface MasterClassTableProps {
+
+function MasterClassPageContent({
+    response,
+    isLoading,
+    error
+}: {
     response: any;
     isLoading: boolean;
     error: any;
-}
-
-function MasterClassPageContent({ response, isLoading, error }: MasterClassTableProps) {
-    const { openAddForm } = useFormContext();
+}) {
+    const { openAddForm } = useFormContext<IMasterClassList>();
+    const tableProps = useDataTableProps(response);
 
     return (
         <div className='min-h-screen'>
@@ -63,7 +67,17 @@ function MasterClassPageContent({ response, isLoading, error }: MasterClassTable
                     variant='default'
                     size='lg'
                     className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
-                    <MasterClassTable response={response} isLoading={isLoading} error={error} />
+                    <GenericDataTable<IMasterClassList>
+                        {...tableProps}
+                        columns={masterClassColumns}
+                        isLoading={isLoading}
+                        error={error}
+                        columnPinning={{ right: ['actions'] }}
+                        loadingMessage='Loading master classes...'
+                        noDataTitle='No Master Classes Found'
+                        noDataDescription='Get started by creating your first master class'
+                        errorTitle='Error Loading Classes'
+                    />
                 </CollapsibleSection>
 
                 {/* Forms */}
@@ -74,117 +88,72 @@ function MasterClassPageContent({ response, isLoading, error }: MasterClassTable
 }
 
 function FormSections() {
-    const { isAddFormOpen, isEditFormOpen, isToggleFormOpen, selectedRow, closeAddForm, closeEditForm, closeToggleForm } = useFormContext();
+    const {
+        isAddFormOpen,
+        isEditFormOpen,
+        isToggleFormOpen,
+        selectedRow,
+        closeAddForm,
+        closeEditForm,
+        closeToggleForm,
+        addFormRef,
+        editFormRef
+    } = useFormContext<IMasterClassList>();
 
     return (
         <>
             {/* Add Form */}
             {isAddFormOpen && (
-                <CollapsibleSection
-                    title='Add New Master Class'
-                    description='Fill in the details below to create a new master class'
-                    defaultOpen={true}
-                    variant='outline'
-                    size='md'
-                    className='slide-in-from-top-4 animate-in shadow-lg duration-300'>
-                    <div className='relative'>
-                        <Button
-                            type='button'
-                            onClick={closeAddForm}
-                            variant='ghost'
-                            size='sm'
-                            className='-top-[4rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
-                            <X className='h-4 w-4 text-destructive' /> Close
-                        </Button>
-                        <AddMasterClassForm onSuccess={closeAddForm} />
-                    </div>
-                </CollapsibleSection>
+                <div ref={addFormRef}>
+                    <CollapsibleSection
+                        title='Add New Master Class'
+                        description='Fill in the details below to create a new master class'
+                        defaultOpen={true}
+                        variant='outline'
+                        size='md'
+                        className='slide-in-from-top-4 animate-in shadow-lg duration-300'>
+                        <div className='relative'>
+                            <Button
+                                type='button'
+                                onClick={closeAddForm}
+                                variant='ghost'
+                                size='sm'
+                                className='-top-[4rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
+                                <X className='h-4 w-4 text-destructive' /> Close
+                            </Button>
+                            <AddMasterClassForm onSuccess={closeAddForm} />
+                        </div>
+                    </CollapsibleSection>
+                </div>
             )}
 
             {/* Edit Form */}
             {isEditFormOpen && selectedRow && (
-                <CollapsibleSection
-                    title='Edit Master Class'
-                    description={`Update details for ${selectedRow.asmcL_ClassName} (${selectedRow.asmcL_ClassCode})`}
-                    defaultOpen={true}
-                    variant='outline'
-                    size='md'
-                    className='border-primary/20 shadow-lg animate-in slide-in-from-top-4 duration-300'>
-                    <UpdateMasterClassForm selectedRow={selectedRow} onSuccess={closeEditForm} />
-                </CollapsibleSection>
+                <div ref={editFormRef}>
+                    <CollapsibleSection
+                        title='Edit Master Class'
+                        description={`Update details for ${selectedRow.asmcL_ClassName} (${selectedRow.asmcL_ClassCode})`}
+                        defaultOpen={true}
+                        variant='outline'
+                        size='md'
+                        className='border-primary/20 shadow-lg animate-in slide-in-from-top-4 duration-300'>
+                        <div className='relative'>
+                            <Button
+                                type='button'
+                                onClick={closeEditForm}
+                                variant='ghost'
+                                size='sm'
+                                className='-top-[4rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
+                                <X className='h-4 w-4 text-destructive' /> Close
+                            </Button>
+                            <UpdateMasterClassForm selectedRow={selectedRow} onSuccess={closeEditForm} />
+                        </div>
+                    </CollapsibleSection>
+                </div>
             )}
 
             {/* Toggle Form */}
             {isToggleFormOpen && selectedRow && <ToggleMasterClassForm rowData={selectedRow} onClose={closeToggleForm} />}
         </>
-    );
-}
-
-function MasterClassTable({ response, isLoading, error }: MasterClassTableProps) {
-    const responseData = response?.data || [];
-    const totalItems = response?.total || 0;
-
-    if (isLoading) {
-        return (
-            <div className='flex flex-col items-center justify-center space-y-4 py-12'>
-                <RefreshCw className='h-8 w-8 animate-spin text-primary' />
-                <p className='text-muted-foreground text-sm'>Loading master classes...</p>
-            </div>
-        );
-    }
-
-    if (error) {
-        return (
-            <div className='flex flex-col items-center justify-center space-y-4 py-12'>
-                <div className='rounded-full bg-destructive/10 p-3'>
-                    <Database className='h-6 w-6 text-destructive' />
-                </div>
-                <div className='space-y-2 text-center'>
-                    <h3 className='font-semibold text-destructive'>Error Loading Data</h3>
-                    <p className='text-muted-foreground text-sm'>{error?.message || 'Failed to load master classes'}</p>
-                </div>
-            </div>
-        );
-    }
-
-    if (!response?.success) {
-        return (
-            <div className='flex flex-col items-center justify-center py-12 space-y-4'>
-                <div className='rounded-full bg-destructive/10 p-3'>
-                    <Database className='h-6 w-6 text-destructive' />
-                </div>
-                <div className='text-center space-y-2'>
-                    <h3 className='font-semibold text-destructive'>Request Failed</h3>
-                    <p className='text-sm text-muted-foreground'>{response?.message || 'Failed to fetch master classes'}</p>
-                </div>
-            </div>
-        );
-    }
-
-    if (responseData.length === 0) {
-        return (
-            <div className='flex flex-col items-center justify-center py-12 space-y-4'>
-                <div className='rounded-full bg-muted p-3'>
-                    <Database className='h-6 w-6 text-muted-foreground' />
-                </div>
-                <div className='text-center space-y-2'>
-                    <h3 className='font-semibold'>No Master Classes Found</h3>
-                    <p className='text-sm text-muted-foreground'>Get started by creating your first master class</p>
-                </div>
-            </div>
-        );
-    }
-
-    return (
-        <div className='overflow-hidden rounded-lg bg-card'>
-            <DataTable
-                isLoading={false}
-                columns={masterClassColumns}
-                data={responseData}
-                totalItems={totalItems}
-                showViewOptions={true}
-                columnPinning={{ right: ['actions'] }}
-            />
-        </div>
     );
 }
