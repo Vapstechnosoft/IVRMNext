@@ -1,6 +1,7 @@
 import { ADMISSION_QUERY_KEYS } from '@/constants/query-keys';
 import { getMasterCategory } from '@/server/admission/preadmission/masters/category';
 import { getMasterClass } from '@/server/admission/preadmission/masters/class';
+import { getMasterSection } from '@/server/admission/preadmission/masters/section';
 import type { ApiSearchparams } from '@/types';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 
@@ -33,6 +34,23 @@ export const useMasterCategory = (searchParams?: ApiSearchparams) => {
         refetchAll: () => {
             return queryClient.invalidateQueries({
                 queryKey: [ADMISSION_QUERY_KEYS.MASTER_CATEGORY]
+            });
+        }
+    };
+};
+
+export const useMasterSection = (searchParams?: ApiSearchparams) => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [ADMISSION_QUERY_KEYS.MASTER_SECTION, searchParams ?? {}],
+            queryFn: async () => getMasterSection(searchParams),
+            staleTime: 0
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [ADMISSION_QUERY_KEYS.MASTER_SECTION]
             });
         }
     };

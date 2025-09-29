@@ -1,5 +1,5 @@
 'use server';
-import { api, ApiResponse } from '@/lib/apiService';
+import { type ApiResponse, api } from '@/lib/apiService';
 import type { IDropdown, IUserAccessibleModules, UserNotification } from '@/types';
 
 export async function getCommonDropdown(name: string) {
@@ -82,7 +82,7 @@ export async function getUserAccessibleModules() {
                                         id: 3,
                                         name: 'Master Section',
                                         icon: 'Settings',
-                                        url: '/admission/masters/section'
+                                        url: '/admission/preadmission/masters/section'
                                     }
                                 ]
                             },

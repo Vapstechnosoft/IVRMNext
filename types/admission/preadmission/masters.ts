@@ -25,3 +25,14 @@ export interface IMasterCategoryList {
     createdDate: string;
     updatedDate: string;
 }
+export interface IMasterSectionList {
+    asmS_Id: number;
+    mI_Id: number;
+    asmC_SectionCode: string;
+    asmC_SectionName: string;
+    asmC_Order: number;
+    asmC_MaxCapacity: number;
+    asmC_ActiveFlag: number;
+    createdDate: string;
+    updatedDate: string;
+}

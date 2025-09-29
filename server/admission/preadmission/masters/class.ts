@@ -11,11 +11,11 @@ export async function getMasterClass(searchParams?: ApiSearchparams) {
 }
 
 export async function addOrUpdateMasterClass(data: any) {
-    const url = '/v1/master_class';
+    const url = '/master_class';
     return await api.post<any>(url, data);
 }
 
 export async function toggleMasterClass(mi_id: number, id: number) {
-    const url = `/v1/master_class/toggle/${mi_id}/${id}`;
+    const url = `/master_class/toggle/${mi_id}/${id}`;
     return await api.put(url);
 }

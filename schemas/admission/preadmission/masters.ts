@@ -37,3 +37,16 @@ export const masterCategorySchema = {
         amC_Id: deleteIdSchema('amC_Id')
     })
 };
+
+export const masterSectionSchema = {
+    addOrUpdate: z.object({
+        asmS_Id: z.number().int({ message: 'AsmS_Id is required' }).optional(),
+        asmc_sectioncode: createStringSchema('Code', 1, 100),
+        asmc_sectionname: createStringSchema('Name', 1, 100),
+        asmc_maxcapacity: z.number().int({ message: 'Max Capacity is required' }),
+        asmc_order: z.number().int({ message: 'Section Order is required' })
+    }),
+    delete: z.object({
+        asmS_Id: deleteIdSchema('asmS_Id')
+    })
+};
