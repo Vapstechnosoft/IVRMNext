@@ -36,3 +36,10 @@ export interface IMasterSectionList {
     createdDate: string;
     updatedDate: string;
 }
+export interface IMasterReligionList {
+    ivrmmR_Id: number;
+    ivrmmR_Name: string;
+    is_Active: boolean;
+    createdDate: string;
+    updatedDate: string;
+}

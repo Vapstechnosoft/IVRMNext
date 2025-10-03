@@ -83,6 +83,12 @@ export async function getUserAccessibleModules() {
                                         name: 'Master Section',
                                         icon: 'Settings',
                                         url: '/admission/preadmission/masters/section'
+                                    },
+                                    {
+                                        id: 4,
+                                        name: 'Master Religion',
+                                        icon: 'Settings',
+                                        url: '/admission/preadmission/masters/religion'
                                     }
                                 ]
                             },

@@ -50,3 +50,13 @@ export const masterSectionSchema = {
         asmS_Id: deleteIdSchema('asmS_Id')
     })
 };
+
+export const masterReligionSchema = {
+    addOrUpdate: z.object({
+        ivrmmR_Id: z.number().int({ message: 'IVRMMR_ID is required' }).optional(),
+        ivrmmR_Name: createStringSchema('Religion Name', 1, 100)
+    }),
+    delete: z.object({
+        ivrmmR_Id: deleteIdSchema('ivrmmR_Id')
+    })
+};
