@@ -1,4 +1,5 @@
 import { ADMISSION_QUERY_KEYS } from '@/constants/query-keys';
+import { getMasterCasteCategory, getMasterCasteCategoryCodeDropdown } from '@/server/admission/preadmission/masters/caste_category';
 import { getMasterCategory } from '@/server/admission/preadmission/masters/category';
 import { getMasterClass } from '@/server/admission/preadmission/masters/class';
 import {
@@ -161,6 +162,40 @@ export const useMasterReligion = (searchParams?: ApiSearchparams) => {
         refetchAll: () => {
             return queryClient.invalidateQueries({
                 queryKey: [ADMISSION_QUERY_KEYS.MASTER_RELIGION]
+            });
+        }
+    };
+};
+
+export const useMasterCasteCategory = (searchParams?: ApiSearchparams) => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [ADMISSION_QUERY_KEYS.MASTER_CASTE_CATEGORY, searchParams ?? {}],
+            queryFn: async () => getMasterCasteCategory(searchParams),
+            staleTime: 0
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [ADMISSION_QUERY_KEYS.MASTER_CASTE_CATEGORY]
+            });
+        }
+    };
+};
+
+export const useMasterCasteCategoryCodeDropdown = () => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [ADMISSION_QUERY_KEYS.MASTER_CASTE_CATEGORY_CODE_DROPDOWN],
+            queryFn: async () => getMasterCasteCategoryCodeDropdown(),
+            staleTime: 0
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [ADMISSION_QUERY_KEYS.MASTER_CASTE_CATEGORY_CODE_DROPDOWN]
             });
         }
     };

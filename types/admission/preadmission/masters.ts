@@ -71,3 +71,11 @@ export interface IMasterSectionDropDown {
     asmC_SectionName: string;
     asmC_Order: number;
 }
+export interface IMasterCasteCategoryList {
+    imcC_Id: number;
+    imcC_CategoryName: string;
+    imcC_CategoryDesc: string;
+    imcC_CategoryCode: string;
+    createdDate: string;
+    updatedDate: string;
+}

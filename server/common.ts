@@ -95,6 +95,12 @@ export async function getUserAccessibleModules() {
                                         name: 'Master Religion',
                                         icon: 'Settings',
                                         url: '/admission/preadmission/masters/religion'
+                                    },
+                                    {
+                                        id: 6,
+                                        name: 'Master Caste Category',
+                                        icon: 'Settings',
+                                        url: '/admission/preadmission/masters/caste_category'
                                     }
                                 ]
                             },

@@ -12,5 +12,7 @@ export const ADMISSION_QUERY_KEYS = {
     MASTER_CATEGORY_DROPDOWN: 'master_category_dropdown',
     MASTER_CLASS_DROPDOWN: 'master_class_dropdown',
     MASTER_SECTION_DROPDOWN: 'master_section_dropdown',
-    MASTER_RELIGION: 'master_religion'
+    MASTER_RELIGION: 'master_religion',
+    MASTER_CASTE_CATEGORY: 'master_caste_category',
+    MASTER_CASTE_CATEGORY_CODE_DROPDOWN: 'master_caste_category_code_dropdown'
 };
