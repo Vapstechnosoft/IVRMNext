@@ -134,6 +134,7 @@ export default function UpdateMasterCasteCategoryForm({ onSuccess, className = '
                             label='Caste Category Name'
                             required
                             id='imcC_CategoryName'
+                            placeholder='Enter Caste Category Name'
                             {...register('imcC_CategoryName')}
                             defaultValue={row.imcC_CategoryName}
                             error={errors.imcC_CategoryName?.message}
@@ -143,6 +144,7 @@ export default function UpdateMasterCasteCategoryForm({ onSuccess, className = '
                             label='Caste Category Description'
                             required
                             id='imcC_CategoryDesc'
+                            placeholder='Enter Caste Category Description'
                             {...register('imcC_CategoryDesc')}
                             defaultValue={row.imcC_CategoryDesc}
                             error={errors.imcC_CategoryDesc?.message}

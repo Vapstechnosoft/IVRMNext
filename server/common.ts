@@ -88,7 +88,7 @@ export async function getUserAccessibleModules() {
                                         id: 4,
                                         name: 'Master Class Category',
                                         icon: 'Settings',
-                                        url: '/admission/preadmission/masters/class_category'
+                                        url: '/admission/preadmission/masters/class-category'
                                     },
                                     {
                                         id: 5,
@@ -100,7 +100,7 @@ export async function getUserAccessibleModules() {
                                         id: 6,
                                         name: 'Master Caste Category',
                                         icon: 'Settings',
-                                        url: '/admission/preadmission/masters/caste_category'
+                                        url: '/admission/preadmission/masters/caste-category'
                                     }
                                 ]
                             },

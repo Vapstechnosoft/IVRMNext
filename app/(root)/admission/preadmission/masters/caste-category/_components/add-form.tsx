@@ -119,6 +119,7 @@ export default function AddMasterCasteCategoryForm({ onSuccess, className = '' }
                             label='Caste Category Name'
                             required
                             id='imcC_CategoryName'
+                            placeholder='Enter caste category name'
                             {...register('imcC_CategoryName')}
                             error={errors.imcC_CategoryName?.message}
                             className='transition-colors focus:ring-2 focus:ring-primary/20'
@@ -127,6 +128,7 @@ export default function AddMasterCasteCategoryForm({ onSuccess, className = '' }
                             label='Caste Category Description'
                             required
                             id='imcC_CategoryDesc'
+                            placeholder='Enter caste category description'
                             {...register('imcC_CategoryDesc')}
                             error={errors.imcC_CategoryDesc?.message}
                             className='transition-colors focus:ring-2 focus:ring-primary/20'
