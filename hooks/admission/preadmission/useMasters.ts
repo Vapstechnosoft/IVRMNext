@@ -1,4 +1,5 @@
 import { ADMISSION_QUERY_KEYS } from '@/constants/query-keys';
+import { getMasterCaste, getMasterCasteCategoryDropdown } from '@/server/admission/preadmission/masters/caste';
 import { getMasterCasteCategory, getMasterCasteCategoryCodeDropdown } from '@/server/admission/preadmission/masters/caste_category';
 import { getMasterCategory } from '@/server/admission/preadmission/masters/category';
 import { getMasterClass } from '@/server/admission/preadmission/masters/class';
@@ -196,6 +197,40 @@ export const useMasterCasteCategoryCodeDropdown = () => {
         refetchAll: () => {
             return queryClient.invalidateQueries({
                 queryKey: [ADMISSION_QUERY_KEYS.MASTER_CASTE_CATEGORY_CODE_DROPDOWN]
+            });
+        }
+    };
+};
+
+export const useMasterCaste = (searchParams?: ApiSearchparams) => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [ADMISSION_QUERY_KEYS.MASTER_CASTE, searchParams ?? {}],
+            queryFn: async () => getMasterCaste(searchParams),
+            staleTime: 0
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [ADMISSION_QUERY_KEYS.MASTER_CASTE]
+            });
+        }
+    };
+};
+
+export const useMasterCasteCategoryDropdown = () => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [ADMISSION_QUERY_KEYS.MASTER_CASTE_CATEGORY_DROPDOWN],
+            queryFn: async () => getMasterCasteCategoryDropdown(),
+            staleTime: 0
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [ADMISSION_QUERY_KEYS.MASTER_CASTE_CATEGORY_DROPDOWN]
             });
         }
     };

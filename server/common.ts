@@ -101,6 +101,12 @@ export async function getUserAccessibleModules() {
                                         name: 'Master Caste Category',
                                         icon: 'Settings',
                                         url: '/admission/preadmission/masters/caste-category'
+                                    },
+                                    {
+                                        id: 7,
+                                        name: 'Master Caste',
+                                        icon: 'Settings',
+                                        url: '/admission/preadmission/masters/caste'
                                     }
                                 ]
                             },

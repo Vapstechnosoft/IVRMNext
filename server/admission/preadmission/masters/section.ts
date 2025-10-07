@@ -7,7 +7,7 @@ import type { IMasterSectionList } from '@/types/admission/preadmission/masters'
 export async function getMasterSection(searchParams?: ApiSearchparams) {
     const urlParams = getSearchParamsUrl(searchParams ?? {});
     const url = `/master_section/30?${urlParams}`;
-    return await api.getArray<IMasterSectionList>(url);
+    return await api.get<IMasterSectionList[]>(url);
 }
 
 export async function addOrUpdateMasterSection(data: any) {

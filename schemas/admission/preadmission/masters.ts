@@ -84,3 +84,15 @@ export const masterCasteCategorySchema = {
         imcC_Id: deleteIdSchema('imcC_Id')
     })
 };
+
+export const masterCasteSchema = {
+    addOrUpdate: z.object({
+        imC_Id: z.number().int({ message: 'IMC_ID is required' }).optional(),
+        imcC_Id: z.number().int({ message: 'Caste Category is required' }),
+        imC_CasteName: createStringSchema('Caste Caste Code', 1, 100),
+        imC_CasteDesc: createStringSchema('Caste Caste Description', 1, 100)
+    }),
+    delete: z.object({
+        imC_Id: deleteIdSchema('imC_Id')
+    })
+};

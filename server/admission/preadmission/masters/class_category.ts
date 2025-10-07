@@ -12,27 +12,27 @@ import type {
 export async function getMasterClassCategory(searchParams?: ApiSearchparams) {
     const urlParams = getSearchParamsUrl(searchParams ?? {});
     const url = `/master_class_category/30?${urlParams}`;
-    return await api.getArray<IMasterClassCategoryList>(url);
+    return await api.get<IMasterClassCategoryList[]>(url);
 }
 
 export async function getAcademicYearDropdown() {
     const url = '/master_class_category/academic_year_drop_down_list/30';
-    return await api.getArray<IAcademicYearDropDown>(url);
+    return await api.get<IAcademicYearDropDown[]>(url);
 }
 
 export async function getMasterCategoryDropdown() {
     const url = '/master_class_category/master_category_drop_down_list/30';
-    return await api.getArray<IMasterCategoryDropDown>(url);
+    return await api.get<IMasterCategoryDropDown[]>(url);
 }
 
 export async function getMasterClassDropdown() {
     const url = '/master_class_category/master_class_drop_down_list/30';
-    return await api.getArray<IMasterClassDropDown>(url);
+    return await api.get<IMasterClassDropDown[]>(url);
 }
 
 export async function getMasterSectionDropdown() {
     const url = '/master_class_category/master_section_drop_down_list/30';
-    return await api.getArray<IMasterClassDropDown>(url);
+    return await api.get<IMasterClassDropDown[]>(url);
 }
 
 export async function addMasterClassCategory(data: any) {

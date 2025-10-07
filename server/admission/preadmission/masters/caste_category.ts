@@ -7,12 +7,12 @@ import type { IMasterCasteCategoryList } from '@/types/admission/preadmission/ma
 export async function getMasterCasteCategory(searchParams?: ApiSearchparams) {
     const urlParams = getSearchParamsUrl(searchParams ?? {});
     const url = `/master_caste_category?${urlParams}`;
-    return await api.getArray<IMasterCasteCategoryList>(url);
+    return await api.get<IMasterCasteCategoryList[]>(url);
 }
 
 export async function getMasterCasteCategoryCodeDropdown() {
     const url = '/master_caste_category/caste_category_code_drop_down_list';
-    return await api.getArray<IDropdown>(url);
+    return await api.get<IDropdown[]>(url);
 }
 
 export async function addOrUpdateMasterCasteCategory(data: any) {

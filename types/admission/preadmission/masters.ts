@@ -79,3 +79,16 @@ export interface IMasterCasteCategoryList {
     createdDate: string;
     updatedDate: string;
 }
+export interface IMasterCasteList {
+    mI_Id: number;
+    imC_Id: number;
+    imcC_Id: number;
+    imC_CasteName: string;
+    imC_CasteDesc: string;
+    createdDate: string;
+    updatedDate: string;
+}
+export interface IMasterCasteCategoryDropDown {
+    imcC_Id: number;
+    imcC_CategoryName: string;
+}

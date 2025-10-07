@@ -7,7 +7,7 @@ import type { IMasterReligionList } from '@/types/admission/preadmission/masters
 export async function getMasterReligion(searchParams?: ApiSearchparams) {
     const urlParams = getSearchParamsUrl(searchParams ?? {});
     const url = `/master_religion?${urlParams}`;
-    return await api.getArray<IMasterReligionList>(url);
+    return await api.get<IMasterReligionList[]>(url);
 }
 
 export async function addOrUpdateMasterReligion(data: any) {

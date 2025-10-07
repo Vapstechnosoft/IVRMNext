@@ -7,7 +7,7 @@ import type { IMasterClassList } from '@/types/admission/preadmission/masters';
 export async function getMasterClass(searchParams?: ApiSearchparams) {
     const urlParams = getSearchParamsUrl(searchParams ?? {});
     const url = `/master_class/30?${urlParams}`;
-    return await api.getArray<IMasterClassList>(url);
+    return await api.get<IMasterClassList[]>(url);
 }
 
 export async function addOrUpdateMasterClass(data: any) {
