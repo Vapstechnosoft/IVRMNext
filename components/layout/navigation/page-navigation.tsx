@@ -1,7 +1,8 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
+import { CardContent } from '@/components/ui/card';
+import { PolygonBanner } from '@/components/ui/extension/polygon-banner';
 import { getIconByName } from '@/lib/lucide-icon-registry';
 import { cn } from '@/lib/utils';
 import { AnimatePresence, motion } from 'framer-motion';
@@ -57,11 +58,10 @@ export function PageNavigation() {
                 initial={{ opacity: 0, height: 0 }}
                 animate={{ opacity: 1, height: 'auto' }}
                 exit={{ opacity: 0, height: 0 }}
-                transition={{ duration: 0.3, ease: 'easeInOut' }}
-                className='sticky top-16 z-20 border-border backdrop-blur-sm'>
-                <div className='container rounded-lg bg-gradient-blue-purple-indigo py-2'>
+                transition={{ duration: 0.3, ease: 'easeInOut' }}>
+                <div className='container flex flex-col bg-background py-2'>
                     {/* Breadcrumb */}
-                    <div className='flex items-center gap-2 text-muted text-sm'>
+                    <div className='flex items-center gap-2 text-muted-foreground text-sm'>
                         <span className='font-medium'>{activeNavigation.module}</span>
                         <ChevronRight className='h-4 w-4' />
                         <span>{activeNavigation.menu}</span>
@@ -70,7 +70,6 @@ export function PageNavigation() {
                             <span className='font-medium'>{activeNavigation.subMenu}</span>
                         </div>
                     </div>
-
                     {/* Page Navigation */}
                     <div className='relative'>
                         <div className='flex items-center gap-4'>
@@ -94,37 +93,32 @@ export function PageNavigation() {
 
                                     return (
                                         <Link key={page.id} href={page.url}>
-                                            <Card
+                                            <div
                                                 className={cn(
-                                                    'flex-shrink-0 cursor-pointer transition-all duration-200 hover:scale-105 hover:shadow-lg',
-                                                    'min-w-[150px] text-nowrap border-2',
-                                                    isCurrentPage
-                                                        ? 'border-border hover:border-primary/50'
-                                                        : 'border border-accent/20 bg-primary/25'
+                                                    'min-w-[150px] flex-shrink-0 cursor-pointer text-nowrap border-0 transition-all duration-200 hover:scale-105 hover:shadow-lg',
+                                                    isCurrentPage ? 'border-primary/70 border-b' : ''
                                                 )}>
                                                 <CardContent className='p-2 text-center'>
-                                                    <div className='flex items-center gap-2'>
+                                                    <div className='flex items-center'>
                                                         {IconComponent && (
                                                             <div
                                                                 className={cn(
                                                                     'rounded-full p-2 transition-colors',
-                                                                    isCurrentPage
-                                                                        ? 'bg-primary text-primary-foreground'
-                                                                        : 'bg-accent text-accent-foreground'
+                                                                    isCurrentPage ? 'text-primary' : 'text-black'
                                                                 )}>
                                                                 <IconComponent className='h-3 w-3' />
                                                             </div>
                                                         )}
                                                         <span
                                                             className={cn(
-                                                                'font-medium text-sm transition-colors',
-                                                                isCurrentPage ? 'text-foreground' : 'text-muted'
+                                                                'font-medium text-sm',
+                                                                isCurrentPage ? 'text-primary' : 'text-black'
                                                             )}>
                                                             {page.name}
                                                         </span>
                                                     </div>
                                                 </CardContent>
-                                            </Card>
+                                            </div>
                                         </Link>
                                     );
                                 })}
@@ -141,6 +135,8 @@ export function PageNavigation() {
                         </div>
                     </div>
                 </div>
+                {/* This must be dynamic as per navigated page */}
+                <PolygonBanner title='Master Class' description='Manage and organize your master classes' />
             </motion.div>
         </AnimatePresence>
     );

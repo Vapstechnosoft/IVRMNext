@@ -1,5 +1,7 @@
 'use client';
 
+import { EditIcon } from 'lucide-react';
+
 interface PolygonBannerProps {
     title?: string;
     description?: string;
@@ -15,7 +17,10 @@ export function PolygonBanner({ title = 'Welcome Back', description = 'Access yo
 
             {/* Content */}
             <div className='container relative z-10 mx-auto flex flex-col items-start px-4'>
-                <p className='font-bold text-3xl text-white'>{title}</p>
+                <div className='flex items-center gap-2'>
+                    <EditIcon className='text-white' />
+                    <p className='font-bold text-3xl text-white'>{title}</p>
+                </div>
                 {description && <p className='mt-1 text-sm text-white/90'>{description}</p>}
             </div>
         </div>
