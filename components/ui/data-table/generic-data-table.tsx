@@ -1,8 +1,8 @@
 'use client';
 
 import { DataTable } from '@/components/ui/data-table/data-table';
-import { Database, RefreshCw } from 'lucide-react';
 import type { ColumnDef } from '@tanstack/react-table';
+import { Database, RefreshCw } from 'lucide-react';
 
 interface GenericDataTableProps<T> {
     // Data props
@@ -68,7 +68,7 @@ export function GenericDataTable<T>({
 
         return (
             <div className='flex flex-col items-center justify-center space-y-4 py-12'>
-                <LoadingIcon className='h-8 w-8 animate-spin text-primary' />
+                <LoadingIcon className='h-8 w-8 animate-spin text-secondary' />
                 <p className='text-muted-foreground text-sm'>{loadingMessage}</p>
             </div>
         );
@@ -96,13 +96,13 @@ export function GenericDataTable<T>({
     // Request failed state (when success is false but no error)
     if (!success) {
         return (
-            <div className='flex flex-col items-center justify-center py-12 space-y-4'>
+            <div className='flex flex-col items-center justify-center space-y-4 py-12'>
                 <div className='rounded-full bg-destructive/10 p-3'>
                     <ErrorIcon className='h-6 w-6 text-destructive' />
                 </div>
-                <div className='text-center space-y-2'>
+                <div className='space-y-2 text-center'>
                     <h3 className='font-semibold text-destructive'>{requestFailedTitle}</h3>
-                    <p className='text-sm text-muted-foreground'>{errorMessage || 'Failed to fetch data'}</p>
+                    <p className='text-muted-foreground text-sm'>{errorMessage || 'Failed to fetch data'}</p>
                 </div>
             </div>
         );
@@ -115,13 +115,13 @@ export function GenericDataTable<T>({
         }
 
         return (
-            <div className='flex flex-col items-center justify-center py-12 space-y-4'>
+            <div className='flex flex-col items-center justify-center space-y-4 py-12'>
                 <div className='rounded-full bg-muted p-3'>
                     <NoDataIcon className='h-6 w-6 text-muted-foreground' />
                 </div>
-                <div className='text-center space-y-2'>
+                <div className='space-y-2 text-center'>
                     <h3 className='font-semibold'>{noDataTitle}</h3>
-                    <p className='text-sm text-muted-foreground'>{noDataDescription}</p>
+                    <p className='text-muted-foreground text-sm'>{noDataDescription}</p>
                 </div>
             </div>
         );

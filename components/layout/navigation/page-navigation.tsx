@@ -59,13 +59,13 @@ export function PageNavigation() {
                 exit={{ opacity: 0, height: 0 }}
                 transition={{ duration: 0.3, ease: 'easeInOut' }}
                 className='sticky top-16 z-20 border-border backdrop-blur-sm'>
-                <div className='container rounded-lg bg-gradient-purple-orange py-2'>
+                <div className='container rounded-lg bg-gradient-blue-purple-indigo py-2'>
                     {/* Breadcrumb */}
-                    <div className='flex items-center gap-2 text-sm text-muted'>
+                    <div className='flex items-center gap-2 text-muted text-sm'>
                         <span className='font-medium'>{activeNavigation.module}</span>
-                        <ChevronRight className='w-4 h-4' />
+                        <ChevronRight className='h-4 w-4' />
                         <span>{activeNavigation.menu}</span>
-                        <ChevronRight className='w-4 h-4' />
+                        <ChevronRight className='h-4 w-4' />
                         <div className='underline underline-offset-4'>
                             <span className='font-medium'>{activeNavigation.subMenu}</span>
                         </div>
@@ -97,7 +97,7 @@ export function PageNavigation() {
                                             <Card
                                                 className={cn(
                                                     'flex-shrink-0 cursor-pointer transition-all duration-200 hover:scale-105 hover:shadow-lg',
-                                                    'min-w-[150px] border-2 text-nowrap',
+                                                    'min-w-[150px] text-nowrap border-2',
                                                     isCurrentPage
                                                         ? 'border-border hover:border-primary/50'
                                                         : 'border border-accent/20 bg-primary/25'
@@ -134,9 +134,9 @@ export function PageNavigation() {
                             <Button
                                 variant='outline'
                                 size='sm'
-                                className='flex-shrink-0 h-10 w-10 p-0 rounded-full shadow-md hover:shadow-lg transition-shadow'
+                                className='h-10 w-10 flex-shrink-0 rounded-full p-0 shadow-md transition-shadow hover:shadow-lg'
                                 onClick={() => scrollPages('right')}>
-                                <ChevronRight className='w-4 h-4' />
+                                <ChevronRight className='h-4 w-4' />
                             </Button>
                         </div>
                     </div>
