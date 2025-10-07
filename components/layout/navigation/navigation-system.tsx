@@ -36,6 +36,8 @@ export interface ActiveNavigation {
     menu: string;
     subMenu: string;
     pages: SubMenu['pages'];
+    title?: string;
+    description?: string;
 }
 
 export function NavigationSystem() {
@@ -58,12 +60,20 @@ export function NavigationSystem() {
     const handleSubMenuClick = (module: IUserAccessibleModules, menu: Menu, subMenu: SubMenu) => {
         const firstPageUrl = subMenu.pages[0]?.url;
         if (firstPageUrl) {
-            setNavigationContext({
+            const navData = {
                 module: module.name,
                 menu: menu.name,
                 subMenu: subMenu.name,
-                pages: subMenu.pages
-            });
+                pages: subMenu.pages,
+                title: subMenu.name, // Will be overridden by page-specific titles
+                description: '' // Will be overridden by page-specific descriptions
+            };
+            setNavigationContext(navData);
+
+            if (typeof window !== 'undefined') {
+                sessionStorage.setItem('activeNavigation', JSON.stringify(navData));
+            }
+
             setActiveDrawer(null);
             setActiveModule(module.name);
             router.push(firstPageUrl);
@@ -85,6 +95,23 @@ export function NavigationSystem() {
             return () => document.removeEventListener('mousedown', handleClickOutside);
         }
     }, [activeDrawer]);
+
+    // Add this after the existing useEffect
+    useEffect(() => {
+        // Restore navigation context from sessionStorage on mount
+        if (typeof window !== 'undefined') {
+            const savedNav = sessionStorage.getItem('activeNavigation');
+            if (savedNav) {
+                try {
+                    const navData = JSON.parse(savedNav);
+                    setNavigationContext(navData);
+                    setActiveModule(navData.module);
+                } catch (e) {
+                    console.error('Failed to restore navigation context', e);
+                }
+            }
+        }
+    }, []);
 
     if (activeModule !== null && activeDrawer === null && (pathname === '/' || pathname === null)) {
         setActiveDrawer(null);

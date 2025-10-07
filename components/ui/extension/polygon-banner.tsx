@@ -1,13 +1,15 @@
 'use client';
 
 import { EditIcon } from 'lucide-react';
+import type { ReactNode } from 'react';
 
 interface PolygonBannerProps {
     title?: string;
     description?: string;
+    breadcrumb?: ReactNode;
 }
 
-export function PolygonBanner({ title = 'Welcome Back', description = 'Access your dashboard' }: PolygonBannerProps) {
+export function PolygonBanner({ title = 'Welcome Back', description = 'Access your dashboard', breadcrumb }: PolygonBannerProps) {
     return (
         <div className='relative w-full overflow-hidden bg-primary py-4'>
             {/* Background Image */}
@@ -22,6 +24,7 @@ export function PolygonBanner({ title = 'Welcome Back', description = 'Access yo
                     <p className='font-bold text-3xl text-white'>{title}</p>
                 </div>
                 {description && <p className='mt-1 text-sm text-white/90'>{description}</p>}
+                {breadcrumb && <div>{breadcrumb}</div>}
             </div>
         </div>
     );

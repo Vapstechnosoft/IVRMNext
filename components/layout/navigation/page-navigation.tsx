@@ -60,16 +60,6 @@ export function PageNavigation() {
                 exit={{ opacity: 0, height: 0 }}
                 transition={{ duration: 0.3, ease: 'easeInOut' }}>
                 <div className='container flex flex-col bg-background py-2'>
-                    {/* Breadcrumb */}
-                    <div className='flex items-center gap-2 text-muted-foreground text-sm'>
-                        <span className='font-medium'>{activeNavigation.module}</span>
-                        <ChevronRight className='h-4 w-4' />
-                        <span>{activeNavigation.menu}</span>
-                        <ChevronRight className='h-4 w-4' />
-                        <div className='underline underline-offset-4'>
-                            <span className='font-medium'>{activeNavigation.subMenu}</span>
-                        </div>
-                    </div>
                     {/* Page Navigation */}
                     <div className='relative'>
                         <div className='flex items-center gap-4'>
@@ -135,8 +125,20 @@ export function PageNavigation() {
                         </div>
                     </div>
                 </div>
-                {/* This must be dynamic as per navigated page */}
-                <PolygonBanner title='Master Class' description='Manage and organize your master classes' />
+                {/* PolygonBanner with Breadcrumb */}
+                <PolygonBanner
+                    title={activeNavigation.title || activeNavigation.subMenu}
+                    description={activeNavigation.description || ''}
+                    breadcrumb={
+                        <div className='flex items-center gap-2 text-sm text-white/80'>
+                            <span className='font-medium'>{activeNavigation.module}</span>
+                            <ChevronRight className='h-4 w-4' />
+                            <span>{activeNavigation.menu}</span>
+                            <ChevronRight className='h-4 w-4' />
+                            <span className='font-medium'>{activeNavigation.subMenu}</span>
+                        </div>
+                    }
+                />
             </motion.div>
         </AnimatePresence>
     );
