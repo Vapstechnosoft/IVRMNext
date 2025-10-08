@@ -17,6 +17,9 @@ export function PageNavigation() {
     const [activeNavigation, setActiveNavigation] = useState(getNavigationContext().activeNavigation);
     const pageScrollRef = useRef<HTMLDivElement>(null);
     const pathname = usePathname();
+    const [pageName, setPageName] = useState('');
+    const [pageTitle, setPageTitle] = useState('');
+    const [pageDescription, setPageDescription] = useState('');
 
     // Listen for navigation context changes
     useEffect(() => {
@@ -59,7 +62,7 @@ export function PageNavigation() {
                 animate={{ opacity: 1, height: 'auto' }}
                 exit={{ opacity: 0, height: 0 }}
                 transition={{ duration: 0.3, ease: 'easeInOut' }}>
-                <div className='container flex flex-col bg-background py-2'>
+                <div className='container flex flex-col bg-card py-2'>
                     {/* Page Navigation */}
                     <div className='relative'>
                         <div className='flex items-center gap-4'>
@@ -82,7 +85,14 @@ export function PageNavigation() {
                                     const IconComponent = getIconByName(page.icon);
 
                                     return (
-                                        <Link key={page.id} href={page.url}>
+                                        <Link
+                                            key={page.id}
+                                            href={page.url}
+                                            onClick={() => {
+                                                setPageName(page.name);
+                                                setPageTitle(page.title);
+                                                setPageDescription(page.description);
+                                            }}>
                                             <div
                                                 className={cn(
                                                     'min-w-[150px] flex-shrink-0 cursor-pointer text-nowrap border-0 transition-all duration-200 hover:scale-105 hover:shadow-lg',
@@ -127,8 +137,8 @@ export function PageNavigation() {
                 </div>
                 {/* PolygonBanner with Breadcrumb */}
                 <PolygonBanner
-                    title={activeNavigation.title || activeNavigation.subMenu}
-                    description={activeNavigation.description || ''}
+                    title={pageTitle}
+                    description={pageDescription || ''}
                     breadcrumb={
                         <div className='flex items-center gap-2 text-sm text-white/80'>
                             <span className='font-medium'>{activeNavigation.module}</span>
@@ -136,6 +146,8 @@ export function PageNavigation() {
                             <span>{activeNavigation.menu}</span>
                             <ChevronRight className='h-4 w-4' />
                             <span className='font-medium'>{activeNavigation.subMenu}</span>
+                            <ChevronRight className='h-4 w-4' />
+                            <span className='font-bold text-white'>{pageName}</span>
                         </div>
                     }
                 />

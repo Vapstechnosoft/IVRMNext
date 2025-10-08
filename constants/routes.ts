@@ -7,21 +7,21 @@ export const AUTH_ROUTES = {
 export const ROUTES = {
     DASHBOARD: '/',
     ADMISSION: {
-        CONFIGURATIONS: '/admission-configurations',
-        CONFIGURATIONS_SUB_MENUS: {
-            CONFIGURATIONS_PAGE: '/page'
-        },
-        MASTERS: '/admission-masters',
-        MASTERS_SUB_MENUS: {
-            MASTERS_CLASS: '/class'
-        },
-        TRANSACTIONS: '/admission-transactions',
-        TRANSACTIONS_SUB_MENUS: {
-            TRANSACTIONS_COMPANY: '/class'
-        },
-        REPORTS: '/admission-reports',
-        REPORTS_SUB_MENUS: {
-            REPORTS_CLASS: '/class'
+        ADMISSION: '/admission',
+        ADMISSION_SUB_MENUS: {
+            PREADMISSION: '/preadmission',
+            PREADMISSION_SUB_MENUS: {
+                MASTERS: '/admission-masters',
+                MASTERS_SUB_MENUS: {
+                    MASTERS_CLASS: '/class',
+                    MASTERS_CATEGORY: '/category',
+                    MASTERS_SECTION: '/section',
+                    MASTERS_CLASS_CATEGORY: '/class-category',
+                    MASTERS_RELIGION: '/religion',
+                    MASTERS_CASTE_CATEGORY: '/caste-category',
+                    MASTERS_CASTE: '/caste'
+                }
+            }
         }
     }
 };

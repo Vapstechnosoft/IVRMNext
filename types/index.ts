@@ -79,4 +79,6 @@ export interface AccessiblePage {
     name: string;
     icon: string;
     url: string;
+    title?: string;
+    description?: string;
 }
