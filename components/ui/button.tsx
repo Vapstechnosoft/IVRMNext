@@ -13,7 +13,7 @@ const buttonVariants = cva(
     {
         variants: {
             variant: {
-                default: 'bg-primary text-primary-foreground shadow hover:bg-primary/90',
+                default: 'bg-secondary text-secondary-foreground shadow hover:bg-secondary/90',
                 destructive: 'bg-destructive text-destructive-foreground shadow-sm hover:bg-destructive/90',
                 outline: 'border border-input bg-background shadow-sm hover:bg-accent hover:text-accent-foreground',
                 secondary: 'bg-secondary text-secondary-foreground shadow-sm hover:bg-secondary/80',
@@ -24,7 +24,7 @@ const buttonVariants = cva(
                 success: 'bg-green-500 text-background hover:bg-green-500/90 shadow-sm',
                 warning: 'bg-amber-500 text-background hover:bg-amber-500/90 shadow-sm',
                 danger: 'bg-destructive text-destructive-foreground shadow-sm hover:bg-destructive/90',
-                gradient: 'bg-gradient-purple-orange text-background shadow-sm'
+                gradient: 'bg-gradient-blue-purple-indigo text-background shadow-sm'
             },
             size: {
                 default: 'h-9 px-4 py-2',

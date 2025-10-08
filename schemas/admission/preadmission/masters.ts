@@ -37,3 +37,62 @@ export const masterCategorySchema = {
         amC_Id: deleteIdSchema('amC_Id')
     })
 };
+
+export const masterSectionSchema = {
+    addOrUpdate: z.object({
+        asmS_Id: z.number().int({ message: 'AsmS_Id is required' }).optional(),
+        asmc_sectioncode: createStringSchema('Code', 1, 100),
+        asmc_sectionname: createStringSchema('Name', 1, 100),
+        asmc_maxcapacity: z.number().int({ message: 'Max Capacity is required' }),
+        asmc_order: z.number().int({ message: 'Section Order is required' })
+    }),
+    delete: z.object({
+        asmS_Id: deleteIdSchema('asmS_Id')
+    })
+};
+
+export const masterReligionSchema = {
+    addOrUpdate: z.object({
+        ivrmmR_Id: z.number().int({ message: 'IVRMMR_ID is required' }).optional(),
+        ivrmmR_Name: createStringSchema('Religion Name', 1, 100)
+    }),
+    delete: z.object({
+        ivrmmR_Id: deleteIdSchema('ivrmmR_Id')
+    })
+};
+
+export const masterClassCategorySchema = {
+    add: z.object({
+        asmcC_Id: z.number().int({ message: 'ASMCC_ID is required' }).optional(),
+        asmaY_Id: z.number().int({ message: 'Academic Year is required' }),
+        amC_Id: z.number().int({ message: 'Category is required' }),
+        class_ids: z.array(z.string()).nonempty('Please select at least one class')
+    }),
+    delete: z.object({
+        asmcC_Id: deleteIdSchema('asmcC_Id')
+    })
+};
+
+export const masterCasteCategorySchema = {
+    addOrUpdate: z.object({
+        imcC_Id: z.number().int({ message: 'IMCC_ID is required' }).optional(),
+        imcC_CategoryCode: z.string().nonempty({ message: 'Caste Category Code is required' }),
+        imcC_CategoryName: createStringSchema('Caste Category Code', 1, 100),
+        imcC_CategoryDesc: createStringSchema('Caste Category Description', 1, 100)
+    }),
+    delete: z.object({
+        imcC_Id: deleteIdSchema('imcC_Id')
+    })
+};
+
+export const masterCasteSchema = {
+    addOrUpdate: z.object({
+        imC_Id: z.number().int({ message: 'IMC_ID is required' }).optional(),
+        imcC_Id: z.number().int({ message: 'Caste Category is required' }),
+        imC_CasteName: createStringSchema('Caste Caste Code', 1, 100),
+        imC_CasteDesc: createStringSchema('Caste Caste Description', 1, 100)
+    }),
+    delete: z.object({
+        imC_Id: deleteIdSchema('imC_Id')
+    })
+};

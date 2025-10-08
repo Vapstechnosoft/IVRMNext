@@ -45,14 +45,14 @@ function MasterCategoryPageContent({
                 {/* Header */}
                 <div className='flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between'>
                     <div className='space-y-1'>
-                        <Heading title='Master Class Management' description='Manage and organize your master classes' />
+                        <Heading title='Master Category Management' description='Manage and organize your master catogories' />
                     </div>
                     <Button
                         type='button'
                         onClick={openAddForm}
                         className='w-fit shadow-md transition-all duration-200 hover:scale-105 hover:shadow-lg'>
                         <Plus className='h-4 w-4' />
-                        Add Master Class
+                        Add Master Category
                     </Button>
                 </div>
 
@@ -68,10 +68,10 @@ function MasterCategoryPageContent({
                         isLoading={isLoading}
                         error={error}
                         columnPinning={{ right: ['actions'] }}
-                        loadingMessage='Loading master classes...'
-                        noDataTitle='No Master Classes Found'
-                        noDataDescription='Get started by creating your first master class'
-                        errorTitle='Error Loading Classes'
+                        loadingMessage='Loading master categories...'
+                        noDataTitle='No Master Categories Found'
+                        noDataDescription='Get started by creating your first master category'
+                        errorTitle='Error Loading Categories'
                     />
                 </CollapsibleSection>
 
@@ -101,8 +101,8 @@ function FormSections() {
             {isAddFormOpen && (
                 <div ref={addFormRef}>
                     <CollapsibleSection
-                        title='Add New Master Class'
-                        description='Fill in the details below to create a new master class'
+                        title='Add New Master Category'
+                        description='Fill in the details below to create a new master category'
                         defaultOpen={true}
                         variant='outline'
                         size='md'
@@ -126,7 +126,7 @@ function FormSections() {
             {isEditFormOpen && selectedRow && (
                 <div ref={editFormRef}>
                     <CollapsibleSection
-                        title='Edit Master Class'
+                        title='Edit Master Category'
                         defaultOpen={true}
                         variant='outline'
                         size='md'

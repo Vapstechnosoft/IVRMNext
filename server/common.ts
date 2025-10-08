@@ -82,7 +82,31 @@ export async function getUserAccessibleModules() {
                                         id: 3,
                                         name: 'Master Section',
                                         icon: 'Settings',
-                                        url: '/admission/masters/section'
+                                        url: '/admission/preadmission/masters/section'
+                                    },
+                                    {
+                                        id: 4,
+                                        name: 'Master Class Category',
+                                        icon: 'Settings',
+                                        url: '/admission/preadmission/masters/class-category'
+                                    },
+                                    {
+                                        id: 5,
+                                        name: 'Master Religion',
+                                        icon: 'Settings',
+                                        url: '/admission/preadmission/masters/religion'
+                                    },
+                                    {
+                                        id: 6,
+                                        name: 'Master Caste Category',
+                                        icon: 'Settings',
+                                        url: '/admission/preadmission/masters/caste-category'
+                                    },
+                                    {
+                                        id: 7,
+                                        name: 'Master Caste',
+                                        icon: 'Settings',
+                                        url: '/admission/preadmission/masters/caste'
                                     }
                                 ]
                             },

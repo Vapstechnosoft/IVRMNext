@@ -2,6 +2,7 @@
 
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
+import { useUserAccessibleModules } from '@/hooks/common';
 import { getIconByName } from '@/lib/lucide-icon-registry';
 import { cn } from '@/lib/utils';
 import type { IUserAccessibleModules } from '@/types';
@@ -10,7 +11,6 @@ import { ChevronDown, X } from 'lucide-react';
 import { usePathname, useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { setNavigationContext } from './navigation-context';
-import { useUserAccessibleModules } from '@/hooks/common';
 
 interface SubMenu {
     id: number;
@@ -36,6 +36,8 @@ export interface ActiveNavigation {
     menu: string;
     subMenu: string;
     pages: SubMenu['pages'];
+    title?: string;
+    description?: string;
 }
 
 export function NavigationSystem() {
@@ -44,7 +46,7 @@ export function NavigationSystem() {
     const router = useRouter();
     const pathname = usePathname();
 
-    const { data: accessibleModule, isLoading: accessibleModuleLoading, error: accessibleModuleError } = useUserAccessibleModules();
+    const { data: accessibleModule } = useUserAccessibleModules();
 
     const handleModuleClick = (moduleName: string) => {
         if (activeDrawer === moduleName) {
@@ -58,12 +60,20 @@ export function NavigationSystem() {
     const handleSubMenuClick = (module: IUserAccessibleModules, menu: Menu, subMenu: SubMenu) => {
         const firstPageUrl = subMenu.pages[0]?.url;
         if (firstPageUrl) {
-            setNavigationContext({
+            const navData = {
                 module: module.name,
                 menu: menu.name,
                 subMenu: subMenu.name,
-                pages: subMenu.pages
-            });
+                pages: subMenu.pages,
+                title: subMenu.name, // Will be overridden by page-specific titles
+                description: '' // Will be overridden by page-specific descriptions
+            };
+            setNavigationContext(navData);
+
+            if (typeof window !== 'undefined') {
+                sessionStorage.setItem('activeNavigation', JSON.stringify(navData));
+            }
+
             setActiveDrawer(null);
             setActiveModule(module.name);
             router.push(firstPageUrl);
@@ -86,6 +96,23 @@ export function NavigationSystem() {
         }
     }, [activeDrawer]);
 
+    // Add this after the existing useEffect
+    useEffect(() => {
+        // Restore navigation context from sessionStorage on mount
+        if (typeof window !== 'undefined') {
+            const savedNav = sessionStorage.getItem('activeNavigation');
+            if (savedNav) {
+                try {
+                    const navData = JSON.parse(savedNav);
+                    setNavigationContext(navData);
+                    setActiveModule(navData.module);
+                } catch (e) {
+                    console.error('Failed to restore navigation context', e);
+                }
+            }
+        }
+    }, []);
+
     if (activeModule !== null && activeDrawer === null && (pathname === '/' || pathname === null)) {
         setActiveDrawer(null);
         setActiveModule(null);
@@ -93,7 +120,7 @@ export function NavigationSystem() {
     }
 
     return (
-        <div className='flex items-center justify-start flex-1'>
+        <div className='flex flex-1 items-center justify-start'>
             <nav className='flex items-center space-x-1'>
                 {accessibleModule?.data?.map((module) => {
                     const IconComponent = getIconByName(module.icon);
@@ -104,14 +131,14 @@ export function NavigationSystem() {
                             key={module.id}
                             variant={isActive ? 'default' : 'ghost'}
                             className={cn(
-                                'nav-button flex items-center gap-2 px-4 py-2 rounded-lg transition-all duration-200',
+                                'nav-button flex items-center gap-2 rounded-lg px-4 py-2 transition-all duration-200',
                                 'hover:bg-accent hover:text-accent-foreground',
                                 isActive && 'bg-primary text-primary-foreground shadow-md'
                             )}
                             onClick={() => handleModuleClick(module.name)}>
-                            {IconComponent && <IconComponent className='w-4 h-4' />}
-                            <span className='hidden sm:inline-block font-medium'>{module.name}</span>
-                            <ChevronDown className={cn('w-4 h-4 transition-transform duration-200', isActive && 'rotate-180')} />
+                            {IconComponent && <IconComponent className='h-4 w-4' />}
+                            <span className='hidden font-medium sm:inline-block'>{module.name}</span>
+                            <ChevronDown className={cn('h-4 w-4 transition-transform duration-200', isActive && 'rotate-180')} />
                         </Button>
                     );
                 })}
@@ -126,7 +153,7 @@ export function NavigationSystem() {
                             initial={{ opacity: 0 }}
                             animate={{ opacity: 1 }}
                             exit={{ opacity: 0 }}
-                            className='fixed inset-0 bg-black/20 z-40'
+                            className='fixed inset-0 z-40 bg-black/20'
                             onClick={() => setActiveDrawer(null)}
                         />
 
@@ -149,18 +176,18 @@ export function NavigationSystem() {
                                     </Button>
                                 </div>
 
-                                <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4'>
+                                <div className='grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3'>
                                     {accessibleModule?.data
                                         ?.find((m) => m.name === activeDrawer)
                                         ?.menu.map((menu) => (
-                                            <Card key={menu.id} className='hover:shadow-md transition-shadow duration-200'>
+                                            <Card key={menu.id} className='transition-shadow duration-200 hover:shadow-md'>
                                                 <CardContent className='p-4'>
-                                                    <div className='flex items-center gap-3 mb-3'>
+                                                    <div className='mb-3 flex items-center gap-3'>
                                                         {getIconByName(menu.icon) && (
-                                                            <div className='p-2 bg-primary/10 rounded-lg'>
+                                                            <div className='rounded-lg bg-primary/10 p-2'>
                                                                 {(() => {
                                                                     const IconComp = getIconByName(menu.icon);
-                                                                    return IconComp ? <IconComp className='w-4 h-4 text-primary' /> : null;
+                                                                    return IconComp ? <IconComp className='h-4 w-4 text-primary' /> : null;
                                                                 })()}
                                                             </div>
                                                         )}
@@ -172,7 +199,7 @@ export function NavigationSystem() {
                                                             <Button
                                                                 key={subMenu.id}
                                                                 variant='ghost'
-                                                                className='w-full justify-start p-2 h-auto text-sm hover:bg-accent/50'
+                                                                className='h-auto w-full justify-start p-2 text-sm hover:bg-accent/50'
                                                                 onClick={() =>
                                                                     handleSubMenuClick(
                                                                         accessibleModule?.data?.find((m) => m.name === activeDrawer)!,
@@ -184,10 +211,10 @@ export function NavigationSystem() {
                                                                     {getIconByName(subMenu.icon) &&
                                                                         (() => {
                                                                             const IconComp = getIconByName(subMenu.icon);
-                                                                            return IconComp ? <IconComp className='w-3 h-3' /> : null;
+                                                                            return IconComp ? <IconComp className='h-3 w-3' /> : null;
                                                                         })()}
                                                                     <span>{subMenu.name}</span>
-                                                                    <span className='ml-auto text-xs text-muted-foreground'>
+                                                                    <span className='ml-auto text-muted-foreground text-xs'>
                                                                         ({subMenu.pages.length} pages)
                                                                     </span>
                                                                 </div>
