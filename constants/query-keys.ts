@@ -16,3 +16,12 @@ export const ADMISSION_QUERY_KEYS = {
     MASTER_CASTE_CATEGORY: 'master_caste_category',
     MASTER_CASTE_CATEGORY_CODE_DROPDOWN: 'master_caste_category_code_dropdown'
 };
+
+export const FEES_QUERY_KEYS = {
+    MASTER_CLASS: 'master_class',
+    MASTER_CATEGORY: 'master_category',
+    MASTER_CLASS_CATEGORY: 'master_class_category',
+    ACADEMIC_DROPDOWN: 'academic_dropdown',
+    MASTER_CATEGORY_DROPDOWN: 'master_category_dropdown',
+    MASTER_CLASS_DROPDOWN: 'master_class_dropdown'
+};

@@ -23,5 +23,23 @@ export const ROUTES = {
         REPORTS_SUB_MENUS: {
             REPORTS_CLASS: '/class'
         }
+    },
+    FEES: {
+        CONFIGURATIONS: '/fees-configurations',
+        CONFIGURATIONS_SUB_MENUS: {
+            CONFIGURATIONS_PAGE: '/page'
+        },
+        MASTERS: '/fees-masters',
+        MASTERS_SUB_MENUS: {
+            MASTERS_CLASS: '/class'
+        },
+        TRANSACTIONS: '/fees-transactions',
+        TRANSACTIONS_SUB_MENUS: {
+            TRANSACTIONS_COMPANY: '/class'
+        },
+        REPORTS: '/fees-reports',
+        REPORTS_SUB_MENUS: {
+            REPORTS_CLASS: '/class'
+        }
     }
 };

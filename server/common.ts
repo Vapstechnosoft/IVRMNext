@@ -150,6 +150,32 @@ export async function getUserAccessibleModules() {
                                 ]
                             }
                         ]
+                    },
+                    {
+                        id: 3,
+                        name: 'Fees',
+                        icon: 'Settings',
+                        sub_menu: [
+                            {
+                                id: 3,
+                                name: 'Fees Masters',
+                                icon: 'Settings',
+                                pages: [
+                                    {
+                                        id: 5,
+                                        name: 'Class Category',
+                                        icon: 'Settings',
+                                        url: '/fees/prefees/master/class'
+                                    },
+                                    {
+                                        id: 6,
+                                        name: 'Yearly Class Category',
+                                        icon: 'Settings',
+                                        url: '/fees/prefees/master/category'
+                                    }
+                                ]
+                            }
+                        ]
                     }
                 ]
             }
