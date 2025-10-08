@@ -185,6 +185,12 @@ export async function getUserAccessibleModules() {
                                         name: 'Mode Of Payment',
                                         icon: 'Settings',
                                         url: '/fees/masters/modeofpayment'
+                                    },
+                                    {
+                                        id: 6,
+                                        name: 'Class Category',
+                                        icon: 'Settings',
+                                        url: '/fees/masters/classcategory'
                                     }
                                 ]
                             }

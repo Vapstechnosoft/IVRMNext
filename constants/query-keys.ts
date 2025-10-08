@@ -21,5 +21,7 @@ export const ADMISSION_QUERY_KEYS = {
 
 export const FEES_QUERY_KEYS = {
     FEE_HEADS: 'fee_head',
-    FEE_MODEOFPAYMENT: 'fee_modeofpayment'
+    FEE_MODEOFPAYMENT: 'fee_modeofpayment',
+    MASTER_CLASS_CATEGORY: 'master_class_category',
+    ACADEMIC_DROPDOWN: 'academic_dropdown'
 };
