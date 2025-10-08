@@ -1,5 +1,5 @@
 'use server';
-import { api, ApiResponse } from '@/lib/apiService';
+import { type ApiResponse, api } from '@/lib/apiService';
 import type { IDropdown, IUserAccessibleModules, UserNotification } from '@/types';
 
 export async function getCommonDropdown(name: string) {
@@ -133,6 +133,62 @@ export async function getUserAccessibleModules() {
                             }
                         ]
                     }
+                ]
+            },
+            {
+                id: 2,
+                name: 'Fees Manageent',
+                icon: 'Settings',
+                menu: [
+                    {
+                        id: 2,
+                        name: 'Fees',
+                        icon: 'Settings',
+                        sub_menu: [
+                            {
+                                id: 2,
+                                name: 'Masters',
+                                icon: 'Settings',
+                                pages: [
+                                    {
+                                        id: 4,
+                                        name: 'Fee Head',
+                                        icon: 'Settings',
+                                        url: '/fees/masters/feehead'
+                                    },
+                                    {
+                                        id: 5,
+                                        name: 'Mode Of Payment',
+                                        icon: 'Settings',
+                                        url: '/fees/masters/modeofpayment'
+                                    }
+                                ]
+                            }
+                        ]
+                    }
+
+                    //  {
+                    //     id: 2,
+                    //     name: 'PDA',
+                    //     icon: 'Settings',
+                    //     sub_menu: [
+                    //         {
+                    //             id: 2,
+                    //             name: 'Masters',
+                    //             icon: 'Settings',
+                    //             pages: [
+                    //                 {
+                    //                     id: 3,
+                    //                     name: 'Fee Head',
+                    //                     icon: 'Settings',
+                    //                     url: '/fees/masters/feehead'
+                    //                 }
+
+                    //             ]
+                    //         }
+
+                    //     ]
+                    // }
                 ]
             }
         ]
