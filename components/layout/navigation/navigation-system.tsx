@@ -21,6 +21,8 @@ interface SubMenu {
         name: string;
         icon: string;
         url: string;
+        title?: string;
+        description?: string;
     }[];
 }
 
@@ -65,8 +67,8 @@ export function NavigationSystem() {
                 menu: menu.name,
                 subMenu: subMenu.name,
                 pages: subMenu.pages,
-                title: subMenu.name, // Will be overridden by page-specific titles
-                description: '' // Will be overridden by page-specific descriptions
+                title: subMenu.pages[0]?.title,
+                description: subMenu.pages[0]?.description
             };
             setNavigationContext(navData);
 
@@ -163,7 +165,7 @@ export function NavigationSystem() {
                             animate={{ opacity: 1, y: 0, scale: 1 }}
                             exit={{ opacity: 0, y: -20, scale: 0.95 }}
                             transition={{ duration: 0.2, ease: 'easeOut' }}
-                            className='navigation-drawer absolute top-full right-0 left-0 z-50 mx-4 mt-2 rounded-2xl border bg-background shadow-2xl'>
+                            className='navigation-drawer absolute top-full right-0 left-0 z-50 mx-4 mt-2 rounded-2xl border bg-card shadow-2xl'>
                             <div className='max-h-96 overflow-y-auto p-6'>
                                 <div className='mb-4 flex items-center justify-between'>
                                     <h3 className='font-semibold text-foreground text-lg'>{activeDrawer} Modules</h3>

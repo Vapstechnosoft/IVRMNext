@@ -70,43 +70,57 @@ export async function getUserAccessibleModules() {
                                         id: 1,
                                         name: 'Master Class',
                                         icon: 'Settings',
-                                        url: '/admission/preadmission/masters/class'
+                                        url: '/admission/preadmission/masters/class',
+                                        title: 'Master Class',
+                                        description: 'Manage Master Class Details'
                                     },
                                     {
                                         id: 2,
                                         name: 'Master Category',
                                         icon: 'Settings',
-                                        url: '/admission/preadmission/masters/category'
+                                        url: '/admission/preadmission/masters/category',
+                                        title: 'Master Category',
+                                        description: 'Manage Master Category Details'
                                     },
                                     {
                                         id: 3,
                                         name: 'Master Section',
                                         icon: 'Settings',
-                                        url: '/admission/preadmission/masters/section'
+                                        url: '/admission/preadmission/masters/section',
+                                        title: 'Master Section',
+                                        description: 'Manage Master Section Details'
                                     },
                                     {
                                         id: 4,
                                         name: 'Master Class Category',
                                         icon: 'Settings',
-                                        url: '/admission/preadmission/masters/class-category'
+                                        url: '/admission/preadmission/masters/class-category',
+                                        title: 'Master Class Category',
+                                        description: 'Manage Master Class Category Details'
                                     },
                                     {
                                         id: 5,
                                         name: 'Master Religion',
                                         icon: 'Settings',
-                                        url: '/admission/preadmission/masters/religion'
+                                        url: '/admission/preadmission/masters/religion',
+                                        title: 'Master Religion',
+                                        description: 'Manage Master Religion Details'
                                     },
                                     {
                                         id: 6,
                                         name: 'Master Caste Category',
                                         icon: 'Settings',
-                                        url: '/admission/preadmission/masters/caste-category'
+                                        url: '/admission/preadmission/masters/caste-category',
+                                        title: 'Master Caste Category',
+                                        description: 'Manage Master Caste Category Details'
                                     },
                                     {
                                         id: 7,
                                         name: 'Master Caste',
                                         icon: 'Settings',
-                                        url: '/admission/preadmission/masters/caste'
+                                        url: '/admission/preadmission/masters/caste',
+                                        title: 'Master Caste',
+                                        description: 'Manage Master Caste Details'
                                     }
                                 ]
                             },
