@@ -17,6 +17,7 @@ import {
 } from '@tanstack/react-table';
 import { ChevronLeftIcon, ChevronRightIcon } from 'lucide-react';
 import { parseAsInteger, parseAsString, parseAsStringLiteral, useQueryState } from 'nuqs';
+import { useState } from 'react';
 import { DataTableSkeleton } from './data-table-skeleton';
 import { DataTableToolbar } from './data-table-toolbar';
 
@@ -29,6 +30,10 @@ interface DataTableProps<TData, TValue> {
     showExportOptions?: boolean;
     showViewOptions?: boolean;
     columnPinning?: ColumnPinningState | undefined;
+
+    // updated
+    maxSelectableRows?: number;
+    onRowSelectionChange?: (selectedRows: TData[]) => void;
 }
 
 export function DataTable<TData, TValue>({
@@ -39,7 +44,8 @@ export function DataTable<TData, TValue>({
     isLoading,
     showExportOptions = false,
     showViewOptions = true,
-    columnPinning
+    columnPinning,
+    maxSelectableRows = 0
 }: DataTableProps<TData, TValue>) {
     // Pagination state
     const [currentPage, setCurrentPage] = useQueryState(
@@ -50,6 +56,7 @@ export function DataTable<TData, TValue>({
         tableSearchVariables.page_size,
         parseAsInteger.withOptions({ shallow: false, history: 'push' }).withDefault(10)
     );
+    const [rowSelection, setRowSelection] = useState({});
 
     // Sorting state
     const [sortBy] = useQueryState(tableSearchVariables.sort_column, parseAsString.withOptions({ shallow: false }).withDefault(''));
@@ -79,13 +86,32 @@ export function DataTable<TData, TValue>({
     const table = useReactTable({
         data,
         columns,
-        pageCount: pageCount,
+        pageCount,
         state: {
             pagination: paginationState,
             sorting: sortBy ? [{ id: sortBy, desc: order === 'desc' }] : [],
-            globalFilter: searchQuery
+            globalFilter: searchQuery,
+            rowSelection
         },
         onPaginationChange: handlePaginationChange,
+        onRowSelectionChange: (newSelection) => {
+            const selectionObj = typeof newSelection === 'function' ? newSelection(rowSelection) : newSelection;
+
+            const selectedCount = Object.keys(selectionObj).length;
+            if (maxSelectableRows && selectedCount > maxSelectableRows) {
+                alert(`You can select up to ${maxSelectableRows} rows only.`);
+                return;
+            }
+
+            setRowSelection(selectionObj);
+
+            // const selected = table
+            //     .getFilteredRowModel()
+            //     .rows.filter((r) => selectionObj[r.id]) // ✅ now safe
+            //     .map((r) => r.original);
+
+            // onRowSelectionChange(selected);
+        },
         getCoreRowModel: getCoreRowModel(),
         getPaginationRowModel: getPaginationRowModel(),
         getFilteredRowModel: getFilteredRowModel(),

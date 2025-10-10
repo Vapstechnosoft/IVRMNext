@@ -7,7 +7,7 @@ export async function getCommonDropdown(name: string) {
     return await api.get<IDropdown[]>(url);
 }
 
-export async function getUserNotificationList(priority?: string) {
+export async function getUserNotificationList(_priority?: string) {
     // const url = `/v1/user_notification?priority=${priority ?? 'normal'}`;
 
     // return await api.get<UserNotification[]>(url);
@@ -43,8 +43,6 @@ export async function markAllReadUserNotification() {
 }
 
 export async function getUserAccessibleModules() {
-    const url = '/v1/login/user_accessible_pages';
-
     // return await api.get<IUserAccessibleModules[]>(url);
 
     const response: ApiResponse<IUserAccessibleModules[]> = {
@@ -89,7 +87,171 @@ export async function getUserAccessibleModules() {
                             {
                                 id: 2,
                                 name: 'Transactions',
+                                icon: 'ClipboardList',
+                                pages: [
+                                    {
+                                        id: 1,
+                                        name: 'Master Class',
+                                        icon: 'Settings',
+                                        url: '/admission/preadmission/transactions/class'
+                                    },
+                                    {
+                                        id: 2,
+                                        name: 'Master Section',
+                                        icon: 'Settings',
+                                        url: '/admission/transactions/section'
+                                    }
+                                ]
+                            }
+                        ]
+                    },
+                    {
+                        id: 2,
+                        name: 'Enrollment',
+                        icon: 'Settings',
+                        sub_menu: [
+                            {
+                                id: 2,
+                                name: 'Transactions',
                                 icon: 'Settings',
+                                pages: [
+                                    {
+                                        id: 3,
+                                        name: 'Student Enrollment',
+                                        icon: 'Settings',
+                                        url: '/enrollment/transactions/student'
+                                    },
+                                    {
+                                        id: 4,
+                                        name: 'Student TC',
+                                        icon: 'Settings',
+                                        url: '/enrollment/transactions/student_tc'
+                                    }
+                                ]
+                            }
+                        ]
+                    }
+                ]
+            },
+            {
+                id: 2,
+                name: 'Exam',
+                icon: 'BookOpen',
+                menu: [
+                    {
+                        id: 1,
+                        name: 'Exam Module',
+                        icon: 'BookOpen',
+                        sub_menu: [
+                            {
+                                id: 1,
+                                name: 'Masters',
+                                icon: 'Settings',
+                                pages: [
+                                    {
+                                        id: 1,
+                                        name: 'Master Subject',
+                                        icon: 'BookOpen',
+                                        url: '/Exam/exam-module/masters/master-subject'
+                                    },
+                                    {
+                                        id: 2,
+                                        name: 'Master Sub-Subject',
+                                        icon: 'BookOpen',
+                                        url: '/Exam/exam-module/masters/master-sub-subject'
+                                    },
+                                    {
+                                        id: 3,
+                                        name: 'Master Exam',
+                                        icon: 'BookOpen',
+                                        url: '/Exam/exam-module/masters/exam-master'
+                                    },
+                                    {
+                                        id: 4,
+                                        name: 'Master Sub-Exam',
+                                        icon: 'BookOpen',
+                                        url: '/Exam/exam-module/masters/sub-exam-master'
+                                    },
+                                    {
+                                        id: 5,
+                                        name: 'Master Exam Paper',
+                                        icon: 'BookOpen',
+                                        url: '/Exam/exam-module/masters/exam-paper-master'
+                                    },
+                                    {
+                                        id: 6,
+                                        name: 'Master Grade',
+                                        icon: 'Settings',
+                                        url: '/Exam/exam-module/masters/master-grade'
+                                    },
+                                    {
+                                        id: 7,
+                                        name: 'Master Subject Group',
+                                        icon: 'BookOpen',
+                                        url: '/Exam/exam-module/masters/master-group'
+                                    },
+                                    {
+                                        id: 8,
+                                        name: 'Master Category',
+                                        icon: 'BookOpen',
+                                        url: '/Exam/exam-module/masters/master-category'
+                                    },
+                                    {
+                                        id: 9,
+                                        name: 'Category Class Mapping',
+                                        icon: 'BookOpen',
+                                        url: '/Exam/exam-module/masters/category-class-mapping'
+                                    }
+                                ]
+                            },
+                            {
+                                id: 2,
+                                name: 'Transactions',
+                                icon: 'ClipboardList',
+                                pages: [
+                                    {
+                                        id: 9,
+                                        name: 'Master Class',
+                                        icon: 'Settings',
+                                        url: '/admission/preadmission/transactions/class'
+                                    },
+                                    {
+                                        id: 10,
+                                        name: 'Master Section',
+                                        icon: 'Settings',
+                                        url: '/admission/transactions/section'
+                                    }
+                                ]
+                            },
+                            {
+                                id: 3,
+                                name: 'Masters',
+                                icon: 'Settings',
+                                pages: [
+                                    {
+                                        id: 1,
+                                        name: 'Master Subject',
+                                        icon: 'BookOpen',
+                                        url: '/Exam/exam-module/masters/master-subject'
+                                    },
+                                    {
+                                        id: 2,
+                                        name: 'Master Exam',
+                                        icon: 'BookOpen',
+                                        url: '/Exam/exam-module/masters/exam-master'
+                                    },
+                                    {
+                                        id: 3,
+                                        name: 'Master Section',
+                                        icon: 'Settings',
+                                        url: '/admission/preadmission/masters/section'
+                                    }
+                                ]
+                            },
+                            {
+                                id: 4,
+                                name: 'Transactions',
+                                icon: 'ClipboardList',
                                 pages: [
                                     {
                                         id: 1,
