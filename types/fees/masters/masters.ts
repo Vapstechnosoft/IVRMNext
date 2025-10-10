@@ -29,3 +29,36 @@ export interface IMasterClassYearlyCategoryList {
     asmcL_ClassName: string;
     is_Active: boolean;
 }
+
+export interface IMasterPaymentGatewayList {
+    fpgD_Id: number;
+    fpgD_AuthorisationKey: string;
+    fpgD_Image: string;
+    fpgD_MerchantId: string;
+    fpgD_MobileActiveFlag: boolean;
+    fpgD_PGName: string;
+    fpgD_SaltKey: string;
+    fpgD_SubMerchantId: string;
+    fpgD_URL: string;
+    gatewayName: string;
+    fpgD_AccNo: string;
+    fpgD_PGActiveFlag: string;
+}
+
+export interface IFineSlabList {
+    fmfS_Id: number;
+    fmfS_ToDay: number;
+    fmfS_FromDay: number;
+    fmfS_FineType: string;
+    fmfS_ECSFlag: string;
+    fmfS_ActiveFlag: boolean;
+}
+
+export interface IMasterConcession {
+    fmfS_Id: number;
+    fmfS_ToDay: number;
+    fmfS_FromDay: number;
+    fmfS_FineType: string;
+    fmfS_ECSFlag: string;
+    fmfS_ActiveFlag: boolean;
+}

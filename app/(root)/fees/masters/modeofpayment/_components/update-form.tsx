@@ -84,35 +84,6 @@ export default function UpdateMasterModeOfPaymentForm({
     return (
         <div className={`${ivrmmoD_ModeOfPayment}`}>
             <form onSubmit={handleSubmit(onSubmit)} className='space-y-6'>
-                {/* <div className='space-y-4'>
-                    <div className='grid grid-cols-1 gap-4 md:grid-cols-4'>
-                        <InputText
-                            label='Mode Of payment'
-                            required
-                            id='ivrmmoD_ModeOfPayment'
-                            {...register('ivrmmoD_ModeOfPayment')}
-                            defaultValue={row.ivrmmoD_ModeOfPayment}
-                            error={errors.ivrmmoD_ModeOfPayment?.message}
-                            className='transition-colors focus:ring-2 focus:ring-primary/20'
-                        />
-                    </div>
-                     <div className='grid grid-cols-1 gap-4 md:grid-cols-4'>
-                        <InputText
-                            label='Fees Head Type'
-                            required
-                            id='IVRMMOD_ModeOfPayment_Code'
-                            {...register('ivrmmoD_ModeOfPayment_Code')}
-                            defaultValue={row.ivrmmoD_ModeOfPayment_Code}
-                            error={errors.ivrmmoD_ModeOfPayment_Code?.message}
-                            className='transition-colors focus:ring-2 focus:ring-primary/20'
-                        />
-                    </div>
-
-                    
-
-                   
-                    {errors.root && <FormError>{errors.root.message}</FormError>}
-                </div> */}
                 <div className='grid grid-cols-1 gap-4 md:grid-cols-4'>
                     <InputText
                         label='Mode Of Payment'

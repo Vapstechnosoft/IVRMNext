@@ -191,6 +191,18 @@ export async function getUserAccessibleModules() {
                                         name: 'Class Category',
                                         icon: 'Settings',
                                         url: '/fees/masters/classcategory'
+                                    },
+                                    {
+                                        id: 8,
+                                        name: 'Payment Gateway Details',
+                                        icon: 'Settings',
+                                        url: '/fees/masters/paymentGatewayDetails'
+                                    },
+                                    {
+                                        id: 9,
+                                        name: 'Master Fine Slab',
+                                        icon: 'Settings',
+                                        url: '/fees/masters/masterfineslab'
                                     }
                                 ]
                             }

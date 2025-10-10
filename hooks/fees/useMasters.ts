@@ -4,7 +4,9 @@ import {
     getMasterCategoryDropdown,
     getMasterClassYearlyDataCategory
 } from '@/server/fees/masters/class_yearly_category';
+import { getpaymentgatewaydetails } from '@/server/fees/masters/fee_payment_gateway_details';
 import { getfeehead } from '@/server/fees/masters/feehead';
+import { getFineSlab } from '@/server/fees/masters/fineSlab';
 import { getModeOfPayment } from '@/server/fees/masters/modeOfPayment';
 import type { ApiSearchparams } from '@/types';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
@@ -42,23 +44,6 @@ export const useMasterModeOfPayment = (searchParams?: ApiSearchparams) => {
         }
     };
 };
-
-// export const useMasterCategory = (searchParams?: ApiSearchparams) => {
-//     const queryClient = useQueryClient();
-
-//     return {
-//         ...useQuery({
-//             queryKey: [ADMISSION_QUERY_KEYS.MASTER_CATEGORY, searchParams ?? {}],
-//             queryFn: async () => getMasterCategory(searchParams),
-//             staleTime: 0
-//         }),
-//         refetchAll: () => {
-//             return queryClient.invalidateQueries({
-//                 queryKey: [ADMISSION_QUERY_KEYS.MASTER_CATEGORY]
-//             });
-//         }
-//     };
-// };
 
 export const useAcademicYearDropdown = () => {
     const queryClient = useQueryClient();
@@ -106,6 +91,40 @@ export const useGetYearlyCatagory = (searchParams: { [key: string]: string | str
         refetchAll: () => {
             return queryClient.invalidateQueries({
                 queryKey: [FEES_QUERY_KEYS.ACADEMIC_DROPDOWN]
+            });
+        }
+    };
+};
+
+export const useMasterPaymentgatewaydetails = (searchParams?: ApiSearchparams) => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [FEES_QUERY_KEYS.FEE_PAYMENTGATEWAY_DETAILS, searchParams ?? {}],
+            queryFn: async () => getpaymentgatewaydetails(searchParams),
+            staleTime: 0
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [FEES_QUERY_KEYS.FEE_PAYMENTGATEWAY_DETAILS]
+            });
+        }
+    };
+};
+
+export const useMasterFineSlab = (searchParams?: ApiSearchparams) => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [FEES_QUERY_KEYS.FEE_FINESLAB, searchParams ?? {}],
+            queryFn: async () => getFineSlab(searchParams),
+            staleTime: 0
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [FEES_QUERY_KEYS.FEE_FINESLAB]
             });
         }
     };

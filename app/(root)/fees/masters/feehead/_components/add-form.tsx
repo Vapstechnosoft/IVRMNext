@@ -1,17 +1,19 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
-import { FormError } from '@/components/ui/extension/field';
+import { FormError, Label } from '@/components/ui/extension/field';
 
 import { InputText } from '@/components/ui/extension/input-text';
 
 import { useMasterFeehead } from '@/hooks/fees/useMasters';
 import { masterFeeheadSchema } from '@/schemas/fees/masters';
 
+import { Checkbox } from '@/components/ui/checkbox';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { addOrUpdateMasterfeehead } from '@/server/fees/masters/feehead';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Save } from 'lucide-react';
-import { type SubmitHandler, useForm } from 'react-hook-form';
+import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import type { z } from 'zod';
 
@@ -19,10 +21,10 @@ type FormFields = z.infer<typeof masterFeeheadSchema.addOrUpdate>;
 
 interface AddMasterFeeHeadProps {
     onSuccess?: () => void;
-    className?: string;
+    headname?: string;
 }
 
-export default function AddMasterFeeHeadForm({ onSuccess, className = '' }: AddMasterFeeHeadProps) {
+export default function AddMasterFeeHeadForm({ onSuccess, headname = '' }: AddMasterFeeHeadProps) {
     const { refetchAll } = useMasterFeehead();
 
     const {
@@ -37,18 +39,22 @@ export default function AddMasterFeeHeadForm({ onSuccess, className = '' }: AddM
         resolver: zodResolver(masterFeeheadSchema.addOrUpdate),
         mode: 'onChange',
         defaultValues: {
-            fmH_Order: 0
+            fmH_Order: 0,
+            fmH_Flag: ''
         }
     });
 
     const onSubmit: SubmitHandler<FormFields | any> = async (data: FormFields) => {
         console.log('API response:', '30');
         try {
-            const { fmH_FeeName, fmH_Flag } = data;
+            const { fmH_FeeName, fmH_Flag, fmH_RefundFlag, fmH_PDAFlag, fmH_SpecialFeeFlag } = data;
             const payload = {
                 mi_id: 30,
                 fmH_FeeName: fmH_FeeName,
-                fmH_Flag: fmH_Flag
+                fmH_Flag: fmH_Flag,
+                fmH_RefundFlag: fmH_RefundFlag,
+                fmH_PDAFlag: fmH_PDAFlag,
+                fmH_SpecialFeeFlag: fmH_SpecialFeeFlag
             };
 
             const response = await addOrUpdateMasterfeehead(payload);
@@ -71,18 +77,10 @@ export default function AddMasterFeeHeadForm({ onSuccess, className = '' }: AddM
     };
 
     return (
-        <div className={`${className}`}>
+        <div className={`${headname}`}>
             <form onSubmit={handleSubmit(onSubmit)} className='space-y-6'>
                 <div className='space-y-4'>
                     <div className='grid grid-cols-1 gap-4 md:grid-cols-4'>
-                        {/* <InputText
-                            label='Class Code'
-                            required
-                            id='asmcl_classcode'
-                            {...register('asmcl_classcode')}
-                            error={errors.asmcl_classcode?.message}
-                            className='transition-colors focus:ring-2 focus:ring-primary/20'
-                        /> */}
                         <InputText
                             label='Fee Head'
                             required
@@ -91,8 +89,7 @@ export default function AddMasterFeeHeadForm({ onSuccess, className = '' }: AddM
                             error={errors.fmH_FeeName?.message}
                             className='transition-colors focus:ring-2 focus:ring-primary/20'
                         />
-                        <div className='group flex flex-col gap-1.5'>
-                            <InputText
+                        {/* <InputText
                                 label='Fee Head Type'
                                 required
                                 id='fmH_Flag'
@@ -100,139 +97,163 @@ export default function AddMasterFeeHeadForm({ onSuccess, className = '' }: AddM
                                 error={errors.fmH_Flag?.message}
                                 className='transition-colors focus:ring-2 focus:ring-primary/20'
                             />
+                            {errors.fmH_Flag && <FormError>{errors.fmH_Flag.message}</FormError>} */}
+
+                        {/* <div className='group flex flex-col gap-1.5'>
+                            <label htmlFor='fmH_Flag' className='text-sm font-medium'>
+                                Fee Head Type
+                            </label>
+                            <select
+                                id='fmH_Flag'
+                                {...register('fmH_Flag')}
+                                className='transition-colors focus:ring-2 focus:ring-primary/20'>
+                                <option value=''>--Select--</option>
+                                <option value='G'>General</option>
+                                <option value='T'>Transport</option>
+                                <option value='E'>ExcessAmount</option>
+                                <option value='R'>Registration</option>
+                                <option value='A'>Application</option>
+                                <option value='H'>Hostel</option>
+                                <option value='N'>New Admission</option>
+                                <option value='S'>Swiping</option>
+                                <option value='F'>Fine</option>
+                                <option value='TR'>Transport Registration</option>
+                            </select>
+                            {errors.fmH_Flag && <FormError>{errors.fmH_Flag.message}</FormError>}
+                        </div> */}
+
+                        <div className='group flex flex-col gap-1.5'>
+                            <Label aria-label=' Fee Head Type' htmlFor='fmH_Flag'>
+                                Fee Head Type<span className='ml-1 text-red-500'>*</span>
+                            </Label>
+                            <Controller
+                                name='fmH_Flag'
+                                control={control}
+                                render={({ field }) => (
+                                    <Select
+                                        onValueChange={(value) => {
+                                            field.onChange(value); // <-- pass string value directly
+                                        }}
+                                        value={field.value || undefined} // <-- value must be string or undefined
+                                    >
+                                        <SelectTrigger className='w-full'>
+                                            <SelectValue placeholder='Select Fee Head Type' />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem key='General' value='G'>
+                                                General
+                                            </SelectItem>
+                                            <SelectItem key='Transport' value='T'>
+                                                Transport
+                                            </SelectItem>
+                                            <SelectItem key='ExcessAmount' value='E'>
+                                                ExcessAmount
+                                            </SelectItem>
+                                            <SelectItem key='Registration' value='R'>
+                                                Registration
+                                            </SelectItem>
+                                            <SelectItem key='Application' value='A'>
+                                                Application
+                                            </SelectItem>
+                                            <SelectItem key='Hostel' value='H'>
+                                                Hostel
+                                            </SelectItem>
+                                            <SelectItem key='New Admission' value='N'>
+                                                New Admission
+                                            </SelectItem>
+                                            <SelectItem key='Swiping' value='S'>
+                                                Swiping
+                                            </SelectItem>
+                                            <SelectItem key='Fine' value='F'>
+                                                Fine
+                                            </SelectItem>
+                                            <SelectItem key='Transport Registration' value='TR'>
+                                                Transport Registration
+                                            </SelectItem>
+                                        </SelectContent>
+                                    </Select>
+                                )}
+                            />
+
                             {errors.fmH_Flag && <FormError>{errors.fmH_Flag.message}</FormError>}
                         </div>
-                    </div>
-                    <div className='grid grid-cols-1 gap-4 md:grid-cols-3'>
-                        {/* <div className='group flex flex-col gap-1.5'>
-                            <Controller
-                                name='asmcl_minageyear'
-                                control={control}
-                                render={({ field }) => (
-                                    <InputNumber
-                                        label='Class Min Age (Year)'
-                                        required
-                                        id='asmcl_minageyear'
-                                        value={field.value || 0}
-                                        onChange={(value) => field.onChange(value)}
-                                        minValue={0}
-                                    />
-                                )}
-                            />
-                            {errors.asmcl_minageyear && <FormError>{errors.asmcl_minageyear.message}</FormError>}
-                        </div> */}
-                        {/* <div className='group flex flex-col gap-1.5'>
-                            <Controller
-                                name='asmcl_minagemonth'
-                                control={control}
-                                render={({ field }) => (
-                                    <InputNumber
-                                        label='Class Min Age (Month)'
-                                        required
-                                        id='asmcl_minagemonth'
-                                        value={field.value || 0}
-                                        onChange={(value) => field.onChange(value)}
-                                        minValue={0}
-                                    />
-                                )}
-                            />
-                            {errors.asmcl_minagemonth && <FormError>{errors.asmcl_minagemonth.message}</FormError>}
-                        </div> */}
+
                         <div className='group flex flex-col gap-1.5'>
-                            {/* <Controller
-                                name='asmcl_minagedays'
-                                control={control}
-                                render={({ field }) => (
-                                    <InputNumber
-                                        label='Class Min Age (Days)'
-                                        required
-                                        id='asmcl_minagedays'
-                                        value={field.value || 0}
-                                        onChange={(value) => field.onChange(value)}
-                                        minValue={0}
-                                    />
-                                )}
-                            />
-                            {errors.asmcl_minagedays && <FormError>{errors.asmcl_minagedays.message}</FormError>} */}
+                            <div className='group flex flex-row gap-6'>
+                                <Controller
+                                    name='fmH_SpecialFeeFlag'
+                                    control={control}
+                                    defaultValue={false}
+                                    render={({ field }) => (
+                                        <div className='flex items-center space-x-2'>
+                                            <Checkbox checked={field.value} onCheckedChange={field.onChange} id='specialFeeHead' />
+                                            <Label htmlFor='specialFeeHead'>Special Fee Head</Label>
+                                        </div>
+                                    )}
+                                />
+                                <Controller
+                                    name='fmH_PDAFlag'
+                                    control={control}
+                                    defaultValue={false}
+                                    render={({ field }) => (
+                                        <div className='flex items-center space-x-2'>
+                                            <Checkbox checked={field.value} onCheckedChange={field.onChange} id='pdaExpense' />
+                                            <Label htmlFor='pdaExpense'>PDA Expense</Label>
+                                        </div>
+                                    )}
+                                />
+                                <Controller
+                                    name='fmH_RefundFlag'
+                                    control={control}
+                                    defaultValue={false}
+                                    render={({ field }) => (
+                                        <div className='flex items-center space-x-2'>
+                                            <Checkbox checked={field.value} onCheckedChange={field.onChange} id='refundable' />
+                                            <Label htmlFor='refundable'>Refundable</Label>
+                                        </div>
+                                    )}
+                                />
+                            </div>
                         </div>
                     </div>
-                    <div className='grid grid-cols-1 gap-4 md:grid-cols-3'>
-                        {/* <div className='group flex flex-col gap-1.5'>
+
+                    {/* <div className='grid grid-cols-3 gap-4'>
+                        <div >
                             <Controller
-                                name='asmcl_maxageyear'
+                                name='fmH_SpecialFeeFlag'
                                 control={control}
+                                defaultValue={false}
                                 render={({ field }) => (
-                                    <InputNumber
-                                        label='Class Max Age (Year)'
-                                        required
-                                        id='asmcl_maxageyear'
-                                        value={field.value || 0}
-                                        onChange={(value) => field.onChange(value)}
-                                        minValue={0}
-                                    />
+                                    <div className='flex items-center space-x-2'>
+                                        <Checkbox checked={field.value} onCheckedChange={field.onChange} id='specialFeeHead' />
+                                        <Label htmlFor='specialFeeHead'>Special Fee Head</Label>
+                                    </div>
                                 )}
                             />
-                            {errors.asmcl_maxageyear && <FormError>{errors.asmcl_maxageyear.message}</FormError>}
+                            <Controller
+                                name='fmH_PDAFlag'
+                                control={control}
+                                defaultValue={false}
+                                render={({ field }) => (
+                                    <div className='flex items-center space-x-2'>
+                                        <Checkbox checked={field.value} onCheckedChange={field.onChange} id='pdaExpense' />
+                                        <Label htmlFor='pdaExpense'>PDA Expense</Label>
+                                    </div>
+                                )}
+                            />
+                            <Controller
+                                name='fmH_RefundFlag'
+                                control={control}
+                                defaultValue={false}
+                                render={({ field }) => (
+                                    <div className='flex items-center space-x-2'>
+                                        <Checkbox checked={field.value} onCheckedChange={field.onChange} id='refundable' />
+                                        <Label htmlFor='refundable'>Refundable</Label>
+                                    </div>
+                                )}
+                            />
                         </div>
-                        <div className='group flex flex-col gap-1.5'>
-                            <Controller
-                                name='asmcl_maxagemonth'
-                                control={control}
-                                render={({ field }) => (
-                                    <InputNumber
-                                        label='Class Max Age (Month)'
-                                        required
-                                        id='asmcl_maxagemonth'
-                                        value={field.value || 0}
-                                        onChange={(value) => field.onChange(value)}
-                                        minValue={0}
-                                    />
-                                )}
-                            />
-                            {errors.asmcl_maxagemonth && <FormError>{errors.asmcl_maxagemonth.message}</FormError>}
-                        </div>
-                        <div className='group flex flex-col gap-1.5'>
-                            <Controller
-                                name='asmcl_maxagedays'
-                                control={control}
-                                render={({ field }) => (
-                                    <InputNumber
-                                        label='Class Max Age (Days)'
-                                        required
-                                        id='asmcl_maxagedays'
-                                        value={field.value || 0}
-                                        onChange={(value) => field.onChange(value)}
-                                        minValue={0}
-                                    />
-                                )}
-                            />
-                            {errors.asmcl_maxagedays && <FormError>{errors.asmcl_maxagedays.message}</FormError>}
-                        </div> */}
-                    </div>
-                    <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
-                        {/* <div className='group flex flex-col gap-1.5'>
-                            <Label aria-label='Preadmission Class' htmlFor='asmcl_preadmflag'>
-                                Preadmission Class <span className='ml-1 text-red-500'>*</span>
-                            </Label>
-                            <RadioGroup
-                                value={String(watch('asmcl_preadmflag'))}
-                                onValueChange={(value) => setValue('asmcl_preadmflag', Number(value))}
-                                className='flex gap-4'>
-                                <div className='flex items-center space-x-2'>
-                                    <RadioGroupItem value='1' id='yes' />
-                                    <Label aria-label='Yes' htmlFor='yes'>
-                                        Yes
-                                    </Label>
-                                </div>
-                                <div className='flex items-center space-x-2'>
-                                    <RadioGroupItem value='0' id='no' />
-                                    <Label aria-label='No' htmlFor='no'>
-                                        No
-                                    </Label>
-                                </div>
-                            </RadioGroup>
-                        </div> */}
-                    </div>
+                    </div> */}
 
                     {/* Root Error */}
                     {errors.root && <FormError>{errors.root.message}</FormError>}

@@ -1,8 +1,9 @@
 'use client';
-
 import { Button } from '@/components/ui/button';
-import { FormError } from '@/components/ui/extension/field';
+import { Checkbox } from '@/components/ui/checkbox';
+import { FormError, Label } from '@/components/ui/extension/field';
 import { InputText } from '@/components/ui/extension/input-text';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useMasterFeehead } from '@/hooks/fees/useMasters';
 import { masterFeeheadSchema } from '@/schemas/fees/masters';
 import { addOrUpdateMasterfeehead } from '@/server/fees/masters/feehead';
@@ -10,7 +11,7 @@ import type { IFeeHeadsList } from '@/types/fees/masters';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Save } from 'lucide-react';
 import { useEffect } from 'react';
-import { type SubmitHandler, useForm } from 'react-hook-form';
+import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import type { z } from 'zod';
 
@@ -26,6 +27,7 @@ export default function UpdateMasterFeeheadForm({ onSuccess, feeheadname = '', s
     const { refetchAll } = useMasterFeehead();
 
     const {
+        control,
         setValue,
         register,
         handleSubmit,
@@ -42,21 +44,27 @@ export default function UpdateMasterFeeheadForm({ onSuccess, feeheadname = '', s
                 fmH_Id: row.fmH_Id,
                 fmH_FeeName: row.fmH_FeeName,
                 fmH_Order: row.fmH_Order,
-                fmH_Flag: row.fmH_Flag
+                fmH_Flag: row.fmH_Flag,
+                fmH_PDAFlag: row.fmH_PDAFlag,
+                fmH_SpecialFeeFlag: row.fmH_SpecialFeeFlag,
+                fmH_RefundFlag: row.fmH_RefundFlag
             });
         }
     }, [row, reset, setValue]);
 
     const onSubmit: SubmitHandler<FormFields | any> = async (data: FormFields) => {
         try {
-            const { fmH_FeeName, fmH_Id, fmH_Flag, fmH_Order } = data;
+            const { fmH_FeeName, fmH_Id, fmH_Flag, fmH_Order, fmH_PDAFlag, fmH_SpecialFeeFlag, fmH_RefundFlag } = data;
             const payload = {
                 MI_Id: 30,
                 fmH_Id: fmH_Id,
                 fmH_FeeName: fmH_FeeName,
                 fmH_Flag: fmH_Flag,
                 ASMCL_ActiveFlag: true,
-                fmH_Order: fmH_Order
+                fmH_Order: fmH_Order,
+                fmH_PDAFlag: fmH_PDAFlag,
+                fmH_SpecialFeeFlag: fmH_SpecialFeeFlag,
+                fmH_RefundFlag: fmH_RefundFlag
             };
             console.log('updatedata', payload);
             const response = await addOrUpdateMasterfeehead(payload);
@@ -94,17 +102,100 @@ export default function UpdateMasterFeeheadForm({ onSuccess, feeheadname = '', s
                             error={errors.fmH_FeeName?.message}
                             className='transition-colors focus:ring-2 focus:ring-primary/20'
                         />
-                    </div>
-                    <div className='grid grid-cols-1 gap-4 md:grid-cols-4'>
-                        <InputText
-                            label='Fees Head Type'
-                            required
-                            id='fmH_Flag'
-                            {...register('fmH_Flag')}
-                            defaultValue={row.fmH_Flag}
-                            error={errors.fmH_Flag?.message}
-                            className='transition-colors focus:ring-2 focus:ring-primary/20'
-                        />
+
+                        <div className='group flex flex-col gap-1.5'>
+                            <Label aria-label=' Fee Head Type' htmlFor='fmH_Flag'>
+                                Fee Head Type<span className='ml-1 text-red-500'>*</span>
+                            </Label>
+                            <Controller
+                                name='fmH_Flag'
+                                control={control}
+                                render={({ field }) => (
+                                    <Select
+                                        onValueChange={(value) => {
+                                            field.onChange(value); // <-- pass string value directly
+                                        }}
+                                        value={field.value || undefined} // <-- value must be string or undefined
+                                    >
+                                        <SelectTrigger className='w-full'>
+                                            <SelectValue placeholder='Select Fee Head Type' />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem key='General' value='G'>
+                                                General
+                                            </SelectItem>
+                                            <SelectItem key='Transport' value='T'>
+                                                Transport
+                                            </SelectItem>
+                                            <SelectItem key='ExcessAmount' value='E'>
+                                                ExcessAmount
+                                            </SelectItem>
+                                            <SelectItem key='Registration' value='R'>
+                                                Registration
+                                            </SelectItem>
+                                            <SelectItem key='Application' value='A'>
+                                                Application
+                                            </SelectItem>
+                                            <SelectItem key='Hostel' value='H'>
+                                                Hostel
+                                            </SelectItem>
+                                            <SelectItem key='New Admission' value='N'>
+                                                New Admission
+                                            </SelectItem>
+                                            <SelectItem key='Swiping' value='S'>
+                                                Swiping
+                                            </SelectItem>
+                                            <SelectItem key='Fine' value='F'>
+                                                Fine
+                                            </SelectItem>
+                                            <SelectItem key='Transport Registration' value='TR'>
+                                                Transport Registration
+                                            </SelectItem>
+                                        </SelectContent>
+                                    </Select>
+                                )}
+                            />
+
+                            {errors.fmH_Flag && <FormError>{errors.fmH_Flag.message}</FormError>}
+                        </div>
+
+                        <div className='group flex flex-col gap-1.5'>
+                            <div className='group flex flex-row gap-6'>
+                                <Controller
+                                    name='fmH_SpecialFeeFlag'
+                                    control={control}
+                                    defaultValue={false}
+                                    render={({ field }) => (
+                                        <div className='flex items-center space-x-2'>
+                                            <Checkbox checked={field.value} onCheckedChange={field.onChange} id='specialFeeHead' />
+                                            <Label htmlFor='specialFeeHead'>Special Fee Head</Label>
+                                        </div>
+                                    )}
+                                />
+                                <Controller
+                                    name='fmH_PDAFlag'
+                                    control={control}
+                                    defaultValue={false}
+                                    render={({ field }) => (
+                                        <div className='flex items-center space-x-2'>
+                                            <Checkbox checked={field.value} onCheckedChange={field.onChange} id='pdaExpense' />
+                                            <Label htmlFor='pdaExpense'>PDA Expense</Label>
+                                        </div>
+                                    )}
+                                />
+                                <Controller
+                                    name='fmH_RefundFlag'
+                                    control={control}
+                                    defaultValue={false}
+                                    render={({ field }) => (
+                                        <div className='flex items-center space-x-2'>
+                                            <Checkbox checked={field.value} onCheckedChange={field.onChange} id='refundable' />
+                                            <Label htmlFor='refundable'>Refundable</Label>
+                                        </div>
+                                    )}
+                                />
+                            </div>
+                        </div>
                     </div>
 
                     {/* Root Error */}
