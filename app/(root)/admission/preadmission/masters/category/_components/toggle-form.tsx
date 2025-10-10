@@ -21,7 +21,7 @@ interface ToggleMasterCategoryFormProps {
 
 export default function ToggleMasterCategoryForm({ rowData, onClose }: ToggleMasterCategoryFormProps) {
     const { refetchAll } = useMasterCategory();
-    const isActive = rowData.amC_Id;
+    const isActive = rowData.amC_ActiveFlag;
 
     const {
         register,
@@ -60,7 +60,7 @@ export default function ToggleMasterCategoryForm({ rowData, onClose }: ToggleMas
                 <AdaptiveBody className='flex flex-col gap-5'>
                     <input type='hidden' {...register('amC_Id')} defaultValue={rowData.amC_Id} />
                     <p>
-                        Are you sure you want to {isActive ? 'deactivate' : 'activate'} <strong>{rowData.amC_Name}</strong>?
+                        Are you sure you want to {isActive === 1 ? 'deactivate' : 'activate'} <strong>{rowData.amC_Name}</strong>?
                     </p>
                     <FormError>{errors.amC_Id?.message}</FormError>
                     <FormError>{errors.root?.message}</FormError>
@@ -69,8 +69,8 @@ export default function ToggleMasterCategoryForm({ rowData, onClose }: ToggleMas
                     <Button variant='secondary' onClick={closeDialog} type='button'>
                         Cancel
                     </Button>
-                    <Button type='submit' isLoading={isSubmitting} variant={isActive ? 'destructive' : 'default'}>
-                        {isActive ? 'Deactivate' : 'Activate'}
+                    <Button type='submit' isLoading={isSubmitting} variant={isActive === 1 ? 'destructive' : 'default'}>
+                        {isActive === 1 ? 'Deactivate' : 'Activate'}
                     </Button>
                 </AdaptiveFooter>
             </form>

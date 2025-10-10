@@ -2,7 +2,6 @@ import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import Head from 'next/head';
 import {
     Bar,
     BarChart,
@@ -64,11 +63,6 @@ const statsData = [
 export default function Dashboard() {
     return (
         <div className='min-h-screen bg-background text-foreground transition-colors duration-300'>
-            <Head>
-                <title>Education Analytics Dashboard</title>
-                <meta name='description' content='Educational performance dashboard with charts' />
-            </Head>
-
             <main className='container mx-auto px-4 py-8'>
                 <div className='mb-8'>
                     <h2 className='mb-2 font-bold text-3xl'>Education Dashboard</h2>
@@ -238,11 +232,11 @@ export default function Dashboard() {
                                         </div>
 
                                         <div className='grid grid-cols-1 gap-4 md:grid-cols-3'>
-                                            <div className='rounded-lg bg-gradient-purple-orange p-4 text-center text-white'>
+                                            <div className='rounded-lg bg-gradient-blue-purple-indigo p-4 text-center text-white'>
                                                 <h4 className='font-semibold'>Attendance Rate</h4>
                                                 <p className='mt-2 font-bold text-3xl'>94%</p>
                                             </div>
-                                            <div className='rounded-lg bg-gradient-orange-purple p-4 text-center text-white'>
+                                            <div className='rounded-lg bg-gradient-blue-purple-indigo p-4 text-center text-white'>
                                                 <h4 className='font-semibold'>Pass Rate</h4>
                                                 <p className='mt-2 font-bold text-3xl'>87%</p>
                                             </div>

@@ -7,7 +7,7 @@ import type { IMasterCategoryList } from '@/types/admission/preadmission/masters
 export async function getMasterCategory(searchParams?: ApiSearchparams) {
     const urlParams = getSearchParamsUrl(searchParams ?? {});
     const url = `/master_category/30?${urlParams}`;
-    return await api.getArray<IMasterCategoryList>(url);
+    return await api.get<IMasterCategoryList[]>(url);
 }
 
 export async function addOrUpdateMasterCategory(data: any) {

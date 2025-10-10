@@ -71,7 +71,7 @@ export function GenericDataTable<T>({
         if (LoadingComponent) return <LoadingComponent />;
         return (
             <div className='flex flex-col items-center justify-center space-y-4 py-12'>
-                <LoadingIcon className='h-8 w-8 animate-spin text-primary' />
+                <LoadingIcon className='h-8 w-8 animate-spin text-secondary' />
                 <p className='text-muted-foreground text-sm'>{loadingMessage}</p>
             </div>
         );

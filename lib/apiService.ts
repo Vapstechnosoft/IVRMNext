@@ -147,7 +147,7 @@ class ApiService {
  * Methods avaiable on the instance are:
  * //n request<T>(method: string, url: string, config?: AxiosRequestConfig, data?: unknown): Promise<ApiResponse<T>>
  * //n get<T>(url: string, config?: AxiosRequestConfig): Promise<ApiResponse<T>>
- * //n getArray<T>(url: string, config?: AxiosRequestConfig): Promise<ApiResponse<T[]>>
+ * //n get<T>(url: string, config?: AxiosRequestConfig): Promise<ApiResponse<T[]>>
  * //n post<T>(url: string, data?: unknown, config?: AxiosRequestConfig): Promise<ApiResponse<T>>
  * //n put<T>(url: string, data?: unknown, config?: AxiosRequestConfig): Promise<ApiResponse<T>>
  * //n delete<T>(url: string, config?: AxiosRequestConfig): Promise<ApiResponse<T>>
