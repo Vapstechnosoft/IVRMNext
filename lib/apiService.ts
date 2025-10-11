@@ -26,25 +26,50 @@ import { auth, signOut } from '@/lib/auth';
 import type { ApiSearchparams } from '@/types';
 import axios, { type AxiosInstance, type AxiosRequestConfig } from 'axios';
 
+// Define available API base URLs
+export type ApiBaseUrlKey = 'default' | 'preadmission' | 'admission';
+
 class ApiService {
-    private instance: AxiosInstance;
+    private instances: Map<string, AxiosInstance>;
+    private baseUrls: Record<ApiBaseUrlKey, string>;
 
     constructor() {
-        this.instance = axios.create({
-            baseURL: env.API_BASE_URL,
-            timeout: 60000,
-            headers: {
-                'Content-Type': 'application/json',
-                Accept: '*/*'
-            }
-        });
+        this.instances = new Map();
 
-        this.setupInterceptors();
+        // Map your environment variables to base URLs
+        this.baseUrls = {
+            default: env.API_BASE_URL,
+            preadmission: env.PREADMISSION_API_BASE_URL || env.API_BASE_URL,
+            admission: env.ADMISSION_API_BASE_URL || env.API_BASE_URL
+        };
+
+        // Initialize default instance
+        this.getOrCreateInstance('default');
     }
 
-    private setupInterceptors(): void {
+    private getOrCreateInstance(key: ApiBaseUrlKey | string): AxiosInstance {
+        if (!this.instances.has(key)) {
+            const baseURL = typeof key === 'string' && key in this.baseUrls ? this.baseUrls[key as ApiBaseUrlKey] : this.baseUrls.default;
+
+            const instance = axios.create({
+                baseURL,
+                timeout: 60000,
+                headers: {
+                    'Content-Type': 'application/json',
+                    Accept: '*/*'
+                }
+            });
+
+            this.setupInterceptors(instance);
+            this.instances.set(key, instance);
+        }
+
+        return this.instances.get(key)!;
+    }
+
+    private setupInterceptors(instance: AxiosInstance): void {
         // Request Interceptor
-        this.instance.interceptors.request.use(
+        instance.interceptors.request.use(
             async (config) => {
                 try {
                     const session = await auth();
@@ -61,7 +86,7 @@ class ApiService {
         );
 
         // Response Interceptor
-        this.instance.interceptors.response.use(
+        instance.interceptors.response.use(
             (response) => response,
             async (error) => {
                 if (error.response?.status === 401) {
@@ -81,9 +106,16 @@ class ApiService {
         return error || 'An unknown error occurred.';
     }
 
-    public async request<T>(method: string, url: string, config?: AxiosRequestConfig, data?: unknown): Promise<ApiResponse<T>> {
+    public async request<T>(
+        baseUrlKey: ApiBaseUrlKey,
+        method: string,
+        url: string,
+        config?: AxiosRequestConfig,
+        data?: unknown
+    ): Promise<ApiResponse<T>> {
         try {
-            const response = await this.instance.request<ApiResponse<T>>({
+            const instance = this.getOrCreateInstance(baseUrlKey);
+            const response = await instance.request<ApiResponse<T>>({
                 method,
                 url,
                 data,
@@ -95,13 +127,14 @@ class ApiService {
         }
     }
 
-    public async get<T>(url: string, config?: AxiosRequestConfig): Promise<ApiResponse<T>> {
-        return this.request<T>('GET', url, config);
+    public async get<T>(baseUrlKey: ApiBaseUrlKey, url: string, config?: AxiosRequestConfig): Promise<ApiResponse<T>> {
+        return this.request<T>(baseUrlKey, 'GET', url, config, undefined);
     }
 
-    public async getArray<T>(url: string, config?: AxiosRequestConfig): Promise<ApiResponse<T[]>> {
+    public async getArray<T>(baseUrlKey: ApiBaseUrlKey, url: string, config?: AxiosRequestConfig): Promise<ApiResponse<T[]>> {
         try {
-            const response = await this.instance.request<ApiArrayResponse<T>>({
+            const instance = this.getOrCreateInstance(baseUrlKey);
+            const response = await instance.request<ApiArrayResponse<T>>({
                 method: 'GET',
                 url,
                 ...config
@@ -123,34 +156,45 @@ class ApiService {
         }
     }
 
-    public async post<T>(url: string, data?: unknown, config?: AxiosRequestConfig): Promise<ApiResponse<T>> {
-        return this.request<T>('POST', url, config, data);
+    public async post<T>(baseUrlKey: ApiBaseUrlKey, url: string, data?: unknown, config?: AxiosRequestConfig): Promise<ApiResponse<T>> {
+        return this.request<T>(baseUrlKey, 'POST', url, config, data);
     }
 
-    public async put<T>(url: string, data?: unknown, config?: AxiosRequestConfig): Promise<ApiResponse<T>> {
-        return this.request<T>('PUT', url, config, data);
+    public async put<T>(baseUrlKey: ApiBaseUrlKey, url: string, data?: unknown, config?: AxiosRequestConfig): Promise<ApiResponse<T>> {
+        return this.request<T>(baseUrlKey, 'PUT', url, config, data);
     }
 
-    public async delete<T>(url: string, config?: AxiosRequestConfig): Promise<ApiResponse<T>> {
-        return this.request<T>('DELETE', url, config);
+    public async delete<T>(baseUrlKey: ApiBaseUrlKey, url: string, config?: AxiosRequestConfig): Promise<ApiResponse<T>> {
+        return this.request<T>(baseUrlKey, 'DELETE', url, config, undefined);
     }
 
-    public setBaseUrl(baseUrl: string): void {
-        this.instance.defaults.baseURL = baseUrl;
+    public setBaseUrl(baseUrl: string, key: ApiBaseUrlKey = 'default'): void {
+        const instance = this.getOrCreateInstance(key);
+        instance.defaults.baseURL = baseUrl;
+    }
+
+    // Helper method to add custom base URLs at runtime
+    public addBaseUrl(key: string, baseUrl: string): void {
+        this.baseUrls[key as ApiBaseUrlKey] = baseUrl;
     }
 }
 
 // Create a singleton instance
 /**
- * Creates a new instance of the ApiService class.
- * @returns An instance of the ApiService class with the base URL set to the API_BASE_URL environment variable.
- * Methods avaiable on the instance are:
- * //n request<T>(method: string, url: string, config?: AxiosRequestConfig, data?: unknown): Promise<ApiResponse<T>>
- * //n get<T>(url: string, config?: AxiosRequestConfig): Promise<ApiResponse<T>>
- * //n get<T>(url: string, config?: AxiosRequestConfig): Promise<ApiResponse<T[]>>
- * //n post<T>(url: string, data?: unknown, config?: AxiosRequestConfig): Promise<ApiResponse<T>>
- * //n put<T>(url: string, data?: unknown, config?: AxiosRequestConfig): Promise<ApiResponse<T>>
- * //n delete<T>(url: string, config?: AxiosRequestConfig): Promise<ApiResponse<T>>
+ * Creates a new instance of the ApiService class supporting multiple base URLs.
+ * @returns An instance of the ApiService class with support for multiple API base URLs.
+ * Methods available on the instance are:
+ * - request<T>(baseUrlKey: ApiBaseUrlKey, method: string, url: string, config?: AxiosRequestConfig, data?: unknown): Promise<ApiResponse<T>>
+ * - get<T>(baseUrlKey: ApiBaseUrlKey, url: string, config?: AxiosRequestConfig): Promise<ApiResponse<T>>
+ * - getArray<T>(baseUrlKey: ApiBaseUrlKey, url: string, config?: AxiosRequestConfig): Promise<ApiResponse<T[]>>
+ * - post<T>(baseUrlKey: ApiBaseUrlKey, url: string, data?: unknown, config?: AxiosRequestConfig): Promise<ApiResponse<T>>
+ * - put<T>(baseUrlKey: ApiBaseUrlKey, url: string, data?: unknown, config?: AxiosRequestConfig): Promise<ApiResponse<T>>
+ * - delete<T>(baseUrlKey: ApiBaseUrlKey, url: string, config?: AxiosRequestConfig): Promise<ApiResponse<T>>
+ *
+ * Usage examples:
+ * - api.get('default', '/users')
+ * - api.get('preadmission', '/applications')
+ * - api.post('admission', '/students', data)
  */
 export const api = new ApiService();
 
