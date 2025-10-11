@@ -54,12 +54,12 @@ export async function getUserAccessibleModules() {
             {
                 id: 1,
                 name: 'Admission',
-                icon: 'Settings',
+                icon: 'UserRoundPlus',
                 menu: [
                     {
                         id: 1,
                         name: 'Preadmission',
-                        icon: 'Settings',
+                        icon: 'UserCog',
                         sub_menu: [
                             {
                                 id: 1,

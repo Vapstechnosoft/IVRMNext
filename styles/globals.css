@@ -53,6 +53,9 @@ body {
         --sidebar-accent-foreground: 277 90% 20%;
         --sidebar-border: 260 15% 85%;
         --sidebar-ring: 277 90% 52%;
+
+        --card-glow: 277 90% 52%; /* Purple glow */
+        --card-glow-opacity: 0.1;
     }
     .dark {
         --background: 260 20% 8%;
@@ -98,6 +101,9 @@ body {
         --sidebar-accent-foreground: 277 90% 70%;
         --sidebar-border: 260 20% 18%;
         --sidebar-ring: 277 90% 65%;
+
+        --card-glow: 277 90% 65%; /* Lighter purple glow for dark mode */
+        --card-glow-opacity: 0.15;
     }
 }
 
@@ -205,6 +211,31 @@ body {
 
     .menu-sub-button {
         @apply -translate-x-px flex h-7 min-w-0 items-center gap-2 overflow-hidden rounded-md px-2 text-sidebar-foreground text-sm outline-none ring-sidebar-ring hover:bg-sidebar-accent hover:text-sidebar-accent-foreground focus-visible:ring-2 active:bg-sidebar-accent active:text-sidebar-accent-foreground disabled:pointer-events-none disabled:opacity-50 aria-disabled:pointer-events-none aria-disabled:opacity-50 data-[active=true]:bg-sidebar-accent data-[active=true]:text-sidebar-accent-foreground group-data-[collapsible=icon]:hidden [&>span:last-child]:truncate [&>svg]:size-4 [&>svg]:shrink-0 [&>svg]:text-sidebar-accent-foreground;
+    }
+
+    /* Card glow effects */
+    .card-glow {
+        box-shadow: 0 0 20px hsla(var(--card-glow), var(--card-glow-opacity)), 0 0 40px hsla(var(--card-glow), calc(var(--card-glow-opacity) * 0.5));
+    }
+
+    .card-glow-hover {
+        transition: box-shadow 0.3s ease;
+    }
+
+    .card-glow-hover:hover {
+        box-shadow: 0 0 30px hsla(var(--card-glow), calc(var(--card-glow-opacity) * 1.5)), 0 0 60px hsla(var(--card-glow), calc(var(--card-glow-opacity) * 0.8));
+    }
+
+    .card-glow-purple {
+        box-shadow: 0 0 20px hsla(277, 90%, 52%, 0.15), 0 0 40px hsla(277, 90%, 52%, 0.08);
+    }
+
+    .card-glow-blue {
+        box-shadow: 0 0 20px hsla(200, 100%, 50%, 0.15), 0 0 40px hsla(200, 100%, 50%, 0.08);
+    }
+
+    .card-glow-orange {
+        box-shadow: 0 0 20px hsla(14, 85%, 54%, 0.15), 0 0 40px hsla(14, 85%, 54%, 0.08);
     }
 }
 
