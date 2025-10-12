@@ -18,3 +18,15 @@ export const ADMISSION_QUERY_KEYS = {
     MASTER_CASTE: 'master_caste',
     MASTER_CASTE_CATEGORY_DROPDOWN: 'master_caste_category_dropdown'
 };
+
+export const PREADMISSION_QUERY_KEYS = {
+    RELIGION_DROPDOWN: 'religion_dropdown',
+    CASTE_DROPDOWN: 'caste_dropdown',
+    COUNTRY_DROPDOWN: 'country_dropdown',
+    STATE_DROPDOWN: 'state_dropdown',
+    GENDER_DROPDOWN: 'gender_dropdown',
+    SOURCE_DROPDOWN: 'source_dropdown',
+    REFERENCE_DROPDOWN: 'reference_dropdown',
+    PREADMISSION_DOCUMENTS_DROPDOWN: 'preadmission_documents_dropdown',
+    PREADMISSION_CLASS_DROPDOWN: 'preadmission_class_dropdown'
+};

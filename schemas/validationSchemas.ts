@@ -23,6 +23,18 @@ export function createStringSchema(field: string, min: number, max: number) {
         });
 }
 
+export function createOptionalStringSchema(field: string, min: number, max: number) {
+    return z
+        .string()
+        .max(max, { message: `Maximum ${max} characters allowed for ${field}` })
+        .refine((value) => value.length === 0 || value.length >= min, {
+            message: `${field} must have at least ${min} characters or be empty.`,
+            path: [field]
+        })
+        .optional()
+        .or(z.literal('')); // Allow empty string explicitly
+}
+
 export function deleteIdSchema(field: string) {
     return z.string({ message: `${field} is required` }).refine((value) => value.length > 0, {
         message: `${field} is required`,

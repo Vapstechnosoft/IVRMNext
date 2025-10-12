@@ -131,15 +131,9 @@ export async function getUserAccessibleModules() {
                                 pages: [
                                     {
                                         id: 1,
-                                        name: 'Master Class',
+                                        name: 'Admission Form',
                                         icon: 'Settings',
-                                        url: '/admission/preadmission/transactions/class'
-                                    },
-                                    {
-                                        id: 2,
-                                        name: 'Master Section',
-                                        icon: 'Settings',
-                                        url: '/admission/transactions/section'
+                                        url: '/admission/preadmission/transactions/application-form'
                                     }
                                 ]
                             }
