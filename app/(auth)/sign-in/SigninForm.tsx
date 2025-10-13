@@ -138,8 +138,8 @@ export default function SigninForm() {
                             <form onSubmit={handleSubmit(onSubmit)} className='space-y-6'>
                                 <div className='space-y-2'>
                                     <InputText
-                                        label='Email Address'
-                                        placeholder='Enter your email'
+                                        label='Username/Email Address'
+                                        placeholder='Enter your username/email'
                                         {...register('email')}
                                         error={errors.email?.message}
                                     />
@@ -159,10 +159,12 @@ export default function SigninForm() {
                                     </div>
                                 </div>
 
-                                {error && (
+                                {(errors.email?.message || errors.password?.message || error) && (
                                     <div className='flex items-center gap-3 rounded-lg border border-red-200 bg-red-50 p-4'>
                                         <TriangleAlert className='h-5 w-5 flex-shrink-0 text-red-600' />
-                                        <p className='font-medium text-red-700 text-sm'>{error}</p>
+                                        <p className='font-medium text-red-700 text-sm'>
+                                            {errors.email?.message || errors.password?.message || error}
+                                        </p>
                                     </div>
                                 )}
 

@@ -15,11 +15,13 @@ export interface DataTableFilterField<TData> {
 }
 
 export type UserResponseData = {
+    mi_id: number;
+    name: string;
+    email: string;
+    token: string;
     user: string;
     role: Role;
     designation: string;
-    email: string;
-    token: string;
     user_image: string | null;
     [key: string]: any;
 };
