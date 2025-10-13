@@ -38,7 +38,6 @@ export default function AddAddpaymentgatewaydetailsPropsForm({ onSuccess, gatewa
     });
 
     const onSubmit: SubmitHandler<FormFields | any> = async (data: FormFields) => {
-        console.log('onSubmit called, data:', data);
         try {
             // const { fpgD_MerchantId, fpgD_SaltKey } = data;
             const payload = {
@@ -52,9 +51,7 @@ export default function AddAddpaymentgatewaydetailsPropsForm({ onSuccess, gatewa
                     fpgD_SubMerchantId: item.id
                 }))
             };
-            console.log('adding data paymentdetails', payload);
             const response = await addOrUpdatepaymentgatewaydetails(payload);
-            console.log('API response:', response);
             if (response.success) {
                 toast.success(response.message);
                 reset();

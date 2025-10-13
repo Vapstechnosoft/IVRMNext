@@ -61,7 +61,6 @@ export default function UpdatepaymentGatewaydetailsForm({
 
                 fpgD_SaltKey: fpgD_SaltKey
             };
-            console.log('updatedata', payload);
             const response = await addOrUpdatepaymentgatewaydetails(payload);
 
             if (response.success) {
@@ -80,8 +79,6 @@ export default function UpdatepaymentGatewaydetailsForm({
     const handleReset = () => {
         reset();
     };
-
-    console.log('ERROR', errors);
 
     return (
         <div className={`${fpgD_MerchantId}`}>

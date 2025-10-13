@@ -7,7 +7,7 @@ import { useMasterModeOfPayment } from '@/hooks/fees/useMasters';
 
 import { masterModeOfPaymentSchema } from '@/schemas/fees/masters';
 import { toggleModeOfPayment } from '@/server/fees/masters/modeOfPayment';
-import type { IModeOfPaymentList } from '@/types/fees/masters';
+import type { IModeOfPaymentList } from '@/types/fees/masters/masters';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { type SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
@@ -46,7 +46,6 @@ export default function ToggleMasterModeOfPaymentForm({ rowData, onClose }: Togg
             if (response.success) {
                 toast.success(response.message);
                 refetchAll();
-                console.log('responsedata', response);
                 closeDialog();
             } else {
                 toast.error(response.message);

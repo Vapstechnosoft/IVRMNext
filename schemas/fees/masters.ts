@@ -32,17 +32,6 @@ export const masterModeOfPaymentSchema = {
     })
 };
 
-export const masterClassSchema = {
-    addOrUpdate: z.object({
-        asmcl_id: z.number().optional(),
-        asmcl_classcode: z.string().min(1, { message: 'Class Category Code is required' }),
-        asmcl_classname: z.string().min(1, { message: 'Class Category Name is required' })
-    }),
-    delete: z.object({
-        asmS_Id: deleteIdSchema('asmS_Id')
-    })
-};
-
 export const paymentgatewaydetailsSchema = {
     addOrUpdate: z.object({
         fpgD_Id: z.number().int({ message: 'fpgD_Id is required' }).optional(),
@@ -128,3 +117,70 @@ export const fineslabSchema = {
 //         fmfS_Id: deleteIdSchema('fmfS_Id')
 //     })
 // };
+
+export const masterClassSchema = {
+    addOrUpdate: z.object({
+        asmcl_id: z.number().optional(),
+        asmcl_classcode: z.string().min(1, { message: 'Class Category Code is required' }),
+        asmcl_classname: z.string().min(1, { message: 'Class Category Name is required' }),
+
+        academicYearId: z.string().min(1, { message: 'Academic Year is required' }),
+        categoryId: z.string().min(1, { message: 'Category is required' })
+    }),
+
+    delete: z.object({
+        asmS_Id: deleteIdSchema('asmS_Id')
+    })
+};
+
+export const masterGroupsGroupingSchema = {
+    addOrUpdate: z.object({
+        imgg_Id: z.number().optional(),
+        imgg_GroupingName: z.string().min(1, { message: 'Grouping Name is required' }),
+        imgg_Code: z.string().min(1, { message: 'Code is required' }),
+        imgg_feeGroupIds: z.string().min(1, { message: 'Fee Group IDs are required' }),
+        immgg_feeGroupNames: z.string().min(1, { message: 'Fee Group Names are required' }),
+        imgg_ActiveFlag: z.boolean()
+    }),
+    delete: z.object({
+        imgg_Id: z.number({ message: 'ID is required for deletion' })
+    })
+};
+
+//installment fees
+
+export const masterInstallmentSchema = {
+    addOrUpdate: z.object({
+        fmI_Name: z.string().min(1, { message: 'Master Installment Name is required' }),
+
+        fmI_Installment_Type: z.string().min(1, { message: 'Installment Type is required' }),
+
+        fmI_No_Of_Installments: z.number().min(1, { message: 'Number of installments must be at least 1' }).optional(),
+
+        installments: z
+            .array(
+                z.object({
+                    sno: z.number(),
+                    ftI_Name: z.string().min(1, { message: 'Installment name is required' })
+                })
+            )
+            .nonempty({ message: 'At least one installment is required' })
+    }),
+    delete: z.object({
+        mI_ID: z.number().optional()
+    })
+};
+
+export const masterGroupSchema = {
+    addOrUpdate: z.object({
+        ivrmmoD_Id: z.number().int({ message: 'ivrmmoD_Id is required' }).optional(),
+        ivrmmoD_MasterGroup: createStringSchema('ivrmmoD_MasterGroup', 1, 100),
+        ivrmmoD_MasterGroup_Code: createStringSchema('ivrmmoD_MasterGroup_Code', 1, 100),
+        transportHostelType: z.enum(['transport', 'hostel']),
+        studentType: z.enum(['regular', 'newstudent']),
+        ivrmmoD_Compulsory: z.boolean()
+    }),
+    delete: z.object({
+        ivrmmoD_Id: deleteIdSchema('ivrmmoD_Id')
+    })
+};

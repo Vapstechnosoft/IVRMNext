@@ -46,7 +46,6 @@ export default function TogglepaymentgatewaydetailsForm({ rowData, onClose }: To
             if (response.success) {
                 toast.success(response.message);
                 refetchAll();
-                console.log('responsedata', response);
                 closeDialog();
             } else {
                 toast.error(response.message);

@@ -37,7 +37,6 @@ export default function AddMasterModeOfPaymentForm({ onSuccess, className = '' }
     });
 
     const onSubmit: SubmitHandler<FormFields | any> = async (data: FormFields) => {
-        console.log('API response:', '30');
         try {
             const { ivrmmoD_ModeOfPayment, ivrmmoD_ModeOfPayment_Code } = data;
             const payload = {
@@ -47,7 +46,6 @@ export default function AddMasterModeOfPaymentForm({ onSuccess, className = '' }
             };
 
             const response = await addOrUpdateModeOfPayment(payload);
-            console.log('API response:', response);
             if (response.success) {
                 toast.success(response.message);
                 reset();

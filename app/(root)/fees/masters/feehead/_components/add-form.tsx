@@ -45,7 +45,6 @@ export default function AddMasterFeeHeadForm({ onSuccess, headname = '' }: AddMa
     });
 
     const onSubmit: SubmitHandler<FormFields | any> = async (data: FormFields) => {
-        console.log('API response:', '30');
         try {
             const { fmH_FeeName, fmH_Flag, fmH_RefundFlag, fmH_PDAFlag, fmH_SpecialFeeFlag } = data;
             const payload = {
@@ -58,7 +57,6 @@ export default function AddMasterFeeHeadForm({ onSuccess, headname = '' }: AddMa
             };
 
             const response = await addOrUpdateMasterfeehead(payload);
-            console.log('API response:', response);
             if (response.success) {
                 toast.success(response.message);
                 reset();

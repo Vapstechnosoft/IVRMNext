@@ -6,7 +6,7 @@ import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
 import { useMasterModeOfPayment } from '@/hooks/fees/useMasters';
-import type { IModeOfPaymentList } from '@/types/fees/masters';
+import type { IModeOfPaymentList } from '@/types/fees/masters/masters';
 import { Plus, X } from 'lucide-react';
 import { use } from 'react';
 import AddMasterModeOfPaymentForm from './_components/add-form';
