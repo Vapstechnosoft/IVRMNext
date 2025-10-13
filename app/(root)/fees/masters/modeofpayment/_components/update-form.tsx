@@ -6,7 +6,7 @@ import { InputText } from '@/components/ui/extension/input-text';
 import { useMasterFeehead } from '@/hooks/fees/useMasters';
 import { masterModeOfPaymentSchema } from '@/schemas/fees/masters';
 import { addOrUpdateModeOfPayment } from '@/server/fees/masters/modeOfPayment';
-import type { IModeOfPaymentList } from '@/types/fees/masters';
+import type { IModeOfPaymentList } from '@/types/fees/masters/masters';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Save } from 'lucide-react';
 import { useEffect } from 'react';
@@ -59,7 +59,6 @@ export default function UpdateMasterModeOfPaymentForm({
                 IVRMMOD_ModeOfPayment_Code: ivrmmoD_ModeOfPayment_Code,
                 IVRMMOD_Id: ivrmmoD_Id
             };
-            console.log('updatedata', payload);
             const response = await addOrUpdateModeOfPayment(payload);
 
             if (response.success) {
@@ -78,8 +77,6 @@ export default function UpdateMasterModeOfPaymentForm({
     const handleReset = () => {
         reset();
     };
-
-    console.log('ERROR', errors);
 
     return (
         <div className={`${ivrmmoD_ModeOfPayment}`}>

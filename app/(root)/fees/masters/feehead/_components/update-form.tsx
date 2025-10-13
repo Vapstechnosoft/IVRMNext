@@ -7,7 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useMasterFeehead } from '@/hooks/fees/useMasters';
 import { masterFeeheadSchema } from '@/schemas/fees/masters';
 import { addOrUpdateMasterfeehead } from '@/server/fees/masters/feehead';
-import type { IFeeHeadsList } from '@/types/fees/masters';
+import type { IFeeHeadsList } from '@/types/fees/masters/masters';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Save } from 'lucide-react';
 import { useEffect } from 'react';
@@ -66,7 +66,6 @@ export default function UpdateMasterFeeheadForm({ onSuccess, feeheadname = '', s
                 fmH_SpecialFeeFlag: fmH_SpecialFeeFlag,
                 fmH_RefundFlag: fmH_RefundFlag
             };
-            console.log('updatedata', payload);
             const response = await addOrUpdateMasterfeehead(payload);
 
             if (response.success) {
@@ -85,8 +84,6 @@ export default function UpdateMasterFeeheadForm({ onSuccess, feeheadname = '', s
     const handleReset = () => {
         reset();
     };
-
-    console.log('ERROR', errors);
 
     return (
         <div className={`${feeheadname}`}>

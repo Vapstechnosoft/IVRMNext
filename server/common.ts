@@ -7,7 +7,7 @@ export async function getCommonDropdown(name: string) {
     return await api.get<IDropdown[]>(url);
 }
 
-export async function getUserNotificationList(priority?: string) {
+export async function getUserNotificationList(_priority?: string) {
     // const url = `/v1/user_notification?priority=${priority ?? 'normal'}`;
 
     // return await api.get<UserNotification[]>(url);
@@ -43,7 +43,7 @@ export async function markAllReadUserNotification() {
 }
 
 export async function getUserAccessibleModules() {
-    const url = '/v1/login/user_accessible_pages';
+    const _url = '/v1/login/user_accessible_pages';
 
     // return await api.get<IUserAccessibleModules[]>(url);
 
@@ -200,12 +200,7 @@ export async function getUserAccessibleModules() {
                                         icon: 'Settings',
                                         url: '/fees/masters/modeofpayment'
                                     },
-                                    {
-                                        id: 6,
-                                        name: 'Class Category',
-                                        icon: 'Settings',
-                                        url: '/fees/masters/classcategory'
-                                    },
+
                                     {
                                         id: 8,
                                         name: 'Payment Gateway Details',
@@ -217,6 +212,36 @@ export async function getUserAccessibleModules() {
                                         name: 'Master Fine Slab',
                                         icon: 'Settings',
                                         url: '/fees/masters/masterfineslab'
+                                    },
+                                    {
+                                        id: 6,
+                                        name: 'Class Category',
+                                        icon: 'Settings',
+                                        url: '/fees/masters/classcategory'
+                                    },
+                                    {
+                                        id: 10,
+                                        name: 'Category',
+                                        icon: 'Settings',
+                                        url: '/fees/masters/category'
+                                    },
+                                    {
+                                        id: 11,
+                                        name: 'Installment',
+                                        icon: 'Settings',
+                                        url: '/fees/masters/feesinstallment'
+                                    },
+                                    {
+                                        id: 12,
+                                        name: 'Group Grouping',
+                                        icon: 'Settings',
+                                        url: '/fees/masters/groupsgrouping'
+                                    },
+                                    {
+                                        id: 13,
+                                        name: 'Groups',
+                                        icon: 'Settings',
+                                        url: '/fees/masters/mastergroup'
                                     }
                                 ]
                             }

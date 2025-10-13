@@ -25,5 +25,10 @@ export const FEES_QUERY_KEYS = {
     MASTER_CLASS_CATEGORY: 'master_class_category',
     ACADEMIC_DROPDOWN: 'academic_dropdown',
     FEE_PAYMENTGATEWAY_DETAILS: 'paymentGatewayDetails',
-    FEE_FINESLAB: 'masterfineslab'
+    FEE_FINESLAB: 'masterfineslab',
+    FEE_CLASS_YEARLY_CATEGORY: 'fee_class_yearly_category',
+    FEE_GROUP: 'fee_group',
+    FEE_GROUP_GROUPING: 'fee_group_grouping',
+    FEE_INSTALLMENT: 'fee_installment',
+    MASTER_GROUP: 'master_group'
 };

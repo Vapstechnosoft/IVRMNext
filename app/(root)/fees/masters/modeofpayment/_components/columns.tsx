@@ -3,7 +3,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
 import { ActionButtons } from '@/components/ui/form/action-buttons';
 import { useFormContext } from '@/components/ui/form/form-provider';
-import type { IModeOfPaymentList } from '@/types/fees/masters';
+import type { IModeOfPaymentList } from '@/types/fees/masters/masters';
 import type { ColumnDef } from '@tanstack/react-table';
 import { useCallback } from 'react';
 
