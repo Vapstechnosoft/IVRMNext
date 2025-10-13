@@ -1,6 +1,16 @@
 import { z } from 'zod';
 import { createOptionalStringSchema, createStringSchema } from '../../validationSchemas';
 
+export const preadmissionRegistrationSchema = {
+    add: z.object({
+        name: createStringSchema('Name', 1, 100),
+        email_id: createStringSchema('Email Id', 1, 100),
+        mobileno: z.string().min(1, { message: 'Mobile No is required' }).max(10, { message: 'Maximum 10 digits' }),
+        username: createStringSchema('Username', 1, 100),
+        password: createStringSchema('Password', 1, 100)
+    })
+};
+
 export const studentApplicationFormSchema = {
     add: z.object({
         asmaY_Id: z.number().int({ message: 'Academic Year is required' }),

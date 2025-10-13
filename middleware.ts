@@ -10,7 +10,7 @@ const routeMatcher = createRouterMatcher([
     { matcher: AUTH_ROUTES.TERMS, auth: false },
     { matcher: ROUTES.DASHBOARD, auth: true },
     {
-        matcher: ROUTES.ADMISSION.MASTERS,
+        matcher: ROUTES.ADMISSION.ADMISSION_SUB_MENUS.PREADMISSION,
         auth: true,
         role: [ROLES.GENERAL_STAFF]
     }
@@ -28,8 +28,13 @@ export async function middleware(request: NextRequest) {
         return NextResponse.next();
     }
 
-    // Check for sign-in page access
+    // Allow public access to dynamic single-segment paths like /VVVS
+    if (/^\/[A-Za-z0-9]+$/.test(pathname)) {
+        return NextResponse.next();
+    }
+
     if (pathname === AUTH_ROUTES.SIGN_IN) {
+        // Check for sign-in page access
         if (isLoggedIn) {
             const redirectedFrom = request.nextUrl.searchParams.get('redirectedFrom');
             if (redirectedFrom !== 'home') {

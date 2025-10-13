@@ -1,5 +1,6 @@
 'use client';
 
+import PreadmissionRegistration from '@/app/(root)/admission/preadmission/transactions/preadmission-registration/page';
 import Logo from '@/components/layout/navigation/logo';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -7,13 +8,14 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { InputPassword } from '@/components/ui/extension/input-password';
 import { InputText } from '@/components/ui/extension/input-text';
 import { Label } from '@/components/ui/label';
+import { useCheckPreadmissionLive } from '@/hooks/admission/preadmission/useConfigurations';
 import { loginSchema } from '@/schemas/admission/preadmission/masters';
 import { login } from '@/server/user';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { ArrowUpRight, GraduationCap, LockKeyhole, LogIn, Mail, Phone, TriangleAlert } from 'lucide-react';
+import { GraduationCap, LogIn, Mail, Phone, TriangleAlert } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { useSearchParams } from 'next/navigation';
+import { useParams, useSearchParams } from 'next/navigation';
 import { useEffect, useState, useTransition } from 'react';
 import { type SubmitHandler, useForm } from 'react-hook-form';
 import type { z } from 'zod';
@@ -22,6 +24,10 @@ type FormFields = z.infer<typeof loginSchema>;
 
 export default function SigninForm() {
     const searchParams = useSearchParams();
+    const { sub_domain } = useParams();
+
+    const { data: preadmissionLive } = useCheckPreadmissionLive(sub_domain?.toString() || '');
+
     const callbackUrl = searchParams.get('callbackUrl') || '/';
     const [error, setError] = useState<string | undefined>('');
     const [isPending, startTransition] = useTransition();
@@ -108,7 +114,7 @@ export default function SigninForm() {
                     </div>
 
                     <Card className='border-0 bg-white/80 shadow-xl backdrop-blur-sm'>
-                        <CardHeader>
+                        <CardHeader className='flex items-center'>
                             <div className='mb-4 hidden justify-center lg:flex'>
                                 <Logo size='full' />
                             </div>
@@ -116,6 +122,16 @@ export default function SigninForm() {
                                 <CardTitle className='font-bold text-2xl text-black'>Sign In</CardTitle>
                                 <CardDescription className='text-gray-600'>Sign in to access your dashboard</CardDescription>
                             </div>
+                            {preadmissionLive?.data === true && (
+                                <CardTitle className='select-none'>
+                                    <div className='inline-flex items-center rounded-full border border-green-400 bg-green-50 px-4 py-2 text-lg'>
+                                        <span className='mr-2 h-3 w-3 rounded-full bg-green-500' />
+                                        <span className='font-medium text-green-700'>
+                                            Preadmission is <span className='font-bold text-green-600 text-xl'>LIVE !</span>
+                                        </span>
+                                    </div>
+                                </CardTitle>
+                            )}
                         </CardHeader>
 
                         <CardContent>
@@ -190,17 +206,7 @@ export default function SigninForm() {
                                         </div>
                                     </div>
 
-                                    <Button
-                                        type='button'
-                                        onClick={() => {}}
-                                        disabled={isPending}
-                                        variant='outline'
-                                        toolTip='Preadmission Registration is not available yet.'
-                                        className='h-12 w-full border-2 border-gray-200 '>
-                                        <LockKeyhole className='mr-2 h-4 w-4 text-gray-600 ' />
-                                        <span className='flex-1 font-medium text-gray-400'>Preadmission Registration</span>
-                                        <ArrowUpRight className='h-4 w-4 text-gray-400' />
-                                    </Button>
+                                    <PreadmissionRegistration />
                                 </div>
                             </form>
                         </CardContent>

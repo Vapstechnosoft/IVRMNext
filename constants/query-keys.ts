@@ -20,6 +20,7 @@ export const ADMISSION_QUERY_KEYS = {
 };
 
 export const PREADMISSION_QUERY_KEYS = {
+    CHECK_PREADMISSION_LIVE: 'check_preadmission_live',
     RELIGION_DROPDOWN: 'religion_dropdown',
     CASTE_DROPDOWN: 'caste_dropdown',
     COUNTRY_DROPDOWN: 'country_dropdown',
