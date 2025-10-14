@@ -13,8 +13,6 @@ export const preadmissionRegistrationSchema = {
 
 export const studentApplicationFormSchema = {
     add: z.object({
-        asmaY_Id: z.number().int({ message: 'Academic Year is required' }),
-
         //Student Details
         pasR_FirstName: createStringSchema('First Name', 1, 100),
         pasR_MiddleName: createOptionalStringSchema('Middle Name', 1, 100),
@@ -25,7 +23,6 @@ export const studentApplicationFormSchema = {
         caste_Id: z.number().int({ message: 'Caste is required' }),
         pasR_Sex: createStringSchema('Gender', 1, 50),
         pasR_DOB: z.date({ message: 'Date Of Birth is required' }),
-        pasR_Age: z.number().int({ message: 'Student Age is required' }),
         asmcL_Id: z.number().int({ message: 'Applying For is required' }),
         pasR_emailId: createStringSchema('Student Email', 1, 50),
         pasR_Nationality: z.string().nonempty({ message: 'Student Nationality is required' }),

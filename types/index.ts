@@ -7,6 +7,14 @@ export interface Option {
     count?: number;
 }
 
+export interface CalculatedAgeDetails {
+    years: number;
+    months: number;
+    days: number;
+    ageInYears: number;
+    ageString: string;
+}
+
 export interface DataTableFilterField<TData> {
     id: keyof TData;
     label: string;

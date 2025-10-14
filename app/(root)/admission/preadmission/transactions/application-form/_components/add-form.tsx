@@ -1,10 +1,13 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
+import { CalendarYear } from '@/components/ui/calendar_year';
 import { FormError, Label } from '@/components/ui/extension/field';
 import { InputNumber } from '@/components/ui/extension/input-number';
 import { InputText } from '@/components/ui/extension/input-text';
 import { MultiSelect } from '@/components/ui/multi-select';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import {
     useCasteDropdown,
@@ -16,10 +19,13 @@ import {
     useSourceDropdown,
     useStateDropdown
 } from '@/hooks/admission/preadmission/useTransactions';
+import { calculateAge, cn } from '@/lib/utils';
 import { studentApplicationFormSchema } from '@/schemas/admission/preadmission/transactions';
 import { addStudentApplicationForm } from '@/server/admission/preadmission/transactions/application_form';
+import type { CalculatedAgeDetails } from '@/types';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Save } from 'lucide-react';
+import { format } from 'date-fns';
+import { CalendarIcon, Save } from 'lucide-react';
 import { useState } from 'react';
 import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
@@ -44,12 +50,13 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
         resolver: zodResolver(studentApplicationFormSchema.add),
         mode: 'onChange',
         defaultValues: {
-            asmaY_Id: 1,
-            pasR_DOB: new Date(),
-            pasR_Age: 1,
-            pasR_UndertakingFlag: 1
+            pasR_UndertakingFlag: 0
         }
     });
+
+    const [isDobOpen, setIsDobOpen] = useState(false);
+
+    const [calculatedAgeDetails, setCalculatedAgeDetails] = useState<CalculatedAgeDetails>();
 
     const [selectedSourceItems, setSelectedSourceItems] = useState<{ pamS_Id: string; pamS_SourceName: string }[]>([]);
     const [selectedReferenceItems, setSelectedReferenceItems] = useState<{ pamR_Id: string; pamR_ReferenceName: string }[]>([]);
@@ -97,10 +104,22 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
     };
 
     const onSubmit: SubmitHandler<FormFields | any> = async (data: FormFields) => {
+        if (!calculatedAgeDetails) {
+            toast.error('Please select date of birth');
+            return;
+        }
+
+        if (data.pasR_UndertakingFlag === 0) {
+            toast.error('Please accept undertaking');
+            return;
+        }
+
         try {
-            const { source_ids, reference_ids, ...filteredData } = data;
+            const { pasR_DOB, source_ids, reference_ids, ...filteredData } = data;
             const payload = {
                 ...filteredData,
+                pasR_DOB: format(pasR_DOB, 'yyyy-MM-dd'),
+                pasR_Age: calculatedAgeDetails.ageInYears,
                 selectedSourceDetails: selectedSourceItems.map((item) => ({
                     pamS_Id: item.pamS_Id
                 })),
@@ -176,6 +195,42 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
                             error={errors.pasR_LastName?.message}
                             className='transition-colors focus:ring-2 focus:ring-primary/20'
                         />
+                        <div className='group flex flex-col gap-1.5'>
+                            <Label aria-label='Date Of Birth' htmlFor='pasR_DOB'>
+                                Date Of Birth<span className='ml-1 text-red-500'>*</span>
+                            </Label>
+                            <Controller
+                                control={control}
+                                name='pasR_DOB'
+                                render={({ field }) => (
+                                    <Popover open={isDobOpen} onOpenChange={(open) => setIsDobOpen(open)}>
+                                        <PopoverTrigger asChild>
+                                            <Button
+                                                variant={'outline'}
+                                                className={cn('w-full font-normal', !field.value && 'text-muted-foreground')}>
+                                                {field.value ? `${format(field.value, 'PPP')}` : <span>Pick a date</span>}
+                                                <CalendarIcon className='ml-auto h-4 w-4 opacity-50' />
+                                            </Button>
+                                        </PopoverTrigger>
+                                        <PopoverContent className='flex w-auto items-start p-0' align='start'>
+                                            <CalendarYear
+                                                mode='single'
+                                                captionLayout='dropdown'
+                                                selected={field.value}
+                                                onSelect={(selectedDate) => {
+                                                    field.onChange(selectedDate);
+                                                    setCalculatedAgeDetails(calculateAge(watch('pasR_DOB')));
+                                                }}
+                                                onDayClick={() => setIsDobOpen(false)}
+                                                toDate={new Date()}
+                                            />
+                                        </PopoverContent>
+                                    </Popover>
+                                )}
+                            />
+                            {calculatedAgeDetails && <p className='text-muted-foreground text-sm'>Age: {calculatedAgeDetails.ageString}</p>}
+                            {errors.pasR_DOB && <FormError>{errors.pasR_DOB.message}</FormError>}
+                        </div>
                         <div className='group flex flex-col gap-1.5'>
                             <Controller
                                 name='pasR_MobileNo'
@@ -1041,6 +1096,37 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
                             {...register('pasR_AltContactEmail')}
                             error={errors.pasR_AltContactEmail?.message}
                             className='transition-colors focus:ring-2 focus:ring-primary/20'
+                        />
+                    </div>
+
+                    <div className='group flex flex-col gap-1.5'>
+                        <Controller
+                            name='pasR_UndertakingFlag'
+                            control={control}
+                            render={({ field }) => (
+                                <>
+                                    <Label className='mb-2'>
+                                        <p>
+                                            <b>Undertaking by the Parents/Guardian:</b> I have read all the rules of the School and declare
+                                            that they are acceptable to me and my ward I shall pay all the School fees quarterly or
+                                            annually. I am willing to pay all other dues as necessary. I have no objection to my child
+                                            participating in any extra curricular activities run by the school.
+                                        </p>
+                                    </Label>
+                                    <RadioGroup
+                                        id='pasR_UndertakingFlag'
+                                        value={field.value !== undefined ? String(field.value) : '0'}
+                                        onValueChange={(value) => field.onChange(Number(value.toString()))}
+                                        required>
+                                        <div className='flex items-center gap-4'>
+                                            <RadioGroupItem value='1' id='pasR_UndertakingFlag_yes' />
+                                            <Label htmlFor='pasR_UndertakingFlag_yes'>Yes</Label>
+                                            <RadioGroupItem value='0' id='pasR_UndertakingFlag_no' />
+                                            <Label htmlFor='pasR_UndertakingFlag_false'>No</Label>
+                                        </div>
+                                    </RadioGroup>
+                                </>
+                            )}
                         />
                     </div>
 
