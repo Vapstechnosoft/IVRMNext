@@ -4,7 +4,9 @@ import { Button } from '@/components/ui/button';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
 import { Plus, X } from 'lucide-react';
+import { useState } from 'react';
 import AddStudentApplicationForm from './_components/add-form';
+import ApplicationFormSuccessDialog from './_components/success-dialog';
 
 export default function StudentApplicationPage() {
     return (
@@ -16,6 +18,7 @@ export default function StudentApplicationPage() {
 
 function StudentApplicationPageContent() {
     const { openAddForm } = useFormContext();
+    const [isSuccessOpen, setSuccessOpen] = useState(false);
 
     return (
         <div className='min-h-screen'>
@@ -30,15 +33,16 @@ function StudentApplicationPageContent() {
                         Preadmission Application
                     </Button>
                 </div>
+                <ApplicationFormSuccessDialog isOpen={isSuccessOpen} onClose={() => setSuccessOpen(false)} />
 
                 {/* Forms */}
-                <FormSections />
+                <FormSections setSuccessOpen={() => setSuccessOpen(true)} />
             </div>
         </div>
     );
 }
 
-function FormSections() {
+function FormSections({ setSuccessOpen }: { setSuccessOpen: () => void }) {
     const { isAddFormOpen, closeAddForm, addFormRef } = useFormContext();
 
     return (
@@ -62,7 +66,12 @@ function FormSections() {
                                 className='-top-[3.5rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
                                 <X className='h-4 w-4 text-destructive' /> Close
                             </Button>
-                            <AddStudentApplicationForm onSuccess={closeAddForm} />
+                            <AddStudentApplicationForm
+                                onSuccess={() => {
+                                    closeAddForm();
+                                    setSuccessOpen();
+                                }}
+                            />
                         </div>
                     </CollapsibleSection>
                 </div>

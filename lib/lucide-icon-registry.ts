@@ -55,6 +55,7 @@ import {
     type LucideIcon,
     Mail,
     MapPin,
+    MapPinHouse,
     Menu,
     MessageCircle,
     MessageSquare,
@@ -68,6 +69,7 @@ import {
     PieChart,
     Play,
     Plus,
+    ReceiptText,
     Save,
     Search,
     Send,
@@ -159,6 +161,8 @@ export const lucideIcons: IconOption[] = [
     { name: 'Star', icon: Star, category: 'interface' },
     { name: 'Heart', icon: Heart, category: 'interface' },
     { name: 'Bookmark', icon: Bookmark, category: 'interface' },
+    { name: 'MapPinHouse', icon: MapPinHouse, category: 'interface' },
+    { name: 'ReceiptText', icon: ReceiptText, category: 'interface' },
 
     // Communication
     { name: 'Mail', icon: Mail, category: 'communication' },
