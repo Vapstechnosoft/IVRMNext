@@ -16,7 +16,7 @@ import UpdateMasterModeOfPaymentForm from './_components/update-form';
 
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 
-export default function MasterFeeheadPage(props: { searchParams: SearchParams }) {
+export default function MasterFeeModeOfPaymentPage(props: { searchParams: SearchParams }) {
     const searchParams = use(props.searchParams);
     const { data: response, isLoading, error } = useMasterModeOfPayment(searchParams);
 
@@ -101,8 +101,8 @@ function FormSections() {
             {isAddFormOpen && (
                 <div ref={addFormRef}>
                     <CollapsibleSection
-                        title='Add New Fee Head'
-                        description='Fill in the details below to create a new Fee Head'
+                        title='Add New Fee Mode Of Payment'
+                        description='Fill in the details below to create a new Mode Of Payment'
                         defaultOpen={true}
                         variant='outline'
                         size='md'

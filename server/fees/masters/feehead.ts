@@ -7,7 +7,7 @@ import type { IFeeHeadsList } from '@/types/fees/masters';
 export async function getfeehead(searchParams?: ApiSearchparams) {
     const urlParams = getSearchParamsUrl(searchParams ?? {});
     const url = `/FeeheadFacade/30?${urlParams}`;
-    return await api.getArray<IFeeHeadsList>(url);
+    return await api.get<IFeeHeadsList[]>(url);
 }
 
 export async function addOrUpdateMasterfeehead(data: any) {

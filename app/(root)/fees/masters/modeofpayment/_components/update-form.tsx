@@ -121,7 +121,7 @@ export default function UpdateMasterModeOfPaymentForm({
                         loadingText='Saving...'>
                         <div className='flex items-center'>
                             <Save className='mr-2 h-4 w-4' />
-                            Save Master Mode Of
+                            Update
                         </div>
                     </Button>
                 </div>
