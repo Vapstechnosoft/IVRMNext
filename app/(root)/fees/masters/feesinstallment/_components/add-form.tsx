@@ -15,7 +15,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { masterInstallmentSchema } from '@/schemas/fees/masters';
 import { addOrUpdateInsallment } from '@/server/fees/masters/feeinstallment';
 
-export default function AddMasterInstallmentForm() {
+export default function AddMasterInstallmentForm({ onSuccess }: { onSuccess?: () => void } = {}) {
     const [installments, setInstallments] = useState<{ sno: number; ftI_Name: string }[]>([]);
 
     type MasterInstallmentFormSchema = z.infer<typeof masterInstallmentSchema.addOrUpdate>;
@@ -94,6 +94,7 @@ export default function AddMasterInstallmentForm() {
                 toast.success('Installment details saved successfully!');
                 reset();
                 setInstallments([]);
+                onSuccess?.();
             } else {
                 toast.error(response.message || 'Failed to save installment');
             }

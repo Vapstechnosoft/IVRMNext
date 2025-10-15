@@ -4,11 +4,11 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
 import { ActionButtons } from '@/components/ui/form/action-buttons';
 import { useFormContext } from '@/components/ui/form/form-provider';
-import type { IMasterClassList } from '@/types/fees/masters/masters';
+import type { IMasterCasteCategoryList } from '@/types/fees/masters/masters';
 import type { ColumnDef } from '@tanstack/react-table';
 import { useCallback } from 'react';
 
-export const masterClassColumns: ColumnDef<IMasterClassList>[] = [
+export const masterCasteCategoryColumns: ColumnDef<IMasterCasteCategoryList>[] = [
     {
         id: 'select',
         header: ({ table }) => (
@@ -26,22 +26,8 @@ export const masterClassColumns: ColumnDef<IMasterClassList>[] = [
         size: 24
     },
     {
-        accessorKey: 'asmcL_ClassCategoryCode',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Class Category Code' />,
-        cell: ({ row }) => <div>{row.getValue('asmcL_ClassCategoryCode')}</div>,
-        enableSorting: true,
-        enableHiding: true
-    },
-    {
-        accessorKey: 'asmcL_ClassCategoryName',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Class Category Name' />,
-        cell: ({ row }) => <div>{row.getValue('asmcL_ClassCategoryName')}</div>,
-        enableSorting: true,
-        enableHiding: true
-    },
-    {
-        accessorKey: 'asmcL_Id',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Sl.No' />,
+        accessorKey: 'fmcC_Id',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Sl. No' />,
         cell: ({ row, table }) => {
             const pageIndex = table.getState().pagination.pageIndex;
             const pageSize = table.getState().pagination.pageSize;
@@ -52,26 +38,50 @@ export const masterClassColumns: ColumnDef<IMasterClassList>[] = [
         enableHiding: false
     },
     {
+        accessorKey: 'fmcC_ClassCategoryName',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Class Category Name' />,
+        cell: ({ row }) => <div>{row.getValue('fmcC_ClassCategoryName')}</div>,
+        enableSorting: true,
+        enableHiding: true
+    },
+    {
+        accessorKey: 'fmcC_ClassCategoryCode',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Category Code' />,
+        cell: ({ row }) => <div>{row.getValue('fmcC_ClassCategoryCode')}</div>,
+        enableSorting: true,
+        enableHiding: true
+    },
+    {
+        accessorKey: 'fmcC_ActiveFlag',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Active Status' />,
+        cell: ({ row }) => {
+            const value = row.getValue('fmcC_ActiveFlag');
+            return <div>{value ? '✅' : '❌'}</div>;
+        },
+        enableSorting: true,
+        enableHiding: true
+    },
+    {
         id: 'actions',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Actions' className='text-center' />,
-        accessorFn: (row: any) => row,
+        accessorFn: (row) => row,
         enableSorting: false,
         cell: ({ row }) => <ActionButtonsCell rowData={row.original} />
     }
 ];
 
-function ActionButtonsCell({ rowData }: { rowData: IMasterClassList }) {
-    const { openEditForm, openToggleForm } = useFormContext<IMasterClassList>();
+function ActionButtonsCell({ rowData }: { rowData: IMasterCasteCategoryList }) {
+    const { openEditForm, openToggleForm } = useFormContext<IMasterCasteCategoryList>();
 
     const handleEdit = useCallback(
-        (data: IMasterClassList) => {
+        (data: IMasterCasteCategoryList) => {
             openEditForm(data);
         },
         [openEditForm]
     );
 
     const handleToggle = useCallback(
-        (data: IMasterClassList) => {
+        (data: IMasterCasteCategoryList) => {
             openToggleForm(data);
         },
         [openToggleForm]
@@ -83,7 +93,7 @@ function ActionButtonsCell({ rowData }: { rowData: IMasterClassList }) {
             buttons={{ edit: true, toggle: true, delete: false }}
             onEdit={handleEdit}
             onToggle={handleToggle}
-            toggleConditionKey='asmcL_ActiveFlag'
+            toggleConditionKey='fmcC_ActiveFlag'
         />
     );
 }

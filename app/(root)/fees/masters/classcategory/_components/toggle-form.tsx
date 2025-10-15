@@ -4,24 +4,24 @@ import { Button } from '@/components/ui/button';
 import { AdaptiveBody, AdaptiveDialog, AdaptiveFooter } from '@/components/ui/extension/adaptive-dialog';
 import { FormError } from '@/components/ui/extension/field';
 import { useMasterClassCategory } from '@/hooks/fees/useMasters';
-import { masterClassSchema } from '@/schemas/fees/masters';
+import { masterClassCategorySchema } from '@/schemas/fees/masters';
 import { toggleMasterclassCategory } from '@/server/fees/masters/class_category';
-import type { IMasterClassList } from '@/types/fees/masters/masters';
+import type { IMasterCasteCategoryList } from '@/types/fees/masters/masters';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { type SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import type { z } from 'zod';
 
-type FormFields = z.infer<typeof masterClassSchema.delete>;
+type FormFields = z.infer<typeof masterClassCategorySchema.delete>;
 
-interface ToggleMasterClassFormProps {
-    rowData: IMasterClassList;
+interface toggleMasterclassCategoryFormProps {
+    rowData: IMasterCasteCategoryList;
     onClose: () => void;
 }
 
-export default function ToggleMasterClassForm({ rowData, onClose }: ToggleMasterClassFormProps) {
+export default function toggleMasterclassCategoryForm({ rowData, onClose }: toggleMasterclassCategoryFormProps) {
     const { refetchAll } = useMasterClassCategory();
-    const isActive = rowData.asmcL_ActiveFlag;
+    const isActive = rowData.fmcC_ActiveFlag;
 
     const {
         register,
@@ -29,7 +29,7 @@ export default function ToggleMasterClassForm({ rowData, onClose }: ToggleMaster
         reset,
         formState: { errors, isSubmitting }
     } = useForm<FormFields>({
-        resolver: zodResolver(masterClassSchema.delete),
+        resolver: zodResolver(masterClassCategorySchema.delete),
         mode: 'onChange'
     });
 
@@ -40,29 +40,29 @@ export default function ToggleMasterClassForm({ rowData, onClose }: ToggleMaster
 
     const onSubmit: SubmitHandler<FormFields | any> = async () => {
         try {
-            const response = await toggleMasterclassCategory(30, Number(rowData.asmcL_Id));
+            const response = await toggleMasterclassCategory(30, Number(rowData.fmcC_Id));
 
             if (response.success) {
-                toast.success(response.message);
+                toast.success(response.message || 'Status updated successfully');
                 refetchAll();
                 closeDialog();
             } else {
-                toast.error(response.message);
+                toast.error(response.message || 'Failed to update status');
             }
         } catch (error: any) {
-            toast.error(error.message);
+            toast.error(error?.message || 'Something went wrong');
         }
     };
 
     return (
-        <AdaptiveDialog title='Toggle Master Class Status' isOpen={true} onClose={closeDialog}>
+        <AdaptiveDialog title='Toggle Class Category Status' isOpen={true} onClose={closeDialog}>
             <form onSubmit={handleSubmit(onSubmit)} className='flex flex-col gap-4'>
                 <AdaptiveBody className='flex flex-col gap-5'>
-                    <input type='hidden' {...register('asmS_Id')} defaultValue={rowData.asmcL_Id} />
+                    <input type='hidden' {...register('fmcC_Id')} defaultValue={rowData.fmcC_Id} />
                     <p>
-                        Are you sure you want to {isActive ? 'deactivate' : 'activate'} <strong>{rowData.asmcL_ClassName}</strong>?
+                        Are you sure you want to {isActive ? 'deactivate' : 'activate'} <strong>{rowData.fmcC_ClassCategoryName}</strong>?
                     </p>
-                    <FormError>{errors.asmS_Id?.message}</FormError>
+                    <FormError>{errors.fmcC_Id?.message}</FormError>
                     <FormError>{errors.root?.message}</FormError>
                 </AdaptiveBody>
                 <AdaptiveFooter>

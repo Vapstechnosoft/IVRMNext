@@ -41,3 +41,81 @@ export interface IMasterClassYearlyList {
     asmcL_ActiveFlag: boolean;
     asmcL_ClassName: string;
 }
+
+export interface IMasterFeesInstallmentDueDateList {
+    sno: number;
+    ftI_Id: number;
+    fmI_Id: number;
+    fmI_Name: string;
+    fmI_No_Of_Installments: number;
+    fmI_Installment_Type: string;
+    ftI_Name: string;
+    mI_ID: number;
+    fmI_ActiveFlag: boolean;
+    fdate: string;
+    tdate: string;
+    aplc: string;
+    ddate: string;
+}
+
+export interface IMasterConcessionList {
+    fmcC_Id: number;
+    fmcC_ConcessionName: string;
+    fmcC_ConcessionFlag: string;
+    fmcC_ConcessionApplLimit: string;
+    fmcC_ActiveFlag: boolean;
+}
+
+export interface IMasterTermsList {
+    fmT_Id: number;
+    fmT_Name: string;
+    fmT_IncludeArrearFeeFlg: boolean;
+    fmT_ActiveFlag: boolean;
+}
+
+export interface IMasterTermFeeHeadList {
+    fmT_Id: number;
+    fmT_Name: string;
+    fmT_IncludeArrearFeeFlg: boolean;
+    fmT_ActiveFlag: boolean;
+    termname: string;
+    headname: string;
+    installmentname: string;
+    idforedt: number;
+}
+
+export interface IMasterTermDropdownList {
+    fmT_Id: number;
+    fmT_Name: string;
+}
+
+export interface IMasterHeadDropdownList {
+    fmH_Id: number;
+    fmH_Flag: string;
+    fmH_FeeName: string;
+}
+
+export interface IMasterInstallmentsDropdownList {
+    ftI_ID: number;
+    ftI_NAME: string;
+}
+
+// Installment list (used by fees installment pages)
+export interface IMasterFeesInstallmentList {
+    fmI_Id: number;
+    mI_ID: number;
+    fmI_Name: string;
+    fmI_No_Of_Installments: number;
+    fmI_Installment_Type: string;
+    ftI_Name?: string;
+    fmI_ActiveFlag: boolean | number;
+    installments?: Array<{
+        sno?: number;
+        ftI_Id?: number;
+        ftI_Name?: string;
+        fdate?: string;
+        tdate?: string;
+        aplc?: string;
+        ddate?: string;
+    }>;
+}

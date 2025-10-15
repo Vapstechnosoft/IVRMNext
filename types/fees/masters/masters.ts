@@ -1,35 +1,3 @@
-export interface IMasterClassList {
-    asmcL_Id: number;
-    asmcL_ClassCategoryCode: string;
-    asmcL_ClassCategoryName: string;
-    asmcL_ActiveFlag: boolean;
-    asmcL_ClassName: string;
-}
-export interface IMasterClassYearlyCategoryList {
-    asmcC_Id: number;
-    asmaY_Year: string;
-    amC_Name: string;
-    asmcL_ClassName: string;
-    is_Active: boolean;
-}
-
-export interface IMasterClassYearlyList {
-    asmcL_Id: number;
-    asmcL_AcademicYear: string;
-    asmcL_ClassCategory: string;
-    asmcL_Classes: string;
-    asmcL_ActiveFlag: boolean;
-    asmcL_ClassName: string;
-}
-
-export interface IMasterClassYearlyCategoryList {
-    asmcC_Id: number;
-    asmaY_Year: string;
-    amC_Name: string;
-    asmcL_ClassName: string;
-    is_Active: boolean;
-}
-
 export interface IMasterPaymentGatewayList {
     fpgD_Id: number;
     fpgD_AuthorisationKey: string;
@@ -91,38 +59,49 @@ export interface IMasterClassYearlyCategoryList {
     mi_id: number;
 }
 
-export interface IMasterClassYearlyList {
-    asmcL_Id: number;
-    asmcL_AcademicYear: string;
-    asmcL_ClassCategory: string;
-    asmcL_Classes: string;
-    asmcL_ActiveFlag: boolean;
-    asmcL_ClassName: string;
-}
-
 //installment fees
 
 export interface IMasterFeesInstallmentList {
-    fmI_Name: string;
+    // Primary keys
+    fmI_Id: number; // Installment id
+    mI_ID: number; // Master id / institution id
+
+    // Display fields
+    fmI_Name: string; // Installment name
     fmI_No_Of_Installments: number;
     fmI_Installment_Type: string;
-    ftI_Name: string;
-    mI_ID: 30;
-    fmI_Id: number;
-    fmI_ActiveFlag: boolean;
+    ftI_Name?: string; // optional installment label/name
+
+    // Flags (API may return boolean or numeric flags)
+    fmI_ActiveFlag: boolean | number;
+
+    // Optional nested installments / due date entries used by the update form
+    installments?: Array<{
+        sno?: number;
+        ftI_Id?: number;
+        ftI_Name?: string;
+        fdate?: string;
+        tdate?: string;
+        aplc?: string;
+        ddate?: string;
+    }>;
 }
 //groups
 export interface IMasterGroupList {
-    ivrmmoD_Id: number;
+    fmG_Id: number;
     mI_Id: number;
-    ivrmmoD_MasterGroup: string;
-    ivrmmoD_MasterGroup_Code: string;
-    ivrmmoD_Transport: boolean;
-    ivrmmoD_Hostel: boolean;
-    ivrmmoD_Compulsory: boolean;
-    ivrmmoD_Regular: boolean;
-    ivrmmoD_NewStudent: boolean;
-    ivrmmoD_ActiveFlag: boolean;
+    fmG_GroupName: string;
+    fmG_Remarks: string;
+    fmG_CompulsoryFlag: string;
+    fmG_ActiceFlag: boolean;
+    user_id: number;
+    fmG_PRE_FLAG: string;
+    fmG_TransportFlg: boolean;
+    fmG_HostelFlg: boolean;
+    fmG_BatchwiseFeeApplFlg: boolean;
+    fmG_RegNewFlg: string;
+    createdDate: string;
+    updatedDate: string;
 }
 
 export interface IFeeHeadsList {
@@ -145,26 +124,37 @@ export interface IModeOfPaymentList {
     ivrmmoD_ActiveFlag: boolean;
 }
 
-export interface IMasterClassYearlyCategoryList {
-    asmcC_Id: number;
-    asmaY_Year: string;
-    amC_Name: string;
-    asmcL_ClassName: string;
-    is_Active: boolean;
-}
-export interface IMasterClassList {
+//used category
+export interface IMasterClassYearlyList {
+    asmcl_ActiveFlag: boolean;
     asmcL_Id: number;
-    asmcL_ClassCategoryCode: string;
-    asmcL_ClassCategoryName: string;
-    asmcL_ActiveFlag: boolean;
+    asmaY_Id: number;
+    asmaY_Year: string;
+    fmcC_Id: string;
+    fmcC_ClassCategoryName: string;
+    fycC_ActiveFlag: boolean;
     asmcL_ClassName: string;
+    fyccC_Id: number;
+    fycC_Id: number;
 }
 
-export interface IMasterClassYearlyList {
-    asmcL_Id: number;
-    asmcL_AcademicYear: string;
-    asmcL_ClassCategory: string;
-    asmcL_Classes: string;
-    asmcL_ActiveFlag: boolean;
-    asmcL_ClassName: string;
+export interface IMasterCasteCategoryList {
+    fmcC_Id: number;
+    mI_Id: number;
+    fmcC_ClassCategoryName: string;
+    imcC_CategoryDesc: string;
+    fmcC_ClassCategoryCode: string;
+    fmcC_ActiveFlag: boolean;
+}
+
+export interface IMaasterFeesYearlyGrouping {
+    fmI_ActiveFlag: number;
+    mI_Id: number;
+    asmaY_Id: number;
+    asmaY_Year: number;
+    fmG_GroupName: string;
+    fmG_Id: string;
+    fyG_RebateTypeFlg?: boolean;
+    fyG_RebateType?: 'Percentage' | 'Amount';
+    fyG_RebateValue?: string | number;
 }

@@ -9,7 +9,7 @@ import { useMasterFeeGroup } from '@/hooks/fees/useMasters';
 import { cn } from '@/lib/utils';
 import { masterGroupsGroupingSchema } from '@/schemas/fees/masters';
 import { addOrUpdateGroupGrouping } from '@/server/fees/masters/groupsgrouping';
-import type { IMasterGroupsGrouping } from '@/types/fees/masters';
+import type { IMasterGroupsGrouping } from '@/types/fees/masters/masters';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { CheckSquare, ChevronsUpDown, Save, Search, Square } from 'lucide-react';
 import { useState } from 'react';
@@ -128,16 +128,12 @@ export default function AddMasterGroupGrouping({ onSuccess, className = '' }: Ad
                         control={control}
                         render={({ field }) => (
                             <div className='flex w-full flex-col sm:w-1/2'>
-                                <label className='mb-1 font-medium text-gray-700 text-sm'>
-                                    Fee Groups <span className='text-red-500'>*</span>
-                                </label>
-
+                                Fee Groups <span className='text-red-500'>*</span>
                                 <Popover>
                                     <PopoverTrigger asChild>
                                         <Button
                                             type='button'
                                             variant='outline'
-                                            role='combobox'
                                             disabled={isLoading}
                                             className='w-full justify-between border-primary/30'>
                                             {field.value?.length
@@ -218,7 +214,6 @@ export default function AddMasterGroupGrouping({ onSuccess, className = '' }: Ad
                                         </div>
                                     </PopoverContent>
                                 </Popover>
-
                                 {errors.imgg_FeeGroupIds && <FormError>{errors.imgg_FeeGroupIds.message}</FormError>}
                             </div>
                         )}

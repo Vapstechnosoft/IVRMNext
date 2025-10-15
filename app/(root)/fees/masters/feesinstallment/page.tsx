@@ -6,7 +6,7 @@ import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
 import { useMasterFeehead } from '@/hooks/fees/useMasters';
-import type { IFeeHeadsList } from '@/types/fees/masters';
+import type { IMasterFeesInstallmentList } from '@/types/fees/masters';
 import { Plus, X } from 'lucide-react';
 import { use } from 'react';
 import AddMasterFeeHeadForm from './_components/add-form';
@@ -16,12 +16,14 @@ import UpdateMasterFeeheadForm from './_components/update-form';
 
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 
-export default function MasterFeeheadPage(props: { searchParams: SearchParams }) {
+export default function MasterFeeheadPage(props: {
+    searchParams: SearchParams;
+}) {
     const searchParams = use(props.searchParams);
     const { data: response, isLoading, error } = useMasterFeehead(searchParams);
 
     return (
-        <FormProvider<IFeeHeadsList>>
+        <FormProvider<IMasterFeesInstallmentList>>
             <MasterFeeheadPageContent response={response} isLoading={isLoading} error={error} />
         </FormProvider>
     );
@@ -36,7 +38,7 @@ function MasterFeeheadPageContent({
     isLoading: boolean;
     error: any;
 }) {
-    const { openAddForm } = useFormContext<IFeeHeadsList>();
+    const { openAddForm } = useFormContext<IMasterFeesInstallmentList>();
     const tableProps = useDataTableProps(response);
 
     return (
@@ -45,14 +47,14 @@ function MasterFeeheadPageContent({
                 {/* Header */}
                 <div className='flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between'>
                     <div className='space-y-1'>
-                        <Heading title='Fees Heads' description='' />
+                        <Heading title='Fees Installment' description='' />
                     </div>
                     <Button
                         type='button'
                         onClick={openAddForm}
                         className='w-fit shadow-md transition-all duration-200 hover:scale-105 hover:shadow-lg'>
                         <Plus className='h-4 w-4' />
-                        Add fee Head
+                        Add Installment
                     </Button>
                 </div>
 
@@ -62,7 +64,7 @@ function MasterFeeheadPageContent({
                     variant='default'
                     size='lg'
                     className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
-                    <GenericDataTable<IFeeHeadsList>
+                    <GenericDataTable<IMasterFeesInstallmentList>
                         {...tableProps}
                         columns={feeheadColumns}
                         isLoading={isLoading}
@@ -93,7 +95,7 @@ function FormSections() {
         closeToggleForm,
         addFormRef,
         editFormRef
-    } = useFormContext<IFeeHeadsList>();
+    } = useFormContext<IMasterFeesInstallmentList>();
 
     return (
         <>
@@ -101,8 +103,8 @@ function FormSections() {
             {isAddFormOpen && (
                 <div ref={addFormRef}>
                     <CollapsibleSection
-                        title='Add New Fee Head'
-                        description='Fill in the details below to create a new Fee Head'
+                        title='Add New Fee Installment'
+                        description='Fill in the details below to create a new Fe Installment'
                         defaultOpen={true}
                         variant='outline'
                         size='md'

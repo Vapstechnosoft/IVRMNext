@@ -2,9 +2,7 @@
 
 import { Button } from '@/components/ui/button';
 import { AdaptiveBody, AdaptiveDialog, AdaptiveFooter } from '@/components/ui/extension/adaptive-dialog';
-import { FormError } from '@/components/ui/extension/field';
 import { useMasterGroup } from '@/hooks/fees/useMasters';
-
 import { masterGroupSchema } from '@/schemas/fees/masters';
 import { toggleMasterGroup } from '@/server/fees/masters/master_group';
 import type { IMasterGroupList } from '@/types/fees/masters/masters';
@@ -13,7 +11,7 @@ import { type SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import type { z } from 'zod';
 
-type FormFields = z.infer<typeof masterGroupSchema.delete>;
+type FormFields = z.infer<typeof masterGroupSchema.toggle>;
 
 interface ToggleMasterGroupFormProps {
     rowData: IMasterGroupList;
@@ -22,16 +20,20 @@ interface ToggleMasterGroupFormProps {
 
 export default function ToggleMasterGroupForm({ rowData, onClose }: ToggleMasterGroupFormProps) {
     const { refetchAll } = useMasterGroup();
-    const isActive = rowData.ivrmmoD_ActiveFlag;
+    const isActive = rowData.fmG_ActiceFlag;
 
     const {
         register,
         handleSubmit,
         reset,
-        formState: { errors, isSubmitting }
+        formState: { isSubmitting }
     } = useForm<FormFields>({
-        resolver: zodResolver(masterGroupSchema.delete),
-        mode: 'onChange'
+        resolver: zodResolver(masterGroupSchema.toggle),
+        mode: 'onChange',
+        defaultValues: {
+            fmG_Id: rowData.fmG_Id,
+            fmG_ActiceFlag: rowData.fmG_ActiceFlag
+        }
     });
 
     function closeDialog() {
@@ -41,7 +43,7 @@ export default function ToggleMasterGroupForm({ rowData, onClose }: ToggleMaster
 
     const onSubmit: SubmitHandler<FormFields | any> = async () => {
         try {
-            const response = await toggleMasterGroup(30,);
+            const response = await toggleMasterGroup(rowData.fmG_Id);
 
             if (response.success) {
                 toast.success(response.message);
@@ -51,26 +53,29 @@ export default function ToggleMasterGroupForm({ rowData, onClose }: ToggleMaster
                 toast.error(response.message);
             }
         } catch (error: any) {
-            toast.error(error.message);
+            toast.error(error.message || 'Failed to toggle Master Group status');
         }
     };
 
     return (
-        <AdaptiveDialog title='Toggle Master Master Group Status' isOpen={true} onClose={closeDialog}>
+        <AdaptiveDialog title='Toggle Master Group Status' isOpen={true} onClose={closeDialog}>
             <form onSubmit={handleSubmit(onSubmit)} className='flex flex-col gap-4'>
                 <AdaptiveBody className='flex flex-col gap-5'>
-                    <input type='hidden' {...register('ivrmmoD_Id')} defaultValue={rowData.ivrmmoD_Id} />
-                    <p>
-                        Are you sure you want to {isActive ? 'deactivate' : 'activate'} <strong>{rowData.ivrmmoD_MasterGroup}</strong>?
-                    </p>
-                    <FormError>{errors.ivrmmoD_Id?.message}</FormError>
-                    <FormError>{errors.root?.message}</FormError>
+                    <input type='hidden' {...register('fmG_Id')} defaultValue={rowData.fmG_Id} />
+                    <input type='hidden' {...register('fmG_ActiceFlag')} defaultValue={rowData.fmG_ActiceFlag.toString()} />
+
+                    <div className='space-y-3'></div>
                 </AdaptiveBody>
+
                 <AdaptiveFooter>
-                    <Button variant='secondary' onClick={closeDialog} type='button'>
+                    <Button variant='secondary' onClick={closeDialog} type='button' disabled={isSubmitting}>
                         Cancel
                     </Button>
-                    <Button type='submit' isLoading={isSubmitting} variant={isActive ? 'destructive' : 'default'}>
+                    <Button
+                        type='submit'
+                        isLoading={isSubmitting}
+                        variant={isActive ? 'destructive' : 'default'}
+                        loadingText={isActive ? 'Deactivating...' : 'Activating...'}>
                         {isActive ? 'Deactivate' : 'Activate'}
                     </Button>
                 </AdaptiveFooter>

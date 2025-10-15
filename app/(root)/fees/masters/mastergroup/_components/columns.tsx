@@ -7,7 +7,7 @@ import type { IMasterGroupList } from '@/types/fees/masters/masters';
 import type { ColumnDef } from '@tanstack/react-table';
 import { useCallback } from 'react';
 
-export const modeOfPaymentColumns: ColumnDef<IMasterGroupList>[] = [
+export const MasterGroupsColumns: ColumnDef<IMasterGroupList>[] = [
     {
         id: 'select',
         header: ({ table }) => (
@@ -25,7 +25,7 @@ export const modeOfPaymentColumns: ColumnDef<IMasterGroupList>[] = [
         size: 24
     },
     {
-        accessorKey: 'ivrmmoD_Id',
+        accessorKey: 'fmG_Id',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Sl.No' />,
         cell: ({ row, table }) => {
             const pageIndex = table.getState().pagination.pageIndex;
@@ -37,52 +37,61 @@ export const modeOfPaymentColumns: ColumnDef<IMasterGroupList>[] = [
         enableHiding: false
     },
     {
-        accessorKey: 'ivrmmoD_MasterGroup',
+        accessorKey: 'fmG_GroupName',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Fee Group' />,
-        cell: ({ row }) => <div>{row.getValue('ivrmmoD_MasterGroup')}</div>,
+        cell: ({ row }) => <div>{row.getValue('fmG_GroupName')}</div>,
         enableSorting: true,
         enableHiding: true
     },
     {
-        accessorKey: 'ivrmmoD_MasterGroup_Code',
+        accessorKey: 'fmG_Remarks',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Remarks' />,
-        cell: ({ row }) => <div>{row.getValue('ivrmmoD_MasterGroup_Code')}</div>,
+        cell: ({ row }) => <div>{row.getValue('fmG_Remarks')}</div>,
         enableSorting: true,
         enableHiding: true
     },
-
     {
-        accessorKey: 'ivrmmoD_Transport',
+        accessorKey: 'fmG_TransportFlg',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Transport' />,
-        cell: ({ row }) => <div className='text-center'>{row.getValue('ivrmmoD_Transport') ? 'Yes' : 'No'}</div>,
+        cell: ({ row }) => <div className='text-center'>{row.getValue('fmG_TransportFlg') ? 'Yes' : 'No'}</div>,
         enableSorting: true,
         enableHiding: true
     },
     {
-        accessorKey: 'ivrmmoD_Hostel',
+        accessorKey: 'fmG_HostelFlg',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Hostel' />,
-        cell: ({ row }) => <div className='text-center'>{row.getValue('ivrmmoD_Hostel') ? 'Yes' : 'No'}</div>,
+        cell: ({ row }) => <div className='text-center'>{row.getValue('fmG_HostelFlg') ? 'Yes' : 'No'}</div>,
         enableSorting: true,
         enableHiding: true
     },
     {
-        accessorKey: 'ivrmmoD_Compulsory',
+        accessorKey: 'fmG_CompulsoryFlag',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Compulsory' />,
-        cell: ({ row }) => <div className='text-center'>{row.getValue('ivrmmoD_Compulsory') ? 'Yes' : 'No'}</div>,
+        cell: ({ row }) => {
+            const value = row.getValue('fmG_CompulsoryFlag');
+            return <div className='text-center'>{value === '1' ? 'Yes' : 'No'}</div>;
+        },
         enableSorting: true,
         enableHiding: true
     },
     {
-        accessorKey: 'ivrmmoD_Regular',
+        accessorKey: 'fmG_RegNewFlg',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Regular' />,
-        cell: ({ row }) => <div className='text-center'>{row.getValue('ivrmmoD_Regular') ? 'Yes' : 'No'}</div>,
+        cell: ({ row }) => {
+            const value = row.getValue('fmG_RegNewFlg');
+            return <div className='text-center'>{value === 'R' ? 'Yes' : 'No'}</div>;
+        },
         enableSorting: true,
         enableHiding: true
     },
     {
-        accessorKey: 'ivrmmoD_NewStudent',
+        accessorKey: 'fmG_RegNewFlg',
+        id: 'newStudent',
         header: ({ column }) => <DataTableColumnHeader column={column} title='New Student' />,
-        cell: ({ row }) => <div className='text-center'>{row.getValue('ivrmmoD_NewStudent') ? 'Yes' : 'No'}</div>,
+        cell: ({ row }) => {
+            const value = row.getValue('fmG_RegNewFlg');
+            return <div className='text-center'>{value === 'N' ? 'Yes' : 'No'}</div>;
+        },
         enableSorting: true,
         enableHiding: true
     },
@@ -118,7 +127,7 @@ function ActionButtonsCell({ rowData }: { rowData: IMasterGroupList }) {
             buttons={{ edit: true, toggle: true, delete: false }}
             onEdit={handleEdit}
             onToggle={handleToggle}
-            toggleConditionKey='ivrmmoD_ActiveFlag'
+            toggleConditionKey='fmG_ActiceFlag'
         />
     );
 }

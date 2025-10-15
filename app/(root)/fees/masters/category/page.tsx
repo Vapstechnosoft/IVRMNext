@@ -6,12 +6,11 @@ import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
 import { useMasterYearlyCategory } from '@/hooks/fees/useMasters';
-import type { IMasterClassYearlyCategoryList } from '@/types/fees/masters/masters';
+import type { IMasterClassYearlyList } from '@/types/fees/masters/masters';
 import { Plus, X } from 'lucide-react';
-import { useEffect } from 'react';
-import { use } from 'react';
+import { use, useEffect } from 'react';
 import AddMasterClassForm from './_components/add-form';
-import { masterClassCategoryYearlyColumns } from './_components/columns';
+import { masterClassYearlyCategoryColumns } from './_components/columns';
 import ToggleMasterClassForm from './_components/toggle-form';
 import UpdateMasterClassForm from './_components/update-form';
 
@@ -19,14 +18,13 @@ type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 
 export default function MasterClassPage(props: { searchParams: SearchParams }) {
     const searchParams = use(props.searchParams);
-    const { data: response, isLoading, error } = useMasterYearlyCategory(searchParams);
+    const { data: response, isLoading, error, refetch } = useMasterYearlyCategory(searchParams);
 
-    // Debug API response
     useEffect(() => {}, [response]);
 
     return (
-        <FormProvider<IMasterClassYearlyCategoryList>>
-            <MasterClassPageContent response={response} isLoading={isLoading} error={error} />
+        <FormProvider<IMasterClassYearlyList>>
+            <MasterClassPageContent response={response} isLoading={isLoading} error={error} refetch={refetch} />
         </FormProvider>
     );
 }
@@ -34,13 +32,15 @@ export default function MasterClassPage(props: { searchParams: SearchParams }) {
 function MasterClassPageContent({
     response,
     isLoading,
-    error
+    error,
+    refetch
 }: {
     response: any;
     isLoading: boolean;
     error: any;
+    refetch: () => void;
 }) {
-    const { openAddForm } = useFormContext<IMasterClassYearlyCategoryList>();
+    const { openAddForm } = useFormContext<IMasterClassYearlyList>();
     const tableProps = useDataTableProps(response);
 
     return (
@@ -49,44 +49,44 @@ function MasterClassPageContent({
                 {/* Header */}
                 <div className='flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between'>
                     <div className='space-y-1'>
-                        <Heading title='Master Fees Class Management' description='Manage and organize your master Fees classes' />
+                        <Heading title='Master Class Yearly Category' description='Manage yearly mapping between class and category' />
                     </div>
                     <Button
                         type='button'
                         onClick={openAddForm}
                         className='w-fit shadow-md transition-all duration-200 hover:scale-105 hover:shadow-lg'>
                         <Plus className='h-4 w-4' />
-                        Add Master Class
+                        Add Yearly Category
                     </Button>
                 </div>
 
                 {/* Data Table Section */}
                 <CollapsibleSection
-                    defaultOpen={true}
+                    defaultOpen
                     variant='default'
                     size='lg'
                     className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
-                    <GenericDataTable<IMasterClassYearlyCategoryList>
+                    <GenericDataTable<IMasterClassYearlyList>
                         {...tableProps}
-                        columns={masterClassCategoryYearlyColumns}
+                        columns={masterClassYearlyCategoryColumns}
                         isLoading={isLoading}
                         error={error}
                         columnPinning={{ right: ['actions'] }}
-                        loadingMessage='Loading master classes...'
-                        noDataTitle='No Master Classes Found'
-                        noDataDescription='Get started by creating your first master class'
-                        errorTitle='Error Loading Classes'
+                        loadingMessage='Loading yearly class categories...'
+                        noDataTitle='No Records Found'
+                        noDataDescription='Start by adding a new class-category mapping'
+                        errorTitle='Error Loading Data'
                     />
                 </CollapsibleSection>
 
                 {/* Forms */}
-                <FormSections />
+                <FormSections refetch={refetch} />
             </div>
         </div>
     );
 }
 
-function FormSections() {
+function FormSections({ refetch }: { refetch: () => void }) {
     const {
         isAddFormOpen,
         isEditFormOpen,
@@ -97,14 +97,18 @@ function FormSections() {
         closeToggleForm,
         addFormRef,
         editFormRef
-    } = useFormContext<IMasterClassYearlyCategoryList>();
+    } = useFormContext<IMasterClassYearlyList>();
 
-    // Debug selectedRow
     useEffect(() => {
         if (isEditFormOpen && !selectedRow) {
-            console.error('FormSections - Edit form open but selectedRow is undefined');
+            console.error('FormSections: Edit form open but selectedRow is undefined');
         }
     }, [isEditFormOpen, selectedRow]);
+
+    // Success handler that refetches data
+    const handleSuccess = () => {
+        refetch();
+    };
 
     return (
         <>
@@ -112,9 +116,9 @@ function FormSections() {
             {isAddFormOpen && (
                 <div ref={addFormRef}>
                     <CollapsibleSection
-                        title='Add New Master Class'
-                        description='Fill in the details below to create a new master class'
-                        defaultOpen={true}
+                        title='Add New Yearly Class Category'
+                        description='Fill in the details below to create a new mapping'
+                        defaultOpen
                         variant='outline'
                         size='md'
                         className='slide-in-from-top-4 animate-in shadow-lg duration-300'>
@@ -127,18 +131,24 @@ function FormSections() {
                                 className='-top-[3.5rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
                                 <X className='h-4 w-4 text-destructive' /> Close
                             </Button>
-                            <AddMasterClassForm onSuccess={closeAddForm} />
+                            <AddMasterClassForm
+                                onSuccess={() => {
+                                    handleSuccess();
+                                    closeAddForm();
+                                }}
+                            />
                         </div>
                     </CollapsibleSection>
                 </div>
             )}
 
             {/* Edit Form */}
-            {isEditFormOpen && selectedRow && selectedRow.asmcC_Id && selectedRow.amC_Name && selectedRow.asmcL_ClassName ? (
+            {isEditFormOpen && selectedRow ? (
                 <div ref={editFormRef}>
                     <CollapsibleSection
-                        title='Edit Master Class'
-                        defaultOpen={true}
+                        title='Edit Yearly Class Category'
+                        description={`Editing: ${selectedRow.fmcC_ClassCategoryName} (${selectedRow.asmaY_Year})`}
+                        defaultOpen
                         variant='outline'
                         size='md'
                         className='slide-in-from-top-4 animate-in border-primary/20 shadow-lg duration-300'>
@@ -151,17 +161,32 @@ function FormSections() {
                                 className='-top-[3.5rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
                                 <X className='h-4 w-4 text-destructive' /> Close
                             </Button>
-                            <UpdateMasterClassForm selectedRow={selectedRow} onSuccess={closeEditForm} />
+                            <UpdateMasterClassForm
+                                selectedRow={selectedRow}
+                                onSuccess={() => {
+                                    handleSuccess();
+                                    closeEditForm();
+                                }}
+                            />
                         </div>
                     </CollapsibleSection>
                 </div>
             ) : isEditFormOpen ? (
-                <div className='p-4 text-red-500'>Error: Invalid or no class selected for editing.</div>
+                <div className='rounded-md border border-red-200 bg-red-50 p-4'>
+                    <p className='font-medium text-red-600'>Error: Invalid or no class selected for editing.</p>
+                </div>
             ) : null}
 
             {/* Toggle Form */}
-            {isToggleFormOpen && selectedRow && selectedRow.asmcC_Id && selectedRow.amC_Name && selectedRow.asmcL_ClassName && (
-                <ToggleMasterClassForm rowData={selectedRow} onClose={closeToggleForm} />
+            {isToggleFormOpen && selectedRow && (
+                <ToggleMasterClassForm
+                    rowData={selectedRow}
+                    onClose={closeToggleForm}
+                    onSuccess={() => {
+                        handleSuccess();
+                        closeToggleForm();
+                    }}
+                />
             )}
         </>
     );

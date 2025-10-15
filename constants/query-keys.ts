@@ -30,5 +30,14 @@ export const FEES_QUERY_KEYS = {
     FEE_GROUP: 'fee_group',
     FEE_GROUP_GROUPING: 'fee_group_grouping',
     FEE_INSTALLMENT: 'fee_installment',
-    MASTER_GROUP: 'master_group'
+    MASTER_GROUP: 'master_group',
+    FEE_INSTALLMENT_DUE_DATE: 'fee_installment_due_date',
+    FEE_YEARLY_GROUPS: 'fee_yearly_groups',
+
+    FEE_MASTER_CONCESSION: 'masterfeeconcession',
+    FEE_MASTER_TERMS: 'feemasterterms',
+    FEE_MASTER_TERMS_HEAD: 'mastertermfeehead',
+    TERM_DROP_DOWN_DATA: 'Terms_Drop_down_data',
+    MASTER_HEADS_DROP_DOWN: 'masterHeadsDropdown',
+    MASTER_INSTALLMENT_DROPDOWN: 'masterInstallmentsDropdown'
 };

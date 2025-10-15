@@ -14,7 +14,7 @@ import { InputText } from '@/components/ui/extension/input-text';
 import { useMasterFeeInstallment } from '@/hooks/fees/useMasters';
 import { masterInstallmentSchema } from '@/schemas/fees/masters';
 import { addOrUpdateInsallment } from '@/server/fees/masters/feeinstallment';
-import type { IMasterFeesInstallmentList } from '@/types/fees/masters';
+import type { IMasterFeesInstallmentList } from '@/types/fees/masters/masters';
 
 type FormFields = z.infer<typeof masterInstallmentSchema.addOrUpdate> & {
     fmI_Id?: number;

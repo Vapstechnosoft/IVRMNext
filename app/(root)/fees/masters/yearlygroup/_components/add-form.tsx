@@ -4,29 +4,47 @@ import { Button } from '@/components/ui/button';
 import { FormError } from '@/components/ui/extension/field';
 import { Input } from '@/components/ui/input';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useAcademicYearDropdown } from '@/hooks/fees/useMasters';
 import { cn } from '@/lib/utils';
+import { YearlyGroupSchema } from '@/schemas/fees/masters';
+import { zodResolver } from '@hookform/resolvers/zod';
 import { CheckSquare, ChevronsUpDown, Save, Search, Square } from 'lucide-react';
 import { useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
+import type { z } from 'zod';
 
+// Define interfaces
 interface FeeGroup {
     fmgg_Id: number;
     fmgg_GroupName: string;
 }
 
-interface FormFields {
-    academicYear: string;
-    rebateApplicable: boolean;
-    rebateType?: 'Percentage' | 'Amount';
-    rebateValue?: number | '';
-    feeGroupIds: number[];
+interface Payload {
+    academiYear: {
+        asmaY_Id: number;
+        asmaY_Year: number;
+    };
+    group: {
+        fmG_GroupName: string;
+        fmG_Id: number;
+    }[];
+    rebate: {
+        fyG_RebateTypeFlg: boolean;
+        fyG_RebateType: string;
+        fyG_RebateValue: string;
+    }[];
 }
 
-export default function AddMasterGroupGrouping() {
+type FormFields = z.infer<typeof YearlyGroupSchema.addOrUpdate>;
+interface AddMasterYearlyGroupProps {
+    onSuccess: () => void;
+}
+export default function AddMasterYearlyGroup() {
     const [search, setSearch] = useState('');
+    const { data: academicYearOptions } = useAcademicYearDropdown();
 
-    const academicYears = ['2024–2025', '2025–2026', '2026–2027'];
     const feeGroups: FeeGroup[] = [
         { fmgg_Id: 1, fmgg_GroupName: 'Tuition Fees' },
         { fmgg_Id: 2, fmgg_GroupName: 'Transport Fees' },
@@ -41,6 +59,7 @@ export default function AddMasterGroupGrouping() {
         formState: { errors, isSubmitting }
     } = useForm<FormFields>({
         mode: 'onChange',
+        resolver: zodResolver(YearlyGroupSchema.addOrUpdate),
         defaultValues: {
             academicYear: '',
             rebateApplicable: false,
@@ -53,7 +72,20 @@ export default function AddMasterGroupGrouping() {
     const rebateApplicable = watch('rebateApplicable');
     const rebateType = watch('rebateType');
 
-    const onSubmit = (_data: FormFields) => {
+    const onSubmit = (data: FormFields) => {
+        const selectedAcademicYear = academicYearOptions?.data?.find((year) => year && year.asmaY_Id.toString() === data.academicYear);
+
+        if (!selectedAcademicYear) {
+            toast.error('Please select a valid Academic Year');
+            return;
+        }
+
+        const asmaY_Year = Number(selectedAcademicYear.asmaY_Year);
+        if (Number.isNaN(asmaY_Year)) {
+            toast.error('Invalid Academic Year value');
+            return;
+        }
+
         toast.success('Form submitted successfully!');
         reset();
     };
@@ -69,20 +101,29 @@ export default function AddMasterGroupGrouping() {
                     <Controller
                         name='academicYear'
                         control={control}
-                        rules={{ required: 'Academic Year is required' }}
                         render={({ field }) => (
                             <div className='flex flex-col'>
-                                <label className='mb-1 font-medium text-gray-700 text-sm'>
+                                <label htmlFor='academicYear' className='mb-1 font-medium text-gray-700 text-sm'>
                                     Academic Year <span className='text-red-500'>*</span>
                                 </label>
-                                <select {...field} className='rounded-md border p-2 text-sm focus:ring-2 focus:ring-primary/30'>
-                                    <option value=''>Select Academic Year</option>
-                                    {academicYears.map((year) => (
-                                        <option key={year} value={year}>
-                                            {year}
-                                        </option>
-                                    ))}
-                                </select>
+                                <Select onValueChange={field.onChange} value={field.value}>
+                                    <SelectTrigger
+                                        id='academicYear'
+                                        className={cn('transition-colors', errors.academicYear ? 'border-red-500' : '')}>
+                                        <SelectValue placeholder='Select Academic Year' />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {academicYearOptions?.data && Array.isArray(academicYearOptions.data) ? (
+                                            academicYearOptions.data.map((year) => (
+                                                <SelectItem key={year.asmaY_Id} value={year.asmaY_Id.toString()}>
+                                                    {year.asmaY_Year}
+                                                </SelectItem>
+                                            ))
+                                        ) : (
+                                            <div className='px-2 py-1 text-gray-500 text-sm'>No academic years available</div>
+                                        )}
+                                    </SelectContent>
+                                </Select>
                                 {errors.academicYear && <FormError>{errors.academicYear.message}</FormError>}
                             </div>
                         )}
@@ -92,27 +133,23 @@ export default function AddMasterGroupGrouping() {
                     <Controller
                         name='feeGroupIds'
                         control={control}
-                        rules={{ required: 'Select at least one Fee Group' }}
                         render={({ field }) => (
                             <div className='flex flex-col'>
-                                <label className='mb-1 font-medium text-gray-700 text-sm'>
-                                    Fee Groups <span className='text-red-500'>*</span>
-                                </label>
-
+                                Fee Groups <span className='text-red-500'>*</span>
                                 <Popover>
                                     <PopoverTrigger asChild>
                                         <Button
                                             type='button'
                                             variant='outline'
-                                            role='combobox'
-                                            className='w-full justify-between border-primary/30'>
+                                            className={cn(
+                                                'w-full justify-between transition-colors',
+                                                errors.feeGroupIds ? 'border-red-500' : 'border-primary/30'
+                                            )}>
                                             {field.value?.length ? `${field.value.length} selected` : 'Select Fee Groups'}
                                             <ChevronsUpDown className='ml-2 h-4 w-4 shrink-0 opacity-50' />
                                         </Button>
                                     </PopoverTrigger>
-
                                     <PopoverContent className='w-[260px] p-2 sm:w-[300px]'>
-                                        {/* Search Input */}
                                         <div className='relative mb-2'>
                                             <Search className='absolute top-2.5 left-2 h-4 w-4 text-gray-400' />
                                             <Input
@@ -122,8 +159,6 @@ export default function AddMasterGroupGrouping() {
                                                 className='h-8 pl-8 text-sm'
                                             />
                                         </div>
-
-                                        {/* Fee Group List */}
                                         <div className='max-h-[260px] overflow-y-auto rounded-md border p-1'>
                                             <div
                                                 onClick={() => {
@@ -144,7 +179,6 @@ export default function AddMasterGroupGrouping() {
                                                 )}
                                                 <span>Select All</span>
                                             </div>
-
                                             {feeGroups
                                                 .filter((fg) => fg.fmgg_GroupName.toLowerCase().includes(search.toLowerCase().trim()))
                                                 .map((fg) => {
@@ -177,14 +211,13 @@ export default function AddMasterGroupGrouping() {
                                         </div>
                                     </PopoverContent>
                                 </Popover>
-
                                 {errors.feeGroupIds && <FormError>{errors.feeGroupIds.message}</FormError>}
                             </div>
                         )}
                     />
                 </div>
 
-                {/* Rebate Applicable */}
+                {/* Rebate Applicable Checkbox */}
                 <Controller
                     name='rebateApplicable'
                     control={control}
@@ -195,9 +228,9 @@ export default function AddMasterGroupGrouping() {
                                 type='checkbox'
                                 checked={field.value}
                                 onChange={(e) => field.onChange(e.target.checked)}
-                                className='h-4 w-4'
+                                className='h-4 w-4 accent-primary'
                             />
-                            <label htmlFor='rebateApplicable' className='font-medium text-gray-700 text-sm'>
+                            <label htmlFor='rebateApplicable' className='cursor-pointer font-medium text-gray-700 text-sm'>
                                 Rebate Applicable
                             </label>
                         </div>
@@ -211,17 +244,22 @@ export default function AddMasterGroupGrouping() {
                         <Controller
                             name='rebateType'
                             control={control}
-                            rules={{ required: 'Rebate Type is required' }}
                             render={({ field }) => (
                                 <div className='flex flex-col'>
-                                    <label className='mb-1 font-medium text-gray-700 text-sm'>
+                                    <label htmlFor='rebateType' className='mb-1 font-medium text-gray-700 text-sm'>
                                         Rebate Type <span className='text-red-500'>*</span>
                                     </label>
-                                    <select {...field} className='rounded-md border p-2 text-sm focus:ring-2 focus:ring-primary/30'>
-                                        <option value=''>Select Type</option>
-                                        <option value='Percentage'>Percentage</option>
-                                        <option value='Amount'>Amount</option>
-                                    </select>
+                                    <Select onValueChange={field.onChange} value={field.value}>
+                                        <SelectTrigger
+                                            id='rebateType'
+                                            className={cn('transition-colors', errors.rebateType ? 'border-red-500' : '')}>
+                                            <SelectValue placeholder='Select Type' />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value='Percentage'>Percentage</SelectItem>
+                                            <SelectItem value='Amount'>Amount</SelectItem>
+                                        </SelectContent>
+                                    </Select>
                                     {errors.rebateType && <FormError>{errors.rebateType.message}</FormError>}
                                 </div>
                             )}
@@ -231,20 +269,17 @@ export default function AddMasterGroupGrouping() {
                         <Controller
                             name='rebateValue'
                             control={control}
-                            rules={{
-                                required: 'Rebate value is required',
-                                validate: (v) => (v === '' || Number.isNaN(Number(v)) ? 'Enter a valid number' : true)
-                            }}
                             render={({ field }) => (
                                 <div className='flex flex-col'>
-                                    <label className='mb-1 font-medium text-gray-700 text-sm'>
+                                    <label htmlFor='rebateValue' className='mb-1 font-medium text-gray-700 text-sm'>
                                         {rebateType === 'Percentage' ? 'Percentage (%)' : 'Amount'} <span className='text-red-500'>*</span>
                                     </label>
-                                    <input
+                                    <Input
+                                        id='rebateValue'
                                         type='number'
                                         {...field}
                                         placeholder={rebateType === 'Percentage' ? 'Enter percentage' : 'Enter amount'}
-                                        className='rounded-md border p-2 text-sm focus:ring-2 focus:ring-primary/30'
+                                        className={cn('transition-colors', errors.rebateValue ? 'border-red-500' : '')}
                                     />
                                     {errors.rebateValue && <FormError>{errors.rebateValue.message}</FormError>}
                                 </div>
@@ -260,10 +295,13 @@ export default function AddMasterGroupGrouping() {
                         variant='outline'
                         onClick={handleReset}
                         disabled={isSubmitting}
-                        className='order-2 w-fit hover:scale-105 sm:order-1'>
+                        className='order-2 w-fit transition-all duration-200 hover:scale-105 sm:order-1'>
                         Reset
                     </Button>
-                    <Button type='submit' disabled={isSubmitting} className='order-1 w-fit hover:scale-105 sm:order-2'>
+                    <Button
+                        type='submit'
+                        disabled={isSubmitting || !academicYearOptions?.data}
+                        className='order-1 w-fit transition-all duration-200 hover:scale-105 sm:order-2'>
                         <Save className='mr-2 h-4 w-4' />
                         Save
                     </Button>

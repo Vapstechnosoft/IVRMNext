@@ -9,7 +9,7 @@ import { useMasterFeeGroup, useMasterFeeGroupGrouping } from '@/hooks/fees/useMa
 import { cn } from '@/lib/utils';
 import { masterGroupsGroupingSchema } from '@/schemas/fees/masters';
 import { addOrUpdateGroupGrouping } from '@/server/fees/masters/groupsgrouping';
-import type { IMasterGroupsGrouping } from '@/types/fees/masters';
+import type { IMasterGroupsGrouping } from '@/types/fees/masters/masters';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Check, Save } from 'lucide-react';
 import { useEffect, useState } from 'react';
@@ -141,10 +141,7 @@ export default function UpdateMasterFeeGroupGroupingForm({
                             control={control}
                             render={({ field }) => (
                                 <div className='group flex w-full flex-col gap-1.5 md:w-[50%]'>
-                                    <label className='mb-1.5 block font-medium text-gray-700 text-sm'>
-                                        Fee Groups <span className='text-red-500'>*</span>
-                                    </label>
-
+                                    Fee Groups <span className='text-red-500'>*</span>
                                     <Popover open={open} onOpenChange={setOpen}>
                                         <PopoverTrigger asChild>
                                             <Button variant='outline' type='button' className='w-full justify-between border-gray-300'>
@@ -215,7 +212,6 @@ export default function UpdateMasterFeeGroupGroupingForm({
                                             </ScrollArea>
                                         </PopoverContent>
                                     </Popover>
-
                                     {errors.imgg_feeGroupIds && <FormError>{errors.imgg_feeGroupIds.message}</FormError>}
                                 </div>
                             )}

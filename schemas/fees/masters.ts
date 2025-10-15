@@ -118,6 +118,18 @@ export const fineslabSchema = {
 //     })
 // };
 
+export const masterClassCategorySchema = {
+    addOrUpdate: z.object({
+        fmcC_Id: z.number().optional(),
+        fmcC_ClassCategoryName: z.string().min(1, { message: 'Class Category Name is required' }),
+        fmcC_ClassCategoryCode: z.string().min(1, { message: 'Class Category Code is required' }),
+        mI_Id: z.number().optional(),
+        fmcC_ActiveFlag: z.boolean().optional()
+    }),
+    delete: z.object({
+        fmcC_Id: deleteIdSchema('fmcC_Id')
+    })
+};
 export const masterClassSchema = {
     addOrUpdate: z.object({
         asmcl_id: z.number().optional(),
@@ -173,14 +185,122 @@ export const masterInstallmentSchema = {
 
 export const masterGroupSchema = {
     addOrUpdate: z.object({
-        ivrmmoD_Id: z.number().int({ message: 'ivrmmoD_Id is required' }).optional(),
-        ivrmmoD_MasterGroup: createStringSchema('ivrmmoD_MasterGroup', 1, 100),
-        ivrmmoD_MasterGroup_Code: createStringSchema('ivrmmoD_MasterGroup_Code', 1, 100),
-        transportHostelType: z.enum(['transport', 'hostel']),
-        studentType: z.enum(['regular', 'newstudent']),
-        ivrmmoD_Compulsory: z.boolean()
+        fmG_Id: z.number().int().optional(),
+        fmG_GroupName: z.string().min(1, { message: 'Fee Group is required' }).max(200),
+        fmG_Remarks: z.string().min(1, { message: 'Remarks is required' }).max(500),
+        transportHostelType: z.enum(['transport', 'hostel'], {
+            required_error: 'Please select either Transport or Hostel'
+        }),
+        studentType: z.enum(['regular', 'newstudent'], {
+            required_error: 'Please select student type'
+        }),
+        fmG_CompulsoryFlag: z.boolean().default(false)
+    }),
+    toggle: z.object({
+        fmG_Id: z.number(),
+        fmG_ActiceFlag: z.boolean()
     }),
     delete: z.object({
-        ivrmmoD_Id: deleteIdSchema('ivrmmoD_Id')
+        fmG_Id: z.number().optional()
+    })
+};
+
+export const masterInstallmentDueDateSchema = z.object({
+    fmI_Name: z.string().min(1, { message: 'Academic Year is required' }),
+    fmI_Installment_Type: z.string().min(1, { message: 'Installment type is required' }),
+    fmI_No_Of_Installments: z.number().min(1, { message: 'Number of installments must be at least 1' }).optional(),
+    installments: z
+        .array(
+            z.object({
+                sno: z.number(),
+                ftI_Name: z.string().min(1, { message: 'Installment name is required' }),
+                fdate: z.string().optional(),
+                tdate: z.string().optional(),
+                aplc: z.string().optional(),
+                ddate: z.string().optional()
+            })
+        )
+        .min(1, { message: 'At least one installment is required' })
+        .optional()
+});
+
+export const YearlyGroupSchema = {
+    addOrUpdate: z
+        .object({
+            academicYear: z.string().min(1, { message: 'Academic Year is required' }),
+            rebateApplicable: z.boolean(),
+            rebateType: z.enum(['Percentage', 'Amount']).optional(),
+            rebateValue: z.union([z.number(), z.literal('')]).optional(),
+            feeGroupIds: z.array(z.number()).min(1, { message: 'Select at least one Fee Group' })
+        })
+        .refine(
+            (data) => {
+                if (data.rebateApplicable && !data.rebateType) {
+                    return false;
+                }
+                return true;
+            },
+            {
+                message: 'Rebate Type is required when rebate is applicable',
+                path: ['rebateType']
+            }
+        )
+        .refine(
+            (data) => {
+                if (
+                    data.rebateApplicable &&
+                    (data.rebateValue === '' || data.rebateValue === undefined || Number.isNaN(Number(data.rebateValue)))
+                ) {
+                    return false;
+                }
+                return true;
+            },
+            {
+                message: 'Rebate Value is required and must be a valid number when rebate is applicable',
+                path: ['rebateValue']
+            }
+        ),
+    delete: z.object({
+        fyG_Id: deleteIdSchema('fyG_Id')
+    })
+};
+
+//term,concession,ter fee head
+
+export const masterConcessionSchema = {
+    addOrUpdate: z.object({
+        fmcC_Id: z.number().int().optional(),
+        fmcC_ConcessionName: z.string({ message: 'ConcessionName is required' }),
+        fmcC_ConcessionApplLimit: z.number({ message: 'ConcessionApplLimit is required' }),
+        fmcC_ConcessionFlag: z.string().optional(),
+        fmcC_ActiveFlag: z.boolean().optional()
+    }),
+    delete: z.object({
+        fmcC_Id: deleteIdSchema('fmcC_Id')
+    })
+};
+
+export const masterTermsSchema = {
+    addOrUpdate: z.object({
+        fmT_Id: z.number().int().optional(),
+        fmT_Name: z.string({ message: 'Term Name is required' }),
+        fmT_IncludeArrearFeeFlg: z.boolean().optional(),
+        fmT_ActiveFlag: z.boolean().optional()
+    }),
+    delete: z.object({
+        fmT_Id: deleteIdSchema('fmT_Id')
+    })
+};
+
+export const masterTermFeeHeadSchema = {
+    addOrUpdate: z.object({
+        heads: z.array(z.string()).nonempty('Please select at least one Head'),
+        //    terms: z.array(z.string()).nonempty('Please select Term'),
+        installments: z.array(z.string()).nonempty('Please select at least one Term'),
+        fmT_Id: z.number({ message: 'Term is required' }),
+        ftI_Id: z.number({ message: 'Installment is required' })
+    }),
+    delete: z.object({
+        // FPGD_Id: deleteIdSchema('FPGD_Id')
     })
 };
