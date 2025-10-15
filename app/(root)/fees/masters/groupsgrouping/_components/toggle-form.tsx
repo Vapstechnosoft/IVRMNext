@@ -6,7 +6,7 @@ import { FormError } from '@/components/ui/extension/field';
 import { useMasterFeeGroupGrouping } from '@/hooks/fees/useMasters';
 import { masterGroupsGroupingSchema } from '@/schemas/fees/masters';
 import { toggleGroupGrouping } from '@/server/fees/masters/groupsgrouping';
-import type { IMasterGroupsGrouping } from '@/types/fees/masters';
+import type { IMasterGroupsGrouping } from '@/types/fees/masters/masters';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { type SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';

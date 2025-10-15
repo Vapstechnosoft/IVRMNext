@@ -4,7 +4,7 @@ import { DataTableColumnHeader } from '@/components/ui/data-table-column-header'
 import { ActionButtons } from '@/components/ui/form/action-buttons';
 import { useFormContext } from '@/components/ui/form/form-provider';
 
-import type { IMasterFeesInstallmentList } from '@/types/fees/masters';
+import type { IMasterFeesInstallmentList } from '@/types/fees/masters/masters';
 import type { ColumnDef } from '@tanstack/react-table';
 import { useCallback } from 'react';
 
@@ -55,7 +55,11 @@ export const feeheadColumns: ColumnDef<IMasterFeesInstallmentList>[] = [
     }
 ];
 
-function ActionButtonsCell({ rowData }: { rowData: IMasterFeesInstallmentList }) {
+function ActionButtonsCell({
+    rowData
+}: {
+    rowData: IMasterFeesInstallmentList;
+}) {
     const { openEditForm, openToggleForm } = useFormContext<IMasterFeesInstallmentList>();
 
     const handleEdit = useCallback(

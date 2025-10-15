@@ -6,16 +6,16 @@ import type { IMasterGroupList } from '@/types/fees/masters/masters';
 
 export async function getMasterGroup(searchParams?: ApiSearchparams) {
     const urlParams = getSearchParamsUrl(searchParams ?? {});
-    const url = `/MasterGroupFacade/30?${urlParams}`;
-    return await api.getArray<IMasterGroupList>(url);
+    const url = `/fee_group/30?${urlParams}`;
+    return await api.get<IMasterGroupList[]>(url);
 }
 
 export async function addOrUpdateMasterGroup(data: any) {
-    const url = '/MasterGroupFacade';
+    const url = '/fee_group';
     return await api.post<any>(url, data);
 }
 
 export async function toggleMasterGroup(id: number) {
-    const url = `/ModeMasterGroupFacade/paymentDecative/${id}`;
+    const url = `/fee_group/toggle_master_feegroup/30/${id}`;
     return await api.put(url);
 }
