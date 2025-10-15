@@ -3,10 +3,10 @@
 import { Button } from '@/components/ui/button';
 import { FormError } from '@/components/ui/extension/field';
 import { InputText } from '@/components/ui/extension/input-text';
-import { useMasterClass } from '@/hooks/admission/preadmission/useMasters';
-import { masterClassSchema } from '@/schemas/fees/masters';
+import { useMasterClassCategory } from '@/hooks/fees/useMasters';
+import { masterClassCategorySchema } from '@/schemas/fees/masters';
 import { addOrUpdateMasterClassCategory } from '@/server/fees/masters/class_category';
-import type { IMasterClassList } from '@/types/fees/masters/masters';
+import type { IMasterCasteCategoryList } from '@/types/fees/masters/masters';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Save } from 'lucide-react';
 import { useEffect } from 'react';
@@ -14,16 +14,16 @@ import { type SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import type { z } from 'zod';
 
-type FormFields = z.infer<typeof masterClassSchema.addOrUpdate>;
+type FormFields = z.infer<typeof masterClassCategorySchema.addOrUpdate>;
 
-interface UpdateMasterClassFormProps {
+interface UpdateMasterClassCategoryFormProps {
     onSuccess?: () => void;
     className?: string;
-    selectedRow: IMasterClassList;
+    selectedRow: IMasterCasteCategoryList;
 }
 
-export default function UpdateMasterClassForm({ onSuccess, className = '', selectedRow: row }: UpdateMasterClassFormProps) {
-    const { refetchAll } = useMasterClass();
+export default function UpdateMasterClassCategoryForm({ onSuccess, className = '', selectedRow: row }: UpdateMasterClassCategoryFormProps) {
+    const { refetchAll } = useMasterClassCategory();
 
     const {
         register,
@@ -31,71 +31,67 @@ export default function UpdateMasterClassForm({ onSuccess, className = '', selec
         reset,
         formState: { errors, isSubmitting }
     } = useForm<FormFields>({
-        resolver: zodResolver(masterClassSchema.addOrUpdate),
+        resolver: zodResolver(masterClassCategorySchema.addOrUpdate),
         mode: 'onChange'
     });
 
     useEffect(() => {
         if (row) {
             reset({
-                asmcl_id: row.asmcL_Id,
-                asmcl_classcode: row.asmcL_ClassCategoryCode,
-                asmcl_classname: row.asmcL_ClassCategoryName
+                fmcC_Id: row.fmcC_Id,
+                fmcC_ClassCategoryName: row.fmcC_ClassCategoryName,
+                fmcC_ClassCategoryCode: row.fmcC_ClassCategoryCode
             });
         }
     }, [row, reset]);
 
-    const onSubmit: SubmitHandler<FormFields | any> = async (data: FormFields) => {
+    const onSubmit: SubmitHandler<FormFields> = async (data) => {
         try {
-            const { asmcl_classcode, asmcl_classname } = data;
+            const { fmcC_ClassCategoryName, fmcC_ClassCategoryCode } = data;
+
             const payload = {
-                MI_Id: 30,
-                ASMCL_Id: row.asmcL_Id,
-                ASMCL_ClassCode: asmcl_classcode,
-                ASMCL_ClassName: asmcl_classname,
-                ASMCL_ActiveFlag: true
+                mI_Id: 30,
+                fmcC_Id: row.fmcC_Id,
+                fmcC_ClassCategoryName,
+                fmcC_ClassCategoryCode,
+                fmcC_ActiveFlag: true
             };
 
             const response = await addOrUpdateMasterClassCategory(payload);
 
             if (response.success) {
-                toast.success(response.message);
-                reset();
+                toast.success(response.message || 'Class Category updated successfully');
                 refetchAll();
                 onSuccess?.();
             } else {
-                toast.error(response.message);
+                toast.error(response.message || 'Failed to update Class Category');
             }
         } catch (error: any) {
-            toast.error(error.message);
+            toast.error(error?.message || 'Something went wrong');
         }
     };
 
-    const handleReset = () => {
-        reset();
-    };
+    const handleReset = () => reset();
 
     return (
-        <div className={`${className}`}>
+        <div className={className}>
             <form onSubmit={handleSubmit(onSubmit)} className='space-y-6'>
                 <div className='space-y-4'>
                     <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
                         <InputText
                             label='Class Category Code'
                             required
-                            id='asmcl_classcode'
-                            {...register('asmcl_classcode')}
-                            defaultValue={row.asmcL_ClassCategoryCode}
-                            error={errors.asmcl_classcode?.message}
+                            id='fmcC_ClassCategoryCode'
+                            {...register('fmcC_ClassCategoryCode')}
+                            error={errors.fmcC_ClassCategoryCode?.message}
                             className='transition-colors focus:ring-2 focus:ring-primary/20'
                         />
                         <InputText
                             label='Class Category Name'
                             required
-                            id='asmcl_classname'
-                            {...register('asmcl_classname')}
-                            defaultValue={row.asmcL_ClassCategoryName}
-                            error={errors.asmcl_classname?.message}
+                            id='fmcC_ClassCategoryName'
+                            {...register('fmcC_ClassCategoryName')}
+                            error={errors.fmcC_ClassCategoryName?.message}
                             className='transition-colors focus:ring-2 focus:ring-primary/20'
                         />
                     </div>
@@ -122,7 +118,7 @@ export default function UpdateMasterClassForm({ onSuccess, className = '', selec
                         loadingText='Saving...'>
                         <div className='flex items-center'>
                             <Save className='mr-2 h-4 w-4' />
-                            Save Master Class
+                            Save Class Category
                         </div>
                     </Button>
                 </div>

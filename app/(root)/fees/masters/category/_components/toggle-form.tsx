@@ -2,85 +2,90 @@
 
 import { Button } from '@/components/ui/button';
 import { AdaptiveBody, AdaptiveDialog, AdaptiveFooter } from '@/components/ui/extension/adaptive-dialog';
-import { FormError } from '@/components/ui/extension/field';
-import { useMasterClassCategory } from '@/hooks/fees/useMasters';
-import { masterClassSchema } from '@/schemas/fees/masters';
+import { Label } from '@/components/ui/extension/field';
+import { useMasterYearlyCategory } from '@/hooks/fees/useMasters';
 import { toggleMasterclassYearlyCategory } from '@/server/fees/masters/class_yearly_category';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { type SubmitHandler, useForm } from 'react-hook-form';
+import type { IMasterClassYearlyList } from '@/types/fees/masters/masters';
+import { useState } from 'react';
 import { toast } from 'sonner';
-import type { z } from 'zod';
 
-type FormFields = z.infer<typeof masterClassSchema.delete>;
-
-interface MasterClassYearlyDataCategoryFormProps {
-    rowData: {
-        amC_Name: string;
-        asmcL_ClassName: string;
-        is_Active: boolean;
-        asmcC_Id: number;
-        mi_id: number;
-    };
+interface ToggleMasterClassFormProps {
+    rowData: IMasterClassYearlyList;
     onClose: () => void;
+    onSuccess?: () => void;
 }
 
-export default function MasterClassYearlyDataCategoryForm({ rowData, onClose }: MasterClassYearlyDataCategoryFormProps) {
-    const { refetchAll } = useMasterClassCategory();
-    const isActive = rowData.is_Active;
+export default function ToggleMasterClassForm({ rowData, onClose, onSuccess }: ToggleMasterClassFormProps) {
+    const { refetch } = useMasterYearlyCategory();
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const isActive = rowData.fycC_ActiveFlag;
 
-    const {
-        register,
-        handleSubmit,
-        reset,
-        formState: { errors, isSubmitting }
-    } = useForm<FormFields>({
-        resolver: zodResolver(masterClassSchema.delete),
-        mode: 'onChange'
-    });
-
-    function closeDialog() {
+    const closeDialog = () => {
         onClose();
-        reset();
-    }
+    };
 
-    const onSubmit: SubmitHandler<FormFields> = async () => {
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (isSubmitting) return;
+
+        setIsSubmitting(true);
         try {
-            const response = await toggleMasterclassYearlyCategory(rowData.mi_id, rowData.asmcC_Id);
+            const response = await toggleMasterclassYearlyCategory(30, Number(rowData.fmcC_Id));
 
             if (response.success) {
-                toast.success(`${rowData.amC_Name} - ${rowData.asmcL_ClassName} successfully ${isActive ? 'deactivated' : 'activated'}`);
-                refetchAll();
+                toast.success(`${rowData.fmcC_ClassCategoryName} successfully ${isActive ? 'deactivated' : 'activated'}`);
+                await refetch();
+                onSuccess?.();
                 closeDialog();
             } else {
-                toast.error(response.message || 'Something went wrong');
+                toast.error(response.message || 'Failed to toggle category');
             }
         } catch (error: any) {
-            toast.error(error.message || 'Failed to toggle category');
+            console.error('Toggle error:', error);
+            toast.error(error.message || 'Error toggling master class category');
+        } finally {
+            setIsSubmitting(false);
         }
     };
 
     return (
-        <AdaptiveDialog title='Toggle Master Class Category Status' isOpen={true} onClose={closeDialog}>
-            <form onSubmit={handleSubmit(onSubmit)} className='flex flex-col gap-4'>
+        <AdaptiveDialog title={'Toggle Master Class Category Status'} isOpen={true} onClose={closeDialog}>
+            <form onSubmit={handleSubmit} className='space-y-6'>
                 <AdaptiveBody className='flex flex-col gap-5'>
-                    <input type='hidden' {...register('asmS_Id')} defaultValue={rowData.asmcC_Id} />
-                    <p>
+                    <Label>
                         Are you sure you want to {isActive ? 'deactivate' : 'activate'}{' '}
                         <strong>
-                            {rowData.amC_Name} - {rowData.asmcL_ClassName}
+                            {rowData.fmcC_ClassCategoryName} ({rowData.asmaY_Year})
                         </strong>
                         ?
-                    </p>
-                    <FormError>{errors.asmS_Id?.message}</FormError>
-                    <FormError>{errors.root?.message}</FormError>
+                    </Label>
+                    <div className='text-muted-foreground text-sm'>
+                        Classes: {(() => {
+                            try {
+                                const parsed = JSON.parse(rowData.asmcL_ClassName);
+                                return Array.isArray(parsed) ? parsed.join(', ') : rowData.asmcL_ClassName;
+                            } catch {
+                                return rowData.asmcL_ClassName;
+                            }
+                        })()}
+                    </div>
                 </AdaptiveBody>
 
-                <AdaptiveFooter>
-                    <Button variant='secondary' onClick={closeDialog} type='button'>
+                <AdaptiveFooter className='flex flex-col gap-3 sm:flex-row sm:justify-end'>
+                    <Button
+                        type='button'
+                        variant='outline'
+                        onClick={closeDialog}
+                        disabled={isSubmitting}
+                        className='w-fit transition-all duration-200 hover:scale-105'>
                         Cancel
                     </Button>
-                    <Button type='submit' isLoading={isSubmitting} variant={isActive ? 'destructive' : 'default'}>
-                        {isActive ? 'Deactivate' : 'Activate'}
+                    <Button
+                        type='submit'
+                        disabled={isSubmitting}
+                        variant={isActive ? 'destructive' : 'default'}
+                        className='w-fit transition-all duration-200 hover:scale-105'>
+                        {isSubmitting ? 'Processing...' : isActive ? 'Deactivate' : 'Activate'}
                     </Button>
                 </AdaptiveFooter>
             </form>

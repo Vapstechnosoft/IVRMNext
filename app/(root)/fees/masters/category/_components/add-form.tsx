@@ -3,8 +3,7 @@
 import { Button } from '@/components/ui/button';
 import { FormError, Label } from '@/components/ui/extension/field';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-
-import { useAcademicYearDropdown, useMasterClassCategory } from '@/hooks/fees/useMasters';
+import { useAcademicYearDropdown, useClassCategoryDropdown } from '@/hooks/fees/useMasters';
 import { masterClassSchema } from '@/schemas/fees/masters';
 import { addOrUpdateMasterClassYearlyCategory } from '@/server/fees/masters/class_yearly_category';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -22,7 +21,6 @@ type FormFields = {
 interface DropdownOption {
     value: string;
     label: string;
-    classes?: { id: string | number; name: string }[];
 }
 
 interface ClassOption {
@@ -36,10 +34,10 @@ interface AddMasterClassFormProps {
 }
 
 export default function AddMasterClassForm({ onSuccess, className = '' }: AddMasterClassFormProps) {
-    const { data: categoryData, isLoading: loadingCategories, error: categoryError, refetch: refetchAll } = useMasterClassCategory();
+    const { data: categoryData, isLoading: loadingCategories, error: categoryError, refetch: refetchAll } = useClassCategoryDropdown();
     const { data: academicData, isLoading: loadingAcademic, error: academicError } = useAcademicYearDropdown();
+
     const {
-        register,
         handleSubmit,
         reset,
         setValue,
@@ -58,11 +56,16 @@ export default function AddMasterClassForm({ onSuccess, className = '' }: AddMas
     const [hasSubmitted, setHasSubmitted] = useState(false);
     const [academicYearOptions, setAcademicYearOptions] = useState<DropdownOption[]>([]);
     const [classCategoryOptions, setClassCategoryOptions] = useState<DropdownOption[]>([]);
-    const [classOptions, setClassOptions] = useState<ClassOption[]>([]);
+    const [classOptions, _setClassOptions] = useState<ClassOption[]>([
+        { value: '1', label: 'Class 1' },
+        { value: '2', label: 'Class 2' },
+        { value: '3', label: 'Class 3' },
+        { value: '4', label: 'Class 4' },
+        { value: '5', label: 'Class 5' }
+    ]);
     const [selectedClasses, setSelectedClasses] = useState<string[]>([]);
     const [searchTerm, setSearchTerm] = useState('');
     const [isLoadingDropdowns, setIsLoadingDropdowns] = useState(false);
-    const [isLoadingClasses, setIsLoadingClasses] = useState(false);
 
     const academicYear = watch('academicYear');
     const classCategory = watch('classCategory');
@@ -78,13 +81,14 @@ export default function AddMasterClassForm({ onSuccess, className = '' }: AddMas
             setAcademicYearOptions([]);
             return;
         }
-        if (academicData?.success && Array.isArray(academicData.academicdrp)) {
-            setAcademicYearOptions(academicData.academicdrp);
+        if (academicData?.data && Array.isArray(academicData.data)) {
+            const options = academicData.data.map((item: any) => ({
+                value: item.asmaY_Id.toString(),
+                label: item.asmaY_Year
+            }));
+            setAcademicYearOptions(options);
         } else {
             setAcademicYearOptions([]);
-            if (academicData && !academicData.success) {
-                toast.error(academicData.message || 'Failed to load academic years');
-            }
         }
     }, [academicData, academicError]);
 
@@ -92,62 +96,27 @@ export default function AddMasterClassForm({ onSuccess, className = '' }: AddMas
         if (!academicYear) {
             setClassCategoryOptions([]);
             setValue('classCategory', '', { shouldValidate: true });
-            setClassOptions([]);
-            setSelectedClasses([]);
             setValue('classes', [], { shouldValidate: true });
+            setSelectedClasses([]);
             return;
         }
 
         if (categoryError) {
             toast.error(categoryError.message || 'Error fetching class categories');
             setClassCategoryOptions([]);
-            setClassOptions([]);
-            setSelectedClasses([]);
-            setValue('classes', [], { shouldValidate: true });
             return;
         }
 
-        if (categoryData?.success && Array.isArray(categoryData.classcategorydrp)) {
-            setClassCategoryOptions(categoryData.classcategorydrp);
-
-            if (!classCategory) {
-                setClassOptions([]);
-                setSelectedClasses([]);
-                setValue('classes', [], { shouldValidate: true });
-                return;
-            }
-
-            // Populate classes when both academicYear and classCategory are selected
-            setIsLoadingClasses(true);
-            try {
-                const selectedCategory = categoryData.classcategorydrp.find((cat) => cat.value === classCategory);
-                if (selectedCategory && Array.isArray(selectedCategory.classes)) {
-                    const classes = selectedCategory.classes.map((cls: { id: { toString: () => any }; name: any }) => ({
-                        value: cls.id.toString(),
-                        label: cls.name
-                    }));
-                    setClassOptions(classes);
-                } else {
-                    setClassOptions([]);
-                    toast.error('No classes found for this category');
-                }
-            } catch (error: any) {
-                console.error('Error processing classes:', error);
-                toast.error(error.message || 'Error processing classes');
-                setClassOptions([]);
-            } finally {
-                setIsLoadingClasses(false);
-            }
+        if (categoryData?.data && Array.isArray(categoryData.data)) {
+            const options = categoryData.data.map((item: any) => ({
+                value: item.fmcC_Id.toString(),
+                label: item.fmcC_ClassCategoryName
+            }));
+            setClassCategoryOptions(options);
         } else {
             setClassCategoryOptions([]);
-            setClassOptions([]);
-            setSelectedClasses([]);
-            setValue('classes', [], { shouldValidate: true });
-            if (categoryData && !categoryData.success) {
-                toast.error(categoryData.message || 'Failed to load class categories');
-            }
         }
-    }, [academicYear, classCategory, categoryData, categoryError, setValue]);
+    }, [academicYear, categoryData, categoryError, setValue]);
 
     const filteredClassOptions = classOptions.filter((option) => option.label.toLowerCase().includes(searchTerm.toLowerCase()));
 
@@ -174,11 +143,15 @@ export default function AddMasterClassForm({ onSuccess, className = '' }: AddMas
             }
 
             const payload = {
-                asmcC_Id: 0,
-                asmaY_Id: academicYear,
-                amC_Id: classCategory,
-                ASMCL_Classes: JSON.stringify(classes),
-                ASMCL_ActiveFlag: true
+                fmcC_Id: 0,
+                mI_Id: 30,
+                fmcC_ClassCategoryName: classCategoryOptions.find((opt) => opt.value === classCategory)?.label || '',
+                fmcC_ClassCategoryCode: classCategory,
+                fmcC_ActiveFlag: true,
+                asmaY_ID: Number.parseInt(academicYear),
+                asmcL_ID: 0,
+                clsYearData: classes,
+                user_id: 21602
             };
 
             const response = await addOrUpdateMasterClassYearlyCategory(payload);
@@ -188,9 +161,6 @@ export default function AddMasterClassForm({ onSuccess, className = '' }: AddMas
                 reset();
                 setSelectedClasses([]);
                 setSearchTerm('');
-                setClassOptions([]);
-                setClassCategoryOptions([]);
-                setValue('classCategory', '', { shouldValidate: true });
                 refetchAll();
                 onSuccess?.();
             } else {
@@ -206,7 +176,6 @@ export default function AddMasterClassForm({ onSuccess, className = '' }: AddMas
         reset();
         setSelectedClasses([]);
         setSearchTerm('');
-        setClassOptions([]);
         setClassCategoryOptions([]);
     };
 
@@ -275,71 +244,57 @@ export default function AddMasterClassForm({ onSuccess, className = '' }: AddMas
                             <Label htmlFor='classes'>
                                 Classes <span className='ml-1 text-red-500'>*</span>
                             </Label>
-                            <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
-                                <div className='min-h-[40px] rounded-md border bg-white px-3 py-2'>
-                                    <input
-                                        type='text'
-                                        placeholder='Search Classes'
-                                        className='mb-2 w-full rounded border px-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-500'
-                                        value={searchTerm}
-                                        onChange={(e) => setSearchTerm(e.target.value)}
-                                        disabled={!academicYear || !classCategory || isLoadingClasses}
-                                    />
-                                    <div className='flex max-h-40 flex-col gap-2 overflow-y-auto'>
-                                        {isLoadingClasses ? (
-                                            <span className='text-gray-400 text-sm'>Loading classes...</span>
-                                        ) : filteredClassOptions.length > 0 ? (
-                                            filteredClassOptions.map((option) => (
-                                                <label
-                                                    key={option.value}
-                                                    className='flex cursor-pointer items-center rounded p-1 hover:bg-gray-50'>
-                                                    <input
-                                                        type='checkbox'
-                                                        value={option.value}
-                                                        checked={selectedClasses.includes(option.value)}
-                                                        onChange={() => handleClassChange(option.value)}
-                                                        className='mr-2 h-4 w-4 accent-blue-600'
-                                                        disabled={isLoadingClasses}
-                                                    />
-                                                    <span className='truncate'>{option.label}</span>
-                                                </label>
-                                            ))
-                                        ) : !academicYear || !classCategory ? (
-                                            <span className='text-gray-400 text-sm'>Select Academic Year and Class Category first</span>
-                                        ) : (
-                                            <span className='text-gray-400 text-sm'>No classes found</span>
-                                        )}
-                                    </div>
+                            <div className='min-h-[40px] rounded-md border bg-white px-3 py-2'>
+                                <input
+                                    type='text'
+                                    placeholder='Search Classes'
+                                    className='mb-2 w-full rounded border px-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-500'
+                                    value={searchTerm}
+                                    onChange={(e) => setSearchTerm(e.target.value)}
+                                    disabled={!academicYear || !classCategory}
+                                />
+                                <div className='flex max-h-40 flex-col gap-2 overflow-y-auto'>
+                                    {filteredClassOptions.length > 0 ? (
+                                        filteredClassOptions.map((option) => (
+                                            <label
+                                                key={option.value}
+                                                className='flex cursor-pointer items-center rounded p-1 hover:bg-gray-50'>
+                                                <input
+                                                    type='checkbox'
+                                                    value={option.value}
+                                                    checked={selectedClasses.includes(option.value)}
+                                                    onChange={() => handleClassChange(option.value)}
+                                                    className='mr-2 h-4 w-4 accent-blue-600'
+                                                />
+                                                <span className='truncate'>{option.label}</span>
+                                            </label>
+                                        ))
+                                    ) : !academicYear || !classCategory ? (
+                                        <span className='text-gray-400 text-sm'>Select Academic Year and Class Category first</span>
+                                    ) : (
+                                        <span className='text-gray-400 text-sm'>No classes found</span>
+                                    )}
                                 </div>
                             </div>
                             {hasSubmitted && errors.classes && <FormError>{errors.classes.message}</FormError>}
                         </div>
                     </div>
 
-                    {/* Root Error */}
                     {hasSubmitted && errors.root && <FormError>{errors.root.message}</FormError>}
                 </div>
 
-                {/* Action Buttons */}
                 <div className='flex flex-col gap-3 border-t pt-4 sm:flex-row sm:justify-start'>
                     <Button
                         type='button'
                         variant='outline'
                         onClick={handleReset}
-                        disabled={isSubmitting || isLoadingDropdowns || isLoadingClasses}
+                        disabled={isSubmitting || isLoadingDropdowns}
                         className='order-2 w-fit transition-all duration-200 hover:scale-105 sm:order-1'>
                         Reset
                     </Button>
                     <Button
                         type='submit'
-                        disabled={
-                            isSubmitting ||
-                            isLoadingDropdowns ||
-                            isLoadingClasses ||
-                            !academicYear ||
-                            !classCategory ||
-                            selectedClasses.length === 0
-                        }
+                        disabled={isSubmitting || isLoadingDropdowns || !academicYear || !classCategory || selectedClasses.length === 0}
                         className='order-1 w-fit transition-all duration-200 hover:scale-105 sm:order-2'>
                         <div className='flex items-center'>
                             <Save className='mr-2 h-4 w-4' />

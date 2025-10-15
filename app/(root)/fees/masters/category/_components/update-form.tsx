@@ -3,34 +3,43 @@
 import { Button } from '@/components/ui/button';
 import { FormError, Label } from '@/components/ui/extension/field';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { useAcademicYearDropdown, useMasterClassCategory } from '@/hooks/fees/useMasters';
+import { useAcademicYearDropdown, useClassCategoryDropdown } from '@/hooks/fees/useMasters';
 import { masterClassSchema } from '@/schemas/fees/masters';
-import { addOrUpdateMasterClassCategory } from '@/server/fees/masters/class_category';
-import type { IMasterClassYearlyCategoryList, IMasterClassYearlyList } from '@/types/fees/masters/masters';
+import { addOrUpdateMasterClassYearlyCategory } from '@/server/fees/masters/class_yearly_category';
+import type { IMasterClassYearlyList } from '@/types/fees/masters/masters';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Save } from 'lucide-react';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { type SubmitHandler, useForm } from 'react-hook-form';
-import type { z } from 'zod';
+import { toast } from 'sonner';
 
-type FormFields = z.infer<typeof masterClassSchema.addOrUpdate>;
+type FormFields = {
+    academicYear: string;
+    classCategory: string;
+    classes: string[];
+};
+
+interface DropdownOption {
+    value: string;
+    label: string;
+}
+
+interface ClassOption {
+    value: string;
+    label: string;
+}
 
 interface UpdateMasterClassFormProps {
     onSuccess?: () => void;
     className?: string;
-    selectedRow?: IMasterClassYearlyCategoryList | null;
+    selectedRow?: IMasterClassYearlyList | null;
 }
 
-export default function UpdateMasterClassForm({ onSuccess, className = '', selectedRow: row }: UpdateMasterClassFormProps) {
-    const { data: academicYearsData = [], isLoading: loadingYears } = useAcademicYearDropdown();
-
-    const { data: classCategoriesData = [], isLoading: loadingCategories, refetchAll } = useMasterClassCategory();
-
-    const academicYears = (academicYearsData ?? []) as IMasterClassYearlyList[];
-    const classCategories = (classCategoriesData ?? []) as IMasterClassYearlyCategoryList[];
+export default function UpdateMasterClassForm({ onSuccess, className = '', selectedRow }: UpdateMasterClassFormProps) {
+    const { data: categoryData, isLoading: loadingCategories, error: categoryError, refetch: refetchAll } = useClassCategoryDropdown();
+    const { data: academicData, isLoading: loadingAcademic, error: academicError } = useAcademicYearDropdown();
 
     const {
-        register,
         handleSubmit,
         reset,
         setValue,
@@ -38,120 +47,300 @@ export default function UpdateMasterClassForm({ onSuccess, className = '', selec
         formState: { errors, isSubmitting }
     } = useForm<FormFields>({
         resolver: zodResolver(masterClassSchema.addOrUpdate),
-        mode: 'onChange',
+        mode: 'onSubmit',
         defaultValues: {
-            academicYearId: '',
-            categoryId: '',
-            asmcl_id: 0
+            academicYear: '',
+            classCategory: '',
+            classes: []
         }
     });
 
-    useEffect(() => {
-        if (row) {
-            reset({
-                academicYearId: row.asmaY_Year ?? '',
-                categoryId: row.asmcC_Id?.toString() ?? '',
-                asmcl_id: row.asmcC_Id ?? 0
-            });
-        }
-    }, [row, reset]);
+    const [hasSubmitted, setHasSubmitted] = useState(false);
+    const [academicYearOptions, setAcademicYearOptions] = useState<DropdownOption[]>([]);
+    const [classCategoryOptions, setClassCategoryOptions] = useState<DropdownOption[]>([]);
+    const [classOptions, _setClassOptions] = useState<ClassOption[]>([
+        { value: '1', label: 'Class 1' },
+        { value: '2', label: 'Class 2' },
+        { value: '3', label: 'Class 3' },
+        { value: '4', label: 'Class 4' },
+        { value: '5', label: 'Class 5' }
+    ]);
+    const [selectedClasses, setSelectedClasses] = useState<string[]>([]);
+    const [searchTerm, setSearchTerm] = useState('');
+    const [isLoadingDropdowns, setIsLoadingDropdowns] = useState(false);
 
-    const onSubmit: SubmitHandler<FormFields> = async (data) => {
-        if (!row) {
-            console.warn('No valid class selected for update');
+    const academicYear = watch('academicYear');
+    const classCategory = watch('classCategory');
+    const classesValue = watch('classes');
+
+    useEffect(() => {
+        setIsLoadingDropdowns(loadingAcademic || loadingCategories);
+    }, [loadingAcademic, loadingCategories]);
+
+    useEffect(() => {
+        if (selectedRow) {
+            setValue('academicYear', selectedRow.asmaY_Id?.toString() ?? '', {
+                shouldValidate: false
+            });
+            setValue('classCategory', selectedRow.fmcC_Id?.toString() ?? '', {
+                shouldValidate: false
+            });
+
+            try {
+                const classes = selectedRow.asmcL_ClassName ? JSON.parse(selectedRow.asmcL_ClassName) : [];
+                const classArray = Array.isArray(classes) ? classes : [];
+                setSelectedClasses(classArray);
+                setValue('classes', classArray, { shouldValidate: false });
+            } catch (error) {
+                console.error('Error parsing classes:', error);
+                setSelectedClasses([]);
+                setValue('classes', [], { shouldValidate: false });
+            }
+        }
+    }, [selectedRow, setValue]);
+
+    // Academic Year Dropdown
+    useEffect(() => {
+        if (academicError) {
+            toast.error(academicError.message || 'Error fetching academic years');
+            setAcademicYearOptions([]);
+            return;
+        }
+        if (academicData?.data && Array.isArray(academicData.data)) {
+            const options = academicData.data.map((item: any) => ({
+                value: item.asmaY_Id.toString(),
+                label: item.asmaY_Year
+            }));
+            setAcademicYearOptions(options);
+        } else {
+            setAcademicYearOptions([]);
+        }
+    }, [academicData, academicError]);
+
+    useEffect(() => {
+        if (!academicYear) {
             return;
         }
 
+        if (categoryError) {
+            toast.error(categoryError.message || 'Error fetching class categories');
+            setClassCategoryOptions([]);
+            return;
+        }
+
+        if (categoryData?.data && Array.isArray(categoryData.data)) {
+            const options = categoryData.data.map((item: any) => ({
+                value: item.fmcC_Id.toString(),
+                label: item.fmcC_ClassCategoryName
+            }));
+            setClassCategoryOptions(options);
+        } else {
+            setClassCategoryOptions([]);
+        }
+    }, [academicYear, categoryData, categoryError]);
+
+    const filteredClassOptions = classOptions.filter((option) => option.label.toLowerCase().includes(searchTerm.toLowerCase()));
+
+    const handleClassChange = (value: string) => {
+        const currentClasses = classesValue || [];
+        let updatedClasses: string[];
+        if (currentClasses.includes(value)) {
+            updatedClasses = currentClasses.filter((c) => c !== value);
+        } else {
+            updatedClasses = [...currentClasses, value];
+        }
+        setSelectedClasses(updatedClasses);
+        setValue('classes', updatedClasses, { shouldValidate: true });
+    };
+
+    const onSubmit: SubmitHandler<FormFields> = async (data) => {
+        if (!selectedRow) {
+            toast.error('No valid row selected for update');
+            return;
+        }
+
+        if (isSubmitting) return;
+
         try {
+            const { academicYear, classCategory, classes } = data;
+            if (!academicYear || !classCategory || classes.length === 0) {
+                toast.error('Please select academic year, class category, and at least one class.');
+                return;
+            }
+
             const payload = {
-                // MI_Id: row.mi_id,
-                ASMCL_Id: row.asmcC_Id,
-                AcademicYear: data.academicYearId,
-                ClassCategoryId: data.categoryId,
-                ASMCL_ActiveFlag: row.is_Active
+                fmcC_Id: Number.parseInt(selectedRow.fmcC_Id),
+                mI_Id: 30,
+                fmcC_ClassCategoryName: classCategoryOptions.find((opt) => opt.value === classCategory)?.label || '',
+                fmcC_ClassCategoryCode: classCategory,
+                fmcC_ActiveFlag: selectedRow.fycC_ActiveFlag ?? true,
+                asmaY_ID: Number.parseInt(academicYear),
+                asmcL_ID: selectedRow.asmcL_Id || 0,
+                clsYearData: classes,
+                user_id: 21602
             };
 
-            const _response = await addOrUpdateMasterClassCategory(payload);
+            const response = await addOrUpdateMasterClassYearlyCategory(payload);
 
-            refetchAll();
-            reset();
-            onSuccess?.();
-        } catch (error) {
-            console.error('Error updating class category:', error);
+            if (response.success) {
+                toast.success(response.message || 'Master class updated successfully');
+                reset();
+                setSelectedClasses([]);
+                setSearchTerm('');
+                refetchAll();
+                onSuccess?.();
+            } else {
+                toast.error(response.message || 'Failed to update master class');
+            }
+        } catch (error: any) {
+            console.error('Submission error:', error);
+            toast.error(error.message || 'Error updating master class');
         }
     };
 
+    const handleReset = () => {
+        if (selectedRow) {
+            setValue('academicYear', selectedRow.asmaY_Id?.toString() ?? '', {
+                shouldValidate: false
+            });
+            setValue('classCategory', selectedRow.fmcC_Id?.toString() ?? '', {
+                shouldValidate: false
+            });
+
+            try {
+                const classes = selectedRow.asmcL_ClassName ? JSON.parse(selectedRow.asmcL_ClassName) : [];
+                const classArray = Array.isArray(classes) ? classes : [];
+                setSelectedClasses(classArray);
+                setValue('classes', classArray, { shouldValidate: false });
+            } catch {
+                setSelectedClasses([]);
+                setValue('classes', [], { shouldValidate: false });
+            }
+        }
+        setSearchTerm('');
+        setHasSubmitted(false);
+    };
+
     return (
-        <div className={className}>
-            <form onSubmit={handleSubmit(onSubmit)} className='space-y-6'>
-                {/* Dropdowns */}
-                <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
-                    {/* Academic Year */}
-                    <div className='flex flex-col gap-2'>
-                        <Label>Academic Year</Label>
-                        <Select
-                            onValueChange={(val) => setValue('academicYearId', val)}
-                            value={watch('academicYearId')}
-                            disabled={loadingYears}>
-                            <SelectTrigger>
-                                <SelectValue placeholder={loadingYears ? 'Loading...' : 'Select Academic Year'} />
-                            </SelectTrigger>
-                            <SelectContent>
-                                {academicYears.map((year) => (
-                                    <SelectItem key={year.asmcL_Id} value={year.asmcL_AcademicYear}>
-                                        {year.asmcL_AcademicYear}
-                                    </SelectItem>
-                                ))}
-                            </SelectContent>
-                        </Select>
-                        <FormError>{errors.academicYearId?.message}</FormError>
+        <div className={`${className}`}>
+            <form
+                onSubmit={(e) => {
+                    setHasSubmitted(true);
+                    handleSubmit(onSubmit)(e);
+                }}
+                className='space-y-6'>
+                <div className='space-y-4'>
+                    <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
+                        {/* Academic Year */}
+                        <div>
+                            <Label htmlFor='academicYear'>
+                                Academic Year <span className='ml-1 text-red-500'>*</span>
+                            </Label>
+                            <Select
+                                onValueChange={(value) => setValue('academicYear', value, { shouldValidate: true })}
+                                value={academicYear}
+                                disabled={isLoadingDropdowns}>
+                                <SelectTrigger
+                                    id='academicYear'
+                                    className={`transition-colors ${errors.academicYear ? 'border-red-500' : ''}`}>
+                                    <SelectValue placeholder='Select Academic Year' />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {academicYearOptions.map((option) => (
+                                        <SelectItem key={option.value} value={option.value}>
+                                            {option.label}
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                            {hasSubmitted && errors.academicYear && <FormError>{errors.academicYear.message}</FormError>}
+                        </div>
+
+                        {/* Class Category */}
+                        <div>
+                            <Label htmlFor='classCategory'>
+                                Class Category <span className='ml-1 text-red-500'>*</span>
+                            </Label>
+                            <Select
+                                onValueChange={(value) => setValue('classCategory', value, { shouldValidate: true })}
+                                value={classCategory}
+                                disabled={!academicYear || isLoadingDropdowns}>
+                                <SelectTrigger
+                                    id='classCategory'
+                                    className={`transition-colors ${errors.classCategory ? 'border-red-500' : ''}`}>
+                                    <SelectValue placeholder='Select Class Category' />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {classCategoryOptions.map((option) => (
+                                        <SelectItem key={option.value} value={option.value}>
+                                            {option.label}
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                            {hasSubmitted && errors.classCategory && <FormError>{errors.classCategory.message}</FormError>}
+                        </div>
+
+                        {/* Classes */}
+                        <div className='md:col-span-2'>
+                            <Label htmlFor='classes'>
+                                Classes <span className='ml-1 text-red-500'>*</span>
+                            </Label>
+                            <div className='min-h-[40px] rounded-md border bg-white px-3 py-2'>
+                                <input
+                                    type='text'
+                                    placeholder='Search Classes'
+                                    className='mb-2 w-full rounded border px-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-500'
+                                    value={searchTerm}
+                                    onChange={(e) => setSearchTerm(e.target.value)}
+                                    disabled={!academicYear || !classCategory}
+                                />
+                                <div className='flex max-h-40 flex-col gap-2 overflow-y-auto'>
+                                    {filteredClassOptions.length > 0 ? (
+                                        filteredClassOptions.map((option) => (
+                                            <label
+                                                key={option.value}
+                                                className='flex cursor-pointer items-center rounded p-1 hover:bg-gray-50'>
+                                                <input
+                                                    type='checkbox'
+                                                    value={option.value}
+                                                    checked={selectedClasses.includes(option.value)}
+                                                    onChange={() => handleClassChange(option.value)}
+                                                    className='mr-2 h-4 w-4 accent-blue-600'
+                                                />
+                                                <span className='truncate'>{option.label}</span>
+                                            </label>
+                                        ))
+                                    ) : !academicYear || !classCategory ? (
+                                        <span className='text-gray-400 text-sm'>Select Academic Year and Class Category first</span>
+                                    ) : (
+                                        <span className='text-gray-400 text-sm'>No classes found</span>
+                                    )}
+                                </div>
+                            </div>
+                            {hasSubmitted && errors.classes && <FormError>{errors.classes.message}</FormError>}
+                        </div>
                     </div>
 
-                    {/* Master Class Category */}
-                    <div className='flex flex-col gap-2'>
-                        <Label>Master Class Category</Label>
-                        <Select
-                            onValueChange={(val) => setValue('categoryId', val)}
-                            value={watch('categoryId')}
-                            disabled={loadingCategories}>
-                            <SelectTrigger>
-                                <SelectValue placeholder={loadingCategories ? 'Loading...' : 'Select Class Category'} />
-                            </SelectTrigger>
-                            <SelectContent>
-                                {classCategories.map((cat) => (
-                                    <SelectItem key={cat.asmcC_Id} value={cat.asmcC_Id.toString()}>
-                                        {cat.amC_Name} - {cat.asmcL_ClassName}
-                                    </SelectItem>
-                                ))}
-                            </SelectContent>
-                        </Select>
-                        <FormError>{errors.categoryId?.message}</FormError>
-                    </div>
+                    {hasSubmitted && errors.root && <FormError>{errors.root.message}</FormError>}
                 </div>
 
-                {/* Root Errors */}
-                {errors.root && <FormError>{errors.root.message}</FormError>}
-
-                {/* Buttons */}
                 <div className='flex flex-col gap-3 border-t pt-4 sm:flex-row sm:justify-start'>
                     <Button
                         type='button'
                         variant='outline'
-                        disabled={isSubmitting}
-                        onClick={() => reset()}
-                        className='order-2 w-fit transition-all hover:scale-105 sm:order-1'>
+                        onClick={handleReset}
+                        disabled={isSubmitting || isLoadingDropdowns}
+                        className='order-2 w-fit transition-all duration-200 hover:scale-105 sm:order-1'>
                         Reset
                     </Button>
-
                     <Button
                         type='submit'
-                        disabled={isSubmitting}
-                        isLoading={isSubmitting}
-                        loadingText='Saving...'
-                        className='order-1 w-fit transition-all hover:scale-105 sm:order-2'>
+                        disabled={isSubmitting || isLoadingDropdowns || !academicYear || !classCategory || selectedClasses.length === 0}
+                        className='order-1 w-fit transition-all duration-200 hover:scale-105 sm:order-2'>
                         <div className='flex items-center'>
                             <Save className='mr-2 h-4 w-4' />
-                            Save Master Class
+                            Update Master Class
                         </div>
                     </Button>
                 </div>

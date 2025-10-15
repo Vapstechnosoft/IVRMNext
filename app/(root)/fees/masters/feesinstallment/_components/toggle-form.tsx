@@ -6,7 +6,7 @@ import { FormError } from '@/components/ui/extension/field';
 import { useMasterFeeInstallment } from '@/hooks/fees/useMasters';
 import { masterInstallmentSchema } from '@/schemas/fees/masters';
 import { toggleMasterfeeInstallment } from '@/server/fees/masters/feeinstallment';
-import type { IMasterFeesInstallmentList } from '@/types/fees/masters';
+import type { IMasterFeesInstallmentList } from '@/types/fees/masters/masters';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { type SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';

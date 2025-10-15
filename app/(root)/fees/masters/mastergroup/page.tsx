@@ -5,13 +5,13 @@ import { Button } from '@/components/ui/button';
 import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/generic-data-table';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
-import { useMasterModeOfPayment } from '@/hooks/fees/useMasters';
+import { useMasterGroup } from '@/hooks/fees/useMasters';
 import type { IMasterGroupList } from '@/types/fees/masters/masters';
 
 import { Plus, X } from 'lucide-react';
 import { use } from 'react';
-import AddMasterGroupForm from './_components/add-form';
-import { modeOfPaymentColumns } from './_components/columns';
+import AddMasterGroups from './_components/add-form';
+import { MasterGroupsColumns } from './_components/columns';
 import ToggleMasterGroupForm from './_components/toggle-form';
 import UpdateMasterGroupForm from './_components/update-form';
 
@@ -19,7 +19,7 @@ type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 
 export default function MasterGroupPage(props: { searchParams: SearchParams }) {
     const searchParams = use(props.searchParams);
-    const { data: response, isLoading, error } = useMasterModeOfPayment(searchParams);
+    const { data: response, isLoading, error } = useMasterGroup(searchParams);
 
     return (
         <FormProvider<IMasterGroupList>>
@@ -65,7 +65,7 @@ function MasterGroupPageContent({
                     className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
                     <GenericDataTable<IMasterGroupList>
                         {...tableProps}
-                        columns={modeOfPaymentColumns}
+                        columns={MasterGroupsColumns}
                         isLoading={isLoading}
                         error={error}
                         columnPinning={{ right: ['actions'] }}
@@ -117,7 +117,7 @@ function FormSections() {
                                 className='-top-[3.5rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
                                 <X className='h-4 w-4 text-destructive' /> Close
                             </Button>
-                            <AddMasterGroupForm onSuccess={closeAddForm} />
+                            <AddMasterGroups onSuccess={closeAddForm} />
                         </div>
                     </CollapsibleSection>
                 </div>

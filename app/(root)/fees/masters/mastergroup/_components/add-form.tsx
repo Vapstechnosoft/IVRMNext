@@ -17,18 +17,17 @@ import type { z } from 'zod';
 
 type FormFields = z.infer<typeof masterGroupSchema.addOrUpdate>;
 
-interface AddMasterModeOfPaymentProps {
+interface MasterGroupsProps {
     onSuccess?: () => void;
     className?: string;
 }
 
-export default function AddMasterGroupForm({ onSuccess, className = '' }: AddMasterModeOfPaymentProps) {
+export default function MasterGroups({ onSuccess, className = '' }: MasterGroupsProps) {
     const { refetchAll } = useMasterGroup();
 
     const {
         control,
-        watch,
-        setValue,
+
         register,
         handleSubmit,
         reset,
@@ -39,22 +38,32 @@ export default function AddMasterGroupForm({ onSuccess, className = '' }: AddMas
         defaultValues: {
             transportHostelType: 'transport',
             studentType: 'regular',
-            ivrmmoD_Compulsory: false
+            fmG_CompulsoryFlag: false
         }
     });
 
     const onSubmit: SubmitHandler<FormFields | any> = async (data: FormFields) => {
         try {
-            const { ivrmmoD_MasterGroup, ivrmmoD_MasterGroup_Code, transportHostelType, studentType, ivrmmoD_Compulsory } = data;
+            const { fmG_GroupName, fmG_Remarks, transportHostelType, studentType, fmG_CompulsoryFlag } = data;
+
             const payload = {
-                mi_id: 30,
-                IVRMMOD_MasterGroup: ivrmmoD_MasterGroup,
-                IVRMMOD_MasterGroup_Code: ivrmmoD_MasterGroup_Code,
-                IVRMMOD_Transport: transportHostelType === 'transport',
-                IVRMMOD_Hostel: transportHostelType === 'hostel',
-                IVRMMOD_Regular: studentType === 'regular',
-                IVRMMOD_NewStudent: studentType === 'newstudent',
-                IVRMMOD_Compulsory: ivrmmoD_Compulsory
+                fmG_Id: 0,
+                mI_Id: 30,
+                fmG_GroupName: fmG_GroupName,
+                fmG_Remarks: fmG_Remarks,
+                fmG_CompulsoryFlag: fmG_CompulsoryFlag ? '1' : '0',
+                fmG_ActiceFlag: true,
+                user_id: 21602,
+                returnval: false,
+                ivrmR_Id: 0,
+                is_Active: true,
+                retvalue: false,
+                asmaY_Id: 0,
+                fmG_PRE_FLAG: '',
+                fmG_RegNewFlg: studentType === 'regular' ? 'R' : 'N',
+                fmG_HostelFlg: transportHostelType === 'hostel',
+                fmG_TransportFlg: transportHostelType === 'transport',
+                fmG_BatchwiseFeeApplFlg: false
             };
 
             const response = await addOrUpdateMasterGroup(payload);
@@ -83,21 +92,21 @@ export default function AddMasterGroupForm({ onSuccess, className = '' }: AddMas
                         <InputText
                             label='Fee Group'
                             required
-                            id='ivrmmoD_MasterGroup'
-                            {...register('ivrmmoD_MasterGroup')}
-                            error={errors.ivrmmoD_MasterGroup?.message}
+                            id='fmG_GroupName'
+                            {...register('fmG_GroupName')}
+                            error={errors.fmG_GroupName?.message}
                             className='transition-colors focus:ring-2 focus:ring-primary/20'
                         />
                         <div className='group flex flex-col gap-1.5'>
                             <InputTextarea
                                 label='Remarks'
                                 required
-                                id='IVRMMOD_MasterGroup_Code'
-                                {...register('ivrmmoD_MasterGroup_Code')}
-                                error={errors.ivrmmoD_MasterGroup_Code?.message}
+                                id='fmG_Remarks'
+                                {...register('fmG_Remarks')}
+                                error={errors.fmG_Remarks?.message}
                                 className='transition-colors focus:ring-2 focus:ring-primary/20'
                             />
-                            {errors.ivrmmoD_MasterGroup_Code && <FormError>{errors.ivrmmoD_MasterGroup_Code.message}</FormError>}
+                            {/* {errors.fmG_Remarks && <FormError>{errors.fmG_Remarks.message}</FormError>} */}
                         </div>
                     </div>
 
@@ -126,7 +135,7 @@ export default function AddMasterGroupForm({ onSuccess, className = '' }: AddMas
 
                         <div className='flex items-center gap-1'>
                             <Controller
-                                name='ivrmmoD_Compulsory'
+                                name='fmG_CompulsoryFlag'
                                 control={control}
                                 render={({ field }) => (
                                     <>

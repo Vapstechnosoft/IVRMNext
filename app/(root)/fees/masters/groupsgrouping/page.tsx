@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/generic-data-table';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
-import type { IMasterGroupsGrouping } from '@/types/fees/masters';
+import type { IMasterGroupsGrouping } from '@/types/fees/masters/masters';
 import { Plus, X } from 'lucide-react';
 import AddMasterFeeGroupGrouping from './_components/add-form';
 import { feegroupgroupingColoumn } from './_components/columns';

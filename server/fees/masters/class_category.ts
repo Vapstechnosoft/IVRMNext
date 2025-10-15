@@ -1,26 +1,22 @@
 'use server';
 
 import { api, getSearchParamsUrl } from '@/lib/apiService';
-import type { ApiSearchparams, IDropdown } from '@/types';
+import type { ApiSearchparams } from '@/types';
 import type { IMasterCasteCategoryList } from '@/types/admission/preadmission/masters';
 
 export async function getMasterClassCategory(searchParams?: ApiSearchparams) {
     const urlParams = getSearchParamsUrl(searchParams ?? {});
-    const url = `/demo?${urlParams}`;
-    return await api.getArray<IMasterCasteCategoryList>(url);
-}
+    const url = `/fee_class_category/30?${urlParams}`;
 
-export async function getMasterClassCategoryCodeDropdown() {
-    const url = '/demo';
-    return await api.get<IDropdown>(url);
+    return await api.get<IMasterCasteCategoryList[]>(url);
 }
 
 export async function addOrUpdateMasterClassCategory(data: any) {
-    const url = '/demo';
+    const url = '/fee_class_category/';
     return await api.post<any>(url, data);
 }
 
-export async function toggleMasterclassCategory(mi_id: number, id: number) {
-    const url = `/demo/${mi_id}/${id}`;
+export async function toggleMasterclassCategory(id: number) {
+    const url = `/api/fee_class_category/deactivate/${id}`;
     return await api.put(url);
 }

@@ -6,8 +6,8 @@ import { FormError, Label } from '@/components/ui/extension/field';
 import { InputText } from '@/components/ui/extension/input-text';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { useMasterGroup } from '@/hooks/fees/useMasters';
-import { type masterGroupSchema, masterModeOfPaymentSchema } from '@/schemas/fees/masters';
-import { addOrUpdateModeOfPayment } from '@/server/fees/masters/modeOfPayment';
+import { masterGroupSchema } from '@/schemas/fees/masters';
+import { addOrUpdateMasterGroup } from '@/server/fees/masters/master_group';
 import type { IMasterGroupList } from '@/types/fees/masters/masters';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Save } from 'lucide-react';
@@ -18,53 +18,88 @@ import type { z } from 'zod';
 
 type FormFields = z.infer<typeof masterGroupSchema.addOrUpdate>;
 
+const installmentData = [
+    {
+        fmI_Name: 'demo',
+        fmI_Installment_Type: 'general',
+        fmI_No_Of_Installments: 1,
+        createdDate: '2025-10-09T07:35:04.549Z',
+        updatedDate: '2025-10-09T07:35:04.549Z'
+    }
+];
+
+const inTData = [
+    {
+        mI_ID: 30,
+        ftI_Name: 'check',
+        created: true,
+        updated: false,
+        createdDate: '2025-10-09T07:35:04.549Z',
+        updatedDate: '2025-10-09T07:35:04.549Z'
+    }
+];
+
 interface UpdateMasterGroupFormProps {
     onSuccess?: () => void;
-    ivrmmoD_ModeOfPayment?: string;
     selectedRow: IMasterGroupList;
 }
 
-export default function UpdateMasterGroupForm({ onSuccess, ivrmmoD_ModeOfPayment = '', selectedRow: row }: UpdateMasterGroupFormProps) {
+export default function UpdateMasterGroupForm({ onSuccess, selectedRow: row }: UpdateMasterGroupFormProps) {
     const { refetchAll } = useMasterGroup();
 
     const {
         control,
-        setValue,
+
         register,
         handleSubmit,
         reset,
         formState: { errors, isSubmitting }
     } = useForm<FormFields>({
-        resolver: zodResolver(masterModeOfPaymentSchema.addOrUpdate),
+        resolver: zodResolver(masterGroupSchema.addOrUpdate),
         mode: 'onChange'
     });
 
     useEffect(() => {
         if (row) {
+            const transportHostelType: 'transport' | 'hostel' = row.fmG_HostelFlg ? 'hostel' : 'transport';
+            const studentType: 'regular' | 'newstudent' = row.fmG_RegNewFlg === 'N' ? 'newstudent' : 'regular';
+
             reset({
-                ivrmmoD_Id: row.ivrmmoD_Id,
-                ivrmmoD_MasterGroup: row.ivrmmoD_MasterGroup,
-                ivrmmoD_MasterGroup_Code: row.ivrmmoD_MasterGroup_Code
+                fmG_Id: row.fmG_Id,
+                fmG_GroupName: row.fmG_GroupName,
+                fmG_Remarks: row.fmG_Remarks,
+                transportHostelType,
+                studentType,
+                fmG_CompulsoryFlag: row.fmG_CompulsoryFlag === '1'
             });
         }
-    }, [row, reset, setValue]);
+    }, [row, reset]);
 
-    const onSubmit: SubmitHandler<FormFields | any> = async (data: FormFields) => {
+    const onSubmit: SubmitHandler<FormFields> = async (data: FormFields) => {
         try {
-            const { ivrmmoD_MasterGroup, ivrmmoD_MasterGroup_Code, ivrmmoD_Id, transportHostelType, studentType, ivrmmoD_Compulsory } =
-                data;
+            const { fmG_Remarks, fmG_Id, transportHostelType, studentType, fmG_CompulsoryFlag } = data;
+
             const payload = {
-                mi_id: 30,
-                ivrmmoD_MasterGroup: ivrmmoD_MasterGroup,
-                ivrmmoD_MasterGroup_Code: ivrmmoD_MasterGroup_Code,
-                IVRMMOD_Id: ivrmmoD_Id,
-                IVRMMOD_Transport: transportHostelType === 'transport',
-                IVRMMOD_Hostel: transportHostelType === 'hostel',
-                IVRMMOD_Regular: studentType === 'regular',
-                IVRMMOD_NewStudent: studentType === 'newstudent',
-                IVRMMOD_Compulsory: ivrmmoD_Compulsory
+                fmG_Id: fmG_Id || 0,
+                mI_Id: inTData[0].mI_ID,
+                fmG_GroupName: installmentData[0].fmI_Name,
+                fmG_Remarks: fmG_Remarks || '',
+                fmG_CompulsoryFlag: fmG_CompulsoryFlag ? '1' : '0',
+                fmG_ActiceFlag: true,
+                user_id: 21602,
+                returnval: false,
+                ivrmR_Id: 0,
+                is_Active: true,
+                retvalue: false,
+                asmaY_Id: 0,
+                fmG_PRE_FLAG: '',
+                fmG_RegNewFlg: studentType === 'regular' ? 'R' : 'N',
+                fmG_HostelFlg: transportHostelType === 'hostel',
+                fmG_TransportFlg: transportHostelType === 'transport',
+                fmG_BatchwiseFeeApplFlg: false
             };
-            const response = await addOrUpdateModeOfPayment(payload);
+
+            const response = await addOrUpdateMasterGroup(payload);
 
             if (response.success) {
                 toast.success(response.message);
@@ -80,32 +115,47 @@ export default function UpdateMasterGroupForm({ onSuccess, ivrmmoD_ModeOfPayment
     };
 
     const handleReset = () => {
-        reset();
+        if (row) {
+            const transportHostelType: 'transport' | 'hostel' = row.fmG_HostelFlg ? 'hostel' : 'transport';
+            const studentType: 'regular' | 'newstudent' = row.fmG_RegNewFlg === 'N' ? 'newstudent' : 'regular';
+
+            reset({
+                fmG_Id: row.fmG_Id,
+                fmG_GroupName: row.fmG_GroupName,
+                fmG_Remarks: row.fmG_Remarks,
+                transportHostelType,
+                studentType,
+                fmG_CompulsoryFlag: row.fmG_CompulsoryFlag === '1'
+            });
+        }
     };
 
     return (
-        <div className={`${ivrmmoD_ModeOfPayment}`}>
+        <div>
             <form onSubmit={handleSubmit(onSubmit)} className='space-y-6'>
-                <div className='grid grid-cols-1 gap-4 md:grid-cols-4'>
-                    <InputText
-                        label='Fee Group'
-                        required
-                        id='ivrmmoD_MasterGroup'
-                        {...register('ivrmmoD_MasterGroup')}
-                        error={errors.ivrmmoD_MasterGroup?.message}
-                        className='transition-colors focus:ring-2 focus:ring-primary/20'
-                    />
-                    <div className='group flex flex-col gap-1.5'>
+                <div className='space-y-4'>
+                    <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
                         <InputText
-                            label='Remarks'
+                            label='Fee Group'
                             required
-                            id='ivrmmoD_MasterGroup_Code'
-                            {...register('ivrmmoD_MasterGroup_Code')}
-                            error={errors.ivrmmoD_MasterGroup_Code?.message}
+                            id='fmG_GroupName'
+                            {...register('fmG_GroupName')}
+                            error={errors.fmG_GroupName?.message}
                             className='transition-colors focus:ring-2 focus:ring-primary/20'
                         />
-                        {errors.ivrmmoD_MasterGroup_Code && <FormError>{errors.ivrmmoD_MasterGroup_Code.message}</FormError>}
+                        <div className='group flex flex-col gap-1.5'>
+                            <InputText
+                                label='Remarks'
+                                required
+                                id='fmG_Remarks'
+                                {...register('fmG_Remarks')}
+                                error={errors.fmG_Remarks?.message}
+                                className='transition-colors focus:ring-2 focus:ring-primary/20'
+                            />
+                            {errors.fmG_Remarks && <FormError>{errors.fmG_Remarks.message}</FormError>}
+                        </div>
                     </div>
+
                     <div className='flex flex-row items-center justify-center space-x-4'>
                         <Controller
                             name='transportHostelType'
@@ -131,7 +181,7 @@ export default function UpdateMasterGroupForm({ onSuccess, ivrmmoD_ModeOfPayment
 
                         <div className='flex items-center gap-1'>
                             <Controller
-                                name='ivrmmoD_Compulsory'
+                                name='fmG_CompulsoryFlag'
                                 control={control}
                                 render={({ field }) => (
                                     <>
@@ -144,6 +194,7 @@ export default function UpdateMasterGroupForm({ onSuccess, ivrmmoD_ModeOfPayment
                             />
                         </div>
                     </div>
+
                     <div className='flex flex-row items-center justify-center space-x-4'>
                         <Controller
                             name='studentType'
@@ -167,6 +218,9 @@ export default function UpdateMasterGroupForm({ onSuccess, ivrmmoD_ModeOfPayment
                             )}
                         />
                     </div>
+
+                    {/* Root Error */}
+                    {errors.root && <FormError>{errors.root.message}</FormError>}
                 </div>
 
                 {/* Action Buttons */}
@@ -184,10 +238,10 @@ export default function UpdateMasterGroupForm({ onSuccess, ivrmmoD_ModeOfPayment
                         disabled={isSubmitting}
                         className='order-1 w-fit transition-all duration-200 hover:scale-105 sm:order-2'
                         isLoading={isSubmitting}
-                        loadingText='Saving...'>
+                        loadingText='Updating...'>
                         <div className='flex items-center'>
                             <Save className='mr-2 h-4 w-4' />
-                            Save Master Mode Of
+                            Update Master Group
                         </div>
                     </Button>
                 </div>
