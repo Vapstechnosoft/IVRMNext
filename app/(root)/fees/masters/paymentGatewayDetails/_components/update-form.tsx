@@ -126,7 +126,7 @@ export default function UpdatepaymentGatewaydetailsForm({
                         loadingText='Saving...'>
                         <div className='flex items-center'>
                             <Save className='mr-2 h-4 w-4' />
-                            Save Payment Gateway Details
+                            Update
                         </div>
                     </Button>
                 </div>

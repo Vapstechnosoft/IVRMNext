@@ -7,7 +7,7 @@ import type { IMasterPaymentGatewayList } from '@/types/fees/masters/masters';
 export async function getpaymentgatewaydetails(searchParams?: ApiSearchparams) {
     const urlParams = getSearchParamsUrl(searchParams ?? {});
     const url = `/FeePaymentGatewayDetailsFacade/getpagedetails/30?${urlParams}`;
-    return await api.getArray<IMasterPaymentGatewayList>(url);
+    return await api.get<IMasterPaymentGatewayList[]>(url);
 }
 
 export async function addOrUpdatepaymentgatewaydetails(data: any) {

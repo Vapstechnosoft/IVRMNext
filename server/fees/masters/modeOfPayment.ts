@@ -7,7 +7,7 @@ import type { IModeOfPaymentList } from '@/types/fees/masters';
 export async function getModeOfPayment(searchParams?: ApiSearchparams) {
     const urlParams = getSearchParamsUrl(searchParams ?? {});
     const url = `/ModeOfPaymentFacade/30?${urlParams}`;
-    return await api.getArray<IModeOfPaymentList>(url);
+    return await api.get<IModeOfPaymentList[]>(url);
 }
 
 export async function addOrUpdateModeOfPayment(data: any) {
