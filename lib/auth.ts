@@ -45,11 +45,12 @@ export const authConfig: NextAuthConfig = {
     callbacks: {
         jwt({ token, user, trigger, session }) {
             if (user) {
+                token.mi_id = user.mi_id;
                 token.name = user.name;
                 token.email = user.email;
+                token.token = user.token;
                 token.role = user.role;
                 token.designation = user.designation;
-                token.token = user.token;
             }
             if (trigger === 'update' && session) {
                 token = { ...token, ...session };
@@ -67,7 +68,7 @@ export const authConfig: NextAuthConfig = {
     },
     cookies: {
         sessionToken: {
-            name: 'tat-session-1.0',
+            name: 'ivrm-session-1.0',
             options: {
                 httpOnly: true,
                 secure: true,

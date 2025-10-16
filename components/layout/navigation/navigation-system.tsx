@@ -177,55 +177,59 @@ export function NavigationSystem() {
                                         <X className='h-4 w-4' />
                                     </Button>
                                 </div>
-
-                                <div className='grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3'>
-                                    {accessibleModule?.data
-                                        ?.find((m) => m.name === activeDrawer)
-                                        ?.menu.map((menu) => (
-                                            <Card key={menu.id} className='transition-shadow duration-200 hover:shadow-md'>
-                                                <CardContent className='p-4'>
-                                                    <div className='mb-3 flex items-center gap-3'>
-                                                        {getIconByName(menu.icon) && (
-                                                            <div className='rounded-lg bg-primary/10 p-2'>
-                                                                {(() => {
-                                                                    const IconComp = getIconByName(menu.icon);
-                                                                    return IconComp ? <IconComp className='h-4 w-4 text-primary' /> : null;
-                                                                })()}
-                                                            </div>
-                                                        )}
-                                                        <h4 className='font-medium text-foreground'>{menu.name}</h4>
-                                                    </div>
-
-                                                    <div className='space-y-2'>
-                                                        {menu.sub_menu.map((subMenu) => (
-                                                            <Button
-                                                                key={subMenu.id}
-                                                                variant='ghost'
-                                                                className='h-auto w-full justify-start p-2 text-sm hover:bg-accent/50'
-                                                                onClick={() =>
-                                                                    handleSubMenuClick(
-                                                                        accessibleModule?.data?.find((m) => m.name === activeDrawer)!,
-                                                                        menu,
-                                                                        subMenu
-                                                                    )
-                                                                }>
-                                                                <div className='flex items-center gap-2'>
-                                                                    {getIconByName(subMenu.icon) &&
-                                                                        (() => {
-                                                                            const IconComp = getIconByName(subMenu.icon);
-                                                                            return IconComp ? <IconComp className='h-3 w-3' /> : null;
-                                                                        })()}
-                                                                    <span>{subMenu.name}</span>
-                                                                    <span className='ml-auto text-muted-foreground text-xs'>
-                                                                        ({subMenu.pages.length} pages)
-                                                                    </span>
+                                <div className='flex gap-4'>
+                                    <div className='grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3'>
+                                        {accessibleModule?.data
+                                            ?.find((m) => m.name === activeDrawer)
+                                            ?.menu.map((menu) => (
+                                                <Card key={menu.id} className='transition-shadow duration-200 hover:shadow-md'>
+                                                    <CardContent className='p-4'>
+                                                        <div className='mb-3 flex items-center gap-3'>
+                                                            {getIconByName(menu.icon) && (
+                                                                <div className='rounded-lg bg-primary/10 p-2'>
+                                                                    {(() => {
+                                                                        const IconComp = getIconByName(menu.icon);
+                                                                        return IconComp ? (
+                                                                            <IconComp className='h-4 w-4 text-primary' />
+                                                                        ) : null;
+                                                                    })()}
                                                                 </div>
-                                                            </Button>
-                                                        ))}
-                                                    </div>
-                                                </CardContent>
-                                            </Card>
-                                        ))}
+                                                            )}
+                                                            <h4 className='font-medium text-foreground'>{menu.name}</h4>
+                                                        </div>
+
+                                                        <div className='space-y-2'>
+                                                            {menu.sub_menu.map((subMenu) => (
+                                                                <Button
+                                                                    key={subMenu.id}
+                                                                    variant='ghost'
+                                                                    className='h-auto w-full justify-start p-2 text-sm hover:bg-accent/50'
+                                                                    onClick={() =>
+                                                                        handleSubMenuClick(
+                                                                            accessibleModule?.data?.find((m) => m.name === activeDrawer)!,
+                                                                            menu,
+                                                                            subMenu
+                                                                        )
+                                                                    }>
+                                                                    <div className='flex items-center gap-2'>
+                                                                        {getIconByName(subMenu.icon) &&
+                                                                            (() => {
+                                                                                const IconComp = getIconByName(subMenu.icon);
+                                                                                return IconComp ? <IconComp className='h-3 w-3' /> : null;
+                                                                            })()}
+                                                                        <span>{subMenu.name}</span>
+                                                                        <span className='ml-auto text-muted-foreground text-xs'>
+                                                                            ({subMenu.pages.length} pages)
+                                                                        </span>
+                                                                    </div>
+                                                                </Button>
+                                                            ))}
+                                                        </div>
+                                                    </CardContent>
+                                                </Card>
+                                            ))}
+                                    </div>
+                                    <img src='/assets/student_academic.png' alt='Hero Illustration' className='mt-4 w-[250px]' />
                                 </div>
                             </div>
                         </motion.div>

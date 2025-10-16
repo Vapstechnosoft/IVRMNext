@@ -7,6 +7,14 @@ export interface Option {
     count?: number;
 }
 
+export interface CalculatedAgeDetails {
+    years: number;
+    months: number;
+    days: number;
+    ageInYears: number;
+    ageString: string;
+}
+
 export interface DataTableFilterField<TData> {
     id: keyof TData;
     label: string;
@@ -15,11 +23,13 @@ export interface DataTableFilterField<TData> {
 }
 
 export type UserResponseData = {
+    mi_id: number;
+    name: string;
+    email: string;
+    token: string;
     user: string;
     role: Role;
     designation: string;
-    email: string;
-    token: string;
     user_image: string | null;
     [key: string]: any;
 };

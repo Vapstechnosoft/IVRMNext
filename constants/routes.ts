@@ -11,7 +11,7 @@ export const ROUTES = {
         ADMISSION_SUB_MENUS: {
             PREADMISSION: '/preadmission',
             PREADMISSION_SUB_MENUS: {
-                MASTERS: '/admission-masters',
+                MASTERS: '/masters',
                 MASTERS_SUB_MENUS: {
                     MASTERS_CLASS: '/class',
                     MASTERS_CATEGORY: '/category',
@@ -20,6 +20,10 @@ export const ROUTES = {
                     MASTERS_RELIGION: '/religion',
                     MASTERS_CASTE_CATEGORY: '/caste-category',
                     MASTERS_CASTE: '/caste'
+                },
+                TRANSACTIONS: '/transactions',
+                TRANSACTIONS_SUB_MENUS: {
+                    APPLICATION_FORM: '/application-form'
                 }
             }
         }
