@@ -2,7 +2,7 @@
 
 import { api, getSearchParamsUrl } from '@/lib/apiService';
 import type { ApiSearchparams } from '@/types';
-import type { IMasterConcessionDetailsList } from '@/types/fees/masters/masters';
+import type { IMasterConcessionDetailsList } from '@/types/fees/masters';
 
 export async function getMasterConcessionDetails(searchParams?: ApiSearchparams) {
     const urlParams = getSearchParamsUrl(searchParams ?? {});

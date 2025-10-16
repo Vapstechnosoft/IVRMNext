@@ -119,3 +119,12 @@ export interface IMasterFeesInstallmentList {
         ddate?: string;
     }>;
 }
+
+export interface IMasterConcessionDetailsList {
+    fmcC_Id: number;
+    fmcC_ConcessionName: string;
+    fmcC_ConcessionFlag: string;
+    fmccD_FromNoSibblings: number;
+    fmccD_ToNoSibblings: number;
+    fmccD_PerOrAmt: number;
+}

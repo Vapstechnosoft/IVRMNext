@@ -192,92 +192,130 @@ export async function getUserAccessibleModules() {
                                         id: 5,
                                         name: 'Fee Head',
                                         icon: 'Settings',
-                                        url: '/fees/masters/feehead'
+                                        url: '/fees/masters/feehead',
+                                        title: 'Fee Head',
+                                        description: 'Manage Fee Head Details'
                                     },
                                     {
                                         id: 6,
                                         name: 'Mode Of Payment',
                                         icon: 'Settings',
-                                        url: '/fees/masters/modeofpayment'
+                                        url: '/fees/masters/modeofpayment',
+                                        title: 'Mode Of Payment',
+                                        description: 'Manage Mode Of Payment Details'
                                     },
 
                                     {
                                         id: 7,
                                         name: 'Payment Gateway Details',
                                         icon: 'Settings',
-                                        url: '/fees/masters/paymentGatewayDetails'
+                                        url: '/fees/masters/paymentGatewayDetails',
+                                        title: 'Payment Gateway Details',
+                                        description: 'Manage Payment Gateway Details'
                                     },
                                     {
                                         id: 8,
                                         name: 'Master Fine Slab',
                                         icon: 'Settings',
-                                        url: '/fees/masters/masterfineslab'
+                                        url: '/fees/masters/masterfineslab',
+                                        title: 'Master Fine Slab',
+                                        description: 'Manage Master Fine Slab Details'
                                     },
                                     {
                                         id: 9,
                                         name: 'Master Fee Concession',
                                         icon: 'Settings',
-                                        url: '/fees/masters/masterfeeconcession'
+                                        url: '/fees/masters/masterfeeconcession',
+                                        title: 'Master Fee Concession',
+                                        description: 'Manage Master Fee Concession Details'
+                                    },
+                                    {
+                                        id: 20,
+                                        name: 'Master Fee Concession Details',
+                                        icon: 'Settings',
+                                        url: '/fees/masters/masterfeeconcessiondetails',
+                                        title: 'Master Fee Concession Details',
+                                        description: 'Manage Master Fee Concession Details'
                                     },
                                     {
                                         id: 10,
                                         name: 'Master Fee Terms',
                                         icon: 'Settings',
-                                        url: '/fees/masters/feemasterterms'
+                                        url: '/fees/masters/feemasterterms',
+                                        title: 'Master Fee Terms',
+                                        description: 'Manage Master Fee Terms Details'
                                     },
                                     {
                                         id: 11,
                                         name: 'Master Term Fee Head',
                                         icon: 'Settings',
-                                        url: '/fees/masters/mastertermfeehead'
+                                        url: '/fees/masters/mastertermfeehead',
+                                        title: 'Master Term Fee Head',
+                                        description: 'Manage Master Term Fee Head Details'
                                     },
                                     {
                                         id: 12,
                                         name: 'Class Category',
                                         icon: 'Settings',
-                                        url: '/fees/masters/classcategory'
+                                        url: '/fees/masters/classcategory',
+                                        title: 'Class Category',
+                                        description: 'Class Category'
                                     },
                                     {
                                         id: 13,
                                         name: 'Category',
                                         icon: 'Settings',
-                                        url: '/fees/masters/category'
+                                        url: '/fees/masters/category',
+                                        title: 'Category',
+                                        description: 'Category'
                                     },
                                     {
                                         id: 14,
                                         name: 'Installment',
                                         icon: 'Settings',
-                                        url: '/fees/masters/feesinstallment'
+                                        url: '/fees/masters/feesinstallment',
+                                        title: 'Installment',
+                                        description: 'Installment'
                                     },
                                     {
                                         id: 15,
                                         name: 'Installment due date',
                                         icon: 'Settings',
-                                        url: '/fees/masters/feesinstallmentduedate'
+                                        url: '/fees/masters/feesinstallmentduedate',
+                                        title: 'Installment due date',
+                                        description: 'Installment due date'
                                     },
                                     {
                                         id: 16,
                                         name: 'Group Grouping',
                                         icon: 'Settings',
-                                        url: '/fees/masters/groupsgrouping'
+                                        url: '/fees/masters/groupsgrouping',
+                                        title: 'Group Grouping',
+                                        description: 'Group Grouping'
                                     },
                                     {
                                         id: 17,
                                         name: 'Groups',
                                         icon: 'Settings',
-                                        url: '/fees/masters/mastergroup'
+                                        url: '/fees/masters/mastergroup',
+                                        title: 'Groups',
+                                        description: 'Groups'
                                     },
                                     {
                                         id: 19,
                                         name: 'Yearly Groups',
                                         icon: 'Settings',
-                                        url: '/fees/masters/yearlygroup'
+                                        url: '/fees/masters/yearlygroup',
+                                        title: 'Yearly Groups',
+                                        description: 'Yearly Groups'
                                     },
                                     {
                                         id: 18,
                                         name: 'Yearly Groups Mapping',
                                         icon: 'Settings',
-                                        url: '/fees/masters/yearlyfeegroupmapping'
+                                        url: '/fees/masters/yearlyfeegroupmapping',
+                                        title: 'Yearly Groups Mapping',
+                                        description: 'Yearly Groups Mapping'
                                     }
                                 ]
                             }

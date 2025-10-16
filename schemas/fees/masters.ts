@@ -304,3 +304,16 @@ export const masterTermFeeHeadSchema = {
         // FPGD_Id: deleteIdSchema('FPGD_Id')
     })
 };
+
+export const masterConcessionDetailsSchema = {
+    addOrUpdate: z.object({
+        fmcC_Id: z.number().int().optional(),
+        fmcC_ConcessionName: z.string({ message: 'ConcessionName is required' }),
+        fmcC_ConcessionApplLimit: z.number({ message: 'ConcessionApplLimit is required' }),
+        fmcC_ConcessionFlag: z.string().optional(),
+        fmcC_ActiveFlag: z.boolean().optional()
+    }),
+    delete: z.object({
+        // fmcC_Id: deleteIdSchema('fmcC_Id')
+    })
+};

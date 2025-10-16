@@ -6,7 +6,8 @@ import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
 import { useMasterTerms } from '@/hooks/fees/useMasters';
-import type { IMasterTermsList } from '@/types/fees/masters/masters';
+
+import type { IMasterTermsList } from '@/types/fees/masters';
 import { Plus, X } from 'lucide-react';
 import { use } from 'react';
 import AddFineSlabForm from './_components/add-form';
