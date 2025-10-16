@@ -144,6 +144,14 @@ export async function getUserAccessibleModules() {
                                         url: '/admission/preadmission/transactions/transfer-application-status',
                                         title: 'Transfer Application Status',
                                         description: 'Manage Transfer Application Status Details'
+                                    },
+                                    {
+                                        id: 3,
+                                        name: 'Transfer Admission Status',
+                                        icon: 'Settings',
+                                        url: '/admission/preadmission/transactions/transfer-admission-status',
+                                        title: 'Transfer Admission Status',
+                                        description: 'Manage Transfer Admission Status Details'
                                     }
                                 ]
                             }

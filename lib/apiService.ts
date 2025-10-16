@@ -203,7 +203,7 @@ export const api = new ApiService();
  * @param searchParams - The searchParams object to generate the URL from.
  * @returns A string representing the URL.
  */
-export function getSearchParamsUrl(searchParams: ApiSearchparams | undefined): string {
+export function getSearchParamsUrl(searchParams: ApiSearchparams | undefined, searchColumns?: string): string {
     if (!searchParams) return '';
 
     const page = searchParams?.page || 1;
@@ -212,5 +212,9 @@ export function getSearchParamsUrl(searchParams: ApiSearchparams | undefined): s
     const sort_direction = searchParams?.sort_direction || 'asc';
     const search_query = searchParams?.search_query || '';
 
-    return `page=${page}&page_size=${page_size}&sort_column=${sort_column}&sort_direction=${sort_direction}&search_query=${search_query}`;
+    if (!search_query) {
+        return `page=${page}&page_size=${page_size}&sort_column=${sort_column}&sort_direction=${sort_direction}`;
+    }
+
+    return `page=${page}&page_size=${page_size}&sort_column=${sort_column}&sort_direction=${sort_direction}&search_query=${search_query}&search_column=${searchColumns}`;
 }
