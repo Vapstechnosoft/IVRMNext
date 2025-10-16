@@ -4,12 +4,6 @@ import { api, getSearchParamsUrl } from '@/lib/apiService';
 import type { ApiSearchparams } from '@/types';
 import type { IMasterClassList } from '@/types/admission/preadmission/masters';
 
-// export async function getMasterClass(searchParams?: ApiSearchparams) {
-//     const urlParams = getSearchParamsUrl(searchParams ?? {});
-//     const url = `/master_class/30?${urlParams}`;
-//     return await api.getArray<IMasterClassList>(url);
-// }
-
 export async function getMasterClass(searchParams?: ApiSearchparams) {
     const urlParams = getSearchParamsUrl(searchParams ?? {});
     const url = `/master_class/30?${urlParams}`;
