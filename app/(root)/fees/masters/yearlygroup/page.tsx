@@ -5,9 +5,10 @@ import { Button } from '@/components/ui/button';
 import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/generic-data-table';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
-import { useMasterFeehead } from '@/hooks/fees/useMasters';
+import { useMasterFeeYearlyGroup } from '@/hooks/fees/useMasters';
 import type { IMaasterFeesYearlyGrouping } from '@/types/fees/masters/masters';
 import { Plus, X } from 'lucide-react';
+import { use } from 'react';
 import AddMasterYearlyGroup from './_components/add-form';
 import { YearlyColoumnsColumns } from './_components/columns';
 import ToggleYearColumnForm from './_components/toggle-form';
@@ -16,9 +17,11 @@ import UpdateYearlyGroupForm from './_components/update-form';
 export default function MasterYearlyGroupClient({
     searchParams
 }: {
-    searchParams: Record<string, string>;
+    searchParams: Promise<Record<string, string>>;
 }) {
-    const { data: response, isLoading, error } = useMasterFeehead(searchParams);
+    const unwrappedSearchParams = use(searchParams);
+
+    const { data: response, isLoading, error } = useMasterFeeYearlyGroup(unwrappedSearchParams);
     const tableProps = useDataTableProps(response);
 
     return (
@@ -28,7 +31,10 @@ export default function MasterYearlyGroupClient({
                     {/* Header */}
                     <div className='flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between'>
                         <div className='space-y-1'>
-                            <Heading title='Fees Heads' description='' />
+                            <Heading
+                                title='Fees Yearly Group'
+                                description='Manage fee groups, rebates, and installments by academic year'
+                            />
                         </div>
                         <AddButton />
                     </div>
@@ -45,10 +51,10 @@ export default function MasterYearlyGroupClient({
                             isLoading={isLoading}
                             error={error}
                             columnPinning={{ right: ['actions'] }}
-                            loadingMessage='Loading master classes...'
-                            noDataTitle='No Master Classes Found'
-                            noDataDescription='Get started by creating your first master class'
-                            errorTitle='Error Loading Classes'
+                            loadingMessage='Loading yearly groups...'
+                            noDataTitle='No Yearly Groups Found'
+                            noDataDescription='Get started by creating your first yearly group'
+                            errorTitle='Error Loading Yearly Groups'
                         />
                     </CollapsibleSection>
 
@@ -64,7 +70,7 @@ function AddButton() {
     return (
         <Button type='button' onClick={openAddForm} className='w-fit shadow-md transition-all duration-200 hover:scale-105 hover:shadow-lg'>
             <Plus className='h-4 w-4' />
-            Add Fee Head
+            Add Yearly Group
         </Button>
     );
 }
@@ -87,8 +93,8 @@ function FormSections() {
             {isAddFormOpen && (
                 <div ref={addFormRef}>
                     <CollapsibleSection
-                        title='Add New Fee Head'
-                        description='Fill in the details below to create a new Fee Head'
+                        title='Add New Yearly Group'
+                        description='Fill in the details below to create a new yearly group'
                         defaultOpen
                         variant='outline'
                         size='md'
@@ -111,7 +117,8 @@ function FormSections() {
             {isEditFormOpen && selectedRow && (
                 <div ref={editFormRef}>
                     <CollapsibleSection
-                        title='Edit Master Fees Head'
+                        title='Edit Yearly Group'
+                        description='Update the details of the selected yearly group'
                         defaultOpen
                         variant='outline'
                         size='md'

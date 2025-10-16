@@ -15,7 +15,6 @@ import { Controller, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import type { z } from 'zod';
 
-// Define interfaces
 interface FeeGroup {
     fmgg_Id: number;
     fmgg_GroupName: string;
@@ -39,10 +38,11 @@ interface Payload {
 
 type FormFields = z.infer<typeof YearlyGroupSchema.addOrUpdate>;
 interface AddMasterYearlyGroupProps {
-    onSuccess: () => void;
+    onSuccess?: () => void;
 }
-export default function AddMasterYearlyGroup() {
+export default function AddMasterYearlyGroup({ onSuccess }: AddMasterYearlyGroupProps) {
     const [search, setSearch] = useState('');
+    const [isPopoverOpen, setIsPopoverOpen] = useState(false);
     const { data: academicYearOptions } = useAcademicYearDropdown();
 
     const feeGroups: FeeGroup[] = [
@@ -87,6 +87,11 @@ export default function AddMasterYearlyGroup() {
         }
 
         toast.success('Form submitted successfully!');
+        try {
+            onSuccess?.(); // Call onSuccess if provided
+        } catch (e) {
+            // ignore errors from parent's onSuccess
+        }
         reset();
     };
 
@@ -128,38 +133,54 @@ export default function AddMasterYearlyGroup() {
                             </div>
                         )}
                     />
-
                     {/* Fee Group Multi-select Dropdown */}
                     <Controller
                         name='feeGroupIds'
                         control={control}
                         render={({ field }) => (
                             <div className='flex flex-col'>
-                                Fee Groups <span className='text-red-500'>*</span>
-                                <Popover>
+                                <label htmlFor='feeGroupsTrigger' className='mb-1 font-medium text-gray-700 text-sm'>
+                                    Fee Groups <span className='text-red-500'>*</span>
+                                </label>
+
+                                <Popover open={isPopoverOpen} onOpenChange={setIsPopoverOpen}>
                                     <PopoverTrigger asChild>
                                         <Button
+                                            id='feeGroupsTrigger'
                                             type='button'
                                             variant='outline'
+                                            onClick={() => setIsPopoverOpen(!isPopoverOpen)}
                                             className={cn(
-                                                'w-full justify-between transition-colors',
-                                                errors.feeGroupIds ? 'border-red-500' : 'border-primary/30'
+                                                'h-10 w-full select-none justify-between rounded-md border font-normal text-sm transition-none',
+                                                'bg-white',
+                                                errors.feeGroupIds ? 'border-red-500' : 'border-gray-300',
+                                                '!focus:border-gray-300 !hover:border-gray-300 !hover:bg-white !focus:ring-0 active:scale-100'
                                             )}>
-                                            {field.value?.length ? `${field.value.length} selected` : 'Select Fee Groups'}
-                                            <ChevronsUpDown className='ml-2 h-4 w-4 shrink-0 opacity-50' />
+                                            <span className='truncate text-gray-700'>
+                                                {field.value?.length ? `${field.value.length} selected` : 'Select Fee Groups'}
+                                            </span>
+                                            <ChevronsUpDown className='ml-2 h-4 w-4 opacity-50' />
                                         </Button>
                                     </PopoverTrigger>
-                                    <PopoverContent className='w-[260px] p-2 sm:w-[300px]'>
+
+                                    <PopoverContent
+                                        className='w-[var(--radix-popover-trigger-width)] rounded-md border border-gray-200 bg-white p-2 shadow-lg sm:w-[300px]'
+                                        align='start'
+                                        sideOffset={6}>
+                                        {/* Search bar */}
                                         <div className='relative mb-2'>
                                             <Search className='absolute top-2.5 left-2 h-4 w-4 text-gray-400' />
                                             <Input
-                                                placeholder='search here...'
+                                                placeholder='Search groups...'
                                                 value={search}
                                                 onChange={(e) => setSearch(e.target.value)}
-                                                className='h-8 pl-8 text-sm'
+                                                className='h-8 border-gray-300 pl-8 text-sm focus:border-gray-400 focus:ring-0'
                                             />
                                         </div>
-                                        <div className='max-h-[260px] overflow-y-auto rounded-md border p-1'>
+
+                                        {/* Fee Group list */}
+                                        <div className='max-h-[260px] overflow-y-auto rounded-md border border-gray-200 p-1'>
+                                            {/* Select All */}
                                             <div
                                                 onClick={() => {
                                                     const allIds = feeGroups.map((f) => f.fmgg_Id);
@@ -167,10 +188,10 @@ export default function AddMasterYearlyGroup() {
                                                     field.onChange(allSelected ? [] : allIds);
                                                 }}
                                                 className={cn(
-                                                    'mb-2 flex cursor-pointer items-center gap-2 rounded-md border px-2 py-1.5 font-medium text-sm',
+                                                    'mb-2 flex cursor-pointer items-center gap-2 rounded-md px-2 py-1.5 font-medium text-sm',
                                                     field.value?.length === feeGroups.length
-                                                        ? 'border-primary bg-primary/5 text-primary'
-                                                        : 'border-gray-200 hover:border-primary/40'
+                                                        ? 'bg-gray-100 text-gray-800'
+                                                        : 'hover:bg-gray-50'
                                                 )}>
                                                 {field.value?.length === feeGroups.length ? (
                                                     <CheckSquare className='h-4 w-4 text-primary' />
@@ -179,6 +200,8 @@ export default function AddMasterYearlyGroup() {
                                                 )}
                                                 <span>Select All</span>
                                             </div>
+
+                                            {/* Individual Fee Groups */}
                                             {feeGroups
                                                 .filter((fg) => fg.fmgg_GroupName.toLowerCase().includes(search.toLowerCase().trim()))
                                                 .map((fg) => {
@@ -194,10 +217,8 @@ export default function AddMasterYearlyGroup() {
                                                                 );
                                                             }}
                                                             className={cn(
-                                                                'mb-1 flex cursor-pointer items-center gap-2 rounded-md border px-2 py-1.5 text-sm',
-                                                                selected
-                                                                    ? 'border-primary bg-primary/5'
-                                                                    : 'border-gray-200 hover:border-primary/40'
+                                                                'mb-1 flex cursor-pointer items-center gap-2 rounded-md px-2 py-1.5 text-sm',
+                                                                selected ? 'bg-gray-100 text-gray-800' : 'hover:bg-gray-50'
                                                             )}>
                                                             {selected ? (
                                                                 <CheckSquare className='h-4 w-4 text-primary' />
@@ -211,6 +232,7 @@ export default function AddMasterYearlyGroup() {
                                         </div>
                                     </PopoverContent>
                                 </Popover>
+
                                 {errors.feeGroupIds && <FormError>{errors.feeGroupIds.message}</FormError>}
                             </div>
                         )}
