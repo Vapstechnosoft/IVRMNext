@@ -6,7 +6,8 @@ import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
 import { useMasterConcession } from '@/hooks/fees/useMasters';
-import type { IFineSlabList, IMasterConcessionList } from '@/types/fees/masters/masters';
+
+import type { IMasterConcessionList } from '@/types/fees/masters';
 import { Plus, X } from 'lucide-react';
 import { use } from 'react';
 import AddMasterConcessionForm from './_components/add-form';
@@ -16,12 +17,12 @@ import UpdateMasterConcessionForm from './_components/update-form';
 
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 
-export default function fineSlabPage(props: { searchParams: SearchParams }) {
+export default function feeconcessionPage(props: { searchParams: SearchParams }) {
     const searchParams = use(props.searchParams);
     const { data: response, isLoading, error } = useMasterConcession(searchParams);
 
     return (
-        <FormProvider<IFineSlabList>>
+        <FormProvider<IMasterConcessionList>>
             <MasterFeeConcessionPageContent response={response} isLoading={isLoading} error={error} />
         </FormProvider>
     );
@@ -36,7 +37,7 @@ function MasterFeeConcessionPageContent({
     isLoading: boolean;
     error: any;
 }) {
-    const { openAddForm } = useFormContext<IFineSlabList>();
+    const { openAddForm } = useFormContext<IMasterConcessionList>();
     const tableProps = useDataTableProps(response);
 
     return (

@@ -5,23 +5,25 @@ import { Button } from '@/components/ui/button';
 import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/generic-data-table';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
-import { useMasterConcession } from '@/hooks/fees/useMasters';
-import type { IFineSlabList, IMasterConcessionList } from '@/types/fees/masters/masters';
+
+import { useMasterConcessionDetails } from '@/hooks/fees/useMasters';
+import type { IMasterConcessionDetailsList } from '@/types/fees/masters';
+import type { IMasterConcessionDetails } from '@/types/fees/masters/masters';
 import { Plus, X } from 'lucide-react';
 import { use } from 'react';
-import { feeMasterConcessionColumns } from '../masterfeeconcession/_components/columns';
 import ToggleMasterConcessionForm from '../masterfeeconcession/_components/toggle-form';
 import UpdateMasterConcessionForm from '../masterfeeconcession/_components/update-form';
-import AddMasterConcessionForm from './_components/add-form';
+import AddMasterConcessionDetailsForm from './_components/add-form';
+import { feeMasterConcessionDetailsColumns } from './_components/columns';
 
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 
-export default function fineSlabPage(props: { searchParams: SearchParams }) {
+export default function feeconcessiondetailsPage(props: { searchParams: SearchParams }) {
     const searchParams = use(props.searchParams);
-    const { data: response, isLoading, error } = useMasterConcession(searchParams);
+    const { data: response, isLoading, error } = useMasterConcessionDetails(searchParams);
 
     return (
-        <FormProvider<IFineSlabList>>
+        <FormProvider<IMasterConcessionDetails>>
             <MasterFeeConcessionDetailsPageContent response={response} isLoading={isLoading} error={error} />
         </FormProvider>
     );
@@ -36,7 +38,7 @@ function MasterFeeConcessionDetailsPageContent({
     isLoading: boolean;
     error: any;
 }) {
-    const { openAddForm } = useFormContext<IFineSlabList>();
+    const { openAddForm } = useFormContext<IMasterConcessionDetailsList>();
     const tableProps = useDataTableProps(response);
 
     return (
@@ -62,9 +64,9 @@ function MasterFeeConcessionDetailsPageContent({
                     variant='default'
                     size='lg'
                     className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
-                    <GenericDataTable<IMasterConcessionList>
+                    <GenericDataTable<IMasterConcessionDetailsList>
                         {...tableProps}
-                        columns={feeMasterConcessionColumns}
+                        columns={feeMasterConcessionDetailsColumns}
                         isLoading={isLoading}
                         error={error}
                         columnPinning={{ right: ['actions'] }}
@@ -93,7 +95,7 @@ function FormSections() {
         closeToggleForm,
         addFormRef,
         editFormRef
-    } = useFormContext<IMasterConcessionList>();
+    } = useFormContext<IMasterConcessionDetailsList>();
 
     return (
         <>
@@ -116,7 +118,7 @@ function FormSections() {
                                 className='-top-[3.5rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
                                 <X className='h-4 w-4 text-destructive' /> Close
                             </Button>
-                            <AddMasterConcessionForm onSuccess={closeAddForm} />
+                            <AddMasterConcessionDetailsForm onSuccess={closeAddForm} />
                         </div>
                     </CollapsibleSection>
                 </div>
@@ -150,4 +152,7 @@ function FormSections() {
             {isToggleFormOpen && selectedRow && <ToggleMasterConcessionForm rowData={selectedRow} onClose={closeToggleForm} />}
         </>
     );
+}
+function useMasterConcession(searchParams: { [key: string]: string | string[] | undefined }): { data: any; isLoading: any; error: any } {
+    throw new Error('Function not implemented.');
 }

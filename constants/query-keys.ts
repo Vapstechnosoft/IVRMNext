@@ -39,5 +39,6 @@ export const FEES_QUERY_KEYS = {
     FEE_MASTER_TERMS_HEAD: 'mastertermfeehead',
     TERM_DROP_DOWN_DATA: 'Terms_Drop_down_data',
     MASTER_HEADS_DROP_DOWN: 'masterHeadsDropdown',
-    MASTER_INSTALLMENT_DROPDOWN: 'masterInstallmentsDropdown'
+    MASTER_INSTALLMENT_DROPDOWN: 'masterInstallmentsDropdown',
+    FEE_MASTER_CONCESSION_DETAILS: 'masterfeeconcessiondetails'
 };

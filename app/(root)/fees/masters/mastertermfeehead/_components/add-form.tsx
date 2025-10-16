@@ -110,7 +110,7 @@ export default function AddFeeTermsHeadFormForm({ onSuccess, termname = '' }: Fe
                                 Term <span className='ml-1 text-red-500'>*</span>
                             </Label>
                             <Controller
-                                name='terms'
+                                name='ftI_Id'
                                 control={control}
                                 render={({ field }) => (
                                     <Select
@@ -141,7 +141,7 @@ export default function AddFeeTermsHeadFormForm({ onSuccess, termname = '' }: Fe
                                     </Select>
                                 )}
                             />
-                            {errors.terms && <FormError>{errors.terms.message}</FormError>}
+                            {errors.ftI_Id && <FormError>{errors.ftI_Id.message}</FormError>}
                         </div>
 
                         <Controller

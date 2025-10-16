@@ -158,3 +158,12 @@ export interface IMaasterFeesYearlyGrouping {
     fyG_RebateType?: 'Percentage' | 'Amount';
     fyG_RebateValue?: string | number;
 }
+
+export interface IMasterConcessionDetails {
+    fmfS_Id: number;
+    fmfS_ToDay: number;
+    fmfS_FromDay: number;
+    fmfS_FineType: string;
+    fmfS_ECSFlag: string;
+    fmfS_ActiveFlag: boolean;
+}
