@@ -38,34 +38,35 @@ export const MasterExamColumns: ColumnDef<IMasterExam>[] = [
         enableHiding: false
     },
     {
-        accessorKey: 'ex_ExamName',
+        accessorKey: 'emE_ExamName',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Exam Name' />,
-        cell: ({ row }) => <div>{row.getValue('ex_ExamName')}</div>
+        cell: ({ row }) => <div>{row.getValue('emE_ExamName')}</div>,
+        enableSorting: true
     },
     {
-        accessorKey: 'ex_IVRSExamName',
+        accessorKey: 'emE_IVRSExamName',
         header: ({ column }) => <DataTableColumnHeader column={column} title='IVRS Exam Name' />,
-        cell: ({ row }) => <div>{row.getValue('ex_IVRSExamName')}</div>
+        cell: ({ row }) => <div>{row.getValue('emE_IVRSExamName')}</div>
     },
     {
-        accessorKey: 'ex_ExamDescription',
+        accessorKey: 'emE_ExamDescription',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Exam Description' />,
-        cell: ({ row }) => <div>{row.getValue('ex_ExamDescription')}</div>
+        cell: ({ row }) => <div>{row.getValue('emE_ExamDescription')}</div>
     },
     {
-        accessorKey: 'ex_ExamCode',
+        accessorKey: 'emE_ExamCode',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Exam Code' />,
-        cell: ({ row }) => <div>{row.getValue('ex_ExamCode')}</div>
+        cell: ({ row }) => <div>{row.getValue('emE_ExamCode')}</div>
     },
     {
-        accessorKey: 'ex_FinalExamFlag',
+        accessorKey: 'emE_FinalExamFlag',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Final Exam Flag' />,
-        cell: ({ row }) => getStatusBadge((row.getValue('ex_FinalExamFlag') as number) === 1 ? 'yes' : 'no')
+        cell: ({ row }) => getStatusBadge((row.getValue('emE_FinalExamFlag') as number) === 1 ? 'yes' : 'no')
     },
     {
-        accessorKey: 'ex_ExamOrder',
+        accessorKey: 'emE_ExamOrder',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Exam Order' />,
-        cell: ({ row }) => <div>{row.getValue('ex_ExamOrder')}</div>
+        cell: ({ row }) => <div>{row.getValue('emE_ExamOrder')}</div>
     },
     {
         id: 'actions',
@@ -99,7 +100,7 @@ function ActionButtonsCell({ rowData }: { rowData: IMasterExam }) {
             buttons={{ edit: true, toggle: true, delete: false }}
             onEdit={handleEdit}
             onToggle={handleToggle}
-            toggleConditionKey='ex_IsActiveFlag'
+            toggleConditionKey='emE_ActiveFlag'
         />
     );
 }

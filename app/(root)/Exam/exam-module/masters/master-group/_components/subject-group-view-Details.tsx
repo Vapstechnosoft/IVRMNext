@@ -14,10 +14,10 @@ interface MasterSubjectGroupDetailsPageProps {
 }
 
 export default function MasterSubjectGroupDetailsPage({ rowData, onClose }: MasterSubjectGroupDetailsPageProps) {
-    const groupId = rowData?.ex_Id;
+    const groupId = rowData?.emG_Id;
 
     // Fetch group details
-    const { data: response, isLoading, error } = useMasterSubjectGroupDetails(30, groupId);
+    const { data: response, isLoading, error } = useMasterSubjectGroupDetails(groupId);
     const tableProps = useDataTableProps(response);
 
     return (
@@ -29,7 +29,7 @@ export default function MasterSubjectGroupDetailsPage({ rowData, onClose }: Mast
                     <div className='mb-4 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between'>
                         <div className='space-y-1'>
                             <Heading
-                                title={`Subject Group Details - ${rowData.ex_GroupName ?? ''}`}
+                                title={`Subject Group Details - ${rowData.emG_GroupName ?? ''}`}
                                 description='Detailed view of grade configuration and marks distribution'
                             />
                         </div>

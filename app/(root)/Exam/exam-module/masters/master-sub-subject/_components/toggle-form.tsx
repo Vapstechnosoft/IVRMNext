@@ -21,7 +21,7 @@ interface ToggleMasterSubSubjectFormProps {
 
 export default function ToggleMasterSubSubjectForm({ rowData, onClose }: ToggleMasterSubSubjectFormProps) {
     const { refetchAll } = useMasterSubSubject();
-    const isActive = rowData.ex_IsActiveFlag;
+    const isActive = rowData.emsS_ActiveFlag;
 
     const {
         register,
@@ -40,7 +40,7 @@ export default function ToggleMasterSubSubjectForm({ rowData, onClose }: ToggleM
 
     const onSubmit: SubmitHandler<FormFields | any> = async () => {
         try {
-            const response = await toggleMasterSubSubject(30, Number(rowData.ex_Id));
+            const response = await toggleMasterSubSubject(30, rowData.emsS_Id);
 
             if (response.success) {
                 toast.success(response.message);
@@ -58,11 +58,11 @@ export default function ToggleMasterSubSubjectForm({ rowData, onClose }: ToggleM
         <AdaptiveDialog title='Toggle Sub Subject Status' isOpen={true} onClose={closeDialog}>
             <form onSubmit={handleSubmit(onSubmit)} className='flex flex-col gap-4'>
                 <AdaptiveBody className='flex flex-col gap-5'>
-                    <input type='hidden' {...register('ex_Id')} defaultValue={rowData.ex_Id} />
+                    <input type='hidden' {...register('emsS_Id')} defaultValue={rowData.emsS_Id} />
                     <p>
-                        Are you sure you want to {isActive ? 'deactivate' : 'activate'} <strong>{rowData.ex_SubSubjectName}</strong>?
+                        Are you sure you want to {isActive ? 'deactivate' : 'activate'} <strong>{rowData.emsS_SubSubjectName}</strong>?
                     </p>
-                    <FormError>{errors.ex_Id?.message}</FormError>
+                    <FormError>{errors.emsS_Id?.message}</FormError>
                     <FormError>{errors.root?.message}</FormError>
                 </AdaptiveBody>
                 <AdaptiveFooter>

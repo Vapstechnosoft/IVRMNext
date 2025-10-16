@@ -1,7 +1,7 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
-import { FormError, Label } from '@/components/ui/extension/field';
+import { FormError } from '@/components/ui/extension/field';
 import { InputText } from '@/components/ui/extension/input-text';
 import { useMasterSubSubject } from '@/hooks/exam/exammodule/usemasters';
 import { masterSubSubjectSchema } from '@/schemas/exam/exam-module/masters';
@@ -32,38 +32,51 @@ export default function UpdateMasterSubSubjectForm({ onSuccess, className = '', 
         formState: { errors, isSubmitting }
     } = useForm<FormFields>({
         resolver: zodResolver(masterSubSubjectSchema.addOrUpdate),
-        mode: 'onChange'
+        mode: 'onChange',
+        defaultValues: {
+            emsS_Id: row?.emsS_Id ?? 0,
+            mI_Id: row?.mI_Id ?? 0,
+            emsS_SubSubjectName: row?.emsS_SubSubjectName ?? '',
+            emsS_SubSubjectCode: row?.emsS_SubSubjectCode ?? '',
+            emsS_Order: row?.emsS_Order ?? 1,
+            emsS_ActiveFlag: row?.emsS_ActiveFlag ?? true
+        }
     });
 
     useEffect(() => {
         if (row) {
             reset({
-                ex_Id: row.ex_Id,
-                ex_SubSubjectName: row.ex_SubSubjectName,
-                ex_SubSubjectCode: row.ex_SubSubjectCode,
-                ex_IsActiveFlag: row.ex_IsActiveFlag
+                emsS_Id: row.emsS_Id,
+                mI_Id: row.mI_Id,
+                emsS_SubSubjectName: row.emsS_SubSubjectName,
+                emsS_SubSubjectCode: row.emsS_SubSubjectCode,
+                emsS_Order: row.emsS_Order,
+                emsS_ActiveFlag: row.emsS_ActiveFlag
             });
         }
     }, [row, reset]);
 
-    const onSubmit: SubmitHandler<FormFields | any> = async (data) => {
+    const onSubmit: SubmitHandler<FormFields> = async (data) => {
         try {
+            // Do NOT use hidden input for boolean; pass it directly
             const payload = {
-                SUBEX_Id: data.ex_Id,
-                SUBEX_SubSubjectName: data.ex_SubSubjectName,
-                SUBEX_SubSubjectCode: data.ex_SubSubjectCode,
-                SUBEX_ActiveFlag: data.ex_IsActiveFlag
+                emsS_Id: data.emsS_Id,
+                mI_Id: data.mI_Id,
+                emsS_SubSubjectName: data.emsS_SubSubjectName,
+                emsS_SubSubjectCode: data.emsS_SubSubjectCode,
+                emsS_Order: data.emsS_Order ?? 1,
+                emsS_ActiveFlag: row?.emsS_ActiveFlag ?? true // keep existing value
             };
 
             const response = await addOrUpdateMasterSubSubject(payload);
 
             if (response.success) {
-                toast.success(response.message);
-                reset();
+                toast.success(response.message || 'Sub Subject updated successfully');
+                reset(payload);
                 refetchAll();
                 onSuccess?.();
             } else {
-                toast.error(response.message);
+                toast.error(response.message || 'Failed to update Sub Subject');
             }
         } catch (error: any) {
             toast.error(error.message);
@@ -73,58 +86,44 @@ export default function UpdateMasterSubSubjectForm({ onSuccess, className = '', 
     const handleReset = () => reset();
 
     return (
-        <div className={`${className}`}>
+        <div className={className}>
             <form onSubmit={handleSubmit(onSubmit)} className='space-y-6'>
-                <div className='space-y-4'>
-                    <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
-                        <InputText
-                            label='Sub Subject Name'
-                            required
-                            id='ex_SubSubjectName'
-                            {...register('ex_SubSubjectName')}
-                            defaultValue={row.ex_SubSubjectName}
-                            error={errors.ex_SubSubjectName?.message}
-                        />
-                        <InputText
-                            label='Sub Subject Code'
-                            required
-                            id='ex_SubSubjectCode'
-                            {...register('ex_SubSubjectCode')}
-                            defaultValue={row.ex_SubSubjectCode}
-                            error={errors.ex_SubSubjectCode?.message}
-                        />
-                    </div>
-
-                    <div className='grid grid-cols-1 gap-4 md:grid-cols-1'>
-                        <Label htmlFor='ex_IsActiveFlag'>
-                            Active Flag <span className='text-red-500'>*</span>
-                        </Label>
-                        <input
-                            type='checkbox'
-                            id='ex_IsActiveFlag'
-                            {...register('ex_IsActiveFlag')}
-                            defaultChecked={row.ex_IsActiveFlag}
-                            className='h-5 w-5'
-                        />
-                        {errors.ex_IsActiveFlag && <FormError>{errors.ex_IsActiveFlag.message}</FormError>}
-                    </div>
-
-                    {errors.root && <FormError>{errors.root.message}</FormError>}
+                {/* Sub Subject Name & Code */}
+                <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
+                    <InputText
+                        label='Sub Subject Name'
+                        required
+                        {...register('emsS_SubSubjectName')}
+                        error={errors.emsS_SubSubjectName?.message}
+                    />
+                    <InputText
+                        label='Sub Subject Code'
+                        required
+                        {...register('emsS_SubSubjectCode')}
+                        error={errors.emsS_SubSubjectCode?.message}
+                    />
                 </div>
 
+                {errors.root && <FormError>{errors.root.message}</FormError>}
+
                 <div className='flex flex-col gap-3 border-t pt-4 sm:flex-row sm:justify-start'>
-                    <Button type='button' variant='outline' onClick={handleReset} disabled={isSubmitting} className='order-2 w-fit'>
+                    <Button
+                        type='button'
+                        variant='outline'
+                        onClick={handleReset}
+                        disabled={isSubmitting}
+                        className='order-2 w-fit transition-all duration-200 hover:scale-105 sm:order-1'>
                         Reset
                     </Button>
                     <Button
                         type='submit'
                         disabled={isSubmitting}
+                        className='order-1 w-fit transition-all duration-200 hover:scale-105 sm:order-2'
                         isLoading={isSubmitting}
-                        loadingText='Saving...'
-                        className='order-1 w-fit'>
+                        loadingText='Saving...'>
                         <div className='flex items-center'>
                             <Save className='mr-2 h-4 w-4' />
-                            Save Sub Subject
+                            Save Master Sub Subject
                         </div>
                     </Button>
                 </div>

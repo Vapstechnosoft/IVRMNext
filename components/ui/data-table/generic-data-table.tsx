@@ -7,6 +7,7 @@ import { Database, RefreshCw } from 'lucide-react';
 interface GenericDataTableProps<T> {
     // Data props
     data?: T[];
+    total?: number;
     columns: ColumnDef<T>[];
     totalItems?: number;
 
@@ -15,7 +16,6 @@ interface GenericDataTableProps<T> {
     error?: Error | null;
     success?: boolean;
     errorMessage?: string;
-
     // Table configuration
     showViewOptions?: boolean;
     columnPinning?: { left?: string[]; right?: string[] };
@@ -45,7 +45,7 @@ interface GenericDataTableProps<T> {
 export function GenericDataTable<T>({
     data = [],
     columns,
-    // totalItems = 0,
+    totalItems = 0,
     isLoading,
     error,
     success = true,
@@ -131,12 +131,14 @@ export function GenericDataTable<T>({
                 isLoading={false}
                 columns={columns}
                 data={data}
-                totalItems={data.length}
+                totalItems={totalItems}
                 showViewOptions={showViewOptions}
                 columnPinning={columnPinning}
                 maxSelectableRows={maxSelectableRows}
                 onRowSelectionChange={(selectedRows) => {
-                    onRowSelectionChange?.(selectedRows);
+                    if (onRowSelectionChange) {
+                        onRowSelectionChange(selectedRows);
+                    }
                 }}
             />
         </div>

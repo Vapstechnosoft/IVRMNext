@@ -190,25 +190,33 @@ export async function getUserAccessibleModules() {
                                         id: 1,
                                         name: 'Master Subject',
                                         icon: 'BookOpen',
-                                        url: '/Exam/exam-module/masters/master-subject'
+                                        url: '/Exam/exam-module/masters/master-subject',
+                                        title: 'Master Subject',
+                                        description: 'Manage Master Subject Details'
                                     },
                                     {
                                         id: 2,
                                         name: 'Master Sub-Subject',
                                         icon: 'BookOpen',
-                                        url: '/Exam/exam-module/masters/master-sub-subject'
+                                        url: '/Exam/exam-module/masters/master-sub-subject',
+                                        title: 'Master Sub-Subject',
+                                        description: 'Manage Master Sub-Subject Details'
                                     },
                                     {
                                         id: 3,
                                         name: 'Master Exam',
                                         icon: 'BookOpen',
-                                        url: '/Exam/exam-module/masters/exam-master'
+                                        url: '/Exam/exam-module/masters/exam-master',
+                                        title: 'Master Exam',
+                                        description: 'Manage Master Exam Details'
                                     },
                                     {
                                         id: 4,
                                         name: 'Master Sub-Exam',
                                         icon: 'BookOpen',
-                                        url: '/Exam/exam-module/masters/sub-exam-master'
+                                        url: '/Exam/exam-module/masters/sub-exam-master',
+                                        title: 'Master Sub-Exam',
+                                        description: 'Manage Master Sub-Exam Details'
                                     },
                                     {
                                         id: 5,

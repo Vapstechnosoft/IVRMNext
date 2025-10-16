@@ -8,7 +8,7 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { MasterViewDetails } from '@/components/ui/set-order/generic-seto-order';
 import { useMasterSubject } from '@/hooks/exam/exammodule/usemasters';
 import { masterSubjectSchema } from '@/schemas/exam/exam-module/masters';
-import { addOrUpdateMasterSubject, getMasterSubjectOrderData } from '@/server/exam/exam-module/masters/subject';
+import { UpdatedOrderdSubjects, addOrUpdateMasterSubject, getMasterSubjectOrderData } from '@/server/exam/exam-module/masters/subject';
 import type { IMasterSubjectOrder } from '@/types/exam/exam-module/masters';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { List, Save } from 'lucide-react';
@@ -26,9 +26,9 @@ interface AddMasterSubjectFormProps {
 
 export default function AddMasterSubjectForm({ onSuccess, className = '' }: AddMasterSubjectFormProps) {
     const { refetchAll } = useMasterSubject();
-
     const [orderModalOpen, setOrderModalOpen] = useState(false);
     const [orderData, setOrderData] = useState<(IMasterSubjectOrder & { id: number })[]>([]);
+    const [updatedOrderData, setUpdatedOrderData] = useState<IMasterSubjectOrder[]>([]);
 
     const {
         control,
@@ -40,18 +40,24 @@ export default function AddMasterSubjectForm({ onSuccess, className = '' }: AddM
         resolver: zodResolver(masterSubjectSchema.addOrUpdate),
         mode: 'onChange',
         defaultValues: {
-            exsuB_MaxMarks: 0,
-            exsuB_MinMarks: 0,
-            exsuB_PreAdmissionFlag: 0,
-            exsuB_AttendanceFlag: 0,
-            exsuB_BatchWiseFlag: 0,
-            exsuB_ExamFlag: 0,
-            exsuB_LanguageFlag: 0,
-            exsuB_ExtraFeeFlag: 0
+            mI_Id: 30,
+            ismS_Max_Marks: 0,
+            ismS_Min_Marks: 0,
+            ismS_PreadmFlag: 0,
+            ismS_AttendanceFlag: true, // boolean
+            ismS_BatchAppl: 0,
+            ismS_ExamFlag: 0,
+            ismS_LanguageFlg: 0,
+            ismS_AtExtraFeeFlg: 0,
+            ismS_ActiveFlag: 1, // Add this
+            ismS_SubjectName: '', // Add all string fields
+            ismS_IVRSSubjectName: '',
+            ismS_SubjectCode: '',
+            ismS_SubjectNameNew: ''
         }
     });
 
-    // ⏺ Submit handler
+    // Submit handler
     const onSubmit: SubmitHandler<FormFields> = async (data) => {
         try {
             const response = await addOrUpdateMasterSubject(data);
@@ -71,21 +77,53 @@ export default function AddMasterSubjectForm({ onSuccess, className = '' }: AddM
 
     const handleReset = () => reset();
 
-    // 🔹 Fetch and open order modal
+    // Fetch and open order modal
     const handleSetOrder = async () => {
         try {
-            const data = await getMasterSubjectOrderData();
-            const mappedData = data?.data?.map((d) => ({ ...d, id: d.exsuB_Id })) || [];
-            setOrderData(mappedData);
-            setOrderModalOpen(true);
+            const response = await getMasterSubjectOrderData(30);
+
+            if (response.success && response.data) {
+                const subjects: IMasterSubjectOrder[] = Array.isArray(response.data) ? response.data : [];
+
+                const mappedData = subjects.map((d) => ({ ...d, id: d.ismS_Id }));
+                setOrderData(mappedData);
+                setOrderModalOpen(true);
+            } else {
+                toast.error(response.message || 'Failed to fetch subjects.');
+            }
         } catch (error: any) {
-            toast.error(error.message);
+            toast.error(error.message || 'Something went wrong while fetching subjects.');
         }
     };
 
-    // 🔹 Save new order
-    const handleOrderSave = (updatedData: (IMasterSubjectOrder & { id: number })[]) => {
-        setOrderData(updatedData);
+    // Save new order
+    const handleOrderSave = async (updatedData: (IMasterSubjectOrder & { id: number })[]) => {
+        try {
+            const updatedOrderData = updatedData.map((item, index) => ({
+                ismS_Id: item.ismS_Id,
+                mI_Id: item.mI_Id,
+                ismS_OrderFlag: index + 1
+            }));
+
+            const payload = {
+                subject_list_Order: updatedOrderData // ✅ correct variable name
+            };
+
+            console.log('Payload being sent:', payload);
+
+            const response = await UpdatedOrderdSubjects(payload);
+
+            if (response.success) {
+                toast.success(response.message);
+                reset();
+                refetchAll();
+                onSuccess?.();
+            } else {
+                toast.error(response.message);
+            }
+        } catch (error: any) {
+            toast.error(error.message);
+        }
     };
 
     return (
@@ -97,30 +135,30 @@ export default function AddMasterSubjectForm({ onSuccess, className = '' }: AddM
                         <InputText
                             label='Subject Name'
                             required
-                            id='exsuB_SubjectName'
-                            {...register('exsuB_SubjectName')}
-                            error={errors.exsuB_SubjectName?.message}
+                            id='ismS_SubjectName'
+                            {...register('ismS_SubjectName')}
+                            error={errors.ismS_SubjectName?.message}
                         />
                         <InputText
                             label='IVRS Subject Name'
                             required
-                            id='exsuB_IVRSName'
-                            {...register('exsuB_IVRSName')}
-                            error={errors.exsuB_IVRSName?.message}
+                            id='ismS_IVRSSubjectName'
+                            {...register('ismS_IVRSSubjectName')}
+                            error={errors.ismS_IVRSSubjectName?.message}
                         />
                         <InputText
                             label='Subject Code'
                             required
-                            id='exsuB_SubjectCode'
-                            {...register('exsuB_SubjectCode')}
-                            error={errors.exsuB_SubjectCode?.message}
+                            id='ismS_SubjectCode'
+                            {...register('ismS_SubjectCode')}
+                            error={errors.ismS_SubjectCode?.message}
                         />
                         <InputText
-                            label='Subject Type'
+                            label='Subject Type / New Name'
                             required
-                            id='exsuB_SubjectType'
-                            {...register('exsuB_SubjectType')}
-                            error={errors.exsuB_SubjectType?.message}
+                            id='ismS_SubjectNameNew'
+                            {...register('ismS_SubjectNameNew')}
+                            error={errors.ismS_SubjectNameNew?.message}
                         />
                     </div>
 
@@ -128,49 +166,49 @@ export default function AddMasterSubjectForm({ onSuccess, className = '' }: AddM
                     <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
                         <div className='group flex flex-col gap-1.5'>
                             <Controller
-                                name='exsuB_MaxMarks'
+                                name='ismS_Max_Marks'
                                 control={control}
                                 render={({ field }) => (
                                     <InputNumber
                                         label='Max Marks'
                                         required
-                                        id='exsuB_MaxMarks'
-                                        value={field.value || 0}
-                                        onChange={(value) => field.onChange(value)}
+                                        id='ismS_Max_Marks'
+                                        value={field.value ?? 0}
+                                        onChange={field.onChange}
                                         minValue={0}
                                     />
                                 )}
                             />
-                            {errors.exsuB_MaxMarks && <FormError>{errors.exsuB_MaxMarks.message}</FormError>}
+                            {errors.ismS_Max_Marks && <FormError>{errors.ismS_Max_Marks.message}</FormError>}
                         </div>
                         <div className='group flex flex-col gap-1.5'>
                             <Controller
-                                name='exsuB_MinMarks'
+                                name='ismS_Min_Marks'
                                 control={control}
                                 render={({ field }) => (
                                     <InputNumber
                                         label='Min Marks'
                                         required
-                                        id='exsuB_MinMarks'
-                                        value={field.value || 0}
-                                        onChange={(value) => field.onChange(value)}
+                                        id='ismS_Min_Marks'
+                                        value={field.value ?? 0}
+                                        onChange={field.onChange}
                                         minValue={0}
                                     />
                                 )}
                             />
-                            {errors.exsuB_MinMarks && <FormError>{errors.exsuB_MinMarks.message}</FormError>}
+                            {errors.ismS_Min_Marks && <FormError>{errors.ismS_Min_Marks.message}</FormError>}
                         </div>
                     </div>
 
                     {/* Row 3 - Flags */}
                     <div className='grid grid-cols-1 gap-4 md:grid-cols-3'>
                         {[
-                            { name: 'exsuB_PreAdmissionFlag', label: 'Pre-Admission Flag' },
-                            { name: 'exsuB_AttendanceFlag', label: 'Attendance Flag' },
-                            { name: 'exsuB_BatchWiseFlag', label: 'Batch Wise Flag' },
-                            { name: 'exsuB_ExamFlag', label: 'Exam Flag' },
-                            { name: 'exsuB_LanguageFlag', label: 'Language Flag' },
-                            { name: 'exsuB_ExtraFeeFlag', label: 'Extra Fee Flag' }
+                            { name: 'ismS_PreadmFlag', label: 'Pre-Admission Flag', isBoolean: false },
+                            { name: 'ismS_AttendanceFlag', label: 'Attendance Flag', isBoolean: true },
+                            { name: 'ismS_BatchAppl', label: 'Batch Wise Flag', isBoolean: false },
+                            { name: 'ismS_ExamFlag', label: 'Exam Flag', isBoolean: false },
+                            { name: 'ismS_LanguageFlg', label: 'Language Flag', isBoolean: false },
+                            { name: 'ismS_AtExtraFeeFlg', label: 'Extra Fee Flag', isBoolean: false }
                         ].map((fieldDef) => (
                             <div key={fieldDef.name} className='group flex flex-col gap-1.5'>
                                 <Label htmlFor={fieldDef.name}>
@@ -182,8 +220,8 @@ export default function AddMasterSubjectForm({ onSuccess, className = '' }: AddM
                                     control={control}
                                     render={({ field }) => (
                                         <RadioGroup
-                                            value={String(field.value ?? 0)}
-                                            onValueChange={(value) => field.onChange(Number(value))}
+                                            value={fieldDef.isBoolean ? (field.value ? '1' : '0') : String(field.value ?? 0)}
+                                            onValueChange={(value) => field.onChange(fieldDef.isBoolean ? value === '1' : Number(value))}
                                             className='flex gap-4'>
                                             <div className='flex items-center space-x-2'>
                                                 <RadioGroupItem value='1' id={`${fieldDef.name}-yes`} />
@@ -204,7 +242,6 @@ export default function AddMasterSubjectForm({ onSuccess, className = '' }: AddM
                         ))}
                     </div>
 
-                    {/* Root Error */}
                     {errors.root && <FormError>{errors.root.message}</FormError>}
                 </div>
 
@@ -250,9 +287,9 @@ export default function AddMasterSubjectForm({ onSuccess, className = '' }: AddM
                     data={orderData}
                     columns={[
                         { key: 'id', label: 'SLNO', className: 'text-center w-12' },
-                        { key: 'exsuB_SubjectName', label: 'Subject Name', className: 'text-left' },
-                        { key: 'exsuB_SubjectCode', label: 'Subject Code', className: 'text-left' },
-                        { key: 'exsuB_SubjectOrder', label: 'Subject Order', className: 'text-left' }
+                        { key: 'ismS_SubjectName', label: 'Subject Name', className: 'text-left' },
+                        { key: 'ismS_SubjectCode', label: 'Subject Code', className: 'text-left' },
+                        { key: 'ismS_OrderFlag', label: 'Subject Order', className: 'text-left' }
                     ]}
                     onSave={handleOrderSave}
                     tableHeight='500px'

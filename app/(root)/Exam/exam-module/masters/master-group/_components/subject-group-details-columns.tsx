@@ -32,13 +32,13 @@ export const MasterSubjectGroupDetailsColumns: ColumnDef<IMasterSubjectGroupDeta
         }
     },
     {
-        accessorKey: 'ex_SubjectName',
+        accessorKey: 'ismS_SubjectName',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Subject Name' />,
-        cell: ({ row }) => <div>{row.getValue('ex_SubjectName')}</div>
+        cell: ({ row }) => <div>{row.getValue('ismS_SubjectName')}</div>
     },
     {
-        accessorKey: 'ex_SubjectCode',
+        accessorKey: 'ismS_SubjectCode',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Subject Code' />,
-        cell: ({ row }) => <div>{row.getValue('ex_SubjectCode')}</div>
+        cell: ({ row }) => <div>{row.getValue('ismS_SubjectCode')}</div>
     }
 ];

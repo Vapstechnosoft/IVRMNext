@@ -9,10 +9,6 @@ import { useMasterSubject } from '@/hooks/exam/exammodule/usemasters';
 import { masterSubjectSchema } from '@/schemas/exam/exam-module/masters';
 import { addOrUpdateMasterSubject } from '@/server/exam/exam-module/masters/subject';
 import type { IMasterSubject } from '@/types/exam/exam-module/masters';
-// import { useMasterSubject } from '@/hooks/exam/useMasters';
-// import { masterSubjectSchema } from '@/schemas/exam/masters';
-// import { addOrUpdateMasterSubject } from '@/server/exam/masters/subject';
-// import type { IMasterSubject } from '@/types/exam/master-subject';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Save } from 'lucide-react';
 import { useEffect } from 'react';
@@ -33,194 +29,178 @@ export default function UpdateMasterSubjectForm({ onSuccess, className = '', sel
 
     const {
         control,
-        setValue,
         register,
         handleSubmit,
         reset,
+        setValue,
         formState: { errors, isSubmitting }
     } = useForm<FormFields>({
         resolver: zodResolver(masterSubjectSchema.addOrUpdate),
         mode: 'onChange'
     });
 
+    // Initialize form with selected row safely
     useEffect(() => {
         if (row) {
             reset({
-                exsuB_Id: row.exsuB_Id,
-                exsuB_SubjectName: row.exsuB_SubjectName,
-                exsuB_IVRSName: row.exsuB_IVRSName,
-                exsuB_SubjectCode: row.exsuB_SubjectCode,
-                exsuB_SubjectType: row.exsuB_SubjectType,
-                exsuB_MaxMarks: row.exsuB_MaxMarks,
-                exsuB_MinMarks: row.exsuB_MinMarks,
-                exsuB_PreAdmissionFlag: row.exsuB_PreAdmissionFlag,
-                exsuB_AttendanceFlag: row.exsuB_AttendanceFlag,
-                exsuB_BatchWiseFlag: row.exsuB_BatchWiseFlag,
-                exsuB_ExamFlag: row.exsuB_ExamFlag,
-                exsuB_LanguageFlag: row.exsuB_LanguageFlag,
-                exsuB_ExtraFeeFlag: row.exsuB_ExtraFeeFlag
+                ismS_Id: row.ismS_Id,
+                mI_Id: row.mI_Id ?? 30,
+                ismS_SubjectName: row.ismS_SubjectName ?? '',
+                ismS_IVRSSubjectName: row.ismS_IVRSSubjectName ?? '',
+                ismS_SubjectCode: row.ismS_SubjectCode ?? '',
+                ismS_SubjectNameNew: row.ismS_SubjectNameNew ?? '',
+                ismS_Max_Marks: row.ismS_Max_Marks ?? 0, // no Number() needed
+                ismS_Min_Marks: row.ismS_Min_Marks ?? 0, // no Number() needed
+                ismS_PreadmFlag: row.ismS_PreadmFlag ? 1 : 0,
+                ismS_AttendanceFlag: row.ismS_AttendanceFlag ?? true,
+                ismS_BatchAppl: row.ismS_BatchAppl ? 1 : 0,
+                ismS_ExamFlag: row.ismS_ExamFlag ? 1 : 0,
+                ismS_LanguageFlg: row.ismS_LanguageFlg ? 1 : 0,
+                ismS_AtExtraFeeFlg: row.ismS_AtExtraFeeFlg ? 1 : 0,
+                ismS_ActiveFlag: 1
             });
         }
-    }, [row, reset, setValue]);
+    }, [row, reset]);
 
     const onSubmit: SubmitHandler<FormFields | any> = async (data: FormFields) => {
         try {
             const payload = {
-                MI_Id: 30,
-                EXSUB_Id: data.exsuB_Id,
-                EXSUB_SubjectName: data.exsuB_SubjectName,
-                EXSUB_IVRSName: data.exsuB_IVRSName,
-                EXSUB_SubjectCode: data.exsuB_SubjectCode,
-                EXSUB_SubjectType: data.exsuB_SubjectType,
-                EXSUB_MaxMarks: data.exsuB_MaxMarks,
-                EXSUB_MinMarks: data.exsuB_MinMarks,
-                EXSUB_PreAdmissionFlag: data.exsuB_PreAdmissionFlag,
-                EXSUB_AttendanceFlag: data.exsuB_AttendanceFlag,
-                EXSUB_BatchWiseFlag: data.exsuB_BatchWiseFlag,
-                EXSUB_ExamFlag: data.exsuB_ExamFlag,
-                EXSUB_LanguageFlag: data.exsuB_LanguageFlag,
-                EXSUB_ExtraFeeFlag: data.exsuB_ExtraFeeFlag,
-                EXSUB_ActiveFlag: true
+                ...data,
+                ismS_PreadmFlag: Number(data.ismS_PreadmFlag),
+                ismS_AttendanceFlag: Boolean(data.ismS_AttendanceFlag),
+                ismS_BatchAppl: Number(data.ismS_BatchAppl),
+                ismS_ExamFlag: Number(data.ismS_ExamFlag),
+                ismS_LanguageFlg: Number(data.ismS_LanguageFlg),
+                ismS_AtExtraFeeFlg: Number(data.ismS_AtExtraFeeFlg),
+                ismS_ActiveFlag: 1,
+                ismS_Max_Marks: Number(data.ismS_Max_Marks) || 0,
+                ismS_Min_Marks: Number(data.ismS_Min_Marks) || 0
             };
 
             const response = await addOrUpdateMasterSubject(payload);
 
             if (response.success) {
-                toast.success(response.message);
-                reset();
+                toast.success(response.message || 'Subject updated successfully');
+                reset(payload);
                 refetchAll();
                 onSuccess?.();
             } else {
-                toast.error(response.message);
+                toast.error(response.message || 'Failed to update subject');
             }
         } catch (error: any) {
             toast.error(error.message);
         }
     };
 
-    const handleReset = () => {
-        reset();
-    };
+    const handleReset = () => reset();
 
     return (
-        <div className={`${className}`}>
+        <div className={className}>
             <form onSubmit={handleSubmit(onSubmit)} className='space-y-6'>
-                <div className='space-y-4'>
-                    <div className='grid grid-cols-1 gap-4 md:grid-cols-4'>
-                        <InputText
-                            label='Subject Name'
-                            required
-                            id='exsuB_SubjectName'
-                            {...register('exsuB_SubjectName')}
-                            defaultValue={row.exsuB_SubjectName}
-                            error={errors.exsuB_SubjectName?.message}
-                        />
-                        <InputText
-                            label='IVRS Name'
-                            required
-                            id='exsuB_IVRSName'
-                            {...register('exsuB_IVRSName')}
-                            defaultValue={row.exsuB_IVRSName}
-                            error={errors.exsuB_IVRSName?.message}
-                        />
-                        <InputText
-                            label='Subject Code'
-                            required
-                            id='exsuB_SubjectCode'
-                            {...register('exsuB_SubjectCode')}
-                            defaultValue={row.exsuB_SubjectCode}
-                            error={errors.exsuB_SubjectCode?.message}
-                        />
-                        <InputText
-                            label='Subject Type'
-                            required
-                            id='exsuB_SubjectType'
-                            {...register('exsuB_SubjectType')}
-                            defaultValue={row.exsuB_SubjectType}
-                            error={errors.exsuB_SubjectType?.message}
-                        />
-                    </div>
-
-                    <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
-                        <Controller
-                            name='exsuB_MaxMarks'
-                            control={control}
-                            render={({ field }) => (
-                                <InputNumber
-                                    label='Max Marks'
-                                    required
-                                    id='exsuB_MaxMarks'
-                                    defaultValue={row.exsuB_MaxMarks}
-                                    onChange={(value) => field.onChange(value)}
-                                    minValue={0}
-                                />
-                            )}
-                        />
-                        {errors.exsuB_MaxMarks && <FormError>{errors.exsuB_MaxMarks.message}</FormError>}
-
-                        <Controller
-                            name='exsuB_MinMarks'
-                            control={control}
-                            render={({ field }) => (
-                                <InputNumber
-                                    label='Min Marks'
-                                    required
-                                    id='exsuB_MinMarks'
-                                    defaultValue={row.exsuB_MinMarks}
-                                    onChange={(value) => field.onChange(value)}
-                                    minValue={0}
-                                />
-                            )}
-                        />
-                        {errors.exsuB_MinMarks && <FormError>{errors.exsuB_MinMarks.message}</FormError>}
-                    </div>
-
-                    <div className='grid grid-cols-1 gap-4 md:grid-cols-3'>
-                        {[
-                            { key: 'exsuB_PreAdmissionFlag', label: 'Pre-Admission' },
-                            { key: 'exsuB_AttendanceFlag', label: 'Attendance' },
-                            { key: 'exsuB_BatchWiseFlag', label: 'Batch Wise' },
-                            { key: 'exsuB_ExamFlag', label: 'Exam' },
-                            { key: 'exsuB_LanguageFlag', label: 'Language' },
-                            { key: 'exsuB_ExtraFeeFlag', label: 'Extra Fee' }
-                        ].map((flag) => (
-                            <div key={flag.key} className='group flex flex-col gap-1.5'>
-                                <Label htmlFor={flag.key}>
-                                    {flag.label} <span className='ml-1 text-red-500'>*</span>
-                                </Label>
-                                <RadioGroup
-                                    defaultValue={String((row as any)[flag.key])}
-                                    onValueChange={(value) => setValue(flag.key as any, Number(value))}
-                                    className='flex gap-4'>
-                                    <div className='flex items-center space-x-2'>
-                                        <RadioGroupItem value='1' id={`${flag.key}_yes`} />
-                                        <Label htmlFor={`${flag.key}_yes`}>Yes</Label>
-                                    </div>
-                                    <div className='flex items-center space-x-2'>
-                                        <RadioGroupItem value='0' id={`${flag.key}_no`} />
-                                        <Label htmlFor={`${flag.key}_no`}>No</Label>
-                                    </div>
-                                </RadioGroup>
-                            </div>
-                        ))}
-                    </div>
-
-                    {errors.root && <FormError>{errors.root.message}</FormError>}
+                {/* Text Fields */}
+                <div className='grid grid-cols-1 gap-4 md:grid-cols-4'>
+                    <InputText label='Subject Name' required {...register('ismS_SubjectName')} error={errors.ismS_SubjectName?.message} />
+                    <InputText
+                        label='IVRS Name'
+                        required
+                        {...register('ismS_IVRSSubjectName')}
+                        error={errors.ismS_IVRSSubjectName?.message}
+                    />
+                    <InputText label='Subject Code' required {...register('ismS_SubjectCode')} error={errors.ismS_SubjectCode?.message} />
+                    <InputText label='New Subject Name' {...register('ismS_SubjectNameNew')} error={errors.ismS_SubjectNameNew?.message} />
                 </div>
 
+                {/* Marks */}
+                <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
+                    <Controller
+                        name='ismS_Max_Marks'
+                        control={control}
+                        render={({ field }) => (
+                            <InputNumber
+                                label='Max Marks'
+                                required
+                                id='ismS_Max_Marks'
+                                value={field.value ?? 0}
+                                onChange={(val) => field.onChange(Number(val) || 0)}
+                                minValue={0}
+                            />
+                        )}
+                    />
+                    {errors.ismS_Max_Marks && <FormError>{errors.ismS_Max_Marks.message}</FormError>}
+
+                    <Controller
+                        name='ismS_Min_Marks'
+                        control={control}
+                        render={({ field }) => (
+                            <InputNumber
+                                label='Min Marks'
+                                required
+                                id='ismS_Min_Marks'
+                                value={field.value ?? 0}
+                                onChange={(val) => field.onChange(Number(val) || 0)}
+                                minValue={0}
+                            />
+                        )}
+                    />
+                    {errors.ismS_Min_Marks && <FormError>{errors.ismS_Min_Marks.message}</FormError>}
+                </div>
+
+                {/* Flags */}
+                <div className='grid grid-cols-1 gap-4 md:grid-cols-3'>
+                    {[
+                        { key: 'ismS_PreadmFlag', label: 'Pre-Admission', isBoolean: false },
+                        { key: 'ismS_AttendanceFlag', label: 'Attendance', isBoolean: true },
+                        { key: 'ismS_BatchAppl', label: 'Batch Wise', isBoolean: false },
+                        { key: 'ismS_ExamFlag', label: 'Exam', isBoolean: false },
+                        { key: 'ismS_LanguageFlg', label: 'Language', isBoolean: false },
+                        { key: 'ismS_AtExtraFeeFlg', label: 'Extra Fee', isBoolean: false }
+                    ].map((flag) => (
+                        <div key={flag.key} className='group flex flex-col gap-1.5'>
+                            <Label htmlFor={flag.key}>
+                                {flag.label} <span className='ml-1 text-red-500'>*</span>
+                            </Label>
+                            <RadioGroup
+                                defaultValue={flag.isBoolean ? ((row as any)[flag.key] ? '1' : '0') : String((row as any)[flag.key])}
+                                onValueChange={(value) => {
+                                    if (flag.isBoolean) {
+                                        setValue(flag.key as any, value === '1');
+                                    } else {
+                                        setValue(flag.key as any, Number(value));
+                                    }
+                                }}
+                                className='flex gap-4'>
+                                <div className='flex items-center space-x-2'>
+                                    <RadioGroupItem value='1' id={`${flag.key}_yes`} />
+                                    <Label htmlFor={`${flag.key}_yes`}>Yes</Label>
+                                </div>
+                                <div className='flex items-center space-x-2'>
+                                    <RadioGroupItem value='0' id={`${flag.key}_no`} />
+                                    <Label htmlFor={`${flag.key}_no`}>No</Label>
+                                </div>
+                            </RadioGroup>
+                        </div>
+                    ))}
+                </div>
+
+                {/* Buttons */}
                 <div className='flex flex-col gap-3 border-t pt-4 sm:flex-row sm:justify-start'>
-                    <Button type='button' variant='outline' onClick={handleReset} disabled={isSubmitting} className='order-2 w-fit'>
+                    <Button
+                        type='button'
+                        variant='outline'
+                        onClick={handleReset}
+                        disabled={isSubmitting}
+                        className='order-2 w-fit transition-all duration-200 hover:scale-105 sm:order-1'>
                         Reset
                     </Button>
                     <Button
                         type='submit'
                         disabled={isSubmitting}
+                        className='order-1 w-fit transition-all duration-200 hover:scale-105 sm:order-2'
                         isLoading={isSubmitting}
-                        loadingText='Saving...'
-                        className='order-1 w-fit'>
+                        loadingText='Saving...'>
                         <div className='flex items-center'>
                             <Save className='mr-2 h-4 w-4' />
-                            Save Subject
+                            Save Master Subject
                         </div>
                     </Button>
                 </div>

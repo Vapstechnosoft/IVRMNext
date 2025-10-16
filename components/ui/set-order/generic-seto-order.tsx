@@ -13,7 +13,7 @@ interface Column {
     className?: string;
 }
 
-interface MasterSubSubjectOrderViewProps<T extends { id: number }> {
+interface MasterOrderViewProps<T extends { id: number }> {
     isOpen: boolean;
     onClose: () => void;
     data: T[];
@@ -29,7 +29,7 @@ export function MasterViewDetails<T extends { id: number }>({
     columns,
     onSave,
     tableHeight = '800px'
-}: MasterSubSubjectOrderViewProps<T>) {
+}: MasterOrderViewProps<T>) {
     const [items, setItems] = useState<T[]>([]);
 
     useEffect(() => {

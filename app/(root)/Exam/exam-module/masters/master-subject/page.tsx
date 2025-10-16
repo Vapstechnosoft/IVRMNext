@@ -18,6 +18,7 @@ type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 
 export default function MasterSubjectPage(props: { searchParams: SearchParams }) {
     const searchParams = use(props.searchParams);
+    console.info(searchParams);
     const { data: response, isLoading, error } = useMasterSubject(searchParams);
 
     return (
@@ -67,6 +68,7 @@ function MasterSubjectPageContent({
                     className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
                     <GenericDataTable<IMasterSubject>
                         {...tableProps}
+                        total={response?.total}
                         columns={examSubjectColumns}
                         isLoading={isLoading}
                         error={error}

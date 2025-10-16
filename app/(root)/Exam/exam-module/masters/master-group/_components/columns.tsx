@@ -1,5 +1,6 @@
 'use client';
 
+import { getStatusBadge } from '@/components/extras/helpers/helper';
 import { Checkbox } from '@/components/ui/checkbox';
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
 import { ActionButtons } from '@/components/ui/form/action-buttons';
@@ -37,34 +38,39 @@ export const MasterSubjectGroupColumns: ColumnDef<IMasterSubjectGroup>[] = [
         }
     },
     {
-        accessorKey: 'ex_GroupName',
+        accessorKey: 'emG_GroupName',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Group Name' />,
-        cell: ({ row }) => <div>{row.getValue('ex_GroupName')}</div>
+        cell: ({ row }) => <div>{row.getValue('emG_GroupName')}</div>
     },
     {
-        accessorKey: 'ex_MinApplicableSubjects',
+        accessorKey: 'emG_TotSubjects',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Total Subjects' />,
+        cell: ({ row }) => <div>{row.getValue('emG_TotSubjects')}</div>
+    },
+    {
+        accessorKey: 'emG_MinAplSubjects',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Min Applicable Subjects' />,
-        cell: ({ row }) => <div>{row.getValue('ex_MinApplicableSubjects')}</div>
+        cell: ({ row }) => <div>{row.getValue('emG_MinAplSubjects')}</div>
     },
     {
-        accessorKey: 'ex_MaxApplicapleSubjects',
+        accessorKey: 'emG_MaxAplSubjects',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Max Applicable Subjects' />,
-        cell: ({ row }) => <div>{row.getValue('ex_MaxApplicapleSubjects')}</div>
+        cell: ({ row }) => <div>{row.getValue('emG_MaxAplSubjects')}</div>
     },
     {
-        accessorKey: 'ex_BestOffSubjects',
+        accessorKey: 'emG_BestOff',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Best Of Subjects' />,
-        cell: ({ row }) => <div>{row.getValue('ex_BestOffSubjects')}</div>
+        cell: ({ row }) => <div>{row.getValue('emG_BestOff')}</div>
     },
     {
-        accessorKey: 'ex_ElectiveSubjects',
+        accessorKey: 'emG_ElectiveFlg',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Elective Subjects' />,
-        cell: ({ row }) => <div>{row.getValue('ex_ElectiveSubjects')}</div>
+        cell: ({ row }) => getStatusBadge(row.getValue('emG_ElectiveFlg') ? 'yes' : 'no')
     },
     {
-        accessorKey: 'ex_IsActiveFlag',
+        accessorKey: 'emG_ActiveFlag',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Active Status' />,
-        cell: ({ row }) => <div>{row.getValue('ex_IsActiveFlag') ? 'Active' : 'Inactive'}</div>
+        cell: ({ row }) => <div>{row.getValue('emG_ActiveFlag') ? 'Active' : 'Inactive'}</div>
     },
     {
         id: 'actions',
@@ -102,7 +108,7 @@ function ActionButtonsCell({ rowData }: { rowData: IMasterSubjectGroup }) {
                 buttons={{ edit: true, toggle: true, delete: false }}
                 onEdit={handleEdit}
                 onToggle={handleToggle}
-                toggleConditionKey='ex_IsActiveFlag'
+                toggleConditionKey='emG_ActiveFlag'
             />
         </div>
     );

@@ -1,94 +1,124 @@
 // /types/exam/master-subject.ts
 
 export interface IMasterSubject {
-    exsuB_Id: number; // Unique Subject ID
-    exsuB_SubjectName: string; // Subject Name
-    exsuB_IVRSName: string; // IVRS Subject Name
-    exsuB_SubjectCode: string; // Subject Code
-    exsuB_SubjectType: string; // Subject Type (e.g., Theory/Practical)
-    exsuB_MaxMarks: number; // Maximum Marks
-    exsuB_MinMarks: number; // Minimum Marks
-    exsuB_PreAdmissionFlag: number; // Pre-Admission Flag (0/1)
-    exsuB_AttendanceFlag: number; // Attendance Flag (0/1)
-    exsuB_BatchWiseFlag: number; // Batch Wise Flag (0/1)
-    exsuB_ExamFlag: number; // Exam Flag (0/1)
-    exsuB_LanguageFlag: number; // Language Flag (0/1)
-    exsuB_ExtraFeeFlag: number; // Extra Fee Flag (0/1)
-    exsuB_IsActiveFlag: boolean;
+    ismS_Id: number; // Unique Subject ID
+    mI_Id: number; // Institute ID
+    ismS_SubjectName: string; // Subject Name *
+    ismS_IVRSSubjectName: string; // IVRS Subject Name *
+    ismS_SubjectCode: string; // Subject Code *
+    ismS_SubjectNameNew?: string; // New Subject Name (optional)
+    ismS_SubjectFlag?: number; // Subject Flag (optional)
+    ismS_BatchAppl: number; // Batch Applicable *
+    ismS_ActiveFlag?: number; // Active Flag (optional)
+    ismS_OrderFlag?: number; // Order Flag (optional)
+    ismS_AttendanceFlag: boolean; // Attendance Flag *
+    ismS_AtExtraFeeFlg: number; // Extra Fee Flag *
+    ismS_LanguageFlg: number; // Language Flag *
+    ismS_TTFlag?: boolean; // Time Table Flag (optional)
+    ismS_Max_Marks: number; // Maximum Marks *
+    ismS_Min_Marks: number; // Minimum Marks *
+    ismS_ExamFlag: number; // Exam Flag *
+    ismS_PreadmFlag: number; // Pre-admission Flag *
+    createdDate?: string; // Optional created date
+    updatedDate?: string; // Optional updated date
 }
 
 export interface IMasterSubjectOrder {
-    exsuB_Id: number; // Unique Subject ID
-    exsuB_SubjectName: string; // Subject Name
-    exsuB_SubjectCode: string; // Subject Code
-    exsuB_SubjectOrder: number;
+    mI_Id: number; // Unique Subject ID
+    ismS_Id: number;
+    ismS_SubjectName?: string; // Subject Name
+    ismS_SubjectCode?: string; // Subject Code
+    ismS_OrderFlag: number;
 }
 
 export interface IMasterExam {
-    ex_Id: number;
-    ex_ExamName: string;
-    ex_IVRSExamName: string;
-    ex_ExamDescription: string;
-    ex_ExamCode: string;
-    ex_ExamOrder: number;
-    ex_FinalExamFlag: number;
-    ex_SubjectWiseMarksPublishFlag: number;
-    ex_IsActiveFlag: boolean;
+    emE_Id: number;
+    mI_Id?: number;
+    emE_ExamName: string;
+    emE_IVRSExamName: string;
+    emE_ExamDescription: string;
+    emE_ExamCode: string;
+    emE_ExamOrder: number;
+    emE_FinalExamFlag: number;
+    emE_SujectwiseMarksPublishFlg: number;
+    emE_ActiveFlag: boolean;
+    createdDate?: string;
+    updatedDate?: string;
+}
+
+export interface IMasterExamOrder {
+    mI_Id?: number;
+    emE_Id: number;
+    emE_ExamName: string;
+    emE_ExamCode: string;
+    emE_ExamOrder: number;
 }
 
 export interface IMasterExamPaper {
-    ex_Id: number;
-    ex_ExamPaperType: string;
-    ex_DisplayColor: string;
-    ex_PaperTypeDescription: string;
-    ex_IsActiveFlag: boolean;
+    empatY_Id: number;
+    mI_Id?: number;
+    empatY_PaperTypeName: string;
+    empatY_Color: string;
+    empatY_PaperTypeDescription: string;
+    empatY_ActiveFlag: boolean;
+    empatY_CreatedDate?: string;
+    empatY_CreatedBy?: string;
 }
 
 export interface IMasterSubExam {
     ex_Id: number;
     ex_SubExamName: string;
     ex_SubExamCode: string;
+    ex_SubExamOrder: number;
     ex_IsActiveFlag: boolean;
 }
 
 export interface IMasterSubSubject {
-    ex_Id: number;
-    ex_SubSubjectName: string;
-    ex_SubSubjectCode: string;
-    ex_IsActiveFlag: boolean;
-}
-
-export interface IMasterGrade {
-    ex_Id: number;
-    ex_GradeName: string;
-    ex_GradeDetails: string;
-    ex_IsActiveFlag: boolean;
+    emsS_Id: number; // Unique Sub Subject ID
+    mI_Id: number; // Master ID
+    emsS_SubSubjectName: string; // Sub Subject Name
+    emsS_SubSubjectCode: string; // Sub Subject Code
+    emsS_Order: number; // Display Order
+    emsS_ActiveFlag: boolean; // Active Status
 }
 
 export interface IGradeDetails {
-    ex_Id: number;
-    ex_Grade: string;
-    ex_From: number;
-    ex_To: number;
-    ex_GradePoints: number;
-    ex_Remarks: string;
-    ex_IsActiveFlag: boolean;
+    emgD_Id?: number | string;
+    emgD_Name: string;
+    emgD_From: number | string;
+    emgD_To: number | string;
+    emgD_Remarks: string;
+    emgD_GradePoints: number | string;
+}
+
+export interface IMasterGrade {
+    emgR_Id: number;
+    mI_Id: number;
+    emgR_GradeName: string;
+    emgR_MarksPerFlag: string;
+    emgR_ActiveFlag: boolean;
+    sub_list: IGradeDetails[];
 }
 
 export interface IMasterSubjectGroup {
-    ex_Id: number;
-    ex_GroupName: string;
-    ex_MaxApplicapleSubjects: number;
-    ex_MinApplicableSubjects: number;
-    ex_BestOffSubjects: number;
-    ex_ElectiveSubjects: number;
-    ex_IsActiveFlag: boolean;
+    mI_Id?: number;
+    emG_Id: number;
+    ismS_SubjectCode: number;
+    emG_GroupName: string;
+    emG_TotSubjects: number;
+    emG_MaxAplSubjects: number;
+    emG_MinAplSubjects: number;
+    emG_BestOff: number;
+    emG_ElectiveFlg: number;
+    emG_ActiveFlag: boolean;
+    createdDate?: string;
+    updatedDate?: string;
 }
-
 export interface IMasterSubjectGroupDetails {
-    ex_Id: number;
-    ex_SubjectName: string;
-    ex_SubjectCode: string;
+    ismS_Id?: number;
+    ismS_SubjectName: string;
+    ismS_SubjectCode: string;
+    ismS_OrderFlag: number;
 }
 
 export interface IMasterCategory {

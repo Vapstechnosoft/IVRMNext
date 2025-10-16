@@ -1,33 +1,13 @@
 'use server';
 
-import { type ApiResponse, api, getSearchParamsUrl } from '@/lib/apiService';
+import { api, getSearchParamsUrl } from '@/lib/apiService';
 import type { ApiSearchparams } from '@/types';
 import type { IMasterSubExam } from '@/types/exam/exam-module/masters';
 
-export async function getMasterSubExam(searchParams?: ApiSearchparams): Promise<ApiResponse<IMasterSubExam[]>> {
+export async function getMasterSubExam(searchParams?: ApiSearchparams) {
     const urlParams = getSearchParamsUrl(searchParams ?? {});
-    const url = `/sub-exam-master/30?${urlParams}`;
-
-    try {
-        // Try fetching from API
-        return await api.getArray<IMasterSubExam>(url);
-    } catch (error: any) {
-        console.error('Error fetching Master Subjects, returning mock data:', error);
-
-        // Return 30 hardcoded mock records if API fails
-        const mockData: IMasterSubExam[] = Array.from({ length: 30 }).map((_, i) => ({
-            ex_Id: i + 1,
-            ex_SubExamName: `Sub Exam Name ${i + 1}`,
-            ex_SubExamCode: `Sub EXAM Code ${100 + i + 1}`,
-            ex_IsActiveFlag: true
-        }));
-
-        return {
-            success: true,
-            message: 'Failed to fetch from API, showing mock data',
-            data: mockData
-        };
-    }
+    const url = `/master_sub_exam/30?${urlParams}`;
+    return await api.get<IMasterSubExam>(url);
 }
 
 export async function addOrUpdateMasterSubExam(data: any) {

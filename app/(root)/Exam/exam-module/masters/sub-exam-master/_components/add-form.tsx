@@ -4,11 +4,14 @@ import { Button } from '@/components/ui/button';
 import { FormError, Label } from '@/components/ui/extension/field';
 import { InputText } from '@/components/ui/extension/input-text';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { MasterViewDetails } from '@/components/ui/set-order/generic-seto-order';
 import { useMasterExam } from '@/hooks/exam/exammodule/usemasters';
 import { masterSubExamSchema } from '@/schemas/exam/exam-module/masters';
-import { addOrUpdateMasterSubExam } from '@/server/exam/exam-module/masters/sub-exam';
+import { addOrUpdateMasterSubExam, getMasterSubExam } from '@/server/exam/exam-module/masters/sub-exam';
+import type { IMasterSubExam } from '@/types/exam/exam-module/masters';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Save } from 'lucide-react';
+import { List, Save } from 'lucide-react';
+import { useState } from 'react';
 import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import type { z } from 'zod';
@@ -39,6 +42,9 @@ export default function AddMasterSubExamForm({ onSuccess, className = '' }: AddM
         }
     });
 
+    const [orderModalOpen, setOrderModalOpen] = useState(false);
+    const [orderData, setOrderData] = useState<(IMasterSubExam & { id: number })[]>([]);
+
     const onSubmit: SubmitHandler<FormFields> = async (data) => {
         try {
             const response = await addOrUpdateMasterSubExam(data);
@@ -56,7 +62,21 @@ export default function AddMasterSubExamForm({ onSuccess, className = '' }: AddM
         }
     };
 
+    const handleSetOrder = async () => {
+        try {
+            const data = await getMasterSubExam();
+            const mappedData = data?.data?.map((d) => ({ ...d, id: d.ex_Id })) || [];
+            setOrderData(mappedData);
+            setOrderModalOpen(true);
+        } catch (error: any) {
+            toast.error(error.message);
+        }
+    };
+
     const handleReset = () => reset();
+    const handleOrderSave = (updatedData: (IMasterSubExam & { id: number })[]) => {
+        setOrderData(updatedData);
+    };
 
     return (
         <div className={`${className}`}>
@@ -132,8 +152,35 @@ export default function AddMasterSubExamForm({ onSuccess, className = '' }: AddM
                             Save Sub Exam
                         </div>
                     </Button>
+                    <Button
+                        type='button'
+                        variant='secondary'
+                        onClick={handleSetOrder}
+                        className='order-2 w-fit transition-all duration-200 hover:scale-105 sm:order-3'>
+                        <div className='flex items-center'>
+                            <List className='mr-2 h-4 w-4' />
+                            Set Order
+                        </div>
+                    </Button>
                 </div>
             </form>
+
+            {/* /* Set Order Modal */}
+            {orderModalOpen && (
+                <MasterViewDetails
+                    isOpen={orderModalOpen}
+                    onClose={() => setOrderModalOpen(false)}
+                    data={orderData}
+                    columns={[
+                        { key: 'id', label: 'SLNO', className: 'text-center w-12' },
+                        { key: 'ex_SubExamName', label: 'Sub-Exam Name', className: 'text-left' },
+                        { key: 'ex_SubExamCode', label: 'Sub-Exam Code', className: 'text-left' },
+                        { key: 'ex_SubExamOrder', label: 'Sub-Exam Order', className: 'text-left' }
+                    ]}
+                    onSave={handleOrderSave}
+                    tableHeight='500px'
+                />
+            )}
         </div>
     );
 }

@@ -2,253 +2,228 @@
 
 import { Button } from '@/components/ui/button';
 import { FormError, Label } from '@/components/ui/extension/field';
-import { InputNumber } from '@/components/ui/extension/input-number';
 import { InputText } from '@/components/ui/extension/input-text';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { useMasterGradeDetails } from '@/hooks/exam/exammodule/usemasters';
-import { addOrUpdateMasterGrade } from '@/server/exam/exam-module/masters/grade';
-import type { IGradeDetails, IMasterGrade } from '@/types/exam/exam-module/masters';
+import { addOrUpdateMasterGrade, getGradeDetailsById } from '@/server/exam/exam-module/masters/grade';
+import type { IMasterGrade } from '@/types/exam/exam-module/masters';
 import { Plus, Save, Trash } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Controller, type SubmitHandler, useFieldArray, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 
 interface UpdateMasterGradeFormProps {
-    GradeData: IMasterGrade;
+    gradeData: IMasterGrade;
     onSuccess?: () => void;
     className?: string;
 }
 
-interface FormFields {
-    gradeName: string;
-    type: 'percentage' | 'marks';
-    gradeDetails: IGradeDetails[];
-}
-
-export default function UpdateMasterGradeForm({ GradeData, onSuccess, className = '' }: UpdateMasterGradeFormProps) {
-    const { data: response, isLoading, error } = useMasterGradeDetails(30, GradeData.ex_Id);
-    const [isDetailsOpen, setIsDetailsOpen] = useState(true);
+export default function UpdateMasterGradeForm({ gradeData, onSuccess, className = '' }: UpdateMasterGradeFormProps) {
+    const [isLoading, setIsLoading] = useState(true); // ✅ loading state for API fetch
 
     const {
         control,
         register,
         handleSubmit,
         reset,
-        watch,
+        setValue,
+        getValues,
         formState: { errors, isSubmitting }
-    } = useForm<FormFields>({
+    } = useForm<IMasterGrade>({
         defaultValues: {
-            gradeName: '',
-            type: 'percentage',
-            gradeDetails: [{ ex_Id: 0, ex_From: 0, ex_To: 0, ex_Grade: '', ex_GradePoints: 0, ex_Remarks: '', ex_IsActiveFlag: true }]
+            ...gradeData,
+            sub_list: []
         }
     });
 
-    const { fields, append, remove } = useFieldArray({ control, name: 'gradeDetails' });
+    const { fields, append, remove } = useFieldArray({
+        control,
+        name: 'sub_list'
+    });
 
-    // Watch gradeName and open details dynamically
-    const gradeNameValue = watch('gradeName');
+    // ✅ Fetch sub_list on mount
     useEffect(() => {
-        setIsDetailsOpen(!!gradeNameValue?.trim());
-    }, [gradeNameValue]);
-
-    // Populate form with API data
-    useEffect(() => {
-        if (response?.data) {
-            const gradeDetails = response.data.map((detail) => ({
-                ex_Id: detail.ex_Id || 0,
-                ex_From: Number(detail.ex_From),
-                ex_To: Number(detail.ex_To),
-                ex_Grade: detail.ex_Grade || '',
-                ex_GradePoints: Number(detail.ex_GradePoints),
-                ex_Remarks: detail.ex_Remarks || '',
-                ex_IsActiveFlag: detail.ex_IsActiveFlag ?? true
-            }));
-
-            reset({
-                gradeName: GradeData.ex_GradeName,
-                type: 'percentage', // or use GradeData type if exists
-                gradeDetails
-            });
+        async function fetchSubList() {
+            if (!gradeData?.emgR_Id) return;
+            setIsLoading(true);
+            try {
+                const response = await getGradeDetailsById(gradeData.emgR_Id);
+                console.log(response);
+                if (response.success && Array.isArray(response.data)) {
+                    setValue('sub_list', response.data);
+                } else {
+                    toast.error('Failed to fetch grade details');
+                }
+            } catch (error: any) {
+                toast.error(error.message || 'Error fetching grade details');
+            } finally {
+                setIsLoading(false);
+            }
         }
-    }, [response, GradeData, reset]);
+        fetchSubList();
+    }, [gradeData?.emgR_Id, setValue]);
 
-    const onSubmit: SubmitHandler<FormFields> = async (data) => {
+    useEffect(() => {
+        if (gradeData) {
+            reset({ ...gradeData, sub_list: [] });
+        }
+    }, [gradeData, reset]);
+
+    const onSubmit: SubmitHandler<IMasterGrade> = async (data) => {
         try {
             const payload = {
-                gradeName: data.gradeName,
-                type: data.type,
-                gradeDetails: data.gradeDetails.map((row) => ({
-                    ex_Id: row.ex_Id,
-                    ex_From: row.ex_From,
-                    ex_To: row.ex_To,
-                    ex_Grade: row.ex_Grade,
-                    ex_GradePoints: row.ex_GradePoints,
-                    ex_Remarks: row.ex_Remarks,
-                    ex_IsActiveFlag: row.ex_IsActiveFlag
+                ...data,
+                grade_list: data.sub_list.map(({ emgD_Id, ...row }) => ({
+                    ...row,
+                    emgD_From: Number(row.emgD_From),
+                    emgD_To: Number(row.emgD_To),
+                    emgD_GradePoints: Number(row.emgD_GradePoints)
                 }))
             };
 
-            const res = await addOrUpdateMasterGrade(payload);
+            const response = await addOrUpdateMasterGrade(payload);
 
-            if (res.success) {
-                toast.success(res.message);
-                reset();
-                setIsDetailsOpen(false);
+            if (response.success) {
+                toast.success(response.message);
                 onSuccess?.();
             } else {
-                toast.error(res.message);
+                toast.error(response.message);
             }
-        } catch (err: any) {
-            toast.error(err.message);
+        } catch (error: any) {
+            toast.error(error.message || 'Failed to save');
         }
     };
 
-    const handleReset = () => {
-        reset();
-        setIsDetailsOpen(false);
-    };
-
-    if (isLoading) return <div>Loading grade details...</div>;
-    if (error) return <div className='text-red-500'>Error loading grade details</div>;
+    if (isLoading) return <div>Loading grade details...</div>; // ✅ show loader while fetching
 
     return (
-        <div className={className}>
-            <form onSubmit={handleSubmit(onSubmit)} className='space-y-6'>
-                {/* Grade Name & Type */}
-                <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
-                    <InputText
-                        label='Grade Name'
-                        required
-                        {...register('gradeName', { required: 'Grade Name is required' })}
-                        error={errors.gradeName?.message}
+        <form onSubmit={handleSubmit(onSubmit)} className={`space-y-6 ${className}`}>
+            {/* Grade Name + Type */}
+            <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
+                <InputText label='Grade Name' required {...register('emgR_GradeName')} error={errors.emgR_GradeName?.message} />
+                <div>
+                    <Label>
+                        Marks/Percentage <span className='text-red-500'>*</span>
+                    </Label>
+                    <Controller
+                        name='emgR_MarksPerFlag'
+                        control={control}
+                        render={({ field }) => (
+                            <RadioGroup value={field.value} onValueChange={field.onChange} className='flex gap-4'>
+                                <div className='flex items-center space-x-2'>
+                                    <RadioGroupItem value='m' id='marks' />
+                                    <Label htmlFor='marks'>Marks</Label>
+                                </div>
+                                <div className='flex items-center space-x-2'>
+                                    <RadioGroupItem value='p' id='percentage' />
+                                    <Label htmlFor='percentage'>Percentage</Label>
+                                </div>
+                            </RadioGroup>
+                        )}
                     />
-                    <div className='flex flex-col gap-2'>
-                        <Label>Type</Label>
-                        <Controller
-                            name='type'
-                            control={control}
-                            render={({ field }) => (
-                                <RadioGroup value={field.value} onValueChange={field.onChange} className='flex gap-4'>
-                                    <div className='flex items-center space-x-2'>
-                                        <RadioGroupItem value='percentage' id='type-percentage' />
-                                        <Label htmlFor='type-percentage'>Percentage</Label>
-                                    </div>
-                                    <div className='flex items-center space-x-2'>
-                                        <RadioGroupItem value='marks' id='type-marks' />
-                                        <Label htmlFor='type-marks'>Marks</Label>
-                                    </div>
-                                </RadioGroup>
-                            )}
-                        />
-                        {errors.type && <FormError>{errors.type.message}</FormError>}
-                    </div>
+                    {errors.emgR_MarksPerFlag && <FormError>{errors.emgR_MarksPerFlag.message}</FormError>}
+                </div>
+            </div>
+
+            {/* Grade Details */}
+            <CollapsibleSection title='Grade Details' defaultOpen>
+                <div className='overflow-x-auto'>
+                    <table className='w-full border border-gray-200'>
+                        <thead className='bg-gray-100'>
+                            <tr>
+                                <th className='border px-2 py-1'>Sl.No</th>
+                                <th className='border px-2 py-1'>Grade Name</th>
+                                <th className='border px-2 py-1'>From</th>
+                                <th className='border px-2 py-1'>To</th>
+                                <th className='border px-2 py-1'>Grade Points</th>
+                                <th className='border px-2 py-1'>Remarks</th>
+                                <th className='border px-2 py-1'>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {fields.map((item, index) => (
+                                <tr key={item.id}>
+                                    <td className='border text-center'>{index + 1}</td>
+                                    <td className='border'>
+                                        <InputText
+                                            {...register(`sub_list.${index}.emgD_Name` as const)}
+                                            error={errors.sub_list?.[index]?.emgD_Name?.message}
+                                        />
+                                    </td>
+                                    <td className='border'>
+                                        <InputText
+                                            {...register(`sub_list.${index}.emgD_From` as const, { valueAsNumber: true })}
+                                            error={errors.sub_list?.[index]?.emgD_From?.message}
+                                        />
+                                    </td>
+                                    <td className='border'>
+                                        <InputText
+                                            {...register(`sub_list.${index}.emgD_To` as const, { valueAsNumber: true })}
+                                            error={errors.sub_list?.[index]?.emgD_To?.message}
+                                        />
+                                    </td>
+                                    <td className='border'>
+                                        <InputText
+                                            {...register(`sub_list.${index}.emgD_GradePoints` as const, { valueAsNumber: true })}
+                                            error={errors.sub_list?.[index]?.emgD_GradePoints?.message}
+                                        />
+                                    </td>
+                                    <td className='border'>
+                                        <InputText
+                                            {...register(`sub_list.${index}.emgD_Remarks` as const)}
+                                            error={errors.sub_list?.[index]?.emgD_Remarks?.message}
+                                        />
+                                    </td>
+                                    <td className='flex justify-center gap-2 border px-2 py-1'>
+                                        <Button
+                                            type='button'
+                                            size='sm'
+                                            onClick={() => {
+                                                const currentRow = getValues(`sub_list.${index}`);
+
+                                                // Check if all required fields are filled
+                                                const allFilled =
+                                                    currentRow.emgD_Name?.toString().trim() !== '' &&
+                                                    currentRow.emgD_From?.toString().trim() !== '' &&
+                                                    currentRow.emgD_To?.toString().trim() !== '' &&
+                                                    currentRow.emgD_GradePoints?.toString().trim() !== '';
+
+                                                if (!allFilled) {
+                                                    toast.error('Please fill all fields before adding a new row');
+                                                    return;
+                                                }
+
+                                                append({
+                                                    emgD_Name: '',
+                                                    emgD_From: '',
+                                                    emgD_To: '',
+                                                    emgD_GradePoints: '',
+                                                    emgD_Remarks: ''
+                                                });
+                                            }}>
+                                            <Plus className='h-3 w-3' />
+                                        </Button>
+                                        {fields.length > 1 && (
+                                            <Button type='button' size='sm' variant='destructive' onClick={() => remove(index)}>
+                                                <Trash className='h-3 w-3' />
+                                            </Button>
+                                        )}
+                                    </td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
                 </div>
 
-                {/* Collapsible Grade Details */}
-                {isDetailsOpen && (
-                    <CollapsibleSection title='Grade Details' defaultOpen>
-                        <div className='overflow-x-auto'>
-                            <table className='w-full table-auto border border-gray-200'>
-                                <thead className='bg-gray-100'>
-                                    <tr>
-                                        <th className='border px-2 py-1'>Sl.No</th>
-                                        <th className='border px-2 py-1'>From</th>
-                                        <th className='border px-2 py-1'>To</th>
-                                        <th className='border px-2 py-1'>Grade</th>
-                                        <th className='border px-2 py-1'>Grade Points</th>
-                                        <th className='border px-2 py-1'>Remarks</th>
-                                        <th className='border px-2 py-1'>Actions</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {fields.map((item, index) => (
-                                        <tr key={item.id}>
-                                            <td className='border px-2 py-1 text-center'>{index + 1}</td>
-
-                                            <td className='border px-2 py-1'>
-                                                <Controller
-                                                    name={`gradeDetails.${index}.ex_From` as const}
-                                                    control={control}
-                                                    render={({ field }) => (
-                                                        <InputNumber {...field} value={field.value ?? 0} onChange={field.onChange} />
-                                                    )}
-                                                />
-                                            </td>
-
-                                            <td className='border px-2 py-1'>
-                                                <Controller
-                                                    name={`gradeDetails.${index}.ex_To` as const}
-                                                    control={control}
-                                                    render={({ field }) => (
-                                                        <InputNumber {...field} value={field.value ?? 0} onChange={field.onChange} />
-                                                    )}
-                                                />
-                                            </td>
-
-                                            <td className='border px-2 py-1'>
-                                                <InputText {...register(`gradeDetails.${index}.ex_Grade` as const)} />
-                                            </td>
-
-                                            <td className='border px-2 py-1'>
-                                                <Controller
-                                                    name={`gradeDetails.${index}.ex_GradePoints` as const}
-                                                    control={control}
-                                                    render={({ field }) => (
-                                                        <InputNumber {...field} value={field.value ?? 0} onChange={field.onChange} />
-                                                    )}
-                                                />
-                                            </td>
-
-                                            <td className='border px-2 py-1'>
-                                                <InputText {...register(`gradeDetails.${index}.ex_Remarks` as const)} />
-                                            </td>
-
-                                            <td className='flex justify-center gap-2 border px-2 py-1'>
-                                                <Button
-                                                    type='button'
-                                                    size='sm'
-                                                    onClick={() =>
-                                                        append({
-                                                            ex_Id: 0,
-                                                            ex_From: 0,
-                                                            ex_To: 0,
-                                                            ex_Grade: '',
-                                                            ex_GradePoints: 0,
-                                                            ex_Remarks: '',
-                                                            ex_IsActiveFlag: true
-                                                        })
-                                                    }>
-                                                    <Plus className='h-3 w-3' />
-                                                </Button>
-                                                {fields.length > 1 && (
-                                                    <Button type='button' size='sm' variant='destructive' onClick={() => remove(index)}>
-                                                        <Trash className='h-3 w-3' />
-                                                    </Button>
-                                                )}
-                                            </td>
-                                        </tr>
-                                    ))}
-                                </tbody>
-                            </table>
-                        </div>
-
-                        <div className='flex flex-col gap-3 border-t pt-4 sm:flex-row sm:justify-start'>
-                            <Button type='button' variant='outline' onClick={handleReset} disabled={isSubmitting}>
-                                Reset
-                            </Button>
-                            <Button type='submit' disabled={isSubmitting} isLoading={isSubmitting} loadingText='Saving...'>
-                                <div className='flex items-center'>
-                                    <Save className='mr-2 h-4 w-4' /> Update Grade
-                                </div>
-                            </Button>
-                        </div>
-                    </CollapsibleSection>
-                )}
-
-                {errors.root && <FormError>{errors.root.message}</FormError>}
-            </form>
-        </div>
+                <div className='flex gap-3 border-t pt-4'>
+                    <Button type='button' variant='outline' onClick={() => reset(gradeData)} disabled={isSubmitting}>
+                        Cancel
+                    </Button>
+                    <Button type='submit' disabled={isSubmitting} isLoading={isSubmitting}>
+                        <Save className='mr-2 h-4 w-4' /> Update
+                    </Button>
+                </div>
+            </CollapsibleSection>
+        </form>
     );
 }

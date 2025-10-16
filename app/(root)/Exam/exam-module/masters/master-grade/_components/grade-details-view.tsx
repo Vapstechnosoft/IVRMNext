@@ -14,10 +14,10 @@ interface MasterGradeDetailsPageProps {
 }
 
 export default function MasterGradeDetailsPage({ rowData, onClose }: MasterGradeDetailsPageProps) {
-    const gradeId = rowData?.ex_Id; // 👈 Assuming ex_Id is Grade ID
+    const gradeId = rowData?.emgR_Id; // 👈 Assuming ex_Id is Grade ID
 
     // Fetch grade details by ID
-    const { data: response, isLoading, error } = useMasterGradeDetails(30, gradeId);
+    const { data: response, isLoading, error } = useMasterGradeDetails(gradeId);
     const tableProps = useDataTableProps(response);
 
     return (
@@ -30,7 +30,7 @@ export default function MasterGradeDetailsPage({ rowData, onClose }: MasterGrade
                     <div className='mb-4 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between'>
                         <div className='space-y-1'>
                             <Heading
-                                title={`Grade Details - ${rowData.ex_GradeName ?? ''}`}
+                                title={`Grade Details - ${rowData.emgR_GradeName ?? ''}`}
                                 description='Detailed view of grade configuration and marks distribution'
                             />
                         </div>

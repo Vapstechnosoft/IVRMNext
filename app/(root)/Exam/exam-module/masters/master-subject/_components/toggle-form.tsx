@@ -21,7 +21,7 @@ interface ToggleMasterSubjectFormProps {
 
 export default function ToggleMasterSubjectForm({ rowData, onClose }: ToggleMasterSubjectFormProps) {
     const { refetchAll } = useMasterSubject();
-    const isActive = rowData.exsuB_IsActiveFlag;
+    const isActive = rowData.ismS_ActiveFlag;
 
     const {
         register,
@@ -30,40 +30,41 @@ export default function ToggleMasterSubjectForm({ rowData, onClose }: ToggleMast
         formState: { errors, isSubmitting }
     } = useForm<FormFields>({
         resolver: zodResolver(masterSubjectSchema.delete),
+        defaultValues: {
+            ismS_Id: rowData?.ismS_Id?.toString() ?? '' // <-- string
+        },
         mode: 'onChange'
     });
 
-    function closeDialog() {
-        onClose();
-        reset();
-    }
-
-    const onSubmit: SubmitHandler<FormFields | any> = async () => {
+    const onSubmit: SubmitHandler<FormFields> = async (formData) => {
         try {
-            const response = await toggleMasterSubject(30, Number(rowData.exsuB_Id));
-
+            const response = await toggleMasterSubject(30, Number(formData.ismS_Id)); // <-- convert back to number
             if (response.success) {
-                toast.success(response.message);
+                toast.success(response.message || `Subject ${rowData?.ismS_ActiveFlag ? 'deactivated' : 'activated'} successfully`);
                 refetchAll();
-                closeDialog();
+                reset();
+                onClose();
             } else {
-                toast.error(response.message);
+                toast.error(response.message || 'Failed to update subject status');
             }
         } catch (error: any) {
-            toast.error(error.message);
+            toast.error(error.message || 'Something went wrong');
         }
     };
 
+    const closeDialog = () => {
+        reset();
+        onClose();
+    };
     return (
         <AdaptiveDialog title='Toggle Master Subject Status' isOpen={true} onClose={closeDialog}>
             <form onSubmit={handleSubmit(onSubmit)} className='flex flex-col gap-4'>
                 <AdaptiveBody className='flex flex-col gap-5'>
-                    <input type='hidden' {...register('exsuB_Id')} defaultValue={rowData.exsuB_Id} />
+                    <input type='hidden' {...register('ismS_Id')} />
                     <p>
-                        Are you sure you want to {isActive ? 'deactivate' : 'activate'} <strong>{rowData.exsuB_SubjectName}</strong>?
+                        Are you sure you want to {isActive ? 'deactivate' : 'activate'} <strong>{rowData.ismS_Id}</strong>?
                     </p>
-                    <FormError>{errors.exsuB_Id?.message}</FormError>
-                    <FormError>{errors.root?.message}</FormError>
+                    {errors.ismS_Id && <FormError>{errors.ismS_Id.message}</FormError>}
                 </AdaptiveBody>
                 <AdaptiveFooter>
                     <Button variant='secondary' onClick={closeDialog} type='button'>

@@ -14,7 +14,7 @@ import { MasterSubjectGroupColumns } from './_components/columns';
 
 import { toggleMasterSubjectGroup } from '@/server/exam/exam-module/masters/subject-group';
 import { toast } from 'sonner';
-import AddMasterSubjectGroupForm, { masterSubjectGroupSchema } from './_components/add-form';
+import AddMasterSubjectGroupForm from './_components/add-form';
 import MasterSubjectGroupDetailsPage from './_components/subject-group-view-Details';
 import ToggleMasterSubjectGroupForm from './_components/toggle-form';
 import UpdateMasterSubjectGroupForm from './_components/update-form';
@@ -174,19 +174,7 @@ function FormSections() {
             )}
 
             {/* Toggle Form */}
-            {isToggleFormOpen && selectedRow && (
-                <ToggleMasterSubjectGroupForm
-                    title='Toggle Subject Group Status'
-                    schema={masterSubjectGroupSchema} // ✅ Add this line
-                    rowData={selectedRow}
-                    idKey='ex_Id'
-                    nameKey='ex_GroupName'
-                    statusKey='ex_IsActiveFlag'
-                    onToggle={(id) => toggleMasterGroup(30, id)}
-                    onRefetch={useMasterSubjectGroup}
-                    onClose={closeToggleForm}
-                />
-            )}
+            {isToggleFormOpen && selectedRow && <ToggleMasterSubjectGroupForm rowData={selectedRow} onClose={closeToggleForm} />}
 
             {/* Details View */}
             {isDetailsViewOpen && selectedRow && <MasterSubjectGroupDetailsPage rowData={selectedRow} onClose={closeDetailsView} />}

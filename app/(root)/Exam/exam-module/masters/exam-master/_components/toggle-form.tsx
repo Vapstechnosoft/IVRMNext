@@ -22,7 +22,7 @@ interface ToggleExamFormProps {
 
 export default function ToggleExamForm({ rowData, onClose }: ToggleExamFormProps) {
     const { refetchAll } = useMasterExam();
-    const isActive = rowData.ex_IsActiveFlag; // ✅ use exam active flag
+    const isActive = rowData.emE_ActiveFlag; // ✅ use exam active flag
 
     const {
         register,
@@ -41,7 +41,7 @@ export default function ToggleExamForm({ rowData, onClose }: ToggleExamFormProps
 
     const onSubmit: SubmitHandler<FormFields | any> = async () => {
         try {
-            const response = await toggleMasterExam(30, Number(rowData.ex_Id));
+            const response = await toggleMasterExam(30, Number(rowData.emE_Id));
 
             if (response.success) {
                 toast.success(response.message);
@@ -59,11 +59,11 @@ export default function ToggleExamForm({ rowData, onClose }: ToggleExamFormProps
         <AdaptiveDialog title='Toggle Exam Status' isOpen={true} onClose={closeDialog}>
             <form onSubmit={handleSubmit(onSubmit)} className='flex flex-col gap-4'>
                 <AdaptiveBody className='flex flex-col gap-5'>
-                    <input type='hidden' {...register('ex_Id')} defaultValue={rowData.ex_Id} />
+                    <input type='hidden' {...register('emE_Id')} defaultValue={rowData.emE_Id} />
                     <p>
-                        Are you sure you want to {isActive ? 'deactivate' : 'activate'} <strong>{rowData.ex_ExamName}</strong>?
+                        Are you sure you want to {isActive ? 'deactivate' : 'activate'} <strong>{rowData.emE_ExamName}</strong>?
                     </p>
-                    <FormError>{errors.ex_Id?.message}</FormError>
+                    <FormError>{errors.emE_Id?.message}</FormError>
                     <FormError>{errors.root?.message}</FormError>
                 </AdaptiveBody>
                 <AdaptiveFooter>

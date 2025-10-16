@@ -38,64 +38,69 @@ export const examSubjectColumns: ColumnDef<IMasterSubject>[] = [
         enableHiding: false
     },
     {
-        accessorKey: 'exsuB_SubjectName',
+        accessorKey: 'ismS_SubjectName',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Subject Name' />,
-        cell: ({ row }) => <div>{row.getValue('exsuB_SubjectName')}</div>
+        cell: ({ row }) => <div>{row.getValue('ismS_SubjectName')}</div>
     },
     {
-        accessorKey: 'exsuB_IVRSName',
+        accessorKey: 'ismS_IVRSSubjectName',
         header: ({ column }) => <DataTableColumnHeader column={column} title='IVRS Subject Name' />,
-        cell: ({ row }) => <div>{row.getValue('exsuB_IVRSName')}</div>
+        cell: ({ row }) => <div>{row.getValue('ismS_IVRSSubjectName')}</div>
     },
     {
-        accessorKey: 'exsuB_SubjectCode',
+        accessorKey: 'ismS_SubjectCode',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Subject Code' />,
-        cell: ({ row }) => <div>{row.getValue('exsuB_SubjectCode')}</div>
+        cell: ({ row }) => <div>{row.getValue('ismS_SubjectCode')}</div>
     },
     {
-        accessorKey: 'exsuB_SubjectType',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Subject Type' />,
-        cell: ({ row }) => <div>{row.getValue('exsuB_SubjectType')}</div>
+        accessorKey: 'ismS_SubjectNameNew',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='New Subject Name' />,
+        cell: ({ row }) => <div>{row.getValue('ismS_SubjectNameNew')}</div>
     },
     {
-        accessorKey: 'exsuB_MaxMarks',
+        accessorKey: 'ismS_Max_Marks',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Max Marks' />,
-        cell: ({ row }) => <div>{row.getValue('exsuB_MaxMarks')}</div>
+        cell: ({ row }) => <div>{row.getValue('ismS_Max_Marks')}</div>
     },
     {
-        accessorKey: 'exsuB_MinMarks',
+        accessorKey: 'ismS_Min_Marks',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Min Marks' />,
-        cell: ({ row }) => <div>{row.getValue('exsuB_MinMarks')}</div>
+        cell: ({ row }) => <div>{row.getValue('ismS_Min_Marks')}</div>
     },
     {
-        accessorKey: 'exsuB_PreAdmissionFlag',
+        accessorKey: 'ismS_PreadmFlag',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Pre-Admission Flag' />,
-        cell: ({ row }) => getStatusBadge((row.getValue('exsuB_PreAdmissionFlag') as number) === 1 ? 'yes' : 'no')
+        cell: ({ row }) => getStatusBadge((row.getValue('ismS_PreadmFlag') as number) === 1 ? 'yes' : 'no')
     },
     {
-        accessorKey: 'exsuB_AttendanceFlag',
+        accessorKey: 'ismS_AttendanceFlag',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Attendance Flag' />,
-        cell: ({ row }) => getStatusBadge((row.getValue('exsuB_AttendanceFlag') as number) === 1 ? 'yes' : 'no')
+        cell: ({ row }) => getStatusBadge(row.getValue('ismS_AttendanceFlag') ? 'yes' : 'no')
     },
     {
-        accessorKey: 'exsuB_BatchWiseFlag',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Batch Wise Flag' />,
-        cell: ({ row }) => getStatusBadge((row.getValue('exsuB_BatchWiseFlag') as number) === 1 ? 'yes' : 'no')
+        accessorKey: 'ismS_BatchAppl',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Batch Applicable' />,
+        cell: ({ row }) => getStatusBadge((row.getValue('ismS_BatchAppl') as number) === 1 ? 'yes' : 'no')
     },
     {
-        accessorKey: 'exsuB_ExamFlag',
+        accessorKey: 'ismS_ExamFlag',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Exam Flag' />,
-        cell: ({ row }) => getStatusBadge((row.getValue('exsuB_ExamFlag') as number) === 1 ? 'yes' : 'no')
+        cell: ({ row }) => getStatusBadge((row.getValue('ismS_ExamFlag') as number) === 1 ? 'yes' : 'no')
     },
     {
-        accessorKey: 'exsuB_LanguageFlag',
+        accessorKey: 'ismS_LanguageFlg',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Language Flag' />,
-        cell: ({ row }) => getStatusBadge((row.getValue('exsuB_LanguageFlag') as number) === 1 ? 'yes' : 'no')
+        cell: ({ row }) => getStatusBadge((row.getValue('ismS_LanguageFlg') as number) === 1 ? 'yes' : 'no')
     },
     {
-        accessorKey: 'exsuB_ExtraFeeFlag',
+        accessorKey: 'ismS_AtExtraFeeFlg',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Extra Fee Flag' />,
-        cell: ({ row }) => getStatusBadge((row.getValue('exsuB_ExtraFeeFlag') as number) === 1 ? 'yes' : 'no')
+        cell: ({ row }) => getStatusBadge((row.getValue('ismS_AtExtraFeeFlg') as number) === 1 ? 'yes' : 'no')
+    },
+    {
+        accessorKey: 'ismS_TTFlag',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Time Table Flag' />,
+        cell: ({ row }) => getStatusBadge(row.getValue('ismS_TTFlag') ? 'yes' : 'no')
     },
     {
         id: 'actions',
@@ -129,7 +134,7 @@ function ActionButtonsCell({ rowData }: { rowData: IMasterSubject }) {
             buttons={{ edit: true, toggle: true, delete: false }}
             onEdit={handleEdit}
             onToggle={handleToggle}
-            toggleConditionKey='exsuB_IsActiveFlag'
+            toggleConditionKey='ismS_ActiveFlag'
         />
     );
 }

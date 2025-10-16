@@ -3,7 +3,7 @@ import { getExamMasterCategory } from '@/server/exam/exam-module/masters/categor
 import { getExamMasterCategoryMapping } from '@/server/exam/exam-module/masters/category-class-mapping';
 import { getMasterExam } from '@/server/exam/exam-module/masters/exam';
 import { getMasterExamPaper } from '@/server/exam/exam-module/masters/exam-paper';
-import { getMasterGrade, getMasterGradeDetails } from '@/server/exam/exam-module/masters/grade';
+import { getGradeDetailsById, getMasterGrade } from '@/server/exam/exam-module/masters/grade';
 import { getMasterSubExam } from '@/server/exam/exam-module/masters/sub-exam';
 import { getMasterSubject } from '@/server/exam/exam-module/masters/subject';
 import {
@@ -117,15 +117,16 @@ export const useMasterGrade = (searchParams?: ApiSearchparams) => {
     };
 };
 
-export const useMasterGradeDetails = (mi_Id: number, gradeId: number) => {
+export const useMasterGradeDetails = (gradeId: number) => {
     const queryClient = useQueryClient();
 
     return {
         ...useQuery({
             queryKey: [EXAM_QUERY_KEYS.MASTER_GRADE_DETAILS, gradeId],
-            queryFn: async () => getMasterGradeDetails(mi_Id, gradeId),
+            queryFn: async () => getGradeDetailsById(gradeId),
             staleTime: 0
         }),
+
         refetchAll: () => {
             return queryClient.invalidateQueries({
                 queryKey: [EXAM_QUERY_KEYS.MASTER_GRADE_DETAILS]
@@ -152,13 +153,13 @@ export const useMasterSubjectGroup = (searchParams?: ApiSearchparams) => {
 };
 
 // ✅ Fetch details for a single Master Subject Group
-export const useMasterSubjectGroupDetails = (mi_Id: number, subjectGroupId: number) => {
+export const useMasterSubjectGroupDetails = (subjectGroupId: number) => {
     const queryClient = useQueryClient();
 
     return {
         ...useQuery({
             queryKey: [EXAM_QUERY_KEYS.MASTER_SUBJECT_GROUP_DETAILS, subjectGroupId],
-            queryFn: async () => getMasterSubjectGroupDetails(mi_Id, subjectGroupId),
+            queryFn: async () => getMasterSubjectGroupDetails(subjectGroupId),
             staleTime: 0
         }),
         refetchAll: () => {

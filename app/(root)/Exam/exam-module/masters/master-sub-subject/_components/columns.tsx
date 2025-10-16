@@ -1,4 +1,5 @@
 'use client';
+
 import { getStatusBadge } from '@/components/extras/helpers/helper';
 import { Checkbox } from '@/components/ui/checkbox';
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
@@ -38,24 +39,24 @@ export const subSubjectColumns: ColumnDef<IMasterSubSubject>[] = [
         enableHiding: false
     },
     {
-        accessorKey: 'ex_SubSubjectName',
+        accessorKey: 'emsS_SubSubjectName',
         header: ({ column }) => <DataTableColumnHeader column={column} title='SubSubject Name' />,
-        cell: ({ row }) => <div>{row.getValue('ex_SubSubjectName')}</div>
+        cell: ({ row }) => <div>{row.getValue('emsS_SubSubjectName')}</div>
     },
     {
-        accessorKey: 'ex_SubSubjectCode',
+        accessorKey: 'emsS_SubSubjectCode',
         header: ({ column }) => <DataTableColumnHeader column={column} title='SubSubject Code' />,
-        cell: ({ row }) => <div>{row.getValue('ex_SubSubjectCode')}</div>
+        cell: ({ row }) => <div>{row.getValue('emsS_SubSubjectCode')}</div>
     },
     {
-        accessorKey: 'ex_SubSubjectOrder',
+        accessorKey: 'emsSS_Order',
         header: ({ column }) => <DataTableColumnHeader column={column} title='SubSubject Order' />,
-        cell: ({ row }) => <div>{row.getValue('ex_SubSubjectOrder') ?? '-'}</div>
+        cell: ({ row }) => <div>{row.getValue('emsSS_Order') ?? '-'}</div>
     },
     {
-        accessorKey: 'ex_IsActiveFlag',
+        accessorKey: 'emsS_ActiveFlag',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Active Flag' />,
-        cell: ({ row }) => getStatusBadge((row.getValue('ex_IsActiveFlag') as boolean) ? 'yes' : 'no')
+        cell: ({ row }) => getStatusBadge((row.getValue('emsS_ActiveFlag') as boolean) ? 'yes' : 'no')
     },
     {
         id: 'actions',
@@ -89,7 +90,7 @@ function ActionButtonsCell({ rowData }: { rowData: IMasterSubSubject }) {
             buttons={{ edit: true, toggle: true, delete: false }}
             onEdit={handleEdit}
             onToggle={handleToggle}
-            toggleConditionKey='ex_IsActiveFlag'
+            toggleConditionKey='emsS_ActiveFlag'
         />
     );
 }

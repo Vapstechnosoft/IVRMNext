@@ -37,14 +37,14 @@ export const MasterGradeColumns: ColumnDef<IMasterGrade>[] = [
         }
     },
     {
-        accessorKey: 'ex_GradeName',
+        accessorKey: 'emgR_GradeName',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Grade Name' />,
-        cell: ({ row }) => <div>{row.getValue('ex_GradeName')}</div>
+        cell: ({ row }) => <div>{row.getValue('emgR_GradeName')}</div>
     },
     {
-        accessorKey: 'ex_GradeDetails',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Grade Details' />,
-        cell: ({ row }) => <div>{row.getValue('ex_GradeDetails')}</div>
+        accessorKey: 'emgR_MarksPerFlag',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Marks/Percentage Flag' />,
+        cell: ({ row }) => <div>{row.getValue('emgR_MarksPerFlag') === 'm' ? 'Marks' : 'Percentage'}</div>
     },
     {
         id: 'actions',
@@ -82,7 +82,7 @@ function ActionButtonsCell({ rowData }: { rowData: IMasterGrade }) {
                 buttons={{ edit: true, toggle: true, delete: false }}
                 onEdit={handleEdit}
                 onToggle={handleToggle}
-                toggleConditionKey='ex_IsActiveFlag'
+                toggleConditionKey='emgR_ActiveFlag'
             />
         </div>
     );

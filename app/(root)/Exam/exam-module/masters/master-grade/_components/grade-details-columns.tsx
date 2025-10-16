@@ -16,34 +16,33 @@ export const GradeDetailsColumns: ColumnDef<IGradeDetails>[] = [
         enableSorting: false
     },
     {
-        accessorKey: 'ex_Grade',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Grade' />,
-        cell: ({ row }) => <div>{row.getValue('ex_Grade')}</div>,
+        accessorKey: 'emgD_Name',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Grade Name' />,
+        cell: ({ row }) => <div>{row.getValue('emgD_Name')}</div>,
         enableSorting: false
     },
-
     {
-        accessorKey: 'ex_From',
+        accessorKey: 'emgD_From',
         header: ({ column }) => <DataTableColumnHeader column={column} title='From' />,
-        cell: ({ row }) => <div>{row.getValue('ex_From')}</div>,
+        cell: ({ row }) => <div>{row.getValue('emgD_From')}</div>,
         enableSorting: false
     },
     {
-        accessorKey: 'ex_To',
+        accessorKey: 'emgD_To',
         header: ({ column }) => <DataTableColumnHeader column={column} title='To' />,
-        cell: ({ row }) => <div>{String(row.getValue('ex_To'))}</div>,
+        cell: ({ row }) => <div>{row.getValue('emgD_To')}</div>,
         enableSorting: false
     },
     {
-        accessorKey: 'ex_GradePoints',
+        accessorKey: 'emgD_GradePoints',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Grade Points' />,
-        cell: ({ row }) => <div>{row.getValue('ex_GradePoints')}</div>,
+        cell: ({ row }) => <div>{row.getValue('emgD_GradePoints')}</div>,
         enableSorting: false
     },
     {
-        accessorKey: 'ex_Remarks',
+        accessorKey: 'emgD_Remarks',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Remarks' />,
-        cell: ({ row }) => <div>{row.getValue('ex_Remarks')}</div>,
+        cell: ({ row }) => <div>{row.getValue('emgD_Remarks')}</div>,
         enableSorting: false
     }
 ];

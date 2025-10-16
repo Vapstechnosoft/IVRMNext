@@ -6,7 +6,6 @@ import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
 import { useMasterGrade } from '@/hooks/exam/exammodule/usemasters';
-import { masterGradeSchema } from '@/schemas/exam/exam-module/masters';
 import type { IMasterGrade } from '@/types/exam/exam-module/masters';
 import { Plus, X } from 'lucide-react';
 import { use } from 'react';
@@ -41,6 +40,7 @@ function MasterGradePageContent({
 }) {
     const { openAddForm } = useFormContext<IMasterGrade>();
     const tableProps = useDataTableProps(response);
+    console.log(tableProps);
 
     return (
         <div className='min-h-screen'>
@@ -103,9 +103,6 @@ function FormSections() {
         selectedRow
     } = useFormContext<IMasterGrade>();
     // 🔄 Dummy Toggle Function
-    async function toggleMasterExam(mi_Id: number, Id: number) {
-        return { success: true, message: `'Exam toggle completed successfully${mi_Id + Id}' ` };
-    }
 
     return (
         <>
@@ -152,26 +149,14 @@ function FormSections() {
                                 className='-top-[3.5rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
                                 <X className='h-4 w-4 text-destructive' /> Close
                             </Button>
-                            <UpdateMasterGradeForm GradeData={selectedRow} onSuccess={closeEditForm} />
+                            <UpdateMasterGradeForm gradeData={selectedRow} onSuccess={closeEditForm} />
                         </div>
                     </CollapsibleSection>
                 </div>
             )}
 
             {/* Toggle Form */}
-            {isToggleFormOpen && selectedRow && (
-                <ToggleMasterGradeForm
-                    title='Toggle Exam Status'
-                    schema={masterGradeSchema}
-                    rowData={selectedRow}
-                    idKey='ex_Id'
-                    nameKey='ex_GradeName'
-                    statusKey='ex_IsActiveFlag'
-                    onToggle={(id) => toggleMasterExam(30, id)}
-                    onRefetch={useMasterGrade}
-                    onClose={closeToggleForm}
-                />
-            )}
+            {isToggleFormOpen && selectedRow && <ToggleMasterGradeForm rowData={selectedRow} onClose={closeToggleForm} />}
 
             {/* Grade Details View */}
             {isDetailsViewOpen && selectedRow && <MasterGradeDetailsPage rowData={selectedRow} onClose={closeDetailsView} />}

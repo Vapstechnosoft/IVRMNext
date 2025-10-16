@@ -3,37 +3,25 @@
 import { Button } from '@/components/ui/button';
 import { AdaptiveBody, AdaptiveDialog, AdaptiveFooter } from '@/components/ui/extension/adaptive-dialog';
 import { FormError } from '@/components/ui/extension/field';
+import { useMasterSubjectGroup } from '@/hooks/exam/exammodule/usemasters';
+import { masterSubjectGroupSchema } from '@/schemas/exam/exam-module/masters';
+import { toggleMasterSubjectGroup } from '@/server/exam/exam-module/masters/subject-group';
+import type { IMasterSubjectGroup } from '@/types/exam/exam-module/masters';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { type SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import type { z } from 'zod';
 
-interface ToggleMasterDataFormProps<T> {
-    title: string; // e.g. "Toggle Class Status" or "Toggle Subject Status"
-    schema: any; // e.g. masterClassSchema.delete
-    rowData: T; // current record
-    idKey: keyof T; // e.g. 'asmcL_Id' or 'ex_Id'
-    nameKey: keyof T; // e.g. 'asmcL_ClassName' or 'ex_ExamName'
-    statusKey: keyof T; // e.g. 'isActive' or 'ex_IsActiveFlag'
-    onToggle: (id: number) => Promise<{ success: boolean; message: string }>;
+type FormFields = z.infer<typeof masterSubjectGroupSchema.delete>;
+
+interface ToggleMasterSubjectGroupFormProps {
+    rowData: IMasterSubjectGroup;
     onClose: () => void;
-    onRefetch: () => void; // refetch after successful toggle
 }
 
-export default function ToggleMasterGradeForm<T extends Record<string, any>>({
-    title,
-    schema,
-    rowData,
-    idKey,
-    nameKey,
-    statusKey,
-    onToggle,
-    onClose,
-    onRefetch
-}: ToggleMasterDataFormProps<T>) {
-    type FormFields = z.infer<typeof schema>;
-
-    const isActive = Boolean(rowData[statusKey]);
+export default function ToggleMasterSubjectGroupForm({ rowData, onClose }: ToggleMasterSubjectGroupFormProps) {
+    const { refetchAll } = useMasterSubjectGroup();
+    const isActive = rowData.emG_ActiveFlag;
 
     const {
         register,
@@ -41,41 +29,43 @@ export default function ToggleMasterGradeForm<T extends Record<string, any>>({
         reset,
         formState: { errors, isSubmitting }
     } = useForm<FormFields>({
-        resolver: zodResolver(schema),
+        resolver: zodResolver(masterSubjectGroupSchema.delete),
+        defaultValues: {
+            emG_Id: rowData.emG_Id
+        },
         mode: 'onChange'
     });
 
-    function closeDialog() {
-        onClose();
-        reset();
-    }
-
-    const onSubmit: SubmitHandler<FormFields> = async () => {
+    const onSubmit: SubmitHandler<FormFields> = async (formData) => {
         try {
-            const response = await onToggle(Number(rowData[idKey]));
+            const response = await toggleMasterSubjectGroup(30, Number(formData.emG_Id));
             if (response.success) {
-                toast.success(response.message);
-                onRefetch();
-                closeDialog();
+                toast.success(response.message || `Subject group ${rowData?.emG_ActiveFlag ? 'deactivated' : 'activated'} successfully`);
+                refetchAll();
+                reset();
+                onClose();
             } else {
-                toast.error(response.message);
+                toast.error(response.message || 'Failed to update subject group status');
             }
         } catch (error: any) {
             toast.error(error.message || 'Something went wrong');
         }
     };
 
+    const closeDialog = () => {
+        reset();
+        onClose();
+    };
+
     return (
-        <AdaptiveDialog title={title} isOpen={true} onClose={closeDialog}>
+        <AdaptiveDialog title='Toggle Master Subject Group Status' isOpen={true} onClose={closeDialog}>
             <form onSubmit={handleSubmit(onSubmit)} className='flex flex-col gap-4'>
                 <AdaptiveBody className='flex flex-col gap-5'>
-                    <input type='hidden' {...register(idKey as any)} defaultValue={rowData[idKey]} />
+                    <input type='hidden' {...register('emG_Id')} />
                     <p>
-                        Are you sure you want to <strong>{isActive ? 'deactivate' : 'activate'}</strong>{' '}
-                        <strong>{String(rowData[nameKey])}</strong>?
+                        Are you sure you want to {isActive ? 'deactivate' : 'activate'} <strong>{rowData.emG_GroupName}</strong>?
                     </p>
-                    <FormError>{(errors as any)[idKey]?.message}</FormError>
-                    <FormError>{errors.root?.message}</FormError>
+                    {errors.emG_Id && <FormError>{errors.emG_Id.message}</FormError>}
                 </AdaptiveBody>
 
                 <AdaptiveFooter>
