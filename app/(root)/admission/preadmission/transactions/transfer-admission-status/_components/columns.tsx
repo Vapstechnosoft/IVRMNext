@@ -39,34 +39,49 @@ export const transferAdmissionColumns: ColumnDef<IPreadmissionApplicationList>[]
         header: ({ column }) => <DataTableColumnHeader column={column} title='Registration No' />,
         cell: ({ row }) => <div>{row.getValue('pasR_RegistrationNo') ?? 'N.A'}</div>,
         enableSorting: true,
-        enableHiding: true
+        enableHiding: true,
+        meta: {
+            title: 'Registration No'
+        }
     },
     {
         accessorKey: 'student_name',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Student Name' />,
         cell: ({ row }) => <div>{row.getValue('student_name')}</div>,
         enableSorting: true,
-        enableHiding: true
+        enableHiding: true,
+        meta: {
+            title: 'Student Name'
+        }
     },
     {
         accessorKey: 'pasR_Sex',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Gender' />,
         cell: ({ row }) => <div>{row.getValue('pasR_Sex')}</div>,
         enableSorting: true,
-        enableHiding: true
+        enableHiding: true,
+        meta: {
+            title: 'Gender'
+        }
     },
     {
         accessorKey: 'applied_class_name',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Applied Class' />,
         cell: ({ row }) => <div>{row.getValue('applied_class_name')}</div>,
         enableSorting: true,
-        enableHiding: true
+        enableHiding: true,
+        meta: {
+            title: 'Applied Class'
+        }
     },
     {
         accessorKey: 'current_status',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Current Status' />,
         cell: ({ row }) => <div>{row.getValue('current_status')}</div>,
         enableSorting: true,
-        enableHiding: true
+        enableHiding: true,
+        meta: {
+            title: 'Current Status'
+        }
     }
 ];
