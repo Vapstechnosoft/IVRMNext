@@ -1,5 +1,6 @@
 'use client';
 
+import { Button } from '@/components/ui/button';
 import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/generic-data-table';
 import { Label } from '@/components/ui/extension/field';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
@@ -10,8 +11,11 @@ import {
     useApplicationStudentList,
     usePreadmissionClassDropdown
 } from '@/hooks/admission/preadmission/useTransactions';
+import { updateStudentApplicationStatus } from '@/server/admission/preadmission/transactions/transfer_application_status';
 import type { IPreadmissionApplicationList } from '@/types/admission/preadmission/transactions';
+import { CheckSquare } from 'lucide-react';
 import { use, useState } from 'react';
+import { ApplicationStatusUpdateDialog } from './_components/application-status-update-form';
 import { transferApplicationColumns } from './_components/columns';
 
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
@@ -35,12 +39,31 @@ export default function TransferApplicationStatusPage(props: { searchParams: Sea
     const [classId, setClassId] = useState<number>(0);
     const [statusId, setStatusId] = useState<number>(0);
 
+    const [isStatusDialogOpen, setIsStatusDialogOpen] = useState(false);
+    const [selectedStudents, setSelectedStudents] = useState<IPreadmissionApplicationList[]>([]);
+
     const {
         data: response,
         isLoading,
         error
     } = useApplicationStudentList(activePreadmission?.data?.asmaY_Id ?? 0, classId, statusId, searchParams);
     const tableProps = useDataTableProps(response);
+
+    const handleApplicationStatusUpdate = async (updates: Array<{ pasr_id: number; status_id: number; remarks: string }>) => {
+        try {
+            await updateStudentApplicationStatus(updates);
+            // Refetch the data after successful update
+            // You might need to trigger a refetch here based on your setup
+            alert('Status updated successfully!');
+        } catch (error) {
+            console.error('Error updating status:', error);
+            alert('Failed to update status. Please try again.');
+        }
+    };
+
+    const handleDeselectStudent = (pasrId: number) => {
+        setSelectedStudents((prev) => prev.filter((student) => student.pasr_id !== pasrId));
+    };
 
     return (
         <div className='min-h-screen'>
@@ -128,6 +151,12 @@ export default function TransferApplicationStatusPage(props: { searchParams: Sea
                     variant='default'
                     size='lg'
                     className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
+                    {selectedStudents.length > 0 && (
+                        <Button onClick={() => setIsStatusDialogOpen(true)} variant='default' className='h-8 gap-2'>
+                            <CheckSquare className='h-4 w-4' />
+                            Update Status ({selectedStudents.length})
+                        </Button>
+                    )}
                     <GenericDataTable<IPreadmissionApplicationList>
                         {...tableProps}
                         columns={transferApplicationColumns}
@@ -140,6 +169,14 @@ export default function TransferApplicationStatusPage(props: { searchParams: Sea
                     />
                 </CollapsibleSection>
             </div>
+            <ApplicationStatusUpdateDialog
+                isOpen={isStatusDialogOpen}
+                onClose={() => setIsStatusDialogOpen(false)}
+                selectedStudents={selectedStudents}
+                applicationStatuses={applicationStatus?.data || []}
+                onSubmit={handleApplicationStatusUpdate}
+                onDeselectStudent={handleDeselectStudent}
+            />
         </div>
     );
 }
