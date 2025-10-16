@@ -146,3 +146,62 @@ export const getDuration = (start: string, end: string): string => {
     const pad = (n: number) => String(n).padStart(2, '0');
     return `${pad(hours)}:${pad(minutes)}:${pad(seconds)}`;
 };
+
+/**
+ * Calculates the age difference between two dates.
+ *
+ * @param fromDate - The starting date (e.g., birth date)
+ * @param toDate - The end date (default: today)
+ * @returns An object containing:
+ *   - years: number
+ *   - months: number
+ *   - days: number
+ *   - ageString: formatted string (e.g. "5 years, 2 months, 3 days")
+ *   - ageInYears: integer (e.g. 5)
+ */
+export function calculateAge(fromDate: Date, toDate: Date = new Date()) {
+    if (!(fromDate instanceof Date) || Number.isNaN(fromDate.getTime())) {
+        throw new Error('Invalid fromDate provided');
+    }
+
+    if (!(toDate instanceof Date) || Number.isNaN(toDate.getTime())) {
+        throw new Error('Invalid toDate provided');
+    }
+
+    // Ensure fromDate is not in the future
+    if (fromDate > toDate) {
+        throw new Error('fromDate cannot be after toDate');
+    }
+
+    let years = toDate.getFullYear() - fromDate.getFullYear();
+    let months = toDate.getMonth() - fromDate.getMonth();
+    let days = toDate.getDate() - fromDate.getDate();
+
+    // Adjust if the current month/day is before the birth month/day
+    if (days < 0) {
+        months -= 1;
+        const previousMonth = new Date(toDate.getFullYear(), toDate.getMonth(), 0);
+        days += previousMonth.getDate();
+    }
+
+    if (months < 0) {
+        years -= 1;
+        months += 12;
+    }
+
+    // Format readable string
+    const parts: string[] = [];
+    if (years > 0) parts.push(`${years} year${years !== 1 ? 's' : ''}`);
+    if (months > 0) parts.push(`${months} month${months !== 1 ? 's' : ''}`);
+    if (days > 0) parts.push(`${days} day${days !== 1 ? 's' : ''}`);
+
+    const ageString = parts.join(', ') || '0 days';
+
+    return {
+        years,
+        months,
+        days,
+        ageInYears: years,
+        ageString
+    };
+}

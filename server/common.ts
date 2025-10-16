@@ -4,13 +4,13 @@ import type { IDropdown, IUserAccessibleModules, UserNotification } from '@/type
 
 export async function getCommonDropdown(name: string) {
     const url = `/v1/common/common_drop_down_list/${name}`;
-    return await api.get<IDropdown[]>(url);
+    return await api.get<IDropdown[]>('default', url);
 }
 
 export async function getUserNotificationList(_priority?: string) {
     // const url = `/v1/user_notification?priority=${priority ?? 'normal'}`;
 
-    // return await api.get<UserNotification[]>(url);
+    // return await api.get<UserNotification[]>('admission', url);
 
     const response: ApiResponse<UserNotification[]> = {
         success: true,
@@ -34,16 +34,18 @@ export async function getUserNotificationList(_priority?: string) {
 
 export async function markReadUserNotification(id: number) {
     const url = `/v1/user_notification/mark_read/${id}`;
-    return await api.put<any>(url);
+    return await api.put<any>('default', url);
 }
 
 export async function markAllReadUserNotification() {
     const url = '/v1/user_notification/mark_all_read';
-    return await api.put<any>(url);
+    return await api.put<any>('default', url);
 }
 
 export async function getUserAccessibleModules() {
-    // return await api.get<IUserAccessibleModules[]>(url);
+    const url = '/v1/login/user_accessible_pages';
+
+    // return await api.get<IUserAccessibleModules[]>('default', url);
 
     const response: ApiResponse<IUserAccessibleModules[]> = {
         success: true,
@@ -52,12 +54,12 @@ export async function getUserAccessibleModules() {
             {
                 id: 1,
                 name: 'Admission',
-                icon: 'Settings',
+                icon: 'UserRoundPlus',
                 menu: [
                     {
                         id: 1,
                         name: 'Preadmission',
-                        icon: 'Settings',
+                        icon: 'UserCog',
                         sub_menu: [
                             {
                                 id: 1,
@@ -125,19 +127,23 @@ export async function getUserAccessibleModules() {
                             {
                                 id: 2,
                                 name: 'Transactions',
-                                icon: 'ClipboardList',
+                                icon: 'Settings',
                                 pages: [
                                     {
                                         id: 1,
-                                        name: 'Master Class',
+                                        name: 'Admission Form',
                                         icon: 'Settings',
-                                        url: '/admission/preadmission/transactions/class'
+                                        url: '/admission/preadmission/transactions/application-form',
+                                        title: 'Admission Form',
+                                        description: 'Apply for Admission'
                                     },
                                     {
                                         id: 2,
-                                        name: 'Master Section',
+                                        name: 'Transfer Application Status',
                                         icon: 'Settings',
-                                        url: '/admission/transactions/section'
+                                        url: '/admission/preadmission/transactions/transfer-application-status',
+                                        title: 'Transfer Application Status',
+                                        description: 'Manage Transfer Application Status Details'
                                     }
                                 ]
                             }
@@ -301,15 +307,19 @@ export async function getUserAccessibleModules() {
                                 pages: [
                                     {
                                         id: 1,
-                                        name: 'Master Class',
+                                        name: 'Admission Form',
                                         icon: 'Settings',
-                                        url: '/admission/preadmission/transactions/class'
+                                        url: '/admission/preadmission/transactions/application-form',
+                                        title: 'Admission Form',
+                                        description: 'Apply for Admission'
                                     },
                                     {
                                         id: 2,
-                                        name: 'Master Section',
+                                        name: 'Transfer Application Status',
                                         icon: 'Settings',
-                                        url: '/admission/transactions/section'
+                                        url: '/admission/preadmission/transactions/transfer-application-status',
+                                        title: 'Transfer Application Status',
+                                        description: 'Manage Transfer Application Status Details'
                                     }
                                 ]
                             }

@@ -19,6 +19,24 @@ export const ADMISSION_QUERY_KEYS = {
     MASTER_CASTE_CATEGORY_DROPDOWN: 'master_caste_category_dropdown'
 };
 
+export const PREADMISSION_QUERY_KEYS = {
+    CHECK_PREADMISSION_LIVE: 'check_preadmission_live',
+    RELIGION_DROPDOWN: 'religion_dropdown',
+    CASTE_DROPDOWN: 'caste_dropdown',
+    COUNTRY_DROPDOWN: 'country_dropdown',
+    STATE_DROPDOWN: 'state_dropdown',
+    GENDER_DROPDOWN: 'gender_dropdown',
+    SOURCE_DROPDOWN: 'source_dropdown',
+    REFERENCE_DROPDOWN: 'reference_dropdown',
+    PREADMISSION_DOCUMENTS_DROPDOWN: 'preadmission_documents_dropdown',
+    PREADMISSION_CLASS_DROPDOWN: 'preadmission_class_dropdown',
+    ACTIVE_PREADMISSION_DETAILS: 'active_preadmission_details',
+    APPLICATION_STATUS_DROPDOWN: 'application_status_dropdown',
+    APPLICATION_STUDENT_LIST: 'application_student_list',
+    PREADMISSION_ADMISSION_STATUS_DROPDOWN: 'preadmission_admission_status_dropdown',
+    PREADMISSION_STUDENT_LIST: 'preadmission_student_list'
+};
+
 export const EXAM_QUERY_KEYS = {
     MASTER_SUBJECT: 'master_subject',
     MASTER_SUB_SUBJECT_EX: 'master_sub_subject-ex',

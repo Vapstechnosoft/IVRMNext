@@ -5,21 +5,23 @@ import 'next-auth';
 
 declare module 'next-auth' {
     interface Session {
+        mi_id: number;
         name: string;
         email: string;
+        token: string;
         role: Role;
         designation: string;
-        token: string;
         user_image: string | null;
         expires: string;
     }
 
     interface User {
+        mi_id: number;
         name: string;
         email: string;
+        token: string;
         role: Role;
         designation: string;
-        token: string;
         user_image: string | null;
     }
 

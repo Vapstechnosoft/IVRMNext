@@ -28,7 +28,9 @@ export function UserNav({ session }: { session: Session | null }) {
                 <DropdownMenuLabel className='font-normal'>
                     <div className='flex flex-col space-y-1'>
                         <p className='font-medium text-sm leading-none'>Name: {session?.name}</p>
-                        <p className='text-muted-foreground text-xs leading-none'>Designation: {session?.designation}</p>
+                        {session?.designation && (
+                            <p className='text-muted-foreground text-xs leading-none'>Designation: {session?.designation}</p>
+                        )}
                         <p className='text-muted-foreground text-xs leading-none'>Email: {session?.email}</p>
                     </div>
                 </DropdownMenuLabel>
