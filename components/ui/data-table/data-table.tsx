@@ -18,6 +18,7 @@ import {
 import { ChevronLeftIcon, ChevronRightIcon } from 'lucide-react';
 import { parseAsInteger, parseAsString, parseAsStringLiteral, useQueryState } from 'nuqs';
 import { useState } from 'react';
+import { forwardRef, useImperativeHandle } from 'react';
 import { toast } from 'sonner';
 import { DataTableSkeleton } from './data-table-skeleton';
 import { DataTableToolbar } from './data-table-toolbar';
@@ -37,18 +38,25 @@ interface DataTableProps<TData, TValue> {
     onRowSelectionChange?: (selectedRows: TData[]) => void;
 }
 
-export function DataTable<TData, TValue>({
-    columns,
-    data,
-    totalItems,
-    pageSizeOptions = [10, 20, 30, 40, 50],
-    isLoading,
-    showExportOptions = false,
-    showViewOptions = true,
-    columnPinning,
-    maxSelectableRows = 0,
-    onRowSelectionChange // ✅ <-- properly destructured
-}: DataTableProps<TData, TValue>) {
+export interface DataTableRef {
+    resetSelection: () => void;
+}
+
+export const DataTable = forwardRef<DataTableRef, DataTableProps<any, any>>(function DataTable<TData, TValue>(
+    {
+        columns,
+        data,
+        totalItems,
+        pageSizeOptions = [10, 20, 30, 40, 50],
+        isLoading,
+        showExportOptions = false,
+        showViewOptions = true,
+        columnPinning,
+        maxSelectableRows = 0,
+        onRowSelectionChange // ✅ <-- properly destructured
+    }: DataTableProps<TData, TValue>,
+    ref: React.Ref<DataTableRef>
+) {
     // Pagination state
     const [currentPage, setCurrentPage] = useQueryState(
         tableSearchVariables.page,
@@ -123,6 +131,16 @@ export function DataTable<TData, TValue>({
             columnPinning: columnPinning || { right: ['actions'] }
         }
     });
+
+    // Add this right after useReactTable:
+    useImperativeHandle(ref, () => ({
+        resetSelection: () => {
+            setRowSelection({});
+            if (typeof onRowSelectionChange === 'function') {
+                onRowSelectionChange([]);
+            }
+        }
+    }));
 
     return (
         <div className='w-full space-y-2.5 overflow-auto'>
@@ -261,4 +279,4 @@ export function DataTable<TData, TValue>({
             )}
         </div>
     );
-}
+}) as <TData, TValue>(props: DataTableProps<TData, TValue> & { ref?: React.Ref<DataTableRef> }) => React.ReactElement;

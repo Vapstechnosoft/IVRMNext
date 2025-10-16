@@ -3,6 +3,8 @@
 import { DataTable } from '@/components/ui/data-table/data-table';
 import type { ColumnDef } from '@tanstack/react-table';
 import { Database, RefreshCw } from 'lucide-react';
+import { forwardRef } from 'react';
+import type { DataTableRef } from './data-table';
 
 interface GenericDataTableProps<T> {
     // Data props
@@ -42,30 +44,33 @@ interface GenericDataTableProps<T> {
     NoDataComponent?: React.ComponentType;
 }
 
-export function GenericDataTable<T>({
-    data = [],
-    columns,
-    totalItems = 0,
-    isLoading,
-    error,
-    success = true,
-    errorMessage,
-    showViewOptions = true,
-    columnPinning,
-    maxSelectableRows = 0,
-    onRowSelectionChange,
-    loadingMessage = 'Loading data...',
-    errorTitle = 'Error Loading Data',
-    noDataTitle = 'No Data Found',
-    noDataDescription = 'Get started by creating your first record',
-    requestFailedTitle = 'Request Failed',
-    LoadingIcon = RefreshCw,
-    ErrorIcon = Database,
-    NoDataIcon = Database,
-    LoadingComponent,
-    ErrorComponent,
-    NoDataComponent
-}: GenericDataTableProps<T>) {
+export const GenericDataTable = forwardRef<DataTableRef, GenericDataTableProps<any>>(function GenericDataTable<T>(
+    {
+        data = [],
+        columns,
+        totalItems = 0,
+        isLoading,
+        error,
+        success = true,
+        errorMessage,
+        showViewOptions = true,
+        columnPinning,
+        maxSelectableRows = 0,
+        onRowSelectionChange,
+        loadingMessage = 'Loading data...',
+        errorTitle = 'Error Loading Data',
+        noDataTitle = 'No Data Found',
+        noDataDescription = 'Get started by creating your first record',
+        requestFailedTitle = 'Request Failed',
+        LoadingIcon = RefreshCw,
+        ErrorIcon = Database,
+        NoDataIcon = Database,
+        LoadingComponent,
+        ErrorComponent,
+        NoDataComponent
+    }: GenericDataTableProps<T>,
+    ref: React.Ref<DataTableRef>
+) {
     // Loading state
     if (isLoading) {
         if (LoadingComponent) return <LoadingComponent />;
@@ -128,6 +133,7 @@ export function GenericDataTable<T>({
     return (
         <div className='overflow-hidden rounded-lg bg-card'>
             <DataTable
+                ref={ref}
                 isLoading={false}
                 columns={columns}
                 data={data}
@@ -143,7 +149,7 @@ export function GenericDataTable<T>({
             />
         </div>
     );
-}
+}) as <T>(props: GenericDataTableProps<T> & { ref?: React.Ref<DataTableRef> }) => React.ReactElement;
 
 // Hook for common API response pattern
 export function useDataTableProps(

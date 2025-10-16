@@ -4,7 +4,6 @@ import PreadmissionRegistration from '@/app/(root)/admission/preadmission/transa
 import Logo from '@/components/layout/navigation/logo';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Checkbox } from '@/components/ui/checkbox';
 import { InputPassword } from '@/components/ui/extension/input-password';
 import { InputText } from '@/components/ui/extension/input-text';
 import { Label } from '@/components/ui/label';
@@ -31,7 +30,6 @@ export default function SigninForm() {
     const callbackUrl = searchParams.get('callbackUrl') || '/';
     const [error, setError] = useState<string | undefined>('');
     const [isPending, startTransition] = useTransition();
-    const [rememberMe, setRememberMe] = useState(false);
 
     const [isDarkMode, setIsDarkMode] = useState(false);
     const [mounted, setMounted] = useState(false);
@@ -114,8 +112,8 @@ export default function SigninForm() {
                     </div>
 
                     <Card className='border-0 bg-white/80 shadow-xl backdrop-blur-sm'>
-                        <CardHeader className='flex items-center'>
-                            <div className='mb-4 hidden justify-center lg:flex'>
+                        <CardHeader className='flex items-center gap-2'>
+                            <div className='hidden justify-center lg:flex'>
                                 <Logo size='full' />
                             </div>
                             <div className='text-center'>
@@ -135,7 +133,7 @@ export default function SigninForm() {
                         </CardHeader>
 
                         <CardContent>
-                            <form onSubmit={handleSubmit(onSubmit)} className='space-y-6'>
+                            <form onSubmit={handleSubmit(onSubmit)} className='space-y-4'>
                                 <div className='space-y-2'>
                                     <InputText
                                         label='Username/Email Address'
@@ -168,18 +166,8 @@ export default function SigninForm() {
                                     </div>
                                 )}
 
-                                {/* Remember Me & Forgot Password */}
-                                <div className='flex items-center justify-between'>
-                                    <div className='flex items-center space-x-2'>
-                                        <Checkbox
-                                            id='remember'
-                                            checked={rememberMe}
-                                            onCheckedChange={(checked) => setRememberMe(checked as boolean)}
-                                        />
-                                        <Label htmlFor='remember' className='cursor-pointer text-gray-600 text-sm'>
-                                            Remember me
-                                        </Label>
-                                    </div>
+                                {/* Forgot Password */}
+                                <div className='flex items-center justify-end'>
                                     <Link
                                         href='/forgot-password'
                                         className='font-medium text-primary text-sm transition-colors hover:underline'>
@@ -188,7 +176,7 @@ export default function SigninForm() {
                                 </div>
 
                                 {/* Action Buttons */}
-                                <div className='space-y-2'>
+                                <div className='space-y-1'>
                                     <Button
                                         type='submit'
                                         isLoading={isPending}
