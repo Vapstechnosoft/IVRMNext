@@ -42,6 +42,7 @@ interface GenericDataTableProps<T> {
     LoadingComponent?: React.ComponentType;
     ErrorComponent?: React.ComponentType<{ error: Error; message: string }>;
     NoDataComponent?: React.ComponentType;
+    searchQuery?: string;
 }
 
 export const GenericDataTable = forwardRef<DataTableRef, GenericDataTableProps<any>>(function GenericDataTable<T>(
@@ -59,15 +60,11 @@ export const GenericDataTable = forwardRef<DataTableRef, GenericDataTableProps<a
         onRowSelectionChange,
         loadingMessage = 'Loading data...',
         errorTitle = 'Error Loading Data',
-        noDataTitle = 'No Data Found',
-        noDataDescription = 'Get started by creating your first record',
         requestFailedTitle = 'Request Failed',
         LoadingIcon = RefreshCw,
         ErrorIcon = Database,
-        NoDataIcon = Database,
         LoadingComponent,
-        ErrorComponent,
-        NoDataComponent
+        ErrorComponent
     }: GenericDataTableProps<T>,
     ref: React.Ref<DataTableRef>
 ) {
@@ -113,23 +110,29 @@ export const GenericDataTable = forwardRef<DataTableRef, GenericDataTableProps<a
         );
     }
 
-    // No data state
+    // No data state - but still render DataTable to show toolbar
     if (data.length === 0) {
-        if (NoDataComponent) return <NoDataComponent />;
         return (
-            <div className='flex flex-col items-center justify-center space-y-4 py-12'>
-                <div className='rounded-full bg-muted p-3'>
-                    <NoDataIcon className='h-6 w-6 text-muted-foreground' />
-                </div>
-                <div className='space-y-2 text-center'>
-                    <h3 className='font-semibold'>{noDataTitle}</h3>
-                    <p className='text-muted-foreground text-sm'>{noDataDescription}</p>
-                </div>
+            <div className='overflow-hidden rounded-lg bg-card'>
+                <DataTable
+                    ref={ref}
+                    isLoading={false}
+                    columns={columns}
+                    data={[]} // Empty array
+                    totalItems={0}
+                    showViewOptions={showViewOptions}
+                    columnPinning={columnPinning}
+                    maxSelectableRows={maxSelectableRows}
+                    onRowSelectionChange={(selectedRows) => {
+                        if (onRowSelectionChange) {
+                            onRowSelectionChange(selectedRows);
+                        }
+                    }}
+                />
             </div>
         );
     }
 
-    // Success state with data
     return (
         <div className='overflow-hidden rounded-lg bg-card'>
             <DataTable

@@ -53,7 +53,7 @@ export const DataTable = forwardRef<DataTableRef, DataTableProps<any, any>>(func
         showViewOptions = true,
         columnPinning,
         maxSelectableRows = 0,
-        onRowSelectionChange // ✅ <-- properly destructured
+        onRowSelectionChange
     }: DataTableProps<TData, TValue>,
     ref: React.Ref<DataTableRef>
 ) {
@@ -189,7 +189,14 @@ export const DataTable = forwardRef<DataTableRef, DataTableProps<any, any>>(func
                                 ) : (
                                     <TableRow>
                                         <TableCell colSpan={table.getAllColumns().length} className='h-24 text-center'>
-                                            No results.
+                                            <div className='flex flex-col items-center justify-center space-y-2'>
+                                                <p className='font-medium text-muted-foreground'>
+                                                    {searchQuery ? `No results found for "${searchQuery}"` : 'No results.'}
+                                                </p>
+                                                {searchQuery && (
+                                                    <p className='text-muted-foreground text-sm'>Try adjusting your search or filters</p>
+                                                )}
+                                            </div>
                                         </TableCell>
                                     </TableRow>
                                 )}

@@ -12,9 +12,11 @@ import {
     useApplicationStudentList,
     usePreadmissionClassDropdown
 } from '@/hooks/admission/preadmission/useTransactions';
+import { tableSearchVariables } from '@/lib/data-table.config';
 import { updateStudentApplicationStatus } from '@/server/admission/preadmission/transactions/transfer_application_status';
 import type { IPreadmissionApplicationList } from '@/types/admission/preadmission/transactions';
 import { CheckSquare } from 'lucide-react';
+import { parseAsString, useQueryState } from 'nuqs';
 import { use, useRef, useState } from 'react';
 import { toast } from 'sonner';
 import { ApplicationStatusUpdateDialog } from './_components/application-status-update-form';
@@ -26,6 +28,8 @@ export default function TransferApplicationStatusPage(props: { searchParams: Sea
     const searchParams = use(props.searchParams);
 
     const tableRef = useRef<DataTableRef>(null);
+
+    const [searchQuery] = useQueryState(tableSearchVariables.search, parseAsString.withOptions({ shallow: false }).withDefault(''));
 
     const handleResetSelection = () => {
         tableRef.current?.resetSelection();
@@ -187,6 +191,7 @@ export default function TransferApplicationStatusPage(props: { searchParams: Sea
                         columns={transferApplicationColumns}
                         isLoading={activePreadmissionDeLoading || isLoading}
                         error={error}
+                        searchQuery={searchQuery}
                         loadingMessage='Loading preadmission applications...'
                         noDataTitle='No Data Found'
                         noDataDescription='No preadmission applications found.'
