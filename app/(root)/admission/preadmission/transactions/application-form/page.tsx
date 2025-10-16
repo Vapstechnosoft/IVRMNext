@@ -10,7 +10,7 @@ import ApplicationFormSuccessDialog from './_components/success-dialog';
 
 export default function StudentApplicationPage() {
     return (
-        <FormProvider>
+        <FormProvider scrollIntoViewDirection='nearest'>
             <StudentApplicationPageContent />
         </FormProvider>
     );
@@ -33,8 +33,7 @@ function StudentApplicationPageContent() {
                         Preadmission Application
                     </Button>
                 </div>
-                <ApplicationFormSuccessDialog isOpen={isSuccessOpen} onClose={() => setSuccessOpen(false)} />
-
+                {isSuccessOpen && <ApplicationFormSuccessDialog isOpen={isSuccessOpen} onClose={() => setSuccessOpen(false)} />}
                 {/* Forms */}
                 <FormSections setSuccessOpen={() => setSuccessOpen(true)} />
             </div>

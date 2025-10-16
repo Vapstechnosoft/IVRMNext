@@ -32,9 +32,15 @@ interface FormProviderProps {
     children: ReactNode;
     scrollToForm?: boolean;
     scrollToTopOnClose?: boolean;
+    scrollIntoViewDirection?: 'start' | 'center' | 'end' | 'nearest';
 }
 
-export function FormProvider<T = any>({ children, scrollToForm = true, scrollToTopOnClose = true }: FormProviderProps) {
+export function FormProvider<T = any>({
+    children,
+    scrollToForm = true,
+    scrollToTopOnClose = true,
+    scrollIntoViewDirection = 'end'
+}: FormProviderProps) {
     const [isAddFormOpen, setIsAddFormOpen] = useState(false);
     const [isEditFormOpen, setIsEditFormOpen] = useState(false);
     const [isToggleFormOpen, setIsToggleFormOpen] = useState(false);
@@ -50,7 +56,7 @@ export function FormProvider<T = any>({ children, scrollToForm = true, scrollToT
                 setTimeout(() => {
                     ref.current?.scrollIntoView({
                         behavior: 'smooth',
-                        block: 'end'
+                        block: scrollIntoViewDirection
                     });
                 }, 100);
             }

@@ -133,7 +133,17 @@ export async function getUserAccessibleModules() {
                                         id: 1,
                                         name: 'Admission Form',
                                         icon: 'Settings',
-                                        url: '/admission/preadmission/transactions/application-form'
+                                        url: '/admission/preadmission/transactions/application-form',
+                                        title: 'Admission Form',
+                                        description: 'Apply for Admission'
+                                    },
+                                    {
+                                        id: 2,
+                                        name: 'Transfer Application Status',
+                                        icon: 'Settings',
+                                        url: '/admission/preadmission/transactions/transfer-application-status',
+                                        title: 'Transfer Application Status',
+                                        description: 'Manage Transfer Application Status Details'
                                     }
                                 ]
                             }

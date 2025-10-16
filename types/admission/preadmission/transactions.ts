@@ -44,3 +44,23 @@ export interface IPreadmissionClassDropdown {
     asmcL_MaxAgeDays: number;
     asmcL_MaxCapacity: number;
 }
+export interface IActivePreadmissionDetails {
+    asmaY_Id: number;
+    asmaY_Year: string;
+    asmaY_AcademicYearCode: string;
+    asmaY_PreAdm_F_Date: string;
+    asmaY_PreAdm_T_Date: string;
+}
+export interface IPreadmissionApplicationList {
+    pasr_id: number;
+    pasR_RegistrationNo: string;
+    student_name: string;
+    pasR_Sex: string;
+    applied_class_name: string;
+    current_status: string;
+}
+export interface IPreadmissionAdmissionStatusDropdown {
+    pamsT_Id: number;
+    pamsT_Status: string;
+    pamsT_StatusFlag: string;
+}

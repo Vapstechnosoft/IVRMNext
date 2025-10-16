@@ -10,6 +10,16 @@ import {
     getSourceDropdown,
     getStateDropdown
 } from '@/server/admission/preadmission/transactions/application_form';
+import {
+    getActivePreadmissionDetails,
+    getApplicationStatusDropdown,
+    getApplicationStudentList
+} from '@/server/admission/preadmission/transactions/transfer_application_status';
+import {
+    getPreadmissionAdmissionStatusDropdown,
+    getPreadmissionStudentList
+} from '@/server/admission/preadmission/transactions/transfer_preadmission_status';
+import type { ApiSearchparams } from '@/types';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 
 export const useReligionDropdown = () => {
@@ -162,6 +172,93 @@ export const usePreadmissionClassDropdown = () => {
         refetchAll: () => {
             return queryClient.invalidateQueries({
                 queryKey: [PREADMISSION_QUERY_KEYS.PREADMISSION_CLASS_DROPDOWN]
+            });
+        }
+    };
+};
+
+export const useActivePreadmissionDetails = () => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [PREADMISSION_QUERY_KEYS.ACTIVE_PREADMISSION_DETAILS],
+            queryFn: async () => getActivePreadmissionDetails(),
+            staleTime: 0
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [PREADMISSION_QUERY_KEYS.ACTIVE_PREADMISSION_DETAILS]
+            });
+        }
+    };
+};
+
+export const useApplicationStatusDropdown = () => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [PREADMISSION_QUERY_KEYS.APPLICATION_STATUS_DROPDOWN],
+            queryFn: async () => getApplicationStatusDropdown(),
+            staleTime: 0
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [PREADMISSION_QUERY_KEYS.APPLICATION_STATUS_DROPDOWN]
+            });
+        }
+    };
+};
+
+export const useApplicationStudentList = (asmay_id: number, asmcl_id: number, pasraps_id: number, searchParams?: ApiSearchparams) => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [PREADMISSION_QUERY_KEYS.APPLICATION_STUDENT_LIST, asmay_id, asmcl_id, pasraps_id, searchParams ?? {}],
+            queryFn: async () => getApplicationStudentList(asmay_id, asmcl_id, pasraps_id, searchParams),
+            staleTime: 0,
+            enabled: !!asmay_id && !!pasraps_id && asmcl_id !== undefined
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [PREADMISSION_QUERY_KEYS.APPLICATION_STUDENT_LIST]
+            });
+        }
+    };
+};
+
+export const usePreadmissionAdmissionStatusDropdown = () => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [PREADMISSION_QUERY_KEYS.PREADMISSION_ADMISSION_STATUS_DROPDOWN],
+            queryFn: async () => getPreadmissionAdmissionStatusDropdown(),
+            staleTime: 0
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [PREADMISSION_QUERY_KEYS.PREADMISSION_ADMISSION_STATUS_DROPDOWN]
+            });
+        }
+    };
+};
+
+export const usePreadmissionStudentList = (asmay_id: number, asmcl_id: number, pamst_id: number, searchParams?: ApiSearchparams) => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [PREADMISSION_QUERY_KEYS.PREADMISSION_STUDENT_LIST, asmay_id, asmcl_id, pamst_id, searchParams ?? {}],
+            queryFn: async () => getPreadmissionStudentList(asmay_id, asmcl_id, pamst_id, searchParams),
+            staleTime: 0,
+            enabled: !!asmay_id && !!asmcl_id && !!pamst_id
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [PREADMISSION_QUERY_KEYS.PREADMISSION_STUDENT_LIST]
             });
         }
     };
