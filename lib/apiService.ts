@@ -4,14 +4,11 @@ export interface PaginationData {
     page_Size: number;
 }
 
-export interface ApiResponse<T> {
-    success: boolean; // Indicates if API call was successful
-    message: string; // Message from backend
-    data: T | T[] | { $values: T[] } | null; // Handles direct array, $values wrapped array, single object, or null
-    total?: number; // Total records (optional)
-    page?: number; // Current page number (optional)
-    page_size?: number; // Page size (optional)
-    [key: string]: unknown; // Allows additional dynamic properties
+export interface ApiResponse<T> extends Partial<PaginationData> {
+    success: boolean;
+    message: string;
+    data: T | null;
+    [key: string]: unknown;
 }
 
 export interface ApiArrayResponse<T> extends Partial<PaginationData> {
@@ -147,7 +144,7 @@ class ApiService {
             const transformedResponse: ApiResponse<T[]> = {
                 success: response.data.success,
                 message: response.data.message,
-                data: (response.data as any)?.$values ?? [],
+                data: response.data.data?.$values || null,
                 total: response.data.total,
                 page: response.data.page,
                 page_Size: response.data.page_Size
