@@ -7,15 +7,15 @@ import type { IFineSlabList } from '@/types/fees/masters/masters';
 export async function getFineSlab(searchParams?: ApiSearchparams) {
     const urlParams = getSearchParamsUrl(searchParams ?? {});
     const url = `/FeeFineSlab/MasterFineSlabList/30?${urlParams}`;
-    return await api.get<IFineSlabList[]>(url);
+    return await api.get<IFineSlabList[]>('fees', url);
 }
 
 export async function addOrUpdateFineSlab(data: any) {
     const url = '/FeeFineSlab/AddOrUpdate';
-    return await api.post<any>(url, data);
+    return await api.post<any>('fees', url, data);
 }
 
 export async function toggleFineSlab(mi_id: number, id: number) {
     const url = `/FeeFineSlab/Toggle/${id}`;
-    return await api.put(url);
+    return await api.put('fees', url);
 }

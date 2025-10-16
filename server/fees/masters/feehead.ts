@@ -7,15 +7,15 @@ import type { IFeeHeadsList } from '@/types/fees/masters';
 export async function getfeehead(searchParams?: ApiSearchparams) {
     const urlParams = getSearchParamsUrl(searchParams ?? {});
     const url = `/FeeheadFacade/30?${urlParams}`;
-    return await api.get<IFeeHeadsList[]>(url);
+    return await api.get<IFeeHeadsList[]>('fees', url);
 }
 
 export async function addOrUpdateMasterfeehead(data: any) {
     const url = '/FeeheadFacade';
-    return await api.post<any>(url, data);
+    return await api.post<any>('fees', url, data);
 }
 
 export async function toggleMasterfeehead(mi_id: number, id: number) {
     const url = `/FeeheadFacade/deactivate/${id}`;
-    return await api.put(url);
+    return await api.put('fees', url);
 }

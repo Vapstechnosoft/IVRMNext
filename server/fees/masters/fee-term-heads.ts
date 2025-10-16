@@ -11,34 +11,34 @@ import type {
 
 export async function getFeeTermHeadList(searchParams?: ApiSearchparams) {
     const urlParams = getSearchParamsUrl(searchParams ?? {});
-    const url = `/FeeMasterTermsFacade/fee-term-heads/30?${urlParams}`;
-    return await api.get<IMasterTermFeeHeadList[]>(url);
+    const url = `/FeeMasterTermsFacade/fee_term_heads/30?${urlParams}`;
+    return await api.get<IMasterTermFeeHeadList[]>('fees', url);
 }
 
 export async function addOrUpdateFeeTermHead(data: any) {
     const url = '/FeeFineSlabFacade/AddOrUpdate';
-    return await api.post<any>(url, data);
+    return await api.post<any>('fees', url, data);
 }
 
 export async function toggleFeeTermHead(mi_id: number, id: number) {
     const url = `/FeeFineSlabFacade/Toggle/${id}`;
-    return await api.put(url);
+    return await api.put('fees', url);
 }
 
 export async function getheadsdropdown(searchParams?: ApiSearchparams) {
     const urlParams = getSearchParamsUrl(searchParams ?? {});
-    const url = `/FeeMasterTermsFacade/fee-head-Dropdown/30?${urlParams}`;
-    return await api.get<IMasterHeadDropdownList[]>(url);
+    const url = `/FeeMasterTermsFacade/fee_head_Dropdown/30?${urlParams}`;
+    return await api.get<IMasterHeadDropdownList[]>('fees', url);
 }
 
 export async function getinstallmentsdropdown(searchParams?: ApiSearchparams) {
     const urlParams = getSearchParamsUrl(searchParams ?? {});
-    const url = `/FeeMasterTermsFacade/fee-installment-Dropdown/30?${urlParams}`;
-    return await api.get<IMasterInstallmentsDropdownList[]>(url);
+    const url = `/FeeMasterTermsFacade/fee_installment_Dropdown/30?${urlParams}`;
+    return await api.get<IMasterInstallmentsDropdownList[]>('fees', url);
 }
 
 export async function gettermsdropdown(searchParams?: ApiSearchparams) {
     const urlParams = getSearchParamsUrl(searchParams ?? {});
-    const url = `/FeeMasterTermsFacade/fee-term-Dropdown/30?${urlParams}`;
-    return await api.get<IMasterTermDropdownList[]>(url);
+    const url = `/FeeMasterTermsFacade/fee_term_Dropdown/30?${urlParams}`;
+    return await api.get<IMasterTermDropdownList[]>('fees', url);
 }

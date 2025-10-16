@@ -5,22 +5,22 @@ import type { IMaasterFeesYearlyGrouping } from '@/types/fees/masters/masters';
 
 export async function addOrUpdateYearlyGrouping(data: any) {
     const url = '/demo';
-    return await api.post<any>(url, data);
+    return await api.post<any>('fees', url, data);
 }
 
 export async function toggleMasterYearlyGrouping(_mi_id: 30, id: number) {
     const url = `/demo/${id}`;
-    return await api.put(url);
+    return await api.put('fees', url);
 }
 
 export async function getfeeYearlyGrouping(searchParams?: ApiSearchparams) {
     const urlParams = getSearchParamsUrl(searchParams ?? {});
     const url = `/FeeheadFacade/30?${urlParams}`;
-    return await api.get<IMaasterFeesYearlyGrouping[]>(url);
+    return await api.get<IMaasterFeesYearlyGrouping[]>('fees', url);
 }
 
 export async function getfeeGroups(searchParams?: ApiSearchparams) {
     const urlParams = getSearchParamsUrl(searchParams ?? {});
     const url = `/FeeheadFacade/30?${urlParams}`;
-    return await api.get<IMaasterFeesYearlyGrouping[]>(url);
+    return await api.get<IMaasterFeesYearlyGrouping[]>('fees', url);
 }

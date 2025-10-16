@@ -167,3 +167,36 @@ export interface IMasterConcessionDetails {
     fmfS_ECSFlag: string;
     fmfS_ActiveFlag: boolean;
 }
+
+export interface IMasterInstallmentsDropdownList {
+    ftI_ID: number;
+    ftI_NAME: string;
+}
+
+export interface IMasterTermDropdownList {
+    fmT_Id: number;
+    fmT_Name: string;
+}
+
+export interface IMasterHeadDropdownList {
+    fmH_Id: number;
+    fmH_Flag: string;
+    fmH_FeeName: string;
+}
+export interface IMasterTermFeeHeadList {
+    fmT_Id: number;
+    fmT_Name: string;
+    fmT_IncludeArrearFeeFlg: boolean;
+    fmT_ActiveFlag: boolean;
+    termname: string;
+    headname: string;
+    installmentname: string;
+    idforedt: number;
+}
+
+export interface IMasterTermsList {
+    fmT_Id: number;
+    fmT_Name: string;
+    fmT_IncludeArrearFeeFlg: boolean;
+    fmT_ActiveFlag: boolean;
+}

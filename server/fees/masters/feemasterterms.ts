@@ -6,16 +6,16 @@ import type { IMasterTermsList } from '@/types/fees/masters/masters';
 
 export async function getFeeTermList(searchParams?: ApiSearchparams) {
     const urlParams = getSearchParamsUrl(searchParams ?? {});
-    const url = `/FeeMasterTermsFacade/fee-terms/30?${urlParams}`;
-    return await api.get<IMasterTermsList[]>(url);
+    const url = `/FeeMasterTermsFacade/fee_terms/30?${urlParams}`;
+    return await api.get<IMasterTermsList[]>('fees', url);
 }
 
 export async function addOrUpdateFeeTerm(data: any) {
     const url = '/FeeFineSlabFacade/AddOrUpdate';
-    return await api.post<any>(url, data);
+    return await api.post<any>('fees', url, data);
 }
 
 export async function toggleFeeTerm(mi_id: number, id: number) {
     const url = `/FeeFineSlabFacade/Toggle/${id}`;
-    return await api.put(url);
+    return await api.put('fees', url);
 }

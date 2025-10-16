@@ -5,16 +5,16 @@ import type { IMasterFeesInstallmentDueDateList } from '@/types/fees/masters';
 
 export async function addOrUpdateInsallmentDueDate(data: any) {
     const url = '/demo';
-    return await api.post<any>(url, data);
+    return await api.post<any>('fees', url, data);
 }
 
 export async function toggleMasterfeeInstallmentDueDate(_mi_id: 30, id: number) {
     const url = `/demo/${id}`;
-    return await api.put(url);
+    return await api.put('fees', url);
 }
 
 export async function getfeeInstallmentDueDate(searchParams?: ApiSearchparams) {
     const urlParams = getSearchParamsUrl(searchParams ?? {});
     const url = `/FeeheadFacade/30?${urlParams}`;
-    return await api.get<IMasterFeesInstallmentDueDateList[]>(url);
+    return await api.get<IMasterFeesInstallmentDueDateList[]>('fees', url);
 }
