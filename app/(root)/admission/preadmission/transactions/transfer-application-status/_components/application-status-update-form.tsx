@@ -2,12 +2,12 @@
 
 import { Button } from '@/components/ui/button';
 import { AdaptiveBody, AdaptiveDialog, AdaptiveFooter } from '@/components/ui/extension/adaptive-dialog';
+import { InputTextarea } from '@/components/ui/extension/input-textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Textarea } from '@/components/ui/textarea';
 import type { IPreadmissionApplicationList } from '@/types/admission/preadmission/transactions';
 import { AlertCircle, CheckCircle2, X } from 'lucide-react';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
 interface ApplicationStatusUpdate {
     pasr_id: number;
@@ -39,7 +39,7 @@ export function ApplicationStatusUpdateDialog({
     const [errors, setErrors] = useState<Record<number, string>>({});
 
     // Initialize status updates when dialog opens
-    useState(() => {
+    useEffect(() => {
         if (isOpen && selectedStudents.length > 0) {
             const initialUpdates: Record<number, ApplicationStatusUpdate> = {};
             selectedStudents.forEach((student) => {
@@ -53,7 +53,7 @@ export function ApplicationStatusUpdateDialog({
             });
             setApplicationStatusUpdates(initialUpdates);
         }
-    });
+    }, [isOpen, selectedStudents]);
 
     const handleStatusChange = (pasrId: number, statusId: number) => {
         setApplicationStatusUpdates((prev) => ({
@@ -110,9 +110,7 @@ export function ApplicationStatusUpdateDialog({
             }));
 
             await onSubmit(updates);
-            setApplicationStatusUpdates({});
             setErrors({});
-            onClose();
         } catch (error) {
             console.error('Error updating statuses:', error);
         } finally {
@@ -135,19 +133,25 @@ export function ApplicationStatusUpdateDialog({
             isOpen={isOpen}
             onClose={onClose}
             title={
-                <div className='flex items-center justify-between'>
+                <div className='flex items-center justify-start gap-6'>
                     <span>Update Application Status</span>
-                    <div className='flex items-center gap-2 font-normal text-sm'>
+                </div>
+            }
+            description={
+                <span className='flex flex-col gap-2'>
+                    <span>
+                        Total selected students: <b>{Object.keys(applicationStatusUpdates).length}</b>
+                    </span>
+
+                    <span className='flex items-center gap-2 font-normal text-sm'>
                         <span className='text-muted-foreground'>
                             {completedCount} / {Object.keys(applicationStatusUpdates).length} completed
                         </span>
-                        {allValid && <CheckCircle2 className='h-4 w-4 text-green-500' />}
-                    </div>
-                </div>
+                        {allValid && <CheckCircle2 className='h-5 w-5 text-green-500' />}
+                    </span>
+                </span>
             }
-            description={`Update status for ${Object.keys(applicationStatusUpdates).length} selected student(s)`}
-            size='5xl'
-            interactOutside={false}>
+            size='5xl'>
             <AdaptiveBody className='max-h-[60vh]'>
                 <div className='space-y-4'>
                     {Object.keys(applicationStatusUpdates).length === 0 ? (
@@ -160,11 +164,15 @@ export function ApplicationStatusUpdateDialog({
                             <Table>
                                 <TableHeader>
                                     <TableRow className='bg-muted/50'>
-                                        <TableHead className='w-[40px]'>S.No</TableHead>
+                                        <TableHead className='w-[40px]'>Sl.No</TableHead>
                                         <TableHead className='min-w-[200px]'>Student Name</TableHead>
                                         <TableHead className='min-w-[150px]'>Current Status</TableHead>
-                                        <TableHead className='min-w-[200px]'>New Status *</TableHead>
-                                        <TableHead className='min-w-[300px]'>Remarks *</TableHead>
+                                        <TableHead className='min-w-[200px] text-center'>
+                                            New Status<span className='ml-1 text-red-500'>*</span>
+                                        </TableHead>
+                                        <TableHead className='min-w-[300px] text-center'>
+                                            Remarks<span className='ml-1 text-red-500'>*</span>
+                                        </TableHead>
                                         <TableHead className='w-[80px]'>Action</TableHead>
                                     </TableRow>
                                 </TableHeader>
@@ -196,14 +204,14 @@ export function ApplicationStatusUpdateDialog({
                                                 </Select>
                                             </TableCell>
                                             <TableCell>
-                                                <Textarea
+                                                <InputTextarea
                                                     placeholder='Enter remarks...'
                                                     value={update.remarks}
                                                     onChange={(e) => handleRemarksChange(update.pasr_id, e.target.value)}
-                                                    className={`min-h-[60px] resize-none ${
+                                                    className={`resize-none ${
                                                         errors[update.pasr_id] && !update.remarks.trim() ? 'border-red-500' : ''
                                                     }`}
-                                                    rows={2}
+                                                    minHeight={20}
                                                 />
                                                 {errors[update.pasr_id] && (
                                                     <p className='mt-1 text-red-500 text-xs'>{errors[update.pasr_id]}</p>
@@ -214,7 +222,7 @@ export function ApplicationStatusUpdateDialog({
                                                     variant='ghost'
                                                     size='sm'
                                                     onClick={() => handleDeselect(update.pasr_id)}
-                                                    className='h-8 w-8 p-0 text-red-500 hover:bg-red-50 hover:text-red-600'>
+                                                    className='h-8 w-8 bg-gray-200 p-0 text-red-500 hover:bg-red-50 hover:text-red-600'>
                                                     <X className='h-4 w-4' />
                                                 </Button>
                                             </TableCell>
@@ -227,11 +235,14 @@ export function ApplicationStatusUpdateDialog({
                 </div>
             </AdaptiveBody>
 
-            <AdaptiveFooter className='flex justify-between border-t pt-4'>
-                <Button variant='outline' onClick={onClose} disabled={isSubmitting}>
+            <AdaptiveFooter className='flex w-full justify-end gap-4'>
+                <Button variant='outline' className='w-fit' onClick={onClose} disabled={isSubmitting}>
                     Cancel
                 </Button>
-                <Button onClick={handleSubmit} disabled={!allValid || isSubmitting || Object.keys(applicationStatusUpdates).length === 0}>
+                <Button
+                    className='w-fit'
+                    onClick={handleSubmit}
+                    disabled={!allValid || isSubmitting || Object.keys(applicationStatusUpdates).length === 0}>
                     {isSubmitting ? (
                         <>
                             <span className='mr-2 h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent' />

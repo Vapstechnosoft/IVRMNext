@@ -18,6 +18,7 @@ import {
 import { ChevronLeftIcon, ChevronRightIcon } from 'lucide-react';
 import { parseAsInteger, parseAsString, parseAsStringLiteral, useQueryState } from 'nuqs';
 import { useState } from 'react';
+import { forwardRef, useImperativeHandle } from 'react';
 import { toast } from 'sonner';
 import { DataTableSkeleton } from './data-table-skeleton';
 import { DataTableToolbar } from './data-table-toolbar';
@@ -37,18 +38,25 @@ interface DataTableProps<TData, TValue> {
     onRowSelectionChange?: (selectedRows: TData[]) => void;
 }
 
-export function DataTable<TData, TValue>({
-    columns,
-    data,
-    totalItems,
-    pageSizeOptions = [10, 20, 30, 40, 50],
-    isLoading,
-    showExportOptions = false,
-    showViewOptions = true,
-    columnPinning,
-    maxSelectableRows = 0,
-    onRowSelectionChange // ✅ <-- properly destructured
-}: DataTableProps<TData, TValue>) {
+export interface DataTableRef {
+    resetSelection: () => void;
+}
+
+export const DataTable = forwardRef<DataTableRef, DataTableProps<any, any>>(function DataTable<TData, TValue>(
+    {
+        columns,
+        data,
+        totalItems,
+        pageSizeOptions = [10, 20, 30, 40, 50],
+        isLoading,
+        showExportOptions = false,
+        showViewOptions = true,
+        columnPinning,
+        maxSelectableRows = 0,
+        onRowSelectionChange
+    }: DataTableProps<TData, TValue>,
+    ref: React.Ref<DataTableRef>
+) {
     // Pagination state
     const [currentPage, setCurrentPage] = useQueryState(
         tableSearchVariables.page,
@@ -124,6 +132,16 @@ export function DataTable<TData, TValue>({
         }
     });
 
+    // Add this right after useReactTable:
+    useImperativeHandle(ref, () => ({
+        resetSelection: () => {
+            setRowSelection({});
+            if (typeof onRowSelectionChange === 'function') {
+                onRowSelectionChange([]);
+            }
+        }
+    }));
+
     return (
         <div className='w-full space-y-2.5 overflow-auto'>
             {/* Toolbar */}
@@ -171,7 +189,14 @@ export function DataTable<TData, TValue>({
                                 ) : (
                                     <TableRow>
                                         <TableCell colSpan={table.getAllColumns().length} className='h-24 text-center'>
-                                            No results.
+                                            <div className='flex flex-col items-center justify-center space-y-2'>
+                                                <p className='font-medium text-muted-foreground'>
+                                                    {searchQuery ? `No results found for "${searchQuery}"` : 'No results.'}
+                                                </p>
+                                                {searchQuery && (
+                                                    <p className='text-muted-foreground text-sm'>Try adjusting your search or filters</p>
+                                                )}
+                                            </div>
                                         </TableCell>
                                     </TableRow>
                                 )}
@@ -261,4 +286,4 @@ export function DataTable<TData, TValue>({
             )}
         </div>
     );
-}
+}) as <TData, TValue>(props: DataTableProps<TData, TValue> & { ref?: React.Ref<DataTableRef> }) => React.ReactElement;
