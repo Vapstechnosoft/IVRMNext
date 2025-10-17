@@ -42,14 +42,14 @@ function MasterFeeConfigPageContent({
                 {/* Header */}
                 <div className='flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between'>
                     <div className='space-y-1'>
-                        <Heading title='Fees Fine Slab' description='' />
+                        <Heading title='Fees Configuration' description='' />
                     </div>
                     <Button
                         type='button'
                         onClick={openAddForm}
                         className='w-fit shadow-md transition-all duration-200 hover:scale-105 hover:shadow-lg'>
                         <Plus className='h-4 w-4' />
-                        Add Fee Fine Slab
+                        Add Configuration
                     </Button>
                 </div>
 
@@ -98,8 +98,8 @@ function FormSections() {
             {isAddFormOpen && (
                 <div ref={addFormRef}>
                     <CollapsibleSection
-                        title='Add New Fine Slab'
-                        description='Fill in the details below to create a new Fine Slab'
+                        title='Add Configuration'
+                        description='Add a new configuration'
                         defaultOpen={true}
                         variant='outline'
                         size='md'

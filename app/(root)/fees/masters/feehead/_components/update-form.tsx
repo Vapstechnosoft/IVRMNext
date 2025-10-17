@@ -110,10 +110,9 @@ export default function UpdateMasterFeeheadForm({ onSuccess, feeheadname = '', s
                                 render={({ field }) => (
                                     <Select
                                         onValueChange={(value) => {
-                                            field.onChange(value); // <-- pass string value directly
+                                            field.onChange(value);
                                         }}
-                                        value={field.value || undefined} // <-- value must be string or undefined
-                                    >
+                                        value={field.value || undefined}>
                                         <SelectTrigger className='w-full'>
                                             <SelectValue placeholder='Select Fee Head Type' />
                                         </SelectTrigger>
@@ -195,11 +194,9 @@ export default function UpdateMasterFeeheadForm({ onSuccess, feeheadname = '', s
                         </div>
                     </div>
 
-                    {/* Root Error */}
                     {errors.root && <FormError>{errors.root.message}</FormError>}
                 </div>
 
-                {/* Action Buttons */}
                 <div className='flex flex-col gap-3 border-t pt-4 sm:flex-row sm:justify-start'>
                     <Button
                         type='button'

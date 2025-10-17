@@ -56,7 +56,6 @@ function MasterFeeheadPageContent({
                     </Button>
                 </div>
 
-                {/* Data Table Section */}
                 <CollapsibleSection
                     defaultOpen={true}
                     variant='default'
@@ -75,7 +74,6 @@ function MasterFeeheadPageContent({
                     />
                 </CollapsibleSection>
 
-                {/* Forms */}
                 <FormSections />
             </div>
         </div>
@@ -97,7 +95,6 @@ function FormSections() {
 
     return (
         <>
-            {/* Add Form */}
             {isAddFormOpen && (
                 <div ref={addFormRef}>
                     <CollapsibleSection
@@ -122,7 +119,6 @@ function FormSections() {
                 </div>
             )}
 
-            {/* Edit Form */}
             {isEditFormOpen && selectedRow && (
                 <div ref={editFormRef}>
                     <CollapsibleSection
@@ -146,7 +142,6 @@ function FormSections() {
                 </div>
             )}
 
-            {/* Toggle Form */}
             {isToggleFormOpen && selectedRow && <ToggleMasterClassForm rowData={selectedRow} onClose={closeToggleForm} />}
         </>
     );

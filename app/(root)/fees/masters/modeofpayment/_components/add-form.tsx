@@ -23,9 +23,6 @@ export default function AddMasterModeOfPaymentForm({ onSuccess, className = '' }
     const { refetchAll } = useMasterModeOfPayment();
 
     const {
-        control,
-        watch,
-        setValue,
         register,
         handleSubmit,
         reset,
@@ -89,11 +86,9 @@ export default function AddMasterModeOfPaymentForm({ onSuccess, className = '' }
                         </div>
                     </div>
 
-                    {/* Root Error */}
                     {errors.root && <FormError>{errors.root.message}</FormError>}
                 </div>
 
-                {/* Action Buttons */}
                 <div className='flex flex-col gap-3 border-t pt-4 sm:flex-row sm:justify-start'>
                     <Button
                         type='button'

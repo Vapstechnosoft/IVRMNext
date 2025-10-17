@@ -30,7 +30,6 @@ export default function UpdateFineSlabForm({ onSuccess, fineslab = '', selectedR
         control,
         watch,
         setValue,
-        register,
         handleSubmit,
         reset,
         formState: { errors, isSubmitting }
@@ -89,7 +88,6 @@ export default function UpdateFineSlabForm({ onSuccess, fineslab = '', selectedR
         <div className={`${fineslab}`}>
             <form onSubmit={handleSubmit(onSubmit)} className='space-y-6'>
                 <div className='space-y-4'>
-                    {/* Fine Type Dropdown */}
                     <div className='w-full max-w-md'>
                         <div className='flex flex-col items-center gap-1.5'>
                             <Label htmlFor='fmfS_FineType' className='text-center'>
@@ -115,7 +113,6 @@ export default function UpdateFineSlabForm({ onSuccess, fineslab = '', selectedR
                         </div>
                     </div>
 
-                    {/* From Day */}
                     {(fineType === 'Between' || fineType === 'GreaterThan' || fineType === 'LessThan') && (
                         <div className='w-full max-w-md'>
                             <div className='flex flex-col items-center gap-1.5'>
@@ -138,7 +135,6 @@ export default function UpdateFineSlabForm({ onSuccess, fineslab = '', selectedR
                         </div>
                     )}
 
-                    {/* To Day - Only if Between */}
                     {fineType === 'Between' && (
                         <div className='w-full max-w-md'>
                             <div className='flex flex-col items-center gap-1.5'>
@@ -166,7 +162,7 @@ export default function UpdateFineSlabForm({ onSuccess, fineslab = '', selectedR
                             <Controller
                                 name='fmfS_ECSFlag'
                                 control={control}
-                                defaultValue='0' // Set default as "0" (unchecked)
+                                defaultValue='0'
                                 render={({ field }) => (
                                     <div className='flex items-center space-x-2'>
                                         <Checkbox
@@ -181,11 +177,9 @@ export default function UpdateFineSlabForm({ onSuccess, fineslab = '', selectedR
                         </div>
                     </div>
 
-                    {/* Root Error */}
                     {errors.root && <FormError>{errors.root.message}</FormError>}
                 </div>
 
-                {/* Action Buttons */}
                 <div className='flex flex-col gap-3 border-t pt-4 sm:flex-row sm:justify-start'>
                     <Button
                         type='button'

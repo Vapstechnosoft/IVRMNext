@@ -2,8 +2,7 @@
 
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
-import { FormError, Label } from '@/components/ui/extension/field';
-import { InputText } from '@/components/ui/extension/input-text';
+import { Label } from '@/components/ui/extension/field';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { useMasterModeOfPayment } from '@/hooks/fees/useMasters';
 import { feeConfigSchema } from '@/schemas/fees/masters';
@@ -68,75 +67,1197 @@ export default function AddFeeConfigForm({ onSuccess, className = '' }: AddFeeCo
     return (
         <div className={`${className}`}>
             <form onSubmit={handleSubmit(onSubmit)} className='space-y-6'>
-                <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
-                    <div className='group flex flex-col gap-1.5'>
-                        <Label aria-label='Preadmission Class' htmlFor='asmcl_preadmflag'>
-                            Preadmission Class <span className='ml-1 text-red-500'>*</span>
-                        </Label>
-                        <RadioGroup
-                            value={String(watch('FMC_GroupOrTermFlg'))}
-                            onValueChange={(value) => setValue('FMC_GroupOrTermFlg', String(value))}
-                            className='flex gap-4'>
-                            <div className='flex items-center space-x-2'>
-                                <RadioGroupItem value='1' id='yes' />
-                                <Label aria-label='Yes' htmlFor='yes'>
-                                    Yes
+                <div className='grid w-full grid-cols-3 gap-6'>
+                    <div>
+                        <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
+                            <div className='group flex flex-col gap-1.5'>
+                                <Label aria-label='Preadmission Class' htmlFor='asmcl_preadmflag'>
+                                    Preadmission Class <span className='ml-1 text-red-500'>*</span>
                                 </Label>
+                                <RadioGroup
+                                    value={String(watch('FMC_GroupOrTermFlg'))}
+                                    onValueChange={(value) => setValue('FMC_GroupOrTermFlg', String(value))}
+                                    className='flex gap-4'>
+                                    <div className='flex items-center space-x-2'>
+                                        <RadioGroupItem value='1' id='yes' />
+                                        <Label aria-label='Yes' htmlFor='yes'>
+                                            Fee Term
+                                        </Label>
+                                    </div>
+                                    <div className='flex items-center space-x-2'>
+                                        <RadioGroupItem value='0' id='no' />
+                                        <Label aria-label='No' htmlFor='no'>
+                                            Fee Group
+                                        </Label>
+                                    </div>
+                                </RadioGroup>
                             </div>
-                            <div className='flex items-center space-x-2'>
-                                <RadioGroupItem value='0' id='no' />
-                                <Label aria-label='No' htmlFor='no'>
-                                    No
-                                </Label>
-                            </div>
-                        </RadioGroup>
-                    </div>
-                </div>
+                        </div>
 
-                <div className='space-y-4'>
-                    <div className='grid grid-cols-1 gap-4 md:grid-cols-4'>
-                        <InputText
-                            label='Mode Of Payment'
-                            required
-                            id='PartialPayment'
-                            {...register('PartialPayment')}
-                            error={errors.PartialPayment?.message}
-                            className='transition-colors focus:ring-2 focus:ring-primary/20'
-                        />
-                        {/* <div className='group flex flex-col gap-1.5'>
-                            <InputText
-                                label='Mode Of Payment Code'
-                                required
-                                id='IVRMMOD_ModeOfPayment_Code'
-                                {...register('ivrmmoD_ModeOfPayment_Code')}
-                                error={errors.ivrmmoD_ModeOfPayment_Code?.message}
-                                className='transition-colors focus:ring-2 focus:ring-primary/20'
+                        <div className='group mt-1.5 flex flex-col gap-2'>
+                            <div className='group flex flex-row gap-6'>
+                                <Controller
+                                    name='FinancialAccount'
+                                    control={control}
+                                    defaultValue='0' // Set default as "0" (unchecked)
+                                    render={({ field }) => (
+                                        <div className='flex items-center space-x-2'>
+                                            <Checkbox
+                                                checked={field.value === '1'}
+                                                onCheckedChange={(checked) => field.onChange(checked ? '1' : '0')}
+                                                id='FinancialAccount'
+                                            />
+                                            <Label htmlFor='Include Financial Account Concept'>Include Financial Account Concept</Label>
+                                        </div>
+                                    )}
+                                />
+                            </div>
+                        </div>
+
+                        <div className='group mt-1.5 flex flex-col gap-2'>
+                            <div className='group flex flex-row gap-6'>
+                                <Controller
+                                    name='FMC_Areawise_FeeFlg'
+                                    control={control}
+                                    defaultValue={0} // default as integer 0 (unchecked)
+                                    render={({ field }) => (
+                                        <div className='flex items-center space-x-2'>
+                                            <Checkbox
+                                                checked={field.value === 1}
+                                                onCheckedChange={(checked) => field.onChange(checked ? 1 : 0)} // send int values
+                                                id='FMC_Areawise_FeeFlg'
+                                            />
+                                            <Label htmlFor='Auto Fee Group Mapping during Promotion'>
+                                                Auto Fee Group Mapping during Promotion
+                                            </Label>
+                                        </div>
+                                    )}
+                                />
+                            </div>
+                        </div>
+
+                        <div className='group mt-1.5 flex flex-col gap-1.5'>
+                            <div className='group flex flex-row gap-6'>
+                                <Controller
+                                    name='FinancialAccount'
+                                    control={control}
+                                    defaultValue='0' // Set default as "0" (unchecked)
+                                    render={({ field }) => (
+                                        <div className='flex items-center space-x-2'>
+                                            <Checkbox
+                                                checked={field.value === '1'}
+                                                onCheckedChange={(checked) => field.onChange(checked ? '1' : '0')}
+                                                id='FinancialAccount'
+                                            />
+                                            <Label htmlFor='Transport Fee Automapping based on area'>
+                                                Transport Fee Automapping based on area
+                                            </Label>
+                                        </div>
+                                    )}
+                                />
+                            </div>
+                        </div>
+
+                        <div className='group mt-1.5 flex flex-col gap-1.5'>
+                            <div className='group flex flex-row gap-6'>
+                                <Controller
+                                    name='FinancialAccount'
+                                    control={control}
+                                    defaultValue='0' // Set default as "0" (unchecked)
+                                    render={({ field }) => (
+                                        <div className='flex items-center space-x-2'>
+                                            <Checkbox
+                                                checked={field.value === '1'}
+                                                onCheckedChange={(checked) => field.onChange(checked ? '1' : '0')}
+                                                id='FinancialAccount'
+                                            />
+                                            <Label htmlFor='Transport Fee Automapping based on Zone'>
+                                                Transport Fee Automapping based on Zone
+                                            </Label>
+                                        </div>
+                                    )}
+                                />
+                            </div>
+                        </div>
+
+                        <div className='group mt-1.5 flex flex-col gap-1.5'>
+                            <div className='group flex flex-row gap-6'>
+                                <Controller
+                                    name='FinancialAccount'
+                                    control={control}
+                                    defaultValue='0' // Set default as "0" (unchecked)
+                                    render={({ field }) => (
+                                        <div className='flex items-center space-x-2'>
+                                            <Checkbox
+                                                checked={field.value === '1'}
+                                                onCheckedChange={(checked) => field.onChange(checked ? '1' : '0')}
+                                                id='FinancialAccount'
+                                            />
+                                            <Label htmlFor='Date of Admission condition checking'>
+                                                Date of Admission condition checking
+                                            </Label>
+                                        </div>
+                                    )}
+                                />
+                            </div>
+                        </div>
+
+                        <div className='group mt-1.5 flex flex-col gap-1.5'>
+                            <div className='group flex flex-row gap-6'>
+                                <Controller
+                                    name='FinancialAccount'
+                                    control={control}
+                                    defaultValue='0' // Set default as "0" (unchecked)
+                                    render={({ field }) => (
+                                        <div className='flex items-center space-x-2'>
+                                            <Checkbox
+                                                checked={field.value === '1'}
+                                                onCheckedChange={(checked) => field.onChange(checked ? '1' : '0')}
+                                                id='FinancialAccount'
+                                            />
+                                            <Label htmlFor='Show fee group remark in fee receipts and reports'>
+                                                Show fee group remark in fee receipts and reports
+                                            </Label>
+                                        </div>
+                                    )}
+                                />
+                            </div>
+                        </div>
+
+                        <div className='group mt-1.5 flex flex-col gap-1.5'>
+                            <div className='group flex flex-row gap-6'>
+                                <Controller
+                                    name='FinancialAccount'
+                                    control={control}
+                                    defaultValue='0' // Set default as "0" (unchecked)
+                                    render={({ field }) => (
+                                        <div className='flex items-center space-x-2'>
+                                            <Checkbox
+                                                checked={field.value === '1'}
+                                                onCheckedChange={(checked) => field.onChange(checked ? '1' : '0')}
+                                                id='FinancialAccount'
+                                            />
+                                            <Label htmlFor='Fee Groupwise Auto receipt No'>Fee Groupwise Auto receipt No</Label>
+                                        </div>
+                                    )}
+                                />
+                            </div>
+                        </div>
+
+                        <div className='group mt-1.5 flex flex-col gap-1.5'>
+                            <div className='group flex flex-row gap-6'>
+                                <Controller
+                                    name='FinancialAccount'
+                                    control={control}
+                                    defaultValue='0' // Set default as "0" (unchecked)
+                                    render={({ field }) => (
+                                        <div className='flex items-center space-x-2'>
+                                            <Checkbox
+                                                checked={field.value === '1'}
+                                                onCheckedChange={(checked) => field.onChange(checked ? '1' : '0')}
+                                                id='FinancialAccount'
+                                            />
+                                            <Label htmlFor='Fee Receipt Format Display'>Fee Receipt Format Display</Label>
+                                        </div>
+                                    )}
+                                />
+                            </div>
+                        </div>
+
+                        <div className='group mt-1.5 flex flex-col gap-1.5'>
+                            <div className='group flex flex-row gap-6'>
+                                <Controller
+                                    name='FinancialAccount'
+                                    control={control}
+                                    defaultValue='0' // Set default as "0" (unchecked)
+                                    render={({ field }) => (
+                                        <div className='flex items-center space-x-2'>
+                                            <Checkbox
+                                                checked={field.value === '1'}
+                                                onCheckedChange={(checked) => field.onChange(checked ? '1' : '0')}
+                                                id='FinancialAccount'
+                                            />
+                                            <Label htmlFor='Concession Process'>Concession Process</Label>
+                                        </div>
+                                    )}
+                                />
+                            </div>
+                        </div>
+
+                        <div className='group mt-1.5 flex flex-col gap-1.5'>
+                            <div className='group flex flex-row gap-6'>
+                                <Controller
+                                    name='FinancialAccount'
+                                    control={control}
+                                    defaultValue='0' // Set default as "0" (unchecked)
+                                    render={({ field }) => (
+                                        <div className='flex items-center space-x-2'>
+                                            <Checkbox
+                                                checked={field.value === '1'}
+                                                onCheckedChange={(checked) => field.onChange(checked ? '1' : '0')}
+                                                id='FinancialAccount'
+                                            />
+                                            <Label htmlFor='Staff Mapping Entry'>Staff Mapping Entry</Label>
+                                        </div>
+                                    )}
+                                />
+                            </div>
+                        </div>
+
+                        <div className='group mt-1.5 flex flex-col gap-1.5'>
+                            <div className='group flex flex-row gap-6'>
+                                <Controller
+                                    name='FinancialAccount'
+                                    control={control}
+                                    defaultValue='0' // Set default as "0" (unchecked)
+                                    render={({ field }) => (
+                                        <div className='flex items-center space-x-2'>
+                                            <Checkbox
+                                                checked={field.value === '1'}
+                                                onCheckedChange={(checked) => field.onChange(checked ? '1' : '0')}
+                                                id='FinancialAccount'
+                                            />
+                                            <Label htmlFor='Others Students Entry'>Others Students Entry</Label>
+                                        </div>
+                                    )}
+                                />
+                            </div>
+                        </div>
+
+                        <div className='group mt-1.5 flex flex-col gap-1.5'>
+                            <div className='group flex flex-row gap-6'>
+                                <Controller
+                                    name='FinancialAccount'
+                                    control={control}
+                                    defaultValue='0' // Set default as "0" (unchecked)
+                                    render={({ field }) => (
+                                        <div className='flex items-center space-x-2'>
+                                            <Checkbox
+                                                checked={field.value === '1'}
+                                                onCheckedChange={(checked) => field.onChange(checked ? '1' : '0')}
+                                                id='FinancialAccount'
+                                            />
+                                            <Label htmlFor=' Fine Applicable'> Fine Applicable</Label>
+                                        </div>
+                                    )}
+                                />
+                            </div>
+                        </div>
+
+                        <div className='group mt-1.5 flex flex-col gap-1.5'>
+                            <div className='group flex flex-row gap-6'>
+                                <Controller
+                                    name='FinancialAccount'
+                                    control={control}
+                                    defaultValue='0' // Set default as "0" (unchecked)
+                                    render={({ field }) => (
+                                        <div className='flex items-center space-x-2'>
+                                            <Checkbox
+                                                checked={field.value === '1'}
+                                                onCheckedChange={(checked) => field.onChange(checked ? '1' : '0')}
+                                                id='FinancialAccount'
+                                            />
+                                            <Label htmlFor='Fine Mapping'>Fine Mapping</Label>
+                                        </div>
+                                    )}
+                                />
+                            </div>
+                        </div>
+
+                        <div className='group mt-1.5 flex flex-col gap-1.5'>
+                            <div className='group flex flex-row gap-6'>
+                                <Controller
+                                    name='FinancialAccount'
+                                    control={control}
+                                    defaultValue='0' // Set default as "0" (unchecked)
+                                    render={({ field }) => (
+                                        <div className='flex items-center space-x-2'>
+                                            <Checkbox
+                                                checked={field.value === '1'}
+                                                onCheckedChange={(checked) => field.onChange(checked ? '1' : '0')}
+                                                id='FinancialAccount'
+                                            />
+                                            <Label htmlFor='User Level Previledge'>User Level Previledge</Label>
+                                        </div>
+                                    )}
+                                />
+                            </div>
+                        </div>
+
+                        <div className='group mt-1.5 flex flex-col gap-1.5'>
+                            <div className='group flex flex-row gap-6'>
+                                <Controller
+                                    name='FinancialAccount'
+                                    control={control}
+                                    defaultValue='0' // Set default as "0" (unchecked)
+                                    render={({ field }) => (
+                                        <div className='flex items-center space-x-2'>
+                                            <Checkbox
+                                                checked={field.value === '1'}
+                                                onCheckedChange={(checked) => field.onChange(checked ? '1' : '0')}
+                                                id='FinancialAccount'
+                                            />
+                                            <Label htmlFor='Categorywise block online Payment'>Categorywise block online Payment</Label>
+                                        </div>
+                                    )}
+                                />
+                            </div>
+                        </div>
+
+                        <div className='group mt-1.5 flex flex-col gap-1.5'>
+                            <div className='group flex flex-row gap-6'>
+                                <Controller
+                                    name='FinancialAccount'
+                                    control={control}
+                                    defaultValue='0' // Set default as "0" (unchecked)
+                                    render={({ field }) => (
+                                        <div className='flex items-center space-x-2'>
+                                            <Checkbox
+                                                checked={field.value === '1'}
+                                                onCheckedChange={(checked) => field.onChange(checked ? '1' : '0')}
+                                                id='FinancialAccount'
+                                            />
+                                            <Label htmlFor='Display Pending/OB Term initially'>Enable Maker And Checker</Label>
+                                        </div>
+                                    )}
+                                />
+                            </div>
+                        </div>
+
+                        <div className='group mt-1.5 flex flex-col gap-1.5'>
+                            <div className='group flex flex-row gap-6'>
+                                <Controller
+                                    name='FinancialAccount'
+                                    control={control}
+                                    defaultValue='0' // Set default as "0" (unchecked)
+                                    render={({ field }) => (
+                                        <div className='flex items-center space-x-2'>
+                                            <Checkbox
+                                                checked={field.value === '1'}
+                                                onCheckedChange={(checked) => field.onChange(checked ? '1' : '0')}
+                                                id='FinancialAccount'
+                                            />
+                                            <Label htmlFor='Rebate Applicable'>Rebate Applicable</Label>
+                                        </div>
+                                    )}
+                                />
+                            </div>
+                        </div>
+
+                        <div className='group mt-1.5 flex flex-col gap-1.5'>
+                            <div className='group flex flex-row gap-6'>
+                                <Controller
+                                    name='FinancialAccount'
+                                    control={control}
+                                    defaultValue='0' // Set default as "0" (unchecked)
+                                    render={({ field }) => (
+                                        <div className='flex items-center space-x-2'>
+                                            <Checkbox
+                                                checked={field.value === '1'}
+                                                onCheckedChange={(checked) => field.onChange(checked ? '1' : '0')}
+                                                id='FinancialAccount'
+                                            />
+                                            <Label htmlFor='Rebate Applicable For Full Payment'>Rebate Applicable For Full Payment</Label>
+                                        </div>
+                                    )}
+                                />
+                            </div>
+                        </div>
+
+                        <div className='group mt-1.5 flex flex-col gap-1.5'>
+                            <div className='group flex flex-row gap-6'>
+                                <Controller
+                                    name='FinancialAccount'
+                                    control={control}
+                                    defaultValue='0' // Set default as "0" (unchecked)
+                                    render={({ field }) => (
+                                        <div className='flex items-center space-x-2'>
+                                            <Checkbox
+                                                checked={field.value === '1'}
+                                                onCheckedChange={(checked) => field.onChange(checked ? '1' : '0')}
+                                                id='FinancialAccount'
+                                            />
+                                            <Label htmlFor='Rebate Applicable For Partial Payment'>
+                                                Rebate Applicable For Partial Payment
+                                            </Label>
+                                        </div>
+                                    )}
+                                />
+                            </div>
+                        </div>
+
+                        <div className='group mt-1.5 mt-1.5lex flex-col gap-1.5'>
+                            <div className='group flex flex-row gap-6'>
+                                <Controller
+                                    name='FinancialAccount'
+                                    control={control}
+                                    defaultValue='0' // Set default as "0" (unchecked)
+                                    render={({ field }) => (
+                                        <div className='flex items-center space-x-2'>
+                                            <Checkbox
+                                                checked={field.value === '1'}
+                                                onCheckedChange={(checked) => field.onChange(checked ? '1' : '0')}
+                                                id='FinancialAccount'
+                                            />
+                                            <Label htmlFor='Transport Fee Automapping based on Zone'>
+                                                Transport Fee Automapping based on Zone
+                                            </Label>
+                                        </div>
+                                    )}
+                                />
+                            </div>
+                        </div>
+                    </div>
+                    <div>
+                        <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
+                            <div className='group flex flex-col gap-1.5'>
+                                <Label aria-label='Preadmission Class' htmlFor='asmcl_preadmflag'>
+                                    Preadmission Class <span className='ml-1 text-red-500'>*</span>
+                                </Label>
+                                <RadioGroup
+                                    value={String(watch('FMC_GroupOrTermFlg'))}
+                                    onValueChange={(value) => setValue('FMC_GroupOrTermFlg', String(value))}
+                                    className='flex gap-4'>
+                                    <div className='flex items-center space-x-2'>
+                                        <RadioGroupItem value='1' id='yes' />
+                                        <Label aria-label='Yes' htmlFor='yes'>
+                                            Fee Term
+                                        </Label>
+                                    </div>
+                                    <div className='flex items-center space-x-2'>
+                                        <RadioGroupItem value='0' id='no' />
+                                        <Label aria-label='No' htmlFor='no'>
+                                            Fee Group
+                                        </Label>
+                                    </div>
+                                </RadioGroup>
+                            </div>
+                        </div>
+
+                        <div className='group mt-1.5 flex flex-col gap-2'>
+                            <div className='group flex flex-row gap-6'>
+                                <Controller
+                                    name='FinancialAccount'
+                                    control={control}
+                                    defaultValue='0' // Set default as "0" (unchecked)
+                                    render={({ field }) => (
+                                        <div className='flex items-center space-x-2'>
+                                            <Checkbox
+                                                checked={field.value === '1'}
+                                                onCheckedChange={(checked) => field.onChange(checked ? '1' : '0')}
+                                                id='FinancialAccount'
+                                            />
+                                            <Label htmlFor='Show Installment'>Show Installment</Label>
+                                        </div>
+                                    )}
+                                />
+                            </div>
+                        </div>
+
+                        <div className='group mt-1.5 flex flex-col gap-2'>
+                            <div className='group flex flex-row gap-6'>
+                                <Controller
+                                    name='FMC_Areawise_FeeFlg'
+                                    control={control}
+                                    defaultValue={0} // default as integer 0 (unchecked)
+                                    render={({ field }) => (
+                                        <div className='flex items-center space-x-2'>
+                                            <Checkbox
+                                                checked={field.value === 1}
+                                                onCheckedChange={(checked) => field.onChange(checked ? 1 : 0)} // send int values
+                                                id='FMC_Areawise_FeeFlg'
+                                            />
+                                            <Label htmlFor='Merge Installment'>Merge Installment</Label>
+                                        </div>
+                                    )}
+                                />
+                            </div>
+                        </div>
+
+                        <div className='group mt-1.5 flex flex-col gap-1.5'>
+                            <div className='group flex flex-row gap-6'>
+                                <Controller
+                                    name='FinancialAccount'
+                                    control={control}
+                                    defaultValue='0' // Set default as "0" (unchecked)
+                                    render={({ field }) => (
+                                        <div className='flex items-center space-x-2'>
+                                            <Checkbox
+                                                checked={field.value === '1'}
+                                                onCheckedChange={(checked) => field.onChange(checked ? '1' : '0')}
+                                                id='FinancialAccount'
+                                            />
+                                            <Label htmlFor='Show Fine'>Show Fine</Label>
+                                        </div>
+                                    )}
+                                />
+                            </div>
+                        </div>
+
+                        <div className='group mt-1.5 flex flex-col gap-1.5'>
+                            <div className='group flex flex-row gap-6'>
+                                <Controller
+                                    name='FinancialAccount'
+                                    control={control}
+                                    defaultValue='0' // Set default as "0" (unchecked)
+                                    render={({ field }) => (
+                                        <div className='flex items-center space-x-2'>
+                                            <Checkbox
+                                                checked={field.value === '1'}
+                                                onCheckedChange={(checked) => field.onChange(checked ? '1' : '0')}
+                                                id='FinancialAccount'
+                                            />
+                                            <Label htmlFor='Show Concession'>Show Concession</Label>
+                                        </div>
+                                    )}
+                                />
+                            </div>
+                        </div>
+
+                        <div className='group mt-1.5 flex flex-col gap-1.5'>
+                            <div className='group flex flex-row gap-6'>
+                                <Controller
+                                    name='FinancialAccount'
+                                    control={control}
+                                    defaultValue='0' // Set default as "0" (unchecked)
+                                    render={({ field }) => (
+                                        <div className='flex items-center space-x-2'>
+                                            <Checkbox
+                                                checked={field.value === '1'}
+                                                onCheckedChange={(checked) => field.onChange(checked ? '1' : '0')}
+                                                id='FinancialAccount'
+                                            />
+                                            <Label htmlFor='Show Waived Off'>Show Waived Off</Label>
+                                        </div>
+                                    )}
+                                />
+                            </div>
+                        </div>
+
+                        <div className='group mt-1.5 flex flex-col gap-1.5'>
+                            <div className='group flex flex-row gap-6'>
+                                <Controller
+                                    name='FinancialAccount'
+                                    control={control}
+                                    defaultValue='0' // Set default as "0" (unchecked)
+                                    render={({ field }) => (
+                                        <div className='flex items-center space-x-2'>
+                                            <Checkbox
+                                                checked={field.value === '1'}
+                                                onCheckedChange={(checked) => field.onChange(checked ? '1' : '0')}
+                                                id='FinancialAccount'
+                                            />
+                                            <Label htmlFor='Show Balance'>Show Balance</Label>
+                                        </div>
+                                    )}
+                                />
+                            </div>
+                        </div>
+
+                        <div className='group mt-1.5 flex flex-col gap-1.5'>
+                            <div className='group flex flex-row gap-6'>
+                                <Controller
+                                    name='FinancialAccount'
+                                    control={control}
+                                    defaultValue='0' // Set default as "0" (unchecked)
+                                    render={({ field }) => (
+                                        <div className='flex items-center space-x-2'>
+                                            <Checkbox
+                                                checked={field.value === '1'}
+                                                onCheckedChange={(checked) => field.onChange(checked ? '1' : '0')}
+                                                id='FinancialAccount'
+                                            />
+                                            <Label htmlFor='Show Amount'>Show Amount</Label>
+                                        </div>
+                                    )}
+                                />
+                            </div>
+                        </div>
+
+                        <div className='group mt-1.5 flex flex-col gap-1.5'>
+                            <div className='group flex flex-row gap-6'>
+                                <Controller
+                                    name='FinancialAccount'
+                                    control={control}
+                                    defaultValue='0' // Set default as "0" (unchecked)
+                                    render={({ field }) => (
+                                        <div className='flex items-center space-x-2'>
+                                            <Checkbox
+                                                checked={field.value === '1'}
+                                                onCheckedChange={(checked) => field.onChange(checked ? '1' : '0')}
+                                                id='FinancialAccount'
+                                            />
+                                            <Label htmlFor='Show Bank Name'>Show Bank Name</Label>
+                                        </div>
+                                    )}
+                                />
+                            </div>
+                        </div>
+
+                        <div className='group mt-1.5 flex flex-col gap-1.5'>
+                            <div className='group flex flex-row gap-6'>
+                                <Controller
+                                    name='FinancialAccount'
+                                    control={control}
+                                    defaultValue='0' // Set default as "0" (unchecked)
+                                    render={({ field }) => (
+                                        <div className='flex items-center space-x-2'>
+                                            <Checkbox
+                                                checked={field.value === '1'}
+                                                onCheckedChange={(checked) => field.onChange(checked ? '1' : '0')}
+                                                id='FinancialAccount'
+                                            />
+                                            <Label htmlFor='Bank Challan'>Bank Challan</Label>
+                                        </div>
+                                    )}
+                                />
+                            </div>
+                        </div>
+
+                        <div className='group mt-1.5 flex flex-col gap-1.5'>
+                            <div className='group flex flex-row gap-6'>
+                                <Controller
+                                    name='FinancialAccount'
+                                    control={control}
+                                    defaultValue='0' // Set default as "0" (unchecked)
+                                    render={({ field }) => (
+                                        <div className='flex items-center space-x-2'>
+                                            <Checkbox
+                                                checked={field.value === '1'}
+                                                onCheckedChange={(checked) => field.onChange(checked ? '1' : '0')}
+                                                id='FinancialAccount'
+                                            />
+                                            <Label htmlFor='Due Date'>Due Date</Label>
+                                        </div>
+                                    )}
+                                />
+                            </div>
+                        </div>
+
+                        <div className='group mt-1.5 flex flex-col gap-1.5'>
+                            <div className='group flex flex-row gap-6'>
+                                <Controller
+                                    name='FinancialAccount'
+                                    control={control}
+                                    defaultValue='0' // Set default as "0" (unchecked)
+                                    render={({ field }) => (
+                                        <div className='flex items-center space-x-2'>
+                                            <Checkbox
+                                                checked={field.value === '1'}
+                                                onCheckedChange={(checked) => field.onChange(checked ? '1' : '0')}
+                                                id='FinancialAccount'
+                                            />
+                                            <Label htmlFor='Address'>Address</Label>
+                                        </div>
+                                    )}
+                                />
+                            </div>
+                        </div>
+
+                        <div className='group mt-1.5 flex flex-row items-center gap-3'>
+                            <label htmlFor='Rebate' className='w-32'>
+                                Rebate(%) :
+                            </label>
+                            <input
+                                id='Rebate'
+                                {...register('Rebate')}
+                                className='rounded border px-2 py-1 transition-colors focus:ring-2 focus:ring-primary/20'
                             />
-                            {errors.ivrmmoD_ModeOfPayment_Code && <FormError>{errors.ivrmmoD_ModeOfPayment_Code.message}</FormError>}
-                        </div> */}
+                        </div>
+
+                        <div className='group mt-1.5 flex flex-row items-center gap-3'>
+                            <label htmlFor='Receipt Signature:' className='w-32'>
+                                Receipt Signature:
+                            </label>
+                            <input
+                                id='Rebate'
+                                {...register('Rebate')}
+                                className='rounded border px-2 py-1 transition-colors focus:ring-2 focus:ring-primary/20'
+                            />
+                        </div>
+
+                        <div className='group mt-1.5 flex flex-row items-center gap-3'>
+                            <label htmlFor='No. Of Receipt' className='w-32'>
+                                No. Of Receipt :
+                            </label>
+                            <input
+                                id='Rebate'
+                                {...register('Rebate')}
+                                className='rounded border px-2 py-1 transition-colors focus:ring-2 focus:ring-primary/20'
+                            />
+                        </div>
+                        <div className='group mt-1.5 flex flex-row items-center gap-3'>
+                            <label htmlFor=' No. Of Search By Character' className='w-32'>
+                                No. Of Search By Character :
+                            </label>
+                            <input
+                                id='Rebate'
+                                {...register('Rebate')}
+                                className='rounded border px-2 py-1 transition-colors focus:ring-2 focus:ring-primary/20'
+                            />
+                        </div>
+
+                        <div className='group mt-1.5 flex flex-row items-center gap-3'>
+                            <label htmlFor='Online Payment AcademicYear Flag' className='w-32'>
+                                Online Payment AcademicYear Flag :
+                            </label>
+                            <input
+                                id='Rebate'
+                                {...register('Rebate')}
+                                className='rounded border px-2 py-1 transition-colors focus:ring-2 focus:ring-primary/20'
+                            />
+                        </div>
+
+                        <div className='group mt-1.5 flex flex-row items-center gap-3'>
+                            <label htmlFor='Partial Payment' className='w-32'>
+                                Partial Payment :
+                            </label>
+                            <input
+                                id='Rebate'
+                                {...register('Rebate')}
+                                className='rounded border px-2 py-1 transition-colors focus:ring-2 focus:ring-primary/20'
+                            />
+                        </div>
                     </div>
+                    <div>
+                        <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
+                            <div className='group flex flex-col gap-1.5'>
+                                <Label aria-label='Preadmission Class' htmlFor='asmcl_preadmflag'>
+                                    Preadmission Class <span className='ml-1 text-red-500'>*</span>
+                                </Label>
+                                <RadioGroup
+                                    value={String(watch('FMC_GroupOrTermFlg'))}
+                                    onValueChange={(value) => setValue('FMC_GroupOrTermFlg', String(value))}
+                                    className='flex gap-4'>
+                                    <div className='flex items-center space-x-2'>
+                                        <RadioGroupItem value='1' id='yes' />
+                                        <Label aria-label='Yes' htmlFor='yes'>
+                                            Fee Term
+                                        </Label>
+                                    </div>
+                                    <div className='flex items-center space-x-2'>
+                                        <RadioGroupItem value='0' id='no' />
+                                        <Label aria-label='No' htmlFor='no'>
+                                            Fee Group
+                                        </Label>
+                                    </div>
+                                </RadioGroup>
+                            </div>
+                        </div>
 
-                    {/* Root Error */}
-                    {errors.root && <FormError>{errors.root.message}</FormError>}
-                </div>
+                        <div className='group mt-1.5 flex flex-col gap-2'>
+                            <div className='group flex flex-row gap-6'>
+                                <Controller
+                                    name='FinancialAccount'
+                                    control={control}
+                                    defaultValue='0' // Set default as "0" (unchecked)
+                                    render={({ field }) => (
+                                        <div className='flex items-center space-x-2'>
+                                            <Checkbox
+                                                checked={field.value === '1'}
+                                                onCheckedChange={(checked) => field.onChange(checked ? '1' : '0')}
+                                                id='FinancialAccount'
+                                            />
+                                            <Label htmlFor='Include Financial Account Concept'>Include Financial Account Concept</Label>
+                                        </div>
+                                    )}
+                                />
+                            </div>
+                        </div>
 
-                <div className='group flex flex-col gap-1.5'>
-                    <div className='group flex flex-row gap-6'>
-                        <Controller
-                            name='FinancialAccount'
-                            control={control}
-                            defaultValue='0' // Set default as "0" (unchecked)
-                            render={({ field }) => (
-                                <div className='flex items-center space-x-2'>
-                                    <Checkbox
-                                        checked={field.value === '1'}
-                                        onCheckedChange={(checked) => field.onChange(checked ? '1' : '0')}
-                                        id='FinancialAccount'
-                                    />
-                                    <Label htmlFor='FinancialAccount'>ECS Flag</Label>
-                                </div>
-                            )}
-                        />
+                        <div className='group mt-1.5 flex flex-col gap-2'>
+                            <div className='group flex flex-row gap-6'>
+                                <Controller
+                                    name='FMC_Areawise_FeeFlg'
+                                    control={control}
+                                    defaultValue={0} // default as integer 0 (unchecked)
+                                    render={({ field }) => (
+                                        <div className='flex items-center space-x-2'>
+                                            <Checkbox
+                                                checked={field.value === 1}
+                                                onCheckedChange={(checked) => field.onChange(checked ? 1 : 0)} // send int values
+                                                id='FMC_Areawise_FeeFlg'
+                                            />
+                                            <Label htmlFor='Auto Fee Group Mapping during Promotion'>
+                                                Auto Fee Group Mapping during Promotion
+                                            </Label>
+                                        </div>
+                                    )}
+                                />
+                            </div>
+                        </div>
+
+                        <div className='group mt-1.5 flex flex-col gap-1.5'>
+                            <div className='group flex flex-row gap-6'>
+                                <Controller
+                                    name='FinancialAccount'
+                                    control={control}
+                                    defaultValue='0' // Set default as "0" (unchecked)
+                                    render={({ field }) => (
+                                        <div className='flex items-center space-x-2'>
+                                            <Checkbox
+                                                checked={field.value === '1'}
+                                                onCheckedChange={(checked) => field.onChange(checked ? '1' : '0')}
+                                                id='FinancialAccount'
+                                            />
+                                            <Label htmlFor='Transport Fee Automapping based on area'>
+                                                Transport Fee Automapping based on area
+                                            </Label>
+                                        </div>
+                                    )}
+                                />
+                            </div>
+                        </div>
+
+                        <div className='group mt-1.5 flex flex-col gap-1.5'>
+                            <div className='group flex flex-row gap-6'>
+                                <Controller
+                                    name='FinancialAccount'
+                                    control={control}
+                                    defaultValue='0' // Set default as "0" (unchecked)
+                                    render={({ field }) => (
+                                        <div className='flex items-center space-x-2'>
+                                            <Checkbox
+                                                checked={field.value === '1'}
+                                                onCheckedChange={(checked) => field.onChange(checked ? '1' : '0')}
+                                                id='FinancialAccount'
+                                            />
+                                            <Label htmlFor='Transport Fee Automapping based on Zone'>
+                                                Transport Fee Automapping based on Zone
+                                            </Label>
+                                        </div>
+                                    )}
+                                />
+                            </div>
+                        </div>
+
+                        <div className='group mt-1.5 flex flex-col gap-1.5'>
+                            <div className='group flex flex-row gap-6'>
+                                <Controller
+                                    name='FinancialAccount'
+                                    control={control}
+                                    defaultValue='0' // Set default as "0" (unchecked)
+                                    render={({ field }) => (
+                                        <div className='flex items-center space-x-2'>
+                                            <Checkbox
+                                                checked={field.value === '1'}
+                                                onCheckedChange={(checked) => field.onChange(checked ? '1' : '0')}
+                                                id='FinancialAccount'
+                                            />
+                                            <Label htmlFor='Date of Admission condition checking'>
+                                                Date of Admission condition checking
+                                            </Label>
+                                        </div>
+                                    )}
+                                />
+                            </div>
+                        </div>
+
+                        <div className='group mt-1.5 flex flex-col gap-1.5'>
+                            <div className='group flex flex-row gap-6'>
+                                <Controller
+                                    name='FinancialAccount'
+                                    control={control}
+                                    defaultValue='0' // Set default as "0" (unchecked)
+                                    render={({ field }) => (
+                                        <div className='flex items-center space-x-2'>
+                                            <Checkbox
+                                                checked={field.value === '1'}
+                                                onCheckedChange={(checked) => field.onChange(checked ? '1' : '0')}
+                                                id='FinancialAccount'
+                                            />
+                                            <Label htmlFor='Show fee group remark in fee receipts and reports'>
+                                                Show fee group remark in fee receipts and reports
+                                            </Label>
+                                        </div>
+                                    )}
+                                />
+                            </div>
+                        </div>
+
+                        <div className='group mt-1.5 flex flex-col gap-1.5'>
+                            <div className='group flex flex-row gap-6'>
+                                <Controller
+                                    name='FinancialAccount'
+                                    control={control}
+                                    defaultValue='0' // Set default as "0" (unchecked)
+                                    render={({ field }) => (
+                                        <div className='flex items-center space-x-2'>
+                                            <Checkbox
+                                                checked={field.value === '1'}
+                                                onCheckedChange={(checked) => field.onChange(checked ? '1' : '0')}
+                                                id='FinancialAccount'
+                                            />
+                                            <Label htmlFor='Fee Groupwise Auto receipt No'>Fee Groupwise Auto receipt No</Label>
+                                        </div>
+                                    )}
+                                />
+                            </div>
+                        </div>
+
+                        <div className='group mt-1.5 flex flex-col gap-1.5'>
+                            <div className='group flex flex-row gap-6'>
+                                <Controller
+                                    name='FinancialAccount'
+                                    control={control}
+                                    defaultValue='0' // Set default as "0" (unchecked)
+                                    render={({ field }) => (
+                                        <div className='flex items-center space-x-2'>
+                                            <Checkbox
+                                                checked={field.value === '1'}
+                                                onCheckedChange={(checked) => field.onChange(checked ? '1' : '0')}
+                                                id='FinancialAccount'
+                                            />
+                                            <Label htmlFor='Fee Receipt Format Display'>Fee Receipt Format Display</Label>
+                                        </div>
+                                    )}
+                                />
+                            </div>
+                        </div>
+
+                        <div className='group mt-1.5 flex flex-col gap-1.5'>
+                            <div className='group flex flex-row gap-6'>
+                                <Controller
+                                    name='FinancialAccount'
+                                    control={control}
+                                    defaultValue='0' // Set default as "0" (unchecked)
+                                    render={({ field }) => (
+                                        <div className='flex items-center space-x-2'>
+                                            <Checkbox
+                                                checked={field.value === '1'}
+                                                onCheckedChange={(checked) => field.onChange(checked ? '1' : '0')}
+                                                id='FinancialAccount'
+                                            />
+                                            <Label htmlFor='Concession Process'>Concession Process</Label>
+                                        </div>
+                                    )}
+                                />
+                            </div>
+                        </div>
+
+                        <div className='group mt-1.5 flex flex-col gap-1.5'>
+                            <div className='group flex flex-row gap-6'>
+                                <Controller
+                                    name='FinancialAccount'
+                                    control={control}
+                                    defaultValue='0' // Set default as "0" (unchecked)
+                                    render={({ field }) => (
+                                        <div className='flex items-center space-x-2'>
+                                            <Checkbox
+                                                checked={field.value === '1'}
+                                                onCheckedChange={(checked) => field.onChange(checked ? '1' : '0')}
+                                                id='FinancialAccount'
+                                            />
+                                            <Label htmlFor='Staff Mapping Entry'>Staff Mapping Entry</Label>
+                                        </div>
+                                    )}
+                                />
+                            </div>
+                        </div>
+
+                        <div className='group mt-1.5 flex flex-col gap-1.5'>
+                            <div className='group flex flex-row gap-6'>
+                                <Controller
+                                    name='FinancialAccount'
+                                    control={control}
+                                    defaultValue='0' // Set default as "0" (unchecked)
+                                    render={({ field }) => (
+                                        <div className='flex items-center space-x-2'>
+                                            <Checkbox
+                                                checked={field.value === '1'}
+                                                onCheckedChange={(checked) => field.onChange(checked ? '1' : '0')}
+                                                id='FinancialAccount'
+                                            />
+                                            <Label htmlFor='Others Students Entry'>Others Students Entry</Label>
+                                        </div>
+                                    )}
+                                />
+                            </div>
+                        </div>
+
+                        <div className='group mt-1.5 flex flex-col gap-1.5'>
+                            <div className='group flex flex-row gap-6'>
+                                <Controller
+                                    name='FinancialAccount'
+                                    control={control}
+                                    defaultValue='0' // Set default as "0" (unchecked)
+                                    render={({ field }) => (
+                                        <div className='flex items-center space-x-2'>
+                                            <Checkbox
+                                                checked={field.value === '1'}
+                                                onCheckedChange={(checked) => field.onChange(checked ? '1' : '0')}
+                                                id='FinancialAccount'
+                                            />
+                                            <Label htmlFor=' Fine Applicable'> Fine Applicable</Label>
+                                        </div>
+                                    )}
+                                />
+                            </div>
+                        </div>
+
+                        <div className='group mt-1.5 flex flex-col gap-1.5'>
+                            <div className='group flex flex-row gap-6'>
+                                <Controller
+                                    name='FinancialAccount'
+                                    control={control}
+                                    defaultValue='0' // Set default as "0" (unchecked)
+                                    render={({ field }) => (
+                                        <div className='flex items-center space-x-2'>
+                                            <Checkbox
+                                                checked={field.value === '1'}
+                                                onCheckedChange={(checked) => field.onChange(checked ? '1' : '0')}
+                                                id='FinancialAccount'
+                                            />
+                                            <Label htmlFor='Fine Mapping'>Fine Mapping</Label>
+                                        </div>
+                                    )}
+                                />
+                            </div>
+                        </div>
+
+                        <div className='group mt-1.5 flex flex-col gap-1.5'>
+                            <div className='group flex flex-row gap-6'>
+                                <Controller
+                                    name='FinancialAccount'
+                                    control={control}
+                                    defaultValue='0' // Set default as "0" (unchecked)
+                                    render={({ field }) => (
+                                        <div className='flex items-center space-x-2'>
+                                            <Checkbox
+                                                checked={field.value === '1'}
+                                                onCheckedChange={(checked) => field.onChange(checked ? '1' : '0')}
+                                                id='FinancialAccount'
+                                            />
+                                            <Label htmlFor='User Level Previledge'>User Level Previledge</Label>
+                                        </div>
+                                    )}
+                                />
+                            </div>
+                        </div>
+
+                        <div className='group mt-1.5 flex flex-col gap-1.5'>
+                            <div className='group flex flex-row gap-6'>
+                                <Controller
+                                    name='FinancialAccount'
+                                    control={control}
+                                    defaultValue='0' // Set default as "0" (unchecked)
+                                    render={({ field }) => (
+                                        <div className='flex items-center space-x-2'>
+                                            <Checkbox
+                                                checked={field.value === '1'}
+                                                onCheckedChange={(checked) => field.onChange(checked ? '1' : '0')}
+                                                id='FinancialAccount'
+                                            />
+                                            <Label htmlFor='Categorywise block online Payment'>Categorywise block online Payment</Label>
+                                        </div>
+                                    )}
+                                />
+                            </div>
+                        </div>
+
+                        <div className='group mt-1.5 flex flex-col gap-1.5'>
+                            <div className='group flex flex-row gap-6'>
+                                <Controller
+                                    name='FinancialAccount'
+                                    control={control}
+                                    defaultValue='0' // Set default as "0" (unchecked)
+                                    render={({ field }) => (
+                                        <div className='flex items-center space-x-2'>
+                                            <Checkbox
+                                                checked={field.value === '1'}
+                                                onCheckedChange={(checked) => field.onChange(checked ? '1' : '0')}
+                                                id='FinancialAccount'
+                                            />
+                                            <Label htmlFor='Display Pending/OB Term initially'>Enable Maker And Checker</Label>
+                                        </div>
+                                    )}
+                                />
+                            </div>
+                        </div>
+
+                        <div className='group mt-1.5 flex flex-col gap-1.5'>
+                            <div className='group flex flex-row gap-6'>
+                                <Controller
+                                    name='FinancialAccount'
+                                    control={control}
+                                    defaultValue='0' // Set default as "0" (unchecked)
+                                    render={({ field }) => (
+                                        <div className='flex items-center space-x-2'>
+                                            <Checkbox
+                                                checked={field.value === '1'}
+                                                onCheckedChange={(checked) => field.onChange(checked ? '1' : '0')}
+                                                id='FinancialAccount'
+                                            />
+                                            <Label htmlFor='Rebate Applicable'>Rebate Applicable</Label>
+                                        </div>
+                                    )}
+                                />
+                            </div>
+                        </div>
+
+                        <div className='group mt-1.5 flex flex-col gap-1.5'>
+                            <div className='group flex flex-row gap-6'>
+                                <Controller
+                                    name='FinancialAccount'
+                                    control={control}
+                                    defaultValue='0' // Set default as "0" (unchecked)
+                                    render={({ field }) => (
+                                        <div className='flex items-center space-x-2'>
+                                            <Checkbox
+                                                checked={field.value === '1'}
+                                                onCheckedChange={(checked) => field.onChange(checked ? '1' : '0')}
+                                                id='FinancialAccount'
+                                            />
+                                            <Label htmlFor='Rebate Applicable For Full Payment'>Rebate Applicable For Full Payment</Label>
+                                        </div>
+                                    )}
+                                />
+                            </div>
+                        </div>
+
+                        <div className='group mt-1.5 flex flex-col gap-1.5'>
+                            <div className='group flex flex-row gap-6'>
+                                <Controller
+                                    name='FinancialAccount'
+                                    control={control}
+                                    defaultValue='0' // Set default as "0" (unchecked)
+                                    render={({ field }) => (
+                                        <div className='flex items-center space-x-2'>
+                                            <Checkbox
+                                                checked={field.value === '1'}
+                                                onCheckedChange={(checked) => field.onChange(checked ? '1' : '0')}
+                                                id='FinancialAccount'
+                                            />
+                                            <Label htmlFor='Rebate Applicable For Partial Payment'>
+                                                Rebate Applicable For Partial Payment
+                                            </Label>
+                                        </div>
+                                    )}
+                                />
+                            </div>
+                        </div>
+
+                        <div className='group mt-1.5 mt-1.5lex flex-col gap-1.5'>
+                            <div className='group flex flex-row gap-6'>
+                                <Controller
+                                    name='FinancialAccount'
+                                    control={control}
+                                    defaultValue='0' // Set default as "0" (unchecked)
+                                    render={({ field }) => (
+                                        <div className='flex items-center space-x-2'>
+                                            <Checkbox
+                                                checked={field.value === '1'}
+                                                onCheckedChange={(checked) => field.onChange(checked ? '1' : '0')}
+                                                id='FinancialAccount'
+                                            />
+                                            <Label htmlFor='Transport Fee Automapping based on Zone'>
+                                                Transport Fee Automapping based on Zone
+                                            </Label>
+                                        </div>
+                                    )}
+                                />
+                            </div>
+                        </div>
                     </div>
                 </div>
 
@@ -158,7 +1279,7 @@ export default function AddFeeConfigForm({ onSuccess, className = '' }: AddFeeCo
                         loadingText='Saving...'>
                         <div className='flex items-center'>
                             <Save className='mr-2 h-4 w-4' />
-                            Save Master Mode Of Payment
+                            Save
                         </div>
                     </Button>
                 </div>

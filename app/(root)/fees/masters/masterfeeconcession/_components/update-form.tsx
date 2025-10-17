@@ -6,7 +6,8 @@ import { InputText } from '@/components/ui/extension/input-text';
 import { useMasterConcession } from '@/hooks/fees/useMasters';
 import { masterConcessionSchema } from '@/schemas/fees/masters';
 import { addOrUpdateMasterConcession } from '@/server/fees/masters/feemasterconcession';
-import type { IMasterConcessionList } from '@/types/fees/masters/masters';
+import type { IMasterConcessionList } from '@/types/fees/masters';
+
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Save } from 'lucide-react';
 import { useEffect } from 'react';
@@ -27,7 +28,6 @@ export default function UpdateMasterConcessionForm({ onSuccess, fineslab = '', s
 
     const {
         control,
-        watch,
         setValue,
         register,
         handleSubmit,
@@ -61,7 +61,7 @@ export default function UpdateMasterConcessionForm({ onSuccess, fineslab = '', s
                 fmcC_ConcessionFlag: '',
                 fmcC_ActiveFlag: row.fmcC_ActiveFlag
             };
-            console.log('updatedata', payload);
+
             const response = await addOrUpdateMasterConcession(payload);
 
             if (response.success) {
@@ -80,8 +80,6 @@ export default function UpdateMasterConcessionForm({ onSuccess, fineslab = '', s
     const handleReset = () => {
         reset();
     };
-
-    console.log('ERROR', errors);
 
     return (
         <div className={`${fineslab}`}>
@@ -117,15 +115,12 @@ export default function UpdateMasterConcessionForm({ onSuccess, fineslab = '', s
                             {errors.fmcC_ConcessionApplLimit && <FormError>{errors.fmcC_ConcessionApplLimit.message}</FormError>}
                         </div>
 
-                        {/* Root Error */}
                         {errors.root && <FormError>{errors.root.message}</FormError>}
                     </div>
 
-                    {/* Root Error */}
                     {errors.root && <FormError>{errors.root.message}</FormError>}
                 </div>
 
-                {/* Action Buttons */}
                 <div className='flex flex-col gap-3 border-t pt-4 sm:flex-row sm:justify-start'>
                     <Button
                         type='button'

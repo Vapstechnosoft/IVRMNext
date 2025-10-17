@@ -64,7 +64,7 @@ export default function AddMasterConcessionDetailsForm({ onSuccess, termname = '
                 installments: SelectedInstallmentsItems,
                 heads: selectedHeadsItems
             };
-            console.log('SAVE HEAD TERM MAPPING ', payload);
+
             // const response = await addMasterClassCategory(payload);
 
             // if (response.success) {

@@ -330,6 +330,21 @@ export async function getUserAccessibleModules() {
                                         description: 'Yearly Groups Mapping'
                                     }
                                 ]
+                            },
+                            {
+                                id: 3,
+                                name: 'Configuration',
+                                icon: 'Settings',
+                                pages: [
+                                    {
+                                        id: 25,
+                                        name: 'Fee configuration',
+                                        icon: 'Settings',
+                                        url: '/fees/configuration/masterfeeconfig',
+                                        title: 'Fee configuration',
+                                        description: 'Fee configuration'
+                                    }
+                                ]
                             }
                         ]
                     }

@@ -25,7 +25,6 @@ export default function AddAddFeeTermsForm({ onSuccess, feeterms = '' }: AddFeeT
 
     const {
         control,
-        watch,
         handleSubmit,
         register,
         reset,
@@ -97,8 +96,6 @@ export default function AddAddFeeTermsForm({ onSuccess, feeterms = '' }: AddFeeT
                         </div>
                     )}
                 />
-
-                {/* Buttons */}
                 <div className='flex flex-col gap-3 pt-4 sm:flex-row'>
                     <Button
                         type='button'

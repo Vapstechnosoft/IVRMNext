@@ -78,7 +78,6 @@ export default function AddFineSlabForm({ onSuccess, fineslab = '' }: AddFineSla
     return (
         <div className={`${fineslab}`}>
             <form onSubmit={handleSubmit(onSubmit)} className='flex w-full flex-col items-center justify-center space-y-6'>
-                {/* Fine Type Dropdown */}
                 <div className='w-full max-w-md'>
                     <div className='flex flex-col items-center gap-1.5'>
                         <Label htmlFor='fmfS_FineType' className='text-center'>
@@ -110,7 +109,6 @@ export default function AddFineSlabForm({ onSuccess, fineslab = '' }: AddFineSla
                     </div>
                 </div>
 
-                {/* From Day */}
                 {(fineType === 'Between' || fineType === 'GreaterThan' || fineType === 'LessThan') && (
                     <div className='w-full max-w-md'>
                         <div className='flex flex-col items-center gap-1.5'>
@@ -133,7 +131,6 @@ export default function AddFineSlabForm({ onSuccess, fineslab = '' }: AddFineSla
                     </div>
                 )}
 
-                {/* To Day - Only if Between */}
                 {fineType === 'Between' && (
                     <div className='w-full max-w-md'>
                         <div className='flex flex-col items-center gap-1.5'>
@@ -161,7 +158,7 @@ export default function AddFineSlabForm({ onSuccess, fineslab = '' }: AddFineSla
                         <Controller
                             name='fmfS_ECSFlag'
                             control={control}
-                            defaultValue='0' // Set default as "0" (unchecked)
+                            defaultValue='0'
                             render={({ field }) => (
                                 <div className='flex items-center space-x-2'>
                                     <Checkbox
@@ -176,7 +173,6 @@ export default function AddFineSlabForm({ onSuccess, fineslab = '' }: AddFineSla
                     </div>
                 </div>
 
-                {/* Buttons */}
                 <div className='flex flex-col gap-3 pt-4 sm:flex-row'>
                     <Button
                         type='button'

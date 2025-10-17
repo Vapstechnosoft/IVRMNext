@@ -48,11 +48,10 @@ export const feeTermsColumns: ColumnDef<IMasterTermsList>[] = [
     {
         accessorKey: 'fmfS_ECSFlag',
         header: ({ column }) => <DataTableColumnHeader column={column} title='ECS Flag' />,
-        // cell: ({ row }) => <div>{row.getValue('fmH_SpecialFeeFlag')}</div>,
 
         cell: ({ row }) => {
             const value = row.getValue('fmfS_ECSFlag');
-            return <div>{value ? '✅' : '❌'}</div>; // or '❌' if you prefer
+            return <div>{value ? '✅' : '❌'}</div>;
         },
         enableSorting: true,
         enableHiding: true

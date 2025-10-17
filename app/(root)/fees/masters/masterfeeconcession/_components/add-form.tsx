@@ -26,7 +26,6 @@ export default function AddMasterConcessionForm({ onSuccess, concession = '' }: 
     const {
         control,
         register,
-        watch,
         handleSubmit,
         reset,
         formState: { errors, isSubmitting }
@@ -49,8 +48,6 @@ export default function AddMasterConcessionForm({ onSuccess, concession = '' }: 
                     fmcC_ConcessionApplLimit !== undefined && fmcC_ConcessionApplLimit !== null ? fmcC_ConcessionApplLimit.toString() : '',
                 fmcC_ConcessionFlag: ''
             };
-
-            console.log('addconcessiondata', payload);
 
             const response = await addOrUpdateMasterConcession(payload);
             if (response.success) {
@@ -87,14 +84,14 @@ export default function AddMasterConcessionForm({ onSuccess, concession = '' }: 
                             name='fmcC_ConcessionApplLimit'
                             control={control}
                             rules={{ required: 'Concession Limit is required' }}
-                            render={({ field, fieldState }) => (
+                            render={({ field }) => (
                                 <InputNumber
                                     label='Concession Limit'
                                     required
                                     id='fmcC_ConcessionApplLimit'
                                     value={field.value ?? 0}
                                     onChange={(value: number) => {
-                                        field.onChange(value); // send number to RHF
+                                        field.onChange(value);
                                     }}
                                     className='transition-colors focus:ring-2 focus:ring-primary/20'
                                 />
@@ -103,11 +100,9 @@ export default function AddMasterConcessionForm({ onSuccess, concession = '' }: 
                         {errors.fmcC_ConcessionApplLimit && <FormError>{errors.fmcC_ConcessionApplLimit.message}</FormError>}
                     </div>
 
-                    {/* Root Error */}
                     {errors.root && <FormError>{errors.root.message}</FormError>}
                 </div>
 
-                {/* Buttons */}
                 <div className='flex flex-col gap-3 pt-4 sm:flex-row'>
                     <Button
                         type='button'

@@ -73,6 +73,9 @@ export const paymentgatewaydetailsSchema = {
         //   fpgD_MerchantKey: z.string().min(1, 'Merchant Key is required')
         //   ,
         //   impG_Id: z.number().int().optional()
+    }),
+    delete: z.object({
+        FPGD_Id: deleteIdSchema('FPGD_Id')
     })
 };
 
@@ -349,7 +352,7 @@ export const feeConfigSchema = {
         fmC_Id: z.number().int().optional(),
         FMC_GroupOrTermFlg: createStringSchema('FMC_GroupOrTermFlg', 1, 1), // “T” or “G”
         FMC_ArrearAfterFlag: z.boolean().optional(),
-        FMC_Areawise_FeeFlg: z.boolean().optional(),
+        FMC_Areawise_FeeFlg: z.number().int().optional(),
         FMC_TransportFeeAreaFlag: z.boolean().optional(),
         FMC_TransportFeeZoneFlag: z.boolean().optional(),
         FMC_DOACheckFlag: z.boolean().optional(),
@@ -401,7 +404,8 @@ export const feeConfigSchema = {
         FMC_RSplFeeHeadFlag: z.boolean().optional(),
         FMC_fmC_AutoRecieptPrintFlag: z.boolean().optional(),
         PartialPayment: z.string().optional(),
-        FinancialAccount: z.string().optional()
+        FinancialAccount: z.string().optional(),
+        Rebate: z.string().optional()
     }),
     delete: z.object({
         fmC_Id: deleteIdSchema('fmC_Id')

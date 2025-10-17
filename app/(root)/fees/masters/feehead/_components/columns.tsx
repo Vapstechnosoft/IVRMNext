@@ -54,11 +54,10 @@ export const feeheadColumns: ColumnDef<IFeeHeadsList>[] = [
     {
         accessorKey: 'fmH_SpecialFeeFlag',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Special Fee Head	' />,
-        // cell: ({ row }) => <div>{row.getValue('fmH_SpecialFeeFlag')}</div>,
 
         cell: ({ row }) => {
             const value = row.getValue('fmH_SpecialFeeFlag');
-            return <div>{value ? '✅' : '❌'}</div>; // or '❌' if you prefer
+            return <div>{value ? '✅' : '❌'}</div>;
         },
         enableSorting: true,
         enableHiding: true
@@ -66,27 +65,21 @@ export const feeheadColumns: ColumnDef<IFeeHeadsList>[] = [
     {
         accessorKey: 'fmH_PDAFlag',
         header: ({ column }) => <DataTableColumnHeader column={column} title='PDA Expense' />,
-        // cell: ({ row }) => <div>{row.getValue('fmH_PDAFlag')}</div>,
+
         cell: ({ row }) => {
             const value = row.getValue('fmH_PDAFlag');
-            return <div>{value ? '✅' : '❌'}</div>; // or '❌' if you prefer
+            return <div>{value ? '✅' : '❌'}</div>;
         },
         enableSorting: true,
         enableHiding: true
     },
-    //   {
-    //     accessorKey: 'fmH_RefundFlag',
-    //     header: ({ column }) => <DataTableColumnHeader column={column} title='Refundable' />,
-    //     cell: ({ row }) => <div>{row.getValue('fmH_RefundFlag')}</div>,
-    //     enableSorting: true,
-    //     enableHiding: true
-    // },
+
     {
         accessorKey: 'fmH_RefundFlag',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Refundable' />,
         cell: ({ row }) => {
             const value = row.getValue('fmH_RefundFlag');
-            return <div>{value ? '✅' : '❌'}</div>; // or '❌' if you prefer
+            return <div>{value ? '✅' : '❌'}</div>;
         },
         enableSorting: true,
         enableHiding: true

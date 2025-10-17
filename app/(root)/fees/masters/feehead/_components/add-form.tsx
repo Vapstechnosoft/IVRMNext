@@ -87,38 +87,6 @@ export default function AddMasterFeeHeadForm({ onSuccess, headname = '' }: AddMa
                             error={errors.fmH_FeeName?.message}
                             className='transition-colors focus:ring-2 focus:ring-primary/20'
                         />
-                        {/* <InputText
-                                label='Fee Head Type'
-                                required
-                                id='fmH_Flag'
-                                {...register('fmH_Flag')}
-                                error={errors.fmH_Flag?.message}
-                                className='transition-colors focus:ring-2 focus:ring-primary/20'
-                            />
-                            {errors.fmH_Flag && <FormError>{errors.fmH_Flag.message}</FormError>} */}
-
-                        {/* <div className='group flex flex-col gap-1.5'>
-                            <label htmlFor='fmH_Flag' className='text-sm font-medium'>
-                                Fee Head Type
-                            </label>
-                            <select
-                                id='fmH_Flag'
-                                {...register('fmH_Flag')}
-                                className='transition-colors focus:ring-2 focus:ring-primary/20'>
-                                <option value=''>--Select--</option>
-                                <option value='G'>General</option>
-                                <option value='T'>Transport</option>
-                                <option value='E'>ExcessAmount</option>
-                                <option value='R'>Registration</option>
-                                <option value='A'>Application</option>
-                                <option value='H'>Hostel</option>
-                                <option value='N'>New Admission</option>
-                                <option value='S'>Swiping</option>
-                                <option value='F'>Fine</option>
-                                <option value='TR'>Transport Registration</option>
-                            </select>
-                            {errors.fmH_Flag && <FormError>{errors.fmH_Flag.message}</FormError>}
-                        </div> */}
 
                         <div className='group flex flex-col gap-1.5'>
                             <Label aria-label=' Fee Head Type' htmlFor='fmH_Flag'>
@@ -215,49 +183,9 @@ export default function AddMasterFeeHeadForm({ onSuccess, headname = '' }: AddMa
                         </div>
                     </div>
 
-                    {/* <div className='grid grid-cols-3 gap-4'>
-                        <div >
-                            <Controller
-                                name='fmH_SpecialFeeFlag'
-                                control={control}
-                                defaultValue={false}
-                                render={({ field }) => (
-                                    <div className='flex items-center space-x-2'>
-                                        <Checkbox checked={field.value} onCheckedChange={field.onChange} id='specialFeeHead' />
-                                        <Label htmlFor='specialFeeHead'>Special Fee Head</Label>
-                                    </div>
-                                )}
-                            />
-                            <Controller
-                                name='fmH_PDAFlag'
-                                control={control}
-                                defaultValue={false}
-                                render={({ field }) => (
-                                    <div className='flex items-center space-x-2'>
-                                        <Checkbox checked={field.value} onCheckedChange={field.onChange} id='pdaExpense' />
-                                        <Label htmlFor='pdaExpense'>PDA Expense</Label>
-                                    </div>
-                                )}
-                            />
-                            <Controller
-                                name='fmH_RefundFlag'
-                                control={control}
-                                defaultValue={false}
-                                render={({ field }) => (
-                                    <div className='flex items-center space-x-2'>
-                                        <Checkbox checked={field.value} onCheckedChange={field.onChange} id='refundable' />
-                                        <Label htmlFor='refundable'>Refundable</Label>
-                                    </div>
-                                )}
-                            />
-                        </div>
-                    </div> */}
-
-                    {/* Root Error */}
                     {errors.root && <FormError>{errors.root.message}</FormError>}
                 </div>
 
-                {/* Action Buttons */}
                 <div className='flex flex-col gap-3 border-t pt-4 sm:flex-row sm:justify-start'>
                     <Button
                         type='button'

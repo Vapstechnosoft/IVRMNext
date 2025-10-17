@@ -103,7 +103,6 @@ export default function UpdateMasterModeOfPaymentForm({
                     </div>
                 </div>
 
-                {/* Action Buttons */}
                 <div className='flex flex-col gap-3 border-t pt-4 sm:flex-row sm:justify-start'>
                     <Button
                         type='button'

@@ -15,15 +15,6 @@ import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
 
 import { toast } from 'sonner';
 import type { z } from 'zod';
-// import type { z } from 'zod';
-
-// const paymentgatewaydetailsSchemanew = z.object({
-//   fpgD_MerchantId: z.string().min(1, 'Merchant ID is required'),
-//   fpgD_SaltKey: z.string().min(1, 'Salt Key is required'),
-//   fpgD_Image: z.string().min(1, 'Image is required'),
-//   fpgD_URL: z.string().min(1, 'URL is required'),
-//   fpgD_AccNo: z.string().min(1, 'Account Number is required'),
-// });
 
 type FormFields = z.infer<typeof paymentgatewaydetailsSchema.addOrUpdate>;
 
@@ -54,7 +45,7 @@ export default function AddAddpaymentgatewaydetailsPropsForm({ onSuccess, gatewa
         resolver: zodResolver(paymentgatewaydetailsSchema.addOrUpdate),
         mode: 'onChange',
         defaultValues: {
-            fpgD_MobileActiveFlag: false // Explicitly set default
+            fpgD_MobileActiveFlag: false
         }
     });
 
@@ -64,27 +55,7 @@ export default function AddAddpaymentgatewaydetailsPropsForm({ onSuccess, gatewa
     }
 
     const onSubmit: SubmitHandler<FormFields | any> = async (data: FormFields) => {
-        console.log('Submitted data:', data);
         try {
-            // const {fpgD_MobileActiveFlag} = data;
-            // const payload = {
-            //     mi_id: 30,
-            //     fpgD_SaltKey: data.fpgD_SaltKey,
-            //     fpgD_MerchantId: data.fpgD_MerchantId,
-            //     fpgD_Image: data.fpgD_Image,
-            //     fpgD_URL: data.fpgD_URL,
-            //     fpgD_AccNo: data.fpgD_AccNo,
-            //     // submerchantIds: submerchantIds.map((item) => ({
-            //     //     fpgD_SubMerchantId: item.id
-            //     // })),
-            //     // submerchantIds: submerchantIds.map((item) => ({ id: item.id })),
-            //     fpgD_AuthorisationKey: data.fpgD_AuthorisationKey,
-            //     fpgD_MerchantKey: data.fpgD_MerchantKey,
-            //     fpgD_PGName: data.fpgD_PGName,
-
-            //     fpgD_MobileActiveFlag:data.fpgD_MobileActiveFlag
-            // };
-
             const payload = {
                 mi_id: 30,
                 fpgD_SaltKey: data.fpgD_SaltKey,
@@ -97,14 +68,12 @@ export default function AddAddpaymentgatewaydetailsPropsForm({ onSuccess, gatewa
                     .map((item) => ({
                         fpgD_SubMerchantId: item.id
                     })),
-                // fpgD_PGName: data.fpgD_PGName,
+
                 fpgD_MerchantKey: data.fpgD_MerchantKey,
 
                 impG_Id: data.impG_Id,
                 fpgD_MobileActiveFlag: data.fpgD_MobileActiveFlag
             };
-
-            console.log('addconcessiondata', payload);
 
             const response = await addOrUpdatepaymentgatewaydetails(payload);
             if (response.success) {
@@ -213,18 +182,6 @@ export default function AddAddpaymentgatewaydetailsPropsForm({ onSuccess, gatewa
                             error={errors.fpgD_MerchantKey?.message}
                             className='transition-colors focus:ring-2 focus:ring-primary/20'
                         />
-                        {/* 
-                        <div className='group flex flex-col gap-1.5'>
-                            <InputText
-                                label='GatewayName'
-                                required
-                                id='fpgD_PGName'
-                                {...register('fpgD_PGName')}
-                                error={errors.fpgD_PGName?.message}
-                                className='transition-colors focus:ring-2 focus:ring-primary/20'
-                            />
-                            {errors.fpgD_PGName && <FormError>{errors.fpgD_PGName.message}</FormError>}
-                        </div> */}
 
                         <div className='group flex flex-col gap-1.5'>
                             <Label aria-label='Term' htmlFor='fmT_Id'>
@@ -308,7 +265,6 @@ export default function AddAddpaymentgatewaydetailsPropsForm({ onSuccess, gatewa
                         </div>
                     </div>
 
-                    {/* Root Error */}
                     {errors.root && <FormError>{errors.root.message}</FormError>}
                 </div>
 
@@ -334,7 +290,6 @@ export default function AddAddpaymentgatewaydetailsPropsForm({ onSuccess, gatewa
                     </div>
                 </div>
 
-                {/* Action Buttons */}
                 <div className='flex flex-col gap-3 border-t pt-4 sm:flex-row sm:justify-start'>
                     <Button
                         type='button'

@@ -27,7 +27,6 @@ export default function UpdateFeeTermForm({ onSuccess, fineslab = '', selectedRo
 
     const {
         control,
-        watch,
         setValue,
         register,
         handleSubmit,
@@ -59,7 +58,7 @@ export default function UpdateFeeTermForm({ onSuccess, fineslab = '', selectedRo
                 fmT_IncludeArrearFeeFlg: fmT_IncludeArrearFeeFlg,
                 fmT_ActiveFlag: row.fmT_ActiveFlag
             };
-            console.log('updatedata', payload);
+
             const response = await addOrUpdateFeeTerm(payload);
 
             if (response.success) {
@@ -112,11 +111,9 @@ export default function UpdateFeeTermForm({ onSuccess, fineslab = '', selectedRo
                         )}
                     />
 
-                    {/* Root Error */}
                     {errors.root && <FormError>{errors.root.message}</FormError>}
                 </div>
 
-                {/* Action Buttons */}
                 <div className='flex flex-col gap-3 border-t pt-4 sm:flex-row sm:justify-start'>
                     <Button
                         type='button'
