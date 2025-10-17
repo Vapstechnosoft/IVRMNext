@@ -34,7 +34,8 @@ export const PREADMISSION_QUERY_KEYS = {
     APPLICATION_STATUS_DROPDOWN: 'application_status_dropdown',
     APPLICATION_STUDENT_LIST: 'application_student_list',
     PREADMISSION_ADMISSION_STATUS_DROPDOWN: 'preadmission_admission_status_dropdown',
-    PREADMISSION_STUDENT_LIST: 'preadmission_student_list'
+    PREADMISSION_STUDENT_LIST: 'preadmission_student_list',
+    EXPORT_PREADMISSION_STUDENT_LIST: 'export_preadmission_student_list'
 };
 
 export const EXAM_QUERY_KEYS = {

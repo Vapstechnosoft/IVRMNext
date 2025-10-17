@@ -10,6 +10,7 @@ import {
     getSourceDropdown,
     getStateDropdown
 } from '@/server/admission/preadmission/transactions/application_form';
+import { getExportPreadmissionStudentList } from '@/server/admission/preadmission/transactions/export_preadmission';
 import {
     getActivePreadmissionDetails,
     getApplicationStatusDropdown,
@@ -259,6 +260,24 @@ export const usePreadmissionStudentList = (asmay_id: number, asmcl_id: number, p
         refetchAll: () => {
             return queryClient.invalidateQueries({
                 queryKey: [PREADMISSION_QUERY_KEYS.PREADMISSION_STUDENT_LIST]
+            });
+        }
+    };
+};
+
+export const useExportPreadmissionStudentList = (asmay_id: number, asmcl_id: number, searchParams?: ApiSearchparams) => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [PREADMISSION_QUERY_KEYS.EXPORT_PREADMISSION_STUDENT_LIST, asmay_id, asmcl_id, searchParams ?? {}],
+            queryFn: async () => getExportPreadmissionStudentList(asmay_id, asmcl_id, searchParams),
+            staleTime: 0,
+            enabled: !!asmay_id && asmcl_id !== undefined
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [PREADMISSION_QUERY_KEYS.EXPORT_PREADMISSION_STUDENT_LIST]
             });
         }
     };
