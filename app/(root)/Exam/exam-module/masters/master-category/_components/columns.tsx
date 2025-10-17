@@ -37,14 +37,14 @@ export const MasterCategoryColumns: ColumnDef<IMasterCategory>[] = [
         enableHiding: false
     },
     {
-        accessorKey: 'ex_CategoryName',
+        accessorKey: 'emcA_CategoryName',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Category Name' />,
-        cell: ({ row }) => <div>{row.getValue('ex_CategoryName')}</div>
+        cell: ({ row }) => <div>{row.getValue('emcA_CategoryName')}</div>
     },
     {
-        accessorKey: 'ex_CCEPromotionApplicableFlag',
+        accessorKey: 'emcA_CCECheckingFlg',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Applicable CCE Promotion' />,
-        cell: ({ row }) => <div>{row.getValue('ex_CCEPromotionApplicableFlag')}</div>
+        cell: ({ row }) => <div>{row.getValue('emcA_CCECheckingFlg') ? 'Yes' : 'No'}</div>
     },
     {
         id: 'actions',
@@ -78,7 +78,7 @@ function ActionButtonsCell({ rowData }: { rowData: IMasterCategory }) {
             buttons={{ edit: true, toggle: true, delete: false }}
             onEdit={handleEdit}
             onToggle={handleToggle}
-            toggleConditionKey='ex_IsActiveFlag'
+            toggleConditionKey='emcA_ActiveFlag'
         />
     );
 }

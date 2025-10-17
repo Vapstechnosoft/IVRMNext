@@ -65,8 +65,6 @@ export default function MasterGradeForm({ onSuccess, className = '' }: { onSucce
                 }))
             };
 
-            console.log('Payload:', payload);
-
             const response = await addOrUpdateMasterGrade(payload);
 
             if (response.success) {

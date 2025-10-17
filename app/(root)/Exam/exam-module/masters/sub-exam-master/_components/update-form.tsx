@@ -39,22 +39,21 @@ export default function UpdateMasterSubExamForm({ onSuccess, className = '', sel
     useEffect(() => {
         if (row) {
             reset({
-                ex_Id: row.ex_Id,
-                ex_SubExamName: row.ex_SubExamName,
-                ex_SubExamCode: row.ex_SubExamCode,
-                ex_IsActiveFlag: row.ex_IsActiveFlag
+                emsE_Id: row.emsE_Id,
+                emsE_SubExamName: row.emsE_SubExamName,
+                emsE_SubExamCode: row.emsE_SubExamCode,
+                mI_Id: 30 // ✅ Default institute ID (update as needed)
             });
         }
     }, [row, reset, setValue]);
 
-    const onSubmit: SubmitHandler<FormFields | any> = async (data: FormFields) => {
+    const onSubmit: SubmitHandler<FormFields> = async (data) => {
         try {
             const payload = {
-                MI_Id: 30,
-                EX_Id: data.ex_Id,
-                EX_SubExamName: data.ex_SubExamName,
-                EX_SubExamCode: data.ex_SubExamCode,
-                EX_ActiveFlag: data.ex_IsActiveFlag
+                mI_Id: data.mI_Id,
+                emsE_Id: data.emsE_Id,
+                emsE_SubExamName: data.emsE_SubExamName,
+                emsE_SubExamCode: data.emsE_SubExamCode
             };
 
             const response = await addOrUpdateMasterSubExam(payload);
@@ -68,7 +67,7 @@ export default function UpdateMasterSubExamForm({ onSuccess, className = '', sel
                 toast.error(response.message);
             }
         } catch (error: any) {
-            toast.error(error.message);
+            toast.error(error.message || 'Something went wrong');
         }
     };
 
@@ -85,18 +84,18 @@ export default function UpdateMasterSubExamForm({ onSuccess, className = '', sel
                         <InputText
                             label='Sub Exam Name'
                             required
-                            id='ex_SubExamName'
-                            {...register('ex_SubExamName')}
-                            defaultValue={row.ex_SubExamName}
-                            error={errors.ex_SubExamName?.message}
+                            id='emsE_SubExamName'
+                            {...register('emsE_SubExamName')}
+                            defaultValue={row.emsE_SubExamName}
+                            error={errors.emsE_SubExamName?.message}
                         />
                         <InputText
                             label='Sub Exam Code'
                             required
-                            id='ex_SubExamCode'
-                            {...register('ex_SubExamCode')}
-                            defaultValue={row.ex_SubExamCode}
-                            error={errors.ex_SubExamCode?.message}
+                            id='emsE_SubExamCode'
+                            {...register('emsE_SubExamCode')}
+                            defaultValue={row.emsE_SubExamCode}
+                            error={errors.emsE_SubExamCode?.message}
                         />
                     </div>
 

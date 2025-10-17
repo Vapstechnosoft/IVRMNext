@@ -1,7 +1,7 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { DndContext, PointerSensor, closestCenter, useSensor, useSensors } from '@dnd-kit/core';
 import { SortableContext, arrayMove, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import { useEffect, useState } from 'react';
@@ -58,6 +58,7 @@ export function MasterViewDetails<T extends { id: number }>({
             <DialogContent className='w-full max-w-6xl'>
                 <DialogHeader>
                     <DialogTitle>Set Sub-Subject Order</DialogTitle>
+                    <DialogDescription>Drag and drop to reorder</DialogDescription>
                 </DialogHeader>
 
                 <div className='overflow-auto' style={{ maxHeight: tableHeight }}>
@@ -84,10 +85,12 @@ export function MasterViewDetails<T extends { id: number }>({
                 </div>
 
                 <DialogFooter className='mt-4 flex justify-end gap-2'>
-                    <Button variant='outline' onClick={onClose}>
+                    <Button variant='outline' className='w-fit' onClick={onClose}>
                         Cancel
                     </Button>
-                    <Button onClick={handleSave}>Save</Button>
+                    <Button onClick={handleSave} className='w-fit'>
+                        Save
+                    </Button>
                 </DialogFooter>
             </DialogContent>
         </Dialog>

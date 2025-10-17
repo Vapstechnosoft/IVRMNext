@@ -40,7 +40,6 @@ function MasterGradePageContent({
 }) {
     const { openAddForm } = useFormContext<IMasterGrade>();
     const tableProps = useDataTableProps(response);
-    console.log(tableProps);
 
     return (
         <div className='min-h-screen'>

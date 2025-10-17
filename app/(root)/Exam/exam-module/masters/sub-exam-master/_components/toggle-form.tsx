@@ -7,7 +7,6 @@ import { useMasterSubExam } from '@/hooks/exam/exammodule/usemasters';
 import { masterSubExamSchema } from '@/schemas/exam/exam-module/masters';
 import { toggleMasterSubExam } from '@/server/exam/exam-module/masters/sub-exam';
 import type { IMasterSubExam } from '@/types/exam/exam-module/masters';
-
 import { zodResolver } from '@hookform/resolvers/zod';
 import { type SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
@@ -22,7 +21,7 @@ interface ToggleSubExamFormProps {
 
 export default function ToggleSubExamForm({ rowData, onClose }: ToggleSubExamFormProps) {
     const { refetchAll } = useMasterSubExam();
-    const isActive = rowData.ex_IsActiveFlag; // ✅ use sub exam active flag
+    const isActive = rowData.emsE_ActiveFlag; // ✅ updated active flag
 
     const {
         register,
@@ -41,17 +40,19 @@ export default function ToggleSubExamForm({ rowData, onClose }: ToggleSubExamFor
 
     const onSubmit: SubmitHandler<FormFields | any> = async () => {
         try {
-            const response = await toggleMasterSubExam(30, Number(rowData.ex_Id));
+            // ✅ use emsE_Id from schema
+            const response = await toggleMasterSubExam(30, Number(rowData.emsE_Id));
 
             if (response.success) {
                 toast.success(response.message);
                 refetchAll();
+                reset();
                 closeDialog();
             } else {
                 toast.error(response.message);
             }
         } catch (error: any) {
-            toast.error(error.message);
+            toast.error(error.message || 'Something went wrong');
         }
     };
 
@@ -59,11 +60,10 @@ export default function ToggleSubExamForm({ rowData, onClose }: ToggleSubExamFor
         <AdaptiveDialog title='Toggle Sub Exam Status' isOpen={true} onClose={closeDialog}>
             <form onSubmit={handleSubmit(onSubmit)} className='flex flex-col gap-4'>
                 <AdaptiveBody className='flex flex-col gap-5'>
-                    <input type='hidden' {...register('ex_Id')} defaultValue={rowData.ex_Id} />
+                    <input type='hidden' {...register('emsE_Id')} defaultValue={rowData.emsE_Id} />
                     <p>
-                        Are you sure you want to {isActive ? 'deactivate' : 'activate'} <strong>{rowData.ex_SubExamName}</strong>?
+                        Are you sure you want to {isActive ? 'deactivate' : 'activate'} <strong>{rowData.emsE_SubExamName}</strong>?
                     </p>
-                    <FormError>{errors.ex_Id?.message}</FormError>
                     <FormError>{errors.root?.message}</FormError>
                 </AdaptiveBody>
                 <AdaptiveFooter>

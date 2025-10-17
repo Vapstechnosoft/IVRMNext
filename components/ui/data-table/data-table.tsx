@@ -175,7 +175,7 @@ export const DataTable = forwardRef<DataTableRef, DataTableProps<any, any>>(func
                             <TableBody>
                                 {table.getRowModel().rows?.length ? (
                                     table.getRowModel().rows.map((row) => (
-                                        <TableRow key={row.id} data-state={row.getIsSelected() && 'selected'}>
+                                        <TableRow key={row.id} data-state={row.getIsSelected()}>
                                             {row.getVisibleCells().map((cell) => (
                                                 <TableCell
                                                     key={cell.id}

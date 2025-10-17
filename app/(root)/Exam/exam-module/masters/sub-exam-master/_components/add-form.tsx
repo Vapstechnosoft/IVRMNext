@@ -1,18 +1,17 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
-import { FormError, Label } from '@/components/ui/extension/field';
+import { FormError } from '@/components/ui/extension/field';
 import { InputText } from '@/components/ui/extension/input-text';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { MasterViewDetails } from '@/components/ui/set-order/generic-seto-order';
 import { useMasterExam } from '@/hooks/exam/exammodule/usemasters';
 import { masterSubExamSchema } from '@/schemas/exam/exam-module/masters';
-import { addOrUpdateMasterSubExam, getMasterSubExam } from '@/server/exam/exam-module/masters/sub-exam';
+import { UpdatedOrderdSubExams, addOrUpdateMasterSubExam, getMasterSubExamOrderData } from '@/server/exam/exam-module/masters/sub-exam';
 import type { IMasterSubExam } from '@/types/exam/exam-module/masters';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { List, Save } from 'lucide-react';
 import { useState } from 'react';
-import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
+import { type SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import type { z } from 'zod';
 
@@ -36,9 +35,10 @@ export default function AddMasterSubExamForm({ onSuccess, className = '' }: AddM
         resolver: zodResolver(masterSubExamSchema.addOrUpdate),
         mode: 'onChange',
         defaultValues: {
-            ex_SubExamName: '',
-            ex_SubExamCode: '',
-            ex_IsActiveFlag: true
+            emsE_Id: 0,
+            mI_Id: 30, // ✅ Default institution ID or dynamic if needed
+            emsE_SubExamName: '',
+            emsE_SubExamCode: ''
         }
     });
 
@@ -47,7 +47,54 @@ export default function AddMasterSubExamForm({ onSuccess, className = '' }: AddM
 
     const onSubmit: SubmitHandler<FormFields> = async (data) => {
         try {
+            console.info('data', data);
             const response = await addOrUpdateMasterSubExam(data);
+            if (response.success) {
+                toast.success(response.message);
+                reset();
+                refetchAll();
+                onSuccess?.();
+            } else {
+                toast.error(response.message);
+            }
+        } catch (error: any) {
+            toast.error(error.message || 'Error saving sub-exam.');
+        }
+    };
+
+    const handleSetOrder = async () => {
+        try {
+            // Type the API response
+            const data: { data: IMasterSubExam[] } = await getMasterSubExamOrderData();
+
+            // Map each item and add 'id' field for table usage
+            const mappedData: (IMasterSubExam & { id: number })[] = data.data.map((d: IMasterSubExam) => ({
+                ...d,
+                id: d.emsE_Id // for row identification
+            }));
+
+            setOrderData(mappedData); // use mappedData here
+            setOrderModalOpen(true);
+        } catch (error: any) {
+            toast.error(error?.message || 'Error fetching sub-exam list.');
+        }
+    };
+
+    const handleReset = () => reset();
+    const handleOrderSave = async (updatedData: (IMasterSubExam & { id: number })[]) => {
+        try {
+            // Map updated data with new order
+            const updatedOrderData = updatedData.map((item, index) => ({
+                emsE_Id: item.emsE_Id,
+                emsE_SubExamOrder: index + 1
+            }));
+
+            const payload = {
+                subject_list_Order: updatedOrderData // ✅ correct variable name
+            };
+
+            // Call API
+            const response = await UpdatedOrderdSubExams(payload);
 
             if (response.success) {
                 toast.success(response.message);
@@ -58,76 +105,31 @@ export default function AddMasterSubExamForm({ onSuccess, className = '' }: AddM
                 toast.error(response.message);
             }
         } catch (error: any) {
-            toast.error(error.message);
+            toast.error(error?.message || 'Something went wrong.');
         }
-    };
-
-    const handleSetOrder = async () => {
-        try {
-            const data = await getMasterSubExam();
-            const mappedData = data?.data?.map((d) => ({ ...d, id: d.ex_Id })) || [];
-            setOrderData(mappedData);
-            setOrderModalOpen(true);
-        } catch (error: any) {
-            toast.error(error.message);
-        }
-    };
-
-    const handleReset = () => reset();
-    const handleOrderSave = (updatedData: (IMasterSubExam & { id: number })[]) => {
-        setOrderData(updatedData);
     };
 
     return (
-        <div className={`${className}`}>
+        <div className={className}>
             <form onSubmit={handleSubmit(onSubmit)} className='space-y-6'>
                 {/* Basic Fields */}
                 <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
                     <InputText
                         label='Sub Exam Name'
                         required
-                        id='ex_SubExamName'
-                        {...register('ex_SubExamName')}
-                        error={errors.ex_SubExamName?.message}
+                        id='emsE_SubExamName'
+                        {...register('emsE_SubExamName')}
+                        error={errors.emsE_SubExamName?.message}
                     />
+
                     <InputText
                         label='Sub Exam Code'
                         required
-                        id='ex_SubExamCode'
-                        {...register('ex_SubExamCode')}
-                        error={errors.ex_SubExamCode?.message}
+                        id='emsE_SubExamCode'
+                        {...register('emsE_SubExamCode')}
+                        error={errors.emsE_SubExamCode?.message}
                     />
                 </div>
-
-                {/* IsActive Flag */}
-                <div className='grid grid-cols-1 md:grid-cols-2'>
-                    <div className='flex flex-col gap-2'>
-                        <Label htmlFor='ex_IsActiveFlag'>
-                            Active Status <span className='ml-1 text-red-500'>*</span>
-                        </Label>
-                        <Controller
-                            name='ex_IsActiveFlag'
-                            control={control}
-                            render={({ field }) => (
-                                <RadioGroup
-                                    value={field.value ? 'true' : 'false'}
-                                    onValueChange={(value) => field.onChange(value === 'true')}
-                                    className='flex gap-4'>
-                                    <div className='flex items-center space-x-2'>
-                                        <RadioGroupItem value='true' id='active-yes' />
-                                        <Label htmlFor='active-yes'>Active</Label>
-                                    </div>
-                                    <div className='flex items-center space-x-2'>
-                                        <RadioGroupItem value='false' id='active-no' />
-                                        <Label htmlFor='active-no'>Inactive</Label>
-                                    </div>
-                                </RadioGroup>
-                            )}
-                        />
-                        {errors.ex_IsActiveFlag && <FormError>{errors.ex_IsActiveFlag.message}</FormError>}
-                    </div>
-                </div>
-
                 {/* Root Error */}
                 {errors.root && <FormError>{errors.root.message}</FormError>}
 
@@ -165,7 +167,7 @@ export default function AddMasterSubExamForm({ onSuccess, className = '' }: AddM
                 </div>
             </form>
 
-            {/* /* Set Order Modal */}
+            {/* Set Order Modal */}
             {orderModalOpen && (
                 <MasterViewDetails
                     isOpen={orderModalOpen}
@@ -173,9 +175,9 @@ export default function AddMasterSubExamForm({ onSuccess, className = '' }: AddM
                     data={orderData}
                     columns={[
                         { key: 'id', label: 'SLNO', className: 'text-center w-12' },
-                        { key: 'ex_SubExamName', label: 'Sub-Exam Name', className: 'text-left' },
-                        { key: 'ex_SubExamCode', label: 'Sub-Exam Code', className: 'text-left' },
-                        { key: 'ex_SubExamOrder', label: 'Sub-Exam Order', className: 'text-left' }
+                        { key: 'emsE_SubExamName', label: 'Sub-Exam Name', className: 'text-left' },
+                        { key: 'emsE_SubExamCode', label: 'Sub-Exam Code', className: 'text-left' },
+                        { key: 'emsE_SubExamOrder', label: 'Sub-Exam Order', className: 'text-left' }
                     ]}
                     onSave={handleOrderSave}
                     tableHeight='500px'

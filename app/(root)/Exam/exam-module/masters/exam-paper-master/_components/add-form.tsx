@@ -1,15 +1,14 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
-import { FormError, Label } from '@/components/ui/extension/field';
+import { FormError } from '@/components/ui/extension/field';
 import { InputText } from '@/components/ui/extension/input-text';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { useMasterExamPaper } from '@/hooks/exam/exammodule/usemasters';
 import { masterExamPaperSchema } from '@/schemas/exam/exam-module/masters';
 import { addOrUpdateMasterExamPaper } from '@/server/exam/exam-module/masters/exam-paper';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Save } from 'lucide-react';
-import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
+import { type SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import type { z } from 'zod';
 
@@ -24,7 +23,6 @@ export default function AddMasterExamPaperForm({ onSuccess, className = '' }: Ad
     const { refetchAll } = useMasterExamPaper();
 
     const {
-        control,
         register,
         handleSubmit,
         reset,
@@ -33,16 +31,25 @@ export default function AddMasterExamPaperForm({ onSuccess, className = '' }: Ad
         resolver: zodResolver(masterExamPaperSchema.addOrUpdate),
         mode: 'onChange',
         defaultValues: {
-            ex_ExamPaperType: '',
-            ex_DisplayColor: '',
-            ex_PaperTypeDescription: '',
-            ex_IsActiveFlag: true
+            empatY_PaperTypeName: '',
+            empatY_Color: '',
+            empatY_PaperTypeDescription: ''
         }
     });
 
     const onSubmit: SubmitHandler<FormFields> = async (data) => {
         try {
-            const response = await addOrUpdateMasterExamPaper(data);
+            // Prepare the payload with form data and fixed values
+            const payload = {
+                empatY_Id: 0,
+                mI_Id: 30,
+                user_id: 10,
+                empatY_PaperTypeName: data.empatY_PaperTypeName,
+                empatY_Color: data.empatY_Color,
+                empatY_PaperTypeDescription: data.empatY_PaperTypeDescription
+            };
+
+            const response = await addOrUpdateMasterExamPaper(payload);
 
             if (response.success) {
                 toast.success(response.message);
@@ -62,21 +69,22 @@ export default function AddMasterExamPaperForm({ onSuccess, className = '' }: Ad
     return (
         <div className={`${className}`}>
             <form onSubmit={handleSubmit(onSubmit)} className='space-y-6'>
-                {/* Basic Fields */}
+                {/* Input fields */}
                 <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
                     <InputText
-                        label='Exam Paper Type'
+                        label='Paper Type Name'
                         required
-                        id='ex_ExamPaperType'
-                        {...register('ex_ExamPaperType')}
-                        error={errors.ex_ExamPaperType?.message}
+                        id='empatY_PaperTypeName'
+                        {...register('empatY_PaperTypeName')}
+                        error={errors.empatY_PaperTypeName?.message}
                     />
+
                     <InputText
-                        label='Display Color'
+                        label='Color'
                         required
-                        id='ex_DisplayColor'
-                        {...register('ex_DisplayColor')}
-                        error={errors.ex_DisplayColor?.message}
+                        id='empatY_Color'
+                        {...register('empatY_Color')}
+                        error={errors.empatY_Color?.message}
                     />
                 </div>
 
@@ -84,45 +92,16 @@ export default function AddMasterExamPaperForm({ onSuccess, className = '' }: Ad
                     <InputText
                         label='Paper Type Description'
                         required
-                        id='ex_PaperTypeDescription'
-                        {...register('ex_PaperTypeDescription')}
-                        error={errors.ex_PaperTypeDescription?.message}
+                        id='empatY_PaperTypeDescription'
+                        {...register('empatY_PaperTypeDescription')}
+                        error={errors.empatY_PaperTypeDescription?.message}
                     />
                 </div>
 
-                {/* IsActive Flag */}
-                <div className='grid grid-cols-1 md:grid-cols-2'>
-                    <div className='flex flex-col gap-2'>
-                        <Label htmlFor='ex_IsActiveFlag'>
-                            Active Status <span className='ml-1 text-red-500'>*</span>
-                        </Label>
-                        <Controller
-                            name='ex_IsActiveFlag'
-                            control={control}
-                            render={({ field }) => (
-                                <RadioGroup
-                                    value={field.value ? 'true' : 'false'}
-                                    onValueChange={(value) => field.onChange(value === 'true')}
-                                    className='flex gap-4'>
-                                    <div className='flex items-center space-x-2'>
-                                        <RadioGroupItem value='true' id='active-yes' />
-                                        <Label htmlFor='active-yes'>Active</Label>
-                                    </div>
-                                    <div className='flex items-center space-x-2'>
-                                        <RadioGroupItem value='false' id='active-no' />
-                                        <Label htmlFor='active-no'>Inactive</Label>
-                                    </div>
-                                </RadioGroup>
-                            )}
-                        />
-                        {errors.ex_IsActiveFlag && <FormError>{errors.ex_IsActiveFlag.message}</FormError>}
-                    </div>
-                </div>
-
-                {/* Root Error */}
+                {/* Display form-level errors */}
                 {errors.root && <FormError>{errors.root.message}</FormError>}
 
-                {/* Buttons */}
+                {/* Action buttons */}
                 <div className='flex flex-col gap-3 border-t pt-4 sm:flex-row sm:justify-start'>
                     <Button
                         type='button'
@@ -132,6 +111,7 @@ export default function AddMasterExamPaperForm({ onSuccess, className = '' }: Ad
                         className='order-2 w-fit transition-all duration-200 hover:scale-105 sm:order-1'>
                         Reset
                     </Button>
+
                     <Button
                         type='submit'
                         disabled={isSubmitting}
@@ -140,7 +120,7 @@ export default function AddMasterExamPaperForm({ onSuccess, className = '' }: Ad
                         loadingText='Saving...'>
                         <div className='flex items-center'>
                             <Save className='mr-2 h-4 w-4' />
-                            Save Exam Paper
+                            Save Paper Type
                         </div>
                     </Button>
                 </div>

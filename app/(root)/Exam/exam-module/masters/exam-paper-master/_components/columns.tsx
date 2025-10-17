@@ -1,4 +1,5 @@
 'use client';
+
 import { Checkbox } from '@/components/ui/checkbox';
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
 import { ActionButtons } from '@/components/ui/form/action-buttons';
@@ -37,19 +38,19 @@ export const MasterExamPaperColumns: ColumnDef<IMasterExamPaper>[] = [
         enableHiding: false
     },
     {
-        accessorKey: 'ex_ExamPaperType',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Exam Paper Type' />,
-        cell: ({ row }) => <div>{row.getValue('ex_ExamPaperType')}</div>
+        accessorKey: 'empatY_PaperTypeName',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Paper Type Name' />,
+        cell: ({ row }) => <div>{row.getValue('empatY_PaperTypeName')}</div>
     },
     {
-        accessorKey: 'ex_DisplayColor',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Display Color' />,
-        cell: ({ row }) => <div>{row.getValue('ex_DisplayColor')}</div>
+        accessorKey: 'empatY_Color',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Color' />,
+        cell: ({ row }) => <div>{row.getValue('empatY_Color')}</div>
     },
     {
-        accessorKey: 'ex_PaperTypeDescription',
+        accessorKey: 'empatY_PaperTypeDescription',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Paper Type Description' />,
-        cell: ({ row }) => <div>{row.getValue('ex_PaperTypeDescription')}</div>
+        cell: ({ row }) => <div>{row.getValue('empatY_PaperTypeDescription')}</div>
     },
     {
         id: 'actions',
@@ -83,7 +84,7 @@ function ActionButtonsCell({ rowData }: { rowData: IMasterExamPaper }) {
             buttons={{ edit: true, toggle: true, delete: false }}
             onEdit={handleEdit}
             onToggle={handleToggle}
-            toggleConditionKey='ex_IsActiveFlag'
+            toggleConditionKey='empatY_ActiveFlag' // Adjust based on your backend active flag (if applicable)
         />
     );
 }

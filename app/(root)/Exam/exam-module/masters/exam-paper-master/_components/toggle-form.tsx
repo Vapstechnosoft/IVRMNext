@@ -21,7 +21,7 @@ interface ToggleExamPaperFormProps {
 
 export default function ToggleExamPaperForm({ rowData, onClose }: ToggleExamPaperFormProps) {
     const { refetchAll } = useMasterExamPaper();
-    const isActive = rowData.ex_IsActiveFlag;
+    const isActive = rowData.empatY_ActiveFlag;
 
     const {
         register,
@@ -40,7 +40,7 @@ export default function ToggleExamPaperForm({ rowData, onClose }: ToggleExamPape
 
     const onSubmit: SubmitHandler<FormFields> = async () => {
         try {
-            const response = await toggleMasterExamPaper(30, Number(rowData.ex_Id));
+            const response = await toggleMasterExamPaper(30, rowData.empatY_Id);
 
             if (response.success) {
                 toast.success(response.message);
@@ -55,14 +55,14 @@ export default function ToggleExamPaperForm({ rowData, onClose }: ToggleExamPape
     };
 
     return (
-        <AdaptiveDialog title='Toggle Exam Paper Status' isOpen={true} onClose={closeDialog}>
+        <AdaptiveDialog title='Toggle Paper Type Status' isOpen={true} onClose={closeDialog}>
             <form onSubmit={handleSubmit(onSubmit)} className='flex flex-col gap-4'>
                 <AdaptiveBody className='flex flex-col gap-5'>
-                    <input type='hidden' {...register('ex_Id')} defaultValue={rowData.ex_Id} />
+                    <input type='hidden' {...register('empatY_Id')} defaultValue={rowData.empatY_Id} />
                     <p>
-                        Are you sure you want to {isActive ? 'deactivate' : 'activate'} <strong>{rowData.ex_ExamPaperType}</strong>?
+                        Are you sure you want to {isActive ? 'deactivate' : 'activate'} <strong>{rowData.empatY_PaperTypeName}</strong>?
                     </p>
-                    <FormError>{errors.ex_Id?.message}</FormError>
+                    <FormError>{errors.empatY_Id?.message}</FormError>
                     <FormError>{errors.root?.message}</FormError>
                 </AdaptiveBody>
                 <AdaptiveFooter>
