@@ -51,17 +51,16 @@ export const masterExamSchema = {
 
 export const masterExamPaperSchema = {
     addOrUpdate: z.object({
-        ex_Id: z.number().int({ message: 'Exam Paper Id is required' }).optional(),
-
-        ex_ExamPaperType: createStringSchema('Exam Paper Type', 1, 100),
-        ex_DisplayColor: createStringSchema('Display Color', 1, 50),
-        ex_PaperTypeDescription: createStringSchema('Paper Type Description', 1, 200),
-
-        ex_IsActiveFlag: z.boolean({ message: 'Active Flag is required' })
+        empatY_Id: z.number().optional(),
+        mI_Id: z.number().optional(),
+        user_id: z.number().optional(),
+        empatY_PaperTypeName: createStringSchema('Paper Type Name', 1, 100),
+        empatY_Color: createStringSchema('Color', 1, 50),
+        empatY_PaperTypeDescription: createStringSchema('Paper Type Description', 1, 200)
     }),
 
     delete: z.object({
-        ex_Id: deleteIdSchema('ex_Id')
+        empatY_Id: deleteIdSchema('empatY_Id')
     })
 };
 
