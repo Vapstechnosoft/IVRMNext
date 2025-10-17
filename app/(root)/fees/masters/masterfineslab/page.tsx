@@ -10,7 +10,7 @@ import type { IFineSlabList } from '@/types/fees/masters/masters';
 import { Plus, X } from 'lucide-react';
 import { use } from 'react';
 import AddFineSlabForm from './_components/add-form';
-import { feeheadColumns } from './_components/columns';
+import { feefineslabColumns } from './_components/columns';
 import ToggleFineSlabForm from './_components/toggle-form';
 import UpdateFineSlabForm from './_components/update-form';
 
@@ -64,14 +64,14 @@ function MasterFineSlabPageContent({
                     className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
                     <GenericDataTable<IFineSlabList>
                         {...tableProps}
-                        columns={feeheadColumns}
+                        columns={feefineslabColumns}
                         isLoading={isLoading}
                         error={error}
                         columnPinning={{ right: ['actions'] }}
-                        loadingMessage='Loading master classes...'
-                        noDataTitle='No Master Classes Found'
-                        noDataDescription='Get started by creating your first master class'
-                        errorTitle='Error Loading Classes'
+                        loadingMessage='Loading master fine slabs...'
+                        noDataTitle='No Master Fine Slabs Found'
+                        noDataDescription=' You can add a new master fine slab by clicking the button below.'
+                        errorTitle='Error Loading Master Fine Slabs'
                     />
                 </CollapsibleSection>
 

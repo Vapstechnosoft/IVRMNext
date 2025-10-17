@@ -7,7 +7,7 @@ import type { IFineSlabList } from '@/types/fees/masters/masters';
 import type { ColumnDef } from '@tanstack/react-table';
 import { useCallback } from 'react';
 
-export const feeheadColumns: ColumnDef<IFineSlabList>[] = [
+export const feefineslabColumns: ColumnDef<IFineSlabList>[] = [
     {
         id: 'select',
         header: ({ table }) => (

@@ -70,10 +70,10 @@ function MasterFeeConcessionDetailsPageContent({
                         isLoading={isLoading}
                         error={error}
                         columnPinning={{ right: ['actions'] }}
-                        loadingMessage='Loading master classes...'
-                        noDataTitle='No Master Classes Found'
-                        noDataDescription='Get started by creating your first master class'
-                        errorTitle='Error Loading Classes'
+                        loadingMessage='Loading master concession details...'
+                        noDataTitle='No master concession details found'
+                        noDataDescription='Add a new master concession details'
+                        errorTitle='Error loading master concession details'
                     />
                 </CollapsibleSection>
 

@@ -1,17 +1,29 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
-import { FormError } from '@/components/ui/extension/field';
+import { Checkbox } from '@/components/ui/checkbox';
+import { FormError, Label } from '@/components/ui/extension/field';
 import { InputText } from '@/components/ui/extension/input-text';
-import { useMasterPaymentgatewaydetails } from '@/hooks/fees/useMasters';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useMasterPaymentgateway_dropdown, useMasterPaymentgatewaydetails } from '@/hooks/fees/useMasters';
 import { paymentgatewaydetailsSchema } from '@/schemas/fees/masters';
 import { addOrUpdatepaymentgatewaydetails } from '@/server/fees/masters/fee_payment_gateway_details';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Minus, Plus, Save } from 'lucide-react';
 import { useState } from 'react';
-import { type SubmitHandler, useForm } from 'react-hook-form';
+import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
+
 import { toast } from 'sonner';
 import type { z } from 'zod';
+// import type { z } from 'zod';
+
+// const paymentgatewaydetailsSchemanew = z.object({
+//   fpgD_MerchantId: z.string().min(1, 'Merchant ID is required'),
+//   fpgD_SaltKey: z.string().min(1, 'Salt Key is required'),
+//   fpgD_Image: z.string().min(1, 'Image is required'),
+//   fpgD_URL: z.string().min(1, 'URL is required'),
+//   fpgD_AccNo: z.string().min(1, 'Account Number is required'),
+// });
 
 type FormFields = z.infer<typeof paymentgatewaydetailsSchema.addOrUpdate>;
 
@@ -24,6 +36,13 @@ export default function AddAddpaymentgatewaydetailsPropsForm({ onSuccess, gatewa
     const { refetchAll } = useMasterPaymentgatewaydetails();
 
     const {
+        data: gatewaydata,
+        isLoading: gatewayLoading,
+        error: gatewayError,
+        refetchAll: refetchgateway
+    } = useMasterPaymentgateway_dropdown();
+
+    const {
         control,
         watch,
         setValue,
@@ -34,12 +53,38 @@ export default function AddAddpaymentgatewaydetailsPropsForm({ onSuccess, gatewa
     } = useForm<FormFields>({
         resolver: zodResolver(paymentgatewaydetailsSchema.addOrUpdate),
         mode: 'onChange',
-        defaultValues: {}
+        defaultValues: {
+            fpgD_MobileActiveFlag: false // Explicitly set default
+        }
     });
 
+    function OnReset() {
+        reset();
+        refetchgateway();
+    }
+
     const onSubmit: SubmitHandler<FormFields | any> = async (data: FormFields) => {
+        console.log('Submitted data:', data);
         try {
-            // const { fpgD_MerchantId, fpgD_SaltKey } = data;
+            // const {fpgD_MobileActiveFlag} = data;
+            // const payload = {
+            //     mi_id: 30,
+            //     fpgD_SaltKey: data.fpgD_SaltKey,
+            //     fpgD_MerchantId: data.fpgD_MerchantId,
+            //     fpgD_Image: data.fpgD_Image,
+            //     fpgD_URL: data.fpgD_URL,
+            //     fpgD_AccNo: data.fpgD_AccNo,
+            //     // submerchantIds: submerchantIds.map((item) => ({
+            //     //     fpgD_SubMerchantId: item.id
+            //     // })),
+            //     // submerchantIds: submerchantIds.map((item) => ({ id: item.id })),
+            //     fpgD_AuthorisationKey: data.fpgD_AuthorisationKey,
+            //     fpgD_MerchantKey: data.fpgD_MerchantKey,
+            //     fpgD_PGName: data.fpgD_PGName,
+
+            //     fpgD_MobileActiveFlag:data.fpgD_MobileActiveFlag
+            // };
+
             const payload = {
                 mi_id: 30,
                 fpgD_SaltKey: data.fpgD_SaltKey,
@@ -47,10 +92,20 @@ export default function AddAddpaymentgatewaydetailsPropsForm({ onSuccess, gatewa
                 fpgD_Image: data.fpgD_Image,
                 fpgD_URL: data.fpgD_URL,
                 fpgD_AccNo: data.fpgD_AccNo,
-                submerchantIds: submerchantIds.map((item) => ({
-                    fpgD_SubMerchantId: item.id
-                }))
+                submerchantIds: submerchantIds
+                    .filter((item) => item.id.trim() !== '')
+                    .map((item) => ({
+                        fpgD_SubMerchantId: item.id
+                    })),
+                // fpgD_PGName: data.fpgD_PGName,
+                fpgD_MerchantKey: data.fpgD_MerchantKey,
+
+                impG_Id: data.impG_Id,
+                fpgD_MobileActiveFlag: data.fpgD_MobileActiveFlag
             };
+
+            console.log('addconcessiondata', payload);
+
             const response = await addOrUpdatepaymentgatewaydetails(payload);
             if (response.success) {
                 toast.success(response.message);
@@ -102,6 +157,7 @@ export default function AddAddpaymentgatewaydetailsPropsForm({ onSuccess, gatewa
                             error={errors.fpgD_MerchantId?.message}
                             className='transition-colors focus:ring-2 focus:ring-primary/20'
                         />
+
                         <div className='group flex flex-col gap-1.5'>
                             <InputText
                                 label='Salt Key'
@@ -127,7 +183,6 @@ export default function AddAddpaymentgatewaydetailsPropsForm({ onSuccess, gatewa
                         <div className='group flex flex-col gap-1.5'>
                             <InputText
                                 label='URL'
-                                required
                                 id='fpgD_URL'
                                 {...register('fpgD_URL')}
                                 error={errors.fpgD_URL?.message}
@@ -150,6 +205,66 @@ export default function AddAddpaymentgatewaydetailsPropsForm({ onSuccess, gatewa
                             error={errors.fpgD_AccNo?.message}
                             className='transition-colors focus:ring-2 focus:ring-primary/20'
                         />
+                        <InputText
+                            label='Merchant Key'
+                            required
+                            id='fpgD_MerchantKey'
+                            {...register('fpgD_MerchantKey')}
+                            error={errors.fpgD_MerchantKey?.message}
+                            className='transition-colors focus:ring-2 focus:ring-primary/20'
+                        />
+                        {/* 
+                        <div className='group flex flex-col gap-1.5'>
+                            <InputText
+                                label='GatewayName'
+                                required
+                                id='fpgD_PGName'
+                                {...register('fpgD_PGName')}
+                                error={errors.fpgD_PGName?.message}
+                                className='transition-colors focus:ring-2 focus:ring-primary/20'
+                            />
+                            {errors.fpgD_PGName && <FormError>{errors.fpgD_PGName.message}</FormError>}
+                        </div> */}
+
+                        <div className='group flex flex-col gap-1.5'>
+                            <Label aria-label='Term' htmlFor='fmT_Id'>
+                                Gateway Name <span className='ml-1 text-red-500'>*</span>
+                            </Label>
+                            <Controller
+                                name='impG_Id'
+                                control={control}
+                                render={({ field }) => (
+                                    <Select
+                                        onValueChange={(value) => {
+                                            field.onChange(Number(value));
+                                        }}
+                                        value={field.value?.toString() || undefined}>
+                                        <SelectTrigger className='w-full'>
+                                            <SelectValue placeholder='Select Gateway' />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            {gatewayLoading ? (
+                                                <SelectItem value='loading' disabled>
+                                                    Loading Terms...
+                                                </SelectItem>
+                                            ) : gatewayError ? (
+                                                <SelectItem value='error' disabled>
+                                                    Error loading Terms
+                                                </SelectItem>
+                                            ) : (
+                                                gatewaydata?.data?.map((item) => (
+                                                    <SelectItem key={item.impG_Id} value={item.impG_Id.toString()}>
+                                                        {item.impG_PGName}
+                                                    </SelectItem>
+                                                ))
+                                            )}
+                                        </SelectContent>
+                                    </Select>
+                                )}
+                            />
+                            {errors.impG_Id && <FormError>{errors.impG_Id.message}</FormError>}
+                        </div>
+
                         <div className='col-span-6'>
                             {submerchantIds.map((item, index) => (
                                 <div key={index} className='mb-4 flex flex-col gap-2 md:flex-row md:items-center'>
@@ -195,6 +310,28 @@ export default function AddAddpaymentgatewaydetailsPropsForm({ onSuccess, gatewa
 
                     {/* Root Error */}
                     {errors.root && <FormError>{errors.root.message}</FormError>}
+                </div>
+
+                <div className='group flex flex-col gap-1.5'>
+                    <div className='group flex flex-row gap-6'>
+                        <Controller
+                            name='fpgD_MobileActiveFlag'
+                            control={control}
+                            defaultValue={false}
+                            render={({ field }) => (
+                                <div className='flex items-center space-x-2'>
+                                    <Checkbox
+                                        checked={field.value}
+                                        onCheckedChange={(checked: boolean) => {
+                                            field.onChange(checked);
+                                        }}
+                                        id='fpgD_MobileActiveFlag'
+                                    />
+                                    <Label htmlFor='fpgD_MobileActiveFlag'>Enable Payment in Mobile App:</Label>
+                                </div>
+                            )}
+                        />
+                    </div>
                 </div>
 
                 {/* Action Buttons */}

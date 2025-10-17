@@ -40,7 +40,8 @@ export const FEES_QUERY_KEYS = {
     TERM_DROP_DOWN_DATA: 'Terms_Drop_down_data',
     MASTER_HEADS_DROP_DOWN: 'masterHeadsDropdown',
     MASTER_INSTALLMENT_DROPDOWN: 'masterInstallmentsDropdown',
-    FEE_MASTER_CONCESSION_DETAILS: 'masterfeeconcessiondetails'
+    FEE_MASTER_CONCESSION_DETAILS: 'masterfeeconcessiondetails',
+    FEE_PAYMENTGATEWAY_DROPDOWN: 'paymentGatewayDropdown'
 };
 
 export const PREADMISSION_QUERY_KEYS = {

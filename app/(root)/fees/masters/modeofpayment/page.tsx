@@ -68,10 +68,10 @@ function MasterModeOfPaymentPageContent({
                         isLoading={isLoading}
                         error={error}
                         columnPinning={{ right: ['actions'] }}
-                        loadingMessage='Loading master classes...'
-                        noDataTitle='No Master Classes Found'
-                        noDataDescription='Get started by creating your first master class'
-                        errorTitle='Error Loading Classes'
+                        loadingMessage='Loading master mode of payment...'
+                        noDataTitle='No Master Mode Of Payment Found'
+                        noDataDescription='Add a new master mode of payment'
+                        errorTitle='Error Loading Master Mode Of Payment'
                     />
                 </CollapsibleSection>
 
