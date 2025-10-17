@@ -65,7 +65,7 @@ export default function AddFeeTermsHeadFormForm({ onSuccess, termname = '' }: Fe
                 installments: SelectedInstallmentsItems,
                 heads: selectedHeadsItems
             };
-            console.log('SAVE HEAD TERM MAPPING ', payload);
+
             // const response = await addMasterClassCategory(payload);
 
             // if (response.success) {

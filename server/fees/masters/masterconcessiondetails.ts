@@ -7,15 +7,15 @@ import type { IMasterConcessionDetailsList } from '@/types/fees/masters';
 export async function getMasterConcessionDetails(searchParams?: ApiSearchparams) {
     const urlParams = getSearchParamsUrl(searchParams ?? {});
     const url = `FeeConcessionFacade/FeeMasterConcessionDetailsList/30?${urlParams}`;
-    return await api.get<IMasterConcessionDetailsList[]>(url);
+    return await api.get<IMasterConcessionDetailsList[]>('fees', url);
 }
 
 export async function addOrUpdateMasterConcessionDetails(data: any) {
     const url = 'FeeConcessionFacade/AddOrUpdateConcession';
-    return await api.post<any>(url, data);
+    return await api.post<any>('fees', url, data);
 }
 
 export async function toggleMasterConcessionDetails(mi_id: number, id: number) {
     const url = `FeeConcessionFacade/ToggleConcession/${id}`;
-    return await api.put(url);
+    return await api.put('fees', url);
 }

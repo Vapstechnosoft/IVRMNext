@@ -66,7 +66,7 @@ export default function UpdateFineSlabForm({ onSuccess, fineslab = '', selectedR
                 fmfS_ECSFlag: fmfS_ECSFlag,
                 fmfS_ActiveFlag: fmfS_ActiveFlag
             };
-            console.log('updatedata', payload);
+
             const response = await addOrUpdateFineSlab(payload);
 
             if (response.success) {
@@ -85,8 +85,6 @@ export default function UpdateFineSlabForm({ onSuccess, fineslab = '', selectedR
     const handleReset = () => {
         reset();
     };
-
-    console.log('ERROR', errors);
 
     return (
         <div className={`${fineslab}`}>

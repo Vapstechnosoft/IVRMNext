@@ -7,15 +7,15 @@ import type { IMasterGroupList } from '@/types/fees/masters/masters';
 export async function getMasterGroup(searchParams?: ApiSearchparams) {
     const urlParams = getSearchParamsUrl(searchParams ?? {});
     const url = `/fee_group/30?${urlParams}`;
-    return await api.get<IMasterGroupList[]>(url);
+    return await api.get<IMasterGroupList[]>('fees', url);
 }
 
 export async function addOrUpdateMasterGroup(data: any) {
     const url = '/fee_group';
-    return await api.post<any>(url, data);
+    return await api.post<any>('fees', url, data);
 }
 
 export async function toggleMasterGroup(id: number) {
     const url = `/fee_group/toggle_master_feegroup/30/${id}`;
-    return await api.put(url);
+    return await api.put('fees', url);
 }
