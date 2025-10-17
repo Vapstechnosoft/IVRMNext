@@ -57,17 +57,19 @@ export default function AddAddpaymentgatewaydetailsPropsForm({ onSuccess, gatewa
     const onSubmit: SubmitHandler<FormFields | any> = async (data: FormFields) => {
         try {
             const payload = {
+                user_id: 20612,
                 mi_id: 30,
                 fpgD_SaltKey: data.fpgD_SaltKey,
                 fpgD_MerchantId: data.fpgD_MerchantId,
                 fpgD_Image: data.fpgD_Image,
                 fpgD_URL: data.fpgD_URL,
                 fpgD_AccNo: data.fpgD_AccNo,
-                submerchantIds: submerchantIds
-                    .filter((item) => item.id.trim() !== '')
-                    .map((item) => ({
-                        fpgD_SubMerchantId: item.id
-                    })),
+                // submerchantIds: submerchantIds
+                //     .filter((item) => item.id.trim() !== '')
+                //     .map((item) => ({
+                //         fpgD_SubMerchantId: item.id
+                //     })),
+                submerchantIds: submerchantIds.filter((item) => item.id.trim() !== '').map((item) => Number.parseInt(item.id, 10)),
 
                 fpgD_MerchantKey: data.fpgD_MerchantKey,
 
@@ -161,7 +163,6 @@ export default function AddAddpaymentgatewaydetailsPropsForm({ onSuccess, gatewa
                         </div>
                     </div>
 
-                    {/* Root Error */}
                     {errors.root && <FormError>{errors.root.message}</FormError>}
                 </div>
                 <div className='space-y-4'>
