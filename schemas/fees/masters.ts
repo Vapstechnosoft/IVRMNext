@@ -405,7 +405,8 @@ export const feeConfigSchema = {
     }),
     delete: z.object({
         fmC_Id: deleteIdSchema('fmC_Id')
-
+    })
+};
 export const masterClassYearlyGroupMappingSchema = {
     addOrUpdate: z.object({
         academicYear: z.string().min(1, { message: 'Academic Year is required' }),
@@ -423,6 +424,5 @@ export const masterClassYearlyGroupMappingSchema = {
         autoGroupName: z.string().min(1, { message: 'Auto Group Name is required' }),
         address: z.string().optional(),
         receiptTemplateFormat: z.string().optional()
-
     })
 };
