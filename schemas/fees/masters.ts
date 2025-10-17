@@ -317,3 +317,23 @@ export const masterConcessionDetailsSchema = {
         // fmcC_Id: deleteIdSchema('fmcC_Id')
     })
 };
+
+export const masterClassYearlyGroupMappingSchema = {
+    addOrUpdate: z.object({
+        academicYear: z.string().min(1, { message: 'Academic Year is required' }),
+        usePrefix: z.boolean(),
+        useSuffix: z.boolean(),
+        prefixValue: z.string().optional(),
+        suffixValue: z.string().optional(),
+        // startingNumber: z
+        //   .string()
+        //   .min(1, { message: 'Starting Number is required' })
+        //   .refine((value) => !isNaN(Number(value)) && Number(value) >= 0, {
+        //     message: 'Starting Number must be a valid non-negative number'
+        //   }),
+        groups: z.array(z.string()).min(1, { message: 'At least one group must be selected' }),
+        autoGroupName: z.string().min(1, { message: 'Auto Group Name is required' }),
+        address: z.string().optional(),
+        receiptTemplateFormat: z.string().optional()
+    })
+};

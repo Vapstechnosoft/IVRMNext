@@ -62,20 +62,13 @@ export interface IMasterClassYearlyCategoryList {
 //installment fees
 
 export interface IMasterFeesInstallmentList {
-    // Primary keys
-    fmI_Id: number; // Installment id
-    mI_ID: number; // Master id / institution id
-
-    // Display fields
-    fmI_Name: string; // Installment name
+    fmI_Id: number;
+    mI_ID: number;
+    fmI_Name: string;
     fmI_No_Of_Installments: number;
     fmI_Installment_Type: string;
-    ftI_Name?: string; // optional installment label/name
-
-    // Flags (API may return boolean or numeric flags)
+    ftI_Name?: string;
     fmI_ActiveFlag: boolean | number;
-
-    // Optional nested installments / due date entries used by the update form
     installments?: Array<{
         sno?: number;
         ftI_Id?: number;
@@ -199,4 +192,22 @@ export interface IMasterTermsList {
     fmT_Name: string;
     fmT_IncludeArrearFeeFlg: boolean;
     fmT_ActiveFlag: boolean;
+}
+
+export interface IMasterGroupWiseAutoReciptList {
+    asmaY_Id: any;
+    asmcL_Id: number;
+    fmcC_Id(fmcC_Id: any): number;
+    fyccC_Id: number;
+    asmaY_Year: string;
+    fmcC_ClassCategoryName: string;
+    asmcL_ClassName: string;
+    prefix: string;
+    suffix: string;
+    startingNumber: string;
+    groups: string;
+    autoGroupName: string;
+    address: string;
+    receiptTemplateFormat: string;
+    fycC_ActiveFlag: boolean;
 }

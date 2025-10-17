@@ -203,6 +203,38 @@ export default function YearlyFeeGroupMapping() {
         }
     ];
 
+    const addRow = () => {
+        const nextId = headInstallments.length ? Math.max(...headInstallments.map((h) => h.id)) + 1 : 1;
+        setHeadInstallments([
+            ...headInstallments,
+            {
+                id: nextId,
+                feeHead: '',
+                installment: '',
+                fine: false,
+                active: false,
+                commonAmount: false
+            }
+        ]);
+    };
+
+    const clearRows = () => {
+        setHeadInstallments([
+            {
+                id: 1,
+                feeHead: '',
+                installment: '',
+                fine: false,
+                active: false,
+                commonAmount: false
+            }
+        ]);
+    };
+
+    const saveRows = () => {
+        //send to backend
+    };
+
     const feeGroupColumns: ColumnDef<IFeeGroupHeadMapping>[] = [
         {
             id: 'select',
@@ -311,70 +343,31 @@ export default function YearlyFeeGroupMapping() {
                     </CardHeader>
                     <CardContent>
                         <DataTable columns={headInstallmentColumns} data={headInstallments} totalItems={headInstallments.length} />
+
+                        <div className='mt-4 flex items-center justify-end gap-2'>
+                            <Button className='w-36' variant='accent' size='sm' onClick={addRow}>
+                                Add another row
+                            </Button>
+                            <Button className='w-24' variant='success' size='sm' onClick={saveRows}>
+                                Save
+                            </Button>
+                            <Button className='w-24' variant='danger' size='sm' onClick={clearRows}>
+                                Clear
+                            </Button>
+                        </div>
                     </CardContent>
                 </Card>
             )}
 
             <Card>
-                <CardHeader className='flex flex-col gap-4 md:flex-row md:items-center md:justify-between'>
-                    <CardTitle className='text-blue-700'>HEAD INSTALLMENT LIST</CardTitle>
-
-                    {/* Buttons */}
-                    <div className='flex gap-2'>
-                        {/* Add New */}
-                        <Button
-                            variant='accent'
-                            className='w-auto'
-                            onClick={() =>
-                                setHeadInstallments((prev) => [
-                                    ...prev,
-                                    {
-                                        id: prev.length + 1,
-                                        feeHead: '',
-                                        installment: '',
-                                        fine: false,
-                                        active: false,
-                                        commonAmount: false
-                                    }
-                                ])
-                            }>
-                            Add New
-                        </Button>
-
-                        {/* Clear */}
-                        <Button
-                            variant='danger'
-                            className='w-auto'
-                            onClick={() =>
-                                setHeadInstallments([
-                                    {
-                                        id: 1,
-                                        feeHead: '',
-                                        installment: '',
-                                        fine: false,
-                                        active: false,
-                                        commonAmount: false
-                                    }
-                                ])
-                            }>
-                            Clear
-                        </Button>
-
-                        {/* Save */}
-                        <Button
-                            variant='success'
-                            className='w-auto'
-                            onClick={() => {
-                                console.log('Saved Data:', headInstallments);
-                                alert('Data saved successfully!');
-                            }}>
-                            Save
-                        </Button>
-                    </div>
+                <CardHeader>
+                    <CardTitle className='flex justify-between text-blue-700'>
+                        YEARLY FEE GROUP HEAD MAPPING LIST
+                        <span className='text-gray-600 text-sm'>Total Grid Records: {filteredMappings.length}</span>
+                    </CardTitle>
                 </CardHeader>
-
                 <CardContent>
-                    <DataTable columns={headInstallmentColumns} data={headInstallments} totalItems={headInstallments.length} />
+                    <DataTable columns={feeGroupColumns} data={filteredMappings} totalItems={filteredMappings.length} />
                 </CardContent>
             </Card>
         </div>

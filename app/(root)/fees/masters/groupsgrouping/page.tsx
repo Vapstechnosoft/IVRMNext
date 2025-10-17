@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/generic-data-table';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
+import { useMasterFeeGroupGrouping } from '@/hooks/fees/useMasters';
 import type { IMasterGroupsGrouping } from '@/types/fees/masters/masters';
 import { Plus, X } from 'lucide-react';
 import AddMasterFeeGroupGrouping from './_components/add-form';
@@ -12,21 +13,17 @@ import { feegroupgroupingColoumn } from './_components/columns';
 import ToggleMasterFeeGroupGroupingForm from './_components/toggle-form';
 import UpdateMasterFeeGroupGroupingForm from './_components/update-form';
 
-interface MasterFeeGroupGroupingClientProps {
-    response: IMasterGroupsGrouping[] | undefined;
-    isLoading: boolean;
-    error: any;
-}
+export default function MasterFeeGroupGroupingPage() {
+    const { data: response, isLoading, error } = useMasterFeeGroupGrouping();
 
-export default function MasterFeeGroupGroupingClient({ response, isLoading, error }: MasterFeeGroupGroupingClientProps) {
     return (
         <FormProvider<IMasterGroupsGrouping>>
-            <MasterFeeGroupGroupingPageContent response={response} isLoading={isLoading} error={error} />
+            <MasterFeeGroupGroupingClient response={response?.data ?? undefined} isLoading={isLoading} error={error} />
         </FormProvider>
     );
 }
 
-function MasterFeeGroupGroupingPageContent({
+function MasterFeeGroupGroupingClient({
     response,
     isLoading,
     error

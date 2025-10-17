@@ -320,6 +320,14 @@ export async function getUserAccessibleModules() {
                                         url: '/fees/masters/yearlyfeegroupmapping',
                                         title: 'Yearly Groups Mapping',
                                         description: 'Yearly Groups Mapping'
+                                    },
+                                    {
+                                        id: 21,
+                                        name: 'Group wise  Auto Receipt',
+                                        icon: 'Settings',
+                                        url: '/fees/masters/groupwiseautoreceipt',
+                                        title: 'Yearly Groups Mapping',
+                                        description: 'Yearly Groups Mapping'
                                     }
                                 ]
                             }

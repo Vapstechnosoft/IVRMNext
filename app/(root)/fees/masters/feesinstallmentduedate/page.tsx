@@ -5,8 +5,8 @@ import { Button } from '@/components/ui/button';
 import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/generic-data-table';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
-import { useMasterFeehead } from '@/hooks/fees/useMasters';
-import type { IFeeHeadsList, IMasterFeesInstallmentDueDateList } from '@/types/fees/masters';
+import { useMasterFeeInstallmentDueDate } from '@/hooks/fees/useMasters';
+import type { IMasterFeesInstallmentDueDateList } from '@/types/fees/masters';
 import { Plus, X } from 'lucide-react';
 import { use } from 'react';
 import AddMasterInstallmentDueDateForm from './_components/add-form';
@@ -20,10 +20,10 @@ export default function MasterFeeDueDate(props: {
     searchParams: SearchParams;
 }) {
     const searchParams = use(props.searchParams);
-    const { data: response, isLoading, error } = useMasterFeehead(searchParams);
+    const { data: response, isLoading, error } = useMasterFeeInstallmentDueDate(searchParams as any);
 
     return (
-        <FormProvider<IFeeHeadsList>>
+        <FormProvider<IMasterFeesInstallmentDueDateList>>
             <MasterFeeDueDateContent response={response} isLoading={isLoading} error={error} />
         </FormProvider>
     );
@@ -38,7 +38,7 @@ function MasterFeeDueDateContent({
     isLoading: boolean;
     error: any;
 }) {
-    const { openAddForm } = useFormContext<IFeeHeadsList>();
+    const { openAddForm } = useFormContext<IMasterFeesInstallmentDueDateList>();
     const tableProps = useDataTableProps(response);
 
     return (
@@ -95,7 +95,7 @@ function FormSections() {
         closeToggleForm,
         addFormRef,
         editFormRef
-    } = useFormContext<IFeeHeadsList>();
+    } = useFormContext<IMasterFeesInstallmentDueDateList>();
 
     return (
         <>
