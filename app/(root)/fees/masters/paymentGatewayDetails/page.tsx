@@ -68,10 +68,10 @@ function MasterPaymentGatewayDetailsPageContent({
                         isLoading={isLoading}
                         error={error}
                         columnPinning={{ right: ['actions'] }}
-                        loadingMessage='Loading master classes...'
-                        noDataTitle='No Master Classes Found'
-                        noDataDescription='Get started by creating your first master class'
-                        errorTitle='Error Loading Classes'
+                        loadingMessage='Loading payment gateway details...'
+                        noDataTitle='No payment gateway details found'
+                        noDataDescription='Create a new payment gateway details'
+                        errorTitle='Error loading payment gateway details'
                     />
                 </CollapsibleSection>
 

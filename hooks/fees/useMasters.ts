@@ -2,7 +2,7 @@ import { ADMISSION_QUERY_KEYS, FEES_QUERY_KEYS } from '@/constants/query-keys';
 import { getMasterClassCategory } from '@/server/fees/masters/class_category';
 import { getAcademicYearDropdown, getClassCategory, getMasterClassYearlyCategory } from '@/server/fees/masters/class_yearly_category';
 import { getFeeTermHeadList, getheadsdropdown, getinstallmentsdropdown, gettermsdropdown } from '@/server/fees/masters/fee-term-heads';
-import { getpaymentgatewaydetails } from '@/server/fees/masters/fee_payment_gateway_details';
+import { getpaymentgateway_dropdown, getpaymentgatewaydetails } from '@/server/fees/masters/fee_payment_gateway_details';
 import { getfeehead } from '@/server/fees/masters/feehead';
 import { getfeeInstallment } from '@/server/fees/masters/feeinstallment';
 import { getfeeInstallmentDueDate } from '@/server/fees/masters/feeinstallmentduedate';
@@ -11,6 +11,7 @@ import { getFeeTermList } from '@/server/fees/masters/feemasterterms';
 import { getFineSlab } from '@/server/fees/masters/fineSlab';
 import { getFeeGroup } from '@/server/fees/masters/groupsgrouping';
 import { getMasterGroup } from '@/server/fees/masters/master_group';
+import { getMasterConcessionDetails } from '@/server/fees/masters/masterconcessiondetails';
 import { getModeOfPayment } from '@/server/fees/masters/modeOfPayment';
 import type { ApiSearchparams } from '@/types';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
@@ -375,6 +376,40 @@ export const MASTER_INSTALLMENT_DROPDOWN = () => {
         refetchAll: () => {
             return queryClient.invalidateQueries({
                 queryKey: [FEES_QUERY_KEYS.MASTER_INSTALLMENT_DROPDOWN]
+            });
+        }
+    };
+};
+
+export const useMasterConcessionDetails = (searchParams?: ApiSearchparams) => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [FEES_QUERY_KEYS.FEE_MASTER_CONCESSION_DETAILS],
+            queryFn: async () => getMasterConcessionDetails(),
+            staleTime: 0
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [FEES_QUERY_KEYS.FEE_MASTER_CONCESSION_DETAILS]
+            });
+        }
+    };
+};
+
+export const useMasterPaymentgateway_dropdown = (searchParams?: ApiSearchparams) => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [FEES_QUERY_KEYS.FEE_PAYMENTGATEWAY_DROPDOWN, searchParams ?? {}],
+            queryFn: async () => getpaymentgateway_dropdown(searchParams),
+            staleTime: 0
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [FEES_QUERY_KEYS.FEE_PAYMENTGATEWAY_DROPDOWN]
             });
         }
     };

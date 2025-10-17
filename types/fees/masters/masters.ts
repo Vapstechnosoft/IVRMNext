@@ -11,6 +11,9 @@ export interface IMasterPaymentGatewayList {
     gatewayName: string;
     fpgD_AccNo: string;
     fpgD_PGActiveFlag: string;
+    fpgD_MerchantKey: string;
+    submerchantIds: string;
+    impG_Id: number;
 }
 
 export interface IFineSlabList {
@@ -194,6 +197,64 @@ export interface IMasterTermsList {
     fmT_ActiveFlag: boolean;
 }
 
+
+export interface IMasterpaymentGatewayDropdownList {
+    impG_Id: number;
+    impG_PGName: string;
+}
+
+export interface IFeeConfig {
+    fmC_Id?: number;
+    FMC_GroupOrTermFlg: string;
+    FMC_ArrearAfterFlag?: boolean;
+    FMC_Areawise_FeeFlg?: boolean;
+    FMC_TransportFeeAreaFlag?: boolean;
+    FMC_TransportFeeZoneFlag?: boolean;
+    FMC_DOACheckFlag?: boolean;
+    FMC_GroupRemarksFlag?: boolean;
+    FMC_AutoReceiptFeeGroupFlag?: boolean;
+    FMC_Receipt_Format?: boolean;
+    FMC_EableStaffTrans?: boolean;
+    FMC_EableOtherStudentTrans?: boolean;
+    FMC_FineEnableDisable?: boolean;
+    FMC_FineMapping?: boolean;
+    FMC_USER_PREVILEDGE?: boolean;
+    FMC_StaffConcessionCheck?: boolean;
+    FMC_ShowPreviousFeeFisrtFlg?: boolean;
+    FMC_MakerCheckerReqdFlg?: boolean;
+    FMC_RebateAplicableFlg?: boolean;
+    FMC_RebateAgainstFullPaymentFlg?: boolean;
+    FMC_RebateAgainstPartialPaymentFlg?: boolean;
+    FMC_RInstallmentsFlag?: boolean;
+    FMC_RInstallmentsMergeFlag?: boolean;
+    FMC_RFineFlag?: boolean;
+    FMC_RConcessionFlag?: boolean;
+    FMC_RWaivedFlag?: boolean;
+    FMC_RBalanceFlag?: boolean;
+    FMC_RAmountFlag?: boolean;
+    FMC_RBankFlag?: boolean;
+    FMC_ChallanOptionFlag?: boolean;
+    FMC_RDueDateFlag?: boolean;
+    FMC_RAddressFlag?: boolean;
+    FMC_RFeeHeaderFlag?: boolean;
+    FMC_RClassFlag?: boolean;
+    FMC_RSectionFlag?: boolean;
+    FMC_RUserNameFlag?: boolean;
+    FMC_RFatherNameFlag?: boolean;
+    FMC_MotherNameFlag?: boolean;
+    FMC_RHeaderTitleFlag?: boolean;
+    FMC_RPaymentDetailsFlag?: boolean;
+    FMC_RAmountReceivedFlag?: boolean;
+    FMC_RRemarksFlag?: boolean;
+    FMC_RCurrentDateFlag?: boolean;
+    FMC_Fine_Column?: boolean;
+    FMC_ArrearColumn?: boolean;
+    FMC_StudentwiseJVFlag: string;
+    FMC_RFeeGroupFeeHeadFlag?: boolean;
+    FMC_RSplFeeHeadFlag?: boolean;
+    FMC_fmC_AutoRecieptPrintFlag?: boolean;
+}
+
 export interface IMasterGroupWiseAutoReciptList {
     asmaY_Id: any;
     asmcL_Id: number;
@@ -210,4 +271,5 @@ export interface IMasterGroupWiseAutoReciptList {
     address: string;
     receiptTemplateFormat: string;
     fycC_ActiveFlag: boolean;
+
 }

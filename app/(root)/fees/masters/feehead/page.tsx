@@ -68,10 +68,10 @@ function MasterFeeheadPageContent({
                         isLoading={isLoading}
                         error={error}
                         columnPinning={{ right: ['actions'] }}
-                        loadingMessage='Loading master classes...'
-                        noDataTitle='No Master Classes Found'
+                        loadingMessage='Loading Master Fees Head'
+                        noDataTitle='No Master Fees Head Found'
                         noDataDescription='Get started by creating your first master class'
-                        errorTitle='Error Loading Classes'
+                        errorTitle='Error Loading Master Fees Head'
                     />
                 </CollapsibleSection>
 

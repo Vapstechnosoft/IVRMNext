@@ -32,21 +32,47 @@ export const masterModeOfPaymentSchema = {
     })
 };
 
+// export const paymentgatewaydetailsSchema = {
+//     addOrUpdate: z.object({
+//          mi_id: z.number().int(),
+//         fpgD_Id: z.number().int().optional(),
+//         fpgD_AuthorisationKey: z.string({ message: 'AuthorisationKey is required' }),
+//         fpgD_Image: z.string({ message: 'Image is required' }),
+//         fpgD_MerchantId: z.string({ message: 'MerchantId is required' }),
+//         fpgD_PGName: z.string({ message: 'PGName is required' }),
+//         fpgD_SaltKey: z.string({ message: 'SaltKey is required' }),
+//         // fpgD_SubMerchantId: z.string({ message: 'SubMerchantId is required' }),
+//         fpgD_URL: z.string().optional(),
+//         // gatewayName: z.string({ message: 'gatewayName is required' }),
+//         fpgD_AccNo: z.string({ message: 'AccNo is required' }),
+//         fpgD_MerchantKey: z.string({ message: 'MerchantKey is required' }),
+//         fpgD_MobileActiveFlag: z.boolean().optional(),
+//         submerchantIds: z.array(z.object({ id: z.string() })).optional()
+//     }),
+//     delete: z.object({
+//         FPGD_Id: deleteIdSchema('FPGD_Id')
+//     })
+// };
 export const paymentgatewaydetailsSchema = {
     addOrUpdate: z.object({
-        fpgD_Id: z.number().int({ message: 'fpgD_Id is required' }).optional(),
-        fpgD_AuthorisationKey: z.string({ message: 'AuthorisationKey is required' }),
-        fpgD_Image: z.string({ message: 'Image is required' }),
-        fpgD_MerchantId: z.string({ message: 'erchantId is required' }),
-        fpgD_PGName: z.string({ message: 'PGName is required' }),
-        fpgD_SaltKey: z.string({ message: 'SaltKey is required' }),
-        fpgD_SubMerchantId: z.string({ message: 'SubMerchantId is required' }),
-        fpgD_URL: z.string({ message: 'URL is required' }),
-        gatewayName: z.string({ message: 'gatewayName is required' }),
-        fpgD_AccNo: z.string({ message: 'AccNo is required' })
-    }),
-    delete: z.object({
-        FPGD_Id: deleteIdSchema('FPGD_Id')
+        fpgD_MerchantId: z.string().min(1, 'Merchant ID is required'),
+        fpgD_SaltKey: z.string().min(1, 'Salt Key is required'),
+        fpgD_Image: z.string().min(1, 'Image is required'),
+        fpgD_URL: z.string().min(1, 'URL is required'),
+        fpgD_AccNo: z.string().min(1, 'Account Number is required'),
+        fpgD_MerchantKey: z.string().min(1, 'Merchant Key is required'),
+        impG_Id: z.number().int().optional(),
+        fpgD_MobileActiveFlag: z.boolean().optional()
+
+        //     fpgD_MerchantId: z.string({ message: 'MerchantId is required' }),
+        //   fpgD_SaltKey: z.string().min(1, 'Salt Key is required'),
+        //   fpgD_Image: z.string().min(1, 'Image is required'),
+        //   fpgD_URL: z.string().min(1, 'URL is required'),
+        //   fpgD_AccNo: z.string().min(1, 'Account Number is required'),
+        //   fpgD_PGName: z.string().min(1, 'PG Name is required')
+        //   fpgD_MerchantKey: z.string().min(1, 'Merchant Key is required')
+        //   ,
+        //   impG_Id: z.number().int().optional()
     })
 };
 
@@ -318,6 +344,68 @@ export const masterConcessionDetailsSchema = {
     })
 };
 
+export const feeConfigSchema = {
+    addOrUpdate: z.object({
+        fmC_Id: z.number().int().optional(),
+        FMC_GroupOrTermFlg: createStringSchema('FMC_GroupOrTermFlg', 1, 1), // “T” or “G”
+        FMC_ArrearAfterFlag: z.boolean().optional(),
+        FMC_Areawise_FeeFlg: z.boolean().optional(),
+        FMC_TransportFeeAreaFlag: z.boolean().optional(),
+        FMC_TransportFeeZoneFlag: z.boolean().optional(),
+        FMC_DOACheckFlag: z.boolean().optional(),
+        FMC_GroupRemarksFlag: z.boolean().optional(),
+        FMC_AutoReceiptFeeGroupFlag: z.boolean().optional(),
+        FMC_Receipt_Format: z.boolean().optional(),
+        FMC_EableStaffTrans: z.boolean().optional(),
+        FMC_EableOtherStudentTrans: z.boolean().optional(),
+        FMC_FineEnableDisable: z.boolean().optional(),
+        FMC_FineMapping: z.boolean().optional(),
+        FMC_USER_PREVILEDGE: z.boolean().optional(),
+        FMC_StaffConcessionCheck: z.boolean().optional(),
+        FMC_ShowPreviousFeeFisrtFlg: z.boolean().optional(),
+        FMC_MakerCheckerReqdFlg: z.boolean().optional(),
+        FMC_RebateAplicableFlg: z.boolean().optional(),
+        FMC_RebateAgainstFullPaymentFlg: z.boolean().optional(),
+        FMC_RebateAgainstPartialPaymentFlg: z.boolean().optional(),
+        // Receipt Settings
+        FMC_RInstallmentsFlag: z.boolean().optional(),
+        FMC_RInstallmentsMergeFlag: z.boolean().optional(),
+        FMC_RFineFlag: z.boolean().optional(),
+        FMC_RConcessionFlag: z.boolean().optional(),
+        FMC_RWaivedFlag: z.boolean().optional(),
+        FMC_RBalanceFlag: z.boolean().optional(),
+        FMC_RAmountFlag: z.boolean().optional(),
+        FMC_RBankFlag: z.boolean().optional(),
+        FMC_ChallanOptionFlag: z.boolean().optional(),
+        FMC_RDueDateFlag: z.boolean().optional(),
+        FMC_RAddressFlag: z.boolean().optional(),
+        // Fee Receipt Heads
+        FMC_RFeeHeaderFlag: z.boolean().optional(),
+        FMC_RClassFlag: z.boolean().optional(),
+        FMC_RSectionFlag: z.boolean().optional(),
+        FMC_RUserNameFlag: z.boolean().optional(),
+        FMC_RFatherNameFlag: z.boolean().optional(),
+        FMC_MotherNameFlag: z.boolean().optional(),
+        FMC_RHeaderTitleFlag: z.boolean().optional(),
+        FMC_RPaymentDetailsFlag: z.boolean().optional(),
+        FMC_RAmountReceivedFlag: z.boolean().optional(),
+        FMC_RRemarksFlag: z.boolean().optional(),
+        FMC_RCurrentDateFlag: z.boolean().optional(),
+        // Daily Collection
+        FMC_Fine_Column: z.boolean().optional(),
+        FMC_ArrearColumn: z.boolean().optional(),
+        // Account Setting
+        FMC_StudentwiseJVFlag: createStringSchema('FMC_StudentwiseJVFlag', 1, 1), // “S” or “H”
+        // Fee Print Option
+        FMC_RFeeGroupFeeHeadFlag: z.boolean().optional(),
+        FMC_RSplFeeHeadFlag: z.boolean().optional(),
+        FMC_fmC_AutoRecieptPrintFlag: z.boolean().optional(),
+        PartialPayment: z.string().optional(),
+        FinancialAccount: z.string().optional()
+    }),
+    delete: z.object({
+        fmC_Id: deleteIdSchema('fmC_Id')
+
 export const masterClassYearlyGroupMappingSchema = {
     addOrUpdate: z.object({
         academicYear: z.string().min(1, { message: 'Academic Year is required' }),
@@ -335,5 +423,6 @@ export const masterClassYearlyGroupMappingSchema = {
         autoGroupName: z.string().min(1, { message: 'Auto Group Name is required' }),
         address: z.string().optional(),
         receiptTemplateFormat: z.string().optional()
+
     })
 };

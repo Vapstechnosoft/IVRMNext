@@ -26,7 +26,7 @@ export default function AddFeeTermsHeadFormForm({ onSuccess, termname = '' }: Fe
 
     const [SelectedInstallmentsItems, setSelectedInstallmentsItems] = useState<{ ftI_ID: string; ftI_NAME: string }[]>([]);
 
-    const { data: terms, isLoading: termsLoading, error: termsError, refetchAll: refetchheads } = TERM_DROPDOWN_DATA();
+    const { data: terms, isLoading: termsLoading, error: termsError, refetchAll: refetchterms } = TERM_DROPDOWN_DATA();
 
     const {
         data: masterInstallment,
@@ -52,7 +52,7 @@ export default function AddFeeTermsHeadFormForm({ onSuccess, termname = '' }: Fe
         setSelectedHeadsItems([]);
         setSelectedInstallmentsItems([]);
         refetchAll();
-        refetchheads();
+        refetchterms();
         refetchmasterInstallment();
         refetchMasterHeads();
     }
