@@ -93,7 +93,7 @@ export default function AddMasterGroupGrouping({ onSuccess, className = '' }: Ad
                             control={control}
                             render={({ field }) => (
                                 <InputText
-                                    label='Fee Group Name'
+                                    label='Fees Group Name'
                                     required
                                     id='imgg_GroupingName'
                                     value={field.value}
@@ -128,7 +128,7 @@ export default function AddMasterGroupGrouping({ onSuccess, className = '' }: Ad
                         control={control}
                         render={({ field }) => (
                             <div className='flex w-full flex-col sm:w-1/2'>
-                                Fee Groups <span className='text-red-500'>*</span>
+                                Fees Groups <span className='text-red-500'>*</span>
                                 <Popover>
                                     <PopoverTrigger asChild>
                                         <Button
@@ -140,7 +140,7 @@ export default function AddMasterGroupGrouping({ onSuccess, className = '' }: Ad
                                                 ? `${field.value.length} selected`
                                                 : isLoading
                                                   ? 'Loading...'
-                                                  : 'Select Fee Groups'}
+                                                  : 'Select Fees Groups'}
                                             <ChevronsUpDown className='ml-2 h-4 w-4 shrink-0 opacity-50' />
                                         </Button>
                                     </PopoverTrigger>

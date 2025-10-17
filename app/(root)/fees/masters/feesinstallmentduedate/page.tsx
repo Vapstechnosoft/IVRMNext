@@ -5,8 +5,8 @@ import { Button } from '@/components/ui/button';
 import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/generic-data-table';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
-import { useMasterFeehead } from '@/hooks/fees/useMasters';
-import type { IFeeHeadsList, IMasterFeesInstallmentDueDateList } from '@/types/fees/masters';
+import { useMasterFeeInstallmentDueDate } from '@/hooks/fees/useMasters';
+import type { IMasterFeesInstallmentDueDateList } from '@/types/fees/masters';
 import { Plus, X } from 'lucide-react';
 import { use } from 'react';
 import AddMasterInstallmentDueDateForm from './_components/add-form';
@@ -20,10 +20,10 @@ export default function MasterFeeDueDate(props: {
     searchParams: SearchParams;
 }) {
     const searchParams = use(props.searchParams);
-    const { data: response, isLoading, error } = useMasterFeehead(searchParams);
+    const { data: response, isLoading, error } = useMasterFeeInstallmentDueDate(searchParams as any);
 
     return (
-        <FormProvider<IFeeHeadsList>>
+        <FormProvider<IMasterFeesInstallmentDueDateList>>
             <MasterFeeDueDateContent response={response} isLoading={isLoading} error={error} />
         </FormProvider>
     );
@@ -38,7 +38,7 @@ function MasterFeeDueDateContent({
     isLoading: boolean;
     error: any;
 }) {
-    const { openAddForm } = useFormContext<IFeeHeadsList>();
+    const { openAddForm } = useFormContext<IMasterFeesInstallmentDueDateList>();
     const tableProps = useDataTableProps(response);
 
     return (
@@ -70,10 +70,10 @@ function MasterFeeDueDateContent({
                         isLoading={isLoading}
                         error={error}
                         columnPinning={{ right: ['actions'] }}
-                        loadingMessage='Loading master classes...'
-                        noDataTitle='No Master Classes Found'
-                        noDataDescription='Get started by creating your first master class'
-                        errorTitle='Error Loading Classes'
+                        loadingMessage='Loading master Fees Installment Due Date...'
+                        noDataTitle='No Master Fees Installment Due Date Found'
+                        noDataDescription='Get started by creating your first master Fees Installment Due Date'
+                        errorTitle='Error Loading Fees Installment Due Date'
                     />
                 </CollapsibleSection>
 
@@ -95,7 +95,7 @@ function FormSections() {
         closeToggleForm,
         addFormRef,
         editFormRef
-    } = useFormContext<IFeeHeadsList>();
+    } = useFormContext<IMasterFeesInstallmentDueDateList>();
 
     return (
         <>
@@ -103,8 +103,8 @@ function FormSections() {
             {isAddFormOpen && (
                 <div ref={addFormRef}>
                     <CollapsibleSection
-                        title='Add New Fee Installment Due Date'
-                        description='Fill in the details below to create a new Fee Installment Due Date'
+                        title='Add New Fees Installment Due Date'
+                        description='Fill in the details below to create a new Fees Installment Due Date'
                         defaultOpen={true}
                         variant='outline'
                         size='md'
@@ -128,7 +128,7 @@ function FormSections() {
             {isEditFormOpen && selectedRow && (
                 <div ref={editFormRef}>
                     <CollapsibleSection
-                        title='Edit Master Fees Head'
+                        title='Edit Master Fees Installment Due Date'
                         defaultOpen={true}
                         variant='outline'
                         size='md'

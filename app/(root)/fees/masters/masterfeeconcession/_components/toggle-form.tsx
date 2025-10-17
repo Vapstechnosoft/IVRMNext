@@ -6,7 +6,7 @@ import { FormError } from '@/components/ui/extension/field';
 import { useMasterConcession } from '@/hooks/fees/useMasters';
 import { masterConcessionSchema } from '@/schemas/fees/masters';
 import { toggleMasterConcession } from '@/server/fees/masters/feemasterconcession';
-import type { IMasterConcessionList } from '@/types/fees/masters/masters';
+import type { IMasterConcessionList } from '@/types/fees/masters';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { type SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';

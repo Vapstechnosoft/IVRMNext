@@ -26,7 +26,11 @@ interface AcademicYearOption {
     asmaY_Year: string;
 }
 
-export default function AddMasterInstallmentDueDateForm() {
+interface AddMasterInstallmentDueDateFormProps {
+    onSuccess?: () => void;
+}
+
+export default function AddMasterInstallmentDueDateForm({ onSuccess }: AddMasterInstallmentDueDateFormProps) {
     const [installments, setInstallments] = useState<IMasterFeesInstallmentDueDateList[]>([]);
 
     const { data: academicYearData, isLoading: loadingAcademic, error: academicError } = useAcademicYearDropdown();
@@ -158,7 +162,7 @@ export default function AddMasterInstallmentDueDateForm() {
 
     const onSubmit = async (data: MasterInstallmentFormSchema) => {
         try {
-            const payload = {
+            const _payload = {
                 installmentData: [
                     {
                         fmI_Name: data.fmI_Name,
@@ -182,6 +186,7 @@ export default function AddMasterInstallmentDueDateForm() {
 
             toast.success('Installment details saved successfully!');
             handleReset();
+            onSuccess?.();
         } catch (err: any) {
             toast.error(err.message || 'Something went wrong');
         }

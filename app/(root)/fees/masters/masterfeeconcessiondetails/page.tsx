@@ -5,31 +5,30 @@ import { Button } from '@/components/ui/button';
 import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/generic-data-table';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
+import { useMasterConcession } from '@/hooks/fees/useMasters';
 
-import { useMasterConcessionDetails } from '@/hooks/fees/useMasters';
-import type { IMasterConcessionDetailsList } from '@/types/fees/masters';
-import type { IMasterConcessionDetails } from '@/types/fees/masters/masters';
+import type { IMasterConcessionList } from '@/types/fees/masters';
 import { Plus, X } from 'lucide-react';
 import { use } from 'react';
-import ToggleMasterConcessionForm from '../masterfeeconcession/_components/toggle-form';
-import UpdateMasterConcessionForm from '../masterfeeconcession/_components/update-form';
-import AddMasterConcessionDetailsForm from './_components/add-form';
-import { feeMasterConcessionDetailsColumns } from './_components/columns';
+import AddMasterConcessionForm from './_components/add-form';
+import { feeMasterConcessionColumns } from './_components/columns';
+import ToggleMasterConcessionForm from './_components/toggle-form';
+import UpdateMasterConcessionForm from './_components/update-form';
 
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 
-export default function feeconcessiondetailsPage(props: { searchParams: SearchParams }) {
+export default function feeconcessionPage(props: { searchParams: SearchParams }) {
     const searchParams = use(props.searchParams);
-    const { data: response, isLoading, error } = useMasterConcessionDetails(searchParams);
+    const { data: response, isLoading, error } = useMasterConcession(searchParams);
 
     return (
-        <FormProvider<IMasterConcessionDetails>>
-            <MasterFeeConcessionDetailsPageContent response={response} isLoading={isLoading} error={error} />
+        <FormProvider<IMasterConcessionList>>
+            <MasterFeeConcessionPageContent response={response} isLoading={isLoading} error={error} />
         </FormProvider>
     );
 }
 
-function MasterFeeConcessionDetailsPageContent({
+function MasterFeeConcessionPageContent({
     response,
     isLoading,
     error
@@ -38,7 +37,7 @@ function MasterFeeConcessionDetailsPageContent({
     isLoading: boolean;
     error: any;
 }) {
-    const { openAddForm } = useFormContext<IMasterConcessionDetailsList>();
+    const { openAddForm } = useFormContext<IMasterConcessionList>();
     const tableProps = useDataTableProps(response);
 
     return (
@@ -64,16 +63,16 @@ function MasterFeeConcessionDetailsPageContent({
                     variant='default'
                     size='lg'
                     className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
-                    <GenericDataTable<IMasterConcessionDetailsList>
+                    <GenericDataTable<IMasterConcessionList>
                         {...tableProps}
-                        columns={feeMasterConcessionDetailsColumns}
+                        columns={feeMasterConcessionColumns}
                         isLoading={isLoading}
                         error={error}
                         columnPinning={{ right: ['actions'] }}
-                        loadingMessage='Loading master concession details...'
-                        noDataTitle='No master concession details found'
-                        noDataDescription='Add a new master concession details'
-                        errorTitle='Error loading master concession details'
+                        loadingMessage='Loading master fees concessions...'
+                        noDataTitle='No master fees concessions found'
+                        noDataDescription='Add a new master fees concession'
+                        errorTitle=' Error loading master fees concessions'
                     />
                 </CollapsibleSection>
 
@@ -95,7 +94,7 @@ function FormSections() {
         closeToggleForm,
         addFormRef,
         editFormRef
-    } = useFormContext<IMasterConcessionDetailsList>();
+    } = useFormContext<IMasterConcessionList>();
 
     return (
         <>
@@ -118,7 +117,7 @@ function FormSections() {
                                 className='-top-[3.5rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
                                 <X className='h-4 w-4 text-destructive' /> Close
                             </Button>
-                            <AddMasterConcessionDetailsForm onSuccess={closeAddForm} />
+                            <AddMasterConcessionForm onSuccess={closeAddForm} />
                         </div>
                     </CollapsibleSection>
                 </div>
@@ -152,7 +151,4 @@ function FormSections() {
             {isToggleFormOpen && selectedRow && <ToggleMasterConcessionForm rowData={selectedRow} onClose={closeToggleForm} />}
         </>
     );
-}
-function useMasterConcession(searchParams: { [key: string]: string | string[] | undefined }): { data: any; isLoading: any; error: any } {
-    throw new Error('Function not implemented.');
 }

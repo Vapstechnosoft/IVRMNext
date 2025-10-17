@@ -40,7 +40,7 @@ export default function toggleMasterclassCategoryForm({ rowData, onClose }: togg
 
     const onSubmit: SubmitHandler<FormFields | any> = async () => {
         try {
-            const response = await toggleMasterclassCategory(30, Number(rowData.fmcC_Id));
+            const response = await toggleMasterclassCategory(Number(rowData.fmcC_Id));
 
             if (response.success) {
                 toast.success(response.message || 'Status updated successfully');

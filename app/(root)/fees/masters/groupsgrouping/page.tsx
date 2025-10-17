@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/generic-data-table';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
+import { useMasterFeeGroupGrouping } from '@/hooks/fees/useMasters';
 import type { IMasterGroupsGrouping } from '@/types/fees/masters/masters';
 import { Plus, X } from 'lucide-react';
 import AddMasterFeeGroupGrouping from './_components/add-form';
@@ -12,21 +13,17 @@ import { feegroupgroupingColoumn } from './_components/columns';
 import ToggleMasterFeeGroupGroupingForm from './_components/toggle-form';
 import UpdateMasterFeeGroupGroupingForm from './_components/update-form';
 
-interface MasterFeeGroupGroupingClientProps {
-    response: IMasterGroupsGrouping[] | undefined;
-    isLoading: boolean;
-    error: any;
-}
+export default function MasterFeeGroupGroupingPage() {
+    const { data: response, isLoading, error } = useMasterFeeGroupGrouping();
 
-export default function MasterFeeGroupGroupingClient({ response, isLoading, error }: MasterFeeGroupGroupingClientProps) {
     return (
         <FormProvider<IMasterGroupsGrouping>>
-            <MasterFeeGroupGroupingPageContent response={response} isLoading={isLoading} error={error} />
+            <MasterFeeGroupGroupingClient response={response?.data ?? undefined} isLoading={isLoading} error={error} />
         </FormProvider>
     );
 }
 
-function MasterFeeGroupGroupingPageContent({
+function MasterFeeGroupGroupingClient({
     response,
     isLoading,
     error
@@ -67,10 +64,10 @@ function MasterFeeGroupGroupingPageContent({
                         isLoading={isLoading}
                         error={error}
                         columnPinning={{ right: ['actions'] }}
-                        loadingMessage='Loading fee group groupings...'
-                        noDataTitle='No Fee Group Groupings Found'
-                        noDataDescription='Get started by creating your first fee group grouping'
-                        errorTitle='Error Loading Fee Group Groupings'
+                        loadingMessage='Loading fees group groupings...'
+                        noDataTitle='No Fees Group Groupings Found'
+                        noDataDescription='Get started by creating your first fees group grouping'
+                        errorTitle='Error Loading Fees Group Groupings'
                     />
                 </CollapsibleSection>
 
@@ -100,8 +97,8 @@ function FormSections() {
             {isAddFormOpen && (
                 <div ref={addFormRef}>
                     <CollapsibleSection
-                        title='Add New Fee Group Grouping'
-                        description='Fill in the details below to create a new fee group grouping'
+                        title='Add New Fees Group Grouping'
+                        description='Fill in the details below to create a new fees group grouping'
                         defaultOpen={true}
                         variant='outline'
                         size='md'
@@ -125,7 +122,7 @@ function FormSections() {
             {isEditFormOpen && selectedRow && (
                 <div ref={editFormRef}>
                     <CollapsibleSection
-                        title='Edit Fee Group Grouping'
+                        title='Edit Fees Group Grouping'
                         defaultOpen={true}
                         variant='outline'
                         size='md'

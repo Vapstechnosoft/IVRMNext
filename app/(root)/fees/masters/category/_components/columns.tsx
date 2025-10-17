@@ -60,23 +60,23 @@ export const masterClassYearlyCategoryColumns: ColumnDef<IMasterClassYearlyList>
             }
         }
     },
-    {
-        accessorKey: 'fycC_ActiveFlag',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Active' className='pl-6 text-left' />,
-        cell: ({ row }) => {
-            const isActive = row.getValue('fycC_ActiveFlag');
-            return (
-                <div className='flex items-center justify-start pl-6'>
-                    <span className={`font-medium ${isActive ? 'text-green-600' : 'text-red-500'}`}>
-                        {isActive ? 'Active' : 'Inactive'}
-                    </span>
-                </div>
-            );
-        },
-        enableSorting: true,
-        enableHiding: true,
-        size: 100
-    },
+    // {
+    //     accessorKey: 'fycC_ActiveFlag',
+    //     header: ({ column }) => <DataTableColumnHeader column={column} title='Active' className='pl-6 text-left' />,
+    //     cell: ({ row }) => {
+    //         const isActive = row.getValue('fycC_ActiveFlag');
+    //         return (
+    //             <div className='flex items-center justify-start pl-6'>
+    //                 <span className={`font-medium ${isActive ? 'text-green-600' : 'text-red-500'}`}>
+    //                     {isActive ? 'Active' : 'Inactive'}
+    //                 </span>
+    //             </div>
+    //         );
+    //     },
+    //     enableSorting: true,
+    //     enableHiding: true,
+    //     size: 100
+    // },
     {
         id: 'actions',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Actions' className='text-start' />,

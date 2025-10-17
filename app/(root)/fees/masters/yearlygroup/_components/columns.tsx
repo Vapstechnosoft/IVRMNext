@@ -36,7 +36,13 @@ export const YearlyColoumnsColumns: ColumnDef<IMaasterFeesYearlyGrouping>[] = [
     {
         accessorKey: 'fmG_GroupNames',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Fee Groups' />,
-        cell: ({ row }) => <div>{(row.getValue('fmG_GroupNames') as string[]).join(', ')}</div>,
+        cell: ({ row }) => {
+            const val = row.getValue('fmG_GroupNames');
+            // Safely handle undefined or non-array values
+            if (Array.isArray(val)) return <div>{val.join(', ')}</div>;
+            if (typeof val === 'string') return <div>{val}</div>;
+            return <div>N/A</div>;
+        },
         enableSorting: false,
         enableHiding: true
     },

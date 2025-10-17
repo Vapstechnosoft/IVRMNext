@@ -69,9 +69,9 @@ function MasterGroupPageContent({
                         isLoading={isLoading}
                         error={error}
                         columnPinning={{ right: ['actions'] }}
-                        loadingMessage='Loading master classes...'
-                        noDataTitle='No Master Classes Found'
-                        noDataDescription='Get started by creating your first master class'
+                        loadingMessage='Loading master Group...'
+                        noDataTitle='No Master Group Found'
+                        noDataDescription='Get started by creating your first master Group'
                         errorTitle='Error Loading Classes'
                     />
                 </CollapsibleSection>
