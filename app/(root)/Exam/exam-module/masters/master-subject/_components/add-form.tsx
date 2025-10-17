@@ -109,8 +109,6 @@ export default function AddMasterSubjectForm({ onSuccess, className = '' }: AddM
                 subject_list_Order: updatedOrderData // ✅ correct variable name
             };
 
-            console.log('Payload being sent:', payload);
-
             const response = await UpdatedOrderdSubjects(payload);
 
             if (response.success) {

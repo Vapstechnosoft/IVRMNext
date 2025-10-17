@@ -174,37 +174,58 @@ export const masterSubjectGroupSchema = {
 
 export const masterCategorySchema = {
     addOrUpdate: z.object({
-        ex_Id: z.number().optional(), // For update case
+        emcA_Id: z.number().optional(), // For update case
+        mI_Id: z.number().optional(), // Optional, defaults can be set in form if needed
 
-        ex_CategoryName: z.string().trim().min(1, 'Category Name is required').max(100, 'Category Name should not exceed 100 characters'),
+        emcA_CategoryName: z.string().trim().min(1, 'Category Name is required').max(100, 'Category Name should not exceed 100 characters'),
 
-        ex_CCEPromotionApplicableFlag: z
-            .number({
-                required_error: 'CCE Promotion Applicable Flag is required',
-                invalid_type_error: 'CCE Promotion Applicable Flag must be a number (0 or 1)'
-            })
-            .int()
-            .refine((val) => val === 0 || val === 1, {
-                message: 'CCE Promotion Applicable Flag must be either 0 or 1'
-            }),
+        emcA_CCECheckingFlg: z.boolean({
+            required_error: 'CCE Checking Flag is required'
+        }),
 
-        ex_IsActiveFlag: z
-            .number({
-                required_error: 'Active Flag is required',
-                invalid_type_error: 'Active Flag must be a number (0 or 1)'
+        emcA_ActiveFlag: z
+            .boolean({
+                required_error: 'Active Flag is required'
             })
-            .int()
-            .refine((val) => val === 0 || val === 1, {
-                message: 'Active Flag must be either 0 or 1'
-            })
+            .optional()
     }),
 
     delete: z.object({
-        ex_Id: z
-            .number({
-                required_error: 'Category Id is required'
-            })
-            .int()
-            .positive()
+        emcA_Id: z.number({ required_error: 'Category Id is required' })
+    })
+};
+
+export const categoryClassMappingSchema = {
+    addOrUpdate: z.object({
+        emcA_Id: z.number().optional().default(0),
+        mI_Id: z.number().min(1, { message: 'MI Id is required' }),
+        emcA_CategoryName: z.string().min(1, { message: 'Category Name is required' }),
+        emcA_CCECheckingFlg: z.boolean().default(true),
+        emcA_ActiveFlag: z.boolean().default(true),
+        ecaC_Id: z.number().optional().default(0),
+        asmaY_Id: z.number().min(1, { message: 'Academic Year is required' }),
+        asmcL_Id: z.number().min(1, { message: 'Class is required' }),
+        asmS_Id: z.number().optional().default(0),
+        ecaC_ActiveFlag: z.boolean().default(true),
+        asmaY_Year: z.string().min(1, { message: 'Academic Year is required' }),
+        asmcL_ClassName: z.string().min(1, { message: 'Class Name is required' }),
+        asmC_SectionName: z.string().optional(),
+        asmaY_Order: z.number().optional().default(0),
+
+        section_list: z
+            .array(
+                z.object({
+                    createdDate: z.string().optional(),
+                    updatedDate: z.string().optional(),
+                    mI_Id: z.number(),
+                    asmS_Id: z.number().min(1, { message: 'Section Id is required' }),
+                    asmC_SectionCode: z.string().min(1, { message: 'Section Code is required' }),
+                    asmC_SectionName: z.string().min(1, { message: 'Section Name is required' }),
+                    asmC_MaxCapacity: z.number().nonnegative(),
+                    asmC_Order: z.number().nonnegative(),
+                    asmC_ActiveFlag: z.number().min(0).max(1)
+                })
+            )
+            .min(1, { message: 'At least one section must be provided' })
     })
 };

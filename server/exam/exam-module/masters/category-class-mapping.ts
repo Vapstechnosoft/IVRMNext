@@ -1,41 +1,20 @@
 'use server';
 
-import { type ApiResponse, api, getSearchParamsUrl } from '@/lib/apiService';
+import { api, getSearchParamsUrl } from '@/lib/apiService';
 import type { ApiSearchparams } from '@/types';
 import type { IAcademicYear, ICategory, ICategoryMapping, IClass, ISection } from '@/types/exam/exam-module/masters';
 
 /* -------------------------------------------------
    GET EXAM MASTER CATEGORY (with class mapping)
 -------------------------------------------------- */
-export async function getExamMasterCategoryMapping(searchParams?: ApiSearchparams): Promise<ApiResponse<ICategoryMapping[]>> {
+export async function getExamMasterCategoryMapping(searchParams?: ApiSearchparams) {
     const urlParams = getSearchParamsUrl(searchParams ?? {});
-    const url = `/master_category/30?${urlParams}`;
+    const url = `exam_master_category/exam_category_class_list/30?${urlParams}`;
+    const response = await api.get<ICategoryMapping>('exam', url);
 
-    try {
-        const response = await api.getArray<ICategoryMapping>(url);
-
-        return {
-            ...response
-        };
-    } catch (error: any) {
-        console.error('Error fetching Master Categories, returning mock data:', error);
-
-        // ✅ Return mock data with all required fields
-        const mockData: ICategoryMapping[] = Array.from({ length: 10 }).map((_, i) => ({
-            ex_Id: i + 1,
-            ex_AcademicYear: `202${i}-202${i + 1}`,
-            ex_CategoryName: `Category ${i + 1}`,
-            ex_ClassName: `Class ${i + 1}`,
-            ex_CCEPromotionApplicableFlag: i % 2,
-            ex_IsActiveFlag: i % 2 === 0
-        }));
-
-        return {
-            success: true,
-            message: 'Mock Category-Class Mappings Loaded Successfully',
-            data: mockData
-        };
-    }
+    return {
+        ...response
+    };
 }
 
 /* -------------------------------------------------
@@ -43,7 +22,7 @@ export async function getExamMasterCategoryMapping(searchParams?: ApiSearchparam
 -------------------------------------------------- */
 export async function addOrUpdateExamMasterCategory(data: ICategoryMapping) {
     const url = '/master-category';
-    return await api.post<any>(url, data);
+    return await api.post<any>('exam', url, data);
 }
 
 /* -------------------------------------------------
@@ -51,15 +30,15 @@ export async function addOrUpdateExamMasterCategory(data: ICategoryMapping) {
 -------------------------------------------------- */
 export async function toggleMasterExamCategory(mi_id: number, id: number) {
     const url = `/master_category/toggle/${mi_id}/${id}`;
-    return await api.put(url);
+    return await api.put('exam', url);
 }
 
 /* -------------------------------------------------
    GET ACADEMIC YEARS
 -------------------------------------------------- */
-export async function getAcademicYears(): Promise<IAcademicYear[]> {
+export async function getAcademicYears() {
     try {
-        const res = await api.getArray<IAcademicYear>('/academic-years');
+        const res = await api.get<IAcademicYear>('exam', '/academic-years');
         return res?.data ?? [];
     } catch (error: any) {
         console.error('Error fetching Academic Years, returning mock data:', error);
@@ -75,7 +54,7 @@ export async function getAcademicYears(): Promise<IAcademicYear[]> {
 -------------------------------------------------- */
 export async function getCategories(): Promise<ICategory[]> {
     try {
-        const res = await api.getArray<ICategory>('/categories');
+        const res = await api.getArray<ICategory>('exam', '/categories');
         return res?.data ?? [];
     } catch (error: any) {
         console.error('Error fetching Categories, returning mock data:', error);
@@ -91,7 +70,7 @@ export async function getCategories(): Promise<ICategory[]> {
 -------------------------------------------------- */
 export async function getClasses(): Promise<IClass[]> {
     try {
-        const res = await api.getArray<IClass>('/classes');
+        const res = await api.getArray<IClass>('exam', '/classes');
         return res?.data ?? [];
     } catch (error: any) {
         console.error('Error fetching Classes, returning mock data:', error);
@@ -102,27 +81,16 @@ export async function getClasses(): Promise<IClass[]> {
     }
 }
 
-/* -------------------------------------------------
-   GET SECTIONS BY MAPPING with categoryId,academicYear,class
--------------------------------------------------- */
-export async function getCategoryMappedSections(academicYear: string, category: string, className: string): Promise<ISection[]> {
-    try {
-        const res = await api.getArray<ISection>(`/sections?academicYear=${academicYear}&category=${category}&class=${className}`);
-        return res?.data ?? [];
-    } catch (error: any) {
-        console.error('Error fetching sections, returning mock data:', error);
-        return Array.from({ length: 5 }).map((_, i) => ({
-            id: i + 1,
-            name: `Section ${i + 1}`
-        }));
-    }
+export async function getCategoryMappedSections(academicYear: string, category: string, className: string) {
+    const res = await api.get<ISection>('exam', `/sections?academicYear=${academicYear}&category=${category}&class=${className}`);
+    return res?.data ?? [];
 }
 
 // Getting Assigned sections for Particular AcademicYear and Class
 
-export async function getClassMappedSections(academicYear_Id: string, class_Id: string): Promise<ISection[]> {
+export async function getClassMappedSections(academicYear_Id: string, class_Id: string) {
     try {
-        const res = await api.getArray<ISection>(`/category-class-mapping/${academicYear_Id}/${class_Id}/sections`);
+        const res = await api.get<ISection>('exam', `/category-class-mapping/${academicYear_Id}/${class_Id}/sections`);
         return res?.data ?? [];
     } catch (error: any) {
         console.error(`Error fetching assigned sections for Academic Year ${academicYear_Id} amd classId ${class_Id}:`, error);
@@ -142,7 +110,7 @@ export async function getClassMappedSections(academicYear_Id: string, class_Id: 
 -------------------------------------------------- */
 export async function addOrUpdateCategoryClassMapping(data: any) {
     try {
-        const res = await api.post<any>('/category-class-mapping', data);
+        const res = await api.post<any>('exam', '/category-class-mapping', data);
         return res;
     } catch (error: any) {
         console.error('Error adding/updating mapping, returning mock success:', error);

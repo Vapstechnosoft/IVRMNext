@@ -48,7 +48,6 @@ export default function UpdateMasterGradeForm({ gradeData, onSuccess, className 
             setIsLoading(true);
             try {
                 const response = await getGradeDetailsById(gradeData.emgR_Id);
-                console.log(response);
                 if (response.success && Array.isArray(response.data)) {
                     setValue('sub_list', response.data);
                 } else {

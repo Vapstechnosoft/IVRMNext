@@ -2,12 +2,10 @@
 
 import { Button } from '@/components/ui/button';
 import { AdaptiveBody, AdaptiveDialog, AdaptiveFooter } from '@/components/ui/extension/adaptive-dialog';
-import { FormError } from '@/components/ui/extension/field';
 import { useMasterCategory } from '@/hooks/exam/exammodule/usemasters';
-import type { IMasterCategory } from '@/types/exam/exam-module/masters';
-
 import { masterCategorySchema } from '@/schemas/exam/exam-module/masters';
-import { toggleMasterCategory } from '@/server/admission/preadmission/masters/category';
+import { toggleMasterExamCategory } from '@/server/exam/exam-module/masters/category-class-mapping';
+import type { IMasterCategory } from '@/types/exam/exam-module/masters';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { type SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
@@ -22,7 +20,7 @@ interface ToggleCategoryFormProps {
 
 export default function ToggleCategoryForm({ rowData, onClose }: ToggleCategoryFormProps) {
     const { refetchAll } = useMasterCategory();
-    const isActive = rowData.ex_IsActiveFlag; // boolean flag
+    const isActive = rowData.emcA_ActiveFlag; // assuming boolean (true/false)
 
     const {
         register,
@@ -34,24 +32,23 @@ export default function ToggleCategoryForm({ rowData, onClose }: ToggleCategoryF
         mode: 'onChange'
     });
 
-    function closeDialog() {
+    const closeDialog = () => {
         onClose();
         reset();
-    }
+    };
 
     const onSubmit: SubmitHandler<FormFields | any> = async () => {
         try {
-            const response = await toggleMasterCategory(30, Number(rowData.ex_Id));
-
+            const response = await toggleMasterExamCategory(30, rowData.emcA_Id);
             if (response.success) {
-                toast.success(response.message);
+                toast.success(response.message || 'Category status updated successfully');
                 refetchAll();
                 closeDialog();
             } else {
-                toast.error(response.message);
+                toast.error(response.message || 'Failed to toggle category');
             }
         } catch (error: any) {
-            toast.error(error.message);
+            toast.error(error.message || 'Something went wrong');
         }
     };
 
@@ -59,12 +56,10 @@ export default function ToggleCategoryForm({ rowData, onClose }: ToggleCategoryF
         <AdaptiveDialog title='Toggle Category Status' isOpen={true} onClose={closeDialog}>
             <form onSubmit={handleSubmit(onSubmit)} className='flex flex-col gap-4'>
                 <AdaptiveBody className='flex flex-col gap-5'>
-                    <input type='hidden' {...register('ex_Id')} defaultValue={rowData.ex_Id} />
+                    <input type='hidden' {...register('emcA_Id')} defaultValue={rowData.emcA_Id} />
                     <p>
-                        Are you sure you want to {isActive ? 'deactivate' : 'activate'} <strong>{rowData.ex_CategoryName}</strong>?
+                        Are you sure you want to {isActive ? 'deactivate' : 'activate'} <strong>{rowData.emcA_CategoryName}</strong>?
                     </p>
-                    <FormError>{errors.ex_Id?.message}</FormError>
-                    <FormError>{errors.root?.message}</FormError>
                 </AdaptiveBody>
                 <AdaptiveFooter>
                     <Button variant='secondary' onClick={closeDialog} type='button'>

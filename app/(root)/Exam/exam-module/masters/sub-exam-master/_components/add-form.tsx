@@ -93,8 +93,6 @@ export default function AddMasterSubExamForm({ onSuccess, className = '' }: AddM
                 subject_list_Order: updatedOrderData // ✅ correct variable name
             };
 
-            console.log('Payload being sent:', payload);
-
             // Call API
             const response = await UpdatedOrderdSubExams(payload);
 

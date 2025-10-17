@@ -33,30 +33,31 @@ export default function UpdateMasterCategoryForm({ initialData, onSuccess, class
         resolver: zodResolver(masterCategorySchema.addOrUpdate),
         mode: 'onChange',
         defaultValues: {
-            ex_Id: initialData?.ex_Id ?? undefined,
-            ex_CategoryName: initialData?.ex_CategoryName ?? '',
-            ex_CCEPromotionApplicableFlag: initialData?.ex_CCEPromotionApplicableFlag === 1 ? 1 : 0,
-            ex_IsActiveFlag: initialData?.ex_IsActiveFlag ? 1 : 0
+            emcA_Id: initialData?.emcA_Id ?? 0,
+            emcA_CategoryName: initialData?.emcA_CategoryName ?? '',
+            emcA_CCECheckingFlg: initialData?.emcA_CCECheckingFlg ?? true
         }
     });
 
+    // ✅ Reset form whenever new initialData is passed
     useEffect(() => {
         if (initialData) {
             reset({
-                ex_Id: initialData?.ex_Id,
-                ex_CategoryName: initialData?.ex_CategoryName ?? '',
-                ex_CCEPromotionApplicableFlag: initialData?.ex_CCEPromotionApplicableFlag === 1 ? 1 : 0,
-                ex_IsActiveFlag: initialData?.ex_IsActiveFlag ? 1 : 0
+                emcA_Id: initialData?.emcA_Id ?? 0,
+                emcA_CategoryName: initialData?.emcA_CategoryName ?? '',
+                emcA_CCECheckingFlg: initialData?.emcA_CCECheckingFlg ?? true
             });
         }
     }, [initialData, reset]);
 
+    // ✅ Handle form submission
     const onSubmit: SubmitHandler<FormFields> = async (data) => {
         try {
             const payload = {
-                ...data,
-                ex_CCEPromotionApplicableFlag: Number(data.ex_CCEPromotionApplicableFlag),
-                ex_IsActiveFlag: Number(data.ex_IsActiveFlag)
+                mI_Id: 30,
+                emcA_Id: data.emcA_Id ?? 0,
+                emcA_CategoryName: data.emcA_CategoryName.trim(),
+                emcA_CCECheckingFlg: data.emcA_CCECheckingFlg
             };
 
             const response = await addOrUpdateExamMasterCategory(payload);
@@ -72,12 +73,12 @@ export default function UpdateMasterCategoryForm({ initialData, onSuccess, class
         }
     };
 
+    // ✅ Reset to original values
     const handleReset = () => {
         reset({
-            ex_Id: initialData?.ex_Id,
-            ex_CategoryName: initialData?.ex_CategoryName ?? '',
-            ex_CCEPromotionApplicableFlag: initialData?.ex_CCEPromotionApplicableFlag === 1 ? 1 : 0,
-            ex_IsActiveFlag: initialData?.ex_IsActiveFlag ? 1 : 0
+            emcA_Id: initialData?.emcA_Id ?? 0,
+            emcA_CategoryName: initialData?.emcA_CategoryName ?? '',
+            emcA_CCECheckingFlg: initialData?.emcA_CCECheckingFlg ?? true
         });
     };
 
@@ -85,52 +86,52 @@ export default function UpdateMasterCategoryForm({ initialData, onSuccess, class
         <div className={`${className} flex items-center justify-center`}>
             <form onSubmit={handleSubmit(onSubmit)} className='flex w-full flex-col space-y-6'>
                 <div className='w-full space-y-4'>
-                    {/* Row 1 - Basic Info */}
+                    {/* Category Name */}
                     <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
                         <InputText
                             label='Category Name'
                             required
-                            id='ex_CategoryName'
-                            {...register('ex_CategoryName')}
-                            error={errors.ex_CategoryName?.message}
+                            id='emcA_CategoryName'
+                            {...register('emcA_CategoryName')}
+                            error={errors.emcA_CategoryName?.message}
                         />
                     </div>
 
-                    {/* Applicable CCE Promotion */}
+                    {/* CCE Checking Flag */}
                     <div className='grid grid-cols-1 gap-4 md:grid-cols-3'>
                         <div className='group flex flex-col gap-2'>
-                            <Label htmlFor='ex_CCEPromotionApplicableFlag'>
+                            <Label htmlFor='emcA_CCECheckingFlg'>
                                 Applicable CCE Promotion <span className='ml-1 text-red-500'>*</span>
                             </Label>
 
                             <Controller
-                                name='ex_CCEPromotionApplicableFlag'
+                                name='emcA_CCECheckingFlg'
                                 control={control}
                                 render={({ field }) => (
                                     <RadioGroup
-                                        value={String(field.value ?? 1)}
-                                        onValueChange={(value) => field.onChange(Number(value))}
+                                        value={field.value ? 'true' : 'false'}
+                                        onValueChange={(value) => field.onChange(value === 'true')}
                                         className='flex gap-6'>
                                         <div className='flex items-center space-x-2'>
-                                            <RadioGroupItem value='1' id='active-yes' />
-                                            <Label htmlFor='active-yes'>Yes</Label>
+                                            <RadioGroupItem value='true' id='cce-yes' />
+                                            <Label htmlFor='cce-yes'>Yes</Label>
                                         </div>
                                         <div className='flex items-center space-x-2'>
-                                            <RadioGroupItem value='0' id='active-no' />
-                                            <Label htmlFor='active-no'>No</Label>
+                                            <RadioGroupItem value='false' id='cce-no' />
+                                            <Label htmlFor='cce-no'>No</Label>
                                         </div>
                                     </RadioGroup>
                                 )}
                             />
 
-                            {errors.ex_CCEPromotionApplicableFlag && <FormError>{errors.ex_CCEPromotionApplicableFlag.message}</FormError>}
+                            {errors.emcA_CCECheckingFlg && <FormError>{errors.emcA_CCECheckingFlg.message}</FormError>}
                         </div>
                     </div>
 
                     {errors.root && <FormError>{errors.root.message}</FormError>}
                 </div>
 
-                {/* Action Buttons */}
+                {/* Buttons */}
                 <div className='flex flex-col gap-3 border-t pt-4 sm:flex-row'>
                     <Button
                         type='button'

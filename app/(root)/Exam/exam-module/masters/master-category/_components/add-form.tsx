@@ -33,13 +33,22 @@ export default function AddMasterCategoryForm({ onSuccess, className = '' }: Add
         resolver: zodResolver(masterCategorySchema.addOrUpdate),
         mode: 'onChange',
         defaultValues: {
-            ex_IsActiveFlag: 1
+            emcA_Id: 0,
+            emcA_CategoryName: '',
+            emcA_CCECheckingFlg: true
         }
     });
 
     const onSubmit: SubmitHandler<FormFields> = async (data) => {
         try {
-            const response = await addOrUpdateExamMasterCategory(data);
+            // ✅ Build payload as per your backend structure
+            const payload = {
+                mI_Id: 30,
+                emcA_CategoryName: data.emcA_CategoryName,
+                emcA_CCECheckingFlg: data.emcA_CCECheckingFlg
+            };
+
+            const response = await addOrUpdateExamMasterCategory(payload);
 
             if (response.success) {
                 toast.success(response.message);
@@ -50,64 +59,62 @@ export default function AddMasterCategoryForm({ onSuccess, className = '' }: Add
                 toast.error(response.message);
             }
         } catch (error: any) {
-            toast.error(error.message);
+            toast.error(error.message || 'An unexpected error occurred');
         }
     };
 
-    const handleReset = () => {
-        reset();
-    };
+    const handleReset = () => reset();
 
     return (
         <div className={`${className} items-center justify-center`}>
             <form onSubmit={handleSubmit(onSubmit)} className='items-center justify-center space-y-6'>
                 <div className='space-y-4'>
-                    {/* Row 1 - Basic Info */}
+                    {/* Category Name */}
                     <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
                         <InputText
                             label='Category Name'
                             required
-                            id='ex_CategoryName'
-                            {...register('ex_CategoryName')}
-                            error={errors.ex_CategoryName?.message}
+                            id='emcA_CategoryName'
+                            {...register('emcA_CategoryName')}
+                            error={errors.emcA_CategoryName?.message}
                         />
                     </div>
 
-                    {/* Applicable CCE Promotion*/}
+                    {/* CCE Promotion Applicable */}
                     <div className='grid grid-cols-1 items-center justify-center gap-4 md:grid-cols-3'>
                         <div className='group flex flex-col gap-2'>
-                            <Label htmlFor='ex_CCEPromotionApplicableFlag'>
+                            <Label htmlFor='emcA_CCECheckingFlg'>
                                 Applicable CCE Promotion <span className='ml-1 text-red-500'>*</span>
                             </Label>
 
                             <Controller
-                                name='ex_CCEPromotionApplicableFlag'
+                                name='emcA_CCECheckingFlg'
                                 control={control}
                                 render={({ field }) => (
                                     <RadioGroup
-                                        value={String(field.value ?? 1)}
-                                        onValueChange={(value) => field.onChange(Number(value))}
+                                        value={field.value ? 'true' : 'false'}
+                                        onValueChange={(value) => field.onChange(value === 'true')}
                                         className='flex gap-4'>
                                         <div className='flex items-center space-x-2'>
-                                            <RadioGroupItem value='1' id='active-yes' />
-                                            <Label htmlFor='active-yes'>Yes</Label>
+                                            <RadioGroupItem value='true' id='cce-yes' />
+                                            <Label htmlFor='cce-yes'>Yes</Label>
                                         </div>
                                         <div className='flex items-center space-x-2'>
-                                            <RadioGroupItem value='0' id='active-no' />
-                                            <Label htmlFor='active-no'>No</Label>
+                                            <RadioGroupItem value='false' id='cce-no' />
+                                            <Label htmlFor='cce-no'>No</Label>
                                         </div>
                                     </RadioGroup>
                                 )}
                             />
 
-                            {errors.ex_IsActiveFlag && <FormError>{errors.ex_IsActiveFlag.message}</FormError>}
+                            {errors.emcA_CCECheckingFlg && <FormError>{errors.emcA_CCECheckingFlg.message}</FormError>}
                         </div>
                     </div>
 
                     {errors.root && <FormError>{errors.root.message}</FormError>}
                 </div>
 
-                {/* Action Buttons */}
+                {/* Buttons */}
                 <div className='flex flex-col gap-3 border-t pt-4 sm:flex-row sm:justify-start'>
                     <Button
                         type='button'

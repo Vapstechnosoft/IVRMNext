@@ -121,20 +121,32 @@ export interface IMasterSubjectGroupDetails {
 }
 
 export interface IMasterCategory {
-    ex_Id: number;
-    ex_CategoryName: string;
-    ex_CCEPromotionApplicableFlag: number;
-    ex_IsActiveFlag: boolean;
+    emcA_Id: number;
+    mI_Id: number;
+    emcA_CategoryName: string;
+    emcA_CCECheckingFlg: boolean;
+    emcA_ActiveFlag: boolean;
+    createdDate?: string;
+    updatedDate?: string;
 }
 
 // Category Class Mapping
 
 export interface ICategoryMapping {
-    ex_Id: number;
-    ex_AcademicYear: string;
-    ex_CategoryName: string;
-    ex_ClassName: string;
-    ex_IsActiveFlag: boolean;
+    emcA_Id: number;
+    mI_Id: number;
+    emcA_CategoryName: string;
+    emcA_CCECheckingFlg: boolean;
+    emcA_ActiveFlag: boolean;
+    ecaC_Id: number;
+    asmaY_Id: number;
+    asmcL_Id: number;
+    asmS_Id: number;
+    ecaC_ActiveFlag: boolean;
+    asmaY_Year: string;
+    asmcL_ClassName: string;
+    asmC_SectionName: string;
+    asmaY_Order: number;
 }
 
 export interface IMasterExamCategoryMapping {
