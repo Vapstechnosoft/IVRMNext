@@ -7,19 +7,19 @@ import type { IGradeDetails, IMasterGrade } from '@/types/exam/exam-module/maste
 export async function getMasterGrade(searchParams?: ApiSearchparams) {
     const urlParams = getSearchParamsUrl(searchParams ?? {});
     const url = `/master_exam_grade/30?${urlParams}`;
-    return await api.get<IMasterGrade>(url);
+    return await api.get<IMasterGrade>('exam', url);
 }
 export async function addOrUpdateMasterGrade(data: any) {
     const url = '/master_exam_grade/AddOrUpdateMasteExamGrade';
-    return await api.post<any>(url, data);
+    return await api.post<any>('exam', url, data);
 }
 
 export async function getGradeDetailsById(id: number) {
     const url = `/master_exam_grade/GetExamGradeDetailsById/${id}`;
-    return await api.get<IGradeDetails>(url);
+    return await api.get<IGradeDetails>('exam', url);
 }
 
 export async function toggleMasterGrade(mi_id: number, id: number) {
     const url = `/master_exam_grade/toggle/${mi_id}/${id}`;
-    return await api.put(url);
+    return await api.put('exam', url);
 }

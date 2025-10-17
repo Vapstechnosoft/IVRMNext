@@ -67,19 +67,16 @@ export const masterExamPaperSchema = {
 
 export const masterSubExamSchema = {
     addOrUpdate: z.object({
-        ex_Id: z.number().int({ message: 'Sub Exam Id is required' }).optional(),
-
-        ex_SubExamName: createStringSchema('Sub Exam Name', 1, 100),
-        ex_SubExamCode: createStringSchema('Sub Exam Code', 1, 50),
-
-        ex_IsActiveFlag: z.boolean({ message: 'Active Flag is required' })
+        emsE_Id: z.number().int({ message: 'Sub Exam Id is required' }).optional(),
+        mI_Id: z.number().int({ message: 'Institute ID is required' }),
+        emsE_SubExamName: createStringSchema('Sub Exam Name', 1, 100),
+        emsE_SubExamCode: createStringSchema('Sub Exam Code', 1, 50)
     }),
 
     delete: z.object({
-        ex_Id: deleteIdSchema('ex_Id')
+        emsE_Id: deleteIdSchema('emsE_Id')
     })
 };
-
 export const masterSubSubjectSchema = {
     addOrUpdate: z.object({
         emsS_Id: z.number().int().optional(), // optional for new entries

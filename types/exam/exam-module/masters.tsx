@@ -66,13 +66,12 @@ export interface IMasterExamPaper {
 }
 
 export interface IMasterSubExam {
-    ex_Id: number;
-    ex_SubExamName: string;
-    ex_SubExamCode: string;
-    ex_SubExamOrder: number;
-    ex_IsActiveFlag: boolean;
+    emsE_Id: number;
+    emsE_SubExamName: string;
+    emsE_SubExamCode: string;
+    emsE_SubExamOrder: number;
+    emsE_ActiveFlag: boolean;
 }
-
 export interface IMasterSubSubject {
     emsS_Id: number; // Unique Sub Subject ID
     mI_Id: number; // Master ID

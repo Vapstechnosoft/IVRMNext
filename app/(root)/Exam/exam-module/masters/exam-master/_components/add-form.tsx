@@ -180,21 +180,34 @@ export default function AddMasterExamForm({ onSuccess, className = '' }: AddMast
                     </div>
                 </div>
 
-                {/* Buttons */}
                 <div className='flex flex-col gap-3 border-t pt-4 sm:flex-row sm:justify-start'>
-                    <Button type='button' variant='outline' onClick={handleReset} disabled={isSubmitting}>
+                    <Button
+                        type='button'
+                        variant='outline'
+                        onClick={handleReset}
+                        disabled={isSubmitting}
+                        className='order-3 w-fit transition-all duration-200 hover:scale-105 sm:order-1'>
                         Reset
                     </Button>
-
-                    <Button type='submit' disabled={isSubmitting} isLoading={isSubmitting} loadingText='Saving...'>
+                    <Button
+                        type='submit'
+                        disabled={isSubmitting}
+                        className='order-1 w-fit transition-all duration-200 hover:scale-105 sm:order-2'
+                        isLoading={isSubmitting}
+                        loadingText='Saving...'>
                         <div className='flex items-center'>
-                            <Save className='mr-2 h-4 w-4' /> Save Exam
+                            <Save className='mr-2 h-4 w-4' />
+                            Save Exam
                         </div>
                     </Button>
-
-                    <Button type='button' variant='secondary' onClick={handleSetOrder}>
+                    <Button
+                        type='button'
+                        variant='secondary'
+                        onClick={handleSetOrder}
+                        className='order-2 w-fit transition-all duration-200 hover:scale-105 sm:order-3'>
                         <div className='flex items-center'>
-                            <List className='mr-2 h-4 w-4' /> Set Order
+                            <List className='mr-2 h-4 w-4' />
+                            Set Order
                         </div>
                     </Button>
                 </div>

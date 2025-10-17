@@ -1,4 +1,5 @@
 'use client';
+
 import { Checkbox } from '@/components/ui/checkbox';
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
 import { ActionButtons } from '@/components/ui/form/action-buttons';
@@ -37,14 +38,19 @@ export const MasterSubExamColumns: ColumnDef<IMasterSubExam>[] = [
         enableHiding: false
     },
     {
-        accessorKey: 'ex_SubExamName',
+        accessorKey: 'emsE_SubExamName',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Sub Exam Name' />,
-        cell: ({ row }) => <div>{row.getValue('ex_SubExamName')}</div>
+        cell: ({ row }) => <div>{row.getValue('emsE_SubExamName')}</div>
     },
     {
-        accessorKey: 'ex_SubExamCode',
+        accessorKey: 'emsE_SubExamCode',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Sub Exam Code' />,
-        cell: ({ row }) => <div>{row.getValue('ex_SubExamCode')}</div>
+        cell: ({ row }) => <div>{row.getValue('emsE_SubExamCode')}</div>
+    },
+    {
+        accessorKey: 'emsE_SubExamOrder',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Sub Exam Order' />,
+        cell: ({ row }) => <div>{row.getValue('emsE_SubExamOrder')}</div>
     },
     {
         id: 'actions',
@@ -78,7 +84,7 @@ function ActionButtonsCell({ rowData }: { rowData: IMasterSubExam }) {
             buttons={{ edit: true, toggle: true, delete: false }}
             onEdit={handleEdit}
             onToggle={handleToggle}
-            toggleConditionKey='ex_IsActiveFlag'
+            toggleConditionKey='emsE_ActiveFlag'
         />
     );
 }

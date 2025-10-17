@@ -30,7 +30,7 @@ import type { ApiSearchparams } from '@/types';
 import axios, { type AxiosInstance, type AxiosRequestConfig } from 'axios';
 
 // Define available API base URLs
-export type ApiBaseUrlKey = 'default' | 'preadmission' | 'admission';
+export type ApiBaseUrlKey = 'default' | 'preadmission' | 'admission' | 'exam';
 
 class ApiService {
     private instances: Map<string, AxiosInstance>;
@@ -43,7 +43,8 @@ class ApiService {
         this.baseUrls = {
             default: env.API_BASE_URL,
             preadmission: env.PREADMISSION_API_BASE_URL || env.API_BASE_URL,
-            admission: env.ADMISSION_API_BASE_URL || env.API_BASE_URL
+            admission: env.ADMISSION_API_BASE_URL || env.API_BASE_URL,
+            exam: env.EXAM_API_BASE_URL || env.API_BASE_URL
         };
 
         // Initialize default instance
@@ -117,7 +118,12 @@ class ApiService {
         data?: unknown
     ): Promise<ApiResponse<T>> {
         try {
+            console.info('request', {
+                baseUrlKey,
+                url
+            });
             const instance = this.getOrCreateInstance(baseUrlKey);
+
             const response = await instance.request<ApiResponse<T>>({
                 method,
                 url,
