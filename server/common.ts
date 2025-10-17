@@ -233,14 +233,14 @@ export async function getUserAccessibleModules() {
                                         title: 'Master Fee Concession',
                                         description: 'Manage Master Fee Concession Details'
                                     },
-                                    {
-                                        id: 20,
-                                        name: 'Master Fee Concession Details',
-                                        icon: 'Settings',
-                                        url: '/fees/masters/masterfeeconcessiondetails',
-                                        title: 'Master Fee Concession Details',
-                                        description: 'Manage Master Fee Concession Details'
-                                    },
+                                    // {
+                                    //     id: 20,
+                                    //     name: 'Master Fee Concession Details',
+                                    //     icon: 'Settings',
+                                    //     url: '/fees/masters/masterfeeconcessiondetails',
+                                    //     title: 'Master Fee Concession Details',
+                                    //     description: 'Manage Master Fee Concession Details'
+                                    // },
                                     {
                                         id: 10,
                                         name: 'Master Fee Terms',

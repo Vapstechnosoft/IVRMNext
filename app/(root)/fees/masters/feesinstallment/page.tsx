@@ -70,7 +70,7 @@ function MasterFeeheadPageContent({
                         isLoading={isLoading}
                         error={error}
                         columnPinning={{ right: ['actions'] }}
-                        loadingMessage='Loading master classes...'
+                        loadingMessage='Loading master Installment...'
                         noDataTitle='No Master Classes Found'
                         noDataDescription='Get started by creating your first master class'
                         errorTitle='Error Loading Classes'
@@ -104,7 +104,7 @@ function FormSections() {
                 <div ref={addFormRef}>
                     <CollapsibleSection
                         title='Add New Fee Installment'
-                        description='Fill in the details below to create a new Fe Installment'
+                        description='Fill in the details below to create a new Fee Installment'
                         defaultOpen={true}
                         variant='outline'
                         size='md'
@@ -128,7 +128,7 @@ function FormSections() {
             {isEditFormOpen && selectedRow && (
                 <div ref={editFormRef}>
                     <CollapsibleSection
-                        title='Edit Master Fees Head'
+                        title='Edit Master Fees Installment'
                         defaultOpen={true}
                         variant='outline'
                         size='md'

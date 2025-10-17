@@ -64,10 +64,10 @@ function MasterFeeGroupGroupingClient({
                         isLoading={isLoading}
                         error={error}
                         columnPinning={{ right: ['actions'] }}
-                        loadingMessage='Loading fee group groupings...'
-                        noDataTitle='No Fee Group Groupings Found'
-                        noDataDescription='Get started by creating your first fee group grouping'
-                        errorTitle='Error Loading Fee Group Groupings'
+                        loadingMessage='Loading fees group groupings...'
+                        noDataTitle='No Fees Group Groupings Found'
+                        noDataDescription='Get started by creating your first fees group grouping'
+                        errorTitle='Error Loading Fees Group Groupings'
                     />
                 </CollapsibleSection>
 
@@ -97,8 +97,8 @@ function FormSections() {
             {isAddFormOpen && (
                 <div ref={addFormRef}>
                     <CollapsibleSection
-                        title='Add New Fee Group Grouping'
-                        description='Fill in the details below to create a new fee group grouping'
+                        title='Add New Fees Group Grouping'
+                        description='Fill in the details below to create a new fees group grouping'
                         defaultOpen={true}
                         variant='outline'
                         size='md'
@@ -122,7 +122,7 @@ function FormSections() {
             {isEditFormOpen && selectedRow && (
                 <div ref={editFormRef}>
                     <CollapsibleSection
-                        title='Edit Fee Group Grouping'
+                        title='Edit Fees Group Grouping'
                         defaultOpen={true}
                         variant='outline'
                         size='md'

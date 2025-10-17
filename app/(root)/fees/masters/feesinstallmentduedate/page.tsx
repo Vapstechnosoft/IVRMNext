@@ -70,10 +70,10 @@ function MasterFeeDueDateContent({
                         isLoading={isLoading}
                         error={error}
                         columnPinning={{ right: ['actions'] }}
-                        loadingMessage='Loading master classes...'
-                        noDataTitle='No Master Classes Found'
-                        noDataDescription='Get started by creating your first master class'
-                        errorTitle='Error Loading Classes'
+                        loadingMessage='Loading master Fees Installment Due Date...'
+                        noDataTitle='No Master Fees Installment Due Date Found'
+                        noDataDescription='Get started by creating your first master Fees Installment Due Date'
+                        errorTitle='Error Loading Fees Installment Due Date'
                     />
                 </CollapsibleSection>
 
@@ -103,8 +103,8 @@ function FormSections() {
             {isAddFormOpen && (
                 <div ref={addFormRef}>
                     <CollapsibleSection
-                        title='Add New Fee Installment Due Date'
-                        description='Fill in the details below to create a new Fee Installment Due Date'
+                        title='Add New Fees Installment Due Date'
+                        description='Fill in the details below to create a new Fees Installment Due Date'
                         defaultOpen={true}
                         variant='outline'
                         size='md'
@@ -128,7 +128,7 @@ function FormSections() {
             {isEditFormOpen && selectedRow && (
                 <div ref={editFormRef}>
                     <CollapsibleSection
-                        title='Edit Master Fees Head'
+                        title='Edit Master Fees Installment Due Date'
                         defaultOpen={true}
                         variant='outline'
                         size='md'
