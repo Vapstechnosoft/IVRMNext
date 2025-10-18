@@ -131,7 +131,13 @@ export default function UpdatePaymentGatewayDetailsForm({ onSuccess, selectedRow
                     <InputText id='fpgD_MerchantId' {...register('fpgD_MerchantId')} error={errors.fpgD_MerchantId?.message} />
                 </div>
 
-                <InputText label='Salt Key' id='fpgD_SaltKey' {...register('fpgD_SaltKey')} error={errors.fpgD_SaltKey?.message} />
+                <div className='flex flex-col gap-1.5'>
+                    <label htmlFor='Salt Key'>
+                        Salt Key<span className='text-red-500'>*</span>
+                    </label>
+                    <InputText id='fpgD_SaltKey' {...register('fpgD_SaltKey')} error={errors.fpgD_SaltKey?.message} />
+                </div>
+
                 <InputText label='Image' id='fpgD_Image' {...register('fpgD_Image')} error={errors.fpgD_Image?.message} />
                 <InputText label='URL' id='fpgD_URL' {...register('fpgD_URL')} error={errors.fpgD_URL?.message} />
             </div>
