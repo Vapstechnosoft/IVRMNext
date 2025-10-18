@@ -32,10 +32,7 @@ export default function ToggleYearColumnForm({ rowData, onClose }: ToggleYearCol
         formState: { errors, isSubmitting }
     } = useForm<FormFields>({
         resolver: zodResolver(YearlyGroupSchema.delete),
-        mode: 'onChange',
-        defaultValues: {
-            fyG_Id: rowData.fmG_Id
-        }
+        mode: 'onChange'
     });
 
     const closeDialog = () => {
