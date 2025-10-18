@@ -17,6 +17,9 @@ import {
 } from '@tanstack/react-table';
 import { ChevronLeftIcon, ChevronRightIcon } from 'lucide-react';
 import { parseAsInteger, parseAsString, parseAsStringLiteral, useQueryState } from 'nuqs';
+import { useState } from 'react';
+import { forwardRef, useImperativeHandle } from 'react';
+import { toast } from 'sonner';
 import { DataTableSkeleton } from './data-table-skeleton';
 import { DataTableToolbar } from './data-table-toolbar';
 
@@ -29,18 +32,31 @@ interface DataTableProps<TData, TValue> {
     showExportOptions?: boolean;
     showViewOptions?: boolean;
     columnPinning?: ColumnPinningState | undefined;
+
+    // ✅ updated
+    maxSelectableRows?: number;
+    onRowSelectionChange?: (selectedRows: TData[]) => void;
 }
 
-export function DataTable<TData, TValue>({
-    columns,
-    data,
-    totalItems,
-    pageSizeOptions = [10, 20, 30, 40, 50],
-    isLoading,
-    showExportOptions = false,
-    showViewOptions = true,
-    columnPinning
-}: DataTableProps<TData, TValue>) {
+export interface DataTableRef {
+    resetSelection: () => void;
+}
+
+export const DataTable = forwardRef<DataTableRef, DataTableProps<any, any>>(function DataTable<TData, TValue>(
+    {
+        columns,
+        data,
+        totalItems,
+        pageSizeOptions = [10, 20, 30, 40, 50],
+        isLoading,
+        showExportOptions = false,
+        showViewOptions = true,
+        columnPinning,
+        maxSelectableRows = 0,
+        onRowSelectionChange
+    }: DataTableProps<TData, TValue>,
+    ref: React.Ref<DataTableRef>
+) {
     // Pagination state
     const [currentPage, setCurrentPage] = useQueryState(
         tableSearchVariables.page,
@@ -50,8 +66,9 @@ export function DataTable<TData, TValue>({
         tableSearchVariables.page_size,
         parseAsInteger.withOptions({ shallow: false, history: 'push' }).withDefault(10)
     );
+    const [rowSelection, setRowSelection] = useState({});
 
-    // Sorting state
+    // Sorting and filtering
     const [sortBy] = useQueryState(tableSearchVariables.sort_column, parseAsString.withOptions({ shallow: false }).withDefault(''));
     const [order] = useQueryState(
         tableSearchVariables.sort_direction,
@@ -59,15 +76,9 @@ export function DataTable<TData, TValue>({
             .withOptions({ shallow: false })
             .withDefault('asc')
     );
-
-    // Search state
     const [searchQuery] = useQueryState(tableSearchVariables.search, parseAsString.withOptions({ shallow: false }).withDefault(''));
 
-    const paginationState = {
-        pageIndex: currentPage - 1,
-        pageSize: pageSize
-    };
-
+    const paginationState = { pageIndex: currentPage - 1, pageSize };
     const pageCount = Math.ceil(totalItems / pageSize);
 
     const handlePaginationChange = (updaterOrValue: PaginationState | ((old: PaginationState) => PaginationState)) => {
@@ -79,13 +90,37 @@ export function DataTable<TData, TValue>({
     const table = useReactTable({
         data,
         columns,
-        pageCount: pageCount,
+        pageCount,
         state: {
             pagination: paginationState,
             sorting: sortBy ? [{ id: sortBy, desc: order === 'desc' }] : [],
-            globalFilter: searchQuery
+            globalFilter: searchQuery,
+            rowSelection
         },
         onPaginationChange: handlePaginationChange,
+
+        // ✅ Properly handles row selection + passes to parent
+        onRowSelectionChange: (newSelection) => {
+            const selectionObj = typeof newSelection === 'function' ? newSelection(rowSelection) : newSelection;
+            const selectedCount = Object.keys(selectionObj).length;
+
+            if (maxSelectableRows && selectedCount > maxSelectableRows) {
+                toast.error(`You can select up to ${maxSelectableRows} rows only.`);
+                return;
+            }
+
+            setRowSelection(selectionObj);
+
+            const selectedRows = table
+                .getFilteredRowModel()
+                .rows.filter((r) => selectionObj[r.id])
+                .map((r) => r.original);
+
+            if (typeof onRowSelectionChange === 'function') {
+                onRowSelectionChange(selectedRows);
+            }
+        },
+
         getCoreRowModel: getCoreRowModel(),
         getPaginationRowModel: getPaginationRowModel(),
         getFilteredRowModel: getFilteredRowModel(),
@@ -97,20 +132,24 @@ export function DataTable<TData, TValue>({
         }
     });
 
+    // Add this right after useReactTable:
+    useImperativeHandle(ref, () => ({
+        resetSelection: () => {
+            setRowSelection({});
+            if (typeof onRowSelectionChange === 'function') {
+                onRowSelectionChange([]);
+            }
+        }
+    }));
+
     return (
         <div className='w-full space-y-2.5 overflow-auto'>
-            {/* Toolbar with filters */}
+            {/* Toolbar */}
             <DataTableToolbar table={table} data={data} showExportOptions={showExportOptions} showViewOptions={showViewOptions} />
 
-            {/* Table and content */}
+            {/* Table Content */}
             {isLoading ? (
-                <DataTableSkeleton
-                    columnCount={5}
-                    rowCount={5}
-                    scrollAreaClassName='md:h-[calc(80dvh-220px)]'
-                    showPagination={true}
-                    showViewOptions={false}
-                />
+                <DataTableSkeleton columnCount={5} rowCount={5} showPagination showViewOptions={false} />
             ) : (
                 <>
                     <div className='overflow-hidden rounded-md border'>
@@ -118,35 +157,30 @@ export function DataTable<TData, TValue>({
                             <TableHeader>
                                 {table.getHeaderGroups().map((headerGroup) => (
                                     <TableRow key={headerGroup.id}>
-                                        {headerGroup.headers.map((header) => {
-                                            return (
-                                                <TableHead
-                                                    className='w-fit'
-                                                    key={header.id}
-                                                    colSpan={header.colSpan}
-                                                    style={{
-                                                        ...getCommonPinningStyles({ column: header.column })
-                                                    }}>
-                                                    {header.isPlaceholder
-                                                        ? null
-                                                        : flexRender(header.column.columnDef.header, header.getContext())}
-                                                </TableHead>
-                                            );
-                                        })}
+                                        {headerGroup.headers.map((header) => (
+                                            <TableHead
+                                                key={header.id}
+                                                colSpan={header.colSpan}
+                                                className='w-fit'
+                                                style={{ ...getCommonPinningStyles({ column: header.column }) }}>
+                                                {header.isPlaceholder
+                                                    ? null
+                                                    : flexRender(header.column.columnDef.header, header.getContext())}
+                                            </TableHead>
+                                        ))}
                                     </TableRow>
                                 ))}
                             </TableHeader>
+
                             <TableBody>
                                 {table.getRowModel().rows?.length ? (
                                     table.getRowModel().rows.map((row) => (
-                                        <TableRow key={row.id} data-state={row.getIsSelected() && 'selected'}>
+                                        <TableRow key={row.id} data-state={row.getIsSelected()}>
                                             {row.getVisibleCells().map((cell) => (
                                                 <TableCell
                                                     key={cell.id}
                                                     className='whitespace-nowrap'
-                                                    style={{
-                                                        ...getCommonPinningStyles({ column: cell.column })
-                                                    }}>
+                                                    style={{ ...getCommonPinningStyles({ column: cell.column }) }}>
                                                     {flexRender(cell.column.columnDef.cell, cell.getContext())}
                                                 </TableCell>
                                             ))}
@@ -155,7 +189,14 @@ export function DataTable<TData, TValue>({
                                 ) : (
                                     <TableRow>
                                         <TableCell colSpan={table.getAllColumns().length} className='h-24 text-center'>
-                                            No results.
+                                            <div className='flex flex-col items-center justify-center space-y-2'>
+                                                <p className='font-medium text-muted-foreground'>
+                                                    {searchQuery ? `No results found for "${searchQuery}"` : 'No results.'}
+                                                </p>
+                                                {searchQuery && (
+                                                    <p className='text-muted-foreground text-sm'>Try adjusting your search or filters</p>
+                                                )}
+                                            </div>
                                         </TableCell>
                                     </TableRow>
                                 )}
@@ -173,15 +214,12 @@ export function DataTable<TData, TValue>({
                                 </div>
                             ) : (
                                 <div className='flex-1 whitespace-nowrap text-muted-foreground text-sm'>
-                                    {totalItems > 0 ? (
-                                        <>
-                                            Showing {paginationState.pageIndex * paginationState.pageSize + 1} to{' '}
-                                            {Math.min((paginationState.pageIndex + 1) * paginationState.pageSize, totalItems)} of{' '}
-                                            {totalItems} entries
-                                        </>
-                                    ) : (
-                                        'No entries found'
-                                    )}
+                                    {totalItems > 0
+                                        ? `Showing ${paginationState.pageIndex * paginationState.pageSize + 1} to ${Math.min(
+                                              (paginationState.pageIndex + 1) * paginationState.pageSize,
+                                              totalItems
+                                          )} of ${totalItems} entries`
+                                        : 'No entries found'}
                                 </div>
                             )}
 
@@ -207,12 +245,7 @@ export function DataTable<TData, TValue>({
                                 </Select>
                             </div>
 
-                            {/* Page Number */}
-                            <div className='flex items-center justify-center text-nowrap font-medium text-sm'>
-                                Page {paginationState.pageIndex + 1} of {table.getPageCount()}
-                            </div>
-
-                            {/* Pagination Buttons */}
+                            {/* Pagination Controls */}
                             <div className='flex items-center space-x-2'>
                                 <Button
                                     aria-label='Go to first page'
@@ -220,7 +253,7 @@ export function DataTable<TData, TValue>({
                                     className='hidden h-8 w-8 p-0 lg:flex'
                                     onClick={() => table.setPageIndex(0)}
                                     disabled={!table.getCanPreviousPage()}>
-                                    <DoubleArrowLeftIcon className='h-4 w-4' aria-hidden='true' />
+                                    <DoubleArrowLeftIcon className='h-4 w-4' />
                                 </Button>
                                 <Button
                                     aria-label='Go to previous page'
@@ -228,7 +261,7 @@ export function DataTable<TData, TValue>({
                                     className='h-8 w-8 p-0'
                                     onClick={() => table.previousPage()}
                                     disabled={!table.getCanPreviousPage()}>
-                                    <ChevronLeftIcon className='h-4 w-4' aria-hidden='true' />
+                                    <ChevronLeftIcon className='h-4 w-4' />
                                 </Button>
                                 <Button
                                     aria-label='Go to next page'
@@ -236,7 +269,7 @@ export function DataTable<TData, TValue>({
                                     className='h-8 w-8 p-0'
                                     onClick={() => table.nextPage()}
                                     disabled={!table.getCanNextPage()}>
-                                    <ChevronRightIcon className='h-4 w-4' aria-hidden='true' />
+                                    <ChevronRightIcon className='h-4 w-4' />
                                 </Button>
                                 <Button
                                     aria-label='Go to last page'
@@ -244,7 +277,7 @@ export function DataTable<TData, TValue>({
                                     className='hidden h-8 w-8 p-0 lg:flex'
                                     onClick={() => table.setPageIndex(table.getPageCount() - 1)}
                                     disabled={!table.getCanNextPage()}>
-                                    <DoubleArrowRightIcon className='h-4 w-4' aria-hidden='true' />
+                                    <DoubleArrowRightIcon className='h-4 w-4' />
                                 </Button>
                             </div>
                         </div>
@@ -253,4 +286,4 @@ export function DataTable<TData, TValue>({
             )}
         </div>
     );
-}
+}) as <TData, TValue>(props: DataTableProps<TData, TValue> & { ref?: React.Ref<DataTableRef> }) => React.ReactElement;
