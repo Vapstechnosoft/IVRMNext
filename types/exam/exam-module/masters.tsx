@@ -164,13 +164,22 @@ export interface IAcademicYear {
 }
 
 export interface ICategory {
-    id: number;
-    name: string;
+    emcA_Id: number;
+    emcA_CategoryName: string;
 }
 
 export interface IClass {
-    id: number;
-    name: string;
+    asmcL_Id: number;
+    asmcL_ClassCode: string;
+    asmcL_ClassName: string;
+    asmcL_Order: number;
+    asmcL_MinAgeYear: number;
+    asmcL_MinAgeMonth: number;
+    asmcL_MinAgeDays: number;
+    asmcL_MaxAgeYear: number;
+    asmcL_MaxAgeMonth: number;
+    asmcL_MaxAgeDays: number;
+    asmcL_MaxCapacity: number;
 }
 
 export interface ISection {

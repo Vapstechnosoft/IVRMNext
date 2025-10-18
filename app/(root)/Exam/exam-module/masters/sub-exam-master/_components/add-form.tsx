@@ -26,7 +26,6 @@ export default function AddMasterSubExamForm({ onSuccess, className = '' }: AddM
     const { refetchAll } = useMasterExam();
 
     const {
-        control,
         register,
         handleSubmit,
         reset,
@@ -44,6 +43,7 @@ export default function AddMasterSubExamForm({ onSuccess, className = '' }: AddM
 
     const [orderModalOpen, setOrderModalOpen] = useState(false);
     const [orderData, setOrderData] = useState<(IMasterSubExam & { id: number })[]>([]);
+    const [isOrderSaving, setIsOrderSaving] = useState(false);
 
     const onSubmit: SubmitHandler<FormFields> = async (data) => {
         try {
@@ -100,12 +100,17 @@ export default function AddMasterSubExamForm({ onSuccess, className = '' }: AddM
                 toast.success(response.message);
                 reset();
                 refetchAll();
+                setIsOrderSaving(false);
+                setOrderModalOpen(false);
                 onSuccess?.();
             } else {
                 toast.error(response.message);
             }
         } catch (error: any) {
             toast.error(error?.message || 'Something went wrong.');
+        } finally {
+            setIsOrderSaving(false);
+            setOrderModalOpen(false);
         }
     };
 

@@ -20,6 +20,7 @@ interface MasterOrderViewProps<T extends { id: number }> {
     columns: Column[];
     onSave: (updatedData: T[]) => void;
     tableHeight?: string;
+    isLoading?: boolean;
 }
 
 export function MasterViewDetails<T extends { id: number }>({
@@ -28,6 +29,7 @@ export function MasterViewDetails<T extends { id: number }>({
     data,
     columns,
     onSave,
+    isLoading,
     tableHeight = '800px'
 }: MasterOrderViewProps<T>) {
     const [items, setItems] = useState<T[]>([]);
@@ -50,7 +52,6 @@ export function MasterViewDetails<T extends { id: number }>({
 
     const handleSave = () => {
         onSave(items);
-        onClose();
     };
 
     return (
@@ -88,8 +89,8 @@ export function MasterViewDetails<T extends { id: number }>({
                     <Button variant='outline' className='w-fit' onClick={onClose}>
                         Cancel
                     </Button>
-                    <Button onClick={handleSave} className='w-fit'>
-                        Save
+                    <Button onClick={handleSave} className='w-fit' isLoading={isLoading}>
+                        {isLoading ? 'Saving...' : 'Save'}
                     </Button>
                 </DialogFooter>
             </DialogContent>

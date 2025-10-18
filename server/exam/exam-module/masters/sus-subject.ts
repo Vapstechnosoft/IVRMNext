@@ -13,7 +13,7 @@ export async function getMasterSubSubject(searchParams?: ApiSearchparams) {
 
 // ✅ Add or Update Master SubSubject
 export async function addOrUpdateMasterSubSubject(data: any) {
-    const url = '/master_sub_subject/AddOrUpdateMasterSubSubject';
+    const url = '/master_sub_subject';
     return await api.post<any>('exam', url, data);
 }
 
@@ -24,11 +24,11 @@ export async function toggleMasterSubSubject(mi_id: number, id: number) {
 }
 
 export async function getMasterSubSubjectOrderData(mi_id: number) {
-    const url = `/master_sub_subject/GetOrderedMasterSubSubjects/${mi_id}`;
+    const url = `/master_sub_subject/master_sub_subject_order_list/${mi_id}`;
     return await api.get('exam', url);
 }
 
 export async function UpdatedOrderdSubSubjects(data: any) {
-    const url = '/master_sub_subject/SetMasterSubSubjectOrderNumber';
+    const url = '/master_sub_subject/set_master_sub_subject_order_number';
     return await api.put<any>('exam', url, data);
 }

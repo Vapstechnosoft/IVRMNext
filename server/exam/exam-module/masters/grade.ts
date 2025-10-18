@@ -10,12 +10,12 @@ export async function getMasterGrade(searchParams?: ApiSearchparams) {
     return await api.get<IMasterGrade>('exam', url);
 }
 export async function addOrUpdateMasterGrade(data: any) {
-    const url = '/master_exam_grade/AddOrUpdateMasteExamGrade';
+    const url = '/master_exam_grade';
     return await api.post<any>('exam', url, data);
 }
 
 export async function getGradeDetailsById(id: number) {
-    const url = `/master_exam_grade/GetExamGradeDetailsById/${id}`;
+    const url = `/master_exam_grade/exam_grade_details_by_id/${id}`;
     return await api.get<IGradeDetails>('exam', url);
 }
 

@@ -31,7 +31,7 @@ export default function ToggleMasterGradeForm({ rowData, onClose }: ToggleMaster
     } = useForm<FormFields>({
         resolver: zodResolver(masterGradeSchema.delete),
         defaultValues: {
-            emgR_Id: rowData?.emgR_Id?.toString() ?? '' // <-- string
+            emgR_Id: rowData.emgR_Id
         },
         mode: 'onChange'
     });

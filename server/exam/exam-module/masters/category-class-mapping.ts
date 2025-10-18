@@ -36,9 +36,9 @@ export async function toggleMasterExamCategory(mi_id: number, id: number) {
 /* -------------------------------------------------
    GET ACADEMIC YEARS
 -------------------------------------------------- */
-export async function getAcademicYears() {
+export async function getAcademicYears(): Promise<IAcademicYear[]> {
     try {
-        const res = await api.get<IAcademicYear>('exam', '/academic-years');
+        const res = await api.getArray<IAcademicYear>('exam', '/academic-years');
         return res?.data ?? [];
     } catch (error: any) {
         console.error('Error fetching Academic Years, returning mock data:', error);
@@ -48,37 +48,19 @@ export async function getAcademicYears() {
         }));
     }
 }
-
 /* -------------------------------------------------
    GET CATEGORIES
 -------------------------------------------------- */
-export async function getCategories(): Promise<ICategory[]> {
-    try {
-        const res = await api.getArray<ICategory>('exam', '/categories');
-        return res?.data ?? [];
-    } catch (error: any) {
-        console.error('Error fetching Categories, returning mock data:', error);
-        return Array.from({ length: 5 }).map((_, i) => ({
-            id: i + 1,
-            name: `Category ${i + 1}`
-        }));
-    }
+export async function getCategories() {
+    const res = await api.get<ICategory>('exam', '/exam_master_category/exam_master_category_drop_down_list/30');
+    return res;
 }
-
 /* -------------------------------------------------
    GET CLASSES
 -------------------------------------------------- */
-export async function getClasses(): Promise<IClass[]> {
-    try {
-        const res = await api.getArray<IClass>('exam', '/classes');
-        return res?.data ?? [];
-    } catch (error: any) {
-        console.error('Error fetching Classes, returning mock data:', error);
-        return Array.from({ length: 5 }).map((_, i) => ({
-            id: i + 1,
-            name: `Class ${i + 1}`
-        }));
-    }
+export async function getClasses() {
+    const url = 'student_application_form/master_class_drop_down_list?mi_id=30';
+    return await api.get<IClass>('preadmission', url);
 }
 
 export async function getCategoryMappedSections(academicYear: string, category: string, className: string) {
@@ -88,21 +70,9 @@ export async function getCategoryMappedSections(academicYear: string, category: 
 
 // Getting Assigned sections for Particular AcademicYear and Class
 
-export async function getClassMappedSections(academicYear_Id: string, class_Id: string) {
-    try {
-        const res = await api.get<ISection>('exam', `/category-class-mapping/${academicYear_Id}/${class_Id}/sections`);
-        return res?.data ?? [];
-    } catch (error: any) {
-        console.error(`Error fetching assigned sections for Academic Year ${academicYear_Id} amd classId ${class_Id}:`, error);
-
-        // Return 3 mock sections if API fails
-        const mockData: ISection[] = Array.from({ length: 3 }).map((_, i) => ({
-            id: i + 1,
-            name: `Assigned Section ${i + 1}`
-        }));
-
-        return mockData;
-    }
+export async function getClassMappedSections(academicYear_Id: string, category_Id: string, class_Id: string) {
+    const url = `/exam_master_category/exam_category_class_section_view_by_ids/30/${category_Id}/${academicYear_Id}/${class_Id}/sections`;
+    return await api.get<ISection>('exam', url);
 }
 
 /* -------------------------------------------------

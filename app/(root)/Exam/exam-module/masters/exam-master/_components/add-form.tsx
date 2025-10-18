@@ -49,6 +49,7 @@ export default function AddMasterExamForm({ onSuccess, className = '' }: AddMast
 
     const [orderModalOpen, setOrderModalOpen] = useState(false);
     const [orderData, setOrderData] = useState<(IMasterExamOrder & { id: number })[]>([]);
+    const [isOrderSaving, setIsOrderSaving] = useState(false);
 
     // ✅ Add or Update Exam
     const onSubmit: SubmitHandler<FormFields> = async (data) => {
@@ -96,6 +97,7 @@ export default function AddMasterExamForm({ onSuccess, className = '' }: AddMast
     // ✅ Save reordered exams
     const handleOrderSave = async (updatedData: (IMasterExamOrder & { id: number })[]) => {
         setOrderData(updatedData);
+        setIsOrderSaving(true);
         try {
             const payload = {
                 mI_Id: 30,
@@ -112,12 +114,17 @@ export default function AddMasterExamForm({ onSuccess, className = '' }: AddMast
                 toast.success(response.message);
                 reset();
                 refetchAll();
+                setIsOrderSaving(false);
+                setOrderModalOpen(false);
                 onSuccess?.();
             } else {
                 toast.error(response.message);
             }
         } catch (error: any) {
             toast.error(error.message);
+        } finally {
+            setIsOrderSaving(false);
+            setOrderModalOpen(false);
         }
     };
 
@@ -219,6 +226,7 @@ export default function AddMasterExamForm({ onSuccess, className = '' }: AddMast
                     isOpen={orderModalOpen}
                     onClose={() => setOrderModalOpen(false)}
                     data={orderData}
+                    isLoading={isOrderSaving}
                     columns={[
                         { key: 'id', label: 'SLNO', className: 'text-center w-12' },
                         { key: 'emE_ExamName', label: 'Exam Name', className: 'text-left' },

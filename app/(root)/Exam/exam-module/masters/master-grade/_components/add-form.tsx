@@ -14,13 +14,9 @@ import { Controller, type SubmitHandler, useFieldArray, useForm } from 'react-ho
 import { toast } from 'sonner';
 import type { z } from 'zod';
 
-// ------------------ SCHEMAS ------------------
-
 type FormFields = z.infer<typeof masterGradeSchema.addOrUpdate>;
 
-// ------------------ COMPONENT ------------------
-
-export default function MasterGradeForm({ onSuccess, className = '' }: { onSuccess?: () => void; className?: string }) {
+export default function AddMasterGradeForm({ onSuccess, className = '' }: { onSuccess?: () => void; className?: string }) {
     const [isDetailsOpen, setIsDetailsOpen] = useState(false);
 
     const {
@@ -34,17 +30,29 @@ export default function MasterGradeForm({ onSuccess, className = '' }: { onSucce
         resolver: zodResolver(masterGradeSchema.addOrUpdate),
         mode: 'onChange',
         defaultValues: {
+            emgR_Id: 0,
+            mI_Id: 0,
             emgR_GradeName: '',
-            mI_Id: 30, // default institute id
             emgR_MarksPerFlag: 'm',
             emgR_ActiveFlag: true,
-            subject_list: [{ emgR_Id: 0, emgD_Name: '', emgD_From: 0, emgD_To: 0, emgD_GradePoints: 0, emgD_Remarks: '' }]
+            grade_list: [
+                {
+                    emgD_Id: 0,
+                    emgR_Id: 0,
+                    emgD_Name: '',
+                    emgD_From: 0,
+                    emgD_To: 0,
+                    emgD_GradePoints: 0,
+                    emgD_Remarks: '',
+                    emgD_ActiveFlag: true
+                }
+            ]
         }
     });
 
     const { fields, append, remove } = useFieldArray({
         control,
-        name: 'subject_list'
+        name: 'grade_list'
     });
 
     const gradeName = watch('emgR_GradeName');
@@ -57,7 +65,7 @@ export default function MasterGradeForm({ onSuccess, className = '' }: { onSucce
         try {
             const payload = {
                 ...data,
-                subject_list: data.subject_list.map((row) => ({
+                grade_list: data.grade_list.map((row) => ({
                     ...row,
                     emgD_From: Number(row.emgD_From),
                     emgD_To: Number(row.emgD_To),
@@ -131,32 +139,32 @@ export default function MasterGradeForm({ onSuccess, className = '' }: { onSucce
                                         <td className='border text-center'>{index + 1}</td>
                                         <td className='border'>
                                             <InputText
-                                                {...register(`subject_list.${index}.emgD_Name` as const)}
-                                                error={errors.subject_list?.[index]?.emgD_Name?.message}
+                                                {...register(`grade_list.${index}.emgD_Name` as const)}
+                                                error={errors.grade_list?.[index]?.emgD_Name?.message}
                                             />
                                         </td>
                                         <td className='border'>
                                             <InputText
-                                                {...register(`subject_list.${index}.emgD_From` as const, { valueAsNumber: true })}
-                                                error={errors.subject_list?.[index]?.emgD_From?.message}
+                                                {...register(`grade_list.${index}.emgD_From` as const, { valueAsNumber: true })}
+                                                error={errors.grade_list?.[index]?.emgD_From?.message}
                                             />
                                         </td>
                                         <td className='border'>
                                             <InputText
-                                                {...register(`subject_list.${index}.emgD_To` as const, { valueAsNumber: true })}
-                                                error={errors.subject_list?.[index]?.emgD_To?.message}
+                                                {...register(`grade_list.${index}.emgD_To` as const, { valueAsNumber: true })}
+                                                error={errors.grade_list?.[index]?.emgD_To?.message}
                                             />
                                         </td>
                                         <td className='border'>
                                             <InputText
-                                                {...register(`subject_list.${index}.emgD_GradePoints` as const, { valueAsNumber: true })}
-                                                error={errors.subject_list?.[index]?.emgD_GradePoints?.message}
+                                                {...register(`grade_list.${index}.emgD_GradePoints` as const, { valueAsNumber: true })}
+                                                error={errors.grade_list?.[index]?.emgD_GradePoints?.message}
                                             />
                                         </td>
                                         <td className='border'>
                                             <InputText
-                                                {...register(`subject_list.${index}.emgD_Remarks` as const)}
-                                                error={errors.subject_list?.[index]?.emgD_Remarks?.message}
+                                                {...register(`grade_list.${index}.emgD_Remarks` as const)}
+                                                error={errors.grade_list?.[index]?.emgD_Remarks?.message}
                                             />
                                         </td>
                                         <td className='flex justify-center gap-2 border px-2 py-1'>
@@ -165,12 +173,14 @@ export default function MasterGradeForm({ onSuccess, className = '' }: { onSucce
                                                 size='sm'
                                                 onClick={() =>
                                                     append({
+                                                        emgD_Id: 0,
                                                         emgR_Id: 0,
                                                         emgD_Name: '',
                                                         emgD_From: 0,
                                                         emgD_To: 0,
                                                         emgD_GradePoints: 0,
-                                                        emgD_Remarks: ''
+                                                        emgD_Remarks: '',
+                                                        emgD_ActiveFlag: true
                                                     })
                                                 }>
                                                 <Plus className='h-3 w-3' />

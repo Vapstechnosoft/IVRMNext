@@ -29,6 +29,7 @@ export default function AddMasterSubjectForm({ onSuccess, className = '' }: AddM
     const [orderModalOpen, setOrderModalOpen] = useState(false);
     const [orderData, setOrderData] = useState<(IMasterSubjectOrder & { id: number })[]>([]);
     const [updatedOrderData, setUpdatedOrderData] = useState<IMasterSubjectOrder[]>([]);
+    const [isOrderSaving, setIsOrderSaving] = useState(false);
 
     const {
         control,
@@ -99,6 +100,7 @@ export default function AddMasterSubjectForm({ onSuccess, className = '' }: AddM
     // Save new order
     const handleOrderSave = async (updatedData: (IMasterSubjectOrder & { id: number })[]) => {
         try {
+            setIsOrderSaving(true);
             const updatedOrderData = updatedData.map((item, index) => ({
                 ismS_Id: item.ismS_Id,
                 mI_Id: item.mI_Id,
@@ -115,12 +117,17 @@ export default function AddMasterSubjectForm({ onSuccess, className = '' }: AddM
                 toast.success(response.message);
                 reset();
                 refetchAll();
+                setIsOrderSaving(false);
+                setOrderModalOpen(false);
                 onSuccess?.();
             } else {
                 toast.error(response.message);
             }
         } catch (error: any) {
             toast.error(error.message);
+        } finally {
+            setIsOrderSaving(false);
+            setOrderModalOpen(false);
         }
     };
 
@@ -283,6 +290,7 @@ export default function AddMasterSubjectForm({ onSuccess, className = '' }: AddM
                     isOpen={orderModalOpen}
                     onClose={() => setOrderModalOpen(false)}
                     data={orderData}
+                    isLoading={isOrderSaving}
                     columns={[
                         { key: 'id', label: 'SLNO', className: 'text-center w-12' },
                         { key: 'ismS_SubjectName', label: 'Subject Name', className: 'text-left' },

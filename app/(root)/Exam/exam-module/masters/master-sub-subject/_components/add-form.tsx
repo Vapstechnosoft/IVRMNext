@@ -177,8 +177,8 @@ export default function AddMasterSubSubjectForm({ onSuccess, className = '' }: A
                     data={orderData}
                     columns={[
                         { key: 'id', label: 'SL.No', className: 'text-center w-12' },
-                        { key: 'emsS_SubSubjectName', label: 'Sub Subject Name', className: 'text-left' },
-                        { key: 'emsS_SubSubjectCode', label: 'Sub Subject Code', className: 'text-left' },
+                        { key: 'ismS_SubjectName', label: 'Sub Subject Name', className: 'text-left' },
+                        { key: 'ismS_SubjectCode', label: 'Sub Subject Code', className: 'text-left' },
                         { key: 'emsS_Order', label: 'Order', className: 'text-left' }
                     ]}
                     onSave={handleOrderSave}

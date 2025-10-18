@@ -14,8 +14,18 @@ export const masterSubjectSchema = {
         ismS_IVRSSubjectName: createStringSchema('IVRS Subject Name', 1, 100),
         ismS_SubjectCode: createStringSchema('Subject Code', 1, 50),
         ismS_SubjectNameNew: createStringSchema('Subject Type / New Name', 1, 50),
-        ismS_Max_Marks: z.number().int({ message: 'Maximum Marks are required' }),
-        ismS_Min_Marks: z.number().int({ message: 'Minimum Marks are required' }),
+        ismS_Min_Marks: z
+            .number({ invalid_type_error: 'Min Marks is required' })
+            .min(1, { message: 'Min Marks should be greater than 0' })
+            .max(100, { message: 'Min Marks should be less than or equal to 100' })
+            .optional()
+            .nullable(),
+        ismS_Max_Marks: z
+            .number({ invalid_type_error: 'Max Marks is required' })
+            .min(1, { message: 'Max Marks should be greater than 0' })
+            .max(100, { message: 'Max Marks should be less than or equal to 100' })
+            .optional()
+            .nullable(),
         ismS_PreadmFlag: z.number().int({ message: 'Pre-Admission Flag is required' }),
         ismS_AttendanceFlag: z.boolean({ required_error: 'Attendance Flag is required' }),
         ismS_BatchAppl: z.number().int({ message: 'Batch Applicable Flag is required' }),
@@ -93,38 +103,32 @@ export const masterSubSubjectSchema = {
 };
 
 const gradeDetailsSchema = z.object({
-    emgR_Id: z.union([z.string(), z.number()]).optional(),
+    emgD_Id: z.number().default(0),
+    emgR_Id: z.number().default(0),
     emgD_Name: z.string().nonempty({ message: 'Grade Name is required' }),
-    emgD_From: z.preprocess(
-        (val) => (val === '' || val === undefined ? 0 : Number(val)),
-        z.number().min(0, { message: 'From must be >= 0' }).max(100, { message: 'From must be <= 100' })
-    ),
-    emgD_To: z.preprocess(
-        (val) => (val === '' || val === undefined ? 0 : Number(val)),
-        z.number().min(0, { message: 'To must be >= 0' }).max(100, { message: 'To must be <= 100' })
-    ),
-    emgD_GradePoints: z.preprocess(
-        (val) => (val === '' || val === undefined ? 0 : Number(val)),
-        z.number().min(0, { message: 'Grade Points must be >= 0' }).max(100, { message: 'Grade Points must be <= 100' })
-    ),
-    emgD_Remarks: z.string().optional()
+    emgD_From: z.preprocess((val) => (val === '' || val === undefined ? 0 : Number(val)), z.number().min(0).max(100)),
+    emgD_To: z.preprocess((val) => (val === '' || val === undefined ? 0 : Number(val)), z.number().min(0).max(100)),
+    emgD_GradePoints: z.preprocess((val) => (val === '' || val === undefined ? 0 : Number(val)), z.number().min(0).max(100)),
+    emgD_Remarks: z.string().optional(),
+    emgD_ActiveFlag: z.boolean().default(true)
 });
 
 // Master Grade Schema
 export const masterGradeSchema = {
     addOrUpdate: z.object({
-        emgR_Id: z.number().int({ message: 'Grade Id is required' }).optional(),
-        mI_Id: z.number().int({ message: 'Institute ID is required' }),
-        emgR_GradeName: createStringSchema('Grade Name', 1, 100),
-        emgR_MarksPerFlag: z.enum(['m', 'p'], {
-            required_error: 'Marks/Percentage flag is required'
-        }),
-        emgR_ActiveFlag: z.boolean({ required_error: 'Active flag is required' }),
-        subject_list: z.array(gradeDetailsSchema).min(1, { message: 'At least one grade detail is required' })
+        emgR_Id: z.number().optional(),
+        mI_Id: z.number().optional(),
+        emgR_GradeName: z
+            .string()
+            .nonempty({ message: 'Grade Name is required' })
+            .max(100, { message: 'Grade Name cannot exceed 100 characters' }),
+        emgR_MarksPerFlag: z.enum(['m', 'p'], { required_error: 'Marks/Percentage flag is required' }),
+        emgR_ActiveFlag: z.boolean().default(true),
+        grade_list: z.array(gradeDetailsSchema).min(1, { message: 'At least one grade detail is required' })
     }),
 
     delete: z.object({
-        emgR_Id: deleteIdSchema('emgR_Id')
+        emgR_Id: z.number({ required_error: 'Grade Id is required' })
     })
 };
 
