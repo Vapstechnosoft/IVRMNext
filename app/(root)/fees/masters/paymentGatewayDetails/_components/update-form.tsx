@@ -63,7 +63,11 @@ export default function UpdatePaymentGatewayDetailsForm({ onSuccess, selectedRow
             });
 
             if (Array.isArray(selectedRow.submerchantIds)) {
-                setSubmerchantIds(selectedRow.submerchantIds.map((id: any) => ({ id: id.fpgD_SubMerchantId || id.id })));
+                setSubmerchantIds(
+                    selectedRow.submerchantIds.map((id: any) => ({
+                        id: id.fpgD_SubMerchantId || id.id
+                    }))
+                );
             }
         }
     }, [selectedRow, reset]);
@@ -120,12 +124,13 @@ export default function UpdatePaymentGatewayDetailsForm({ onSuccess, selectedRow
     return (
         <form onSubmit={handleSubmit(onSubmit)} className='space-y-6'>
             <div className='grid grid-cols-1 gap-4 md:grid-cols-4'>
-                <InputText
-                    label='Merchant Id'
-                    id='fpgD_MerchantId'
-                    {...register('fpgD_MerchantId')}
-                    error={errors.fpgD_MerchantId?.message}
-                />
+                <div className='flex flex-col gap-1.5'>
+                    <label htmlFor='fpgD_MerchantId'>
+                        Merchant Id <span className='text-red-500'>*</span>
+                    </label>
+                    <InputText id='fpgD_MerchantId' {...register('fpgD_MerchantId')} error={errors.fpgD_MerchantId?.message} />
+                </div>
+
                 <InputText label='Salt Key' id='fpgD_SaltKey' {...register('fpgD_SaltKey')} error={errors.fpgD_SaltKey?.message} />
                 <InputText label='Image' id='fpgD_Image' {...register('fpgD_Image')} error={errors.fpgD_Image?.message} />
                 <InputText label='URL' id='fpgD_URL' {...register('fpgD_URL')} error={errors.fpgD_URL?.message} />
