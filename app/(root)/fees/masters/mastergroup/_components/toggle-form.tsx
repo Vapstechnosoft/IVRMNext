@@ -64,7 +64,11 @@ export default function ToggleMasterGroupForm({ rowData, onClose }: ToggleMaster
                     <input type='hidden' {...register('fmG_Id')} defaultValue={rowData.fmG_Id} />
                     <input type='hidden' {...register('fmG_ActiceFlag')} defaultValue={rowData.fmG_ActiceFlag.toString()} />
 
-                    <div className='space-y-3'></div>
+                    <div className='space-y-3'>
+                        <p className='text-sm text-warning-foreground'>
+                            Are you sure you want to {isActive ? 'deactivate' : 'activate'} <strong>{rowData.fmG_GroupName}</strong>?
+                        </p>
+                    </div>
                 </AdaptiveBody>
 
                 <AdaptiveFooter>
