@@ -12,7 +12,7 @@ export async function getMasterExam(searchParams?: ApiSearchparams) {
 
 export async function addOrUpdateMasterExam(data: any) {
     const url = '/exam_master';
-    return await api.put<any>('exam', url, data);
+    return await api.post<any>('exam', url, data);
 }
 
 export async function toggleMasterExam(mi_id: number, id: number) {

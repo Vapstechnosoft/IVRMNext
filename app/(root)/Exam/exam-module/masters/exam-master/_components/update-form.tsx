@@ -73,8 +73,6 @@ export default function UpdateMasterExamForm({ onSuccess, className = '', select
                 emE_SujectwiseMarksPublishFlg: Boolean(data.emE_SujectwiseMarksPublishFlg)
             };
 
-            console.info('Payload being sent:', payload);
-
             const response = await addOrUpdateMasterExam(payload);
 
             if (response.success) {

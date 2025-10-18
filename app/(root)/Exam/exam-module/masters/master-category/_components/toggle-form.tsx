@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { AdaptiveBody, AdaptiveDialog, AdaptiveFooter } from '@/components/ui/extension/adaptive-dialog';
 import { useMasterCategory } from '@/hooks/exam/exammodule/usemasters';
 import { masterCategorySchema } from '@/schemas/exam/exam-module/masters';
-import { toggleMasterExamCategory } from '@/server/exam/exam-module/masters/category-class-mapping';
+import { toggleMasterExamCategory } from '@/server/exam/exam-module/masters/category';
 import type { IMasterCategory } from '@/types/exam/exam-module/masters';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { type SubmitHandler, useForm } from 'react-hook-form';

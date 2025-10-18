@@ -8,7 +8,6 @@ export async function getMasterSubject(searchParams?: ApiSearchparams) {
     const urlParams = getSearchParamsUrl(searchParams ?? {});
 
     const url = `/master_subject/30?${urlParams}`;
-    console.info(url);
     return api.get<IMasterSubject[]>('exam', url);
 }
 

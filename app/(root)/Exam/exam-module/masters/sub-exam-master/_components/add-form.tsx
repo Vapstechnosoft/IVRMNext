@@ -47,7 +47,6 @@ export default function AddMasterSubExamForm({ onSuccess, className = '' }: AddM
 
     const onSubmit: SubmitHandler<FormFields> = async (data) => {
         try {
-            console.info('data', data);
             const response = await addOrUpdateMasterSubExam(data);
             if (response.success) {
                 toast.success(response.message);
@@ -83,17 +82,17 @@ export default function AddMasterSubExamForm({ onSuccess, className = '' }: AddM
     const handleReset = () => reset();
     const handleOrderSave = async (updatedData: (IMasterSubExam & { id: number })[]) => {
         try {
+            setIsOrderSaving(true);
             // Map updated data with new order
             const updatedOrderData = updatedData.map((item, index) => ({
                 emsE_Id: item.emsE_Id,
-                emsE_SubExamOrder: index + 1
+                emE_ExamOrder: index + 1
             }));
 
             const payload = {
-                subject_list_Order: updatedOrderData // ✅ correct variable name
+                mI_Id: 30,
+                sub_exam: updatedOrderData // ✅ correct variable name
             };
-
-            // Call API
             const response = await UpdatedOrderdSubExams(payload);
 
             if (response.success) {
@@ -178,6 +177,7 @@ export default function AddMasterSubExamForm({ onSuccess, className = '' }: AddM
                     isOpen={orderModalOpen}
                     onClose={() => setOrderModalOpen(false)}
                     data={orderData}
+                    isLoading={isOrderSaving}
                     columns={[
                         { key: 'id', label: 'SLNO', className: 'text-center w-12' },
                         { key: 'emsE_SubExamName', label: 'Sub-Exam Name', className: 'text-left' },

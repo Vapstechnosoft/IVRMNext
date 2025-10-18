@@ -47,7 +47,7 @@ export default function AddMasterSubSubjectForm({ onSuccess, className = '' }: A
             emsS_ActiveFlag: true
         }
     });
-
+    const [isOrderSaving, setIsOrderSaving] = useState(false);
     // Submit handler
     const onSubmit: SubmitHandler<FormFields> = async (data) => {
         try {
@@ -71,10 +71,11 @@ export default function AddMasterSubSubjectForm({ onSuccess, className = '' }: A
     const handleSetOrder = async () => {
         try {
             const response = await getMasterSubSubjectOrderData(30);
+
             if (response.success && response.data) {
                 const data = Array.isArray(response.data) ? response.data : [];
                 const mapped = data.map((d: IMasterSubSubject) => ({ ...d, id: d.emsS_Id }));
-                setOrderData(mapped);
+
                 setOrderModalOpen(true);
             } else {
                 toast.error(response.message || 'Failed to fetch sub-subjects.');
@@ -87,6 +88,7 @@ export default function AddMasterSubSubjectForm({ onSuccess, className = '' }: A
     // Handle order save
     const handleOrderSave = async (updatedData: (IMasterSubSubject & { id: number })[]) => {
         try {
+            setIsOrderSaving(true);
             // Build the DTO array
             const subsubjectDTO = updatedData.map((item, index) => ({
                 emsS_Id: item.emsS_Id,
@@ -95,15 +97,13 @@ export default function AddMasterSubSubjectForm({ onSuccess, className = '' }: A
 
             // Wrap it in the correct payload structure
             const payload = { subsubjectDTO };
-
-            console.info('Payload being sent:', payload);
-
             // Send the payload to the API
             const response = await UpdatedOrderdSubSubjects(payload);
 
             if (response.success) {
                 toast.success(response.message);
                 refetchAll();
+                setIsOrderSaving(false);
                 setOrderModalOpen(false);
                 onSuccess?.();
             } else {
@@ -111,6 +111,9 @@ export default function AddMasterSubSubjectForm({ onSuccess, className = '' }: A
             }
         } catch (error: any) {
             toast.error(error.message);
+        } finally {
+            setIsOrderSaving(false);
+            setOrderModalOpen(false);
         }
     };
 
@@ -175,10 +178,11 @@ export default function AddMasterSubSubjectForm({ onSuccess, className = '' }: A
                     isOpen={orderModalOpen}
                     onClose={() => setOrderModalOpen(false)}
                     data={orderData}
+                    isLoading={isOrderSaving}
                     columns={[
                         { key: 'id', label: 'SL.No', className: 'text-center w-12' },
-                        { key: 'ismS_SubjectName', label: 'Sub Subject Name', className: 'text-left' },
-                        { key: 'ismS_SubjectCode', label: 'Sub Subject Code', className: 'text-left' },
+                        { key: 'emsS_SubSubjectName', label: 'Sub Subject Name', className: 'text-left' },
+                        { key: 'emsS_SubSubjectCode', label: 'Sub Subject Code', className: 'text-left' },
                         { key: 'emsS_Order', label: 'Order', className: 'text-left' }
                     ]}
                     onSave={handleOrderSave}

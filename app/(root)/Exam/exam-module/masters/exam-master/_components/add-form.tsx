@@ -7,7 +7,7 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { MasterViewDetails } from '@/components/ui/set-order/generic-seto-order';
 import { useMasterExam } from '@/hooks/exam/exammodule/usemasters';
 import { masterExamSchema } from '@/schemas/exam/exam-module/masters';
-import { UpdatedOrderdExams, addOrUpdateMasterExam, getMasterExamOrderData } from '@/server/exam/exam-module/masters/exam';
+import { addOrUpdateMasterExam, getMasterExamOrderData } from '@/server/exam/exam-module/masters/exam';
 import type { IMasterExamOrder } from '@/types/exam/exam-module/masters';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { List, Save } from 'lucide-react';
@@ -61,10 +61,7 @@ export default function AddMasterExamForm({ onSuccess, className = '' }: AddMast
                 emE_SujectwiseMarksPublishFlg: Boolean(data.emE_SujectwiseMarksPublishFlg)
             };
 
-            console.info('Payload being sent:', payload);
-
             const response = await addOrUpdateMasterExam(payload);
-            console.info('Response:', response);
 
             if (response.success) {
                 toast.success(response.message || 'Exam added successfully');
@@ -106,9 +103,6 @@ export default function AddMasterExamForm({ onSuccess, className = '' }: AddMast
                     emE_ExamOrder: index + 1
                 }))
             };
-
-            console.info('Order payload being sent:', payload);
-            const response = await UpdatedOrderdExams(payload);
 
             if (response.success) {
                 toast.success(response.message);
