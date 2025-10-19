@@ -17,7 +17,7 @@ export const studentApplicationFormSchema = {
         pasR_FirstName: createStringSchema('First Name', 1, 100),
         pasR_MiddleName: createOptionalStringSchema('Middle Name', 1, 100),
         pasR_LastName: createOptionalStringSchema('Last Name', 1, 100),
-        pasR_MobileNo: z.number().int({ message: 'Student Mobile Number is required' }),
+        pasR_MobileNo: z.string().min(10, { message: 'Mobile No is 10 digits required' }).max(10, { message: 'Maximum 10 digits' }),
         pasR_BirthPlace: createOptionalStringSchema('Student Birth Place', 1, 100),
         religion_Id: z.number().int({ message: 'Religion is required' }),
         caste_Id: z.number().int({ message: 'Caste is required' }),
@@ -29,7 +29,7 @@ export const studentApplicationFormSchema = {
         pasR_MotherTongue: createOptionalStringSchema('Student Mother Tongue', 1, 100),
 
         //Other Details
-        pasR_AadharNo: z.number().int({ message: 'Student Aadhaar is required' }).max(12).optional(),
+        pasR_AadharNo: z.string().max(12, { message: 'Maximum 12 digits' }).optional(),
         pasR_Languagespeaking: createOptionalStringSchema('Student Language Speaking At Home', 1, 100),
         pasR_LastPlayGrndAttnd: createOptionalStringSchema('Student Last Play Ground Attended', 1, 50),
         pasR_ExtraActivity: createOptionalStringSchema('Student Extra Activity', 1, 50),
@@ -62,7 +62,7 @@ export const studentApplicationFormSchema = {
         pasR_FatherDesignation: createOptionalStringSchema('Father Designation', 1, 100),
         pasR_FatherNationality: z.number().int({ message: 'Nationality is required' }),
         pasR_FatherOfficeAddr: createOptionalStringSchema('Father Office Address', 1, 100),
-        pasR_FatherMobleNo: z.number().optional(),
+        pasR_FatherMobleNo: z.string().max(10, { message: 'Maximum 10 digits' }).optional(),
 
         //Mother Details
         pasR_MotherName: createStringSchema('Mother Name', 1, 100),
@@ -73,12 +73,12 @@ export const studentApplicationFormSchema = {
         pasR_MotherDesignation: createOptionalStringSchema('Mother Designation', 1, 100),
         pasR_MotherNationality: z.number().int({ message: 'Nationality is required' }),
         pasR_MotherOfficeAddr: createOptionalStringSchema('Mother Office Address', 1, 100),
-        pasR_MotherMobleNo: z.number().optional(),
+        pasR_MotherMobleNo: z.string().max(10, { message: 'Maximum 10 digits' }).optional(),
 
         //Yearly Income
         pasR_FatherIncome: z.number().optional(),
         pasR_MotherIncome: z.number().optional(),
-        pasR_AltContactNo: z.number().optional(),
+        pasR_AltContactNo: z.string().max(10, { message: 'Maximum 10 digits' }).optional(),
         pasR_AltContactEmail: createOptionalStringSchema('Alternate Contact Email', 1, 50),
 
         //Sibling Details need to be added here

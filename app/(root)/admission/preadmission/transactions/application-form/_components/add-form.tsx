@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { CalendarYear } from '@/components/ui/calendar_year';
 import { Checkbox } from '@/components/ui/checkbox';
 import { FormError, Label } from '@/components/ui/extension/field';
+import { MobileNumberInput } from '@/components/ui/extension/input-mobile-number';
 import { InputNumber } from '@/components/ui/extension/input-number';
 import { InputText } from '@/components/ui/extension/input-text';
 import { MultiSelect } from '@/components/ui/multi-select';
@@ -175,10 +176,12 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
         }
 
         try {
-            const { pasR_DOB, source_ids, reference_ids, pasR_PerState, pasR_ConCountry, pasR_PerCountry, ...filteredData } = data;
+            const { pasR_DOB, pasR_MobileNo, source_ids, reference_ids, pasR_PerState, pasR_ConCountry, pasR_PerCountry, ...filteredData } =
+                data;
             const payload = {
                 ...filteredData,
                 pasR_DOB: format(pasR_DOB, 'yyyy-MM-dd'),
+                pasR_MobileNo: Number(pasR_MobileNo),
                 pasR_Age: calculatedAgeDetails.ageInYears,
                 PASR_PerState: pasR_PerState?.toString() ?? '',
                 PASR_ConCountry: pasR_ConCountry?.toString() ?? '',
@@ -444,13 +447,14 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
                                                     name='pasR_MobileNo'
                                                     control={control}
                                                     render={({ field }) => (
-                                                        <InputNumber
+                                                        <MobileNumberInput
                                                             label='Mobile No.'
                                                             required
                                                             id='pasR_MobileNo'
                                                             value={field.value || 0}
                                                             onChange={(value) => field.onChange(value)}
-                                                            minValue={0}
+                                                            type='number'
+                                                            showSpinner={false}
                                                         />
                                                     )}
                                                 />
@@ -664,13 +668,13 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
                                                     name='pasR_AadharNo'
                                                     control={control}
                                                     render={({ field }) => (
-                                                        <InputNumber
+                                                        <MobileNumberInput
                                                             label='Aadhaar No.'
-                                                            optional
                                                             id='pasR_AadharNo'
                                                             value={field.value || 0}
                                                             onChange={(value) => field.onChange(value)}
-                                                            minValue={0}
+                                                            type='number'
+                                                            showSpinner={false}
                                                         />
                                                     )}
                                                 />
@@ -1142,12 +1146,13 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
                                                             name='pasR_FatherMobleNo'
                                                             control={control}
                                                             render={({ field }) => (
-                                                                <InputNumber
+                                                                <MobileNumberInput
                                                                     label='Mobile No.'
                                                                     id='pasR_FatherMobleNo'
                                                                     value={field.value || 0}
                                                                     onChange={(value) => field.onChange(value)}
-                                                                    minValue={0}
+                                                                    type='number'
+                                                                    showSpinner={false}
                                                                 />
                                                             )}
                                                         />
@@ -1267,12 +1272,13 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
                                                             name='pasR_MotherMobleNo'
                                                             control={control}
                                                             render={({ field }) => (
-                                                                <InputNumber
+                                                                <MobileNumberInput
                                                                     label='Mobile No.'
                                                                     id='pasR_MotherMobleNo'
                                                                     value={field.value || 0}
                                                                     onChange={(value) => field.onChange(value)}
-                                                                    minValue={0}
+                                                                    type='number'
+                                                                    showSpinner={false}
                                                                 />
                                                             )}
                                                         />
@@ -1309,12 +1315,13 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
                                                             name='pasR_AltContactNo'
                                                             control={control}
                                                             render={({ field }) => (
-                                                                <InputNumber
+                                                                <MobileNumberInput
                                                                     label='Alternate Contact No.'
                                                                     id='pasR_AltContactNo'
                                                                     value={field.value || 0}
                                                                     onChange={(value) => field.onChange(value)}
-                                                                    minValue={0}
+                                                                    type='number'
+                                                                    showSpinner={false}
                                                                 />
                                                             )}
                                                         />
