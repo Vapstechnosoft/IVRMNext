@@ -47,7 +47,7 @@ export default function AddMasterSubSubjectForm({ onSuccess, className = '' }: A
             emsS_ActiveFlag: true
         }
     });
-
+    const [isOrderSaving, setIsOrderSaving] = useState(false);
     // Submit handler
     const onSubmit: SubmitHandler<FormFields> = async (data) => {
         try {
@@ -75,6 +75,7 @@ export default function AddMasterSubSubjectForm({ onSuccess, className = '' }: A
                 const data = Array.isArray(response.data) ? response.data : [];
                 const mapped = data.map((d: IMasterSubSubject) => ({ ...d, id: d.emsS_Id }));
                 setOrderData(mapped);
+                console.info('mapped', mapped);
                 setOrderModalOpen(true);
             } else {
                 toast.error(response.message || 'Failed to fetch sub-subjects.');
@@ -87,6 +88,7 @@ export default function AddMasterSubSubjectForm({ onSuccess, className = '' }: A
     // Handle order save
     const handleOrderSave = async (updatedData: (IMasterSubSubject & { id: number })[]) => {
         try {
+            setIsOrderSaving(true);
             // Build the DTO array
             const subsubjectDTO = updatedData.map((item, index) => ({
                 emsS_Id: item.emsS_Id,
@@ -104,6 +106,7 @@ export default function AddMasterSubSubjectForm({ onSuccess, className = '' }: A
             if (response.success) {
                 toast.success(response.message);
                 refetchAll();
+                setIsOrderSaving(false);
                 setOrderModalOpen(false);
                 onSuccess?.();
             } else {
@@ -111,6 +114,9 @@ export default function AddMasterSubSubjectForm({ onSuccess, className = '' }: A
             }
         } catch (error: any) {
             toast.error(error.message);
+        } finally {
+            setIsOrderSaving(false);
+            setOrderModalOpen(false);
         }
     };
 
@@ -175,6 +181,7 @@ export default function AddMasterSubSubjectForm({ onSuccess, className = '' }: A
                     isOpen={orderModalOpen}
                     onClose={() => setOrderModalOpen(false)}
                     data={orderData}
+                    isLoading={isOrderSaving}
                     columns={[
                         { key: 'id', label: 'SL.No', className: 'text-center w-12' },
                         { key: 'emsS_SubSubjectName', label: 'Sub Subject Name', className: 'text-left' },

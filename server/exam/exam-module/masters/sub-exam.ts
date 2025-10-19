@@ -11,22 +11,22 @@ export async function getMasterSubExam(searchParams?: ApiSearchparams) {
 }
 
 export async function addOrUpdateMasterSubExam(data: any) {
-    const url = '/master_sub_exam/AddOrUpdateMasterSubExam';
+    const url = '/master_sub_exam';
     return await api.post<any>('exam', url, data);
 }
 
 export async function toggleMasterSubExam(mi_id: number, id: number) {
-    const url = `/master_sub_exam/ToggleMasterSubExam/${mi_id}/${id}`;
+    const url = `/master_sub_exam/toggle_master_sub_exam/${mi_id}/${id}`;
     return await api.put('exam', url);
 }
 
 export async function getMasterSubExamOrderData(searchParams?: ApiSearchparams) {
     const urlParams = getSearchParamsUrl(searchParams ?? {});
-    const url = `/master_sub_exam/GetMasterSubExamOrderList/30?${urlParams}`;
+    const url = `/master_sub_exam/master_sub_exam_order_list/30?${urlParams}`;
     console.info(url);
     return await api.get<any>('exam', url);
 }
 export async function UpdatedOrderdSubExams(data: any) {
-    const url = '/master_sub_exam/SetMasterSubExamOrderNumber';
+    const url = '/master_sub_exam/set_master_sub_exam_order_number';
     return await api.put<any>('exam', url, data);
 }

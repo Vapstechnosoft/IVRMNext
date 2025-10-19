@@ -1,60 +1,33 @@
 'use client';
 
-import type { ColumnDef } from '@tanstack/react-table';
 import { Database, RefreshCw } from 'lucide-react';
-import { DataTable } from './data-table';
 
-interface GenericDataTableProps<T extends { selected?: boolean }> {
-    // Data props
-    data?: T[];
-    total?: number;
-    columns: ColumnDef<T>[];
-    totalItems?: number;
-
-    // State props
-    isLoading: boolean;
+/* -------------------------------------------------------------------------- */
+/*                           📦 Data State Handler                            */
+/* -------------------------------------------------------------------------- */
+interface DataStateHandlerProps {
+    isLoading?: boolean;
     error?: Error | null;
     success?: boolean;
+    dataLength?: number;
     errorMessage?: string;
-
-    // Table configuration
-    showViewOptions?: boolean;
-    columnPinning?: { left?: string[]; right?: string[] };
-
-    // Row selection
-    maxSelectableRows?: number;
-    onRowSelectionChange?: (selectedRows: T[]) => void;
-
-    // Custom messages
     loadingMessage?: string;
     errorTitle?: string;
     noDataTitle?: string;
     noDataDescription?: string;
     requestFailedTitle?: string;
-
-    // Custom icons
     LoadingIcon?: React.ComponentType<{ className?: string }>;
     ErrorIcon?: React.ComponentType<{ className?: string }>;
     NoDataIcon?: React.ComponentType<{ className?: string }>;
-
-    // Custom loading/error components
-    LoadingComponent?: React.ComponentType;
-    ErrorComponent?: React.ComponentType<{ error: Error; message: string }>;
-    NoDataComponent?: React.ComponentType;
+    children: React.ReactNode;
 }
 
-export function GenericDataTable<T extends { selected?: boolean }>({
-    data = [],
-    columns,
-    totalItems = 0,
-    isLoading,
-    error,
+export function DataStateHandler({
+    isLoading = false,
+    error = null,
     success = true,
+    dataLength = 0,
     errorMessage,
-    showViewOptions = true,
-    columnPinning,
-    maxSelectableRows = 0,
-    onRowSelectionChange,
     loadingMessage = 'Loading data...',
     errorTitle = 'Error Loading Data',
     noDataTitle = 'No Data Found',
@@ -63,13 +36,9 @@ export function GenericDataTable<T extends { selected?: boolean }>({
     LoadingIcon = RefreshCw,
     ErrorIcon = Database,
     NoDataIcon = Database,
-    LoadingComponent,
-    ErrorComponent,
-    NoDataComponent
-}: GenericDataTableProps<T>) {
-    // Loading state
+    children
+}: DataStateHandlerProps) {
     if (isLoading) {
-        if (LoadingComponent) return <LoadingComponent />;
         return (
             <div className='flex flex-col items-center justify-center space-y-4 py-12'>
                 <LoadingIcon className='h-8 w-8 animate-spin text-secondary' />
@@ -78,9 +47,7 @@ export function GenericDataTable<T extends { selected?: boolean }>({
         );
     }
 
-    // Error state
     if (error) {
-        if (ErrorComponent) return <ErrorComponent error={error} message={error.message} />;
         return (
             <div className='flex flex-col items-center justify-center space-y-4 py-12'>
                 <div className='rounded-full bg-destructive/10 p-3'>
@@ -94,7 +61,6 @@ export function GenericDataTable<T extends { selected?: boolean }>({
         );
     }
 
-    // Request failed state
     if (!success) {
         return (
             <div className='flex flex-col items-center justify-center space-y-4 py-12'>
@@ -109,9 +75,7 @@ export function GenericDataTable<T extends { selected?: boolean }>({
         );
     }
 
-    // No data state
-    if (data.length === 0) {
-        if (NoDataComponent) return <NoDataComponent />;
+    if (dataLength === 0) {
         return (
             <div className='flex flex-col items-center justify-center space-y-4 py-12'>
                 <div className='rounded-full bg-muted p-3'>
@@ -125,45 +89,5 @@ export function GenericDataTable<T extends { selected?: boolean }>({
         );
     }
 
-    // Success state with data
-    return (
-        <div className='overflow-hidden rounded-lg bg-card'>
-            <DataTable
-                isLoading={false}
-                columns={columns}
-                data={data}
-                totalItems={totalItems}
-                showViewOptions={showViewOptions}
-                columnPinning={columnPinning}
-                maxSelectableRows={maxSelectableRows}
-                onRowSelectionChange={onRowSelectionChange}
-            />
-        </div>
-    );
-}
-
-// Hook for common API response pattern
-export function useDataTableProps(
-    response: any,
-    options?: {
-        dataKey?: string;
-        totalKey?: string;
-        successKey?: string;
-        messageKey?: string;
-    }
-) {
-    const { dataKey = 'data', totalKey = 'total', successKey = 'success', messageKey = 'message' } = options || {};
-
-    // Ensure pre-selection works if the API returns objects with `selected` property
-    const data = response?.[dataKey] || [];
-    const totalItems = response?.[totalKey] || 0;
-    const success = response?.[successKey] ?? true;
-    const errorMessage = response?.[messageKey];
-
-    return {
-        data,
-        totalItems,
-        success,
-        errorMessage
-    };
+    return <>{children}</>;
 }

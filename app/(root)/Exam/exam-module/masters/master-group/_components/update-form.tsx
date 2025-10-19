@@ -1,10 +1,13 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
-import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/generic-data-table';
 import { InputText } from '@/components/ui/extension/input-text';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
-import { useMasterGetAllSubjectGroupDetails, useMasterSubjectGroupDetails } from '@/hooks/exam/exammodule/usemasters';
+import {
+    useMasterGetAllSubjectGroupDetails,
+    useMasterSubjectGroup,
+    useMasterSubjectGroupDetails
+} from '@/hooks/exam/exammodule/usemasters';
 import { masterSubjectGroupSchema } from '@/schemas/exam/exam-module/masters';
 import { addOrUpdateMasterSubjectGroup } from '@/server/exam/exam-module/masters/subject-group';
 import type { IMasterSubjectGroup, IMasterSubjectGroupDetails } from '@/types/exam/exam-module/masters';
@@ -13,7 +16,8 @@ import { useEffect, useState } from 'react';
 import { type SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import type { z } from 'zod';
-import { MasterSubjectGroupDetailsColumns } from './subject-group-details-columns';
+import { SimpleSubjectTable } from './data-table';
+import { DataStateHandler } from './generic-data-table';
 
 type FormFields = z.infer<typeof masterSubjectGroupSchema.addOrUpdate>;
 
@@ -24,8 +28,9 @@ interface MasterSubjectGroupUpdateFormProps {
 }
 
 export default function MasterSubjectGroupUpdateForm({ initialData, onSuccess, className = '' }: MasterSubjectGroupUpdateFormProps) {
-    const [selectedSubjects, setSelectedSubjects] = useState<number[]>([]);
+    const [selectedSubjects, setSelectedSubjects] = useState<IMasterSubjectGroupDetails[]>([]);
     const [allSubjects, setAllSubjects] = useState<IMasterSubjectGroupDetails[]>([]);
+    const { refetchAll } = useMasterSubjectGroup();
 
     // Fetch group-specific subjects
     const { data: groupSubjectsResponse } = useMasterSubjectGroupDetails(initialData.emG_Id);
@@ -40,18 +45,14 @@ export default function MasterSubjectGroupUpdateForm({ initialData, onSuccess, c
 
         setAllSubjects(normalizedAllSubjects);
 
-        const preSelectedIds = normalizedGroupSubjects.map((s) => s.ismS_Id ?? 0).filter((id) => id > 0);
-
-        setSelectedSubjects(preSelectedIds);
-
-        console.log('All Subjects:', normalizedAllSubjects);
-        console.log('Group Subjects:', normalizedGroupSubjects);
+        setSelectedSubjects(normalizedGroupSubjects);
     }, [allSubjectsResponse, groupSubjectsResponse]);
     // Initialize form
     const {
         register,
         handleSubmit,
         watch,
+        reset,
         formState: { errors, isSubmitting }
     } = useForm<FormFields>({
         resolver: zodResolver(masterSubjectGroupSchema.addOrUpdate),
@@ -73,50 +74,42 @@ export default function MasterSubjectGroupUpdateForm({ initialData, onSuccess, c
     const isSubjectsEnabled = minSubjects > 0 && maxSubjects >= minSubjects;
 
     // Columns
-    const columns = [...MasterSubjectGroupDetailsColumns];
-
-    // Prepare table props
-    const tableProps = useDataTableProps({
-        data: allSubjects.map((s) => ({
-            ...s,
-            selected: s.ismS_Id !== undefined && selectedSubjects.includes(s.ismS_Id)
-        })),
-        total: allSubjects.length
-    });
 
     // Submit form
     const onSubmit: SubmitHandler<FormFields> = async (data) => {
         if (!isSubjectsEnabled) {
-            toast.error('Please enter valid Min/Max subjects before saving');
+            toast.error('Enter valid Min/Max subjects before selecting subjects');
             return;
         }
 
-        if (selectedSubjects.length < minSubjects) {
-            toast.error(`Please select at least ${minSubjects} subjects`);
+        if (selectedSubjects.length === 0) {
+            toast.error('Please select at least one subject');
             return;
         }
 
         const payload = {
-            ...data,
-            mI_Id: 30,
-            subject_list: allSubjects
-                .filter((s) => s.ismS_Id !== undefined && selectedSubjects.includes(s.ismS_Id))
-                .map((s) => ({
-                    ismS_Id: s.ismS_Id,
-                    ismS_SubjectName: s.ismS_SubjectName
-                }))
+            emG_Id: initialData?.emG_Id ?? 0,
+            mI_Id: 30, // hardcoded or pass from context
+            emG_GroupName: data.emG_GroupName,
+            emG_TotSubjects: data.emG_TotSubjects,
+            emG_MaxAplSubjects: data.emG_MaxAplSubjects,
+            emG_MinAplSubjects: data.emG_MinAplSubjects,
+            emG_BestOff: data.emG_BestOff,
+            subject_list: selectedSubjects.map((s) => ({ ismS_Id: s.ismS_Id }))
         };
 
         try {
             const res = await addOrUpdateMasterSubjectGroup(payload);
             if (res.success) {
-                toast.success('Group updated successfully');
+                toast.success(res.message || 'Saved successfully.');
+                reset();
+                refetchAll();
                 onSuccess?.();
             } else {
-                toast.error(res.message || 'Failed to update group');
+                toast.error(res.message || 'Failed to save.');
             }
         } catch (err: any) {
-            toast.error(err.message);
+            toast.error(err.message || 'Something went wrong.');
         }
     };
 
@@ -157,22 +150,26 @@ export default function MasterSubjectGroupUpdateForm({ initialData, onSuccess, c
 
             {/* Subjects Table */}
             <CollapsibleSection title='Select Subjects' defaultOpen>
-                <GenericDataTable
-                    {...tableProps}
-                    columns={columns}
-                    isLoading={loadingAllSubjects || !allSubjects.length}
+                <DataStateHandler
+                    isLoading={loadingAllSubjects}
+                    error={null}
+                    success={!!allSubjects}
+                    dataLength={allSubjects?.length ?? 0}
+                    errorMessage='Failed to load subjects'
+                    loadingMessage='Loading subjects...'
                     noDataTitle='No Subjects Found'
-                    noDataDescription='Please add subjects first.'
-                    maxSelectableRows={maxSubjects}
-                    onRowSelectionChange={(rows) => {
-                        const ids = rows.map((r: IMasterSubjectGroupDetails) => r.ismS_Id ?? 0).filter((id) => id > 0);
-                        setSelectedSubjects(ids);
-                    }}
-                />
+                    noDataDescription='Please add or fetch subjects to display here.'>
+                    <SimpleSubjectTable
+                        allSubjects={allSubjects}
+                        preselectedSubjects={selectedSubjects}
+                        maxSelectableRows={maxSubjects}
+                        onSelectionChange={setSelectedSubjects}
+                    />
+                </DataStateHandler>
             </CollapsibleSection>
 
             {/* Actions */}
-            <div className='flex justify-end gap-2'>
+            <div className='flex w-fit justify-center gap-2 align-items-center'>
                 <Button type='submit' disabled={isSubmitting} isLoading={isSubmitting} loadingText='Updating...'>
                     Update
                 </Button>

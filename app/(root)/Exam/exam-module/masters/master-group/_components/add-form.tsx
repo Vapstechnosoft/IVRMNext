@@ -136,7 +136,6 @@ export default function MasterSubjectGroupForm({ onSuccess, className = '', init
             emG_BestOff: data.emG_BestOff,
             subject_list: selectedSubjects.map((s) => ({ ismS_Id: s.ismS_Id }))
         };
-        console.log(payload);
 
         try {
             const res = await addOrUpdateMasterSubjectGroup(payload);

@@ -19,7 +19,7 @@ export async function getMasterSubjectGroupDetails(groupId: number) {
 
 // 3️⃣ Add or Update Master Subject Group
 export async function addOrUpdateMasterSubjectGroup(data: any) {
-    const url = '/master_subject_group/add_or_update_master_subject_group';
+    const url = '/master_subject_group';
     return await api.post<any>('exam', url, data);
 }
 

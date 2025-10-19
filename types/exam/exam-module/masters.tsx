@@ -121,20 +121,32 @@ export interface IMasterSubjectGroupDetails {
 }
 
 export interface IMasterCategory {
-    ex_Id: number;
-    ex_CategoryName: string;
-    ex_CCEPromotionApplicableFlag: number;
-    ex_IsActiveFlag: boolean;
+    emcA_Id: number;
+    mI_Id: number;
+    emcA_CategoryName: string;
+    emcA_CCECheckingFlg: boolean;
+    emcA_ActiveFlag: boolean;
+    createdDate?: string;
+    updatedDate?: string;
 }
 
 // Category Class Mapping
 
 export interface ICategoryMapping {
-    ex_Id: number;
-    ex_AcademicYear: string;
-    ex_CategoryName: string;
-    ex_ClassName: string;
-    ex_IsActiveFlag: boolean;
+    emcA_Id: number;
+    mI_Id: number;
+    emcA_CategoryName: string;
+    emcA_CCECheckingFlg: boolean;
+    emcA_ActiveFlag: boolean;
+    ecaC_Id: number;
+    asmaY_Id: number;
+    asmcL_Id: number;
+    asmS_Id: number;
+    ecaC_ActiveFlag: boolean;
+    asmaY_Year: string;
+    asmcL_ClassName: string;
+    asmC_SectionName: string;
+    asmaY_Order: number;
 }
 
 export interface IMasterExamCategoryMapping {
@@ -152,13 +164,22 @@ export interface IAcademicYear {
 }
 
 export interface ICategory {
-    id: number;
-    name: string;
+    emcA_Id: number;
+    emcA_CategoryName: string;
 }
 
 export interface IClass {
-    id: number;
-    name: string;
+    asmcL_Id: number;
+    asmcL_ClassCode: string;
+    asmcL_ClassName: string;
+    asmcL_Order: number;
+    asmcL_MinAgeYear: number;
+    asmcL_MinAgeMonth: number;
+    asmcL_MinAgeDays: number;
+    asmcL_MaxAgeYear: number;
+    asmcL_MaxAgeMonth: number;
+    asmcL_MaxAgeDays: number;
+    asmcL_MaxCapacity: number;
 }
 
 export interface ISection {

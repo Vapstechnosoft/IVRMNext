@@ -26,7 +26,6 @@ export default function UpdateMasterExamPaperForm({ onSuccess, className = '', s
     const { refetchAll } = useMasterExamPaper();
 
     const {
-        control,
         register,
         handleSubmit,
         reset,

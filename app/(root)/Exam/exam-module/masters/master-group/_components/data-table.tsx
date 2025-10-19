@@ -1,158 +1,114 @@
 'use client';
-import { DataTableSkeleton } from '@/components/ui/data-table/data-table-skeleton';
+
+import { Checkbox } from '@/components/ui/checkbox';
+import { Input } from '@/components/ui/input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { getCommonPinningStyles, tableSearchVariables } from '@/lib/data-table.config';
-import {
-    type ColumnDef,
-    type ColumnPinningState,
-    flexRender,
-    getCoreRowModel,
-    getFilteredRowModel,
-    getPaginationRowModel,
-    useReactTable
-} from '@tanstack/react-table';
-import { parseAsInteger, useQueryState } from 'nuqs';
-import { useState } from 'react';
+import type { IMasterSubjectGroupDetails } from '@/types/exam/exam-module/masters';
+import { useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';
 
-interface DataTableProps<TData, TValue> {
-    columns: ColumnDef<TData, TValue>[];
-    data: TData[];
-    totalItems: number;
-    pageSizeOptions?: number[];
-    isLoading?: boolean;
-    showExportOptions?: boolean;
-    showViewOptions?: boolean;
-    columnPinning?: ColumnPinningState | undefined;
-
-    // ✅ For selectable rows
+interface SimpleSubjectTableProps {
+    allSubjects: IMasterSubjectGroupDetails[];
+    preselectedSubjects?: IMasterSubjectGroupDetails[];
     maxSelectableRows?: number;
-    onRowSelectionChange?: (selectedRows: TData[]) => void;
+    onSelectionChange?: (selected: IMasterSubjectGroupDetails[]) => void;
 }
 
-export function DataTable<TData extends { selected?: boolean }, TValue>({
-    columns,
-    data,
-    totalItems,
-    pageSizeOptions = [10, 20, 30, 40, 50],
-    isLoading,
-    showExportOptions = false,
-    showViewOptions = true,
-    columnPinning,
+export function SimpleSubjectTable({
+    allSubjects,
+    preselectedSubjects = [],
     maxSelectableRows = 0,
-    onRowSelectionChange
-}: DataTableProps<TData, TValue>) {
-    const [currentPage, setCurrentPage] = useQueryState(
-        tableSearchVariables.page,
-        parseAsInteger.withOptions({ shallow: false }).withDefault(1)
-    );
-    const [pageSize, setPageSize] = useQueryState(
-        tableSearchVariables.page_size,
-        parseAsInteger.withOptions({ shallow: false, history: 'push' }).withDefault(10)
-    );
+    onSelectionChange
+}: SimpleSubjectTableProps) {
+    const [search, setSearch] = useState('');
+    const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
 
-    // Initialize rowSelection from pre-selected rows
-    const initialSelection = data.reduce(
-        (acc, row) => {
-            const subjectRow = row as { ismS_Id?: number; selected?: boolean };
-            if (subjectRow.selected && subjectRow.ismS_Id !== undefined) {
-                acc[String(subjectRow.ismS_Id)] = true; // ID must match getRowId
-            }
-            return acc;
-        },
-        {} as Record<string, boolean>
-    );
+    // Initialize preselected rows
+    useEffect(() => {
+        const preselectedIds = new Set(
+            preselectedSubjects
+                .map((s) => s.ismS_Id)
+                .filter((id): id is number => id !== undefined) // ensure only numbers
+        );
+        setSelectedIds(preselectedIds);
+    }, [preselectedSubjects]);
 
-    const [rowSelection, setRowSelection] = useState<Record<string, boolean>>(initialSelection);
+    // Filter subjects by search
+    const filteredSubjects = useMemo(() => {
+        if (!search) return allSubjects;
+        return allSubjects.filter((subj) => subj.ismS_SubjectName.toLowerCase().includes(search.toLowerCase()));
+    }, [allSubjects, search]);
 
-    const paginationState = { pageIndex: currentPage - 1, pageSize };
-    const pageCount = Math.ceil(totalItems / pageSize);
+    // Handle selection toggle
+    const toggleSelection = (subject: IMasterSubjectGroupDetails) => {
+        if (subject.ismS_Id === undefined) return; // safety check
 
-    const table = useReactTable({
-        data,
-        columns,
-        pageCount,
-        state: {
-            pagination: paginationState,
-            rowSelection
-        },
-        onPaginationChange: (updaterOrValue) => {
-            const pagination = typeof updaterOrValue === 'function' ? updaterOrValue(paginationState) : updaterOrValue;
-            setCurrentPage(pagination.pageIndex + 1);
-            setPageSize(pagination.pageSize);
-        },
-        onRowSelectionChange: (newSelection) => {
-            const selectionObj = typeof newSelection === 'function' ? newSelection(rowSelection) : newSelection;
-            const selectedCount = Object.keys(selectionObj).length;
+        const updatedSelection = new Set(selectedIds);
 
-            if (maxSelectableRows && selectedCount > maxSelectableRows) {
-                toast.error(`You can select up to ${maxSelectableRows} rows only.`);
+        if (selectedIds.has(subject.ismS_Id)) {
+            updatedSelection.delete(subject.ismS_Id);
+        } else {
+            if (maxSelectableRows && updatedSelection.size >= maxSelectableRows) {
+                toast.error(`You can select up to ${maxSelectableRows} subjects only.`);
                 return;
             }
-
-            setRowSelection(selectionObj);
-
-            const selectedRows = table
-                .getFilteredRowModel()
-                .rows.filter((r) => selectionObj[r.id])
-                .map((r) => r.original);
-
-            onRowSelectionChange?.(selectedRows);
-        },
-        getCoreRowModel: getCoreRowModel(),
-        getPaginationRowModel: getPaginationRowModel(),
-        getFilteredRowModel: getFilteredRowModel(),
-        manualPagination: true,
-        manualSorting: true,
-        manualFiltering: true,
-        initialState: {
-            columnPinning: columnPinning || { right: ['actions'] }
+            updatedSelection.add(subject.ismS_Id);
         }
-    });
+
+        setSelectedIds(updatedSelection);
+
+        // Notify parent
+        const selectedSubjects = allSubjects.filter((s) => s.ismS_Id !== undefined && updatedSelection.has(s.ismS_Id));
+        onSelectionChange?.(selectedSubjects);
+    };
 
     return (
-        <div className='w-full space-y-2.5 overflow-auto'>
-            {isLoading ? (
-                <DataTableSkeleton columnCount={columns.length} rowCount={5} showPagination showViewOptions={false} />
-            ) : (
-                <div className='overflow-hidden rounded-md border'>
-                    <Table>
-                        <TableHeader>
-                            {table.getHeaderGroups().map((headerGroup) => (
-                                <TableRow key={headerGroup.id}>
-                                    {headerGroup.headers.map((header) => (
-                                        <TableHead
-                                            key={header.id}
-                                            colSpan={header.colSpan}
-                                            style={{ ...getCommonPinningStyles({ column: header.column }) }}>
-                                            {header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
-                                        </TableHead>
-                                    ))}
-                                </TableRow>
-                            ))}
-                        </TableHeader>
-                        <TableBody>
-                            {table.getRowModel().rows.length ? (
-                                table.getRowModel().rows.map((row) => (
-                                    <TableRow key={row.id} data-state={row.getIsSelected()}>
-                                        {row.getVisibleCells().map((cell) => (
-                                            <TableCell key={cell.id} style={{ ...getCommonPinningStyles({ column: cell.column }) }}>
-                                                {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                                            </TableCell>
-                                        ))}
-                                    </TableRow>
-                                ))
-                            ) : (
-                                <TableRow>
-                                    <TableCell colSpan={columns.length} className='h-24 text-center'>
-                                        No results.
+        <div className='w-full space-y-3'>
+            {/* 🔍 Search Box */}
+            <div className='flex items-center justify-between'>
+                <Input
+                    type='text'
+                    placeholder='Search subjects...'
+                    value={search}
+                    onChange={(e) => setSearch(e.target.value)}
+                    className='w-1/3'
+                />
+            </div>
+
+            {/* 📋 Table */}
+            <div className='overflow-hidden rounded-md border'>
+                <Table>
+                    <TableHeader>
+                        <TableRow>
+                            <TableHead className='w-16 text-center'>Select</TableHead>
+                            <TableHead>Subject Name</TableHead>
+                            <TableHead>Subject Code</TableHead>
+                        </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                        {filteredSubjects.length ? (
+                            filteredSubjects.map((subject) => (
+                                <TableRow key={subject.ismS_Id}>
+                                    <TableCell className='text-center'>
+                                        <Checkbox
+                                            checked={subject.ismS_Id !== undefined && selectedIds.has(subject.ismS_Id)}
+                                            onCheckedChange={() => toggleSelection(subject)}
+                                        />
                                     </TableCell>
+                                    <TableCell>{subject.ismS_SubjectName}</TableCell>
+                                    <TableCell>{subject.ismS_SubjectCode}</TableCell>
                                 </TableRow>
-                            )}
-                        </TableBody>
-                    </Table>
-                </div>
-            )}
+                            ))
+                        ) : (
+                            <TableRow>
+                                <TableCell colSpan={3} className='h-24 text-center text-gray-500'>
+                                    No subjects found.
+                                </TableCell>
+                            </TableRow>
+                        )}
+                    </TableBody>
+                </Table>
+            </div>
         </div>
     );
 }

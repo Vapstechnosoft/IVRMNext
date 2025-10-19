@@ -1,6 +1,4 @@
 'use client';
-
-import { getStatusBadge } from '@/components/extras/helpers/helper';
 import { Checkbox } from '@/components/ui/checkbox';
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
 import { ActionButtons } from '@/components/ui/form/action-buttons';
@@ -47,16 +45,6 @@ export const subSubjectColumns: ColumnDef<IMasterSubSubject>[] = [
         accessorKey: 'emsS_SubSubjectCode',
         header: ({ column }) => <DataTableColumnHeader column={column} title='SubSubject Code' />,
         cell: ({ row }) => <div>{row.getValue('emsS_SubSubjectCode')}</div>
-    },
-    {
-        accessorKey: 'emsSS_Order',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='SubSubject Order' />,
-        cell: ({ row }) => <div>{row.getValue('emsSS_Order') ?? '-'}</div>
-    },
-    {
-        accessorKey: 'emsS_ActiveFlag',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Active Flag' />,
-        cell: ({ row }) => getStatusBadge((row.getValue('emsS_ActiveFlag') as boolean) ? 'yes' : 'no')
     },
     {
         id: 'actions',

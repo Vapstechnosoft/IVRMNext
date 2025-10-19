@@ -26,7 +26,6 @@ export default function AddMasterSubExamForm({ onSuccess, className = '' }: AddM
     const { refetchAll } = useMasterExam();
 
     const {
-        control,
         register,
         handleSubmit,
         reset,
@@ -44,6 +43,7 @@ export default function AddMasterSubExamForm({ onSuccess, className = '' }: AddM
 
     const [orderModalOpen, setOrderModalOpen] = useState(false);
     const [orderData, setOrderData] = useState<(IMasterSubExam & { id: number })[]>([]);
+    const [isOrderSaving, setIsOrderSaving] = useState(false);
 
     const onSubmit: SubmitHandler<FormFields> = async (data) => {
         try {
@@ -83,31 +83,36 @@ export default function AddMasterSubExamForm({ onSuccess, className = '' }: AddM
     const handleReset = () => reset();
     const handleOrderSave = async (updatedData: (IMasterSubExam & { id: number })[]) => {
         try {
+            setIsOrderSaving(true);
             // Map updated data with new order
             const updatedOrderData = updatedData.map((item, index) => ({
                 emsE_Id: item.emsE_Id,
-                emsE_SubExamOrder: index + 1
+                emE_ExamOrder: index + 1
             }));
 
             const payload = {
-                subject_list_Order: updatedOrderData // ✅ correct variable name
+                mI_Id: 30,
+                sub_exam: updatedOrderData // ✅ correct variable name
             };
 
-            console.log('Payload being sent:', payload);
-
-            // Call API
+            console.info('payload', payload);
             const response = await UpdatedOrderdSubExams(payload);
 
             if (response.success) {
                 toast.success(response.message);
                 reset();
                 refetchAll();
+                setIsOrderSaving(false);
+                setOrderModalOpen(false);
                 onSuccess?.();
             } else {
                 toast.error(response.message);
             }
         } catch (error: any) {
             toast.error(error?.message || 'Something went wrong.');
+        } finally {
+            setIsOrderSaving(false);
+            setOrderModalOpen(false);
         }
     };
 
@@ -175,6 +180,7 @@ export default function AddMasterSubExamForm({ onSuccess, className = '' }: AddM
                     isOpen={orderModalOpen}
                     onClose={() => setOrderModalOpen(false)}
                     data={orderData}
+                    isLoading={isOrderSaving}
                     columns={[
                         { key: 'id', label: 'SLNO', className: 'text-center w-12' },
                         { key: 'emsE_SubExamName', label: 'Sub-Exam Name', className: 'text-left' },
