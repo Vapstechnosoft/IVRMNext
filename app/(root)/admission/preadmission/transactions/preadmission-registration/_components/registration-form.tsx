@@ -45,6 +45,7 @@ export default function AddPreadmissionRegistrationForm({ sub_domain, closeDialo
             if (response.success) {
                 toast.success(response.message);
                 reset();
+                closeDialog();
             } else {
                 toast.error(response.message);
             }

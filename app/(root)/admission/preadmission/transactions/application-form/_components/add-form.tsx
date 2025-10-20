@@ -72,6 +72,27 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
     const [selectedSourceItems, setSelectedSourceItems] = useState<{ pamS_Id: string; pamS_SourceName: string }[]>([]);
     const [selectedReferenceItems, setSelectedReferenceItems] = useState<{ pamR_Id: string; pamR_ReferenceName: string }[]>([]);
     const [sameAsResidential, setSameAsResidential] = useState(false);
+    const [siblings, setSiblings] = useState<
+        Array<{
+            pasrS_Id: number;
+            pasR_Id: number;
+            pasrS_SiblingsName: string;
+            pasrS_SiblingsClass: string;
+            pasrS_SiblingsAdmissionNo: string;
+            pasrS_SiblingsSection: string;
+        }>
+    >([]);
+
+    const [previousSchool, setPreviousSchool] = useState({
+        pasrpS_Id: 0,
+        pasR_Id: 0,
+        pasrpS_PrvSchoolName: '',
+        pasrpS_PreviousClass: '',
+        pasrpS_Board: '',
+        pasrpS_LeftYear: '',
+        pasrpS_LeftReason: '',
+        pasrpS_Address: ''
+    });
 
     const { data: religion, isLoading: religionLoading, error: religionError, refetchAll: refetchReligion } = useReligionDropdown();
     const conConuntryId = watch('pasR_ConCountry');
@@ -176,12 +197,10 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
         }
 
         try {
-            const { pasR_DOB, pasR_MobileNo, source_ids, reference_ids, pasR_PerState, pasR_ConCountry, pasR_PerCountry, ...filteredData } =
-                data;
+            const { pasR_DOB, source_ids, reference_ids, pasR_PerState, pasR_ConCountry, pasR_PerCountry, ...filteredData } = data;
             const payload = {
                 ...filteredData,
                 pasR_DOB: format(pasR_DOB, 'yyyy-MM-dd'),
-                pasR_MobileNo: Number(pasR_MobileNo),
                 pasR_Age: calculatedAgeDetails.ageInYears,
                 PASR_PerState: pasR_PerState?.toString() ?? '',
                 PASR_ConCountry: pasR_ConCountry?.toString() ?? '',
@@ -192,11 +211,30 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
                 selectedRefrenceDetails: selectedReferenceItems.map((item) => ({
                     pamR_Id: item.pamR_Id
                 })),
+                siblingsDetails: siblings.map((sibling) => ({
+                    ...sibling,
+                    verrejstatus: '',
+                    pasrS_SchoolName: '',
+                    pasrS_Age: 0,
+                    pasrS_Gender: '',
+                    pasrS_Institution: '',
+                    pasrS_DOB: ''
+                })),
+                previousSchoolList: previousSchool.pasrpS_PrvSchoolName
+                    ? [
+                          {
+                              ...previousSchool,
+                              pasrpS_TcNo: '',
+                              pasrpS_PreviousPer: '',
+                              pasrpS_PreviousGrade: '',
+                              pasrpS_PreviousMarks: '',
+                              pasrpS_ConcOrScholarshipFlg: ''
+                          }
+                      ]
+                    : [],
                 examSubjectDTO: [],
-                siblingsDetails: [],
                 elesubsubject: [],
                 selectedDocuments: [],
-                PreviousSchoolList: [],
                 PASR_RegistrationNo: '',
                 pasP_Id: 0
             };
@@ -206,7 +244,7 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
             if (response.success) {
                 reset();
                 refetchDropdowns();
-                setCurrentStep(1);
+                handleReset();
                 onSuccess?.();
             } else {
                 toast.error(response.message);
@@ -223,6 +261,17 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
         setSelectedSourceItems([]);
         setSelectedReferenceItems([]);
         setSameAsResidential(false);
+        setSiblings([]);
+        setPreviousSchool({
+            pasrpS_Id: 0,
+            pasR_Id: 0,
+            pasrpS_PrvSchoolName: '',
+            pasrpS_PreviousClass: '',
+            pasrpS_Board: '',
+            pasrpS_LeftYear: '',
+            pasrpS_LeftReason: '',
+            pasrpS_Address: ''
+        });
     };
 
     const handleSourceSelection = (selectedValues: string[]) => {
@@ -256,6 +305,39 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
             setValue('pasR_PerCity', conCity);
             setValue('pasR_PerPincode', conPincode);
         }
+    };
+
+    // Add these functions after handleSameAsResidential
+    const addSibling = () => {
+        setSiblings([
+            ...siblings,
+            {
+                pasrS_Id: 0,
+                pasR_Id: 0,
+                pasrS_SiblingsName: '',
+                pasrS_SiblingsClass: '',
+                pasrS_SiblingsAdmissionNo: '',
+                pasrS_SiblingsSection: ''
+            }
+        ]);
+    };
+
+    const removeSibling = (index: number) => {
+        setSiblings(siblings.filter((_, i) => i !== index));
+    };
+
+    const updateSibling = (index: number, field: string, value: string) => {
+        const updatedSiblings = siblings.map((sibling, i) => {
+            if (i === index) {
+                return { ...sibling, [field]: value };
+            }
+            return sibling;
+        });
+        setSiblings(updatedSiblings);
+    };
+
+    const updatePreviousSchool = (field: string, value: string) => {
+        setPreviousSchool({ ...previousSchool, [field]: value });
     };
 
     return (
@@ -449,9 +531,8 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
                                                     render={({ field }) => (
                                                         <MobileNumberInput
                                                             label='Mobile No.'
-                                                            required
                                                             id='pasR_MobileNo'
-                                                            value={field.value || 0}
+                                                            value={field.value}
                                                             onChange={(value) => field.onChange(value)}
                                                             type='number'
                                                             showSpinner={false}
@@ -671,7 +752,7 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
                                                         <MobileNumberInput
                                                             label='Aadhaar No.'
                                                             id='pasR_AadharNo'
-                                                            value={field.value || 0}
+                                                            value={field.value}
                                                             onChange={(value) => field.onChange(value)}
                                                             type='number'
                                                             showSpinner={false}
@@ -1149,7 +1230,7 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
                                                                 <MobileNumberInput
                                                                     label='Mobile No.'
                                                                     id='pasR_FatherMobleNo'
-                                                                    value={field.value || 0}
+                                                                    value={field.value}
                                                                     onChange={(value) => field.onChange(value)}
                                                                     type='number'
                                                                     showSpinner={false}
@@ -1275,7 +1356,7 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
                                                                 <MobileNumberInput
                                                                     label='Mobile No.'
                                                                     id='pasR_MotherMobleNo'
-                                                                    value={field.value || 0}
+                                                                    value={field.value}
                                                                     onChange={(value) => field.onChange(value)}
                                                                     type='number'
                                                                     showSpinner={false}
@@ -1318,7 +1399,7 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
                                                                 <MobileNumberInput
                                                                     label='Alternate Contact No.'
                                                                     id='pasR_AltContactNo'
-                                                                    value={field.value || 0}
+                                                                    value={field.value}
                                                                     onChange={(value) => field.onChange(value)}
                                                                     type='number'
                                                                     showSpinner={false}
@@ -1347,9 +1428,141 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
                                     <div className='space-y-6'>
                                         <div>
                                             <h2 className='font-bold text-2xl text-gray-900'>Other Information</h2>
-                                            <p className='mt-1 text-gray-500 text-sm'>Please review and accept the undertaking</p>
+                                            <p className='mt-1 text-gray-500 text-sm'>
+                                                Sibling details, previous school information, and undertaking
+                                            </p>
                                         </div>
 
+                                        {/* Sibling Details Section */}
+                                        <div className='space-y-4'>
+                                            <div className='flex items-center justify-between'>
+                                                <h3 className='font-semibold text-gray-800 text-lg'>Sibling Details</h3>
+                                                <Button
+                                                    type='button'
+                                                    variant='outline'
+                                                    size='sm'
+                                                    onClick={addSibling}
+                                                    disabled={isSubmitting}
+                                                    className='w-fit'>
+                                                    <span className='mr-2'>+</span>
+                                                    Add Sibling
+                                                </Button>
+                                            </div>
+
+                                            {siblings.length === 0 ? (
+                                                <p className='text-gray-500 text-sm'>
+                                                    No siblings added yet. Click "Add Sibling" to add details.
+                                                </p>
+                                            ) : (
+                                                <div className='space-y-4'>
+                                                    {siblings.map((sibling, index) => (
+                                                        <div key={index} className='rounded-lg border border-gray-200 bg-gray-50 p-4'>
+                                                            <div className='mb-3 flex items-center justify-between'>
+                                                                <h4 className='font-medium text-gray-700 text-sm'>Sibling {index + 1}</h4>
+                                                                <Button
+                                                                    type='button'
+                                                                    variant='ghost'
+                                                                    size='sm'
+                                                                    onClick={() => removeSibling(index)}
+                                                                    disabled={isSubmitting}
+                                                                    className='h-8 w-fit bg-error text-white'>
+                                                                    Remove
+                                                                </Button>
+                                                            </div>
+                                                            <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
+                                                                <InputText
+                                                                    label='Sibling Name'
+                                                                    id={`sibling_name_${index}`}
+                                                                    placeholder='Enter sibling name'
+                                                                    value={sibling.pasrS_SiblingsName}
+                                                                    onChange={(e) =>
+                                                                        updateSibling(index, 'pasrS_SiblingsName', e.target.value)
+                                                                    }
+                                                                />
+                                                                <InputText
+                                                                    label='Class'
+                                                                    id={`sibling_class_${index}`}
+                                                                    placeholder='Enter class'
+                                                                    value={sibling.pasrS_SiblingsClass}
+                                                                    onChange={(e) =>
+                                                                        updateSibling(index, 'pasrS_SiblingsClass', e.target.value)
+                                                                    }
+                                                                />
+                                                                <InputText
+                                                                    label='Admission No'
+                                                                    id={`sibling_admission_${index}`}
+                                                                    placeholder='Enter admission number'
+                                                                    value={sibling.pasrS_SiblingsAdmissionNo}
+                                                                    onChange={(e) =>
+                                                                        updateSibling(index, 'pasrS_SiblingsAdmissionNo', e.target.value)
+                                                                    }
+                                                                />
+                                                                <InputText
+                                                                    label='Section'
+                                                                    id={`sibling_section_${index}`}
+                                                                    placeholder='Enter section'
+                                                                    value={sibling.pasrS_SiblingsSection}
+                                                                    onChange={(e) =>
+                                                                        updateSibling(index, 'pasrS_SiblingsSection', e.target.value)
+                                                                    }
+                                                                />
+                                                            </div>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            )}
+                                        </div>
+
+                                        {/* Previous School Details Section */}
+                                        <div className='space-y-4'>
+                                            <h3 className='font-semibold text-gray-800 text-lg'>Previous School Details</h3>
+                                            <div className='grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3'>
+                                                <InputText
+                                                    label='Previous School Name'
+                                                    id='pasrpS_PrvSchoolName'
+                                                    placeholder='Enter school name'
+                                                    value={previousSchool.pasrpS_PrvSchoolName}
+                                                    onChange={(e) => updatePreviousSchool('pasrpS_PrvSchoolName', e.target.value)}
+                                                />
+                                                <InputText
+                                                    label='Previous Class'
+                                                    id='pasrpS_PreviousClass'
+                                                    placeholder='Enter class'
+                                                    value={previousSchool.pasrpS_PreviousClass}
+                                                    onChange={(e) => updatePreviousSchool('pasrpS_PreviousClass', e.target.value)}
+                                                />
+                                                <InputText
+                                                    label='Board'
+                                                    id='pasrpS_Board'
+                                                    placeholder='Enter board'
+                                                    value={previousSchool.pasrpS_Board}
+                                                    onChange={(e) => updatePreviousSchool('pasrpS_Board', e.target.value)}
+                                                />
+                                                <InputText
+                                                    label='Left Year'
+                                                    id='pasrpS_LeftYear'
+                                                    placeholder='Enter year'
+                                                    value={previousSchool.pasrpS_LeftYear}
+                                                    onChange={(e) => updatePreviousSchool('pasrpS_LeftYear', e.target.value)}
+                                                />
+                                                <InputText
+                                                    label='Reason for Leaving'
+                                                    id='pasrpS_LeftReason'
+                                                    placeholder='Enter reason'
+                                                    value={previousSchool.pasrpS_LeftReason}
+                                                    onChange={(e) => updatePreviousSchool('pasrpS_LeftReason', e.target.value)}
+                                                />
+                                                <InputText
+                                                    label='School Address'
+                                                    id='pasrpS_Address'
+                                                    placeholder='Enter address'
+                                                    value={previousSchool.pasrpS_Address}
+                                                    onChange={(e) => updatePreviousSchool('pasrpS_Address', e.target.value)}
+                                                />
+                                            </div>
+                                        </div>
+
+                                        {/* Undertaking Section */}
                                         <div className='rounded-lg border border-gray-200 bg-gray-200 p-6'>
                                             <Controller
                                                 name='pasR_UndertakingFlag'
