@@ -20,6 +20,12 @@ export async function getClassCategory() {
     return await api.get<IMasterClassYearlyList[]>('fees', url);
 }
 
+export async function getGroupListCategory(searchParams?: ApiSearchparams) {
+    const _urlParams = getSearchParamsUrl(searchParams ?? {});
+    const url = '/fee_yearly_group/getgrouplist/30';
+    return await api.get<IMasterClassYearlyList[]>('fees', url);
+}
+
 export async function MasterClassYearlyCategory(data: any) {
     const url = '/api/fee_class_category/classcategorylist';
     return await api.post<any>('fees', url, data);

@@ -66,12 +66,13 @@ export interface IMasterClassYearlyCategoryList {
 
 export interface IMasterFeesInstallmentList {
     fmI_Id: number;
-    mI_ID: number;
+    mI_Id: number;
     fmI_Name: string;
     fmI_No_Of_Installments: number;
     fmI_Installment_Type: string;
     ftI_Name?: string;
-    fmI_ActiveFlag: boolean | number;
+    fmI_ActiceFlag?: boolean | number;
+    fmI_ActiveFlag?: boolean | number;
     installments?: Array<{
         sno?: number;
         ftI_Id?: number;
@@ -122,6 +123,8 @@ export interface IModeOfPaymentList {
 
 //used category
 export interface IMasterClassYearlyList {
+    fmG_GroupName: string;
+    fmG_Id: any;
     asmcl_ActiveFlag: boolean;
     asmcL_Id: number;
     asmaY_Id: number;
@@ -144,15 +147,19 @@ export interface IMasterCasteCategoryList {
 }
 
 export interface IMaasterFeesYearlyGrouping {
-    fmI_ActiveFlag: number;
-    mI_Id: number;
-    asmaY_Id: number;
-    asmaY_Year: number;
+    grouplist: never[];
+
+    fyG_Id: number;
     fmG_GroupName: string;
-    fmG_Id: string;
-    fyG_RebateTypeFlg?: boolean;
-    fyG_RebateType?: 'Percentage' | 'Amount';
-    fyG_RebateValue?: string | number;
+    fyG_ActiveFlag?: boolean;
+    fyG_PartialRebateAmtOrPercentageValue?: number | string;
+    fyG_RebateApplicableFlg?: boolean;
+    fyG_RebateTypeFlg?: string | boolean;
+    asmaY_Year?: string;
+    asmaY_Id?: number;
+    mI_Id?: number;
+    fmG_Id?: number;
+    createdDate?: string;
 }
 
 export interface IMasterConcessionDetails {
@@ -196,7 +203,6 @@ export interface IMasterTermsList {
     fmT_IncludeArrearFeeFlg: boolean;
     fmT_ActiveFlag: boolean;
 }
-
 
 export interface IMasterpaymentGatewayDropdownList {
     impG_Id: number;
@@ -271,5 +277,4 @@ export interface IMasterGroupWiseAutoReciptList {
     address: string;
     receiptTemplateFormat: string;
     fycC_ActiveFlag: boolean;
-
 }
