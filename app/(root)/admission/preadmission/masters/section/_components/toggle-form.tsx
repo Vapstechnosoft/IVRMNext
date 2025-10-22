@@ -40,7 +40,7 @@ export default function ToggleMasterSectionForm({ rowData, onClose }: ToggleMast
 
     const onSubmit: SubmitHandler<FormFields | any> = async () => {
         try {
-            const response = await toggleMasterSection(30, Number(rowData.asmS_Id));
+            const response = await toggleMasterSection(Number(rowData.asmS_Id));
 
             if (response.success) {
                 toast.success(response.message);

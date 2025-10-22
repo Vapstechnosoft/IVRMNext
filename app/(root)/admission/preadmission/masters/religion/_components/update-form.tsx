@@ -49,7 +49,6 @@ export default function UpdateMasterReligionForm({ onSuccess, className = '', se
         try {
             const { ivrmmR_Id, ivrmmR_Name } = data;
             const payload = {
-                MI_Id: 30,
                 IVRMMR_Id: ivrmmR_Id,
                 IvrmmR_Name: ivrmmR_Name,
                 Is_Active: true

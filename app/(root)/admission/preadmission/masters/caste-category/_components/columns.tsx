@@ -61,7 +61,7 @@ export const masterCasteCategoryColumns: ColumnDef<IMasterCasteCategoryList>[] =
                     : row.getValue('imcC_CategoryDesc')}
             </div>
         ),
-        enableSorting: true,
+        enableSorting: false,
         enableHiding: true
     },
     {

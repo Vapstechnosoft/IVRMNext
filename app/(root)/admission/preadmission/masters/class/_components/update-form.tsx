@@ -74,7 +74,6 @@ export default function UpdateMasterClassForm({ onSuccess, className = '', selec
                 asmcl_preadmflag
             } = data;
             const payload = {
-                MI_Id: 30,
                 ASMCL_Id: row.asmcL_Id,
                 ASMCL_ClassCode: asmcl_classcode,
                 ASMCL_ClassName: asmcl_classname,

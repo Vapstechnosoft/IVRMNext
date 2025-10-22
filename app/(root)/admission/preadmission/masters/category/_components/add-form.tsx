@@ -39,7 +39,6 @@ export default function AddMasterCategoryForm({ onSuccess, className = '' }: Add
         try {
             const { amC_Name, amC_Address, amC_Type } = data;
             const payload = {
-                MI_Id: 30,
                 AMC_Id: 0,
                 AMC_Name: amC_Name,
                 AMC_Address: amC_Address,
@@ -101,7 +100,7 @@ export default function AddMasterCategoryForm({ onSuccess, className = '' }: Add
                                 render={({ field }) => (
                                     <Select
                                         onValueChange={(value) => {
-                                            field.onChange(Number(value));
+                                            field.onChange(value);
                                         }}
                                         value={field.value?.toString() || undefined}>
                                         <SelectTrigger className='w-full'>

@@ -64,7 +64,6 @@ export default function AddMasterClassForm({ onSuccess, className = '' }: AddMas
                 asmcl_preadmflag
             } = data;
             const payload = {
-                MI_Id: 30,
                 ASMCL_Id: 0,
                 ASMCL_ClassCode: asmcl_classcode,
                 ASMCL_ClassName: asmcl_classname,

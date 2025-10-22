@@ -40,7 +40,7 @@ export default function ToggleMasterCategoryForm({ rowData, onClose }: ToggleMas
 
     const onSubmit: SubmitHandler<FormFields | any> = async () => {
         try {
-            const response = await toggleMasterCategory(30, Number(rowData.amC_Id));
+            const response = await toggleMasterCategory(Number(rowData.amC_Id));
 
             if (response.success) {
                 toast.success(response.message);
