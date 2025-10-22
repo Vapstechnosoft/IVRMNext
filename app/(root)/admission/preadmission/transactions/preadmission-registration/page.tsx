@@ -35,8 +35,7 @@ export default function PreadmissionRegistration() {
                 toolTip={
                     isPreadmissionLive === false ? 'Preadmission Registration is not available yet.' : 'Preadmission Registration is live.'
                 }
-                // disabled={isPreadmissionLive === false}
-            >
+                disabled={isPreadmissionLive === false}>
                 {isPreadmissionLive === false ? (
                     <LockKeyhole className='mr-2 h-4 w-4 text-gray-600 ' />
                 ) : (
