@@ -197,7 +197,17 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
         }
 
         try {
-            const { pasR_DOB, source_ids, reference_ids, pasR_PerState, pasR_ConCountry, pasR_PerCountry, ...filteredData } = data;
+            const {
+                pasR_DOB,
+                source_ids,
+                reference_ids,
+                pasR_PerState,
+                pasR_ConCountry,
+                pasR_PerCountry,
+                pasR_ConPincode,
+                pasR_PerPincode,
+                ...filteredData
+            } = data;
             const payload = {
                 ...filteredData,
                 pasR_DOB: format(pasR_DOB, 'yyyy-MM-dd'),
@@ -205,6 +215,8 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
                 PASR_PerState: pasR_PerState?.toString() ?? '',
                 PASR_ConCountry: pasR_ConCountry?.toString() ?? '',
                 PASR_PerCountry: pasR_PerCountry?.toString() ?? '',
+                PASR_ConPincode: Number(pasR_ConPincode) ?? 0,
+                PASR_PerPincode: Number(pasR_PerPincode) ?? 0,
                 selectedSourceDetails: selectedSourceItems.map((item) => ({
                     pamS_Id: item.pamS_Id
                 })),
@@ -532,6 +544,7 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
                                                         <MobileNumberInput
                                                             label='Mobile No.'
                                                             id='pasR_MobileNo'
+                                                            required
                                                             value={field.value}
                                                             onChange={(value) => field.onChange(value)}
                                                             type='number'
@@ -977,12 +990,13 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
                                                             name='pasR_ConPincode'
                                                             control={control}
                                                             render={({ field }) => (
-                                                                <InputNumber
+                                                                <MobileNumberInput
                                                                     label='Pin Code/Zip Code'
                                                                     id='pasR_ConPincode'
-                                                                    value={field.value || 0}
+                                                                    value={field.value}
                                                                     onChange={(value) => field.onChange(value)}
-                                                                    minValue={0}
+                                                                    type='number'
+                                                                    showSpinner={false}
                                                                 />
                                                             )}
                                                         />
@@ -1109,13 +1123,13 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
                                                             name='pasR_PerPincode'
                                                             control={control}
                                                             render={({ field }) => (
-                                                                <InputNumber
+                                                                <MobileNumberInput
                                                                     label='Pin Code/Zip Code'
                                                                     id='pasR_PerPincode'
-                                                                    value={field.value || 0}
+                                                                    value={field.value}
                                                                     onChange={(value) => field.onChange(value)}
-                                                                    minValue={0}
-                                                                    isDisabled={sameAsResidential}
+                                                                    type='number'
+                                                                    showSpinner={false}
                                                                 />
                                                             )}
                                                         />

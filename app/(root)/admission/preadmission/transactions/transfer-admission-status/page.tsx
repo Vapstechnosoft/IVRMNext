@@ -187,6 +187,7 @@ export default function TransferAdmissionStatusPage(props: { searchParams: Searc
                         columns={transferAdmissionColumns}
                         isLoading={activePreadmissionDeLoading || isLoading}
                         error={error}
+                        showViewOptions={false}
                         loadingMessage='Loading preadmission admissions...'
                         noDataTitle='No Data Found'
                         noDataDescription='No preadmission admissions found.'

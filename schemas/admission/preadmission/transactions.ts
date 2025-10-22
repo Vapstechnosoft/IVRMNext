@@ -1,13 +1,13 @@
 import { z } from 'zod';
-import { createOptionalStringSchema, createStringSchema } from '../../validationSchemas';
+import { createAlphanumericSchema, createEmailSchema, createOptionalStringSchema, createStringSchema } from '../../validationSchemas';
 
 export const preadmissionRegistrationSchema = {
     add: z.object({
-        name: createStringSchema('Name', 1, 100),
-        email_id: createStringSchema('Email Id', 1, 100),
+        name: createStringSchema('Name', 1, 50),
+        email_id: createEmailSchema('Email Id', 1, 50),
         mobileno: z.string().min(1, { message: 'Mobile No is required' }).max(10, { message: 'Maximum 10 digits' }),
-        username: createStringSchema('Username', 1, 100),
-        password: createStringSchema('Password', 1, 100)
+        username: createStringSchema('Username', 1, 50),
+        password: createStringSchema('Password', 1, 8)
     })
 };
 
@@ -24,7 +24,7 @@ export const studentApplicationFormSchema = {
         pasR_Sex: createStringSchema('Gender', 1, 50),
         pasR_DOB: z.date({ message: 'Date Of Birth is required' }),
         asmcL_Id: z.number().int({ message: 'Applying For is required' }),
-        pasR_emailId: createStringSchema('Student Email', 1, 50),
+        pasR_emailId: createEmailSchema('Student Email', 1, 50),
         pasR_Nationality: z.string().nonempty({ message: 'Student Nationality is required' }),
         pasR_MotherTongue: createOptionalStringSchema('Student Mother Tongue', 1, 100),
 
@@ -43,7 +43,7 @@ export const studentApplicationFormSchema = {
         pasR_ConCountry: z.string().optional(),
         pasR_ConState: z.number().int({ message: 'State is required' }).optional(),
         pasR_ConCity: createOptionalStringSchema('City', 1, 100),
-        pasR_ConPincode: z.number().int({ message: 'Pincode is required' }).optional(),
+        pasR_ConPincode: z.string().max(10, { message: 'Maximum 10 digits' }).optional(),
 
         //Student Permanent Address
         pasR_PerStreet: createOptionalStringSchema('Street', 1, 100),
@@ -51,14 +51,14 @@ export const studentApplicationFormSchema = {
         pasR_PerCountry: z.string().optional(),
         pasR_PerState: z.number().int({ message: 'State is required' }).optional(),
         pasR_PerCity: createOptionalStringSchema('City', 1, 100),
-        pasR_PerPincode: z.number().int({ message: 'Pincode is required' }).optional(),
+        pasR_PerPincode: z.string().max(10, { message: 'Maximum 10 digits' }).optional(),
 
         //Father Details
         pasR_FatherName: createStringSchema('Father Name', 1, 100),
         pasR_FatherSurname: createOptionalStringSchema('Father Surname', 1, 100),
         pasR_FatherEducation: createOptionalStringSchema('Father Education', 1, 100),
         pasR_FatherOccupation: createOptionalStringSchema('Father Occupation', 1, 100),
-        pasR_FatherPanno: createOptionalStringSchema('Father PAN Number', 1, 100),
+        pasR_FatherPanno: createAlphanumericSchema('Father PAN Number', 1, 100, true),
         pasR_FatherDesignation: createOptionalStringSchema('Father Designation', 1, 100),
         pasR_FatherNationality: z.number().int({ message: 'Nationality is required' }),
         pasR_FatherOfficeAddr: createOptionalStringSchema('Father Office Address', 1, 100),
@@ -69,7 +69,7 @@ export const studentApplicationFormSchema = {
         pasR_MotherSurname: createOptionalStringSchema('Mother Surname', 1, 100),
         pasR_MotherEducation: createOptionalStringSchema('Mother Education', 1, 100),
         pasR_MotherOccupation: createOptionalStringSchema('Mother Occupation', 1, 100),
-        pasR_MotherPanno: createOptionalStringSchema('Mother PAN Number', 1, 100),
+        pasR_MotherPanno: createAlphanumericSchema('Mother PAN Number', 1, 100, true),
         pasR_MotherDesignation: createOptionalStringSchema('Mother Designation', 1, 100),
         pasR_MotherNationality: z.number().int({ message: 'Nationality is required' }),
         pasR_MotherOfficeAddr: createOptionalStringSchema('Mother Office Address', 1, 100),
@@ -79,7 +79,7 @@ export const studentApplicationFormSchema = {
         pasR_FatherIncome: z.number().optional(),
         pasR_MotherIncome: z.number().optional(),
         pasR_AltContactNo: z.string().max(10, { message: 'Maximum 10 digits' }).optional(),
-        pasR_AltContactEmail: createOptionalStringSchema('Alternate Contact Email', 1, 50),
+        pasR_AltContactEmail: createEmailSchema('Alternate Contact Email', 1, 50, true),
 
         //Sibling Details need to be added here
 

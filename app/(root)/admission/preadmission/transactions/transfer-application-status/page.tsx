@@ -191,6 +191,7 @@ export default function TransferApplicationStatusPage(props: { searchParams: Sea
                         columns={transferApplicationColumns}
                         isLoading={activePreadmissionDeLoading || isLoading}
                         error={error}
+                        showViewOptions={false}
                         searchQuery={searchQuery}
                         loadingMessage='Loading preadmission applications...'
                         noDataTitle='No Data Found'

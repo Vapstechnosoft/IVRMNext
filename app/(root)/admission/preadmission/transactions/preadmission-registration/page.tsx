@@ -23,29 +23,30 @@ export default function PreadmissionRegistration() {
         refetchAll();
     }
 
+    const isPreadmissionLive: boolean = !(preadmissionLive === undefined || preadmissionLive?.data === false);
+
     return (
         <>
             <Button
                 type='button'
                 variant='outline'
-                className={cn('h-12 w-full border-2 border-gray-200', preadmissionLive?.data === true && 'bg-success')}
+                className={cn('h-12 w-full border-2 border-gray-200', isPreadmissionLive && 'bg-success')}
                 onClick={() => handleEdit()}
                 toolTip={
-                    preadmissionLive?.data === false
-                        ? 'Preadmission Registration is not available yet.'
-                        : 'Preadmission Registration is live.'
+                    isPreadmissionLive === false ? 'Preadmission Registration is not available yet.' : 'Preadmission Registration is live.'
                 }
-                disabled={preadmissionLive?.data === false}>
-                {preadmissionLive?.data === false ? (
+                // disabled={isPreadmissionLive === false}
+            >
+                {isPreadmissionLive === false ? (
                     <LockKeyhole className='mr-2 h-4 w-4 text-gray-600 ' />
                 ) : (
                     <LockKeyholeOpen className='mr-2 h-4 w-4 text-white ' />
                 )}
                 <span
-                    className={preadmissionLive?.data === false ? 'flex-1 font-medium text-gray-500' : 'flex-1 text-white tracking-widest'}>
+                    className={isPreadmissionLive === false ? 'flex-1 font-medium text-gray-600' : 'flex-1 text-gray-400 tracking-widest'}>
                     Preadmission Registration
                 </span>
-                <ArrowUpRight className={preadmissionLive?.data === false ? 'h-4 w-4 text-gray-400' : 'h-4 w-4 text-white'} />
+                {isPreadmissionLive === true && <ArrowUpRight className={'h-4 w-4 text-white'} />}
             </Button>
             <AdaptiveDialog title='Preadmission Registration' isOpen={isDialogOpen} onClose={closeDialog} size='lg'>
                 <AddPreadmissionRegistrationForm sub_domain={sub_domain?.toString() || ''} closeDialog={closeDialog} />

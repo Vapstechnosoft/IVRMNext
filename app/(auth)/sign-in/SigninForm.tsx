@@ -13,7 +13,6 @@ import { login } from '@/server/user';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { GraduationCap, LogIn, Mail, Phone, TriangleAlert } from 'lucide-react';
 import Image from 'next/image';
-import Link from 'next/link';
 import { useParams, useSearchParams } from 'next/navigation';
 import { useEffect, useState, useTransition } from 'react';
 import { type SubmitHandler, useForm } from 'react-hook-form';
@@ -164,14 +163,14 @@ export default function SigninForm() {
                                         </p>
                                     </div>
                                 )}
-                                Forgot Password
-                                <div className='flex items-center justify-end'>
+                                {/* Forgot Password */}
+                                {/* <div className='flex items-center justify-end'>
                                     <Link
                                         href='/forgot-password'
                                         className='font-medium text-primary text-sm transition-colors hover:underline'>
                                         Forgot password?
                                     </Link>
-                                </div>
+                                </div> */}
                                 {/* Action Buttons */}
                                 <div className='space-y-1'>
                                     <Button

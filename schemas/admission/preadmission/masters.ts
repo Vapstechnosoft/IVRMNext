@@ -1,5 +1,5 @@
+import { createStringSchema, deleteIdSchema } from '@/schemas/validationSchemas';
 import { z } from 'zod';
-import { createStringSchema, deleteIdSchema } from '../../validationSchemas';
 
 export const loginSchema = z.object({
     email: z.string({ message: 'Email is required' }),

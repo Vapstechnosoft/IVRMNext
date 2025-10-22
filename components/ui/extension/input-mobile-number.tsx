@@ -1,9 +1,7 @@
-'use client';
-
 import { FieldError, FieldGroup, Label } from '@/components/ui/extension/field';
 import { cn } from '@/lib/utils';
 import type * as React from 'react';
-import { Input } from 'react-aria-components'; // Or shadcn's Input
+import { Input } from 'react-aria-components';
 
 interface MobileNumberInputProps extends React.InputHTMLAttributes<HTMLInputElement> {
     label?: string;
@@ -26,6 +24,11 @@ function MobileNumberInput({
     showSpinner = true,
     ...props
 }: MobileNumberInputProps) {
+    const handleNumericInput = (event: React.ChangeEvent<HTMLInputElement>) => {
+        event.target.value = event.target.value.replace(/\D/g, '');
+        props.onChange?.(event);
+    };
+
     return (
         <div className={cn('group flex flex-col gap-1.5', className)}>
             <Label aria-label={label}>
@@ -36,9 +39,10 @@ function MobileNumberInput({
             <FieldGroup className={cn('w-full', inputFieldClassName)}>
                 <Input
                     type='tel'
-                    className='w-fit min-w-0 flex-1 border-transparent bg-background pr-2 outline outline-0 placeholder:text-muted-foreground'
                     pattern='[0-9]*'
-                    inputMode='tel'
+                    inputMode='numeric'
+                    className='w-fit min-w-0 flex-1 border-transparent bg-background pr-2 outline-none placeholder:text-muted-foreground'
+                    onInput={handleNumericInput}
                     {...props}
                 />
             </FieldGroup>

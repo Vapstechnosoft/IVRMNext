@@ -88,25 +88,6 @@ export default function UpdateMasterCategoryForm({ onSuccess, className = '', se
             <form onSubmit={handleSubmit(onSubmit)} className='space-y-6'>
                 <div className='space-y-4'>
                     <div className='grid grid-cols-1 gap-4 md:grid-cols-4'>
-                        <InputText
-                            label='Category Name'
-                            required
-                            id='amC_Name'
-                            {...register('amC_Name')}
-                            defaultValue={row.amC_Name}
-                            error={errors.amC_Name?.message}
-                            className='transition-colors focus:ring-2 focus:ring-primary/20'
-                        />
-                        <InputTextarea
-                            label='Category Address'
-                            required
-                            id='amC_Address'
-                            {...register('amC_Address')}
-                            defaultValue={row.amC_Address}
-                            error={errors.amC_Address?.message}
-                            className='transition-colors focus:ring-2 focus:ring-primary/20'
-                            minHeight={20}
-                        />
                         <div className='group flex flex-col gap-1.5'>
                             <Label aria-label='Category Type' htmlFor='amC_Type'>
                                 Category Type <span className='ml-1 text-red-500'>*</span>
@@ -136,6 +117,25 @@ export default function UpdateMasterCategoryForm({ onSuccess, className = '', se
                             />
                             {errors.amC_Type && <FormError>{errors.amC_Type.message}</FormError>}
                         </div>
+                        <InputText
+                            label='Category Name'
+                            required
+                            id='amC_Name'
+                            {...register('amC_Name')}
+                            defaultValue={row.amC_Name}
+                            error={errors.amC_Name?.message}
+                            className='transition-colors focus:ring-2 focus:ring-primary/20'
+                        />
+                        <InputTextarea
+                            label='Category Address'
+                            required
+                            id='amC_Address'
+                            {...register('amC_Address')}
+                            defaultValue={row.amC_Address}
+                            error={errors.amC_Address?.message}
+                            className='transition-colors focus:ring-2 focus:ring-primary/20'
+                            minHeight={20}
+                        />
                     </div>
 
                     {/* Root Error */}

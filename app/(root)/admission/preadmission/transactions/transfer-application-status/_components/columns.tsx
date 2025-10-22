@@ -66,7 +66,7 @@ export const transferApplicationColumns: ColumnDef<IPreadmissionApplicationList>
         accessorKey: 'current_status',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Current Status' />,
         cell: ({ row }) => <div>{row.getValue('current_status')}</div>,
-        enableSorting: true,
+        enableSorting: false,
         enableHiding: true
     }
 ];
