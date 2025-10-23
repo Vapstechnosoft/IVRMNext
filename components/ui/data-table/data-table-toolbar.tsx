@@ -149,13 +149,20 @@ export function DataTableToolbar<TData>({ table, data, showExportOptions = true,
                                 .getAllColumns()
                                 .filter((column) => typeof column.accessorFn !== 'undefined' && column.getCanHide())
                                 .map((column) => {
+                                    // Get display name from meta or format the column id
+                                    const displayName =
+                                        (column.columnDef.meta as any)?.title ||
+                                        column.id
+                                            .split('_')
+                                            .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+                                            .join(' ');
+
                                     return (
                                         <DropdownMenuCheckboxItem
                                             key={column.id}
-                                            className='capitalize'
                                             checked={column.getIsVisible()}
                                             onCheckedChange={(value) => column.toggleVisibility(!!value)}>
-                                            {column.id}
+                                            {displayName}
                                         </DropdownMenuCheckboxItem>
                                     );
                                 })}

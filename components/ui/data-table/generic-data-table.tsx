@@ -3,10 +3,13 @@
 import { DataTable } from '@/components/ui/data-table/data-table';
 import type { ColumnDef } from '@tanstack/react-table';
 import { Database, RefreshCw } from 'lucide-react';
+import { forwardRef } from 'react';
+import type { DataTableRef } from './data-table';
 
 interface GenericDataTableProps<T> {
     // Data props
     data?: T[];
+    total?: number;
     columns: ColumnDef<T>[];
     totalItems?: number;
 
@@ -15,10 +18,13 @@ interface GenericDataTableProps<T> {
     error?: Error | null;
     success?: boolean;
     errorMessage?: string;
-
     // Table configuration
     showViewOptions?: boolean;
     columnPinning?: { left?: string[]; right?: string[] };
+
+    // Row selection
+    maxSelectableRows?: number;
+    onRowSelectionChange?: (selectedRows: T[]) => void;
 
     // Custom messages
     loadingMessage?: string;
@@ -36,36 +42,35 @@ interface GenericDataTableProps<T> {
     LoadingComponent?: React.ComponentType;
     ErrorComponent?: React.ComponentType<{ error: Error; message: string }>;
     NoDataComponent?: React.ComponentType;
+    searchQuery?: string;
 }
 
-export function GenericDataTable<T>({
-    data = [],
-    columns,
-    totalItems = 0,
-    isLoading,
-    error,
-    success = true,
-    errorMessage,
-    showViewOptions = true,
-    columnPinning,
-    loadingMessage = 'Loading data...',
-    errorTitle = 'Error Loading Data',
-    noDataTitle = 'No Data Found',
-    noDataDescription = 'Get started by creating your first record',
-    requestFailedTitle = 'Request Failed',
-    LoadingIcon = RefreshCw,
-    ErrorIcon = Database,
-    NoDataIcon = Database,
-    LoadingComponent,
-    ErrorComponent,
-    NoDataComponent
-}: GenericDataTableProps<T>) {
+export const GenericDataTable = forwardRef<DataTableRef, GenericDataTableProps<any>>(function GenericDataTable<T>(
+    {
+        data = [],
+        columns,
+        totalItems = 0,
+        isLoading,
+        error,
+        success = true,
+        errorMessage,
+        showViewOptions = true,
+        columnPinning,
+        maxSelectableRows = 0,
+        onRowSelectionChange,
+        loadingMessage = 'Loading data...',
+        errorTitle = 'Error Loading Data',
+        requestFailedTitle = 'Request Failed',
+        LoadingIcon = RefreshCw,
+        ErrorIcon = Database,
+        LoadingComponent,
+        ErrorComponent
+    }: GenericDataTableProps<T>,
+    ref: React.Ref<DataTableRef>
+) {
     // Loading state
     if (isLoading) {
-        if (LoadingComponent) {
-            return <LoadingComponent />;
-        }
-
+        if (LoadingComponent) return <LoadingComponent />;
         return (
             <div className='flex flex-col items-center justify-center space-y-4 py-12'>
                 <LoadingIcon className='h-8 w-8 animate-spin text-secondary' />
@@ -76,10 +81,7 @@ export function GenericDataTable<T>({
 
     // Error state
     if (error) {
-        if (ErrorComponent) {
-            return <ErrorComponent error={error} message={error.message} />;
-        }
-
+        if (ErrorComponent) return <ErrorComponent error={error} message={error.message} />;
         return (
             <div className='flex flex-col items-center justify-center space-y-4 py-12'>
                 <div className='rounded-full bg-destructive/10 p-3'>
@@ -93,7 +95,7 @@ export function GenericDataTable<T>({
         );
     }
 
-    // Request failed state (when success is false but no error)
+    // Request failed state
     if (!success) {
         return (
             <div className='flex flex-col items-center justify-center space-y-4 py-12'>
@@ -108,39 +110,49 @@ export function GenericDataTable<T>({
         );
     }
 
-    // No data state
+    // No data state - but still render DataTable to show toolbar
     if (data.length === 0) {
-        if (NoDataComponent) {
-            return <NoDataComponent />;
-        }
-
         return (
-            <div className='flex flex-col items-center justify-center space-y-4 py-12'>
-                <div className='rounded-full bg-muted p-3'>
-                    <NoDataIcon className='h-6 w-6 text-muted-foreground' />
-                </div>
-                <div className='space-y-2 text-center'>
-                    <h3 className='font-semibold'>{noDataTitle}</h3>
-                    <p className='text-muted-foreground text-sm'>{noDataDescription}</p>
-                </div>
+            <div className='overflow-hidden rounded-lg bg-card'>
+                <DataTable
+                    ref={ref}
+                    isLoading={false}
+                    columns={columns}
+                    data={[]} // Empty array
+                    totalItems={0}
+                    showViewOptions={showViewOptions}
+                    columnPinning={columnPinning}
+                    maxSelectableRows={maxSelectableRows}
+                    onRowSelectionChange={(selectedRows) => {
+                        if (onRowSelectionChange) {
+                            onRowSelectionChange(selectedRows);
+                        }
+                    }}
+                />
             </div>
         );
     }
 
-    // Success state with data
     return (
         <div className='overflow-hidden rounded-lg bg-card'>
             <DataTable
+                ref={ref}
                 isLoading={false}
                 columns={columns}
                 data={data}
                 totalItems={totalItems}
                 showViewOptions={showViewOptions}
                 columnPinning={columnPinning}
+                maxSelectableRows={maxSelectableRows}
+                onRowSelectionChange={(selectedRows) => {
+                    if (onRowSelectionChange) {
+                        onRowSelectionChange(selectedRows);
+                    }
+                }}
             />
         </div>
     );
-}
+}) as <T>(props: GenericDataTableProps<T> & { ref?: React.Ref<DataTableRef> }) => React.ReactElement;
 
 // Hook for common API response pattern
 export function useDataTableProps(
