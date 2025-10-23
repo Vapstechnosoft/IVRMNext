@@ -226,3 +226,13 @@ export interface IMasterGroupWiseAutoReciptList {
     receiptTemplateFormat: string;
     fycC_ActiveFlag: boolean;
 }
+
+//used rebate settings
+export interface IMasterYearlyRebateSettingsList {
+    asmcl_ActiveFlag: boolean;
+    asmaY_Id: number;
+    asmaY_Year: string;
+    fyG_PartialRebate: string;
+    fyG_PartialRebateAmtOrPercentageValue?: number | string;
+    fyg_date: string;
+}

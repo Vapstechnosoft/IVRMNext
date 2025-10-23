@@ -446,3 +446,30 @@ export const masterClassYearlyGroupMappingSchema = {
         receiptTemplateFormat: z.string().optional()
     })
 };
+
+export const YearlyRebateSettingsSchema = {
+    addOrUpdate: z.object({
+        academicYear: z.string({ required_error: 'Academic Year is required' }).min(1, 'Academic Year is required'),
+        rebateApplicable: z.boolean().optional().default(false),
+        rebateType: z
+            .string()
+            .optional()
+            .refine((val) => !val || ['Percentage', 'Amount'].includes(val), 'Invalid Rebate Type'),
+        rebateValue: z
+            .union([z.string(), z.number()])
+            .transform((val) => Number(val))
+            .refine((val) => !Number.isNaN(val) && val >= 0, 'Rebate Value must be a valid number')
+            .optional()
+            .default(0),
+        // optional list of fee group ids for forms that require selecting fee groups
+        feeGroupIds: z.array(z.number()).optional(),
+        rebateDate: z.string({ required_error: 'Rebate Date is required' }).min(1, 'Rebate Date is required')
+    }),
+
+    delete: z.object({
+        fyG_Id: z
+            .string({ required_error: 'ID is required' })
+            .min(1, 'Invalid ID')
+            .refine((val) => !Number.isNaN(Number(val)), 'ID must be a number')
+    })
+};

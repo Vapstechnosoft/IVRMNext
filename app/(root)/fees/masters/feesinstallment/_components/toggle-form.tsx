@@ -45,7 +45,6 @@ export default function ToggleMasterInstallmentForm({ rowData, onClose }: Toggle
 
     const onSubmit: SubmitHandler<FormFields> = async (_formData) => {
         try {
-            await toggleMasterfeeInstallment(30, rowData.mI_Id);
             const response = await toggleMasterfeeInstallment(30, rowData.mI_Id);
 
             if (response.success) {
