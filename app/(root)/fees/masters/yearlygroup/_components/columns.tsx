@@ -3,11 +3,9 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
 import { ActionButtons } from '@/components/ui/form/action-buttons';
 import { useFormContext } from '@/components/ui/form/form-provider';
-import { YearlyGroupSchema } from '@/schemas/fees/masters';
 import type { IMaasterFeesYearlyGrouping } from '@/types/fees/masters/masters';
 import type { ColumnDef } from '@tanstack/react-table';
 import { useCallback } from 'react';
-import { toast } from 'sonner';
 
 export const YearlyColoumnsColumns: ColumnDef<IMaasterFeesYearlyGrouping>[] = [
     {
@@ -29,65 +27,66 @@ export const YearlyColoumnsColumns: ColumnDef<IMaasterFeesYearlyGrouping>[] = [
     {
         accessorKey: 'asmaY_Year',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Academic Year' />,
-        cell: ({ row }) => <div>{row.getValue('asmaY_Year')}</div>,
+        cell: ({ row }) => <div>{row.getValue('asmaY_Year') ?? 'N/A'}</div>,
         enableSorting: true,
         enableHiding: true
     },
     {
-        accessorKey: 'fmG_GroupNames',
+        accessorKey: 'fmG_GroupName',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Fee Groups' />,
         cell: ({ row }) => {
-            const val = row.getValue('fmG_GroupNames');
-            // Safely handle undefined or non-array values
+            const val = row.getValue('fmG_GroupName');
             if (Array.isArray(val)) return <div>{val.join(', ')}</div>;
-            if (typeof val === 'string') return <div>{val}</div>;
-            return <div>N/A</div>;
+            if (typeof val === 'string') return <div>{val.trim() || 'N/A'}</div>;
+            return <div />;
         },
         enableSorting: false,
         enableHiding: true
     },
     {
-        accessorKey: 'fmI_Name',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Installment Name' />,
-        cell: ({ row }) => <div>{row.getValue('fmI_Name')}</div>,
+        accessorKey: 'fyG_ActiveFlag',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Active' />,
+        cell: ({ row }) => {
+            const val = row.getValue('fyG_ActiveFlag');
+            const isActive = typeof val === 'number' ? val === 1 : Boolean(val);
+            return <div>{isActive ? 'Active' : 'Inactive'}</div>;
+        },
         enableSorting: true,
         enableHiding: true
     },
     {
-        accessorKey: 'fmI_No_Of_Installments',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='No. of Installments' />,
-        cell: ({ row }) => <div>{row.getValue('fmI_No_Of_Installments')}</div>,
-        enableSorting: true,
-        enableHiding: true
-    },
-    {
-        accessorKey: 'fmI_Installment_Type',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Installment Type' />,
-        cell: ({ row }) => <div>{row.getValue('fmI_Installment_Type')}</div>,
-        enableSorting: true,
-        enableHiding: true
-    },
-    {
-        accessorKey: 'rebateApplicable',
+        accessorKey: 'fyG_RebateApplicableFlg',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Rebate Applicable' />,
-        cell: ({ row }) => <div>{row.getValue('rebateApplicable') ? 'Yes' : 'No'}</div>,
+        cell: ({ row }) => {
+            const val = row.getValue('fyG_RebateApplicableFlg');
+            const is = typeof val === 'number' ? val === 1 : Boolean(val);
+            return <div>{is ? 'Yes' : 'No'}</div>;
+        },
         enableSorting: true,
         enableHiding: true
     },
     {
-        accessorKey: 'rebateType',
+        accessorKey: 'fyG_RebateTypeFlg',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Rebate Type' />,
-        cell: ({ row }) => <div>{row.getValue('rebateType') || 'N/A'}</div>,
+        cell: ({ row }) => <div>{String(row.getValue('fyG_RebateTypeFlg') ?? '')}</div>,
         enableSorting: true,
         enableHiding: true
     },
     {
-        accessorKey: 'rebateValue',
+        accessorKey: 'fyG_PartialRebateAmtOrPercentageValue',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Rebate Value' />,
-        cell: ({ row }) => <div>{row.getValue('rebateValue') || 'N/A'}</div>,
+        cell: ({ row }) => {
+            const val = row.getValue('fyG_PartialRebateAmtOrPercentageValue');
+            const type = row.getValue('fyG_RebateTypeFlg');
+            if (val === undefined || val === null || val === '') return <div />;
+            const asStr = String(val);
+            const formatted = type && String(type).toLowerCase().includes('percent') ? `${asStr}%` : asStr;
+            return <div>{formatted}</div>;
+        },
         enableSorting: true,
         enableHiding: true
     },
+
     {
         id: 'actions',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Actions' className='text-center' />,
@@ -102,7 +101,7 @@ function ActionButtonsCell({
 }: {
     rowData: IMaasterFeesYearlyGrouping;
 }) {
-    const { openEditForm, openToggleForm, openDeleteForm } = useFormContext<IMaasterFeesYearlyGrouping>();
+    const { openEditForm, openToggleForm } = useFormContext<IMaasterFeesYearlyGrouping>();
 
     const handleEdit = useCallback(
         (data: IMaasterFeesYearlyGrouping) => {
@@ -112,38 +111,19 @@ function ActionButtonsCell({
     );
 
     const handleToggle = useCallback(
-        (data: IMaasterFeesYearlyGrouping) => {
-            openToggleForm(data);
+        (data: IMaasterFeesYearlyGrouping, _newState?: boolean) => {
+            if (openToggleForm) openToggleForm(data);
         },
         [openToggleForm]
-    );
-
-    const handleDelete = useCallback(
-        (data: IMaasterFeesYearlyGrouping) => {
-            const deleteData = { fyG_Id: data.fmG_Id };
-            const validationResult = YearlyGroupSchema.delete.safeParse(deleteData);
-            if (!validationResult.success) {
-                toast.error(validationResult.error.errors[0].message);
-                return;
-            }
-
-            if (openDeleteForm) {
-                openDeleteForm(data);
-            } else {
-                toast.success(`Successfully deleted record with ID ${data.fmG_Id}`);
-            }
-        },
-        [openDeleteForm]
     );
 
     return (
         <ActionButtons
             rowData={rowData}
-            buttons={{ edit: true, toggle: true, delete: true }}
+            buttons={{ edit: true, toggle: true }}
             onEdit={handleEdit}
             onToggle={handleToggle}
-            onDelete={handleDelete}
-            toggleConditionKey='fmH_ActiveFlag'
+            toggleConditionKey='fyG_ActiveFlag'
         />
     );
 }

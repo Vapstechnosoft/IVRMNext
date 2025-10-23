@@ -1,26 +1,37 @@
 'use server';
+
 import { api, getSearchParamsUrl } from '@/lib/apiService';
 import type { ApiSearchparams } from '@/types';
-import type { IMaasterFeesYearlyGrouping } from '@/types/fees/masters/masters';
+import type { IMasterClassYearlyList } from '@/types/fees/masters/masters';
 
-export async function addOrUpdateYearlyGrouping(data: any) {
-    const url = '/demo';
+export async function getMasterClassYearlyCategory(searchParams?: ApiSearchparams) {
+    const urlParams = getSearchParamsUrl(searchParams ?? {});
+    const url = `/fee_yearly_group/30?${urlParams}`;
+    return await api.get<IMasterClassYearlyList[]>('fees', url);
+}
+
+export async function getAcademicYearDropdown() {
+    const url = '/fee_class_category/academicyearlist/30';
+    return await api.get<IMasterClassYearlyList[]>('fees', url);
+}
+
+export async function getGroupListCategory(searchParams?: ApiSearchparams) {
+    const _urlParams = getSearchParamsUrl(searchParams ?? {});
+    const url = '/fee_yearly_group/getgrouplist/30';
+    return await api.get<IMasterClassYearlyList[]>('fees', url);
+}
+
+export async function MasterClassYearlyCategory(data: any) {
+    const url = '/api/fee_class_category/classcategorylist';
     return await api.post<any>('fees', url, data);
 }
 
-export async function toggleMasterYearlyGrouping(_mi_id: 30, id: number) {
-    const url = `/demo/${id}`;
+export async function addOrUpdateMasterClassYearlyCategory(data: any) {
+    const url = '/fee_yearly_group';
+    return await api.post<any>('fees', url, data);
+}
+
+export async function toggleMasterclassYearlyCategory(mi_id: number, id: number) {
+    const url = `/fee_yearly_group/toggle_fee_yearlygroup/${mi_id}/${id}`;
     return await api.put('fees', url);
-}
-
-export async function getfeeYearlyGrouping(searchParams?: ApiSearchparams) {
-    const urlParams = getSearchParamsUrl(searchParams ?? {});
-    const url = `/FeeheadFacade/30?${urlParams}`;
-    return await api.get<IMaasterFeesYearlyGrouping[]>('fees', url);
-}
-
-export async function getfeeGroups(searchParams?: ApiSearchparams) {
-    const urlParams = getSearchParamsUrl(searchParams ?? {});
-    const url = `/FeeheadFacade/30?${urlParams}`;
-    return await api.get<IMaasterFeesYearlyGrouping[]>('fees', url);
 }

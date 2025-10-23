@@ -193,11 +193,8 @@ export const masterGroupsGroupingSchema = {
 export const masterInstallmentSchema = {
     addOrUpdate: z.object({
         fmI_Name: z.string().min(1, { message: 'Master Installment Name is required' }),
-
         fmI_Installment_Type: z.string().min(1, { message: 'Installment Type is required' }),
-
-        fmI_No_Of_Installments: z.number().min(1, { message: 'Number of installments must be at least 1' }).optional(),
-
+        fmI_No_Of_Installments: z.number().optional(),
         installments: z
             .array(
                 z.object({
@@ -205,7 +202,7 @@ export const masterInstallmentSchema = {
                     ftI_Name: z.string().min(1, { message: 'Installment name is required' })
                 })
             )
-            .nonempty({ message: 'At least one installment is required' })
+            .optional()
     }),
     delete: z.object({
         mI_ID: z.number().optional()
@@ -230,7 +227,14 @@ export const masterGroupSchema = {
         fmG_ActiceFlag: z.boolean()
     }),
     delete: z.object({
-        fmG_Id: z.number().optional()
+        fyG_Id: z
+            .number({
+                required_error: 'Yearly Group ID is required',
+                invalid_type_error: 'Yearly Group ID must be a number'
+            })
+            .refine((val) => val > 0, {
+                message: 'Yearly Group ID must be greater than 0'
+            })
     })
 };
 
@@ -257,50 +261,80 @@ export const YearlyGroupSchema = {
     addOrUpdate: z
         .object({
             academicYear: z.string().min(1, { message: 'Academic Year is required' }),
-            rebateApplicable: z.boolean(),
-            rebateType: z.enum(['Percentage', 'Amount']).optional(),
-            rebateValue: z.union([z.number(), z.literal('')]).optional(),
+            rebateApplicable: z.boolean().default(false),
+            rebateType: z.enum(['Percentage', 'Amount']).nullable().optional(),
+            rebateValue: z
+                .union([
+                    z
+                        .string()
+                        .transform((val) => {
+                            const trimmed = val?.trim();
+                            if (trimmed === '' || trimmed === null || trimmed === undefined) {
+                                return undefined;
+                            }
+
+                            if (!/^\d*\.?\d*$/.test(trimmed)) {
+                                throw new Error('Only numbers and a single decimal point are allowed');
+                            }
+                            return Number(trimmed);
+                        })
+                        .refine((val) => val === undefined || !Number.isNaN(val), {
+                            message: 'Rebate Value must be a valid number'
+                        }),
+                    z.number(),
+                    z.undefined()
+                ])
+                .optional(),
             feeGroupIds: z.array(z.number()).min(1, { message: 'Select at least one Fee Group' })
         })
-        .refine(
-            (data) => {
-                if (data.rebateApplicable && !data.rebateType) {
-                    return false;
+        .superRefine((data, ctx) => {
+            if (data.rebateApplicable) {
+                if (!data.rebateType) {
+                    ctx.addIssue({
+                        code: z.ZodIssueCode.custom,
+                        path: ['rebateType'],
+                        message: 'Rebate Type is required when rebate is applicable'
+                    });
                 }
-                return true;
-            },
-            {
-                message: 'Rebate Type is required when rebate is applicable',
-                path: ['rebateType']
-            }
-        )
-        .refine(
-            (data) => {
-                if (
-                    data.rebateApplicable &&
-                    (data.rebateValue === '' || data.rebateValue === undefined || Number.isNaN(Number(data.rebateValue)))
-                ) {
-                    return false;
+                if (data.rebateValue === undefined || data.rebateValue === null || Number.isNaN(Number(data.rebateValue))) {
+                    ctx.addIssue({
+                        code: z.ZodIssueCode.custom,
+                        path: ['rebateValue'],
+                        message: 'Rebate Value is required and must be a valid number when rebate is applicable'
+                    });
+                } else if (data.rebateType === 'Percentage') {
+                    if (data.rebateValue < 0 || data.rebateValue > 100) {
+                        ctx.addIssue({
+                            code: z.ZodIssueCode.custom,
+                            path: ['rebateValue'],
+                            message: 'Percentage must be between 0 and 100'
+                        });
+                    }
+                } else if (data.rebateType === 'Amount') {
+                    if (data.rebateValue < 0) {
+                        ctx.addIssue({
+                            code: z.ZodIssueCode.custom,
+                            path: ['rebateValue'],
+                            message: 'Amount cannot be negative'
+                        });
+                    }
                 }
-                return true;
-            },
-            {
-                message: 'Rebate Value is required and must be a valid number when rebate is applicable',
-                path: ['rebateValue']
             }
-        ),
+        }),
+
     delete: z.object({
         fyG_Id: deleteIdSchema('fyG_Id')
     })
 };
-
 //term,concession,ter fee head
 
 export const masterConcessionSchema = {
     addOrUpdate: z.object({
         fmcC_Id: z.number().int().optional(),
         fmcC_ConcessionName: z.string({ message: 'ConcessionName is required' }),
-        fmcC_ConcessionApplLimit: z.number({ message: 'ConcessionApplLimit is required' }),
+        fmcC_ConcessionApplLimit: z.number({
+            message: 'ConcessionApplLimit is required'
+        }),
         fmcC_ConcessionFlag: z.string().optional(),
         fmcC_ActiveFlag: z.boolean().optional()
     }),
@@ -338,7 +372,9 @@ export const masterConcessionDetailsSchema = {
     addOrUpdate: z.object({
         fmcC_Id: z.number().int().optional(),
         fmcC_ConcessionName: z.string({ message: 'ConcessionName is required' }),
-        fmcC_ConcessionApplLimit: z.number({ message: 'ConcessionApplLimit is required' }),
+        fmcC_ConcessionApplLimit: z.number({
+            message: 'ConcessionApplLimit is required'
+        }),
         fmcC_ConcessionFlag: z.string().optional(),
         fmcC_ActiveFlag: z.boolean().optional()
     }),

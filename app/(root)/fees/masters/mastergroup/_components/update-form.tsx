@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { FormError, Label } from '@/components/ui/extension/field';
 import { InputText } from '@/components/ui/extension/input-text';
+import { InputTextarea } from '@/components/ui/extension/input-textarea';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { useMasterGroup } from '@/hooks/fees/useMasters';
 import { masterGroupSchema } from '@/schemas/fees/masters';
@@ -17,27 +18,6 @@ import { toast } from 'sonner';
 import type { z } from 'zod';
 
 type FormFields = z.infer<typeof masterGroupSchema.addOrUpdate>;
-
-const installmentData = [
-    {
-        fmI_Name: 'demo',
-        fmI_Installment_Type: 'general',
-        fmI_No_Of_Installments: 1,
-        createdDate: '2025-10-09T07:35:04.549Z',
-        updatedDate: '2025-10-09T07:35:04.549Z'
-    }
-];
-
-const inTData = [
-    {
-        mI_ID: 30,
-        ftI_Name: 'check',
-        created: true,
-        updated: false,
-        createdDate: '2025-10-09T07:35:04.549Z',
-        updatedDate: '2025-10-09T07:35:04.549Z'
-    }
-];
 
 interface UpdateMasterGroupFormProps {
     onSuccess?: () => void;
@@ -77,12 +57,14 @@ export default function UpdateMasterGroupForm({ onSuccess, selectedRow: row }: U
 
     const onSubmit: SubmitHandler<FormFields> = async (data: FormFields) => {
         try {
-            const { fmG_Remarks, fmG_Id, transportHostelType, studentType, fmG_CompulsoryFlag } = data;
+            const { fmG_Remarks, fmG_Id, transportHostelType, studentType, fmG_CompulsoryFlag, fmG_GroupName } = data;
+
+            const mI_Id = 30;
 
             const payload = {
                 fmG_Id: fmG_Id || 0,
-                mI_Id: inTData[0].mI_ID,
-                fmG_GroupName: installmentData[0].fmI_Name,
+                mI_Id,
+                fmG_GroupName: fmG_GroupName,
                 fmG_Remarks: fmG_Remarks || '',
                 fmG_CompulsoryFlag: fmG_CompulsoryFlag ? '1' : '0',
                 fmG_ActiceFlag: true,
@@ -144,7 +126,7 @@ export default function UpdateMasterGroupForm({ onSuccess, selectedRow: row }: U
                             className='transition-colors focus:ring-2 focus:ring-primary/20'
                         />
                         <div className='group flex flex-col gap-1.5'>
-                            <InputText
+                            <InputTextarea
                                 label='Remarks'
                                 required
                                 id='fmG_Remarks'

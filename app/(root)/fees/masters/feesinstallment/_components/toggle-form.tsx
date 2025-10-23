@@ -45,8 +45,8 @@ export default function ToggleMasterInstallmentForm({ rowData, onClose }: Toggle
 
     const onSubmit: SubmitHandler<FormFields> = async (_formData) => {
         try {
-            await toggleMasterfeeInstallment(30, rowData.mI_ID);
-            const response = await toggleMasterfeeInstallment(30, rowData.mI_ID);
+            await toggleMasterfeeInstallment(30, rowData.mI_Id);
+            const response = await toggleMasterfeeInstallment(30, rowData.mI_Id);
 
             if (response.success) {
                 toast.success(response.message || 'Status updated successfully!');
@@ -64,7 +64,7 @@ export default function ToggleMasterInstallmentForm({ rowData, onClose }: Toggle
         <AdaptiveDialog title='Toggle Master Installment Status' isOpen={true} onClose={closeDialog}>
             <form onSubmit={handleSubmit(onSubmit)} className='flex flex-col gap-4'>
                 <AdaptiveBody className='flex flex-col gap-5'>
-                    <input type='hidden' {...register('mI_ID', { valueAsNumber: true })} defaultValue={rowData.mI_ID} />
+                    <input type='hidden' {...register('mI_ID', { valueAsNumber: true })} defaultValue={rowData.mI_Id} />
                     <p>
                         Are you sure you want to {isActive ? 'deactivate' : 'activate'} <strong>{rowData.fmI_Name}</strong>?
                     </p>

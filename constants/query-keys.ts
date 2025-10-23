@@ -33,6 +33,7 @@ export const FEES_QUERY_KEYS = {
     MASTER_GROUP: 'master_group',
     FEE_INSTALLMENT_DUE_DATE: 'fee_installment_due_date',
     FEE_YEARLY_GROUPS: 'fee_yearly_groups',
+    FEE_GROUP_LIST_DROPDOWN: 'fee_group_list_dropdown',
 
     FEE_MASTER_CONCESSION: 'masterfeeconcession',
     FEE_MASTER_TERMS: 'feemasterterms',

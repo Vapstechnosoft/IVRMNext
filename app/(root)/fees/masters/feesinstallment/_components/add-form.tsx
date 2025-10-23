@@ -13,7 +13,7 @@ import { InputText } from '@/components/ui/extension/input-text';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 import { masterInstallmentSchema } from '@/schemas/fees/masters';
-import { addOrUpdateInsallment } from '@/server/fees/masters/feeinstallment';
+import { addOrUpdateInstallment } from '@/server/fees/masters/feeinstallment';
 
 export default function AddMasterInstallmentForm({ onSuccess }: { onSuccess?: () => void } = {}) {
     const [installments, setInstallments] = useState<{ sno: number; ftI_Name: string }[]>([]);
@@ -88,7 +88,7 @@ export default function AddMasterInstallmentForm({ onSuccess }: { onSuccess?: ()
                 }))
             };
 
-            const response = await addOrUpdateInsallment(payload);
+            const response = await addOrUpdateInstallment(payload);
 
             if (response.success) {
                 toast.success('Installment details saved successfully!');

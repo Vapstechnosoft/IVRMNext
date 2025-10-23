@@ -13,7 +13,7 @@ import { InputText } from '@/components/ui/extension/input-text';
 
 import { useMasterFeeInstallment } from '@/hooks/fees/useMasters';
 import { masterInstallmentSchema } from '@/schemas/fees/masters';
-import { addOrUpdateInsallment } from '@/server/fees/masters/feeinstallment';
+import { addOrUpdateInstallment } from '@/server/fees/masters/feeinstallment';
 import type { IMasterFeesInstallmentList } from '@/types/fees/masters/masters';
 
 type FormFields = z.infer<typeof masterInstallmentSchema.addOrUpdate> & {
@@ -54,7 +54,7 @@ export default function UpdateMasterFeeheadForm({ onSuccess, selectedRow: row }:
         try {
             const payload = {
                 fmI_Id: data.fmI_Id ?? row.fmI_Id,
-                mI_ID: row.mI_ID ?? 30,
+                mI_ID: row.mI_Id ?? 30,
                 fmI_Name: data.fmI_Name,
                 fmI_Installment_Type: data.fmI_Installment_Type,
                 fmI_No_Of_Installments: data.fmI_No_Of_Installments,
@@ -62,7 +62,7 @@ export default function UpdateMasterFeeheadForm({ onSuccess, selectedRow: row }:
                 fmI_ActiveFlag: row.fmI_ActiveFlag
             };
 
-            const response = await addOrUpdateInsallment(payload);
+            const response = await addOrUpdateInstallment(payload);
 
             if (response.success) {
                 toast.success('Master Installment updated successfully!');
