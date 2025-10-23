@@ -259,7 +259,6 @@ export interface IMasterGroupDropdown {
     groupName: string;
 }
 
-// Role dropdown
 export interface IMasterRoleDropdown {
     roleId: number;
     roleName: string;
