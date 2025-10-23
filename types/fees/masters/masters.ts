@@ -212,7 +212,7 @@ export interface IMasterpaymentGatewayDropdownList {
 export interface IMasterGroupWiseAutoReciptList {
     asmaY_Id: any;
     asmcL_Id: number;
-    fmcC_Id(fmcC_Id: any): number;
+    fmcC_Id: any;
     fyccC_Id: number;
     asmaY_Year: string;
     fmcC_ClassCategoryName: string;
@@ -235,4 +235,45 @@ export interface IMasterYearlyRebateSettingsList {
     fyG_PartialRebate: string;
     fyG_PartialRebateAmtOrPercentageValue?: number | string;
     fyg_date: string;
+}
+//used for fee previlege
+export interface IMasterFeePrevilegeList {
+    asmcl_ActiveFlag: boolean;
+    asmaY_Id: number;
+    asmaY_Year: string;
+    ifp_Id: number;
+    ifp_FeePrevilegeName: string;
+    ifp_Description: string;
+    ifp_ActiveFlag: boolean;
+}
+
+export interface IAcademicYearDropDown {
+    asmaY_Id: number;
+    asmaY_Year: string;
+    asmaY_Order: number;
+}
+
+// Group dropdown
+export interface IMasterGroupDropdown {
+    groupId: number;
+    groupName: string;
+}
+
+// Role dropdown
+export interface IMasterRoleDropdown {
+    roleId: number;
+    roleName: string;
+}
+
+export interface IMasterOnlinePaymentHeadgroupList {
+    fmcC_Id: number;
+    mI_Id: number;
+    institutionName: string;
+    classCategory: string;
+    subMerchantId: string;
+    groupName: string;
+    headSearchTerm: string;
+    installmentName: string;
+    terms: string;
+    academicYear: string;
 }

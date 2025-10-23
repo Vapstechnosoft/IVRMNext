@@ -1,13 +1,15 @@
 import { ADMISSION_QUERY_KEYS, FEES_QUERY_KEYS } from '@/constants/query-keys';
 import { getMasterClassCategory } from '@/server/fees/masters/class_category';
+import { getAcademicYearDropdown } from '@/server/fees/masters/class_yearly_category';
 import { getFeeTermHeadList, getheadsdropdown, getinstallmentsdropdown, gettermsdropdown } from '@/server/fees/masters/fee-term-heads';
 import { getpaymentgateway_dropdown, getpaymentgatewaydetails } from '@/server/fees/masters/fee_payment_gateway_details';
+import { getFeePrevilegeList, getGroupsDropdown, getRolesDropdown } from '@/server/fees/masters/fee_previlege';
 import { getfeehead } from '@/server/fees/masters/feehead';
 import { getfeeInstallment } from '@/server/fees/masters/feeinstallment';
 import { getfeeInstallmentDueDate } from '@/server/fees/masters/feeinstallmentduedate';
 import { getMasterConcession } from '@/server/fees/masters/feemasterconcession';
 import { getFeeTermList } from '@/server/fees/masters/feemasterterms';
-import { getAcademicYearDropdown, getGroupListCategory, getMasterClassYearlyCategory } from '@/server/fees/masters/fees_yearly_group';
+import { getGroupListCategory, getMasterClassYearlyCategory } from '@/server/fees/masters/fees_yearly_group';
 import { getFineSlab } from '@/server/fees/masters/fineSlab';
 import { getFeeGroup } from '@/server/fees/masters/groupsgrouping';
 import { getMasterGroup } from '@/server/fees/masters/master_group';
@@ -84,6 +86,7 @@ export const useMasterFineSlab = (searchParams?: ApiSearchparams) => {
     };
 };
 
+//dropdowns
 export const useAcademicYearDropdown = () => {
     const queryClient = useQueryClient();
 
@@ -96,6 +99,39 @@ export const useAcademicYearDropdown = () => {
         refetchAll: () => {
             return queryClient.invalidateQueries({
                 queryKey: [FEES_QUERY_KEYS.ACADEMIC_DROPDOWN]
+            });
+        }
+    };
+};
+
+export const useGroupsDropdown = () => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [FEES_QUERY_KEYS.GROUPS_DROPDOWN],
+            queryFn: async () => getGroupsDropdown(),
+            staleTime: 0
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [FEES_QUERY_KEYS.GROUPS_DROPDOWN]
+            });
+        }
+    };
+};
+export const useRolesDropdown = () => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [FEES_QUERY_KEYS.ROLES_DROPDOWN],
+            queryFn: async () => getRolesDropdown(),
+            staleTime: 0
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [FEES_QUERY_KEYS.ROLES_DROPDOWN]
             });
         }
     };
@@ -242,21 +278,21 @@ export const useMasterFeeYearlyGroup = (searchParams?: ApiSearchparams) => {
     };
 };
 
-export const useFeeGroupDropdown = (searchParams?: ApiSearchparams) => {
-    const queryClient = useQueryClient();
-    return {
-        ...useQuery({
-            queryKey: [FEES_QUERY_KEYS.FEE_YEARLY_GROUPS, searchParams ?? {}],
-            queryFn: async () => getMasterClassYearlyCategory(searchParams),
-            staleTime: 0
-        }),
-        refetchAll: () => {
-            return queryClient.invalidateQueries({
-                queryKey: [FEES_QUERY_KEYS.FEE_YEARLY_GROUPS]
-            });
-        }
-    };
-};
+// export const useFeeGroupDropdown = (searchParams?: ApiSearchparams) => {
+//     const queryClient = useQueryClient();
+//     return {
+//         ...useQuery({
+//             queryKey: [FEES_QUERY_KEYS.FEE_YEARLY_GROUPS, searchParams ?? {}],
+//             queryFn: async () => getMasterClassYearlyCategory(searchParams),
+//             staleTime: 0
+//         }),
+//         refetchAll: () => {
+//             return queryClient.invalidateQueries({
+//                 queryKey: [FEES_QUERY_KEYS.FEE_YEARLY_GROUPS]
+//             });
+//         }
+//     };
+// };
 
 //term
 
@@ -425,6 +461,23 @@ export const useClassCategoryDropdown = () => {
         refetchAll: () => {
             return queryClient.invalidateQueries({
                 queryKey: [FEES_QUERY_KEYS.FEE_GROUP_LIST_DROPDOWN]
+            });
+        }
+    };
+};
+
+export const useFeePrevilegeList = () => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [FEES_QUERY_KEYS.FEES_PRIVILEGE_LIST],
+            queryFn: async () => getFeePrevilegeList(),
+            staleTime: 0
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [FEES_QUERY_KEYS.FEES_PRIVILEGE_LIST]
             });
         }
     };
