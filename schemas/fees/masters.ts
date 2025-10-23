@@ -32,47 +32,27 @@ export const masterModeOfPaymentSchema = {
     })
 };
 
-// export const paymentgatewaydetailsSchema = {
-//     addOrUpdate: z.object({
-//          mi_id: z.number().int(),
-//         fpgD_Id: z.number().int().optional(),
-//         fpgD_AuthorisationKey: z.string({ message: 'AuthorisationKey is required' }),
-//         fpgD_Image: z.string({ message: 'Image is required' }),
-//         fpgD_MerchantId: z.string({ message: 'MerchantId is required' }),
-//         fpgD_PGName: z.string({ message: 'PGName is required' }),
-//         fpgD_SaltKey: z.string({ message: 'SaltKey is required' }),
-//         // fpgD_SubMerchantId: z.string({ message: 'SubMerchantId is required' }),
-//         fpgD_URL: z.string().optional(),
-//         // gatewayName: z.string({ message: 'gatewayName is required' }),
-//         fpgD_AccNo: z.string({ message: 'AccNo is required' }),
-//         fpgD_MerchantKey: z.string({ message: 'MerchantKey is required' }),
-//         fpgD_MobileActiveFlag: z.boolean().optional(),
-//         submerchantIds: z.array(z.object({ id: z.string() })).optional()
-//     }),
-//     delete: z.object({
-//         FPGD_Id: deleteIdSchema('FPGD_Id')
-//     })
-// };
 export const paymentgatewaydetailsSchema = {
     addOrUpdate: z.object({
         fpgD_MerchantId: z.string().min(1, 'Merchant ID is required'),
         fpgD_SaltKey: z.string().min(1, 'Salt Key is required'),
         fpgD_Image: z.string().min(1, 'Image is required'),
-        fpgD_URL: z.string().min(1, 'URL is required'),
+        fpgD_URL: z.string().optional(),
         fpgD_AccNo: z.string().min(1, 'Account Number is required'),
         fpgD_MerchantKey: z.string().min(1, 'Merchant Key is required'),
-        impG_Id: z.number().int().optional(),
-        fpgD_MobileActiveFlag: z.boolean().optional()
-
-        //     fpgD_MerchantId: z.string({ message: 'MerchantId is required' }),
-        //   fpgD_SaltKey: z.string().min(1, 'Salt Key is required'),
-        //   fpgD_Image: z.string().min(1, 'Image is required'),
-        //   fpgD_URL: z.string().min(1, 'URL is required'),
-        //   fpgD_AccNo: z.string().min(1, 'Account Number is required'),
-        //   fpgD_PGName: z.string().min(1, 'PG Name is required')
-        //   fpgD_MerchantKey: z.string().min(1, 'Merchant Key is required')
-        //   ,
-        //   impG_Id: z.number().int().optional()
+        impG_Id: z.preprocess((val) => {
+            if (typeof val === 'string' && val.trim().length > 0) return Number(val);
+            return val;
+        }, z.number().int().optional()),
+        fpgD_MobileActiveFlag: z.boolean().optional(),
+        submerchantIds: z
+            .array(
+                z.object({
+                    id: z.string().min(1, 'Sub Merchant Id is required')
+                })
+            )
+            .optional()
+            .default([])
     }),
     delete: z.object({
         FPGD_Id: deleteIdSchema('FPGD_Id')
