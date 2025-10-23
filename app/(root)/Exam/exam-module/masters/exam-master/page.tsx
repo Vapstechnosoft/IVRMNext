@@ -1,6 +1,4 @@
 'use client';
-
-import { Heading } from '@/components/layout/heading';
 import { Button } from '@/components/ui/button';
 import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/generic-data-table';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
@@ -10,8 +8,8 @@ import { use } from 'react';
 
 import { useMasterExam } from '@/hooks/exam/exammodule/usemasters';
 import type { IMasterExam } from '@/types/exam/exam-module/masters';
-import { MasterExamColumns } from './_components/columns';
 import AddMasterExamForm from './_components/add-form';
+import { MasterExamColumns } from './_components/columns';
 import ToggleExamForm from './_components/toggle-form';
 import UpdateMasterExamForm from './_components/update-form';
 
@@ -44,13 +42,7 @@ function MasterExamPageContent({
         <div className='min-h-screen'>
             <div className='container space-y-4 p-1'>
                 {/* Header */}
-                <div className='flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between'>
-                    <div className='space-y-1'>
-                        <Heading
-                            title='Master Exam Management'
-                            description='Manage and organize your master subjects with advanced filtering and controls'
-                        />
-                    </div>
+                <div className='flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-self-end'>
                     <Button
                         type='button'
                         onClick={openAddForm}

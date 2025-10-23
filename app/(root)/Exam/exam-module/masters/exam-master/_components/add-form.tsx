@@ -103,7 +103,7 @@ export default function AddMasterExamForm({ onSuccess, className = '' }: AddMast
                     emE_ExamOrder: index + 1
                 }))
             };
-
+            const response = await addOrUpdateMasterExam(payload);
             if (response.success) {
                 toast.success(response.message);
                 reset();

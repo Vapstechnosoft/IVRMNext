@@ -50,5 +50,7 @@ export const EXAM_QUERY_KEYS = {
     MASTER_SUBJECT_GROUP_DETAILS: 'master-subject-group-details',
     MASTER_ALL_SUBJECT_GROUP_DETAILS: 'master-all-subject-group-details',
     MASTER_CATEGORY: 'master-category',
-    MASTER_CATEGORY_CLASS_MAPPING: 'master-category-class-mapping'
+    MASTER_CATEGORY_CLASS_MAPPING: 'master-category-class-mapping',
+    YEARLY_CATEGORY_SUBJECT_MAPPING: 'yearly-category-subject-mapping',
+    EXAM_LOGIN_PRIVILAGES: 'exam-login-privilages'
 };
