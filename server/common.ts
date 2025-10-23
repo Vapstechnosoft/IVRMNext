@@ -328,6 +328,14 @@ export async function getUserAccessibleModules() {
                                         url: '/fees/masters/groupwiseautoreceipt',
                                         title: 'Yearly Groups Mapping',
                                         description: 'Yearly Groups Mapping'
+                                    },
+                                    {
+                                        id: 22,
+                                        name: 'Yearly Rebate Settings',
+                                        icon: 'Settings',
+                                        url: '/fees/masters/yearlyrebatesetting',
+                                        title: 'Yearly Rebate Settings',
+                                        description: 'Yeary Rebate Settings'
                                     }
                                 ]
                             },
