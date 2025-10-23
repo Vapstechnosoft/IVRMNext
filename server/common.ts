@@ -188,6 +188,21 @@ export async function getUserAccessibleModules() {
                         icon: 'Settings',
                         sub_menu: [
                             {
+                                id: 3,
+                                name: 'Configuration',
+                                icon: 'Settings',
+                                pages: [
+                                    {
+                                        id: 25,
+                                        name: 'Fee configuration',
+                                        icon: 'Settings',
+                                        url: '/fees/configuration/masterfeeconfig',
+                                        title: 'Fee configuration',
+                                        description: 'Fee configuration'
+                                    }
+                                ]
+                            },
+                            {
                                 id: 2,
                                 name: 'Masters',
                                 icon: 'Settings',
@@ -263,7 +278,7 @@ export async function getUserAccessibleModules() {
                                         icon: 'Settings',
                                         url: '/fees/masters/classcategory',
                                         title: 'Class Category',
-                                        description: 'Class Category'
+                                        description: 'Manage Class Category'
                                     },
                                     {
                                         id: 13,
@@ -271,7 +286,7 @@ export async function getUserAccessibleModules() {
                                         icon: 'Settings',
                                         url: '/fees/masters/category',
                                         title: 'Category',
-                                        description: 'Category'
+                                        description: 'Manage Category'
                                     },
                                     {
                                         id: 14,
@@ -279,7 +294,7 @@ export async function getUserAccessibleModules() {
                                         icon: 'Settings',
                                         url: '/fees/masters/feesinstallment',
                                         title: 'Installment',
-                                        description: 'Installment'
+                                        description: ' Manage Installment'
                                     },
                                     {
                                         id: 15,
@@ -295,7 +310,7 @@ export async function getUserAccessibleModules() {
                                         icon: 'Settings',
                                         url: '/fees/masters/groupsgrouping',
                                         title: 'Group Grouping',
-                                        description: 'Group Grouping'
+                                        description: 'Manage Group Grouping'
                                     },
                                     {
                                         id: 17,
@@ -303,7 +318,7 @@ export async function getUserAccessibleModules() {
                                         icon: 'Settings',
                                         url: '/fees/masters/mastergroup',
                                         title: 'Groups',
-                                        description: 'Groups'
+                                        description: 'Manage Groups'
                                     },
                                     {
                                         id: 19,
@@ -311,7 +326,7 @@ export async function getUserAccessibleModules() {
                                         icon: 'Settings',
                                         url: '/fees/masters/yearlygroup',
                                         title: 'Yearly Groups',
-                                        description: 'Yearly Groups'
+                                        description: 'Manage Yearly Groups'
                                     },
                                     {
                                         id: 18,
@@ -319,7 +334,7 @@ export async function getUserAccessibleModules() {
                                         icon: 'Settings',
                                         url: '/fees/masters/yearlyfeegroupmapping',
                                         title: 'Yearly Groups Mapping',
-                                        description: 'Yearly Groups Mapping'
+                                        description: 'Manage Yearly Groups Mapping'
                                     },
                                     {
                                         id: 21,
@@ -327,22 +342,31 @@ export async function getUserAccessibleModules() {
                                         icon: 'Settings',
                                         url: '/fees/masters/groupwiseautoreceipt',
                                         title: 'Yearly Groups Mapping',
-                                        description: 'Yearly Groups Mapping'
-                                    }
-                                ]
-                            },
-                            {
-                                id: 3,
-                                name: 'Configuration',
-                                icon: 'Settings',
-                                pages: [
+                                        description: 'Manage Yearly Groups Mapping'
+                                    },
+                                    {
+                                        id: 22,
+                                        name: 'Yearly Rebate Settings',
+                                        icon: 'Settings',
+                                        url: '/fees/masters/yearlyrebatesetting',
+                                        title: 'Yearly Rebate Settings',
+                                        description: 'Manage Yeary Rebate Settings'
+                                    },
+                                    {
+                                        id: 24,
+                                        name: 'Fee Privilege',
+                                        icon: 'Settings',
+                                        url: '/fees/masters/feeprevilege',
+                                        title: 'Fee Privilege',
+                                        description: 'Manage Fee Privilege Details'
+                                    },
                                     {
                                         id: 25,
-                                        name: 'Fee configuration',
+                                        name: 'Online Payment Head Group Mapping',
                                         icon: 'Settings',
-                                        url: '/fees/configuration/masterfeeconfig',
-                                        title: 'Fee configuration',
-                                        description: 'Fee configuration'
+                                        url: '/fees/masters/onlinepaymentheadgroupmapping',
+                                        title: 'Fee Privilege',
+                                        description: 'Manage Online Payment Head GroupMapping Details'
                                     }
                                 ]
                             }

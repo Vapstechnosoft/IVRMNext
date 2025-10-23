@@ -1,21 +1,25 @@
 'use client';
 
+import { Button } from '@/components/ui/button';
+import { FormError, Label } from '@/components/ui/extension/field';
+import { InputText } from '@/components/ui/extension/input-text';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { FEES_QUERY_KEYS } from '@/constants/query-keys';
+import { useMasterFeeInstallment } from '@/hooks/fees/useMasters';
+import { addOrUpdateInstallment } from '@/server/fees/masters/feeinstallment';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { useQueryClient } from '@tanstack/react-query';
 import { Save } from 'lucide-react';
 import { useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import type { z } from 'zod';
 
-import { Button } from '@/components/ui/button';
-import { FormError, Label } from '@/components/ui/extension/field';
-import { InputText } from '@/components/ui/extension/input-text';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-
 import { masterInstallmentSchema } from '@/schemas/fees/masters';
-import { addOrUpdateInsallment } from '@/server/fees/masters/feeinstallment';
 
 export default function AddMasterInstallmentForm({ onSuccess }: { onSuccess?: () => void } = {}) {
+    const { refetchAll } = useMasterFeeInstallment();
+    const queryClient = useQueryClient();
     const [installments, setInstallments] = useState<{ sno: number; ftI_Name: string }[]>([]);
 
     type MasterInstallmentFormSchema = z.infer<typeof masterInstallmentSchema.addOrUpdate>;
@@ -70,36 +74,90 @@ export default function AddMasterInstallmentForm({ onSuccess }: { onSuccess?: ()
 
     const onSubmit = async (data: MasterInstallmentFormSchema) => {
         try {
+            const noOfInstallments = Number(data.fmI_No_Of_Installments) || installments.length || 0;
+
             const payload = {
-                installmentData: [
-                    {
-                        fmI_Name: data.fmI_Name,
-                        fmI_Installment_Type: data.fmI_Installment_Type,
-                        fmI_No_Of_Installments: installments.length,
-                        createdDate: new Date().toISOString(),
-                        updatedDate: new Date().toISOString()
-                    }
-                ],
-                inTData: installments.map((row) => ({
-                    mI_ID: 30,
-                    ftI_Name: row.ftI_Name || `Installment ${row.sno}`,
-                    createdDate: new Date().toISOString(),
-                    updatedDate: new Date().toISOString()
+                fmI_Id: (data as any).fmI_Id ?? 0,
+                mI_Id: (data as any).mI_Id ?? 30,
+                fmI_Name: data.fmI_Name,
+                fmI_No_Of_Installments: noOfInstallments,
+                fmI_Installment_Type: data.fmI_Installment_Type,
+                fydto: installments.map((row) => ({
+                    ftI_Name: row.ftI_Name || `Installment ${row.sno}`
                 }))
             };
 
-            const response = await addOrUpdateInsallment(payload);
+            const response = await addOrUpdateInstallment(payload as any);
 
-            if (response.success) {
+            if (response?.success) {
                 toast.success('Installment details saved successfully!');
                 reset();
                 setInstallments([]);
+                try {
+                    const created = response?.data ?? null;
+                    const newRow: any = {
+                        ...(created && typeof created === 'object' ? created : {}),
+                        fmI_Name: (created?.fmI_Name ?? payload.fmI_Name) as any,
+                        fmI_No_Of_Installments: (created?.fmI_No_Of_Installments ?? payload.fmI_No_Of_Installments) as any,
+                        fmI_Installment_Type: (created?.fmI_Installment_Type ?? payload.fmI_Installment_Type) as any,
+                        fydto: created?.fydto ?? payload.fydto ?? [],
+                        fmI_ActiceFlag: created?.fmI_ActiceFlag ?? created?.fmI_ActiveFlag ?? true,
+                        fmI_ActiveFlag: created?.fmI_ActiveFlag ?? created?.fmI_ActiceFlag ?? true,
+                        fmI_Id: created?.fmI_Id ?? created?.id ?? -Date.now()
+                    };
+
+                    // normalize installments array for edit form consumption
+                    newRow.installments = (newRow.fydto || []).map((inst: any, idx: number) => ({
+                        sno: inst?.sno ?? idx + 1,
+                        ftI_Name: inst?.ftI_Name ?? inst?.ftI_NAME ?? inst?.installmentname ?? `Installment ${idx + 1}`
+                    }));
+
+                    const matches = queryClient.getQueriesData({
+                        queryKey: [FEES_QUERY_KEYS.FEE_INSTALLMENT]
+                    });
+                    if (Array.isArray(matches) && matches.length > 0) {
+                        matches.forEach(([key, _value]) => {
+                            queryClient.setQueryData(key as any, (old: any) => {
+                                if (!old) return old;
+                                if (Array.isArray(old.data)) {
+                                    const existing = old.data || [];
+                                    return {
+                                        ...old,
+                                        data: [newRow, ...existing],
+                                        total: (old.total ?? existing.length) + 1
+                                    };
+                                }
+
+                                if (Array.isArray(old)) {
+                                    return [newRow, ...old];
+                                }
+
+                                return old;
+                            });
+                        });
+                    } else {
+                        try {
+                            refetchAll();
+                        } catch (e) {
+                            console.warn('refetchAll not available', e);
+                        }
+                    }
+                } catch (e) {
+                    console.warn('Failed to update cache optimistically', e);
+                    try {
+                        refetchAll();
+                    } catch (err) {
+                        console.warn('refetchAll not available', err);
+                    }
+                }
+
                 onSuccess?.();
             } else {
-                toast.error(response.message || 'Failed to save installment');
+                toast.error(response?.message || 'Failed to save installment');
             }
         } catch (err: any) {
-            toast.error(err.message || 'Something went wrong');
+            console.error('Error saving installment:', err);
+            toast.error(err?.message || 'Something went wrong');
         }
     };
 
@@ -120,7 +178,15 @@ export default function AddMasterInstallmentForm({ onSuccess }: { onSuccess?: ()
                         <Controller
                             name='fmI_Name'
                             control={control}
-                            render={({ field }) => <InputText id='fmI_Name' placeholder='Enter master installment name' {...field} />}
+                            render={({ field }) => (
+                                <InputText
+                                    id='fmI_Name'
+                                    placeholder='Enter master installment name'
+                                    {...field}
+                                    value={field.value ?? ''}
+                                    onChange={field.onChange}
+                                />
+                            )}
                         />
                         {errors.fmI_Name && <FormError>{errors.fmI_Name.message}</FormError>}
                     </div>
@@ -134,7 +200,7 @@ export default function AddMasterInstallmentForm({ onSuccess }: { onSuccess?: ()
                             control={control}
                             render={({ field }) => (
                                 <Select
-                                    value={field.value}
+                                    value={field.value ?? ''}
                                     onValueChange={(val) => {
                                         field.onChange(val);
                                         handleTypeChange(val);
@@ -205,7 +271,7 @@ export default function AddMasterInstallmentForm({ onSuccess }: { onSuccess?: ()
                                         <td className='border border-gray-200 px-4 py-2'>
                                             <input
                                                 type='text'
-                                                value={row.ftI_Name}
+                                                value={row.ftI_Name ?? ''}
                                                 onChange={(e) => handleInputChange(index, e.target.value)}
                                                 placeholder={`Installment ${row.sno}`}
                                                 className='w-full rounded-md border border-gray-300 px-2 py-1 text-sm outline-none transition focus:border-primary focus:ring-1 focus:ring-primary'

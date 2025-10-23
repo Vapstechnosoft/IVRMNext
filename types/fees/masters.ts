@@ -103,12 +103,13 @@ export interface IMasterInstallmentsDropdownList {
 // Installment list (used by fees installment pages)
 export interface IMasterFeesInstallmentList {
     fmI_Id: number;
-    mI_ID: number;
+    mI_Id: number;
     fmI_Name: string;
     fmI_No_Of_Installments: number;
     fmI_Installment_Type: string;
     ftI_Name?: string;
-    fmI_ActiveFlag: boolean | number;
+    fmI_ActiceFlag?: boolean | number;
+    fmI_ActiveFlag?: boolean | number;
     installments?: Array<{
         sno?: number;
         ftI_Id?: number;
@@ -119,7 +120,6 @@ export interface IMasterFeesInstallmentList {
         ddate?: string;
     }>;
 }
-
 export interface IMasterConcessionDetailsList {
     fmcC_Id: number;
     fmcC_ConcessionName: string;

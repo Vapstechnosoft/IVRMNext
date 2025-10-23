@@ -3,12 +3,11 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
 import { ActionButtons } from '@/components/ui/form/action-buttons';
 import { useFormContext } from '@/components/ui/form/form-provider';
-
 import type { IMasterFeesInstallmentList } from '@/types/fees/masters/masters';
 import type { ColumnDef } from '@tanstack/react-table';
 import { useCallback } from 'react';
 
-export const feeheadColumns: ColumnDef<IMasterFeesInstallmentList>[] = [
+export const feeInstallmentColumns: ColumnDef<IMasterFeesInstallmentList>[] = [
     {
         id: 'select',
         header: ({ table }) => (
@@ -28,24 +27,28 @@ export const feeheadColumns: ColumnDef<IMasterFeesInstallmentList>[] = [
     {
         accessorKey: 'fmI_Name',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Installment Name' />,
-        cell: ({ row }) => <div>{row.getValue('fmI_Name')}</div>,
+        cell: ({ row }) => <div className='font-medium'>{row.getValue('fmI_Name')}</div>,
         enableSorting: true,
         enableHiding: true
     },
     {
         accessorKey: 'fmI_No_Of_Installments',
         header: ({ column }) => <DataTableColumnHeader column={column} title='No. of Installments' />,
-        cell: ({ row }) => <div>{row.getValue('fmI_No_Of_Installments')}</div>,
+        cell: ({ row }) => <div className='text-center'>{row.getValue('fmI_No_Of_Installments')}</div>,
         enableSorting: true,
         enableHiding: true
     },
     {
         accessorKey: 'fmI_Installment_Type',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Installment Type' />,
-        cell: ({ row }) => <div>{row.getValue('fmI_Installment_Type')}</div>,
+        cell: ({ row }) => {
+            const type = row.getValue('fmI_Installment_Type') as string;
+            return <div>{type === '1' ? 'Monthly' : type === '2' ? 'Quarterly' : type}</div>;
+        },
         enableSorting: true,
         enableHiding: true
     },
+
     {
         id: 'actions',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Actions' className='text-center' />,
@@ -82,7 +85,7 @@ function ActionButtonsCell({
             buttons={{ edit: true, toggle: true, delete: false }}
             onEdit={handleEdit}
             onToggle={handleToggle}
-            toggleConditionKey='fmH_ActiveFlag'
+            toggleConditionKey='fmI_ActiceFlag'
         />
     );
 }

@@ -32,47 +32,27 @@ export const masterModeOfPaymentSchema = {
     })
 };
 
-// export const paymentgatewaydetailsSchema = {
-//     addOrUpdate: z.object({
-//          mi_id: z.number().int(),
-//         fpgD_Id: z.number().int().optional(),
-//         fpgD_AuthorisationKey: z.string({ message: 'AuthorisationKey is required' }),
-//         fpgD_Image: z.string({ message: 'Image is required' }),
-//         fpgD_MerchantId: z.string({ message: 'MerchantId is required' }),
-//         fpgD_PGName: z.string({ message: 'PGName is required' }),
-//         fpgD_SaltKey: z.string({ message: 'SaltKey is required' }),
-//         // fpgD_SubMerchantId: z.string({ message: 'SubMerchantId is required' }),
-//         fpgD_URL: z.string().optional(),
-//         // gatewayName: z.string({ message: 'gatewayName is required' }),
-//         fpgD_AccNo: z.string({ message: 'AccNo is required' }),
-//         fpgD_MerchantKey: z.string({ message: 'MerchantKey is required' }),
-//         fpgD_MobileActiveFlag: z.boolean().optional(),
-//         submerchantIds: z.array(z.object({ id: z.string() })).optional()
-//     }),
-//     delete: z.object({
-//         FPGD_Id: deleteIdSchema('FPGD_Id')
-//     })
-// };
 export const paymentgatewaydetailsSchema = {
     addOrUpdate: z.object({
         fpgD_MerchantId: z.string().min(1, 'Merchant ID is required'),
         fpgD_SaltKey: z.string().min(1, 'Salt Key is required'),
         fpgD_Image: z.string().min(1, 'Image is required'),
-        fpgD_URL: z.string().min(1, 'URL is required'),
+        fpgD_URL: z.string().optional(),
         fpgD_AccNo: z.string().min(1, 'Account Number is required'),
         fpgD_MerchantKey: z.string().min(1, 'Merchant Key is required'),
-        impG_Id: z.number().int().optional(),
-        fpgD_MobileActiveFlag: z.boolean().optional()
-
-        //     fpgD_MerchantId: z.string({ message: 'MerchantId is required' }),
-        //   fpgD_SaltKey: z.string().min(1, 'Salt Key is required'),
-        //   fpgD_Image: z.string().min(1, 'Image is required'),
-        //   fpgD_URL: z.string().min(1, 'URL is required'),
-        //   fpgD_AccNo: z.string().min(1, 'Account Number is required'),
-        //   fpgD_PGName: z.string().min(1, 'PG Name is required')
-        //   fpgD_MerchantKey: z.string().min(1, 'Merchant Key is required')
-        //   ,
-        //   impG_Id: z.number().int().optional()
+        impG_Id: z.preprocess((val) => {
+            if (typeof val === 'string' && val.trim().length > 0) return Number(val);
+            return val;
+        }, z.number().int().optional()),
+        fpgD_MobileActiveFlag: z.boolean().optional(),
+        submerchantIds: z
+            .array(
+                z.object({
+                    id: z.string().min(1, 'Sub Merchant Id is required')
+                })
+            )
+            .optional()
+            .default([])
     }),
     delete: z.object({
         FPGD_Id: deleteIdSchema('FPGD_Id')
@@ -193,11 +173,8 @@ export const masterGroupsGroupingSchema = {
 export const masterInstallmentSchema = {
     addOrUpdate: z.object({
         fmI_Name: z.string().min(1, { message: 'Master Installment Name is required' }),
-
         fmI_Installment_Type: z.string().min(1, { message: 'Installment Type is required' }),
-
-        fmI_No_Of_Installments: z.number().min(1, { message: 'Number of installments must be at least 1' }).optional(),
-
+        fmI_No_Of_Installments: z.number().optional(),
         installments: z
             .array(
                 z.object({
@@ -205,7 +182,7 @@ export const masterInstallmentSchema = {
                     ftI_Name: z.string().min(1, { message: 'Installment name is required' })
                 })
             )
-            .nonempty({ message: 'At least one installment is required' })
+            .optional()
     }),
     delete: z.object({
         mI_ID: z.number().optional()
@@ -230,7 +207,14 @@ export const masterGroupSchema = {
         fmG_ActiceFlag: z.boolean()
     }),
     delete: z.object({
-        fmG_Id: z.number().optional()
+        fyG_Id: z
+            .number({
+                required_error: 'Yearly Group ID is required',
+                invalid_type_error: 'Yearly Group ID must be a number'
+            })
+            .refine((val) => val > 0, {
+                message: 'Yearly Group ID must be greater than 0'
+            })
     })
 };
 
@@ -257,50 +241,80 @@ export const YearlyGroupSchema = {
     addOrUpdate: z
         .object({
             academicYear: z.string().min(1, { message: 'Academic Year is required' }),
-            rebateApplicable: z.boolean(),
-            rebateType: z.enum(['Percentage', 'Amount']).optional(),
-            rebateValue: z.union([z.number(), z.literal('')]).optional(),
+            rebateApplicable: z.boolean().default(false),
+            rebateType: z.enum(['Percentage', 'Amount']).nullable().optional(),
+            rebateValue: z
+                .union([
+                    z
+                        .string()
+                        .transform((val) => {
+                            const trimmed = val?.trim();
+                            if (trimmed === '' || trimmed === null || trimmed === undefined) {
+                                return undefined;
+                            }
+
+                            if (!/^\d*\.?\d*$/.test(trimmed)) {
+                                throw new Error('Only numbers and a single decimal point are allowed');
+                            }
+                            return Number(trimmed);
+                        })
+                        .refine((val) => val === undefined || !Number.isNaN(val), {
+                            message: 'Rebate Value must be a valid number'
+                        }),
+                    z.number(),
+                    z.undefined()
+                ])
+                .optional(),
             feeGroupIds: z.array(z.number()).min(1, { message: 'Select at least one Fee Group' })
         })
-        .refine(
-            (data) => {
-                if (data.rebateApplicable && !data.rebateType) {
-                    return false;
+        .superRefine((data, ctx) => {
+            if (data.rebateApplicable) {
+                if (!data.rebateType) {
+                    ctx.addIssue({
+                        code: z.ZodIssueCode.custom,
+                        path: ['rebateType'],
+                        message: 'Rebate Type is required when rebate is applicable'
+                    });
                 }
-                return true;
-            },
-            {
-                message: 'Rebate Type is required when rebate is applicable',
-                path: ['rebateType']
-            }
-        )
-        .refine(
-            (data) => {
-                if (
-                    data.rebateApplicable &&
-                    (data.rebateValue === '' || data.rebateValue === undefined || Number.isNaN(Number(data.rebateValue)))
-                ) {
-                    return false;
+                if (data.rebateValue === undefined || data.rebateValue === null || Number.isNaN(Number(data.rebateValue))) {
+                    ctx.addIssue({
+                        code: z.ZodIssueCode.custom,
+                        path: ['rebateValue'],
+                        message: 'Rebate Value is required and must be a valid number when rebate is applicable'
+                    });
+                } else if (data.rebateType === 'Percentage') {
+                    if (data.rebateValue < 0 || data.rebateValue > 100) {
+                        ctx.addIssue({
+                            code: z.ZodIssueCode.custom,
+                            path: ['rebateValue'],
+                            message: 'Percentage must be between 0 and 100'
+                        });
+                    }
+                } else if (data.rebateType === 'Amount') {
+                    if (data.rebateValue < 0) {
+                        ctx.addIssue({
+                            code: z.ZodIssueCode.custom,
+                            path: ['rebateValue'],
+                            message: 'Amount cannot be negative'
+                        });
+                    }
                 }
-                return true;
-            },
-            {
-                message: 'Rebate Value is required and must be a valid number when rebate is applicable',
-                path: ['rebateValue']
             }
-        ),
+        }),
+
     delete: z.object({
         fyG_Id: deleteIdSchema('fyG_Id')
     })
 };
-
 //term,concession,ter fee head
 
 export const masterConcessionSchema = {
     addOrUpdate: z.object({
         fmcC_Id: z.number().int().optional(),
         fmcC_ConcessionName: z.string({ message: 'ConcessionName is required' }),
-        fmcC_ConcessionApplLimit: z.number({ message: 'ConcessionApplLimit is required' }),
+        fmcC_ConcessionApplLimit: z.number({
+            message: 'ConcessionApplLimit is required'
+        }),
         fmcC_ConcessionFlag: z.string().optional(),
         fmcC_ActiveFlag: z.boolean().optional()
     }),
@@ -338,7 +352,9 @@ export const masterConcessionDetailsSchema = {
     addOrUpdate: z.object({
         fmcC_Id: z.number().int().optional(),
         fmcC_ConcessionName: z.string({ message: 'ConcessionName is required' }),
-        fmcC_ConcessionApplLimit: z.number({ message: 'ConcessionApplLimit is required' }),
+        fmcC_ConcessionApplLimit: z.number({
+            message: 'ConcessionApplLimit is required'
+        }),
         fmcC_ConcessionFlag: z.string().optional(),
         fmcC_ActiveFlag: z.boolean().optional()
     }),
@@ -428,5 +444,62 @@ export const masterClassYearlyGroupMappingSchema = {
         autoGroupName: z.string().min(1, { message: 'Auto Group Name is required' }),
         address: z.string().optional(),
         receiptTemplateFormat: z.string().optional()
+    })
+};
+
+export const YearlyRebateSettingsSchema = {
+    addOrUpdate: z.object({
+        academicYear: z.string({ required_error: 'Academic Year is required' }).min(1, 'Academic Year is required'),
+        rebateApplicable: z.boolean().optional().default(false),
+        rebateType: z
+            .string()
+            .optional()
+            .refine((val) => !val || ['Percentage', 'Amount'].includes(val), 'Invalid Rebate Type'),
+        rebateValue: z
+            .union([z.string(), z.number()])
+            .transform((val) => Number(val))
+            .refine((val) => !Number.isNaN(val) && val >= 0, 'Rebate Value must be a valid number')
+            .optional()
+            .default(0),
+        // optional list of fee group ids for forms that require selecting fee groups
+        feeGroupIds: z.array(z.number()).optional(),
+        rebateDate: z.string({ required_error: 'Rebate Date is required' }).min(1, 'Rebate Date is required')
+    }),
+
+    delete: z.object({
+        fyG_Id: z
+            .string({ required_error: 'ID is required' })
+            .min(1, 'Invalid ID')
+            .refine((val) => !Number.isNaN(Number(val)), 'ID must be a number')
+    })
+};
+
+export const feePrivilegeSchema = {
+    addOrUpdate: z.object({
+        academicYearId: z.number({ required_error: 'Academic Year is required' }).min(1, 'Please select an Academic Year'),
+        groupId: z.number({ required_error: 'Group is required' }).min(1, 'Please select a Group'),
+        feeGroupIds: z.array(z.number()).min(1, 'Please select at least one Fee Group'),
+        roleIds: z.array(z.number()).min(1, 'Please select at least one Role')
+    }),
+    delete: z.object({
+        ifp_Id: deleteIdSchema('ifp_Id')
+    })
+};
+
+export const masterOnlinePaymentHeadGroupSchema = {
+    addOrUpdate: z.object({
+        fmcC_Id: z.number().int({ message: 'ivrmmoD_Id is required' }).optional(),
+        mI_Id: createStringSchema('ivrmmoD_ModeOfPayment', 1, 100),
+        institutionName: createStringSchema('institutionName', 1, 100),
+        classCategory: createStringSchema('classCategory', 1, 100),
+        subMerchantId: createStringSchema('subMerchantId', 1, 100),
+        groupName: createStringSchema('groupName', 1, 100),
+        headSearchTerm: createStringSchema('headSearchTerm', 1, 100),
+        installmentName: createStringSchema('installmentName', 1, 100),
+        terms: createStringSchema('headSearchTerm', 1, 100),
+        academicYear: createStringSchema('headSearchTerm', 1, 100)
+    }),
+    delete: z.object({
+        fmcC_Id: deleteIdSchema('ivrmmoD_Id')
     })
 };
