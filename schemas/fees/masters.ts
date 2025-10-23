@@ -473,3 +473,33 @@ export const YearlyRebateSettingsSchema = {
             .refine((val) => !Number.isNaN(Number(val)), 'ID must be a number')
     })
 };
+
+export const feePrivilegeSchema = {
+    addOrUpdate: z.object({
+        academicYearId: z.number({ required_error: 'Academic Year is required' }).min(1, 'Please select an Academic Year'),
+        groupId: z.number({ required_error: 'Group is required' }).min(1, 'Please select a Group'),
+        feeGroupIds: z.array(z.number()).min(1, 'Please select at least one Fee Group'),
+        roleIds: z.array(z.number()).min(1, 'Please select at least one Role')
+    }),
+    delete: z.object({
+        ifp_Id: deleteIdSchema('ifp_Id')
+    })
+};
+
+export const masterOnlinePaymentHeadGroupSchema = {
+    addOrUpdate: z.object({
+        fmcC_Id: z.number().int({ message: 'ivrmmoD_Id is required' }).optional(),
+        mI_Id: createStringSchema('ivrmmoD_ModeOfPayment', 1, 100),
+        institutionName: createStringSchema('institutionName', 1, 100),
+        classCategory: createStringSchema('classCategory', 1, 100),
+        subMerchantId: createStringSchema('subMerchantId', 1, 100),
+        groupName: createStringSchema('groupName', 1, 100),
+        headSearchTerm: createStringSchema('headSearchTerm', 1, 100),
+        installmentName: createStringSchema('installmentName', 1, 100),
+        terms: createStringSchema('headSearchTerm', 1, 100),
+        academicYear: createStringSchema('headSearchTerm', 1, 100)
+    }),
+    delete: z.object({
+        fmcC_Id: deleteIdSchema('ivrmmoD_Id')
+    })
+};

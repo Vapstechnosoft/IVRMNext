@@ -42,7 +42,10 @@ export const FEES_QUERY_KEYS = {
     MASTER_HEADS_DROP_DOWN: 'masterHeadsDropdown',
     MASTER_INSTALLMENT_DROPDOWN: 'masterInstallmentsDropdown',
     FEE_MASTER_CONCESSION_DETAILS: 'masterfeeconcessiondetails',
-    FEE_PAYMENTGATEWAY_DROPDOWN: 'paymentGatewayDropdown'
+    FEE_PAYMENTGATEWAY_DROPDOWN: 'paymentGatewayDropdown',
+    GROUPS_DROPDOWN: 'groups_dropdown',
+    ROLES_DROPDOWN: 'roles_dropdown',
+    FEES_PRIVILEGE_LIST: 'fees_privilege_list'
 };
 
 export const PREADMISSION_QUERY_KEYS = {
