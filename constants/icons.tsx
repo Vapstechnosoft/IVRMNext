@@ -1,6 +1,7 @@
 import {
     AlertTriangle,
     ArrowRight,
+    CalendarDays,
     Check,
     ChevronLeft,
     ChevronRight,
@@ -53,6 +54,7 @@ export const Icons = {
     user2: UserCircle2Icon,
     media: Image,
     settings: Settings,
+    calendar: CalendarDays,
     billing: CreditCard,
     ellipsis: MoreVertical,
     add: Plus,

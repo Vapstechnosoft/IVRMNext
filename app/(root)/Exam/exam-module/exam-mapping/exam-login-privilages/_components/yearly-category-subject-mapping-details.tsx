@@ -10,7 +10,7 @@ import type { IMasterCategoryList } from '@/types/admission/preadmission/masters
 import type { IYearlyCategorySubjectMapping, IYearlyCategorySubjectMappingViewDetails } from '@/types/exam/exam-module/exam-mapping';
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
-import { YearlyCategorySubjectMappingViewDetailsColumns } from '../../category-subject-mapping/_components/yearly-category-subject-mapping-columns';
+import { YearlyCategorySubjectMappingViewDetailsColumns } from '../../yearly-category-subject-mapping/_components/yearly-category-subject-mapping-columns';
 
 interface YearlyCategorySubjectMappingDetailsPageProps {
     rowData: IYearlyCategorySubjectMapping;

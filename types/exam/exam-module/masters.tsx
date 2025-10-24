@@ -96,7 +96,7 @@ export interface IMasterGrade {
     emgR_GradeName: string;
     emgR_MarksPerFlag: string;
     emgR_ActiveFlag: boolean;
-    sub_list: IGradeDetails[];
+    grade_list: IGradeDetails[];
 }
 
 export interface IMasterSubjectGroup {

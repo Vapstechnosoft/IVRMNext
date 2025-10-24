@@ -94,3 +94,74 @@ export const examLoginPrivilegesSchema = {
         elp_Id: z.number({ required_error: 'elp_Id is required' })
     })
 };
+
+const parseDate = (val: unknown) => {
+    if (typeof val === 'string' && val.trim() !== '') {
+        const t = Date.parse(val);
+        return Number.isNaN(t) ? null : new Date(t);
+    }
+    if (val instanceof Date) return val;
+    return null;
+};
+
+export const yearlyCategoryDatesMappingSchema = {
+    addOrUpdate: z
+        .object({
+            ycdm_Id: z.number().optional().default(0),
+            asmaY_Id: z.number().min(1, { message: 'Academic Year is required' }),
+            emcA_Id: z.number().min(1, { message: 'Category is required' }),
+            ycdm_ExamStartDate: z
+                .string()
+                .nonempty({ message: 'Exam start date is required' })
+                .refine((v) => parseDate(v) !== null, { message: 'Exam start date must be a valid date' }),
+            ycdm_MarksEntryLastDate: z
+                .string()
+                .nonempty({ message: 'Marks entry last date is required' })
+                .refine((v) => parseDate(v) !== null, { message: 'Marks entry last date must be a valid date' }),
+            ycdm_MarksPublishDate: z
+                .string()
+                .nonempty({ message: 'Marks publish date is required' })
+                .refine((v) => parseDate(v) !== null, { message: 'Marks publish date must be a valid date' }),
+            ycdm_StartDate: z
+                .string()
+                .nonempty({ message: 'Mapping start date is required' })
+                .refine((v) => parseDate(v) !== null, { message: 'Mapping start date must be a valid date' }),
+            ycdm_EndDate: z
+                .string()
+                .nonempty({ message: 'Mapping end date is required' })
+                .refine((v) => parseDate(v) !== null, { message: 'Mapping end date must be a valid date' }),
+            ycdm_ActiveFlg: z.boolean().default(true),
+            remarks: z.string().optional()
+        })
+        .refine(
+            (data) => {
+                const start = parseDate(data.ycdm_StartDate);
+                const end = parseDate(data.ycdm_EndDate);
+                if (!start || !end) return true;
+                return start.getTime() <= end.getTime();
+            },
+            { path: ['ycdm_StartDate'], message: 'Mapping start date cannot be after mapping end date' }
+        )
+        .refine(
+            (data) => {
+                const marksEntryLast = parseDate(data.ycdm_MarksEntryLastDate);
+                const marksPublish = parseDate(data.ycdm_MarksPublishDate);
+                if (!marksEntryLast || !marksPublish) return true;
+                return marksEntryLast.getTime() <= marksPublish.getTime();
+            },
+            { path: ['ycdm_MarksEntryLastDate'], message: 'Marks entry last date cannot be after marks publish date' }
+        )
+        .refine(
+            (data) => {
+                const examStart = parseDate(data.ycdm_ExamStartDate);
+                const marksEntryLast = parseDate(data.ycdm_MarksEntryLastDate);
+                if (!examStart || !marksEntryLast) return true;
+                return examStart.getTime() <= marksEntryLast.getTime();
+            },
+            { path: ['ycdm_ExamStartDate'], message: 'Exam start date cannot be after marks entry last date' }
+        ),
+
+    delete: z.object({
+        ycdm_Id: z.number().min(1, { message: 'Id is required to delete' })
+    })
+};

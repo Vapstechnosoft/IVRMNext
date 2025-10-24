@@ -1,0 +1,281 @@
+'use client';
+
+import { Button } from '@/components/ui/button';
+import { CalendarYear } from '@/components/ui/calendar_year';
+import { FormError, Label } from '@/components/ui/extension/field';
+import { FormProvider } from '@/components/ui/form/form-provider';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { yearlyCategoryDatesMappingSchema } from '@/schemas/exam/exam-module/exam-mapping';
+import { addOrUpdateYearlyCategoryDatesMapping } from '@/server/exam/exam-module/exam-mapping/yearly-category-dates-mapping';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { useEffect, useRef, useState } from 'react';
+import { Controller, useForm } from 'react-hook-form';
+import { toast } from 'sonner';
+import type { z } from 'zod';
+
+type FormFields = z.infer<typeof yearlyCategoryDatesMappingSchema.addOrUpdate>;
+
+export default function AddYearlyCategoryDatesMapping({ onSuccess }: { onSuccess?: () => void }) {
+    const methods = useForm<FormFields>({
+        resolver: zodResolver(yearlyCategoryDatesMappingSchema.addOrUpdate),
+        mode: 'all',
+        defaultValues: {
+            ycdm_Id: 0,
+            asmaY_Id: 0,
+            emcA_Id: 0,
+            ycdm_ExamStartDate: '',
+            ycdm_MarksEntryLastDate: '',
+            ycdm_MarksPublishDate: '',
+            ycdm_StartDate: '',
+            ycdm_EndDate: '',
+            ycdm_ActiveFlg: true,
+            remarks: ''
+        }
+    });
+
+    const { control, handleSubmit, reset, formState } = methods;
+    const { isSubmitting } = formState;
+
+    const [academicYears, setAcademicYears] = useState<{ asmaY_Id: number; asmaY_Year: string }[]>([]);
+    const [categories, setCategories] = useState<{ emcA_Id: number; emcA_CategoryName: string }[]>([]);
+
+    useEffect(() => {
+        async function fetchDropdowns() {
+            try {
+                setAcademicYears([
+                    { asmaY_Id: 1, asmaY_Year: '2023-24' },
+                    { asmaY_Id: 2, asmaY_Year: '2024-25' }
+                ]);
+                setCategories([
+                    { emcA_Id: 1, emcA_CategoryName: 'General' },
+                    { emcA_Id: 2, emcA_CategoryName: 'OBC' }
+                ]);
+            } catch (err: any) {
+                toast.error(err?.message ?? 'Failed to load dropdowns');
+            }
+        }
+        fetchDropdowns();
+    }, []);
+
+    const onSubmit = async (data: FormFields) => {
+        try {
+            const res = await addOrUpdateYearlyCategoryDatesMapping(data);
+            if (res?.success) {
+                toast.success('Yearly category dates mapping saved successfully');
+                reset();
+                onSuccess?.();
+            } else {
+                toast.error(res?.message ?? 'Save failed');
+            }
+        } catch (err: any) {
+            toast.error(err?.message ?? 'Failed to save');
+        }
+    };
+
+    // Reusable component for date input with CalendarYear
+    const DateField = ({
+        field,
+        fieldState,
+        label,
+        placeholder
+    }: {
+        field: any;
+        fieldState: any;
+        label: string;
+        placeholder?: string;
+    }) => {
+        const [open, setOpen] = useState(false);
+        const ref = useRef<HTMLDivElement | null>(null);
+
+        useEffect(() => {
+            const handleClickOutside = (e: MouseEvent) => {
+                if (ref.current && !ref.current.contains(e.target as Node)) {
+                    setOpen(false);
+                }
+            };
+            document.addEventListener('mousedown', handleClickOutside);
+            return () => document.removeEventListener('mousedown', handleClickOutside);
+        }, []);
+
+        return (
+            <div className='relative mt-4' ref={ref}>
+                <Label>
+                    {label} <span className='text-red-500'>*</span>
+                </Label>
+                <input
+                    readOnly
+                    value={field.value ?? ''}
+                    placeholder={placeholder}
+                    onClick={() => setOpen(true)}
+                    className='w-full cursor-pointer rounded-md border px-3 py-2 text-sm shadow-sm'
+                />
+                {open && (
+                    <div className='absolute z-50 mt-2'>
+                        <div className='rounded-md bg-white shadow-lg'>
+                            <CalendarYear
+                                selected={field.value ? new Date(field.value) : undefined}
+                                onDayClick={(day) => {
+                                    field.onChange(day.toISOString().split('T')[0]);
+                                    setOpen(false);
+                                }}
+                            />
+                        </div>
+                    </div>
+                )}
+                {fieldState.error && <FormError>{fieldState.error.message}</FormError>}
+            </div>
+        );
+    };
+
+    return (
+        <div className='flex w-full flex-col gap-6'>
+            <FormProvider {...methods}>
+                <form onSubmit={handleSubmit(onSubmit)} className='flex flex-col gap-6 rounded-2xl bg-white p-6 shadow-md' noValidate>
+                    <div className='grid grid-cols-2 gap-6'>
+                        {/* Left Column */}
+                        <div>
+                            <Controller
+                                control={control}
+                                name='asmaY_Id'
+                                render={({ field, fieldState }) => (
+                                    <div>
+                                        <Label>
+                                            Academic Year <span className='text-red-500'>*</span>
+                                        </Label>
+                                        <Select onValueChange={(val) => field.onChange(Number(val))}>
+                                            <SelectTrigger>
+                                                <SelectValue placeholder='Select Academic Year' />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                {academicYears.map((y) => (
+                                                    <SelectItem key={y.asmaY_Id} value={String(y.asmaY_Id)}>
+                                                        {y.asmaY_Year}
+                                                    </SelectItem>
+                                                ))}
+                                            </SelectContent>
+                                        </Select>
+                                        {fieldState.error && <FormError>{fieldState.error.message}</FormError>}
+                                    </div>
+                                )}
+                            />
+
+                            <Controller
+                                control={control}
+                                name='ycdm_ExamStartDate'
+                                render={({ field, fieldState }) => (
+                                    <DateField
+                                        field={field}
+                                        fieldState={fieldState}
+                                        label='Exam Start Date'
+                                        placeholder='Select Exam Start Date'
+                                    />
+                                )}
+                            />
+
+                            <Controller
+                                control={control}
+                                name='ycdm_MarksEntryLastDate'
+                                render={({ field, fieldState }) => (
+                                    <DateField
+                                        field={field}
+                                        fieldState={fieldState}
+                                        label='Marks Entry Last Date'
+                                        placeholder='Select Marks Entry Last Date'
+                                    />
+                                )}
+                            />
+
+                            <Controller
+                                control={control}
+                                name='ycdm_MarksPublishDate'
+                                render={({ field, fieldState }) => (
+                                    <DateField
+                                        field={field}
+                                        fieldState={fieldState}
+                                        label='Marks Publish Date'
+                                        placeholder='Select Marks Publish Date'
+                                    />
+                                )}
+                            />
+                        </div>
+
+                        {/* Right Column */}
+                        <div>
+                            <Controller
+                                control={control}
+                                name='emcA_Id'
+                                render={({ field, fieldState }) => (
+                                    <div>
+                                        <Label>
+                                            Category <span className='text-red-500'>*</span>
+                                        </Label>
+                                        <Select onValueChange={(val) => field.onChange(Number(val))}>
+                                            <SelectTrigger>
+                                                <SelectValue placeholder='Select Category' />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                {categories.map((c) => (
+                                                    <SelectItem key={c.emcA_Id} value={String(c.emcA_Id)}>
+                                                        {c.emcA_CategoryName}
+                                                    </SelectItem>
+                                                ))}
+                                            </SelectContent>
+                                        </Select>
+                                        {fieldState.error && <FormError>{fieldState.error.message}</FormError>}
+                                    </div>
+                                )}
+                            />
+
+                            <Controller
+                                control={control}
+                                name='ycdm_StartDate'
+                                render={({ field, fieldState }) => (
+                                    <DateField
+                                        field={field}
+                                        fieldState={fieldState}
+                                        label='Mapping Start Date'
+                                        placeholder='Select Mapping Start Date'
+                                    />
+                                )}
+                            />
+
+                            <Controller
+                                control={control}
+                                name='ycdm_EndDate'
+                                render={({ field, fieldState }) => (
+                                    <DateField
+                                        field={field}
+                                        fieldState={fieldState}
+                                        label='Mapping End Date'
+                                        placeholder='Select Mapping End Date'
+                                    />
+                                )}
+                            />
+                        </div>
+                    </div>
+
+                    {/* Remarks + Buttons */}
+                    <div className='mt-4 flex flex-col gap-4'>
+                        <div>
+                            <Label>Remarks</Label>
+                            <input
+                                {...methods.register('remarks')}
+                                placeholder='Enter remarks'
+                                className='w-full rounded-md border px-3 py-2 text-sm shadow-sm'
+                            />
+                        </div>
+
+                        <div className='flex justify-end gap-4'>
+                            <Button type='submit' className='w-fit' disabled={isSubmitting}>
+                                {isSubmitting ? 'Saving...' : 'Save'}
+                            </Button>
+                            <Button type='button' variant='outline' className='w-fit' onClick={() => reset()}>
+                                Reset
+                            </Button>
+                        </div>
+                    </div>
+                </form>
+            </FormProvider>
+        </div>
+    );
+}

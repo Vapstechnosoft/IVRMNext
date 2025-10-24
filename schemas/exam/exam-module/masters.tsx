@@ -102,17 +102,32 @@ export const masterSubSubjectSchema = {
     })
 };
 
-const gradeDetailsSchema = z.object({
-    emgD_Id: z.number().default(0),
-    emgR_Id: z.number().default(0),
-    emgD_Name: z.string().nonempty({ message: 'Grade Name is required' }),
-    emgD_From: z.preprocess((val) => (val === '' || val === undefined ? 0 : Number(val)), z.number().min(0).max(100)),
-    emgD_To: z.preprocess((val) => (val === '' || val === undefined ? 0 : Number(val)), z.number().min(0).max(100)),
-    emgD_GradePoints: z.preprocess((val) => (val === '' || val === undefined ? 0 : Number(val)), z.number().min(0).max(100)),
-    emgD_Remarks: z.string().optional(),
-    emgD_ActiveFlag: z.boolean().default(true)
-});
-
+export const gradeDetailsSchema = z
+    .object({
+        emgD_Id: z.number().default(0),
+        emgR_Id: z.number().default(0),
+        emgD_Name: z.string().nonempty({ message: 'Grade Name is required' }),
+        emgD_From: z.preprocess(
+            (val) => (val === '' || val === undefined ? 0 : Number(val)),
+            z.number().min(0, { message: 'From must be at least 0' }).max(100, { message: 'From cannot exceed 100' })
+        ),
+        emgD_To: z.preprocess(
+            (val) => (val === '' || val === undefined ? 0 : Number(val)),
+            z.number().min(0, { message: 'To must be at least 0' }).max(100, { message: 'To cannot exceed 100' })
+        ),
+        emgD_GradePoints: z.preprocess((val) => (val === '' || val === undefined ? 0 : Number(val)), z.number().min(0).max(10)),
+        emgD_Remarks: z.string().optional(),
+        emgD_ActiveFlag: z.boolean().default(true)
+    })
+    // ✅ Add mutual validation between From and To
+    .refine((data) => data.emgD_From <= data.emgD_To, {
+        path: ['emgD_From'],
+        message: "'From' value cannot be greater than 'To' value"
+    })
+    .refine((data) => data.emgD_To >= data.emgD_From, {
+        path: ['emgD_To'],
+        message: "'To' value cannot be less than 'From' value"
+    });
 // Master Grade Schema
 export const masterGradeSchema = {
     addOrUpdate: z.object({

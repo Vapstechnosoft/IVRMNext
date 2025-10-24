@@ -86,3 +86,13 @@ export interface IExamLoginPrivilegesTableProps {
     onEdit: (row: IExamLoginPrivilegesView) => void;
     onDelete: (row: IExamLoginPrivilegesView) => void;
 }
+
+export interface IYearlyCategorySubjectMappingView {
+    slno?: number;
+    asmaY_Year: string;
+    emcA_CategoryName: string;
+    emG_GroupName: string;
+    emG_ElectiveFlg: boolean;
+    eycG_ActiveFlg: boolean;
+    eycG_Id: number;
+}
