@@ -1,23 +1,42 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
+import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/generic-data-table';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
+import { useActivePreadmissionDetails, useStudentApplicationList } from '@/hooks/admission/preadmission/useTransactions';
+import type { IPreadmissionStudentApplicationList } from '@/types/admission/preadmission/transactions';
 import { Plus, X } from 'lucide-react';
-import { useState } from 'react';
+import { use, useState } from 'react';
 import AddStudentApplicationForm from './_components/add-form';
+import { studentApplicationColumns } from './_components/columns';
 import ApplicationFormSuccessDialog from './_components/success-dialog';
 
-export default function StudentApplicationPage() {
+type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
+
+export default function StudentApplicationPage(props: { searchParams: SearchParams }) {
+    const searchParams = use(props.searchParams);
+    const { data: activePreadmission } = useActivePreadmissionDetails();
+    const { data: response, isLoading, error } = useStudentApplicationList(activePreadmission?.data?.asmaY_Id ?? 0, searchParams);
+
     return (
-        <FormProvider scrollIntoViewDirection='nearest'>
-            <StudentApplicationPageContent />
+        <FormProvider<IPreadmissionStudentApplicationList>>
+            <StudentApplicationPageContent response={response} isLoading={isLoading} error={error} />
         </FormProvider>
     );
 }
 
-function StudentApplicationPageContent() {
+function StudentApplicationPageContent({
+    response,
+    isLoading,
+    error
+}: {
+    response: any;
+    isLoading: boolean;
+    error: any;
+}) {
     const { openAddForm } = useFormContext();
+    const tableProps = useDataTableProps(response);
     const [isSuccessOpen, setSuccessOpen] = useState(false);
 
     return (
@@ -36,6 +55,25 @@ function StudentApplicationPageContent() {
                 {isSuccessOpen && <ApplicationFormSuccessDialog isOpen={isSuccessOpen} onClose={() => setSuccessOpen(false)} />}
                 {/* Forms */}
                 <FormSections setSuccessOpen={() => setSuccessOpen(true)} />
+                {/* Data Table Section */}
+                <CollapsibleSection
+                    defaultOpen={true}
+                    variant='default'
+                    size='lg'
+                    className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
+                    <GenericDataTable<IPreadmissionStudentApplicationList>
+                        {...tableProps}
+                        columns={studentApplicationColumns}
+                        isLoading={isLoading}
+                        error={error}
+                        showViewOptions={false}
+                        columnPinning={{ right: ['actions'] }}
+                        loadingMessage='Loading master caste...'
+                        noDataTitle='No Master Caste Found'
+                        noDataDescription='Get started by creating your first master caste'
+                        errorTitle='Error Loading Master Caste'
+                    />
+                </CollapsibleSection>
             </div>
         </div>
     );

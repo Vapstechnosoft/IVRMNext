@@ -64,3 +64,14 @@ export interface IPreadmissionAdmissionStatusDropdown {
     pamsT_Status: string;
     pamsT_StatusFlag: string;
 }
+export interface IPreadmissionStudentApplicationList {
+    pasr_id: number;
+    pasR_RegistrationNo: string;
+    student_name: string;
+    pasR_Sex: string;
+    applied_class_name: string;
+    is_fee_applicable: number;
+    payment_status: number;
+    application_status: string;
+    admission_status: string;
+}

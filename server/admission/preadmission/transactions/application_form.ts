@@ -1,12 +1,14 @@
 'use server';
 
-import { api } from '@/lib/apiService';
+import { api, getSearchParamsUrl } from '@/lib/apiService';
+import type { ApiSearchparams } from '@/types';
 import type {
     ICasteDropdown,
     ICountryDropdown,
     IGenderDropdown,
     IPreadmissionClassDropdown,
     IPreadmissionDocumentDropdown,
+    IPreadmissionStudentApplicationList,
     IReferenceDropdown,
     IReligionDropdown,
     ISourceDropdown,
@@ -61,4 +63,11 @@ export async function getPreadmissionClassDropdown() {
 export async function addStudentApplicationForm(data: any) {
     const url = '/student_application_form/add_student_application';
     return await api.post<any>('preadmission', url, data);
+}
+
+export async function getStudentApplicationList(asmay_id: number, searchParams?: ApiSearchparams) {
+    const urlParams = getSearchParamsUrl(searchParams ?? {}, 'PASR_RegistrationNo,student_name,PASR_Sex,applied_class_name');
+    const url = `/student_application_form/student_application_list?asmay_id=${asmay_id}&${urlParams}`;
+
+    return await api.get<IPreadmissionStudentApplicationList[]>('preadmission', url);
 }

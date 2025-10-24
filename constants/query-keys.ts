@@ -32,6 +32,7 @@ export const PREADMISSION_QUERY_KEYS = {
     PREADMISSION_CLASS_DROPDOWN: 'preadmission_class_dropdown',
     ACTIVE_PREADMISSION_DETAILS: 'active_preadmission_details',
     APPLICATION_STATUS_DROPDOWN: 'application_status_dropdown',
+    STUDENT_APPLICATION_LIST: 'student_application_list',
     APPLICATION_STUDENT_LIST: 'application_student_list',
     PREADMISSION_ADMISSION_STATUS_DROPDOWN: 'preadmission_admission_status_dropdown',
     PREADMISSION_STUDENT_LIST: 'preadmission_student_list',
