@@ -159,6 +159,7 @@ export interface IMasterExamCategoryMapping {
 }
 
 export interface IAcademicYear {
+    mI_Id?: number;
     asmaY_Id: number;
     asmaY_Year: string;
 }

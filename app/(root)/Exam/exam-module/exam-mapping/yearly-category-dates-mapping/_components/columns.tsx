@@ -4,24 +4,14 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
 import { ActionButtons } from '@/components/ui/form/action-buttons';
 import { useFormContext } from '@/components/ui/form/form-provider';
+import type { IYearlyCategoryDatesMapping } from '@/types/exam/exam-module/exam-mapping';
 import type { ColumnDef } from '@tanstack/react-table';
-import { Eye } from 'lucide-react';
 import { useCallback } from 'react';
-
-export interface IYearlyCategoryDatesMapping {
-    ycdm_Id: number; // Primary ID
-    asmaY_Year: string; // Academic Year
-    emcA_CategoryName: string; // Category Name
-    startDate: string; // Start Date
-    endDate: string; // End Date
-    ycdm_ActiveFlg: boolean; // Active / Inactive
-}
 
 export const YearlyCategoryDatesMappingColumns: ColumnDef<IYearlyCategoryDatesMapping>[] = [
     // Row Selection
     {
         id: 'select',
-
         header: ({ table }) => (
             <Checkbox
                 checked={table.getIsAllPageRowsSelected() || (table.getIsSomePageRowsSelected() && 'indeterminate')}
@@ -40,7 +30,7 @@ export const YearlyCategoryDatesMappingColumns: ColumnDef<IYearlyCategoryDatesMa
     // Serial Number
     {
         accessorKey: 'slno',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='SL No' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Sl.No' />,
         cell: ({ row, table }) => {
             const pageIndex = table.getState().pagination.pageIndex;
             const pageSize = table.getState().pagination.pageSize;
@@ -51,7 +41,7 @@ export const YearlyCategoryDatesMappingColumns: ColumnDef<IYearlyCategoryDatesMa
     // Academic Year
     {
         accessorKey: 'asmaY_Year',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Academic Year' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Year' />,
         cell: ({ row }) => <div>{row.getValue('asmaY_Year')}</div>
     },
 
@@ -61,29 +51,55 @@ export const YearlyCategoryDatesMappingColumns: ColumnDef<IYearlyCategoryDatesMa
         header: ({ column }) => <DataTableColumnHeader column={column} title='Category' />,
         cell: ({ row }) => <div>{row.getValue('emcA_CategoryName')}</div>
     },
-
-    // Start Date
     {
-        accessorKey: 'startDate',
+        accessorKey: 'eyC_ExamStartDate',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Start Date' />,
-        cell: ({ row }) => <div>{row.getValue('startDate')}</div>
+        cell: ({ row }) => {
+            const value = row.getValue('eyC_ExamStartDate') as string | undefined;
+            return <div>{value?.split('T')[0]}</div>;
+        }
     },
 
     // End Date
     {
-        accessorKey: 'endDate',
+        accessorKey: 'eyC_ExamEndDate',
         header: ({ column }) => <DataTableColumnHeader column={column} title='End Date' />,
-        cell: ({ row }) => <div>{row.getValue('endDate')}</div>
+        cell: ({ row }) => {
+            const value = row.getValue('eyC_ExamEndDate') as string | undefined;
+            return <div>{value?.split('T')[0]}</div>;
+        }
     },
 
-    // Active / Inactive
+    // Marks Entry Last Date
     {
-        accessorKey: 'ycdm_ActiveFlg',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Status' />,
-        cell: ({ row }) => <div className='text-center'>{row.original.ycdm_ActiveFlg ? 'Active' : 'Inactive'}</div>
+        accessorKey: 'eyC_MarksEntryLastDate',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Marks Entry Last Date' />,
+        cell: ({ row }) => {
+            const value = row.getValue('eyC_MarksEntryLastDate') as string | undefined;
+            return <div>{value?.split('T')[0]}</div>;
+        }
     },
 
-    // Actions
+    // Marks Process Last Date
+    {
+        accessorKey: 'eyC_MarksProcessLastDate',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Marks Process Last Date' />,
+        cell: ({ row }) => {
+            const value = row.getValue('eyC_MarksProcessLastDate') as string | undefined;
+            return <div>{value?.split('T')[0]}</div>;
+        }
+    },
+
+    // Marks Publish Date
+    {
+        accessorKey: 'eyC_MarksPublishDate',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Marks Publish Date' />,
+        cell: ({ row }) => {
+            const value = row.getValue('eyC_MarksPublishDate') as string | undefined;
+            return <div>{value?.split('T')[0]}</div>;
+        }
+    },
+    // Actions - Only Edit
     {
         id: 'actions',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Actions' className='text-center' />,
@@ -93,24 +109,17 @@ export const YearlyCategoryDatesMappingColumns: ColumnDef<IYearlyCategoryDatesMa
     }
 ];
 
-// Actions Cell
 function ActionButtonsCell({ rowData }: { rowData: IYearlyCategoryDatesMapping }) {
-    const { openEditForm, openDetailsView } = useFormContext<IYearlyCategoryDatesMapping>();
-
-    const handleView = useCallback(() => openDetailsView(rowData), [openDetailsView, rowData]);
+    const { openEditForm } = useFormContext<IYearlyCategoryDatesMapping>();
     const handleEdit = useCallback(() => openEditForm(rowData), [openEditForm, rowData]);
 
     return (
         <div className='flex justify-center gap-2'>
-            <button type='button' onClick={handleView} className='rounded-md p-2 transition hover:bg-muted' title='View Dates Mapping'>
-                <Eye className='h-4 w-4 text-blue-600' />
-            </button>
             <ActionButtons
                 rowData={rowData}
-                buttons={{ edit: true, delete: false, toggle: true }}
+                buttons={{ edit: true, delete: false, toggle: false }}
                 onEdit={handleEdit}
                 onDelete={() => {}}
-                toggleConditionKey='ycdm_ActiveFlg'
             />
         </div>
     );

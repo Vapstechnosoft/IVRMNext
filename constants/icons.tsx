@@ -1,6 +1,7 @@
 import {
     AlertTriangle,
     ArrowRight,
+    BookOpen,
     CalendarDays,
     Check,
     ChevronLeft,
@@ -54,6 +55,8 @@ export const Icons = {
     user2: UserCircle2Icon,
     media: Image,
     settings: Settings,
+    BookOpen: BookOpen,
+    CalenderDays: CalendarDays,
     calendar: CalendarDays,
     billing: CreditCard,
     ellipsis: MoreVertical,

@@ -96,3 +96,16 @@ export interface IYearlyCategorySubjectMappingView {
     eycG_ActiveFlg: boolean;
     eycG_Id: number;
 }
+
+export interface IYearlyCategoryDatesMapping {
+    asmaY_Id: number;
+    eyC_Id: number;
+    emcA_Id: number;
+    asmaY_Year: string;
+    emcA_CategoryName: string;
+    eyC_ExamStartDate: string;
+    eyC_ExamEndDate: string;
+    eyC_MarksEntryLastDate: string;
+    eyC_MarksProcessLastDate: string;
+    eyC_MarksPublishDate: string;
+}

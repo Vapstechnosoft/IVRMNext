@@ -145,12 +145,7 @@ function FormSections() {
                                 className='-top-[3.5rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
                                 <X className='h-4 w-4 text-destructive' /> Close
                             </Button>
-                            <UpdateCategoryClassMappingForm
-                                initialData={selectedRow}
-                                // _selectedSections={selectedSections}
-                                // sections={sections}
-                                onSuccess={closeEditForm}
-                            />
+                            <UpdateCategoryClassMappingForm selectedRow={selectedRow} onSuccess={closeEditForm} />
                         </div>
                     </CollapsibleSection>
                 </div>

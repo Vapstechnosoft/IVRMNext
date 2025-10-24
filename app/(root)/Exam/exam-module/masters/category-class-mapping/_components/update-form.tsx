@@ -1,19 +1,20 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
-import { MultiSelect } from '@/components/ui/multi-select';
+import { CustomMultiSelectBox } from '@/components/ui/custom-multiselect';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { categoryClassMappingSchema } from '@/schemas/exam/exam-module/masters';
 import {
     addOrUpdateCategoryClassMapping,
     getAcademicYears,
     getCategories,
+    getCategoryMappedSections,
     getClassMappedSections,
     getClasses
 } from '@/server/exam/exam-module/masters/category-class-mapping';
 import type { IAcademicYear, ICategory, ICategoryMapping, IClass } from '@/types/exam/exam-module/masters';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Save } from 'lucide-react';
+import { RotateCcw, Save } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
@@ -22,15 +23,16 @@ import type { z } from 'zod';
 type FormFields = z.infer<typeof categoryClassMappingSchema.addOrUpdate>;
 
 interface UpdateCategoryClassFormProps {
+    selectedRow: ICategoryMapping;
     onSuccess?: () => void;
-    initialData: ICategoryMapping;
 }
 
-export default function UpdateCategoryClassForm({ onSuccess, initialData }: UpdateCategoryClassFormProps) {
+export default function UpdateCategoryClassForm({ selectedRow, onSuccess }: UpdateCategoryClassFormProps) {
     const [academicYears, setAcademicYears] = useState<IAcademicYear[]>([]);
     const [categories, setCategories] = useState<ICategory[]>([]);
     const [classes, setClasses] = useState<IClass[]>([]);
     const [sections, setSections] = useState<{ asmS_Id: number; asmC_SectionName: string }[]>([]);
+    const [initialSections, setInitialSections] = useState<{ asmS_Id: number; asmC_SectionName: string }[]>([]);
     const [loadingSections, setLoadingSections] = useState(false);
 
     const {
@@ -38,21 +40,46 @@ export default function UpdateCategoryClassForm({ onSuccess, initialData }: Upda
         handleSubmit,
         watch,
         setValue,
+        reset,
         formState: { errors, isSubmitting }
     } = useForm<FormFields>({
         resolver: zodResolver(categoryClassMappingSchema.addOrUpdate),
-        defaultValues: initialData
+        defaultValues: {
+            mI_Id: 30,
+            ecaC_Id: selectedRow?.ecaC_Id ?? 0,
+            asmaY_Id: selectedRow?.asmaY_Id ?? 0,
+            emcA_Id: selectedRow?.emcA_Id ?? 0,
+            asmcL_Id: selectedRow?.asmcL_Id ?? 0,
+            section_list: []
+        }
     });
 
     const watchedYear = watch('asmaY_Id');
+    const watchedCategory = watch('emcA_Id');
     const watchedClass = watch('asmcL_Id');
 
+    // Reset form when new row selected
+    useEffect(() => {
+        if (selectedRow) {
+            reset({
+                mI_Id: 30,
+                ecaC_Id: selectedRow.ecaC_Id ?? 0,
+                asmaY_Id: selectedRow.asmaY_Id ?? 0,
+                emcA_Id: selectedRow.emcA_Id ?? 0,
+                asmcL_Id: selectedRow.asmcL_Id ?? 0,
+                section_list: []
+            });
+        }
+    }, [selectedRow, reset]);
+
+    // Fetch dropdowns
     useEffect(() => {
         async function fetchDropdowns() {
             try {
                 const years = await getAcademicYears();
                 const { data: cats } = await getCategories();
                 const { data: cls } = await getClasses();
+
                 setAcademicYears(Array.isArray(years) ? years : []);
                 setCategories(Array.isArray(cats) ? cats : []);
                 setClasses(Array.isArray(cls) ? cls : []);
@@ -63,38 +90,82 @@ export default function UpdateCategoryClassForm({ onSuccess, initialData }: Upda
         fetchDropdowns();
     }, []);
 
+    // Fetch and preselect mapped sections
     useEffect(() => {
-        if (watchedYear && watchedClass) {
-            async function fetchSections() {
+        async function fetchMappedSections() {
+            if (watchedYear && watchedCategory && watchedClass) {
                 try {
                     setLoadingSections(true);
-                    const res = await getClassMappedSections(watchedYear, watchedClass);
-                    const sectionData = Array.isArray(res) ? res : Array.isArray(res?.data) ? res.data : [];
-                    setSections(sectionData);
-                    //   if (initialData?.section_list?.length) {
-                    //     const validSections = sectionData.filter((s) =>
-                    //       initialData.section_list.some((sel) => sel.asmS_Id === s.asmS_Id)
-                    //     );
-                    //     setValue('section_list', validSections);
-                    //   }
+
+                    const classMappedRes = await getClassMappedSections(watchedYear, watchedClass);
+                    const classMapped = Array.isArray(classMappedRes)
+                        ? classMappedRes
+                        : Array.isArray(classMappedRes?.data)
+                          ? classMappedRes.data
+                          : [];
+
+                    const categoryMappedRes = await getCategoryMappedSections(watchedYear, watchedCategory, watchedClass);
+                    const categoryMapped = Array.isArray(categoryMappedRes)
+                        ? categoryMappedRes
+                        : Array.isArray(categoryMappedRes?.data)
+                          ? categoryMappedRes.data
+                          : [];
+
+                    setSections(classMapped);
+
+                    if (categoryMapped.length > 0) {
+                        const selected = classMapped.filter((s) => categoryMapped.some((sel) => sel.asmS_Id === s.asmS_Id));
+                        setValue('section_list', selected);
+                        setInitialSections(selected); // store original sections for reset
+                    } else {
+                        setValue('section_list', []);
+                        setInitialSections([]);
+                    }
                 } catch (err: any) {
                     toast.error(err.message || 'Failed to load sections');
                 } finally {
                     setLoadingSections(false);
                 }
+            } else {
+                setSections([]);
+                setValue('section_list', []);
+                setInitialSections([]);
             }
-            fetchSections();
         }
-    }, [watchedYear, watchedClass, initialData, setValue]);
 
+        fetchMappedSections();
+    }, [watchedYear, watchedCategory, watchedClass, setValue]);
+
+    // ✅ Reset Handler (sets back previous row data)
+    const handleReset = async () => {
+        if (!selectedRow) return;
+
+        reset({
+            mI_Id: 30,
+            ecaC_Id: selectedRow.ecaC_Id ?? 0,
+            asmaY_Id: selectedRow.asmaY_Id ?? 0,
+            emcA_Id: selectedRow.emcA_Id ?? 0,
+            asmcL_Id: selectedRow.asmcL_Id ?? 0,
+            section_list: initialSections
+        });
+
+        toast.info('Form reset to previous data');
+    };
+
+    // Submit
     const onSubmit: SubmitHandler<FormFields> = async (data) => {
         try {
-            const res = await addOrUpdateCategoryClassMapping(data);
+            const payload = {
+                ...data,
+                section_list: data.section_list.map((s) => ({ asmS_Id: s.asmS_Id }))
+            };
+            console.log('payload', payload);
+            const res = await addOrUpdateCategoryClassMapping(payload);
             if (res.success) {
                 toast.success('Category Class Mapping Updated Successfully');
                 onSuccess?.();
             } else {
-                toast.error(res.message);
+                toast.error(res.message || 'Failed to update mapping');
             }
         } catch (err: any) {
             toast.error(err.message || 'Failed to update mapping');
@@ -103,15 +174,14 @@ export default function UpdateCategoryClassForm({ onSuccess, initialData }: Upda
 
     return (
         <form onSubmit={handleSubmit(onSubmit)} className='grid grid-cols-1 gap-6 md:grid-cols-2'>
+            {/* Left Side */}
             <div className='space-y-4'>
+                {/* Academic Year */}
                 <Controller
                     control={control}
                     name='asmaY_Id'
                     render={({ field }) => (
-                        <Select
-                            value={field.value ? String(field.value) : ''}
-                            disabled
-                            onValueChange={(val) => field.onChange(Number(val))}>
+                        <Select value={field.value ? String(field.value) : ''} onValueChange={(val) => field.onChange(Number(val))}>
                             <SelectTrigger>
                                 <SelectValue placeholder='Select Academic Year' />
                             </SelectTrigger>
@@ -127,14 +197,12 @@ export default function UpdateCategoryClassForm({ onSuccess, initialData }: Upda
                 />
                 {errors.asmaY_Id && <p className='text-red-600 text-sm'>{errors.asmaY_Id.message}</p>}
 
+                {/* Category */}
                 <Controller
                     control={control}
                     name='emcA_Id'
                     render={({ field }) => (
-                        <Select
-                            value={field.value ? String(field.value) : ''}
-                            disabled
-                            onValueChange={(val) => field.onChange(Number(val))}>
+                        <Select value={field.value ? String(field.value) : ''} onValueChange={(val) => field.onChange(Number(val))}>
                             <SelectTrigger>
                                 <SelectValue placeholder='Select Category' />
                             </SelectTrigger>
@@ -150,14 +218,12 @@ export default function UpdateCategoryClassForm({ onSuccess, initialData }: Upda
                 />
                 {errors.emcA_Id && <p className='text-red-600 text-sm'>{errors.emcA_Id.message}</p>}
 
+                {/* Class */}
                 <Controller
                     control={control}
                     name='asmcL_Id'
                     render={({ field }) => (
-                        <Select
-                            value={field.value ? String(field.value) : ''}
-                            disabled
-                            onValueChange={(val) => field.onChange(Number(val))}>
+                        <Select value={field.value ? String(field.value) : ''} onValueChange={(val) => field.onChange(Number(val))}>
                             <SelectTrigger>
                                 <SelectValue placeholder='Select Class' />
                             </SelectTrigger>
@@ -174,8 +240,9 @@ export default function UpdateCategoryClassForm({ onSuccess, initialData }: Upda
                 {errors.asmcL_Id && <p className='text-red-600 text-sm'>{errors.asmcL_Id.message}</p>}
             </div>
 
+            {/* Right Side - Sections */}
             <div className='space-y-2'>
-                <h3 className='font-semibold'>Sections</h3>
+                {!sections.length && <h4 className='font-semibold'>Sections</h4>}
                 <Controller
                     control={control}
                     name='section_list'
@@ -183,40 +250,45 @@ export default function UpdateCategoryClassForm({ onSuccess, initialData }: Upda
                         loadingSections ? (
                             <p>Loading sections...</p>
                         ) : sections.length ? (
-                            <MultiSelect
+                            <CustomMultiSelectBox
                                 options={sections.map((section) => ({
                                     label: section.asmC_SectionName,
                                     value: section.asmS_Id.toString()
                                 }))}
-                                onValueChange={(selectedValues) => {
-                                    const selected = sections.filter((s) => selectedValues.includes(s.asmS_Id.toString()));
+                                value={field.value.map((s) => s.asmS_Id.toString())}
+                                onChange={(vals) => {
+                                    const selected = sections
+                                        .filter((s) => vals.includes(s.asmS_Id.toString()))
+                                        .map((s) => ({ asmS_Id: s.asmS_Id }));
                                     field.onChange(selected);
                                 }}
-                                value={field.value.map((s) => s.asmS_Id.toString())}
-                                placeholder='Select Sections'
-                                variant='inverted'
+                                isSearchRequired
+                                error={errors.section_list?.message}
                             />
                         ) : (
                             <p className='text-gray-500'>Select Academic Year, Category, and Class to load sections</p>
                         )
                     }
                 />
-                {errors.section_list && <p className='text-red-600 text-sm'>{errors.section_list.message}</p>}
             </div>
 
+            {/* Buttons */}
             <div className='flex flex-col gap-3 border-t pt-4 sm:flex-row sm:justify-start md:col-span-2'>
+                {/* 🔁 Reset Button */}
                 <Button
                     type='button'
                     variant='outline'
-                    onClick={() => window.location.reload()}
+                    onClick={handleReset}
                     disabled={isSubmitting}
-                    className='w-fit transition-all duration-200 hover:scale-105'>
-                    Cancel
+                    className='order-3 w-fit transition-all duration-200 hover:scale-105 sm:order-1'>
+                    <RotateCcw className='mr-2 h-4 w-4' />
+                    Reset
                 </Button>
+
                 <Button
                     type='submit'
                     disabled={isSubmitting}
-                    className='w-fit transition-all duration-200 hover:scale-105'
+                    className='order-1 w-fit transition-all duration-200 hover:scale-105 sm:order-2'
                     isLoading={isSubmitting}
                     loadingText='Updating...'>
                     <div className='flex items-center'>

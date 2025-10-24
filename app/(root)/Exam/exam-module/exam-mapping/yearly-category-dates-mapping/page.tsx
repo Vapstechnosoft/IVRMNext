@@ -5,10 +5,12 @@ import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
 import { useYearlyCategoryDateMapping } from '@/hooks/exam/exammodule/exam-mapping';
+import type { IYearlyCategoryDatesMapping } from '@/types/exam/exam-module/exam-mapping';
 import { Plus, X } from 'lucide-react';
 import { use } from 'react';
 import AddYearlyCategoryDatesMapping from './_components/add-form';
-import { type IYearlyCategoryDatesMapping, YearlyCategoryDatesMappingColumns } from './_components/columns';
+import { YearlyCategoryDatesMappingColumns } from './_components/columns';
+import UpdateYearlyCategoryDatesMapping from './_components/update-form';
 
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 
@@ -142,7 +144,7 @@ function FormSections() {
                                 className='-top-[3.5rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
                                 <X className='h-4 w-4 text-destructive' /> Close
                             </Button>
-                            {/* <UpdateDatesMappingForm initialData={selectedRow} onSuccess={closeEditForm} /> */}
+                            <UpdateYearlyCategoryDatesMapping selectedRow={selectedRow} onSuccess={closeEditForm} />
                         </div>
                     </CollapsibleSection>
                 </div>

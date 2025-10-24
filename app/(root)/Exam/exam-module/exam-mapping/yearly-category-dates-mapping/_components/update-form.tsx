@@ -1,161 +1,291 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
+import { CalendarYear } from '@/components/ui/calendar_year';
 import { FormError, Label } from '@/components/ui/extension/field';
-import { InputText } from '@/components/ui/extension/input-text';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { masterCategorySchema } from '@/schemas/exam/exam-module/masters';
-import { addOrUpdateExamMasterCategory } from '@/server/exam/exam-module/masters/category';
-import type { IMasterCategory } from '@/types/exam/exam-module/masters';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { yearlyCategoryDatesMappingSchema } from '@/schemas/exam/exam-module/exam-mapping';
+import {
+    addOrUpdateYearlyCategoryDatesMapping,
+    getCategoryDropDownByAcademicYearlist
+} from '@/server/exam/exam-module/exam-mapping/yearly-category-dates-mapping';
+import { getAcademicYears } from '@/server/exam/exam-module/masters/category-class-mapping';
+import type { IYearlyCategoryDatesMapping } from '@/types/exam/exam-module/exam-mapping';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { RefreshCw, Save } from 'lucide-react';
-import { useEffect } from 'react';
-import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
+import { useEffect, useRef, useState } from 'react';
+import { Controller, FormProvider, useForm, useWatch } from 'react-hook-form';
 import { toast } from 'sonner';
 import type { z } from 'zod';
 
-type FormFields = z.infer<typeof masterCategorySchema.addOrUpdate>;
+type FormFields = z.infer<typeof yearlyCategoryDatesMappingSchema.addOrUpdate>;
 
-interface UpdateMasterCategoryFormProps {
-    initialData: IMasterCategory;
+interface UpdateFormProps {
+    selectedRow: IYearlyCategoryDatesMapping;
     onSuccess?: () => void;
-    className?: string;
 }
 
-export default function UpdateMasterCategoryForm({ initialData, onSuccess, className = '' }: UpdateMasterCategoryFormProps) {
-    const {
-        control,
-        register,
-        handleSubmit,
-        reset,
-        formState: { errors, isSubmitting }
-    } = useForm<FormFields>({
-        resolver: zodResolver(masterCategorySchema.addOrUpdate),
-        mode: 'onChange',
+export default function UpdateYearlyCategoryDatesMapping({ selectedRow, onSuccess }: UpdateFormProps) {
+    const orgId = 30;
+
+    const methods = useForm<FormFields>({
+        resolver: zodResolver(yearlyCategoryDatesMappingSchema.addOrUpdate),
+        mode: 'all',
         defaultValues: {
-            emcA_Id: initialData?.emcA_Id ?? 0,
-            emcA_CategoryName: initialData?.emcA_CategoryName ?? '',
-            emcA_CCECheckingFlg: initialData?.emcA_CCECheckingFlg ?? true
+            eyC_Id: selectedRow.eyC_Id,
+            mI_Id: 30,
+            asmaY_Id: selectedRow.asmaY_Id,
+            emcA_Id: selectedRow.emcA_Id,
+            eyC_ExamStartDate: selectedRow.eyC_ExamStartDate?.split('T')[0],
+            eyC_ExamEndDate: selectedRow.eyC_ExamEndDate?.split('T')[0],
+            eyC_MarksEntryLastDate: selectedRow.eyC_MarksEntryLastDate?.split('T')[0],
+            eyC_MarksProcessLastDate: selectedRow.eyC_MarksProcessLastDate?.split('T')[0],
+            eyC_MarksPublishDate: selectedRow.eyC_MarksPublishDate?.split('T')[0]
         }
     });
 
-    // ✅ Reset form whenever new initialData is passed
+    const { control, handleSubmit, formState } = methods;
+    const { isSubmitting } = formState;
+
+    const [academicYears, setAcademicYears] = useState<{ asmaY_Id: number; asmaY_Year: string }[]>([]);
+    const [categories, setCategories] = useState<{ emcA_Id: number; emcA_CategoryName: string }[]>([]);
+
+    // Fetch academic years on mount
     useEffect(() => {
-        if (initialData) {
-            reset({
-                emcA_Id: initialData?.emcA_Id ?? 0,
-                emcA_CategoryName: initialData?.emcA_CategoryName ?? '',
-                emcA_CCECheckingFlg: initialData?.emcA_CCECheckingFlg ?? true
-            });
+        async function fetchYears() {
+            try {
+                const years = await getAcademicYears();
+                setAcademicYears(Array.isArray(years) ? years : []);
+            } catch (err: any) {
+                toast.error(err?.message ?? 'Failed to load academic years');
+            }
         }
-    }, [initialData, reset]);
+        fetchYears();
+    }, []);
 
-    // ✅ Handle form submission
-    const onSubmit: SubmitHandler<FormFields> = async (data) => {
+    // Watch selected Academic Year
+    const selectedYearId = useWatch({ control, name: 'asmaY_Id' });
+
+    // Fetch categories whenever Academic Year changes
+    useEffect(() => {
+        if (!selectedYearId) return;
+        async function fetchCategories() {
+            try {
+                const { data: cats } = await getCategoryDropDownByAcademicYearlist(orgId, selectedYearId);
+                setCategories(Array.isArray(cats) ? cats : []);
+            } catch (err: any) {
+                toast.error(err?.message ?? 'Failed to load categories');
+            }
+        }
+        fetchCategories();
+    }, [selectedYearId]);
+
+    const onSubmit = async (data: FormFields) => {
         try {
-            const payload = {
-                mI_Id: 30,
-                emcA_Id: data.emcA_Id ?? 0,
-                emcA_CategoryName: data.emcA_CategoryName.trim(),
-                emcA_CCECheckingFlg: data.emcA_CCECheckingFlg
-            };
-
-            const response = await addOrUpdateExamMasterCategory(payload);
-
-            if (response.success) {
-                toast.success('Category updated successfully');
+            const res = await addOrUpdateYearlyCategoryDatesMapping(data);
+            if (res?.success) {
+                toast.success('Yearly category dates mapping updated successfully');
                 onSuccess?.();
             } else {
-                toast.error(response.message || 'Failed to update category');
+                toast.error(res?.message ?? 'Update failed');
             }
-        } catch (error: any) {
-            toast.error(error.message || 'Something went wrong');
+        } catch (err: any) {
+            toast.error(err?.message ?? 'Failed to update');
         }
     };
 
-    // ✅ Reset to original values
-    const handleReset = () => {
-        reset({
-            emcA_Id: initialData?.emcA_Id ?? 0,
-            emcA_CategoryName: initialData?.emcA_CategoryName ?? '',
-            emcA_CCECheckingFlg: initialData?.emcA_CCECheckingFlg ?? true
-        });
+    // Reusable DateField component
+    const DateField = ({
+        field,
+        fieldState,
+        label,
+        placeholder
+    }: {
+        field: any;
+        fieldState: any;
+        label: string;
+        placeholder?: string;
+    }) => {
+        const [open, setOpen] = useState(false);
+        const ref = useRef<HTMLDivElement | null>(null);
+
+        useEffect(() => {
+            const handleClickOutside = (e: MouseEvent) => {
+                if (ref.current && !ref.current.contains(e.target as Node)) {
+                    setOpen(false);
+                }
+            };
+            document.addEventListener('mousedown', handleClickOutside);
+            return () => document.removeEventListener('mousedown', handleClickOutside);
+        }, []);
+
+        return (
+            <div className='relative mt-4' ref={ref}>
+                <Label>
+                    {label} <span className='text-red-500'>*</span>
+                </Label>
+                <input
+                    readOnly
+                    value={field.value ?? ''}
+                    placeholder={placeholder}
+                    onClick={() => setOpen(true)}
+                    className='w-full cursor-pointer rounded-md border px-3 py-2 text-sm shadow-sm'
+                />
+                {open && (
+                    <div className='absolute z-50 mt-2'>
+                        <div className='rounded-md bg-white shadow-lg'>
+                            <CalendarYear
+                                selected={field.value ? new Date(field.value) : undefined}
+                                onDayClick={(day) => {
+                                    field.onChange(day.toISOString().split('T')[0]);
+                                    setOpen(false);
+                                }}
+                            />
+                        </div>
+                    </div>
+                )}
+                {fieldState.error && <FormError>{fieldState.error.message}</FormError>}
+            </div>
+        );
     };
 
     return (
-        <div className={`${className} flex items-center justify-center`}>
-            <form onSubmit={handleSubmit(onSubmit)} className='flex w-full flex-col space-y-6'>
-                <div className='w-full space-y-4'>
-                    {/* Category Name */}
-                    <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
-                        <InputText
-                            label='Category Name'
-                            required
-                            id='emcA_CategoryName'
-                            {...register('emcA_CategoryName')}
-                            error={errors.emcA_CategoryName?.message}
-                        />
-                    </div>
-
-                    {/* CCE Checking Flag */}
-                    <div className='grid grid-cols-1 gap-4 md:grid-cols-3'>
-                        <div className='group flex flex-col gap-2'>
-                            <Label htmlFor='emcA_CCECheckingFlg'>
-                                Applicable CCE Promotion <span className='ml-1 text-red-500'>*</span>
-                            </Label>
-
+        <div className='flex w-full flex-col gap-6'>
+            <FormProvider {...methods}>
+                <form onSubmit={handleSubmit(onSubmit)} className='flex flex-col gap-6 rounded-2xl bg-white p-6 shadow-md' noValidate>
+                    <div className='grid grid-cols-2 gap-6'>
+                        {/* Left Column */}
+                        <div>
                             <Controller
-                                name='emcA_CCECheckingFlg'
                                 control={control}
-                                render={({ field }) => (
-                                    <RadioGroup
-                                        value={field.value ? 'true' : 'false'}
-                                        onValueChange={(value) => field.onChange(value === 'true')}
-                                        className='flex gap-6'>
-                                        <div className='flex items-center space-x-2'>
-                                            <RadioGroupItem value='true' id='cce-yes' />
-                                            <Label htmlFor='cce-yes'>Yes</Label>
-                                        </div>
-                                        <div className='flex items-center space-x-2'>
-                                            <RadioGroupItem value='false' id='cce-no' />
-                                            <Label htmlFor='cce-no'>No</Label>
-                                        </div>
-                                    </RadioGroup>
+                                name='asmaY_Id'
+                                render={({ field, fieldState }) => (
+                                    <div>
+                                        <Label>
+                                            Academic Year <span className='text-red-500'>*</span>
+                                        </Label>
+                                        <Select onValueChange={(val) => field.onChange(Number(val))} value={String(field.value)}>
+                                            <SelectTrigger>
+                                                <SelectValue placeholder='Select Academic Year' />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                {academicYears.map((y) => (
+                                                    <SelectItem key={y.asmaY_Id} value={String(y.asmaY_Id)}>
+                                                        {y.asmaY_Year}
+                                                    </SelectItem>
+                                                ))}
+                                            </SelectContent>
+                                        </Select>
+                                        {fieldState.error && <FormError>{fieldState.error.message}</FormError>}
+                                    </div>
                                 )}
                             />
 
-                            {errors.emcA_CCECheckingFlg && <FormError>{errors.emcA_CCECheckingFlg.message}</FormError>}
+                            <Controller
+                                control={control}
+                                name='eyC_ExamStartDate'
+                                render={({ field, fieldState }) => (
+                                    <DateField
+                                        field={field}
+                                        fieldState={fieldState}
+                                        label='Exam Start Date'
+                                        placeholder='Select Exam Start Date'
+                                    />
+                                )}
+                            />
+
+                            <Controller
+                                control={control}
+                                name='eyC_MarksEntryLastDate'
+                                render={({ field, fieldState }) => (
+                                    <DateField
+                                        field={field}
+                                        fieldState={fieldState}
+                                        label='Marks Entry Last Date'
+                                        placeholder='Select Marks Entry Last Date'
+                                    />
+                                )}
+                            />
+
+                            <Controller
+                                control={control}
+                                name='eyC_MarksPublishDate'
+                                render={({ field, fieldState }) => (
+                                    <DateField
+                                        field={field}
+                                        fieldState={fieldState}
+                                        label='Marks Publish Date'
+                                        placeholder='Select Marks Publish Date'
+                                    />
+                                )}
+                            />
+                        </div>
+
+                        {/* Right Column */}
+                        <div>
+                            <Controller
+                                control={control}
+                                name='emcA_Id'
+                                render={({ field, fieldState }) => (
+                                    <div>
+                                        <Label>
+                                            Category <span className='text-red-500'>*</span>
+                                        </Label>
+                                        <Select onValueChange={(val) => field.onChange(Number(val))} value={String(field.value)}>
+                                            <SelectTrigger>
+                                                <SelectValue placeholder='Select Category' />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                {categories.map((c) => (
+                                                    <SelectItem key={c.emcA_Id} value={String(c.emcA_Id)}>
+                                                        {c.emcA_CategoryName}
+                                                    </SelectItem>
+                                                ))}
+                                            </SelectContent>
+                                        </Select>
+                                        {fieldState.error && <FormError>{fieldState.error.message}</FormError>}
+                                    </div>
+                                )}
+                            />
+
+                            <Controller
+                                control={control}
+                                name='eyC_ExamEndDate'
+                                render={({ field, fieldState }) => (
+                                    <DateField
+                                        field={field}
+                                        fieldState={fieldState}
+                                        label='Exam End Date'
+                                        placeholder='Select Exam End Date'
+                                    />
+                                )}
+                            />
+
+                            <Controller
+                                control={control}
+                                name='eyC_MarksProcessLastDate'
+                                render={({ field, fieldState }) => (
+                                    <DateField
+                                        field={field}
+                                        fieldState={fieldState}
+                                        label='Marks Process Last Date'
+                                        placeholder='Select Marks Process Last Date'
+                                    />
+                                )}
+                            />
                         </div>
                     </div>
 
-                    {errors.root && <FormError>{errors.root.message}</FormError>}
-                </div>
-
-                {/* Buttons */}
-                <div className='flex flex-col gap-3 border-t pt-4 sm:flex-row'>
-                    <Button
-                        type='button'
-                        variant='outline'
-                        onClick={handleReset}
-                        disabled={isSubmitting}
-                        className='order-2 w-fit transition-all duration-200 hover:scale-105 sm:order-1'>
-                        <RefreshCw className='mr-2 h-4 w-4' />
-                        Reset
-                    </Button>
-
-                    <Button
-                        type='submit'
-                        disabled={isSubmitting}
-                        className='order-1 w-fit transition-all duration-200 hover:scale-105 sm:order-2'
-                        isLoading={isSubmitting}
-                        loadingText='Updating...'>
-                        <div className='flex items-center'>
-                            <Save className='mr-2 h-4 w-4' />
-                            Update Category
-                        </div>
-                    </Button>
-                </div>
-            </form>
+                    {/* Buttons */}
+                    <div className='mt-4 flex justify-start gap-4'>
+                        <Button type='submit' className='w-fit' disabled={isSubmitting}>
+                            {isSubmitting ? 'Updating...' : 'Update'}
+                        </Button>
+                        <Button type='button' variant='outline' className='w-fit' onClick={() => methods.reset(selectedRow)}>
+                            Reset
+                        </Button>
+                    </div>
+                </form>
+            </FormProvider>
         </div>
     );
 }

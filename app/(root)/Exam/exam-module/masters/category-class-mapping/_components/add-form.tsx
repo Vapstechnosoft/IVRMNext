@@ -1,7 +1,7 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
-import { MultiSelect } from '@/components/ui/multi-select';
+import { CustomMultiSelectBox } from '@/components/ui/custom-multiselect';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { categoryClassMappingSchema } from '@/schemas/exam/exam-module/masters';
 import {
@@ -42,18 +42,11 @@ export default function AddCategoryClassForm({ onSuccess, initialData }: AddCate
     } = useForm<FormFields>({
         resolver: zodResolver(categoryClassMappingSchema.addOrUpdate),
         defaultValues: initialData || {
-            mI_Id: 0,
+            mI_Id: 30, // fixed from payload
             emcA_Id: 0,
-            emcA_CategoryName: '',
-            emcA_CCECheckingFlg: true,
-            emcA_ActiveFlag: true,
             ecaC_Id: 0,
             asmaY_Id: 0,
             asmcL_Id: 0,
-            asmS_Id: 0,
-            ecaC_ActiveFlag: true,
-            asmaY_Year: '',
-            asmcL_ClassName: '',
             section_list: []
         }
     });
@@ -61,7 +54,7 @@ export default function AddCategoryClassForm({ onSuccess, initialData }: AddCate
     const watchedYear = watch('asmaY_Id');
     const watchedClass = watch('asmcL_Id');
 
-    // ------------------------- Fetch dropdowns
+    // Fetch dropdown data
     useEffect(() => {
         async function fetchDropdowns() {
             try {
@@ -79,24 +72,19 @@ export default function AddCategoryClassForm({ onSuccess, initialData }: AddCate
         fetchDropdowns();
     }, []);
 
-    // ------------------------- Fetch sections
+    // Fetch sections based on year and class
     useEffect(() => {
         if (watchedYear && watchedClass) {
             async function fetchSections() {
                 try {
                     setLoadingSections(true);
                     const res = await getClassMappedSections(watchedYear, watchedClass);
-
                     const sectionData = Array.isArray(res) ? res : Array.isArray(res?.data) ? res.data : [];
-                    if (sectionData.length === 0) {
-                        toast.error('No Sections Mapped for These Selections');
-                    }
-                    setSections(sectionData);
 
-                    // Preselect existing values when editing
+                    setSections(sectionData);
                     if (initialData?.section_list?.length) {
-                        const validSections = sectionData.filter((s) => initialData.section_list.some((sel) => sel.asmS_Id === s.asmS_Id));
-                        setValue('section_list', validSections);
+                        const selected = sectionData.filter((s) => initialData.section_list.some((sel) => sel.asmS_Id === s.asmS_Id));
+                        setValue('section_list', selected);
                     } else {
                         setValue('section_list', []);
                     }
@@ -113,10 +101,17 @@ export default function AddCategoryClassForm({ onSuccess, initialData }: AddCate
         }
     }, [watchedYear, watchedClass, initialData, setValue]);
 
-    // ------------------------- Submit handler
+    // Submit Handler
     const onSubmit: SubmitHandler<FormFields> = async (data) => {
         try {
-            const res = await addOrUpdateCategoryClassMapping(data);
+            const payload = {
+                ...data,
+                section_list: data.section_list.map((s) => ({
+                    asmS_Id: s.asmS_Id
+                }))
+            };
+
+            const res = await addOrUpdateCategoryClassMapping(payload);
             if (res.success) {
                 toast.success(res.message);
                 onSuccess?.();
@@ -128,10 +123,10 @@ export default function AddCategoryClassForm({ onSuccess, initialData }: AddCate
         }
     };
 
-    // ------------------------- JSX
+    // JSX
     return (
         <form onSubmit={handleSubmit(onSubmit)} className='grid grid-cols-1 gap-6 md:grid-cols-2'>
-            {/* Left Side - Dropdowns */}
+            {/* Left Side */}
             <div className='space-y-4'>
                 {/* Academic Year */}
                 <Controller
@@ -199,7 +194,7 @@ export default function AddCategoryClassForm({ onSuccess, initialData }: AddCate
 
             {/* Right Side - Sections */}
             <div className='space-y-2'>
-                <h3 className='font-semibold'>Sections</h3>
+                {!sections.length && <h4 className='font-semibold'>Sections</h4>}
                 <Controller
                     control={control}
                     name='section_list'
@@ -207,25 +202,26 @@ export default function AddCategoryClassForm({ onSuccess, initialData }: AddCate
                         loadingSections ? (
                             <p>Loading sections...</p>
                         ) : sections.length ? (
-                            <MultiSelect
+                            <CustomMultiSelectBox
                                 options={sections.map((section) => ({
                                     label: section.asmC_SectionName,
                                     value: section.asmS_Id.toString()
                                 }))}
-                                onValueChange={(selectedValues) => {
-                                    const selected = sections.filter((s) => selectedValues.includes(s.asmS_Id.toString()));
+                                value={field.value.map((s) => s.asmS_Id.toString())}
+                                onChange={(vals) => {
+                                    const selected = sections
+                                        .filter((s) => vals.includes(s.asmS_Id.toString()))
+                                        .map((s) => ({ asmS_Id: s.asmS_Id }));
                                     field.onChange(selected);
                                 }}
-                                value={field.value.map((s) => s.asmS_Id.toString())}
-                                placeholder='Select Sections'
-                                variant='inverted'
+                                isSearchRequired
+                                error={errors.section_list?.message}
                             />
                         ) : (
                             <p className='text-gray-500'>Select Academic Year, Category, and Class to load sections</p>
                         )
                     }
                 />
-                {errors.section_list && <p className='text-red-600 text-sm'>{errors.section_list.message}</p>}
             </div>
 
             {/* Buttons */}
