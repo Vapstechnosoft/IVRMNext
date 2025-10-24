@@ -19,6 +19,35 @@ export const ADMISSION_QUERY_KEYS = {
     MASTER_CASTE_CATEGORY_DROPDOWN: 'master_caste_category_dropdown'
 };
 
+export const FEES_QUERY_KEYS = {
+    FEE_HEADS: 'fee_head',
+    FEE_MODEOFPAYMENT: 'fee_modeofpayment',
+    MASTER_CLASS_CATEGORY: 'master_class_category',
+    ACADEMIC_DROPDOWN: 'academic_dropdown',
+    FEE_PAYMENTGATEWAY_DETAILS: 'paymentGatewayDetails',
+    FEE_FINESLAB: 'masterfineslab',
+    FEE_CLASS_YEARLY_CATEGORY: 'fee_class_yearly_category',
+    FEE_GROUP: 'fee_group',
+    FEE_GROUP_GROUPING: 'fee_group_grouping',
+    FEE_INSTALLMENT: 'fee_installment',
+    MASTER_GROUP: 'master_group',
+    FEE_INSTALLMENT_DUE_DATE: 'fee_installment_due_date',
+    FEE_YEARLY_GROUPS: 'fee_yearly_groups',
+    FEE_GROUP_LIST_DROPDOWN: 'fee_group_list_dropdown',
+
+    FEE_MASTER_CONCESSION: 'masterfeeconcession',
+    FEE_MASTER_TERMS: 'feemasterterms',
+    FEE_MASTER_TERMS_HEAD: 'mastertermfeehead',
+    TERM_DROP_DOWN_DATA: 'Terms_Drop_down_data',
+    MASTER_HEADS_DROP_DOWN: 'masterHeadsDropdown',
+    MASTER_INSTALLMENT_DROPDOWN: 'masterInstallmentsDropdown',
+    FEE_MASTER_CONCESSION_DETAILS: 'masterfeeconcessiondetails',
+    FEE_PAYMENTGATEWAY_DROPDOWN: 'paymentGatewayDropdown',
+    GROUPS_DROPDOWN: 'groups_dropdown',
+    ROLES_DROPDOWN: 'roles_dropdown',
+    FEES_PRIVILEGE_LIST: 'fees_privilege_list'
+};
+
 export const PREADMISSION_QUERY_KEYS = {
     CHECK_PREADMISSION_LIVE: 'check_preadmission_live',
     RELIGION_DROPDOWN: 'religion_dropdown',
@@ -34,8 +63,7 @@ export const PREADMISSION_QUERY_KEYS = {
     APPLICATION_STATUS_DROPDOWN: 'application_status_dropdown',
     APPLICATION_STUDENT_LIST: 'application_student_list',
     PREADMISSION_ADMISSION_STATUS_DROPDOWN: 'preadmission_admission_status_dropdown',
-    PREADMISSION_STUDENT_LIST: 'preadmission_student_list',
-    EXPORT_PREADMISSION_STUDENT_LIST: 'export_preadmission_student_list'
+    PREADMISSION_STUDENT_LIST: 'preadmission_student_list'
 };
 
 export const EXAM_QUERY_KEYS = {

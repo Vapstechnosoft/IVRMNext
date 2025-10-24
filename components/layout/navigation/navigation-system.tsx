@@ -62,14 +62,13 @@ export function NavigationSystem() {
     const handleSubMenuClick = (module: IUserAccessibleModules, menu: Menu, subMenu: SubMenu) => {
         const firstPageUrl = subMenu.pages[0]?.url;
         if (firstPageUrl) {
-            const firstPage = subMenu.pages[0];
             const navData = {
                 module: module.name,
                 menu: menu.name,
                 subMenu: subMenu.name,
                 pages: subMenu.pages,
-                title: firstPage?.title || '',
-                description: firstPage?.description || ''
+                title: subMenu.pages[0]?.title,
+                description: subMenu.pages[0]?.description
             };
             setNavigationContext(navData);
 

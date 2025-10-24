@@ -77,6 +77,7 @@ export default function AddMasterGradeForm({ onSuccess, className = '' }: { onSu
                     emgD_Remarks: row.emgD_Remarks
                 }))
             };
+            console.log(payload);
 
             const response = await addOrUpdateMasterGrade(payload);
 

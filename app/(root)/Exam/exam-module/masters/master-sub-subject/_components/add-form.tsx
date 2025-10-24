@@ -76,7 +76,6 @@ export default function AddMasterSubSubjectForm({ onSuccess, className = '' }: A
                 const data = Array.isArray(response.data) ? response.data : [];
                 const mapped = data.map((d: IMasterSubSubject) => ({ ...d, id: d.emsS_Id }));
                 setOrderData(mapped);
-
                 setOrderModalOpen(true);
             } else {
                 toast.error(response.message || 'Failed to fetch sub-subjects.');

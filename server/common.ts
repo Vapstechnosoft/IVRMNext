@@ -43,7 +43,7 @@ export async function markAllReadUserNotification() {
 }
 
 export async function getUserAccessibleModules() {
-    const url = '/v1/login/user_accessible_pages';
+    const _url = '/v1/login/user_accessible_pages';
 
     // return await api.get<IUserAccessibleModules[]>('default', url);
 
@@ -144,22 +144,6 @@ export async function getUserAccessibleModules() {
                                         url: '/admission/preadmission/transactions/transfer-application-status',
                                         title: 'Transfer Application Status',
                                         description: 'Manage Transfer Application Status Details'
-                                    },
-                                    {
-                                        id: 3,
-                                        name: 'Transfer Admission Status',
-                                        icon: 'Settings',
-                                        url: '/admission/preadmission/transactions/transfer-admission-status',
-                                        title: 'Transfer Admission Status',
-                                        description: 'Manage Transfer Admission Status Details'
-                                    },
-                                    {
-                                        id: 4,
-                                        name: 'Transfer to Admission',
-                                        icon: 'Settings',
-                                        url: '/admission/preadmission/transactions/export-preadmission-to-admission',
-                                        title: 'Transfer to Admission',
-                                        description: 'Transfer confirmed preadmission applications to admission'
                                     }
                                 ]
                             }
@@ -195,51 +179,34 @@ export async function getUserAccessibleModules() {
             },
             {
                 id: 2,
-                name: 'Exam',
-                icon: 'BookOpen',
+                name: 'Fees Manageent',
+                icon: 'Settings',
                 menu: [
                     {
-                        id: 1,
-                        name: 'Exam Module',
-                        icon: 'BookOpen',
+                        id: 2,
+                        name: 'Fees',
+                        icon: 'Settings',
                         sub_menu: [
                             {
-                                id: 1,
-                                name: 'Masters',
+                                id: 3,
+                                name: 'Configuration',
                                 icon: 'Settings',
                                 pages: [
                                     {
-                                        id: 1,
-                                        name: 'Master Subject',
-                                        icon: 'BookOpen',
-                                        url: '/Exam/exam-module/masters/master-subject',
-                                        title: 'Master Subject',
-                                        description: 'Manage Master Subject Details'
-                                    },
-                                    {
-                                        id: 2,
-                                        name: 'Master Sub-Subject',
-                                        icon: 'BookOpen',
-                                        url: '/Exam/exam-module/masters/master-sub-subject',
-                                        title: 'Master Sub-Subject',
-                                        description: 'Manage Master Sub-Subject Details'
-                                    },
-                                    {
-                                        id: 3,
-                                        name: 'Master Exam',
-                                        icon: 'BookOpen',
-                                        url: '/Exam/exam-module/masters/exam-master',
-                                        title: 'Master Exam',
-                                        description: 'Manage Master Exam Details'
-                                    },
-                                    {
-                                        id: 4,
-                                        name: 'Master Sub-Exam',
-                                        icon: 'BookOpen',
-                                        url: '/Exam/exam-module/masters/sub-exam-master',
-                                        title: 'Master Sub-Exam',
-                                        description: 'Manage Master Sub-Exam Details'
-                                    },
+                                        id: 25,
+                                        name: 'Fee configuration',
+                                        icon: 'Settings',
+                                        url: '/fees/configuration/masterfeeconfig',
+                                        title: 'Fee configuration',
+                                        description: 'Fee configuration'
+                                    }
+                                ]
+                            },
+                            {
+                                id: 2,
+                                name: 'Masters',
+                                icon: 'Settings',
+                                pages: [
                                     {
                                         id: 5,
                                         name: 'Master Exam Paper',
@@ -250,12 +217,13 @@ export async function getUserAccessibleModules() {
                                     },
                                     {
                                         id: 6,
-                                        name: 'Master Grade',
+                                        name: 'Mode Of Payment',
                                         icon: 'Settings',
                                         url: '/Exam/exam-module/masters/master-grade',
                                         title: 'Master Grade',
                                         description: 'Manage Master Grade Details'
                                     },
+
                                     {
                                         id: 7,
                                         name: 'Master Subject Group',

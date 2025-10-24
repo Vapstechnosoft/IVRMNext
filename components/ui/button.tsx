@@ -95,7 +95,6 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
                 ref={ref}
                 href={href}
                 disabled={isDisabled}
-                {...(Comp === 'button' ? { type: props.type || 'button' } : {})}
                 {...props}>
                 {/* Conditionally render the prefix or loader */}
                 {renderPrefix && (loading ? <Loader2 className='h-4 w-4 animate-spin' /> : prefix ? <span>{prefix}</span> : null)}

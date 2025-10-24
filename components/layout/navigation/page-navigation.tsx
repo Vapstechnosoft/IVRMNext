@@ -21,7 +21,7 @@ export function PageNavigation() {
     const [pageTitle, setPageTitle] = useState('');
     const [pageDescription, setPageDescription] = useState('');
 
-    // Listen for navigation context changes and update page details
+    // Listen for navigation context changes
     useEffect(() => {
         const interval = setInterval(() => {
             const context = getNavigationContext();
@@ -32,36 +32,6 @@ export function PageNavigation() {
 
         return () => clearInterval(interval);
     }, [activeNavigation]);
-
-    // Update page details when activeNavigation or pathname changes
-    useEffect(() => {
-        if (activeNavigation?.pages) {
-            const currentPage = activeNavigation.pages.find((page: any) => page.url === pathname);
-            if (currentPage) {
-                setPageName(currentPage.name);
-                setPageTitle(currentPage.title || '');
-                setPageDescription(currentPage.description || '');
-            }
-        }
-    }, [activeNavigation, pathname]);
-
-    // Update navigation context when navigating between pages
-    useEffect(() => {
-        if (activeNavigation?.pages) {
-            const currentPage = activeNavigation.pages.find((page: any) => page.url === pathname);
-            if (currentPage && (activeNavigation.title !== currentPage.title || activeNavigation.description !== currentPage.description)) {
-                const updatedNavData = {
-                    ...activeNavigation,
-                    title: currentPage.title || '',
-                    description: currentPage.description || ''
-                };
-
-                if (typeof window !== 'undefined') {
-                    sessionStorage.setItem('activeNavigation', JSON.stringify(updatedNavData));
-                }
-            }
-        }
-    }, [pathname, activeNavigation]);
 
     const scrollPages = (direction: 'left' | 'right') => {
         if (pageScrollRef.current) {

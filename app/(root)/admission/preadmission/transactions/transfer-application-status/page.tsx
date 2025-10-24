@@ -1,7 +1,6 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
-import type { DataTableRef } from '@/components/ui/data-table/data-table';
 import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/generic-data-table';
 import { Label } from '@/components/ui/extension/field';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
@@ -12,13 +11,10 @@ import {
     useApplicationStudentList,
     usePreadmissionClassDropdown
 } from '@/hooks/admission/preadmission/useTransactions';
-import { tableSearchVariables } from '@/lib/data-table.config';
 import { updateStudentApplicationStatus } from '@/server/admission/preadmission/transactions/transfer_application_status';
 import type { IPreadmissionApplicationList } from '@/types/admission/preadmission/transactions';
 import { CheckSquare } from 'lucide-react';
-import { parseAsString, useQueryState } from 'nuqs';
-import { use, useRef, useState } from 'react';
-import { toast } from 'sonner';
+import { use, useState } from 'react';
 import { ApplicationStatusUpdateDialog } from './_components/application-status-update-form';
 import { transferApplicationColumns } from './_components/columns';
 
@@ -26,14 +22,6 @@ type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 
 export default function TransferApplicationStatusPage(props: { searchParams: SearchParams }) {
     const searchParams = use(props.searchParams);
-
-    const tableRef = useRef<DataTableRef>(null);
-
-    const [searchQuery] = useQueryState(tableSearchVariables.search, parseAsString.withOptions({ shallow: false }).withDefault(''));
-
-    const handleResetSelection = () => {
-        tableRef.current?.resetSelection();
-    };
 
     const { data: activePreadmission, isLoading: activePreadmissionDeLoading } = useActivePreadmissionDetails();
     const {
@@ -57,34 +45,20 @@ export default function TransferApplicationStatusPage(props: { searchParams: Sea
     const {
         data: response,
         isLoading,
-        error,
-        refetch: refetchApplicationStudents
+        error
     } = useApplicationStudentList(activePreadmission?.data?.asmaY_Id ?? 0, classId, statusId, searchParams);
     const tableProps = useDataTableProps(response);
 
-    const onUpdateApplicationStatusClose = () => {
-        refetchApplicationStudents();
-        setIsStatusDialogOpen(false);
-        setSelectedStudents([]);
-        handleResetSelection();
-    };
-
     const handleApplicationStatusUpdate = async (updates: Array<{ pasr_id: number; status_id: number; remarks: string }>) => {
         try {
-            const response = await updateStudentApplicationStatus(updates);
-            if (response.success === true) {
-                toast.success(response.message);
-                onUpdateApplicationStatusClose();
-            } else {
-                toast.error(response.message);
-            }
+            await updateStudentApplicationStatus(updates);
+            // Refetch the data after successful update
+            // You might need to trigger a refetch here based on your setup
+            alert('Status updated successfully!');
         } catch (error) {
-            toast.error(`Error updating status ${error}`);
+            console.error('Error updating status:', error);
+            alert('Failed to update status. Please try again.');
         }
-    };
-
-    const handleSelectStudent = (selectedRows: IPreadmissionApplicationList[]) => {
-        setSelectedStudents(selectedRows);
     };
 
     const handleDeselectStudent = (pasrId: number) => {
@@ -178,31 +152,26 @@ export default function TransferApplicationStatusPage(props: { searchParams: Sea
                     size='lg'
                     className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
                     {selectedStudents.length > 0 && (
-                        <div className='flex w-full justify-end'>
-                            <Button onClick={() => setIsStatusDialogOpen(true)} variant='default' className='h-8 w-fit gap-2'>
-                                <CheckSquare className='h-4 w-4' />
-                                Update Status ({selectedStudents.length})
-                            </Button>
-                        </div>
+                        <Button onClick={() => setIsStatusDialogOpen(true)} variant='default' className='h-8 gap-2'>
+                            <CheckSquare className='h-4 w-4' />
+                            Update Status ({selectedStudents.length})
+                        </Button>
                     )}
                     <GenericDataTable<IPreadmissionApplicationList>
                         {...tableProps}
-                        ref={tableRef}
                         columns={transferApplicationColumns}
                         isLoading={activePreadmissionDeLoading || isLoading}
                         error={error}
-                        searchQuery={searchQuery}
                         loadingMessage='Loading preadmission applications...'
                         noDataTitle='No Data Found'
                         noDataDescription='No preadmission applications found.'
                         errorTitle='Error Loading Preadmission Applications'
-                        onRowSelectionChange={handleSelectStudent}
                     />
                 </CollapsibleSection>
             </div>
             <ApplicationStatusUpdateDialog
                 isOpen={isStatusDialogOpen}
-                onClose={onUpdateApplicationStatusClose}
+                onClose={() => setIsStatusDialogOpen(false)}
                 selectedStudents={selectedStudents}
                 applicationStatuses={applicationStatus?.data || []}
                 onSubmit={handleApplicationStatusUpdate}
