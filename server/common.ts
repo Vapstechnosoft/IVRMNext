@@ -244,31 +244,64 @@ export async function getUserAccessibleModules() {
                                         id: 5,
                                         name: 'Master Exam Paper',
                                         icon: 'BookOpen',
-                                        url: '/Exam/exam-module/masters/exam-paper-master'
+                                        url: '/Exam/exam-module/masters/exam-paper-master',
+                                        title: 'Master Exam Paper',
+                                        description: 'Manage Master Exam Paper Details'
                                     },
                                     {
                                         id: 6,
                                         name: 'Master Grade',
                                         icon: 'Settings',
-                                        url: '/Exam/exam-module/masters/master-grade'
+                                        url: '/Exam/exam-module/masters/master-grade',
+                                        title: 'Master Grade',
+                                        description: 'Manage Master Grade Details'
                                     },
                                     {
                                         id: 7,
                                         name: 'Master Subject Group',
                                         icon: 'BookOpen',
-                                        url: '/Exam/exam-module/masters/master-group'
+                                        url: '/Exam/exam-module/masters/master-group',
+                                        title: 'Master Subject Group',
+                                        description: 'Manage Master Subject Group Details'
                                     },
                                     {
                                         id: 8,
                                         name: 'Master Category',
                                         icon: 'BookOpen',
-                                        url: '/Exam/exam-module/masters/master-category'
+                                        url: '/Exam/exam-module/masters/master-category',
+                                        title: 'Master Category',
+                                        description: 'Manage Master Category Details'
                                     },
                                     {
                                         id: 9,
                                         name: 'Category Class Mapping',
                                         icon: 'BookOpen',
-                                        url: '/Exam/exam-module/masters/category-class-mapping'
+                                        url: '/Exam/exam-module/masters/category-class-mapping',
+                                        title: 'Category Class Mapping',
+                                        description: 'Manage Category Class Mapping Details'
+                                    }
+                                ]
+                            },
+                            {
+                                id: 2,
+                                name: 'Exam Mapping',
+                                icon: 'Settings',
+                                pages: [
+                                    {
+                                        id: 1,
+                                        name: 'Category Subject Mapping',
+                                        icon: 'BookOpen',
+                                        url: '/Exam/exam-module/exam-mapping/category-subject-mapping',
+                                        title: 'Yearly Category Subject Mapping',
+                                        description: 'Manage Yearly Category Subject Mapping Details'
+                                    },
+                                    {
+                                        id: 2,
+                                        name: 'Exam Login Privilages',
+                                        icon: 'BookOpen',
+                                        url: '/Exam/exam-module/exam-mapping/exam-login-privilages',
+                                        title: 'Exam Login Privilages',
+                                        description: 'Manage Exam Login Privilages Details'
                                     }
                                 ]
                             }

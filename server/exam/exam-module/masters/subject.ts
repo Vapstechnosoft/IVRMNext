@@ -5,10 +5,12 @@ import type { ApiSearchparams } from '@/types';
 import type { IMasterSubject } from '@/types/exam/exam-module/masters';
 
 export async function getMasterSubject(searchParams?: ApiSearchparams) {
+    console.info('searchParams', searchParams);
     const urlParams = getSearchParamsUrl(searchParams ?? {});
-
     const url = `/master_subject/30?${urlParams}`;
-    return api.get<IMasterSubject[]>('exam', url);
+    const res = await api.get<IMasterSubject[]>('exam', url);
+    console.log('res', res);
+    return res;
 }
 
 export async function addOrUpdateMasterSubject(data: any) {

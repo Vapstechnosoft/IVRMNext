@@ -1,6 +1,4 @@
 'use client';
-
-import { Heading } from '@/components/layout/heading';
 import { Button } from '@/components/ui/button';
 import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/generic-data-table';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
@@ -45,13 +43,7 @@ function MasterGradePageContent({
         <div className='min-h-screen'>
             <div className='container space-y-4 p-1'>
                 {/* Header */}
-                <div className='flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between'>
-                    <div className='space-y-1'>
-                        <Heading
-                            title='Master Grade Management'
-                            description='Manage and organize your master grades with advanced filtering and controls'
-                        />
-                    </div>
+                <div className='flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-self-end'>
                     <Button
                         type='button'
                         onClick={openAddForm}

@@ -22,8 +22,9 @@ export const useMasterSubject = (searchParams?: ApiSearchparams) => {
         ...useQuery({
             queryKey: [EXAM_QUERY_KEYS.MASTER_SUBJECT, searchParams ?? {}],
             queryFn: async () => getMasterSubject(searchParams),
-            staleTime: 0
+            staleTime: 300
         }),
+
         refetchAll: () => {
             return queryClient.invalidateQueries({
                 queryKey: [EXAM_QUERY_KEYS.MASTER_SUBJECT]

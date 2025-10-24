@@ -43,8 +43,8 @@ export async function getAcademicYears(): Promise<IAcademicYear[]> {
     } catch (error: any) {
         console.error('Error fetching Academic Years, returning mock data:', error);
         return Array.from({ length: 5 }).map((_, i) => ({
-            id: i + 1,
-            year: `202${i}-202${i + 1}`
+            asmaY_Id: 231 + i,
+            asmaY_Year: `202${i}-202${i + 1}`
         }));
     }
 }
@@ -63,15 +63,15 @@ export async function getClasses() {
     return await api.get<IClass>('preadmission', url);
 }
 
-export async function getCategoryMappedSections(academicYear: string, category: string, className: string) {
-    const res = await api.get<ISection>('exam', `/sections?academicYear=${academicYear}&category=${category}&class=${className}`);
-    return res?.data ?? [];
+export async function getCategoryMappedSections(academicYear: number, category: number, className: number) {
+    const url = `/exam_master_category/exam_category_class_details_by_ids/30/${category}/${academicYear}/${className}`;
+    return await api.get<ISection>('exam', url);
 }
 
 // Getting Assigned sections for Particular AcademicYear and Class
 
-export async function getClassMappedSections(academicYear_Id: string, category_Id: string, class_Id: string) {
-    const url = `/exam_master_category/exam_category_class_section_view_by_ids/30/${category_Id}/${academicYear_Id}/${class_Id}/sections`;
+export async function getClassMappedSections(academicYear_Id: number, class_Id: number) {
+    const url = `/exam_master_category/sections_drop_down_by_class_list/30/${class_Id}/${academicYear_Id}`;
     return await api.get<ISection>('exam', url);
 }
 
@@ -90,4 +90,9 @@ export async function addOrUpdateCategoryClassMapping(data: any) {
             data
         };
     }
+}
+
+export async function toggleMasterExamCategoryClassSection(mi_id: number, id: number) {
+    const url = `/exam_master_category/toggle_exam_category_class_section/${mi_id}/${id}`;
+    return await api.put('exam', url);
 }
