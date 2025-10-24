@@ -69,7 +69,7 @@ class ApiService {
     }
 
     private setupInterceptors(instance: AxiosInstance): void {
-        // Request Interceptor
+        // Request Interceptorr
         instance.interceptors.request.use(
             async (config) => {
                 try {
