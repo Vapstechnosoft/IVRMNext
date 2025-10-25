@@ -88,10 +88,10 @@ export const studentApplicationColumns: ColumnDef<IPreadmissionStudentApplicatio
         cell: ({ cell }: { cell: any }) => {
             return (
                 <>
-                    {cell.row.original.is_fee_applicable === 1 && cell.row.original.payment_status === 0 ? (
+                    {cell.row.original.is_fee_applicable === 0 && cell.row.original.payment_status === 0 ? (
                         <PaymentDialog cell={cell} />
                     ) : (
-                        'Payment Not Required'
+                        <p>N.A</p>
                     )}
                 </>
             );

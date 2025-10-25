@@ -74,6 +74,11 @@ export async function getStudentApplicationList(asmay_id: number, searchParams?:
 }
 
 export async function applicationFormInitiatePayment(pasr_id: number) {
-    const url = `/student_application_form/initiate_payment/${pasr_id}`;
+    const url = `/payment/initiate_payment/${pasr_id}`;
     return await api.post<IInitiatePaymentResponse>('preadmission', url);
+}
+
+export async function updateApplicationPaymentStatus(status: string, transaction_id: string) {
+    const url = `/payment/update_payment_status?status=${status}&transaction_id=${transaction_id}`;
+    return await api.post<any>('preadmission', url);
 }

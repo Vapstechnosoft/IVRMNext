@@ -68,10 +68,10 @@ function StudentApplicationPageContent({
                         error={error}
                         showViewOptions={false}
                         columnPinning={{ right: ['actions'] }}
-                        loadingMessage='Loading master caste...'
-                        noDataTitle='No Master Caste Found'
-                        noDataDescription='Get started by creating your first master caste'
-                        errorTitle='Error Loading Master Caste'
+                        loadingMessage='Loading applications...'
+                        noDataTitle='No Applications Found'
+                        noDataDescription='Get started by creating your first applications'
+                        errorTitle='Error Loading Applications'
                     />
                 </CollapsibleSection>
             </div>

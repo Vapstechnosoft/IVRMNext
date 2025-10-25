@@ -8,6 +8,8 @@ import { createRouterMatcher } from './lib/routeMatcher';
 const routeMatcher = createRouterMatcher([
     { matcher: AUTH_ROUTES.SIGN_IN, auth: false },
     { matcher: AUTH_ROUTES.TERMS, auth: false },
+    { matcher: '/admission/preadmission/transactions/application-form/payment/success', auth: false },
+    { matcher: '/admission/preadmission/transactions/application-form/payment/failure', auth: false },
     { matcher: ROUTES.DASHBOARD, auth: true },
     {
         matcher: ROUTES.ADMISSION.ADMISSION_SUB_MENUS.PREADMISSION,
@@ -25,6 +27,11 @@ export async function middleware(request: NextRequest) {
 
     // Check for which must be accessible even without login - allow access to page and its sub-paths
     if (pathname === AUTH_ROUTES.TERMS) {
+        return NextResponse.next();
+    }
+
+    // Add this check early in the middleware
+    if (pathname.startsWith('/admission/preadmission/transactions/application-form/payment/')) {
         return NextResponse.next();
     }
 
