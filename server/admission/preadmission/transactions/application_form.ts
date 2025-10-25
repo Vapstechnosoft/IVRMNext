@@ -79,6 +79,33 @@ export async function applicationFormInitiatePayment(pasr_id: number) {
 }
 
 export async function updateApplicationPaymentStatus(status: string, transaction_id: string) {
-    const url = `/payment/update_payment_status?status=${status}&transaction_id=${transaction_id}`;
-    return await api.post<any>('preadmission', url);
+    try {
+        console.log('=== SERVER ACTION: updateApplicationPaymentStatus ===');
+        console.log('Status:', status);
+        console.log('Transaction ID:', transaction_id);
+
+        const url = `/payment/update_payment_status?status=${status}&transaction_id=${transaction_id}`;
+        console.log('API URL:', url);
+
+        const response = await api.post<any>('preadmission', url);
+
+        console.log('API Response:', response);
+        console.log('=== END SERVER ACTION ===');
+
+        // ✅ Ensure we always return a proper response
+        return response || { success: false, message: 'No response from server' };
+    } catch (error: any) {
+        console.error('=== SERVER ACTION ERROR ===');
+        console.error('Error in updateApplicationPaymentStatus:', error);
+        console.error('Error message:', error?.message);
+        console.error('Error stack:', error?.stack);
+        console.error('=== END ERROR ===');
+
+        // ✅ Return error response instead of throwing
+        return {
+            success: false,
+            message: error?.message || 'Failed to update payment status',
+            error: error?.toString()
+        };
+    }
 }

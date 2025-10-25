@@ -3,70 +3,130 @@
 import { Button } from '@/components/ui/button';
 import { updateApplicationPaymentStatus } from '@/server/admission/preadmission/transactions/application_form';
 import { CheckCircle2, Loader2, XCircle } from 'lucide-react';
-import { useParams, useRouter } from 'next/navigation';
+import { useParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 
 export default function PaymentSuccessPage() {
-    const router = useRouter();
-    const { id } = useParams();
+    const params = useParams();
     const [isProcessing, setIsProcessing] = useState(true);
     const [apiCallStatus, setApiCallStatus] = useState<'pending' | 'success' | 'error'>('pending');
     const [errorMessage, setErrorMessage] = useState('');
+    const [isClient, setIsClient] = useState(false);
 
-    // Add this check right after all useState declarations
-    if (!id) {
+    useEffect(() => {
+        setIsClient(true);
+    }, []);
+
+    useEffect(() => {
+        if (!isClient || !params?.id) {
+            return;
+        }
+
+        // ✅ Check if payment was already processed by the API route
+        const searchParams = new URLSearchParams(window.location.search);
+        const wasProcessed = searchParams.get('processed') === 'true';
+
+        console.log('🔵 CLIENT: Page loaded for transaction:', params.id);
+        console.log('🔵 CLIENT: Already processed:', wasProcessed);
+
+        if (wasProcessed) {
+            // Payment was already processed by the callback route
+            console.log('✅ CLIENT: Payment already processed, showing success');
+            setApiCallStatus('success');
+            setIsProcessing(false);
+            toast.success('Payment completed successfully!');
+
+            // Clean up URL
+            window.history.replaceState({}, '', window.location.pathname);
+
+            setTimeout(() => {
+                if (typeof window !== 'undefined') {
+                    window.location.href = '/admission/preadmission/transactions/application-form';
+                }
+            }, 3000);
+
+            return;
+        }
+
+        // ✅ Fallback: Process payment if not already done
+        let isCancelled = false;
+
+        const processPayment = async () => {
+            try {
+                if (!params?.id) return;
+
+                const transactionId = Array.isArray(params.id) ? params.id[0] : params.id;
+                console.log('🔵 CLIENT: Processing payment for:', transactionId);
+
+                const response = await updateApplicationPaymentStatus('success', transactionId);
+
+                if (isCancelled) return;
+
+                console.log('🔵 CLIENT: Payment response received:', response);
+
+                if (!response) {
+                    console.error('🔴 CLIENT: Response is undefined or null');
+                    throw new Error('No response received from server');
+                }
+
+                if (response.success) {
+                    console.log('✅ CLIENT: Payment successful!');
+                    setApiCallStatus('success');
+                    toast.success('Payment completed successfully!');
+
+                    setTimeout(() => {
+                        if (typeof window !== 'undefined') {
+                            window.location.href = '/admission/preadmission/transactions/application-form';
+                        }
+                    }, 3000);
+                } else {
+                    console.error('🔴 CLIENT: Payment failed:', response.message);
+                    throw new Error(response.message || 'Payment verification failed');
+                }
+            } catch (error: any) {
+                if (isCancelled) return;
+
+                console.error('🔴 CLIENT: Payment verification error:', error);
+                setApiCallStatus('error');
+
+                const errorMsg = error?.message || error?.toString() || 'An error occurred while processing your payment';
+                setErrorMessage(errorMsg);
+                toast.error('Payment verification failed: ' + errorMsg);
+            } finally {
+                if (!isCancelled) {
+                    setIsProcessing(false);
+                }
+            }
+        };
+
+        processPayment();
+
+        return () => {
+            isCancelled = true;
+        };
+    }, [isClient, params?.id]);
+
+    const handleRetry = () => {
+        if (typeof window !== 'undefined') {
+            window.location.href = '/admission/preadmission/transactions/application-form';
+        }
+    };
+
+    if (!isClient) {
+        return null;
+    }
+
+    if (!params?.id) {
         return (
             <div className='flex min-h-screen items-center justify-center'>
                 <div className='text-center'>
-                    <Loader2 className='mx-auto mb-4 h-8 w-8 animate-spin' />
-                    <p className='text-muted-foreground'>Loading...</p>
+                    <Loader2 className='mx-auto mb-4 h-8 w-8 animate-spin text-primary' />
+                    <p className='text-muted-foreground'>Loading payment details...</p>
                 </div>
             </div>
         );
     }
-
-    useEffect(() => {
-        // Only run when id is available
-        if (id) {
-            handlePaymentCallback();
-        }
-    }, [id]);
-
-    const handlePaymentCallback = async () => {
-        try {
-            // Get all payment response parameters from URL
-            const transactionId = id?.toString();
-
-            if (!transactionId) {
-                console.log('Waiting for transaction ID...');
-                return; // Exit early if ID not available yet
-            }
-
-            const response = await updateApplicationPaymentStatus('success', transactionId);
-            if (response.success) {
-                setApiCallStatus('success');
-                toast.success('Payment completed successfully!');
-                // Redirect to appropriate page after 3 seconds
-                setTimeout(() => {
-                    router.push('/admission/preadmission/transactions/application-form');
-                }, 3000);
-            } else {
-                toast.error(response.message);
-            }
-        } catch (error: any) {
-            console.error('Payment verification error:', error);
-            setApiCallStatus('error');
-            setErrorMessage(error.message || 'An error occurred while processing your payment');
-            toast.error('Payment verification failed');
-        } finally {
-            setIsProcessing(false);
-        }
-    };
-
-    const handleRetry = () => {
-        router.push('/admission/preadmission/transactions/application-form');
-    };
 
     return (
         <div className='flex min-h-screen items-center justify-center bg-gradient-to-br from-green-50 to-emerald-50 p-4 dark:from-gray-900 dark:to-gray-800'>
@@ -140,7 +200,6 @@ export default function PaymentSuccessPage() {
                     )}
                 </div>
 
-                {/* Additional Info */}
                 {!isProcessing && (
                     <div className='mt-6 text-center'>
                         <p className='text-gray-600 text-sm dark:text-gray-400'>
