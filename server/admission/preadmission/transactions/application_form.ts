@@ -6,6 +6,7 @@ import type {
     ICasteDropdown,
     ICountryDropdown,
     IGenderDropdown,
+    IInitiatePaymentResponse,
     IPreadmissionClassDropdown,
     IPreadmissionDocumentDropdown,
     IPreadmissionStudentApplicationList,
@@ -70,4 +71,9 @@ export async function getStudentApplicationList(asmay_id: number, searchParams?:
     const url = `/student_application_form/student_application_list?asmay_id=${asmay_id}&${urlParams}`;
 
     return await api.get<IPreadmissionStudentApplicationList[]>('preadmission', url);
+}
+
+export async function applicationFormInitiatePayment(pasr_id: number) {
+    const url = `/student_application_form/initiate_payment/${pasr_id}`;
+    return await api.post<IInitiatePaymentResponse>('preadmission', url);
 }

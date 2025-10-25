@@ -4,6 +4,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
 import type { IPreadmissionStudentApplicationList } from '@/types/admission/preadmission/transactions';
 import type { ColumnDef } from '@tanstack/react-table';
+import PaymentDialog from './payment-dialog';
 
 export const studentApplicationColumns: ColumnDef<IPreadmissionStudentApplicationList>[] = [
     {
@@ -75,5 +76,25 @@ export const studentApplicationColumns: ColumnDef<IPreadmissionStudentApplicatio
         cell: ({ row }) => <div>{row.getValue('admission_status')}</div>,
         enableSorting: false,
         enableHiding: true
+    },
+    {
+        id: 'actions',
+        header: 'Actions',
+        accessorFn: (row: any) => {
+            return row;
+        },
+        enableHiding: false,
+        enableSorting: false,
+        cell: ({ cell }: { cell: any }) => {
+            return (
+                <>
+                    {cell.row.original.is_fee_applicable === 1 && cell.row.original.payment_status === 0 ? (
+                        <PaymentDialog cell={cell} />
+                    ) : (
+                        'Payment Not Required'
+                    )}
+                </>
+            );
+        }
     }
 ];
