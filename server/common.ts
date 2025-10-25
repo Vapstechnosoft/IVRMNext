@@ -294,6 +294,14 @@ export async function getUserAccessibleModules() {
                                         url: '/Exam/exam-module/exam-mapping/yearly-category-dates-mapping',
                                         title: 'Yearly Category Date Mapping',
                                         description: 'Manage Yearly Category Date Mapping Details'
+                                    },
+                                    {
+                                        id: 4,
+                                        name: 'Exam Subject Group Mapping',
+                                        icon: 'BookOpen',
+                                        url: '/Exam/exam-module/exam-mapping/exam-subject-group-mapping',
+                                        title: 'Subject Group Mapping',
+                                        description: 'Manage Exam Subject Group Mapping Details'
                                     }
                                 ]
                             }

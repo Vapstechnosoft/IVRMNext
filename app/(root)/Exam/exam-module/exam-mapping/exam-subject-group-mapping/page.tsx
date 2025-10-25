@@ -1,40 +1,46 @@
 'use client';
+
 import { Button } from '@/components/ui/button';
 import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/generic-data-table';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
-import { useYearlyCategorySubjectMapping } from '@/hooks/exam/exammodule/exam-mapping';
-import type { IYearlyCategorySubjectMapping } from '@/types/exam/exam-module/exam-mapping';
-import type { ICategoryMapping } from '@/types/exam/exam-module/masters';
+import { useExamSubjectGroupMapping } from '@/hooks/exam/exammodule/exam-mapping';
+import type { IExamSubjectGroupMapping } from '@/types/exam/exam-module/exam-mapping';
 import { Plus, X } from 'lucide-react';
-import { use, useEffect } from 'react';
-import { YearlyCategorySubjectMappingColumns } from './_components/columns';
-import YearlyCategorySubjectMappingDetailsPage from './_components/yearly-category-subject-mapping-details';
+import { use } from 'react';
+import AddExamSubjectGroupMapping from './_components/add-form';
+import { ExamSubjectGroupMappingColumns } from './_components/columns';
 
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 
-export default function CategoryClassMappingPage(props: { searchParams: SearchParams }) {
+// -------------------------
+// MAIN PAGE
+// -------------------------
+export default function ExamSubjectGroupMappingPage(props: { searchParams: SearchParams }) {
     const searchParams = use(props.searchParams);
-    const { data: response, isLoading, error } = useYearlyCategorySubjectMapping(searchParams);
+    const { data: response, isLoading, error } = useExamSubjectGroupMapping(searchParams);
 
     return (
-        <FormProvider<IYearlyCategorySubjectMapping>>
-            <CategoryClassMappingPageContent categorydata={response} isLoading={isLoading} error={error} />
+        <FormProvider<IExamSubjectGroupMapping>>
+            <ExamSubjectGroupMappingPageContent response={response} isLoading={isLoading} error={error} />
         </FormProvider>
     );
 }
 
-function CategoryClassMappingPageContent({
-    categorydata,
+// -------------------------
+// PAGE CONTENT
+// -------------------------
+function ExamSubjectGroupMappingPageContent({
+    response,
     isLoading,
     error
 }: {
-    categorydata: any;
+    response: any;
     isLoading: boolean;
     error: any;
 }) {
-    const { openAddForm } = useFormContext<ICategoryMapping>();
-    const tableProps = useDataTableProps(categorydata);
+    const { openAddForm } = useFormContext<IExamSubjectGroupMapping>();
+    const tableProps = useDataTableProps(response);
 
     return (
         <div className='min-h-screen'>
@@ -46,7 +52,7 @@ function CategoryClassMappingPageContent({
                         onClick={openAddForm}
                         className='w-fit shadow-md transition-all duration-200 hover:scale-105 hover:shadow-lg'>
                         <Plus className='h-4 w-4' />
-                        Add Mapping
+                        Add Subject Group Mapping
                     </Button>
                 </div>
 
@@ -56,16 +62,16 @@ function CategoryClassMappingPageContent({
                     variant='default'
                     size='lg'
                     className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
-                    <GenericDataTable<IYearlyCategorySubjectMapping>
+                    <GenericDataTable<IExamSubjectGroupMapping>
                         {...tableProps}
-                        columns={YearlyCategorySubjectMappingColumns}
+                        columns={ExamSubjectGroupMappingColumns}
                         isLoading={isLoading}
                         error={error}
                         columnPinning={{ right: ['actions'] }}
-                        loadingMessage='Loading mappings...'
-                        noDataTitle='No Mappings Found'
-                        noDataDescription='Get started by creating your first mapping'
-                        errorTitle='Error Loading Mappings'
+                        loadingMessage='Loading subject group mappings...'
+                        noDataTitle='No Subject Group Mappings Found'
+                        noDataDescription='Get started by creating your first subject group mapping'
+                        errorTitle='Error Loading Subject Group Mappings'
                     />
                 </CollapsibleSection>
 
@@ -76,26 +82,12 @@ function CategoryClassMappingPageContent({
     );
 }
 
+// -------------------------
+// FORM SECTIONS
+// -------------------------
 function FormSections() {
-    const {
-        isAddFormOpen,
-        isEditFormOpen,
-        isDetailsViewOpen,
-        closeAddForm,
-        closeEditForm,
-        closeDetailsView,
-        addFormRef,
-        editFormRef,
-        selectedRow
-    } = useFormContext<IYearlyCategorySubjectMapping>();
-
-    useEffect(() => {
-        async function fetchSections() {
-            if (!selectedRow) return; // Skip if no row selected
-        }
-
-        fetchSections();
-    }, [selectedRow]);
+    const { isAddFormOpen, isEditFormOpen, selectedRow, closeAddForm, closeEditForm, addFormRef, editFormRef } =
+        useFormContext<IExamSubjectGroupMapping>();
 
     return (
         <>
@@ -103,7 +95,7 @@ function FormSections() {
             {isAddFormOpen && (
                 <div ref={addFormRef}>
                     <CollapsibleSection
-                        title='Add New Category-Class Mapping'
+                        title='Add New Subject Group Mapping'
                         description='Fill in the details below to create a new mapping'
                         defaultOpen={true}
                         variant='outline'
@@ -118,7 +110,7 @@ function FormSections() {
                                 className='-top-[3.5rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
                                 <X className='h-4 w-4 text-destructive' /> Close
                             </Button>
-                            {/* <AddCategoryClassForm onSuccess={closeAddForm} /> */}
+                            <AddExamSubjectGroupMapping onSuccess={closeAddForm} />
                         </div>
                     </CollapsibleSection>
                 </div>
@@ -128,7 +120,7 @@ function FormSections() {
             {isEditFormOpen && selectedRow && (
                 <div ref={editFormRef}>
                     <CollapsibleSection
-                        title='Edit Category-Class Mapping'
+                        title='Edit Subject Group Mapping'
                         defaultOpen={true}
                         variant='outline'
                         size='md'
@@ -142,20 +134,10 @@ function FormSections() {
                                 className='-top-[3.5rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
                                 <X className='h-4 w-4 text-destructive' /> Close
                             </Button>
-                            {/* <UpdateCategoryClassMappingForm
-                                initialData={selectedRow}
-                                // _selectedSections={selectedSections}
-                                // sections={sections}
-                                onSuccess={closeEditForm}
-                            /> */}
+                            {/* <UpdateExamSubjectGroupMapping selectedRow={selectedRow} onSuccess={closeEditForm} /> */}
                         </div>
                     </CollapsibleSection>
                 </div>
-            )}
-
-            {/* Details View */}
-            {isDetailsViewOpen && selectedRow && (
-                <YearlyCategorySubjectMappingDetailsPage rowData={selectedRow} onClose={closeDetailsView} />
             )}
         </>
     );

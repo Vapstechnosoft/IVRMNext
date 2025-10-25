@@ -81,5 +81,6 @@ export const EXAM_QUERY_KEYS = {
     MASTER_CATEGORY_CLASS_MAPPING: 'master-category-class-mapping',
     YEARLY_CATEGORY_SUBJECT_MAPPING: 'yearly-category-subject-mapping',
     EXAM_LOGIN_PRIVILAGES: 'exam-login-privilages',
-    YEARLY_CATEGORY_DATES_MAPPING: 'yearly-category-dates-mapping'
+    YEARLY_CATEGORY_DATES_MAPPING: 'yearly-category-dates-mapping',
+    EXAM_SUBJECT_GROUP_MAPPING: 'exam-subject-group-mapping'
 };

@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { CalendarYear } from '@/components/ui/calendar_year';
 import { FormError, Label } from '@/components/ui/extension/field';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useYearlyCategoryDateMapping } from '@/hooks/exam/exammodule/exam-mapping';
 import { yearlyCategoryDatesMappingSchema } from '@/schemas/exam/exam-module/exam-mapping';
 import {
     addOrUpdateYearlyCategoryDatesMapping,
@@ -45,6 +46,7 @@ export default function UpdateYearlyCategoryDatesMapping({ selectedRow, onSucces
 
     const { control, handleSubmit, formState } = methods;
     const { isSubmitting } = formState;
+    const { refetchAll } = useYearlyCategoryDateMapping();
 
     const [academicYears, setAcademicYears] = useState<{ asmaY_Id: number; asmaY_Year: string }[]>([]);
     const [categories, setCategories] = useState<{ emcA_Id: number; emcA_CategoryName: string }[]>([]);
@@ -84,6 +86,8 @@ export default function UpdateYearlyCategoryDatesMapping({ selectedRow, onSucces
             const res = await addOrUpdateYearlyCategoryDatesMapping(data);
             if (res?.success) {
                 toast.success('Yearly category dates mapping updated successfully');
+                methods.reset();
+                refetchAll();
                 onSuccess?.();
             } else {
                 toast.error(res?.message ?? 'Update failed');

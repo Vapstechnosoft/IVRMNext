@@ -110,7 +110,7 @@ export default function AddCategoryClassForm({ onSuccess, initialData }: AddCate
                     asmS_Id: s.asmS_Id
                 }))
             };
-
+            console.log('payload', payload);
             const res = await addOrUpdateCategoryClassMapping(payload);
             if (res.success) {
                 toast.success(res.message);

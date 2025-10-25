@@ -24,7 +24,7 @@ export async function addOrUpdateYearlyCategoryDatesMapping(data: any) {
 // server/exam/exam-module/exam-mapping/yearly-category-dates-mapping.ts
 export async function getCategoryDropDownByAcademicYearlist(orgId: number, asmay_id: number) {
     if (!asmay_id) throw new Error('Academic Year ID is required');
-    const url = `/yearly_category_dates_mapping/category_drop_down_by_academic_year_list/${orgId}/${asmay_id}`;
+    const url = `/exam_master_category/exam_category_drop_down_by_academic_year_list/${orgId}/${asmay_id}`;
     console.log('url', url);
     return await api.get<IAcademicYear>('exam', url);
 }

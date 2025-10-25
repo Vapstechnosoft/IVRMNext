@@ -5,7 +5,7 @@ import { AdaptiveBody, AdaptiveDialog, AdaptiveFooter } from '@/components/ui/ex
 import { FormError } from '@/components/ui/extension/field';
 import { useMasterCategoryClassMapping } from '@/hooks/exam/exammodule/usemasters';
 import { toggleMasterExamCategoryClassSection } from '@/server/exam/exam-module/masters/category-class-mapping';
-import type { ICategoryMapping } from '@/types/exam/exam-module/masters';
+import type { ICategoryClassMappingDetails } from '@/types/exam/exam-module/masters';
 import { type SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 
@@ -14,13 +14,13 @@ interface FormFields {
 }
 
 interface ToggleCategoryClassMappingFormProps {
-    rowData: ICategoryMapping;
+    rowData: ICategoryClassMappingDetails;
     onClose: () => void;
 }
 
 export default function ToggleCategoryClassMappingForm({ rowData, onClose }: ToggleCategoryClassMappingFormProps) {
     const { refetchAll } = useMasterCategoryClassMapping();
-    const isActive = rowData.emcA_ActiveFlag;
+    const isActive = rowData.asmC_ActiveFlag;
 
     const {
         register,
@@ -60,7 +60,7 @@ export default function ToggleCategoryClassMappingForm({ rowData, onClose }: Tog
                     <p>
                         Are you sure you want to <strong>{isActive ? 'deactivate' : 'activate'}</strong> the mapping for{' '}
                         <strong>
-                            {rowData.emcA_CategoryName} - {rowData.asmcL_ClassName}
+                            {rowData.asmcL_ClassName}-{rowData.asmC_SectionName}
                         </strong>
                         ?
                     </p>

@@ -109,3 +109,22 @@ export interface IYearlyCategoryDatesMapping {
     eyC_MarksProcessLastDate: string;
     eyC_MarksPublishDate: string;
 }
+
+export interface IExamSubjectGroupMapping {
+    slno: number;
+    asmaY_Year: string;
+    emcA_CategoryName: string;
+    emE_ExamName?: string | null;
+    eysgR_GroupName: string;
+    eysgR_Percentage: number;
+    eysgR_PromotionType: 'IE' | 'PE';
+    eysgR_CompulsoryFlag: 'Y' | 'N';
+    subjectNames?: string[];
+}
+
+export interface IESubject {
+    ismS_Id: number;
+    ismS_SubjectName: string;
+    ismS_OrderFlag: number;
+    eyceS_AplResultFlg: boolean;
+}

@@ -184,14 +184,18 @@ export interface IClass {
 }
 
 export interface ISection {
+    mI_Id?: number;
     asmS_Id: number;
     asmC_SectionName: string;
     asmC_SectionCode?: string;
+    ecaC_Id: number;
+    ecaC_ActiveFlag: boolean;
 }
 
 export interface ICategoryClassMappingDetails {
     mI_Id: number;
     asmS_Id: number;
+    ecaC_Id: number;
     asmcL_ClassName: string;
     asmC_SectionCode: string;
     asmC_SectionName: string;

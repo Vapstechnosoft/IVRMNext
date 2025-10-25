@@ -80,7 +80,7 @@ export async function getClassMappedSections(academicYear_Id: number, class_Id: 
 -------------------------------------------------- */
 export async function addOrUpdateCategoryClassMapping(data: any) {
     try {
-        const res = await api.post<any>('exam', '/category-class-mapping', data);
+        const res = await api.post<any>('exam', '/exam_master_category/add_or_update_exam_category_class', data);
         return res;
     } catch (error: any) {
         console.error('Error adding/updating mapping, returning mock success:', error);

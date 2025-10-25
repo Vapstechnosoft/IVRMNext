@@ -1,16 +1,14 @@
 'use client';
-
-import ToggleMasterCategoryForm from '@/app/(root)/admission/preadmission/masters/category/_components/toggle-form';
 import { Heading } from '@/components/layout/heading';
 import { Button } from '@/components/ui/button';
 import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/generic-data-table';
 import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
 import { getCategoryMappedSections } from '@/server/exam/exam-module/masters/category-class-mapping';
-import type { IMasterCategoryList } from '@/types/admission/preadmission/masters';
 import type { ICategoryClassMappingDetails, ICategoryMapping, ISection } from '@/types/exam/exam-module/masters';
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 import { CategoryClassMappingDetalisColumns } from './subject-group-details-columns';
+import ToggleCategoryClassMappingForm from './toggle-form';
 
 interface CategoryClassMappingDetailsPageProps {
     rowData: ICategoryMapping;
@@ -45,16 +43,19 @@ export default function CategoryClassMappingDetailsPage({ rowData, onClose }: Ca
                     return;
                 }
 
-                const mappedData: ICategoryClassMappingDetails[] = data.map((section, index) => ({
-                    mI_Id: 30,
-                    asmS_Id: section.asmS_Id,
-                    asmcL_ClassName: rowData.asmcL_ClassName,
-                    asmC_SectionCode: `SEC-${section.asmS_Id}`, // hardcoded
-                    asmC_SectionName: `Section ${section.asmS_Id}`, // hardcoded
-                    asmC_MaxCapacity: 40, // example hardcoded capacity
-                    asmC_Order: index + 1,
-                    asmC_ActiveFlag: true // active (true)
-                }));
+                const mappedData: ICategoryClassMappingDetails[] = data
+                    .filter((section) => section.asmC_SectionCode) // ensure it's defined
+                    .map((section, index) => ({
+                        mI_Id: rowData.mI_Id,
+                        ecaC_Id: rowData.emcA_Id,
+                        asmS_Id: section.asmS_Id,
+                        asmcL_ClassName: rowData.asmcL_ClassName,
+                        asmC_SectionCode: section.asmC_SectionCode!,
+                        asmC_SectionName: section.asmC_SectionName,
+                        asmC_MaxCapacity: 40,
+                        asmC_Order: index + 1,
+                        asmC_ActiveFlag: section.ecaC_ActiveFlag
+                    }));
 
                 setMappings(mappedData);
             } catch (error: any) {
@@ -123,12 +124,12 @@ export default function CategoryClassMappingDetailsPage({ rowData, onClose }: Ca
 }
 
 function FormSections() {
-    const { isToggleFormOpen, selectedRow, closeToggleForm } = useFormContext<IMasterCategoryList>();
+    const { isToggleFormOpen, selectedRow, closeToggleForm } = useFormContext<ICategoryClassMappingDetails>();
 
     return (
         <>
             {/* Toggle Form */}
-            {isToggleFormOpen && selectedRow && <ToggleMasterCategoryForm rowData={selectedRow} onClose={closeToggleForm} />}
+            {isToggleFormOpen && selectedRow && <ToggleCategoryClassMappingForm rowData={selectedRow} onClose={closeToggleForm} />}
         </>
     );
 }

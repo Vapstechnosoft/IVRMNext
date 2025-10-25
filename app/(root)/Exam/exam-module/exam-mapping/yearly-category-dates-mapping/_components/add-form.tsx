@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { CalendarYear } from '@/components/ui/calendar_year';
 import { FormError, Label } from '@/components/ui/extension/field';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useYearlyCategoryDateMapping } from '@/hooks/exam/exammodule/exam-mapping';
 import { yearlyCategoryDatesMappingSchema } from '@/schemas/exam/exam-module/exam-mapping';
 import {
     addOrUpdateYearlyCategoryDatesMapping,
@@ -36,7 +37,7 @@ export default function AddYearlyCategoryDatesMapping({ onSuccess }: { onSuccess
             eyC_MarksPublishDate: ''
         }
     });
-
+    const { refetchAll } = useYearlyCategoryDateMapping();
     const { control, handleSubmit, reset, setValue, formState } = methods;
     const { isSubmitting } = formState;
 
@@ -83,6 +84,7 @@ export default function AddYearlyCategoryDatesMapping({ onSuccess }: { onSuccess
             if (res?.success) {
                 toast.success('Yearly category dates mapping saved successfully');
                 reset();
+                refetchAll();
                 onSuccess?.();
             } else {
                 toast.error(res?.message ?? 'Save failed');

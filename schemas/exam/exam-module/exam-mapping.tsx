@@ -160,3 +160,55 @@ export const yearlyCategoryDatesMappingSchema = {
             { path: ['eyC_MarksProcessLastDate'], message: 'Marks process last date cannot be after marks publish date' }
         )
 };
+
+export const SubjectListItemSchema = z.object({
+    ismS_Id: z.number().int().positive({ message: 'Invalid subject id' })
+    // Optional name if needed
+    // ISMS_SubjectName: z.string().min(1, { message: 'Subject name required' }),
+});
+
+/* ----------------------------- Schema Definition ----------------------------- */
+export const ExamSubjectGroupSchema = {
+    addOrUpdate: z
+        .object({
+            esG_Id: z.number().int().nonnegative().optional().nullable(),
+            mI_Id: z.number().int().nonnegative().optional(),
+            asmaY_Id: z.number().int().positive({ message: 'Select Academic Year' }),
+            emcA_Id: z.number().int().positive({ message: 'Select Category' }),
+            esG_SubjectGroupName: z
+                .string()
+                .min(1, { message: 'Enter Group Name' })
+                .max(50, { message: 'Group name must be at most 50 characters' })
+                .regex(/^[A-Za-z\s-]+$/, {
+                    message: 'Group name must contain only letters, spaces or hyphens'
+                }),
+            esG_ExamPromotionFlag: z.enum(['IE', 'PE']),
+            emE_Id: z.number().int().nonnegative({ message: 'Invalid Exam id' }),
+            esG_GroupMinMarks: z
+                .number()
+                .int({ message: 'Min marks must be an integer' })
+                .min(0, { message: 'Min marks cannot be less than 0' }),
+            esG_GroupMaxMarks: z
+                .number()
+                .int({ message: 'Max marks must be an integer' })
+                .min(0, { message: 'Max marks cannot be less than 0' }),
+            esG_CompulsoryFlag: z.enum(['Y', 'N']),
+            esG_ActiveFlag: z.boolean(),
+            subjects_list: z.array(SubjectListItemSchema).min(2, { message: 'Select at least two subjects for a group' })
+        })
+        .refine(
+            (data) => {
+                // If Individual Exam, emE_Id must be > 0
+                if (data.esG_ExamPromotionFlag === 'IE') return data.emE_Id > 0;
+                return true;
+            },
+            {
+                path: ['emE_Id'],
+                message: 'Select Exam for Individual Exam type'
+            }
+        ),
+
+    delete: z.object({
+        ESG_Id: z.number().int().positive({ message: 'Invalid Exam Subject Group ID' })
+    })
+};
