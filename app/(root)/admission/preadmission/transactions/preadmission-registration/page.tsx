@@ -41,8 +41,7 @@ export default function PreadmissionRegistration() {
                 ) : (
                     <LockKeyholeOpen className='mr-2 h-4 w-4 text-white ' />
                 )}
-                <span
-                    className={isPreadmissionLive === false ? 'flex-1 font-medium text-gray-600' : 'flex-1 text-gray-400 tracking-widest'}>
+                <span className={isPreadmissionLive === false ? 'flex-1 font-medium text-gray-600' : 'flex-1 text-white tracking-widest'}>
                     Preadmission Registration
                 </span>
                 {isPreadmissionLive === true && <ArrowUpRight className={'h-4 w-4 text-white'} />}

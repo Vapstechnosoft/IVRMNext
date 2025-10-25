@@ -199,11 +199,17 @@ export default function SigninForm() {
                     </Card>
                 </div>
                 {/* Footer */}
-                <div className='fixed bottom-0 hidden h-7 w-[50%] items-center justify-center gap-2 border border-1 bg-secondary lg:flex'>
-                    <Phone className='h-3 w-3 text-white ' />
-                    <p className='text-white text-xs'>+91 33 2641 2138, +91 33 2641 3590</p>
-                    <Mail className='h-3 w-3 text-white ' />
-                    <p className='text-white text-xs'>stcsh1860@gmail.com</p>
+                <div className='fixed bottom-0 hidden h-7 w-[50%] items-center justify-between border border-1 bg-secondary px-2 lg:flex'>
+                    {/* Center section */}
+                    <div className='flex flex-1 items-center justify-center gap-2'>
+                        <Phone className='h-3 w-3 text-white' />
+                        <p className='text-white text-xs'>+91 33 2641 2138, +91 33 2641 3590</p>
+                        <Mail className='h-3 w-3 text-white' />
+                        <p className='text-white text-xs'>stcsh1860@gmail.com</p>
+                    </div>
+
+                    {/* Version aligned to end */}
+                    <p className='ml-auto pr-2 text-white text-xs'>v1.0</p>
                 </div>
             </div>
         </div>
