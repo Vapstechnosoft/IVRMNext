@@ -10,7 +10,7 @@ export async function getExportPreadmissionStudentList(asmay_id: number, asmcl_i
     return await api.get<IPreadmissionApplicationList[]>('preadmission', url);
 }
 
-export async function exportPreadmissionToAdmission(data: any) {
-    const url = '/export_preadmission/export_preadmission_to_admission';
+export async function exportPreadmissionToAdmission(asmay_id: number, data: any) {
+    const url = `/export_preadmission/export_preadmission_to_admission/${asmay_id}`;
     return await api.put<any>('preadmission', url, data);
 }

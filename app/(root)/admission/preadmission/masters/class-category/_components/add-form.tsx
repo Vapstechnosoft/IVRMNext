@@ -71,7 +71,10 @@ export default function AddMasterClassCategoryForm({ onSuccess, className = '' }
             const payload = {
                 asmcC_Id: 0,
                 asmaY_Id: asmaY_Id,
-                amC_Id: amC_Id
+                amC_Id: amC_Id,
+                category_classes: selectedClassItems.map((item) => {
+                    return { asmcL_Id: item.asmcL_Id };
+                })
             };
 
             const response = await addMasterClassCategory(payload);

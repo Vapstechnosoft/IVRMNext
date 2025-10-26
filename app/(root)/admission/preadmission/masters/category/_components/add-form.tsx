@@ -39,14 +39,14 @@ export default function AddMasterCategoryForm({ onSuccess, className = '' }: Add
         try {
             const { amC_Name, amC_Address, amC_Type } = data;
             const payload = {
-                AMC_Id: 0,
-                AMC_Name: amC_Name,
-                AMC_Address: amC_Address,
-                AMC_Type: amC_Type,
-                AMC_RegNoPrefix: '',
-                AMC_Logo: '',
-                AMC_FilePath: '',
-                AMC_ActiveFlag: true
+                amC_Id: 0,
+                amC_Name: amC_Name,
+                amC_Address: amC_Address,
+                amC_Type: amC_Type,
+                amC_RegNoPrefix: '',
+                amC_Logo: '',
+                amC_FilePath: '',
+                amC_ActiveFlag: 1
             };
 
             const response = await addOrUpdateMasterCategory(payload);

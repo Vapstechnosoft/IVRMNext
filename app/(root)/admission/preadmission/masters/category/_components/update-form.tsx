@@ -100,7 +100,7 @@ export default function UpdateMasterCategoryForm({ onSuccess, className = '', se
                                         onValueChange={(value) => {
                                             field.onChange(value);
                                         }}
-                                        value={field.value?.toString() || undefined}>
+                                        value={field.value?.toString() || row.amC_Type}>
                                         <SelectTrigger className='w-full'>
                                             <SelectValue placeholder='Select a Category' />
                                         </SelectTrigger>
