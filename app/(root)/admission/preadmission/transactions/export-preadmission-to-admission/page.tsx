@@ -58,8 +58,10 @@ export default function ExportPreadmissionToAdmissionPage(props: { searchParams:
     };
 
     const handleExportPreadmissionToAdmission = async (updates: Array<{ pasr_id: number }>) => {
+        if (activePreadmission?.data?.asmaY_Id === undefined || activePreadmission?.data?.asmaY_Id === 0) return;
+
         try {
-            const response = await exportPreadmissionToAdmission(updates);
+            const response = await exportPreadmissionToAdmission(activePreadmission?.data?.asmaY_Id, updates);
             if (response.success === true) {
                 toast.success(response.message);
                 onUpdateAdmissionStatusClose();

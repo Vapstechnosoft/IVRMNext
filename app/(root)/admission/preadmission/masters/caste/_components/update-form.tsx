@@ -61,7 +61,7 @@ export default function UpdateMasterCasteForm({ onSuccess, className = '', selec
         try {
             const { imcC_Id, imC_CasteName, imC_CasteDesc } = data;
             const payload = {
-                imC_ID: row.imcC_Id,
+                imC_ID: row.imC_Id,
                 imcC_Id,
                 imC_CasteName,
                 imC_CasteDesc
