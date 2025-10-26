@@ -96,3 +96,37 @@ export const masterCasteSchema = {
         imC_Id: deleteIdSchema('imC_Id')
     })
 };
+
+export const masterDocumentSchema = {
+    addOrUpdate: z.object({
+        amsmD_Id: z.number().int({ message: 'AMSMD_ID is required' }).optional(),
+        amsmD_DocumentName: createStringSchema('Document Name', 1, 100),
+        amsmD_Description: createStringSchema('Description', 1, 200),
+        amsmD_FLAG: z.number().int({ message: 'Mandatory Flag is required' })
+    }),
+    delete: z.object({
+        amsmD_Id: deleteIdSchema('amsmD_Id')
+    })
+};
+
+export const masterReferenceSchema = {
+    addOrUpdate: z.object({
+        pamR_Id: z.number().int({ message: 'PAMR_Id is required' }).optional(),
+        pamR_ReferenceName: createStringSchema('Reference Name', 1, 100),
+        pamR_ReferenceDesc: createStringSchema('Description', 1, 200)
+    }),
+    delete: z.object({
+        pamR_Id: deleteIdSchema('pamR_Id')
+    })
+};
+
+export const masterSourceSchema = {
+    addOrUpdate: z.object({
+        pamS_Id: z.number().int({ message: 'PAMS_ID is required' }).optional(),
+        pamS_SourceName: createStringSchema('Source Name', 1, 100),
+        pamS_SourceDesc: createStringSchema('Description', 1, 200)
+    }),
+    delete: z.object({
+        pamS_Id: deleteIdSchema('pamS_Id')
+    })
+};

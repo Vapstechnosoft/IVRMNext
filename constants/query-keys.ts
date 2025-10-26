@@ -16,7 +16,10 @@ export const ADMISSION_QUERY_KEYS = {
     MASTER_CASTE_CATEGORY: 'master_caste_category',
     MASTER_CASTE_CATEGORY_CODE_DROPDOWN: 'master_caste_category_code_dropdown',
     MASTER_CASTE: 'master_caste',
-    MASTER_CASTE_CATEGORY_DROPDOWN: 'master_caste_category_dropdown'
+    MASTER_CASTE_CATEGORY_DROPDOWN: 'master_caste_category_dropdown',
+    MASTER_DOCUMENT: 'master_document',
+    MASTER_REFERENCE: 'master_reference',
+    MASTER_SOURCE: 'master_source'
 };
 
 export const PREADMISSION_QUERY_KEYS = {
