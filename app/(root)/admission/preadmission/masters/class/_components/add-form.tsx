@@ -131,6 +131,7 @@ export default function AddMasterClassForm({ onSuccess, className = '' }: AddMas
                                         value={field.value || 0}
                                         onChange={(value) => field.onChange(value)}
                                         minValue={0}
+                                        step={1}
                                     />
                                 )}
                             />
@@ -148,6 +149,7 @@ export default function AddMasterClassForm({ onSuccess, className = '' }: AddMas
                                         value={field.value || 0}
                                         onChange={(value) => field.onChange(value)}
                                         minValue={0}
+                                        step={1}
                                     />
                                 )}
                             />
@@ -167,6 +169,8 @@ export default function AddMasterClassForm({ onSuccess, className = '' }: AddMas
                                         value={field.value || 0}
                                         onChange={(value) => field.onChange(value)}
                                         minValue={0}
+                                        maxValue={100}
+                                        step={1}
                                     />
                                 )}
                             />
@@ -184,6 +188,8 @@ export default function AddMasterClassForm({ onSuccess, className = '' }: AddMas
                                         value={field.value || 0}
                                         onChange={(value) => field.onChange(value)}
                                         minValue={0}
+                                        maxValue={11}
+                                        step={1}
                                     />
                                 )}
                             />
@@ -201,6 +207,8 @@ export default function AddMasterClassForm({ onSuccess, className = '' }: AddMas
                                         value={field.value || 0}
                                         onChange={(value) => field.onChange(value)}
                                         minValue={0}
+                                        maxValue={31}
+                                        step={1}
                                     />
                                 )}
                             />
@@ -220,6 +228,8 @@ export default function AddMasterClassForm({ onSuccess, className = '' }: AddMas
                                         value={field.value || 0}
                                         onChange={(value) => field.onChange(value)}
                                         minValue={0}
+                                        maxValue={100}
+                                        step={1}
                                     />
                                 )}
                             />
@@ -237,6 +247,8 @@ export default function AddMasterClassForm({ onSuccess, className = '' }: AddMas
                                         value={field.value || 0}
                                         onChange={(value) => field.onChange(value)}
                                         minValue={0}
+                                        maxValue={11}
+                                        step={1}
                                     />
                                 )}
                             />
@@ -254,6 +266,8 @@ export default function AddMasterClassForm({ onSuccess, className = '' }: AddMas
                                         value={field.value || 0}
                                         onChange={(value) => field.onChange(value)}
                                         minValue={0}
+                                        maxValue={31}
+                                        step={1}
                                     />
                                 )}
                             />

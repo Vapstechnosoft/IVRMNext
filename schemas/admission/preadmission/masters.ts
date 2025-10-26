@@ -12,20 +12,41 @@ export const loginSchema = z.object({
 });
 
 export const masterClassSchema = {
-    addOrUpdate: z.object({
-        asmcl_id: z.number().int({ message: 'ASMCL_Id is required' }).optional(),
-        asmcl_classcode: createStringSchema('Code', 1, 100),
-        asmcl_classname: createStringSchema('Name', 1, 100),
-        asmcl_maxcapacity: z.number().int({ message: 'Max Capacity is required' }),
-        asmcl_order: z.number().int({ message: 'Class Order is required' }),
-        asmcl_minageyear: z.number().int({ message: 'Min Age Year is required' }),
-        asmcl_minagemonth: z.number().int({ message: 'Min Age Month is required' }),
-        asmcl_minagedays: z.number().int({ message: 'Min Age Day is required' }),
-        asmcl_maxageyear: z.number().int({ message: 'Max Age Year is required' }),
-        asmcl_maxagemonth: z.number().int({ message: 'Max Age Month is required' }),
-        asmcl_maxagedays: z.number().int({ message: 'Max Age Day is required' }),
-        asmcl_preadmflag: z.number().int({ message: 'Preadm Flag is required' })
-    }),
+    addOrUpdate: z
+        .object({
+            asmcl_id: z.number().int({ message: 'ASMCL_Id is required' }).optional(),
+            asmcl_classcode: createStringSchema('Code', 1, 100),
+            asmcl_classname: createStringSchema('Name', 1, 100),
+            asmcl_maxcapacity: z.number().int({ message: 'Max Capacity is required' }),
+            asmcl_order: z.number().int({ message: 'Class Order is required' }),
+            asmcl_minageyear: z.number().int().min(0, 'Min Age Year must be at least 0').max(100, 'Min Age Year must not exceed 100'),
+            asmcl_minagemonth: z.number().int().min(0, 'Min Age Month must be at least 0').max(11, 'Min Age Month must be between 0-11'),
+            asmcl_minagedays: z.number().int().min(0, 'Min Age Days must be at least 0').max(31, 'Min Age Days must be between 0-31'),
+            asmcl_maxageyear: z.number().int().min(0, 'Max Age Year must be at least 0').max(100, 'Max Age Year must not exceed 100'),
+            asmcl_maxagemonth: z.number().int().min(0, 'Max Age Month must be at least 0').max(11, 'Max Age Month must be between 0-11'),
+            asmcl_maxagedays: z.number().int().min(0, 'Max Age Days must be at least 0').max(31, 'Max Age Days must be between 0-31'),
+            asmcl_preadmflag: z.number().int({ message: 'Preadm Flag is required' })
+        })
+        .refine(
+            (data) => {
+                // Compare year first
+                if (data.asmcl_minageyear > data.asmcl_maxageyear) return false;
+                if (data.asmcl_minageyear < data.asmcl_maxageyear) return true;
+
+                // Years are equal, compare months
+                if (data.asmcl_minagemonth > data.asmcl_maxagemonth) return false;
+                if (data.asmcl_minagemonth < data.asmcl_maxagemonth) return true;
+
+                // Years and months are equal, compare days
+                if (data.asmcl_minagedays >= data.asmcl_maxagedays) return false;
+
+                return true;
+            },
+            {
+                message: 'Minimum age must be less than maximum age',
+                path: ['asmcl_maxageyear']
+            }
+        ),
     delete: z.object({
         asmcL_Id: deleteIdSchema('asmcL_Id')
     })
