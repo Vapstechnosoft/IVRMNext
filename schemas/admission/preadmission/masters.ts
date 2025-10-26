@@ -2,7 +2,12 @@ import { createStringSchema, deleteIdSchema } from '@/schemas/validationSchemas'
 import { z } from 'zod';
 
 export const loginSchema = z.object({
-    email: z.string({ message: 'Email is required' }),
+    email: z
+        .string({ message: 'Username is required' })
+        .nonempty({ message: 'Username is required' })
+        .refine((value) => value.trim() === value, {
+            message: 'Username cannot have leading or trailing spaces'
+        }),
     password: createStringSchema('Password', 6, 50)
 });
 
