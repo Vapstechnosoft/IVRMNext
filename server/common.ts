@@ -166,32 +166,6 @@ export async function getUserAccessibleModules() {
                                     ]
                                 }
                             ]
-                        },
-                        {
-                            id: 2,
-                            name: 'Enrollment',
-                            icon: 'Settings',
-                            sub_menu: [
-                                {
-                                    id: 2,
-                                    name: 'Transactions',
-                                    icon: 'Settings',
-                                    pages: [
-                                        {
-                                            id: 3,
-                                            name: 'Student Enrollment',
-                                            icon: 'Settings',
-                                            url: '/enrollment/transactions/student'
-                                        },
-                                        {
-                                            id: 4,
-                                            name: 'Student TC',
-                                            icon: 'Settings',
-                                            url: '/enrollment/transactions/student_tc'
-                                        }
-                                    ]
-                                }
-                            ]
                         }
                     ]
                 },
