@@ -123,6 +123,30 @@ export async function getUserAccessibleModules() {
                                             url: '/admission/preadmission/masters/caste',
                                             title: 'Master Caste',
                                             description: 'Manage Master Caste Details'
+                                        },
+                                        {
+                                            id: 8,
+                                            name: 'Master Document',
+                                            icon: 'Settings',
+                                            url: '/admission/preadmission/masters/document',
+                                            title: 'Master Document',
+                                            description: 'Manage Master Document Details'
+                                        },
+                                        {
+                                            id: 9,
+                                            name: 'Master Reference',
+                                            icon: 'Settings',
+                                            url: '/admission/preadmission/masters/reference',
+                                            title: 'Master Reference',
+                                            description: 'Manage Master Reference Details'
+                                        },
+                                        {
+                                            id: 10,
+                                            name: 'Master Source',
+                                            icon: 'Settings',
+                                            url: '/admission/preadmission/masters/source',
+                                            title: 'Master Source',
+                                            description: 'Manage Master Source Details'
                                         }
                                     ]
                                 },
