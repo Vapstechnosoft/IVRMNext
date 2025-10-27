@@ -94,12 +94,12 @@ export const studentApplicationColumns: ColumnDef<IPreadmissionStudentApplicatio
                         cell.row.original.payment_status === 0 ? (
                             <PaymentDialog cell={cell} />
                         ) : (
-                            <Badge className='cursor-pointer bg-green-500 p-3 font-extrabold text-black hover:bg-green-600'>
+                            <Badge className='cursor-not-allowed bg-green-500 p-3 font-extrabold text-black hover:bg-green-600'>
                                 <ReceiptIndianRupee className='h-4 w-4' /> Paid
                             </Badge>
                         )
                     ) : (
-                        <p className='text-slate-600 text-sm'>Payment Not Required</p>
+                        <p className='text-slate-600 text-sm'>No Fee</p>
                     )}
                 </>
             );

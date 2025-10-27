@@ -6,7 +6,7 @@ import { AdaptiveBody, AdaptiveDialog } from '@/components/ui/extension/adaptive
 import { useStudentApplicationList } from '@/hooks/admission/preadmission/useTransactions';
 import { applicationFormInitiatePayment } from '@/server/admission/preadmission/transactions/application_form';
 import type { IInitiatePaymentResponse, IPreadmissionStudentApplicationList } from '@/types/admission/preadmission/transactions';
-import { CreditCard, DollarSign, Hash, Loader2, Mail, Phone, ReceiptIndianRupee, User } from 'lucide-react';
+import { CreditCard, Hash, IndianRupee, Loader2, Mail, Phone, ReceiptIndianRupee, User } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { toast } from 'sonner';
 
@@ -122,7 +122,9 @@ export default function PaymentDialog({ cell }: { cell: any }) {
                                     <div className='mt-4 border-t pt-4'>
                                         <div className='flex items-baseline gap-2'>
                                             <span className='text-muted-foreground text-sm'>Amount to Pay:</span>
-                                            <span className='font-bold text-3xl text-primary'>₹{paymentData.amount}</span>
+                                            <span className='font-bold text-3xl text-primary'>
+                                                ₹{Number(paymentData.amount).toFixed(2)}
+                                            </span>
                                         </div>
                                     </div>
                                 </div>
@@ -203,14 +205,14 @@ export default function PaymentDialog({ cell }: { cell: any }) {
                                         type='button'
                                         onClick={closeDialog}
                                         disabled={isProcessing}
-                                        className='rounded-md border border-input px-6 py-2.5 transition-colors hover:bg-accent hover:text-accent-foreground disabled:cursor-not-allowed disabled:opacity-50'>
+                                        className='w-fit rounded-md border border-input px-6 py-2.5 transition-colors hover:bg-accent hover:text-accent-foreground disabled:cursor-not-allowed disabled:opacity-50'>
                                         Cancel
                                     </Button>
                                     <Button
                                         type='button'
                                         onClick={handlePayNow}
                                         disabled={isProcessing}
-                                        className='flex items-center justify-center gap-2 rounded-md bg-primary px-6 py-2.5 font-medium text-primary-foreground transition-colors hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-50'>
+                                        className='flex w-fit items-center justify-center gap-2 rounded-md bg-primary px-6 py-2.5 font-medium text-primary-foreground transition-colors hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-50'>
                                         {isProcessing ? (
                                             <>
                                                 <Loader2 className='h-4 w-4 animate-spin' />
@@ -218,8 +220,8 @@ export default function PaymentDialog({ cell }: { cell: any }) {
                                             </>
                                         ) : (
                                             <>
-                                                <DollarSign className='h-4 w-4' />
-                                                Proceed to Pay ₹{paymentData.amount}
+                                                <IndianRupee className='h-4 w-4' />
+                                                Proceed to Pay
                                             </>
                                         )}
                                     </Button>
