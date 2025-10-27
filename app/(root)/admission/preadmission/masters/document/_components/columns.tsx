@@ -82,7 +82,7 @@ function ActionButtonsCell({ rowData }: { rowData: IMasterDocumentList }) {
             buttons={{ edit: false, toggle: true, delete: false }}
             onEdit={handleEdit}
             onToggle={handleToggle}
-            toggleConditionKey='amsmD_FLAG'
+            toggleConditionKey='amsmD_ActiveFlag'
         />
     );
 }

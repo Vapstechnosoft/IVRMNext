@@ -14,12 +14,12 @@ import type { z } from 'zod';
 
 type FormFields = z.infer<typeof masterDocumentSchema.delete>;
 
-interface ToggleMasterClassFormProps {
+interface ToggleMasterDocumentFormProps {
     rowData: IMasterDocumentList;
     onClose: () => void;
 }
 
-export default function ToggleMasterClassForm({ rowData, onClose }: ToggleMasterClassFormProps) {
+export default function ToggleMasterDocumentForm({ rowData, onClose }: ToggleMasterDocumentFormProps) {
     const { refetchAll } = useMasterDocument();
     const isActive = rowData.amsmD_FLAG;
 

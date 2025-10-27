@@ -38,8 +38,6 @@ export default function AddDocumentForm({ onSuccess, className = '' }: AddDocume
         mode: 'onChange'
     });
 
-    console.log(errors);
-
     const onSubmit: SubmitHandler<FormFields> = async (data) => {
         try {
             const payload = {

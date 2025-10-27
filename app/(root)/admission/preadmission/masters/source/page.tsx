@@ -8,9 +8,8 @@ import { useMasterSource } from '@/hooks/admission/preadmission/useMasters';
 import type { IMasterSourceList } from '@/types/admission/preadmission/masters';
 import { Plus, X } from 'lucide-react';
 import { use } from 'react';
-import AddMasterClassForm from './_components/add-form';
+import AddMasterSourceForm from './_components/add-form';
 import { masterSourceColumns } from './_components/columns';
-import ToggleMasterSourceForm from './_components/toggle-form';
 import UpdateMasterSourceForm from './_components/update-form';
 
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
@@ -23,12 +22,12 @@ export default function MasterSourcePage(props: {
 
     return (
         <FormProvider<IMasterSourceList>>
-            <MasterClassPageContent response={response} isLoading={isLoading} error={error} />
+            <MasterReferencePageContent response={response} isLoading={isLoading} error={error} />
         </FormProvider>
     );
 }
 
-function MasterClassPageContent({
+function MasterReferencePageContent({
     response,
     isLoading,
     error
@@ -115,7 +114,7 @@ function FormSections() {
                                 className='-top-[3.5rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
                                 <X className='h-4 w-4 text-destructive' /> Close
                             </Button>
-                            <AddMasterClassForm onSuccess={closeAddForm} />
+                            <AddMasterSourceForm onSuccess={closeAddForm} />
                         </div>
                     </CollapsibleSection>
                 </div>
@@ -144,9 +143,6 @@ function FormSections() {
                     </CollapsibleSection>
                 </div>
             )}
-
-            {/* Toggle Form */}
-            {isToggleFormOpen && selectedRow && <ToggleMasterSourceForm rowData={selectedRow} onClose={closeToggleForm} />}
         </>
     );
 }

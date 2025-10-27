@@ -14,12 +14,12 @@ import type { z } from 'zod';
 
 type FormFields = z.infer<typeof masterSourceSchema.addOrUpdate>;
 
-interface AddSourceFormProps {
+interface AddMasterSourceFormProps {
     onSuccess?: () => void;
     className?: string;
 }
 
-export default function AddSourceForm({ onSuccess, className = '' }: AddSourceFormProps) {
+export default function AddMasterSourceForm({ onSuccess, className = '' }: AddMasterSourceFormProps) {
     const { refetchAll } = useMasterSource();
 
     const {
@@ -35,8 +35,6 @@ export default function AddSourceForm({ onSuccess, className = '' }: AddSourceFo
 
         mode: 'onChange'
     });
-
-    console.log(errors);
 
     const onSubmit: SubmitHandler<FormFields> = async (data) => {
         try {
@@ -91,7 +89,6 @@ export default function AddSourceForm({ onSuccess, className = '' }: AddSourceFo
                     </div>
                 </div>
 
-                {/* Action Buttons */}
                 <div className='flex flex-col gap-3 border-t pt-4 sm:flex-row sm:justify-start'>
                     <Button
                         type='button'

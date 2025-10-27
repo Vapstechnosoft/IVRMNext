@@ -5,8 +5,9 @@ import { FormError, Label } from '@/components/ui/extension/field';
 import { InputText } from '@/components/ui/extension/input-text';
 import { InputTextarea } from '@/components/ui/extension/input-textarea';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { useMasterClass } from '@/hooks/admission/preadmission/useMasters';
+import { useMasterDocument } from '@/hooks/admission/preadmission/useMasters';
 import { masterDocumentSchema } from '@/schemas/admission/preadmission/masters';
+import { addOrUpdateMasterDocument } from '@/server/admission/preadmission/masters/document';
 import type { IMasterDocumentList } from '@/types/admission/preadmission/masters';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Save } from 'lucide-react';
@@ -17,14 +18,14 @@ import type { z } from 'zod';
 
 type FormFields = z.infer<typeof masterDocumentSchema.addOrUpdate>;
 
-interface UpdateMasterClassFormProps {
+interface UpdateMasterDocumentFormProps {
     onSuccess?: () => void;
     className?: string;
     selectedRow: IMasterDocumentList;
 }
 
-export default function UpdateMasterClassForm({ onSuccess, className = '', selectedRow: row }: UpdateMasterClassFormProps) {
-    const { refetchAll } = useMasterClass();
+export default function UpdateMasterDocumentForm({ onSuccess, className = '', selectedRow: row }: UpdateMasterDocumentFormProps) {
+    const { refetchAll } = useMasterDocument();
 
     const {
         register,
@@ -51,17 +52,13 @@ export default function UpdateMasterClassForm({ onSuccess, className = '', selec
 
     const onSubmit: SubmitHandler<FormFields> = async (data) => {
         try {
-            //   const payload = {
-            //     ASMCL_Id: row.asmcL_Id,
-            //     ASMCL_ClassCode: data.amsmD_Description,
-            //     ASMCL_ClassName: data.amsmD_DocumentName,
-            //     ASMCL_PreadmFlag: data.amsmD_FLAG,
-            //     ASMCL_ActiveFlag: true,
-            //   };
-
-            //   const response = await addOrUpdateMasterClass(payload);
-
-            const response = { success: true, message: '' };
+            const payload = {
+                amsmD_Id: row.amsmD_Id,
+                amsmD_DocumentName: data?.amsmD_DocumentName,
+                amsmD_Description: data?.amsmD_Description,
+                amsmD_FLAG: data?.amsmD_FLAG
+            };
+            const response = await addOrUpdateMasterDocument(payload);
 
             if (response?.success) {
                 toast.success('Document updated successfully!');
