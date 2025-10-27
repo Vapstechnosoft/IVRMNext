@@ -28,8 +28,7 @@ export default function UpdateMasterSourceForm({ onSuccess, className = '', sele
     const {
         register,
         handleSubmit,
-        control,
-        setValue,
+
         reset,
         formState: { errors, isSubmitting }
     } = useForm<FormFields>({
@@ -37,7 +36,6 @@ export default function UpdateMasterSourceForm({ onSuccess, className = '', sele
         mode: 'onChange'
     });
 
-    // Pre-fill form with selected row data (if available)
     useEffect(() => {
         if (row) {
             reset({

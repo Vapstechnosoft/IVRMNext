@@ -8,25 +8,27 @@ import { useMasterDocument } from '@/hooks/admission/preadmission/useMasters';
 import type { IMasterDocumentList } from '@/types/admission/preadmission/masters';
 import { Plus, X } from 'lucide-react';
 import { use } from 'react';
-import AddMasterClassForm from './_components/add-form';
+import AddDocumentForm from './_components/add-form';
 import { masterClassColumns } from './_components/columns';
-import ToggleMasterClassForm from './_components/toggle-form';
-import UpdateMasterClassForm from './_components/update-form';
+import ToggleMasterDocumentForm from './_components/toggle-form';
+import UpdateMasterDocumentForm from './_components/update-form';
 
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 
-export default function MasterClassPage(props: { searchParams: SearchParams }) {
+export default function MasterDocumentPage(props: {
+    searchParams: SearchParams;
+}) {
     const searchParams = use(props.searchParams);
     const { data: response, isLoading, error } = useMasterDocument(searchParams);
 
     return (
         <FormProvider<IMasterDocumentList>>
-            <MasterClassPageContent response={response} isLoading={isLoading} error={error} />
+            <MasterDocumentPageContent response={response} isLoading={isLoading} error={error} />
         </FormProvider>
     );
 }
 
-function MasterClassPageContent({
+function MasterDocumentPageContent({
     response,
     isLoading,
     error
@@ -113,7 +115,7 @@ function FormSections() {
                                 className='-top-[3.5rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
                                 <X className='h-4 w-4 text-destructive' /> Close
                             </Button>
-                            <AddMasterClassForm onSuccess={closeAddForm} />
+                            <AddDocumentForm onSuccess={closeAddForm} />
                         </div>
                     </CollapsibleSection>
                 </div>
@@ -137,14 +139,14 @@ function FormSections() {
                                 className='-top-[3.5rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
                                 <X className='h-4 w-4 text-destructive' /> Close
                             </Button>
-                            <UpdateMasterClassForm selectedRow={selectedRow} onSuccess={closeEditForm} />
+                            <UpdateMasterDocumentForm selectedRow={selectedRow} onSuccess={closeEditForm} />
                         </div>
                     </CollapsibleSection>
                 </div>
             )}
 
             {/* Toggle Form */}
-            {isToggleFormOpen && selectedRow && <ToggleMasterClassForm rowData={selectedRow} onClose={closeToggleForm} />}
+            {isToggleFormOpen && selectedRow && <ToggleMasterDocumentForm rowData={selectedRow} onClose={closeToggleForm} />}
         </>
     );
 }

@@ -8,10 +8,9 @@ import { useMasterReference } from '@/hooks/admission/preadmission/useMasters';
 import type { IMasterReferenceList } from '@/types/admission/preadmission/masters';
 import { Plus, X } from 'lucide-react';
 import { use } from 'react';
-import AddMasterClassForm from './_components/add-form';
+import AddMasterReferenceForm from './_components/add-form';
 import { masterReferenceColumns } from './_components/columns';
-import ToggleMasterClassForm from './_components/toggle-form';
-import UpdateMasterClassForm from './_components/update-form';
+import UpdateMasterReferenceForm from './_components/update-form';
 
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 
@@ -23,12 +22,12 @@ export default function MasterReferencePage(props: {
 
     return (
         <FormProvider<IMasterReferenceList>>
-            <MasterClassPageContent response={response} isLoading={isLoading} error={error} />
+            <MasterReferencePageContent response={response} isLoading={isLoading} error={error} />
         </FormProvider>
     );
 }
 
-function MasterClassPageContent({
+function MasterReferencePageContent({
     response,
     isLoading,
     error
@@ -115,7 +114,7 @@ function FormSections() {
                                 className='-top-[3.5rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
                                 <X className='h-4 w-4 text-destructive' /> Close
                             </Button>
-                            <AddMasterClassForm onSuccess={closeAddForm} />
+                            <AddMasterReferenceForm onSuccess={closeAddForm} />
                         </div>
                     </CollapsibleSection>
                 </div>
@@ -139,14 +138,11 @@ function FormSections() {
                                 className='-top-[3.5rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
                                 <X className='h-4 w-4 text-destructive' /> Close
                             </Button>
-                            <UpdateMasterClassForm selectedRow={selectedRow} onSuccess={closeEditForm} />
+                            <UpdateMasterReferenceForm selectedRow={selectedRow} onSuccess={closeEditForm} />
                         </div>
                     </CollapsibleSection>
                 </div>
             )}
-
-            {/* Toggle Form */}
-            {isToggleFormOpen && selectedRow && <ToggleMasterClassForm rowData={selectedRow} onClose={closeToggleForm} />}
         </>
     );
 }

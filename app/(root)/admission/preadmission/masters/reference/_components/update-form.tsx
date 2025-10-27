@@ -28,8 +28,6 @@ export default function UpdateMasterReferenceForm({ onSuccess, className = '', s
     const {
         register,
         handleSubmit,
-        control,
-        setValue,
         reset,
         formState: { errors, isSubmitting }
     } = useForm<FormFields>({
@@ -37,7 +35,6 @@ export default function UpdateMasterReferenceForm({ onSuccess, className = '', s
         mode: 'onChange'
     });
 
-    // Pre-fill form with selected row data (if available)
     useEffect(() => {
         if (row) {
             reset({
@@ -79,7 +76,6 @@ export default function UpdateMasterReferenceForm({ onSuccess, className = '', s
             <form onSubmit={handleSubmit(onSubmit)} className='space-y-6'>
                 <div className='space-y-4'>
                     <div className='grid grid-cols-1 gap-4 md:grid-cols-3'>
-                        {/* Document Name */}
                         <InputText
                             label='Reference Name'
                             required
@@ -89,7 +85,6 @@ export default function UpdateMasterReferenceForm({ onSuccess, className = '', s
                             className='transition-colors focus:ring-2 focus:ring-primary/20'
                         />
 
-                        {/* Description */}
                         <InputTextarea
                             label='Description'
                             required
@@ -103,7 +98,6 @@ export default function UpdateMasterReferenceForm({ onSuccess, className = '', s
                     </div>
                 </div>
 
-                {/* Action Buttons */}
                 <div className='flex flex-col gap-3 border-t pt-4 sm:flex-row sm:justify-start'>
                     <Button
                         type='button'
@@ -122,7 +116,7 @@ export default function UpdateMasterReferenceForm({ onSuccess, className = '', s
                         loadingText='Saving...'>
                         <div className='flex items-center'>
                             <Save className='mr-2 h-4 w-4' />
-                            Save Document
+                            Save Reference
                         </div>
                     </Button>
                 </div>

@@ -14,12 +14,12 @@ import type { z } from 'zod';
 
 type FormFields = z.infer<typeof masterReferenceSchema.addOrUpdate>;
 
-interface AddDocumentFormProps {
+interface AddMasterReferenceFormProps {
     onSuccess?: () => void;
     className?: string;
 }
 
-export default function AddDocumentForm({ onSuccess, className = '' }: AddDocumentFormProps) {
+export default function AddMasterReferenceForm({ onSuccess, className = '' }: AddMasterReferenceFormProps) {
     const { refetchAll } = useMasterReference();
 
     const {
@@ -34,8 +34,6 @@ export default function AddDocumentForm({ onSuccess, className = '' }: AddDocume
         resolver: zodResolver(masterReferenceSchema.addOrUpdate),
         mode: 'onChange'
     });
-
-    console.log(errors);
 
     const onSubmit: SubmitHandler<FormFields> = async (data) => {
         try {
@@ -108,7 +106,7 @@ export default function AddDocumentForm({ onSuccess, className = '' }: AddDocume
                         loadingText='Saving...'>
                         <div className='flex items-center'>
                             <Save className='mr-2 h-4 w-4' />
-                            Save Document
+                            Save Reference
                         </div>
                     </Button>
                 </div>
