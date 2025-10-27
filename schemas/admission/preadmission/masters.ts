@@ -156,3 +156,14 @@ export const masterSourceSchema = {
         pamS_Id: deleteIdSchema('pamS_Id')
     })
 };
+
+export const masterReligionCasteCategorySchema = {
+    add: z.object({
+        ircC_Id: z.number().int({ message: 'IRCC_ID is required' }).optional(),
+        ivrmmR_Id: z.number().int({ message: 'Religion is required' }),
+        caste_category_ids: z.array(z.string()).nonempty('Please select at least one caste category')
+    }),
+    delete: z.object({
+        ircC_Id: deleteIdSchema('ircC_Id')
+    })
+};

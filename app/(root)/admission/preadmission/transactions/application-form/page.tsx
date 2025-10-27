@@ -20,11 +20,16 @@ type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 export default function StudentApplicationPage(props: { searchParams: SearchParams }) {
     const searchParams = use(props.searchParams);
     const { data: activePreadmission } = useActivePreadmissionDetails();
-    const { data: response, isLoading, error } = useStudentApplicationList(activePreadmission?.data?.asmaY_Id ?? 0, searchParams);
+    const {
+        data: response,
+        isLoading,
+        error,
+        refetchAll
+    } = useStudentApplicationList(activePreadmission?.data?.asmaY_Id ?? 0, searchParams);
 
     return (
         <FormProvider<IPreadmissionStudentApplicationList>>
-            <StudentApplicationPageContent response={response} isLoading={isLoading} error={error} />
+            <StudentApplicationPageContent response={response} isLoading={isLoading} error={error} refetch={refetchAll} />
         </FormProvider>
     );
 }
@@ -32,21 +37,21 @@ export default function StudentApplicationPage(props: { searchParams: SearchPara
 function StudentApplicationPageContent({
     response,
     isLoading,
-    error
+    error,
+    refetch
 }: {
     response: any;
     isLoading: boolean;
     error: any;
+    refetch: () => void;
 }) {
     const { openAddForm } = useFormContext();
     const tableProps = useDataTableProps(response);
     const [isSuccessOpen, setSuccessOpen] = useState(false);
     const session = useSession();
 
-    console.log('session?.data?.role', session?.data?.role);
-
     useEffect(() => {
-        if (session?.data?.role == undefined) {
+        if (session?.data?.role === undefined) {
             window.location.reload();
         }
     }, [session?.data?.role]);
@@ -65,7 +70,15 @@ function StudentApplicationPageContent({
                         Preadmission Application
                     </Button>
                 </div>
-                {isSuccessOpen && <ApplicationFormSuccessDialog isOpen={isSuccessOpen} onClose={() => setSuccessOpen(false)} />}
+                {isSuccessOpen && (
+                    <ApplicationFormSuccessDialog
+                        isOpen={isSuccessOpen}
+                        onClose={() => {
+                            setSuccessOpen(false);
+                            refetch();
+                        }}
+                    />
+                )}
                 {/* Forms */}
                 <FormSections setSuccessOpen={() => setSuccessOpen(true)} />
                 {/* Data Table Section */}

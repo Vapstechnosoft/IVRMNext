@@ -19,7 +19,9 @@ export const ADMISSION_QUERY_KEYS = {
     MASTER_CASTE_CATEGORY_DROPDOWN: 'master_caste_category_dropdown',
     MASTER_DOCUMENT: 'master_document',
     MASTER_REFERENCE: 'master_reference',
-    MASTER_SOURCE: 'master_source'
+    MASTER_SOURCE: 'master_source',
+    MASTER_RELIGION_CASTE_CATEGORY: 'master_religion_caste_category',
+    UNMAPPED_CASTE_CATEGORY_DROPDOWN: 'unmapped_caste_category_dropdown'
 };
 
 export const PREADMISSION_QUERY_KEYS = {

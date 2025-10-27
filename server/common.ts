@@ -147,6 +147,14 @@ export async function getUserAccessibleModules() {
                                             url: '/admission/preadmission/masters/source',
                                             title: 'Master Source',
                                             description: 'Manage Master Source Details'
+                                        },
+                                        {
+                                            id: 11,
+                                            name: 'Master Religion Caste Category',
+                                            icon: 'Settings',
+                                            url: '/admission/preadmission/masters/religion-caste-category',
+                                            title: 'Master Religion Caste Category',
+                                            description: 'Manage Master Religion Caste Category Details'
                                         }
                                     ]
                                 },

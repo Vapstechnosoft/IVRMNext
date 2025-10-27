@@ -114,3 +114,10 @@ export interface IMasterSourceList {
     createdDate: string;
     updatedDate: string;
 }
+export interface IMasterReligionCasteCategoryList {
+    ircC_Id: number;
+    ivrmmR_Name: string;
+    imcC_CategoryName: string;
+    ircC_ActiveFlg: boolean;
+    ircC_CreatedDate: string;
+}

@@ -22,6 +22,7 @@ function MobileNumberInput({
     required,
     optional,
     showSpinner = true,
+    value,
     ...props
 }: MobileNumberInputProps) {
     const handleNumericInput = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -43,6 +44,7 @@ function MobileNumberInput({
                     inputMode='numeric'
                     className='w-fit min-w-0 flex-1 border-transparent bg-background pr-2 outline-none placeholder:text-muted-foreground'
                     onInput={handleNumericInput}
+                    value={value ?? ''}
                     {...props}
                 />
             </FieldGroup>

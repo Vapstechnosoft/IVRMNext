@@ -1709,7 +1709,7 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
                                     )}
 
                                     {currentStep < steps.length ? (
-                                        <Button type='button' onClick={nextStep} disabled={isSubmitting || ageEligibilityError !== ''}>
+                                        <Button type='button' onClick={nextStep} disabled={isSubmitting || ageEligibilityError !== null}>
                                             Next
                                             <ChevronRight className='ml-2 h-4 w-4' />
                                         </Button>
