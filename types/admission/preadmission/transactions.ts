@@ -111,3 +111,12 @@ export interface PaymentFormData {
     udf9: string;
     udf3: string;
 }
+export interface IPreadmissionStatusCountReport {
+    registered_applications: number;
+    application_not_filled: number;
+    application_filled: number;
+    application_fee_applicable: boolean;
+    payment_pending: number;
+    payment_completed: number;
+    admission_transferred: number;
+}

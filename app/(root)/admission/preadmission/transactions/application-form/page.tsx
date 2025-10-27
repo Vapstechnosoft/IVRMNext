@@ -4,12 +4,15 @@ import { Button } from '@/components/ui/button';
 import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/generic-data-table';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
+import { ROLES } from '@/constants';
 import { useActivePreadmissionDetails, useStudentApplicationList } from '@/hooks/admission/preadmission/useTransactions';
 import type { IPreadmissionStudentApplicationList } from '@/types/admission/preadmission/transactions';
 import { Plus, X } from 'lucide-react';
-import { use, useState } from 'react';
+import { useSession } from 'next-auth/react';
+import { use, useEffect, useState } from 'react';
 import AddStudentApplicationForm from './_components/add-form';
 import { studentApplicationColumns } from './_components/columns';
+import PreadmissionStatusCountReport from './_components/preadmission-status-count-report';
 import ApplicationFormSuccessDialog from './_components/success-dialog';
 
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
@@ -38,10 +41,20 @@ function StudentApplicationPageContent({
     const { openAddForm } = useFormContext();
     const tableProps = useDataTableProps(response);
     const [isSuccessOpen, setSuccessOpen] = useState(false);
+    const session = useSession();
+
+    console.log('session?.data?.role', session?.data?.role);
+
+    useEffect(() => {
+        if (session?.data?.role == undefined) {
+            window.location.reload();
+        }
+    }, [session?.data?.role]);
 
     return (
         <div className='min-h-screen'>
             <div className='container space-y-4 p-1'>
+                {session?.data?.role.toUpperCase() === ROLES.ADMIN && <PreadmissionStatusCountReport />}
                 {/* Header */}
                 <div className='flex justify-end'>
                     <Button

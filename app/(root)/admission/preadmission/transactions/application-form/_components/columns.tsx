@@ -1,9 +1,11 @@
 'use client';
 
+import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
 import type { IPreadmissionStudentApplicationList } from '@/types/admission/preadmission/transactions';
 import type { ColumnDef } from '@tanstack/react-table';
+import { ReceiptIndianRupee } from 'lucide-react';
 import PaymentDialog from './payment-dialog';
 
 export const studentApplicationColumns: ColumnDef<IPreadmissionStudentApplicationList>[] = [
@@ -88,8 +90,14 @@ export const studentApplicationColumns: ColumnDef<IPreadmissionStudentApplicatio
         cell: ({ cell }: { cell: any }) => {
             return (
                 <>
-                    {cell.row.original.is_fee_applicable === 1 && cell.row.original.payment_status === 0 ? (
-                        <PaymentDialog cell={cell} />
+                    {cell.row.original.is_fee_applicable === 1 ? (
+                        cell.row.original.payment_status === 0 ? (
+                            <PaymentDialog cell={cell} />
+                        ) : (
+                            <Badge className='cursor-pointer bg-green-500 p-3 font-extrabold text-black hover:bg-green-600'>
+                                <ReceiptIndianRupee className='h-4 w-4' /> Paid
+                            </Badge>
+                        )
                     ) : (
                         <p className='text-slate-600 text-sm'>Payment Not Required</p>
                     )}

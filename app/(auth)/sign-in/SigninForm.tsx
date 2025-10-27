@@ -134,12 +134,7 @@ export default function SigninForm() {
                         <CardContent>
                             <form onSubmit={handleSubmit(onSubmit)} className='space-y-4'>
                                 <div className='space-y-2'>
-                                    <InputText
-                                        label='Username'
-                                        placeholder='Enter your username'
-                                        {...register('email')}
-                                        error={errors.email?.message}
-                                    />
+                                    <InputText label='Username' placeholder='Enter your username' {...register('email')} />
 
                                     <div className='space-y-2'>
                                         <Label htmlFor='password' className='font-medium text-sm'>
@@ -151,7 +146,6 @@ export default function SigninForm() {
                                             placeholder='Enter your password'
                                             {...register('password')}
                                             value={watch('password')}
-                                            error={errors.password?.message}
                                         />
                                     </div>
                                 </div>
@@ -209,7 +203,7 @@ export default function SigninForm() {
                     </div>
 
                     {/* Version aligned to end */}
-                    <p className='ml-auto pr-2 text-white text-xs'>v1.0</p>
+                    <p className='ml-auto pr-2 text-white text-xs'>v1.1</p>
                 </div>
             </div>
         </div>

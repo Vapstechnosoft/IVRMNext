@@ -12,6 +12,7 @@ import {
     getStudentApplicationList
 } from '@/server/admission/preadmission/transactions/application_form';
 import { getExportPreadmissionStudentList } from '@/server/admission/preadmission/transactions/export_preadmission';
+import { getPreadmissionStatusCountReport } from '@/server/admission/preadmission/transactions/preadmission_reports';
 import {
     getActivePreadmissionDetails,
     getApplicationStatusDropdown,
@@ -297,6 +298,23 @@ export const useExportPreadmissionStudentList = (asmay_id: number, asmcl_id: num
         refetchAll: () => {
             return queryClient.invalidateQueries({
                 queryKey: [PREADMISSION_QUERY_KEYS.EXPORT_PREADMISSION_STUDENT_LIST]
+            });
+        }
+    };
+};
+
+export const usePreadmissionStatusCountReport = () => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [PREADMISSION_QUERY_KEYS.PREADMISSION_STATUS_COUNT_REPORT],
+            queryFn: async () => getPreadmissionStatusCountReport(),
+            staleTime: 0
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [PREADMISSION_QUERY_KEYS.PREADMISSION_STATUS_COUNT_REPORT]
             });
         }
     };
