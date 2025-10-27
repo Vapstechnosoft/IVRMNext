@@ -1,9 +1,15 @@
 import { z } from 'zod';
-import { createAlphanumericSchema, createEmailSchema, createOptionalStringSchema, createStringSchema } from '../../validationSchemas';
+import {
+    createAlphanumericSchema,
+    createEmailSchema,
+    createOptionalStringSchema,
+    createStringOnlySchema,
+    createStringSchema
+} from '../../validationSchemas';
 
 export const preadmissionRegistrationSchema = {
     add: z.object({
-        name: createStringSchema('Name', 1, 50),
+        name: createStringOnlySchema('Name', 1, 50),
         email_id: createEmailSchema('Email Id', 1, 50),
         mobileno: z.string().min(1, { message: 'Mobile No is required' }).max(10, { message: 'Maximum 10 digits' }),
         username: createStringSchema('Username', 1, 50),

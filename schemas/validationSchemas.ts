@@ -34,6 +34,17 @@ export function createOptionalStringSchema(field: string, min: number, max: numb
         .or(z.literal('')); // Allow empty string explicitly
 }
 
+export function createStringOnlySchema(field: string, min: number, max: number) {
+    return z
+        .string({ message: `${field} is required` })
+        .min(min, { message: `Minimum ${min} characters required for ${field}` })
+        .max(max, { message: `Maximum ${max} characters allowed for ${field}` })
+        .regex(/^[A-Za-z\s]+$/, { message: `${field} must contain only letters` })
+        .refine((value) => value.trim() === value, {
+            message: `${field} cannot have leading or trailing spaces`
+        });
+}
+
 export function createAlphanumericSchema(field: string, min: number, max: number, optional = false) {
     const baseSchema = z
         .string({ message: `${field} is required` })

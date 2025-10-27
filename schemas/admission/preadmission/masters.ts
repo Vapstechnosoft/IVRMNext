@@ -1,4 +1,4 @@
-import { createStringSchema, deleteIdSchema } from '@/schemas/validationSchemas';
+import { createAlphanumericSchema, createStringOnlySchema, createStringSchema, deleteIdSchema } from '@/schemas/validationSchemas';
 import { z } from 'zod';
 
 export const loginSchema = z.object({
@@ -15,9 +15,13 @@ export const masterClassSchema = {
     addOrUpdate: z
         .object({
             asmcl_id: z.number().int({ message: 'ASMCL_Id is required' }).optional(),
-            asmcl_classcode: createStringSchema('Code', 1, 100),
-            asmcl_classname: createStringSchema('Name', 1, 100),
-            asmcl_maxcapacity: z.number().int({ message: 'Max Capacity is required' }),
+            asmcl_classcode: createAlphanumericSchema('Code', 1, 10),
+            asmcl_classname: createStringOnlySchema('Name', 1, 100),
+            asmcl_maxcapacity: z
+                .number()
+                .int({ message: 'Max Capacity is required' })
+                .min(1, 'Max Capacity must be at least 1')
+                .max(500, 'Max Capacity must not exceed 500'),
             asmcl_order: z.number().int({ message: 'Class Order is required' }),
             asmcl_minageyear: z.number().int().min(0, 'Min Age Year must be at least 0').max(100, 'Min Age Year must not exceed 100'),
             asmcl_minagemonth: z.number().int().min(0, 'Min Age Month must be at least 0').max(11, 'Min Age Month must be between 0-11'),
@@ -67,8 +71,8 @@ export const masterCategorySchema = {
 export const masterSectionSchema = {
     addOrUpdate: z.object({
         asmS_Id: z.number().int({ message: 'AsmS_Id is required' }).optional(),
-        asmc_sectioncode: createStringSchema('Code', 1, 100),
-        asmc_sectionname: createStringSchema('Name', 1, 100),
+        asmc_sectioncode: createAlphanumericSchema('Code', 1, 100),
+        asmc_sectionname: createStringOnlySchema('Name', 1, 100),
         asmc_maxcapacity: z.number().int({ message: 'Max Capacity is required' }),
         asmc_order: z.number().int({ message: 'Section Order is required' })
     }),
@@ -80,7 +84,7 @@ export const masterSectionSchema = {
 export const masterReligionSchema = {
     addOrUpdate: z.object({
         ivrmmR_Id: z.number().int({ message: 'IVRMMR_ID is required' }).optional(),
-        ivrmmR_Name: createStringSchema('Religion Name', 1, 100)
+        ivrmmR_Name: createStringOnlySchema('Religion Name', 1, 100)
     }),
     delete: z.object({
         ivrmmR_Id: deleteIdSchema('ivrmmR_Id')
@@ -103,7 +107,7 @@ export const masterCasteCategorySchema = {
     addOrUpdate: z.object({
         imcC_Id: z.number().int({ message: 'IMCC_ID is required' }).optional(),
         imcC_CategoryCode: z.string().nonempty({ message: 'Caste Category Code is required' }),
-        imcC_CategoryName: createStringSchema('Caste Category Code', 1, 100),
+        imcC_CategoryName: createAlphanumericSchema('Caste Category Code', 1, 100),
         imcC_CategoryDesc: createStringSchema('Caste Category Description', 1, 100)
     }),
     delete: z.object({
@@ -115,7 +119,7 @@ export const masterCasteSchema = {
     addOrUpdate: z.object({
         imC_Id: z.number().int({ message: 'IMC_ID is required' }).optional(),
         imcC_Id: z.number().int({ message: 'Caste Category is required' }),
-        imC_CasteName: createStringSchema('Caste Caste Code', 1, 100),
+        imC_CasteName: createAlphanumericSchema('Caste Caste Code', 1, 100),
         imC_CasteDesc: createStringSchema('Caste Caste Description', 1, 100)
     }),
     delete: z.object({
