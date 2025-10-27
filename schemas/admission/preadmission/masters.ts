@@ -1,4 +1,10 @@
-import { createAlphanumericSchema, createStringOnlySchema, createStringSchema, deleteIdSchema } from '@/schemas/validationSchemas';
+import {
+    createAlphanumericSchema,
+    createOptionalStringSchema,
+    createStringOnlySchema,
+    createStringSchema,
+    deleteIdSchema
+} from '@/schemas/validationSchemas';
 import { z } from 'zod';
 
 export const loginSchema = z.object({
@@ -16,7 +22,7 @@ export const masterClassSchema = {
         .object({
             asmcl_id: z.number().int({ message: 'ASMCL_Id is required' }).optional(),
             asmcl_classcode: createAlphanumericSchema('Code', 1, 10),
-            asmcl_classname: createStringOnlySchema('Name', 1, 100),
+            asmcl_classname: createStringOnlySchema('Name', 1, 50),
             asmcl_maxcapacity: z
                 .number()
                 .int({ message: 'Max Capacity is required' })
@@ -71,9 +77,13 @@ export const masterCategorySchema = {
 export const masterSectionSchema = {
     addOrUpdate: z.object({
         asmS_Id: z.number().int({ message: 'AsmS_Id is required' }).optional(),
-        asmc_sectioncode: createAlphanumericSchema('Code', 1, 100),
-        asmc_sectionname: createStringOnlySchema('Name', 1, 100),
-        asmc_maxcapacity: z.number().int({ message: 'Max Capacity is required' }),
+        asmc_sectioncode: createAlphanumericSchema('Code', 1, 5),
+        asmc_sectionname: createStringSchema('Name', 1, 20),
+        asmc_maxcapacity: z
+            .number()
+            .min(1, { message: 'Minimum Capacity should be 1' })
+            .max(100, { message: 'Maximum Capacity is 100' })
+            .int({ message: 'Max Capacity is required' }),
         asmc_order: z.number().int({ message: 'Section Order is required' })
     }),
     delete: z.object({
@@ -84,7 +94,7 @@ export const masterSectionSchema = {
 export const masterReligionSchema = {
     addOrUpdate: z.object({
         ivrmmR_Id: z.number().int({ message: 'IVRMMR_ID is required' }).optional(),
-        ivrmmR_Name: createStringOnlySchema('Religion Name', 1, 100)
+        ivrmmR_Name: createStringSchema('Religion Name', 1, 50)
     }),
     delete: z.object({
         ivrmmR_Id: deleteIdSchema('ivrmmR_Id')
@@ -107,8 +117,8 @@ export const masterCasteCategorySchema = {
     addOrUpdate: z.object({
         imcC_Id: z.number().int({ message: 'IMCC_ID is required' }).optional(),
         imcC_CategoryCode: z.string().nonempty({ message: 'Caste Category Code is required' }),
-        imcC_CategoryName: createAlphanumericSchema('Caste Category Code', 1, 100),
-        imcC_CategoryDesc: createStringSchema('Caste Category Description', 1, 100)
+        imcC_CategoryName: createStringSchema('Caste Category Code', 1, 50),
+        imcC_CategoryDesc: createStringSchema('Caste Category Description', 1, 500)
     }),
     delete: z.object({
         imcC_Id: deleteIdSchema('imcC_Id')
@@ -119,8 +129,8 @@ export const masterCasteSchema = {
     addOrUpdate: z.object({
         imC_Id: z.number().int({ message: 'IMC_ID is required' }).optional(),
         imcC_Id: z.number().int({ message: 'Caste Category is required' }),
-        imC_CasteName: createAlphanumericSchema('Caste Caste Code', 1, 100),
-        imC_CasteDesc: createStringSchema('Caste Caste Description', 1, 100)
+        imC_CasteName: createStringSchema('Caste Caste Code', 1, 100),
+        imC_CasteDesc: createStringSchema('Caste Caste Description', 1, 500)
     }),
     delete: z.object({
         imC_Id: deleteIdSchema('imC_Id')
@@ -131,7 +141,7 @@ export const masterDocumentSchema = {
     addOrUpdate: z.object({
         amsmD_Id: z.number().int({ message: 'AMSMD_ID is required' }).optional(),
         amsmD_DocumentName: createStringSchema('Document Name', 1, 100),
-        amsmD_Description: createStringSchema('Description', 1, 200),
+        amsmD_Description: createOptionalStringSchema('Description', 1, 1000),
         amsmD_FLAG: z.number().int({ message: 'Mandatory Flag is required' })
     }),
     delete: z.object({
@@ -142,8 +152,8 @@ export const masterDocumentSchema = {
 export const masterReferenceSchema = {
     addOrUpdate: z.object({
         pamR_Id: z.number().int({ message: 'PAMR_Id is required' }).optional(),
-        pamR_ReferenceName: createStringSchema('Reference Name', 1, 100),
-        pamR_ReferenceDesc: createStringSchema('Description', 1, 200)
+        pamR_ReferenceName: createStringSchema('Reference Name', 1, 50),
+        pamR_ReferenceDesc: createStringSchema('Description', 1, 500)
     }),
     delete: z.object({
         pamR_Id: deleteIdSchema('pamR_Id')
@@ -153,8 +163,8 @@ export const masterReferenceSchema = {
 export const masterSourceSchema = {
     addOrUpdate: z.object({
         pamS_Id: z.number().int({ message: 'PAMS_ID is required' }).optional(),
-        pamS_SourceName: createStringSchema('Source Name', 1, 100),
-        pamS_SourceDesc: createStringSchema('Description', 1, 200)
+        pamS_SourceName: createStringSchema('Source Name', 1, 50),
+        pamS_SourceDesc: createStringSchema('Description', 1, 500)
     }),
     delete: z.object({
         pamS_Id: deleteIdSchema('pamS_Id')

@@ -42,10 +42,30 @@ interface AddStudentApplicationFormProps {
 }
 
 const steps = [
-    { id: 1, name: 'Student Information', description: 'Basic details', icon: 'User' },
-    { id: 2, name: 'Address Information', description: 'Residential & Permanent', icon: 'MapPinHouse' },
-    { id: 3, name: 'Parents Information', description: 'Father & Mother details', icon: 'Users' },
-    { id: 4, name: 'Other Information', description: 'Final details', icon: 'ReceiptText' }
+    {
+        id: 1,
+        name: 'Student Information',
+        description: 'Basic details',
+        icon: 'User'
+    },
+    {
+        id: 2,
+        name: 'Address Information',
+        description: 'Residential & Permanent',
+        icon: 'MapPinHouse'
+    },
+    {
+        id: 3,
+        name: 'Parents Information',
+        description: 'Father & Mother details',
+        icon: 'Users'
+    },
+    {
+        id: 4,
+        name: 'Other Information',
+        description: 'Final details',
+        icon: 'ReceiptText'
+    }
 ];
 
 export default function AddStudentApplicationForm({ onSuccess, className = '' }: AddStudentApplicationFormProps) {
@@ -190,7 +210,7 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
         setCurrentStep((prev) => Math.max(prev - 1, 1));
     };
 
-    const goToStep = (step: number) => {
+    const _goToStep = (step: number) => {
         setCurrentStep(step);
     };
 
@@ -526,6 +546,7 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
                                             />
                                             <InputText
                                                 label='Middle Name'
+                                                required
                                                 id='pasR_MiddleName'
                                                 placeholder='Enter middle name'
                                                 {...register('pasR_MiddleName')}
@@ -533,6 +554,7 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
                                             />
                                             <InputText
                                                 label='Last Name'
+                                                required
                                                 id='pasR_LastName'
                                                 placeholder='Enter last name'
                                                 {...register('pasR_LastName')}
@@ -540,7 +562,8 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
                                             />
                                             <div className='flex flex-col gap-1.5'>
                                                 <Label htmlFor='pasR_DOB'>
-                                                    Date Of Birth<span className='ml-1 text-red-500'>*</span>
+                                                    Date Of Birth
+                                                    <span className='ml-1 text-red-500'>*</span>
                                                 </Label>
                                                 <Controller
                                                     control={control}

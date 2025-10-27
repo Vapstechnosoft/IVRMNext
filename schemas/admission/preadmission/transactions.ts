@@ -21,8 +21,8 @@ export const studentApplicationFormSchema = {
     add: z.object({
         //Student Details
         pasR_FirstName: createStringSchema('First Name', 1, 100),
-        pasR_MiddleName: createOptionalStringSchema('Middle Name', 1, 100),
-        pasR_LastName: createOptionalStringSchema('Last Name', 1, 100),
+        pasR_MiddleName: createStringSchema('Middle Name', 1, 100),
+        pasR_LastName: createStringSchema('Last Name', 1, 100),
         pasR_MobileNo: z.string().min(10, { message: 'Mobile No is 10 digits required' }).max(10, { message: 'Maximum 10 digits' }),
         pasR_BirthPlace: createOptionalStringSchema('Student Birth Place', 1, 100),
         religion_Id: z.number().int({ message: 'Religion is required' }),
