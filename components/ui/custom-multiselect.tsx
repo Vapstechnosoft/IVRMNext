@@ -46,10 +46,10 @@ export const CustomMultiSelectBox: React.FC<CustomMultiSelectBoxProps> = ({
     const toggleSelectAll = () => {
         if (allSelected) {
             const newValues = value.filter((v) => !filteredOptions.some((opt) => opt.value === v));
-            if (newValues.length !== value.length) onChange(newValues); // only update if changed
+            if (newValues.length !== value.length) onChange(newValues);
         } else {
             const newValues = [...value, ...filteredOptions.filter((opt) => !value.includes(opt.value)).map((opt) => opt.value)];
-            if (newValues.length !== value.length) onChange(newValues); // only update if changed
+            if (newValues.length !== value.length) onChange(newValues);
         }
     };
 
@@ -70,17 +70,17 @@ export const CustomMultiSelectBox: React.FC<CustomMultiSelectBoxProps> = ({
                     </div>
                 )}
 
-                <div className='overflow-y-auto p-2' style={{ height: `calc(${height} - ${isSearchRequired ? '48px' : '0px'})` }}>
+                <div className='overflow-y-auto p-2 text-sm' style={{ height: `calc(${height} - ${isSearchRequired ? '48px' : '0px'})` }}>
                     {/* Select All */}
                     {filteredOptions.length > 0 && (
-                        <div className='mb-2 flex items-center gap-2 rounded-md p-1 font-semibold hover:bg-accent'>
+                        <div className='mb-2 flex items-center gap-2 rounded-md p-1 font-medium text-sm hover:bg-accent'>
                             <Checkbox checked={allSelected} onCheckedChange={toggleSelectAll} />
                             <span>Select All</span>
                         </div>
                     )}
 
                     {filteredOptions.map((opt) => (
-                        <div key={opt.value} className='mb-1 flex cursor-pointer items-center gap-2 rounded-md p-1 hover:bg-accent'>
+                        <div key={opt.value} className='mb-1 flex cursor-pointer items-center gap-2 rounded-md p-1 text-sm hover:bg-accent'>
                             <Checkbox checked={value.includes(opt.value)} onCheckedChange={() => toggleSelect(opt)} />
                             <span onClick={() => toggleSelect(opt)}>{opt.label}</span>
                         </div>

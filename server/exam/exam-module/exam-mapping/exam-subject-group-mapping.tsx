@@ -2,7 +2,7 @@
 
 import { api, getSearchParamsUrl } from '@/lib/apiService';
 import type { ApiSearchparams } from '@/types';
-import type { IESubject, IExamSubjectGroupMapping } from '@/types/exam/exam-module/exam-mapping';
+import type { IESubject, IExamSubjectGroupMapping, IExamSubjectGroupingDetails } from '@/types/exam/exam-module/exam-mapping';
 import type { ICategory } from '@/types/exam/exam-module/masters';
 
 // Get all Exam Subject Group Mappings
@@ -16,7 +16,6 @@ export async function getExamSubjectGroupMapping(searchParams?: ApiSearchparams)
 // Add or Update Yearly Category Dates Mapping
 export async function addOrUpdateYearlyCategoryDatesMapping(data: any) {
     const url = '/exam_subject_group_mapping';
-    console.log(data);
     return await api.post<any>('exam', url, data);
 }
 
@@ -43,13 +42,22 @@ export async function getExamGroupsByCategory(ASMAY_Id: number, emcA_Id: number)
 // Get Subjects By Exam Group
 export async function getSubjectsForIndividualExam(orgId: number, emE_Id: number, asmay_id: number, emcA_Id: number) {
     if (!emE_Id) throw new Error('Exam Group ID is required');
-    console.log('orgId', orgId, 'emE_Id', emE_Id, 'asmay_id', asmay_id, 'emcA_Id', emcA_Id);
     const url = `/exam_subject_group_mapping/subjects_drop_down_for_individual_exam_list/${orgId}/${emE_Id}/${asmay_id}/${emcA_Id}`;
     return await api.get<IESubject>('exam', url);
 }
 
-export async function getSubjectsForPromotionalExam(orgId: number, asmay_id: number, emg_Id: number) {
-    if (!emg_Id) throw new Error('Exam Group ID is required');
-    const url = `/exam_subject_group_mapping/subjects_drop_down_for_promotional_exam_list/${orgId}/${asmay_id}/${emg_Id}`;
+export async function getSubjectsForPromotionalExam(orgId: number, asmay_id: number, emcA_Id: number) {
+    if (!emcA_Id) throw new Error('Exam Group ID is required');
+    const url = `/exam_subject_group_mapping/subjects_drop_down_for_promotional_exam_list/${orgId}/${asmay_id}/${emcA_Id}`;
     return await api.get<IESubject>('exam', url);
+}
+
+export async function getExamSubjectGroupMappingDetails(orgId: number, compulsary_flag: string, asmay_id: number, esG_Id: number) {
+    const url = `/exam_subject_group_mapping/exam_subjet_group_mapping_details_by_ids/${orgId}/${compulsary_flag}/${asmay_id}/${esG_Id}`;
+    return await api.get<IExamSubjectGroupingDetails>('exam', url);
+}
+
+export async function toggleExamSubjectGroupMappingSubject(mi_id: number, esgs_id: number) {
+    const url = `/exam_subject_group_mapping/toggle_exam_subjet_group_mapping/${mi_id}/${esgs_id}`;
+    return await api.put('exam', url);
 }

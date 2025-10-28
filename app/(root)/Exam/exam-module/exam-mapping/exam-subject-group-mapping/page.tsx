@@ -9,6 +9,7 @@ import type { IExamSubjectGroupMapping } from '@/types/exam/exam-module/exam-map
 import { Plus, X } from 'lucide-react';
 import { use } from 'react';
 import AddExamSubjectGroupMapping from './_components/add-form';
+import ExamSubjectGroupingDetailsPage from './_components/category-class-mapping-details';
 import { ExamSubjectGroupMappingColumns } from './_components/columns';
 
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
@@ -86,8 +87,17 @@ function ExamSubjectGroupMappingPageContent({
 // FORM SECTIONS
 // -------------------------
 function FormSections() {
-    const { isAddFormOpen, isEditFormOpen, selectedRow, closeAddForm, closeEditForm, addFormRef, editFormRef } =
-        useFormContext<IExamSubjectGroupMapping>();
+    const {
+        isAddFormOpen,
+        isEditFormOpen,
+        isDetailsViewOpen, //  Added for View
+        selectedRow,
+        closeAddForm,
+        closeEditForm,
+        closeDetailsView, // Added for View
+        addFormRef,
+        editFormRef
+    } = useFormContext<IExamSubjectGroupMapping>();
 
     return (
         <>
@@ -139,6 +149,9 @@ function FormSections() {
                     </CollapsibleSection>
                 </div>
             )}
+
+            {/* Details View */}
+            {isDetailsViewOpen && selectedRow && <ExamSubjectGroupingDetailsPage rowData={selectedRow} onClose={closeDetailsView} />}
         </>
     );
 }
