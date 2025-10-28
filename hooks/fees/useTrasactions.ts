@@ -1,5 +1,4 @@
 import { FEES_QUERY_KEYS } from '@/constants/query-keys';
-import { getSearchParamsUrl } from '@/lib/apiService';
 import { getModeOfPayment } from '@/server/fees/masters/modeOfPayment';
 
 import { getAcademicYearDropdownData, getAmountEntry } from '@/server/fees/trasactions/feeAmountEntry';
@@ -45,7 +44,6 @@ export const useMasterFeeTransactionWaiveOff = (searchParams?: ApiSearchparams) 
     return {
         ...useQuery({
             queryKey: [FEES_QUERY_KEYS.FEE_WAVIED_OFF, searchParams ?? {}],
-            queryFn: async () => getSearchParamsUrl(searchParams),
             staleTime: 0
         }),
         refetchAll: () => {
