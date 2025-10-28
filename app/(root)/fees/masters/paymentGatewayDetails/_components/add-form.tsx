@@ -185,7 +185,7 @@ export default function AddAddpaymentgatewaydetailsPropsForm({ onSuccess, gatewa
                         />
 
                         <div className='group flex flex-col gap-1.5'>
-                            <Label aria-label='Term' htmlFor='fmT_Id'>
+                            <Label aria-label='Gateway' htmlFor='fmT_Id'>
                                 Gateway Name <span className='ml-1 text-red-500'>*</span>
                             </Label>
                             <Controller
@@ -203,11 +203,11 @@ export default function AddAddpaymentgatewaydetailsPropsForm({ onSuccess, gatewa
                                         <SelectContent>
                                             {gatewayLoading ? (
                                                 <SelectItem value='loading' disabled>
-                                                    Loading Terms...
+                                                    Loading....
                                                 </SelectItem>
                                             ) : gatewayError ? (
                                                 <SelectItem value='error' disabled>
-                                                    Error loading Terms
+                                                    Error fetching gateways..
                                                 </SelectItem>
                                             ) : (
                                                 gatewaydata?.data?.map((item) => (

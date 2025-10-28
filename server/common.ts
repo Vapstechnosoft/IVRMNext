@@ -353,6 +353,45 @@ export async function getUserAccessibleModules() {
                                         description: 'Yeary Rebate Settings'
                                     }
                                 ]
+                            },
+                            {
+                                id: 4,
+                                name: 'Transactions',
+                                icon: 'Settings',
+                                pages: [
+                                    {
+                                        id: 26,
+                                        name: 'Fee Amount Entry',
+                                        icon: 'Settings',
+                                        url: '/fees/transactions/feeamountentry',
+                                        title: 'amount Entry',
+                                        description: 'amount Entry'
+                                    },
+                                    {
+                                        id: 27,
+                                        name: 'Third Party Transaction',
+                                        icon: 'Settings',
+                                        url: '/fees/transactions/thirdPartyTransaction',
+                                        title: 'Third Party Transaction',
+                                        description: 'Third Party Transaction'
+                                    },
+                                    {
+                                        id: 28,
+                                        name: 'Fee Opening Balance',
+                                        icon: 'Settings',
+                                        url: '/fees/transaction/feeopeningbalance',
+                                        title: 'Fee Opening Balance',
+                                        description: 'Fee Opening Balance'
+                                    },
+                                    {
+                                        id: 29,
+                                        name: 'Fee waivedoff',
+                                        icon: 'Settings',
+                                        url: '/fees/transaction/waivedoff',
+                                        title: 'Fee Transactions',
+                                        description: 'Fee Transactions'
+                                    }
+                                ]
                             }
                         ]
                     }

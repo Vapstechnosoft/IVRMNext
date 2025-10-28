@@ -34,16 +34,6 @@ export interface IMasterConcession {
     fmfS_ActiveFlag: boolean;
 }
 
-//Groups Grouping
-export interface IMasterGroupsGrouping {
-    imgg_Id: number;
-    imgg_GroupingName: string;
-    imgg_Group_Code: string;
-    imgg_feeGroupIds?: string | undefined;
-    immgg_feeGroupNames: string;
-    imgg_ActiveFlag: boolean;
-}
-
 //fees masters
 export interface IMasterClassList {
     asmcL_Id: number;
@@ -235,4 +225,13 @@ export interface IMasterYearlyRebateSettingsList {
     fyG_PartialRebate: string;
     fyG_PartialRebateAmtOrPercentageValue?: number | string;
     fyg_date: string;
+}
+
+export interface IMasterGroupsGrouping {
+    fmgG_Id: number;
+    fmgG_GroupName: string;
+    fmgG_GroupCode: string;
+    feeGroupName: string;
+    selectedFeeGroupIds: number[];
+    imgg_ActiveFlag?: boolean;
 }

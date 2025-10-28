@@ -6,8 +6,7 @@ import { Label } from '@/components/ui/extension/field';
 
 import { useMasterModeOfPayment } from '@/hooks/fees/useMasters';
 import { feeConfigSchema } from '@/schemas/fees/configuration';
-
-import { addOrUpdateModeOfPayment } from '@/server/fees/masters/modeOfPayment';
+import { addOrUpdatefeeconfig } from '@/server/fees/configuration/feeconfiguration';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Save } from 'lucide-react';
 import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
@@ -101,7 +100,7 @@ export default function AddFeeConfigForm({ onSuccess, className = '' }: AddFeeCo
 
             console.log('Payload Data', jsondata);
 
-            const response = await addOrUpdateModeOfPayment(payload);
+            const response = await addOrUpdatefeeconfig(payload);
             if (response.success) {
                 toast.success(response.message);
                 reset();
@@ -130,7 +129,7 @@ export default function AddFeeConfigForm({ onSuccess, className = '' }: AddFeeCo
                                     <b>General</b>
                                 </div>
 
-                                <div className='flex items-center justify-center space-x-6 rounded-lg border border-gray-300 bg-white px-4 py-3'>
+                                <div className='flex items-center justify-center space-x-6 rounded-lg border border-gray-300 bg-white px-4 py-2'>
                                     <label className='inline-flex cursor-pointer items-center space-x-4'>
                                         <input
                                             type='radio'
@@ -1166,7 +1165,7 @@ export default function AddFeeConfigForm({ onSuccess, className = '' }: AddFeeCo
                             <b>Account Setting</b>
                         </div>
 
-                        <div className='flex items-center justify-center space-x-6 rounded-lg border border-gray-300 bg-white px-4 py-3'>
+                        <div className='flex items-center justify-center space-x-6 rounded-lg border border-gray-300 bg-white px-4 py-2'>
                             <label className='inline-flex cursor-pointer items-center space-x-4'>
                                 <input
                                     type='radio'
