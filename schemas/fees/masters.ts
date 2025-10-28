@@ -18,11 +18,12 @@ export const masterFeeheadSchema = {
         fmH_Id: deleteIdSchema('fmH_Id')
     })
 };
+
 export const masterModeOfPaymentSchema = {
     addOrUpdate: z.object({
         ivrmmoD_Id: z.number().int({ message: 'ivrmmoD_Id is required' }).optional(),
-        ivrmmoD_ModeOfPayment: createStringSchema('ivrmmoD_ModeOfPayment', 1, 100),
-        ivrmmoD_ModeOfPayment_Code: createStringSchema('ivrmmoD_ModeOfPayment_Code', 1, 100)
+        ivrmmoD_ModeOfPayment: createStringSchema('Mode of Payment', 1, 100),
+        ivrmmoD_ModeOfPayment_Code: createStringSchema('Mode of Payment Code', 1, 100)
     }),
     delete: z.object({
         ivrmmoD_Id: deleteIdSchema('ivrmmoD_Id')
@@ -39,7 +40,7 @@ export const paymentgatewaydetailsSchema = {
         impG_Id: z.preprocess((val) => {
             if (typeof val === 'string' && val.trim().length > 0) return Number(val);
             return val;
-        }, z.number().int().optional()),
+        }, z.number().int()),
         fpgD_MobileActiveFlag: z.boolean().optional(),
         submerchantIds: z
             .array(

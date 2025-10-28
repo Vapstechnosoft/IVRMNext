@@ -51,9 +51,12 @@ export const FEES_QUERY_KEYS = {
     FEES_PRIVILEGE_LIST: 'fees_privilege_list',
     FEE_WAVIED_OFF: 'fee_waived_off',
     FEE_OPENING_BALANCE: 'fee_opening_balance',
-
     GROUPS_DROPDOWN: 'groups_dropdown',
-    ROLES_DROPDOWN: 'roles_dropdown'
+    ROLES_DROPDOWN: 'roles_dropdown',
+    FEE_THIRDPARTY_TRASACTION: 'fee_thirdparty_transaction',
+    FEE_THIRDPARTY_GROUPDROPDOWN: 'fee_thirdparty_groupdropdown',
+    FEE_THIRDPARTY_HEADDROPDOWN: 'fee_thirdparty_headdropdown',
+    FEE_THIRDPARTY_BANKDROPDOWN: 'fee_thirdparty_bankdropdown'
 };
 
 export const PREADMISSION_QUERY_KEYS = {
