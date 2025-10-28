@@ -39,6 +39,7 @@ import {
     File,
     FilePlus,
     FileText,
+    FileUp,
     Filter,
     Folder,
     FolderOpen,
@@ -167,6 +168,7 @@ export const lucideIcons: IconOption[] = [
     { name: 'Bookmark', icon: Bookmark, category: 'interface' },
     { name: 'MapPinHouse', icon: MapPinHouse, category: 'interface' },
     { name: 'ReceiptText', icon: ReceiptText, category: 'interface' },
+    { name: 'FileUp', icon: FileUp, category: 'interface' },
 
     // Communication
     { name: 'Mail', icon: Mail, category: 'communication' },

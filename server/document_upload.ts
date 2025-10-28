@@ -4,7 +4,7 @@ import { api } from '@/lib/apiService';
 
 export async function uploadDocument(data: any) {
     const url = '/document_upload/upload_document';
-    return await api.post<string>('preadmission', url, data);
+    return await api.postMultipart<string>('preadmission', url, data);
 }
 
 export async function deleteDocument(blobUrl: string) {
