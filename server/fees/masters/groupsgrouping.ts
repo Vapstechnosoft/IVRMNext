@@ -5,22 +5,22 @@ import type { IMasterGroupsGrouping } from '@/types/fees/masters/masters';
 
 export async function getFeeGroup(searchParams?: ApiSearchparams) {
     const urlParams = getSearchParamsUrl(searchParams ?? {});
-    const url = `/demo/30?${urlParams}`;
-    return await api.getArray<IMasterGroupsGrouping>('fees', url);
+    const url = `/FeeGroupGroupingFacade/feegroups/30?${urlParams}`;
+    return await api.get<IMasterGroupsGrouping[]>('fees', url);
 }
 
 export async function getFeeGroupGrouping(searchParams?: ApiSearchparams) {
     const urlParams = getSearchParamsUrl(searchParams ?? {});
-    const url = `/demo/30?${urlParams}`;
-    return await api.getArray<IMasterGroupsGrouping>('fees', url);
+    const url = `/FeeGroupGroupingFacade/getallfeegroups/30?${urlParams}`;
+    return await api.get<IMasterGroupsGrouping[]>('fees', url);
 }
 
 export async function addOrUpdateGroupGrouping(data: any) {
-    const url = '/demo';
+    const url = '/FeeGroupGroupingFacade/SaveOrUpdateFeeGroup';
     return await api.post<any>('fees', url, data);
 }
 
 export async function toggleGroupGrouping(id: number) {
-    const url = `/demo/${id}`;
+    const url = `/FeeGroupGroupingFacade/feegroups/${id}`;
     return await api.put('fees', url);
 }

@@ -5,11 +5,10 @@ import { FormError } from '@/components/ui/extension/field';
 import { InputText } from '@/components/ui/extension/input-text';
 import { Input } from '@/components/ui/input';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { useMasterFeeGroup } from '@/hooks/fees/useMasters';
+import { useMasterFeeGroupDropdown } from '@/hooks/fees/useMasters';
 import { cn } from '@/lib/utils';
 import { masterGroupsGroupingSchema } from '@/schemas/fees/masters';
 import { addOrUpdateGroupGrouping } from '@/server/fees/masters/groupsgrouping';
-import type { IMasterGroupsGrouping } from '@/types/fees/masters/masters';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { CheckSquare, ChevronsUpDown, Save, Search, Square } from 'lucide-react';
 import { useState } from 'react';
@@ -17,29 +16,42 @@ import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import type { z } from 'zod';
 
-type FormFields = z.infer<typeof masterGroupsGroupingSchema.addOrUpdate> &
-    Partial<IMasterGroupsGrouping> & {
-        imgg_GroupsCode?: string;
-        imgg_FeeGroupIds?: number[];
-    };
+// API Response Interface
+interface FeeGroup {
+    fmG_Id: number;
+    feeGroups: string;
+}
+
+// Save Payload Interface
+interface SaveGroupGroupingPayload {
+    mI_Id: number;
+    fmgG_Id: number;
+    fmgG_GroupName: string;
+    fmgG_GroupCode: string;
+    selectedFeeGroupIds: number[];
+}
+
+type FormFields = z.infer<typeof masterGroupsGroupingSchema.addOrUpdate> & {
+    fmgG_GroupName?: string;
+    fmgG_GroupCode?: string;
+    selectedFeeGroupIds?: number[];
+};
 
 interface AddMasterGroupGroupingProps {
     onSuccess?: () => void;
     className?: string;
 }
 
-interface FeeGroup {
-    fmgg_Id: number;
-    fmgg_GroupName: string;
-}
-
 export default function AddMasterGroupGrouping({ onSuccess, className = '' }: AddMasterGroupGroupingProps) {
     const [search, setSearch] = useState('');
 
-    const { data: feeGroups = [], isLoading } = useMasterFeeGroup() as {
-        data: FeeGroup[] | undefined;
+    const { data: response, isLoading } = useMasterFeeGroupDropdown() as {
+        data: { success: boolean; message: string; data: FeeGroup[] } | undefined;
         isLoading: boolean;
     };
+
+    // Extract feeGroups from nested response and ensure it's always an array
+    const feeGroups = Array.isArray(response?.data) ? response.data : [];
 
     const {
         control,
@@ -50,33 +62,34 @@ export default function AddMasterGroupGrouping({ onSuccess, className = '' }: Ad
         resolver: zodResolver(masterGroupsGroupingSchema.addOrUpdate),
         mode: 'onChange',
         defaultValues: {
-            imgg_GroupingName: '',
-            imgg_GroupsCode: '',
-            imgg_FeeGroupIds: [],
-            imgg_ActiveFlag: true
+            fmgG_GroupName: '',
+            fmgG_GroupCode: '',
+            selectedFeeGroupIds: []
         }
     });
 
     const onSubmit: SubmitHandler<FormFields> = async (data) => {
         try {
-            const payload: Partial<IMasterGroupsGrouping> = {
-                imgg_GroupingName: data.imgg_GroupingName,
-                imgg_Group_Code: data.imgg_GroupsCode,
-                imgg_feeGroupIds: (data.imgg_FeeGroupIds ?? []).join(','),
-
-                imgg_ActiveFlag: data.imgg_ActiveFlag ?? true
+            const payload: SaveGroupGroupingPayload = {
+                mI_Id: 30, // Hardcoded
+                fmgG_Id: 0, // Always 0 for new entries
+                fmgG_GroupName: data.fmgG_GroupName || '',
+                fmgG_GroupCode: data.fmgG_GroupCode || '',
+                selectedFeeGroupIds: data.selectedFeeGroupIds || [] // Dropdown selected IDs
             };
 
             const response = await addOrUpdateGroupGrouping(payload);
-            if (response.success) {
-                toast.success(response.message);
+
+            if (response?.success) {
+                toast.success(response.message || 'Group Grouping saved successfully');
                 reset();
                 onSuccess?.();
             } else {
-                toast.error(response.message);
+                toast.error(response?.message || 'Failed to save Group Grouping');
             }
         } catch (error: any) {
-            toast.error(error.message);
+            console.error('Save error:', error);
+            toast.error(error?.message || 'An error occurred while saving');
         }
     };
 
@@ -89,16 +102,16 @@ export default function AddMasterGroupGrouping({ onSuccess, className = '' }: Ad
                     <div className='grid grid-cols-1 gap-4 sm:grid-cols-2'>
                         {/* Fee Group Name */}
                         <Controller
-                            name='imgg_GroupingName'
+                            name='fmgG_GroupName'
                             control={control}
                             render={({ field }) => (
                                 <InputText
                                     label='Fees Group Name'
                                     required
-                                    id='imgg_GroupingName'
+                                    id='fmgG_GroupName'
                                     value={field.value}
                                     onChange={field.onChange}
-                                    error={errors.imgg_GroupingName?.message}
+                                    error={errors.fmgG_GroupName?.message}
                                     className='transition-colors focus:ring-2 focus:ring-primary/20'
                                 />
                             )}
@@ -106,16 +119,16 @@ export default function AddMasterGroupGrouping({ onSuccess, className = '' }: Ad
 
                         {/* Groups Code */}
                         <Controller
-                            name='imgg_GroupsCode'
+                            name='fmgG_GroupCode'
                             control={control}
                             render={({ field }) => (
                                 <InputText
                                     label='Groups Code'
                                     required
-                                    id='imgg_GroupsCode'
+                                    id='fmgG_GroupCode'
                                     value={field.value}
                                     onChange={field.onChange}
-                                    error={errors.imgg_GroupsCode?.message}
+                                    error={errors.fmgG_GroupCode?.message}
                                     className='transition-colors focus:ring-2 focus:ring-primary/20'
                                 />
                             )}
@@ -124,7 +137,7 @@ export default function AddMasterGroupGrouping({ onSuccess, className = '' }: Ad
 
                     {/* Fee Group Multi-select Dropdown */}
                     <Controller
-                        name='imgg_FeeGroupIds'
+                        name='selectedFeeGroupIds'
                         control={control}
                         render={({ field }) => (
                             <div className='flex w-full flex-col sm:w-1/2'>
@@ -161,17 +174,17 @@ export default function AddMasterGroupGrouping({ onSuccess, className = '' }: Ad
                                             {/* Select All option */}
                                             <div
                                                 onClick={() => {
-                                                    const allIds = (feeGroups ?? []).map((fg) => fg.fmgg_Id);
+                                                    const allIds = feeGroups.map((fg) => fg.fmG_Id);
                                                     const isAllSelected = field.value?.length === allIds.length;
                                                     field.onChange(isAllSelected ? [] : allIds);
                                                 }}
                                                 className={cn(
                                                     'mb-2 flex cursor-pointer items-center gap-2 rounded-md border px-2 py-1.5 font-medium text-sm transition-all',
-                                                    field.value?.length === (feeGroups?.length ?? 0)
+                                                    field.value?.length === feeGroups.length
                                                         ? 'border-primary bg-primary/5 text-primary'
                                                         : 'border-gray-200 hover:border-primary/40'
                                                 )}>
-                                                {field.value?.length === (feeGroups?.length ?? 0) ? (
+                                                {field.value?.length === feeGroups.length ? (
                                                     <CheckSquare className='h-4 w-4 text-primary' />
                                                 ) : (
                                                     <Square className='h-4 w-4 text-gray-400' />
@@ -180,11 +193,11 @@ export default function AddMasterGroupGrouping({ onSuccess, className = '' }: Ad
                                             </div>
 
                                             {/* Individual Fee Group checkboxes */}
-                                            {(feeGroups ?? [])
-                                                .filter((fg) => fg.fmgg_GroupName.toLowerCase().includes(search.toLowerCase().trim()))
+                                            {feeGroups
+                                                .filter((fg) => fg.feeGroups.toLowerCase().includes(search.toLowerCase().trim()))
                                                 .map((fg) => {
-                                                    const id = fg.fmgg_Id;
-                                                    const name = fg.fmgg_GroupName;
+                                                    const id = fg.fmG_Id;
+                                                    const name = fg.feeGroups;
                                                     const isSelected = field.value?.includes(id);
                                                     return (
                                                         <div
@@ -214,7 +227,7 @@ export default function AddMasterGroupGrouping({ onSuccess, className = '' }: Ad
                                         </div>
                                     </PopoverContent>
                                 </Popover>
-                                {errors.imgg_FeeGroupIds && <FormError>{errors.imgg_FeeGroupIds.message}</FormError>}
+                                {errors.selectedFeeGroupIds && <FormError>{errors.selectedFeeGroupIds.message}</FormError>}
                             </div>
                         )}
                     />

@@ -50,12 +50,10 @@ export const FEES_QUERY_KEYS = {
     ACADEMIC_DROPDOWN_FEES: 'academic_dropdown_fees',
     FEES_PRIVILEGE_LIST: 'fees_privilege_list',
     FEE_WAVIED_OFF: 'fee_waived_off',
-    FEE_OPENING_BALANCE: 'fee_opening_balance'
+    FEE_OPENING_BALANCE: 'fee_opening_balance',
 
     GROUPS_DROPDOWN: 'groups_dropdown',
-    ROLES_DROPDOWN: 'roles_dropdown',
-    FEES_PRIVILEGE_LIST: 'fees_privilege_list'
-
+    ROLES_DROPDOWN: 'roles_dropdown'
 };
 
 export const PREADMISSION_QUERY_KEYS = {

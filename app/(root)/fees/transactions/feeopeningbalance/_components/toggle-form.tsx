@@ -3,43 +3,44 @@
 import { Button } from '@/components/ui/button';
 import { AdaptiveBody, AdaptiveDialog, AdaptiveFooter } from '@/components/ui/extension/adaptive-dialog';
 import { FormError } from '@/components/ui/extension/field';
-import { useMasterFeeGroupGrouping } from '@/hooks/fees/useMasters';
-import { masterGroupsGroupingSchema } from '@/schemas/fees/masters';
-import { toggleGroupGrouping } from '@/server/fees/masters/groupsgrouping';
-import type { IMasterGroupsGrouping } from '@/types/fees/masters/masters';
+import { useFeeconfiguration } from '@/hooks/fees/useConfiguration';
+import { feeConfigSchema } from '@/schemas/fees/configuration';
+import { toggleMasterfeeconfig } from '@/server/fees/configuration/feeconfiguration';
+import type { IFeeConfig } from '@/types/fees/configuration/feesconfiguration';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { type SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import type { z } from 'zod';
 
-type FormFields = z.infer<typeof masterGroupsGroupingSchema.delete>;
+type FormFields = z.infer<typeof feeConfigSchema.delete>;
 
-interface ToggleMasterFeeGroupGroupingFormProps {
-    rowData: IMasterGroupsGrouping;
+interface ToggleMasterFeesConfigFormProps {
+    rowData: IFeeConfig;
     onClose: () => void;
 }
 
-export default function ToggleMasterFeeGroupGroupingForm({ rowData, onClose }: ToggleMasterFeeGroupGroupingFormProps) {
-    const { refetchAll } = useMasterFeeGroupGrouping();
-    const isActive = rowData.imgg_ActiveFlag;
+export default function ToggleMasterFeesConfigForm({ rowData, onClose }: ToggleMasterFeesConfigFormProps) {
+    const { refetchAll } = useFeeconfiguration();
+    const isActive = rowData.fmC_Id;
 
     const {
+        register,
         handleSubmit,
         reset,
         formState: { errors, isSubmitting }
     } = useForm<FormFields>({
-        resolver: zodResolver(masterGroupsGroupingSchema.delete),
+        resolver: zodResolver(feeConfigSchema.delete),
         mode: 'onChange'
     });
 
-    const closeDialog = () => {
+    function closeDialog() {
         onClose();
         reset();
-    };
+    }
 
-    const onSubmit: SubmitHandler<FormFields> = async () => {
+    const onSubmit: SubmitHandler<FormFields | any> = async () => {
         try {
-            const response = await toggleGroupGrouping(Number(rowData.imgg_Id));
+            const response = await toggleMasterfeeconfig(30, Number(rowData.fmC_Id));
 
             if (response.success) {
                 toast.success(response.message);
@@ -54,12 +55,14 @@ export default function ToggleMasterFeeGroupGroupingForm({ rowData, onClose }: T
     };
 
     return (
-        <AdaptiveDialog title='Toggle Fee Group Grouping Status' isOpen={true} onClose={closeDialog}>
+        <AdaptiveDialog title='Toggle Master Fee Config Status' isOpen={true} onClose={closeDialog}>
             <form onSubmit={handleSubmit(onSubmit)} className='flex flex-col gap-4'>
                 <AdaptiveBody className='flex flex-col gap-5'>
+                    <input type='hidden' {...register('fmC_Id')} defaultValue={rowData.fmC_Id} />
                     <p>
-                        Are you sure you want to {isActive ? 'deactivate' : 'activate'} <strong>{rowData.imgg_GroupingName}</strong>?
+                        Are you sure you want to {isActive ? 'deactivate' : 'activate'} <strong>{rowData.FMC_RUserNameFlag}</strong>?
                     </p>
+                    <FormError>{errors.fmC_Id?.message}</FormError>
                     <FormError>{errors.root?.message}</FormError>
                 </AdaptiveBody>
                 <AdaptiveFooter>

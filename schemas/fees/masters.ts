@@ -147,7 +147,7 @@ export const masterGroupsGroupingSchema = {
         selectedFeeGroupIds: z.array(z.number()).min(1, { message: 'Please select at least one fee group' })
     }),
     delete: z.object({
-        imgg_Id: z.number({ message: 'ID is required for deletion' })
+        fmgG_Id: z.number({ message: 'ID is required for deletion' })
     })
 };
 //installment fees

@@ -1,7 +1,7 @@
 import { ADMISSION_QUERY_KEYS, FEES_QUERY_KEYS } from '@/constants/query-keys';
 import { getMasterClassCategory } from '@/server/fees/masters/class_category';
 
-import { getAcademicYearDropdown, getClassCategory, getMasterClassYearlyCategory } from '@/server/fees/masters/class_yearly_category';
+import { getClassCategory } from '@/server/fees/masters/class_yearly_category';
 
 import { getAcademicYearDropdown } from '@/server/fees/masters/class_yearly_category';
 
@@ -13,8 +13,6 @@ import { getfeeInstallment } from '@/server/fees/masters/feeinstallment';
 import { getfeeInstallmentDueDate } from '@/server/fees/masters/feeinstallmentduedate';
 import { getMasterConcession } from '@/server/fees/masters/feemasterconcession';
 import { getFeeTermList } from '@/server/fees/masters/feemasterterms';
-
-import { getGroupListCategory } from '@/server/fees/masters/fees_yearly_group';
 
 import { getGroupListCategory, getMasterClassYearlyCategory } from '@/server/fees/masters/fees_yearly_group';
 
@@ -408,7 +406,7 @@ export const MASTER_INSTALLMENT_DROPDOWN = () => {
     };
 };
 
-export const useMasterConcessionDetails = (searchParams?: ApiSearchparams) => {
+export const useMasterConcessionDetails = () => {
     const queryClient = useQueryClient();
 
     return {
@@ -462,6 +460,7 @@ export const useMasterGroupListDropDown = (searchParams?: ApiSearchparams) => {
 //Group Grouping
 export const useMasterFeeGroupDropdown = (searchParams?: ApiSearchparams) => {
     const queryClient = useQueryClient();
+
     return {
         ...useQuery({
             queryKey: [FEES_QUERY_KEYS.FEE_GROUP_LIST_DROPDOWN, searchParams ?? {}],
@@ -478,11 +477,20 @@ export const useMasterFeeGroupDropdown = (searchParams?: ApiSearchparams) => {
 
 export const useMasterFeeGroupGrouping = (searchParams?: ApiSearchparams) => {
     const queryClient = useQueryClient();
+
     return {
         ...useQuery({
             queryKey: [FEES_QUERY_KEYS.FEE_GROUP_GROUPING, searchParams ?? {}],
             queryFn: async () => getFeeGroupGrouping(searchParams),
-
+            staleTime: 0
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [FEES_QUERY_KEYS.FEE_GROUP_GROUPING]
+            });
+        }
+    };
+};
 
 export const useFeePrevilegeList = () => {
     const queryClient = useQueryClient();
@@ -496,11 +504,7 @@ export const useFeePrevilegeList = () => {
         }),
         refetchAll: () => {
             return queryClient.invalidateQueries({
-
-                queryKey: [FEES_QUERY_KEYS.FEE_GROUP_GROUPING]
-
                 queryKey: [FEES_QUERY_KEYS.FEES_PRIVILEGE_LIST]
-
             });
         }
     };

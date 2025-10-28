@@ -395,7 +395,7 @@ export async function getUserAccessibleModules() {
                                         id: 28,
                                         name: 'Fee Opening Balance',
                                         icon: 'Settings',
-                                        url: '/fees/transaction/feeopeningbalance',
+                                        url: '/fees/transactions/feeopeningbalance',
                                         title: 'Fee Opening Balance',
                                         description: 'Fee Opening Balance'
                                     },
@@ -403,7 +403,7 @@ export async function getUserAccessibleModules() {
                                         id: 29,
                                         name: 'Fee waivedoff',
                                         icon: 'Settings',
-                                        url: '/fees/transaction/waivedoff',
+                                        url: '/fees/transactions/waivedoff',
                                         title: 'Fee Transactions',
                                         description: 'Fee Transactions'
                                     }

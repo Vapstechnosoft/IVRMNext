@@ -227,15 +227,12 @@ export interface IMasterYearlyRebateSettingsList {
     fyg_date: string;
 }
 
-
 export interface IMasterGroupsGrouping {
     fmgG_Id: number;
     fmgG_GroupName: string;
     fmgG_GroupCode: string;
     feeGroupName: string;
     selectedFeeGroupIds: number[];
-    imgg_ActiveFlag?: boolean;
-
 }
 //used for fee previlege
 export interface IMasterFeePrevilegeList {
@@ -276,5 +273,4 @@ export interface IMasterOnlinePaymentHeadgroupList {
     installmentName: string;
     terms: string;
     academicYear: string;
-
 }
