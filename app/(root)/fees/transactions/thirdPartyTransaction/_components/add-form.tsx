@@ -16,7 +16,13 @@ import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import type { z } from 'zod';
 
-import { useFeeAmountEntry, useacademicyerdropdowndatafee } from '@/hooks/fees/useTrasactions';
+import {
+    useBankdropdowndatathirdpartytransaction,
+    useFeeAmountEntry,
+    useGroupdropdowndatathirdpartytransaction,
+    useHeaddropdowndatathirdpartytransaction,
+    useacademicyerdropdowndatafee
+} from '@/hooks/fees/useTrasactions';
 import { thirdPartyTransactionSchema } from '@/schemas/fees/trasactions';
 import { addOrUpdateMasterfeehead } from '@/server/fees/masters/feehead';
 
@@ -54,9 +60,11 @@ export default function AddThirdPartyTransactionForm({ onSuccess, headname = '' 
 
     const { data: academicYear, isLoading: academicYearLoading, error: academicYearError } = useacademicyerdropdowndatafee();
 
-    const { data: groupData, isLoading: groupDataLoading, error: groupDataError } = useacademicyerdropdowndatafee();
+    const { data: groupData, isLoading: groupDataLoading, error: groupDataError } = useGroupdropdowndatathirdpartytransaction();
 
-    const { data: headdata, isLoading: headDataLoading, error: headDataError } = useacademicyerdropdowndatafee();
+    const { data: headdata, isLoading: headDataLoading, error: headDataError } = useHeaddropdowndatathirdpartytransaction();
+
+    const { data: bankdata, isLoading: bankDataLoading, error: bankDataError } = useBankdropdowndatathirdpartytransaction();
 
     useEffect(() => {
         const fetchData = async () => {
@@ -249,8 +257,8 @@ export default function AddThirdPartyTransactionForm({ onSuccess, headname = '' 
                                         </SelectItem>
                                     ) : (
                                         groupData?.data?.map((item) => (
-                                            <SelectItem key={item.asmaY_Id} value={item.asmaY_Id.toString()}>
-                                                {item.asmaY_Year}
+                                            <SelectItem key={item.fmG_Id} value={item.fmG_Id.toString()}>
+                                                {item.fmG_GroupName}
                                             </SelectItem>
                                         ))
                                     )}
@@ -284,8 +292,8 @@ export default function AddThirdPartyTransactionForm({ onSuccess, headname = '' 
                                         </SelectItem>
                                     ) : (
                                         headdata?.data?.map((item) => (
-                                            <SelectItem key={item.asmaY_Id} value={item.asmaY_Id.toString()}>
-                                                {item.asmaY_Year}
+                                            <SelectItem key={item.fmH_Id} value={item.fmH_Id.toString()}>
+                                                {item.fmH_FeeName}
                                             </SelectItem>
                                         ))
                                     )}
@@ -371,6 +379,43 @@ export default function AddThirdPartyTransactionForm({ onSuccess, headname = '' 
                 {/* Conditional Fields */}
                 {(selectedPaymentMode === 'B' || selectedPaymentMode === 'R') && (
                     <>
+                        <div className='flex items-center gap-4'>
+                            <Label className='min-w-[150px] text-right'>
+                                Bank Name:<span className='ml-1 text-red-500'>*</span>
+                            </Label>
+                            <Controller
+                                name='bankId'
+                                control={control}
+                                render={({ field }) => (
+                                    <Select
+                                        onValueChange={(value) => field.onChange(Number(value))}
+                                        value={field.value?.toString() || undefined}>
+                                        <SelectTrigger className='min-w-[400px] text-center'>
+                                            <SelectValue placeholder='Select Bank' />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            {bankDataError ? (
+                                                <SelectItem value='loading' disabled>
+                                                    Loading....
+                                                </SelectItem>
+                                            ) : bankDataError ? (
+                                                <SelectItem value='error' disabled>
+                                                    Error loading data
+                                                </SelectItem>
+                                            ) : (
+                                                bankdata?.data?.map((item) => (
+                                                    <SelectItem key={item.fmbanK_Id} value={item.fmbanK_Id.toString()}>
+                                                        {item.fmbanK_BankName}
+                                                    </SelectItem>
+                                                ))
+                                            )}
+                                        </SelectContent>
+                                    </Select>
+                                )}
+                            />
+                            {errors.bankId && <FormError>{errors.bankId.message}</FormError>}
+                        </div>
+
                         {/* Cheque Date */}
                         <div className='flex items-center gap-4'>
                             <Label className='min-w-[150px] text-left'>
@@ -379,8 +424,9 @@ export default function AddThirdPartyTransactionForm({ onSuccess, headname = '' 
                             <Controller
                                 name='chequeDate'
                                 control={control}
+                                defaultValue={format(new Date(), 'yyyy-MM-dd')}
                                 render={({ field }) => {
-                                    const selectedDate = field.value ? new Date(field.value) : undefined;
+                                    const selectedDate = field.value ? new Date(field.value) : new Date();
                                     return (
                                         <Popover>
                                             <PopoverTrigger asChild>
@@ -393,7 +439,9 @@ export default function AddThirdPartyTransactionForm({ onSuccess, headname = '' 
                                                         errors.chequeDate ? 'border-red-500' : ''
                                                     )}>
                                                     <Calendar className='mr-2 h-4 w-4' />
-                                                    {field.value ? format(selectedDate!, 'dd/MM/yyyy') : 'Pick a date'}
+                                                    {field.value
+                                                        ? format(selectedDate, 'dd/MM/yyyy')
+                                                        : format(new Date(), 'dd/MM/yyyy')}{' '}
                                                 </Button>
                                             </PopoverTrigger>
                                             <PopoverContent className='z-50 w-auto p-0' align='start'>
@@ -431,8 +479,9 @@ export default function AddThirdPartyTransactionForm({ onSuccess, headname = '' 
                             <Controller
                                 name='date'
                                 control={control}
+                                defaultValue={format(new Date(), 'yyyy-MM-dd')}
                                 render={({ field }) => {
-                                    const selectedDate = field.value ? new Date(field.value) : undefined;
+                                    const selectedDate = field.value ? new Date(field.value) : new Date();
                                     return (
                                         <Popover>
                                             <PopoverTrigger asChild>
@@ -445,7 +494,9 @@ export default function AddThirdPartyTransactionForm({ onSuccess, headname = '' 
                                                         errors.date ? 'border-red-500' : ''
                                                     )}>
                                                     <Calendar className='mr-2 h-4 w-4' />
-                                                    {field.value ? format(selectedDate!, 'dd/MM/yyyy') : 'Pick a date'}
+                                                    {field.value
+                                                        ? format(selectedDate, 'dd/MM/yyyy')
+                                                        : format(new Date(), 'dd/MM/yyyy')}{' '}
                                                 </Button>
                                             </PopoverTrigger>
                                             <PopoverContent className='z-50 w-auto p-0' align='start'>

@@ -5,29 +5,29 @@ import { Button } from '@/components/ui/button';
 import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/generic-data-table';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
-import { useFeeAmountEntry } from '@/hooks/fees/useTrasactions';
-import type { IFeeAmountEntryList } from '@/types/fees/transactions/transactions';
+import { useFeeThirdParty } from '@/hooks/fees/useTrasactions';
+import type { IFeeThirdPartyTransaction } from '@/types/fees/transactions/transactions';
 import { Plus, X } from 'lucide-react';
 import { use } from 'react';
 import AddThirdPartyTransactionForm from './_components/add-form';
-import { feeAmountEntryColumns } from './_components/columns';
+import { feethirdpartytrasactionColumns } from './_components/columns';
 
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 
-export default function MasterFeeAmountEntryPage(props: { searchParams: SearchParams }) {
+export default function ThirdPartyTrasactionEntryPage(props: { searchParams: SearchParams }) {
     const searchParams = use(props.searchParams);
-    const { data: response, isLoading, error } = useFeeAmountEntry(searchParams);
+    const { data: response, isLoading, error } = useFeeThirdParty(searchParams);
 
     console.log(response);
 
     return (
-        <FormProvider<IFeeAmountEntryList>>
-            <MasterFeeAmountEntryPageContent response={response} isLoading={isLoading} error={error} />
+        <FormProvider<IFeeThirdPartyTransaction>>
+            <ThirdPartyTrasactionEntryPageContent response={response} isLoading={isLoading} error={error} />
         </FormProvider>
     );
 }
 
-function MasterFeeAmountEntryPageContent({
+function ThirdPartyTrasactionEntryPageContent({
     response,
     isLoading,
     error
@@ -36,7 +36,7 @@ function MasterFeeAmountEntryPageContent({
     isLoading: boolean;
     error: any;
 }) {
-    const { openAddForm } = useFormContext<IFeeAmountEntryList>();
+    const { openAddForm } = useFormContext<IFeeThirdPartyTransaction>();
     const tableProps = useDataTableProps(response);
 
     return (
@@ -61,16 +61,16 @@ function MasterFeeAmountEntryPageContent({
                     variant='default'
                     size='lg'
                     className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
-                    <GenericDataTable<IFeeAmountEntryList>
+                    <GenericDataTable<IFeeThirdPartyTransaction>
                         {...tableProps}
-                        columns={feeAmountEntryColumns}
+                        columns={feethirdpartytrasactionColumns}
                         isLoading={isLoading}
                         error={error}
                         columnPinning={{ right: ['actions'] }}
-                        loadingMessage='Loading Fee Amount Entries...'
-                        noDataTitle='No Fee Amount Entries Found'
-                        noDataDescription='Get started by adding a new Fee Amount Entry.'
-                        errorTitle='Error Loading Fee Amount Entries'
+                        loadingMessage='Loading Third Party Transaction...'
+                        noDataTitle='No Third Party Transaction Entries Found'
+                        noDataDescription='Get started by adding a new Third Party Transaction.'
+                        errorTitle='Error Loading Third Party Transaction'
                     />
                 </CollapsibleSection>
 
@@ -91,7 +91,7 @@ function FormSections() {
         closeToggleForm,
         addFormRef,
         editFormRef
-    } = useFormContext<IFeeAmountEntryList>();
+    } = useFormContext<IFeeThirdPartyTransaction>();
 
     return (
         <>
