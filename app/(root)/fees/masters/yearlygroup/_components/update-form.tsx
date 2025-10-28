@@ -340,7 +340,6 @@ export default function UpdateYearlyGroupForm({ onSuccess, selectedRow }: Update
                                                                     ? field.value.filter((v) => v !== fg.fmgg_Id)
                                                                     : [...(field.value || []), fg.fmgg_Id];
                                                                 field.onChange(newValue);
-                                                                console.log('Updated feeGroupIds:', newValue);
                                                             }}
                                                             className={cn(
                                                                 'mb-1 flex cursor-pointer items-center gap-2 rounded-md border px-2 py-1.5 text-sm',

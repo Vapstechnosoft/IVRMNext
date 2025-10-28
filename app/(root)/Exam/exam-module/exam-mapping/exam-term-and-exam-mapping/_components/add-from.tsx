@@ -184,10 +184,6 @@ export default function AddExamTermAndExamMapping({ onSuccess }: { onSuccess?: (
     }
 
     const onSubmit = async (data: FormFields) => {
-        console.log('Form submitted', data);
-        console.log('Added rows:', addedRows);
-        console.log('Form errors:', errors);
-
         if (!addedRows.length) {
             toast.error('Add at least one exam row before saving');
             return;
@@ -201,7 +197,6 @@ export default function AddExamTermAndExamMapping({ onSuccess }: { onSuccess?: (
 
         // Check for validation errors
         if (Object.keys(errors).length > 0) {
-            console.log('Validation errors:', errors);
             toast.error('Please fix form errors before submitting');
             return;
         }
@@ -231,8 +226,6 @@ export default function AddExamTermAndExamMapping({ onSuccess }: { onSuccess?: (
                     ECTEX_NotApplToTotalFlg: r.ecteX_NotApplicableToTotal
                 }))
             };
-
-            console.log('API Payload:', JSON.stringify(payload, null, 2));
 
             const res = await addOrUpdateExamTermAndExamMapping(payload);
             if (res?.success) {

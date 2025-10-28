@@ -298,10 +298,6 @@ export default function UpdateExamTermAndExamMapping({ rowData, onSuccess, onClo
 
     // On final submit - update call (keeps same payload mapping you used in Add)
     const onSubmit = async (data: FormFields) => {
-        console.log('Update submit', data);
-        console.log('Added rows:', addedRows);
-        console.log('Form errors:', errors);
-
         if (!addedRows.length) {
             toast.error('Add at least one exam row before saving');
             return;
@@ -342,8 +338,6 @@ export default function UpdateExamTermAndExamMapping({ rowData, onSuccess, onClo
                     ECTEX_NotApplToTotalFlg: r.ecteX_NotApplicableToTotal
                 }))
             };
-
-            console.log('Update Payload:', JSON.stringify(payload, null, 2));
 
             const res = await addOrUpdateExamTermAndExamMapping(payload); // update uses same API in your project
             if (res?.success) {
