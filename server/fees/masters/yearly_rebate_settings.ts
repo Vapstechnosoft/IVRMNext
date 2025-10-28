@@ -10,11 +10,6 @@ export async function getMasterYearlyRebateSettings(searchParams?: ApiSearchpara
     return await api.get<IMasterYearlyRebateSettingsList[]>('fees', url);
 }
 
-export async function getAcademicYearDropdown() {
-    const url = '/fee_class_category/academicyearlist/30';
-    return await api.get<IMasterYearlyRebateSettingsList[]>('fees', url);
-}
-
 export async function addOrUpdateMasterYearlyRebateSettings(data: any) {
     const url = '/fee_yearly_group';
     return await api.post<any>('fees', url, data);

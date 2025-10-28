@@ -43,6 +43,7 @@ export const FEES_QUERY_KEYS = {
     MASTER_INSTALLMENT_DROPDOWN: 'masterInstallmentsDropdown',
     FEE_MASTER_CONCESSION_DETAILS: 'masterfeeconcessiondetails',
     FEE_PAYMENTGATEWAY_DROPDOWN: 'paymentGatewayDropdown',
+
     FEE_AMOUNT_ENTRY: 'fee_amount_entry',
     FEE_CATEGORY_DROPDOWN: 'fee_category_dropdown',
     FEE_GROUP_DROPDOWN: 'fee_group_dropdown',
@@ -50,6 +51,11 @@ export const FEES_QUERY_KEYS = {
     FEES_PRIVILEGE_LIST: 'fees_privilege_list',
     FEE_WAVIED_OFF: 'fee_waived_off',
     FEE_OPENING_BALANCE: 'fee_opening_balance'
+
+    GROUPS_DROPDOWN: 'groups_dropdown',
+    ROLES_DROPDOWN: 'roles_dropdown',
+    FEES_PRIVILEGE_LIST: 'fees_privilege_list'
+
 };
 
 export const PREADMISSION_QUERY_KEYS = {
@@ -68,4 +74,19 @@ export const PREADMISSION_QUERY_KEYS = {
     APPLICATION_STUDENT_LIST: 'application_student_list',
     PREADMISSION_ADMISSION_STATUS_DROPDOWN: 'preadmission_admission_status_dropdown',
     PREADMISSION_STUDENT_LIST: 'preadmission_student_list'
+};
+
+export const EXAM_QUERY_KEYS = {
+    MASTER_SUBJECT: 'master_subject',
+    MASTER_SUB_SUBJECT_EX: 'master_sub_subject-ex',
+    MASTER_EXAM: 'master-exam',
+    MASTER_EXAM_PAPER: 'master-exam-paper',
+    MASTER_SUB_EXAM: 'master-sub-exam',
+    MASTER_GRADE_EX: 'master-grade-ex',
+    MASTER_GRADE_DETAILS: 'master-grade-details',
+    MASTER_SUBJECT_GROUP_: 'master-subject-group',
+    MASTER_SUBJECT_GROUP_DETAILS: 'master-subject-group-details',
+    MASTER_ALL_SUBJECT_GROUP_DETAILS: 'master-all-subject-group-details',
+    MASTER_CATEGORY: 'master-category',
+    MASTER_CATEGORY_CLASS_MAPPING: 'master-category-class-mapping'
 };
