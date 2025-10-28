@@ -16,6 +16,7 @@ import {
     useCountryDropdown,
     useGenderDropdown,
     usePreadmissionClassDropdown,
+    usePreadmissionDocumentsDropdown,
     useReferenceDropdown,
     useReligionDropdown,
     useSourceDropdown,
@@ -141,6 +142,11 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
     } = useStateDropdown(Number(perConuntryId));
     const { data: source, isLoading: sourceLoading, refetchAll: refetchSource } = useSourceDropdown();
     const { data: reference, isLoading: referenceLoading, refetchAll: refetchReference } = useReferenceDropdown();
+    const {
+        data: preadmissionDocuments,
+        isLoading: preadmissionDocumentsLoading,
+        refetchAll: refetchPreadmissionDocuments
+    } = usePreadmissionDocumentsDropdown();
 
     const refetchDropdowns = () => {
         refetchReligion();
@@ -152,6 +158,7 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
         refetchReference();
         refetchConState();
         refetchPerState();
+        refetchPreadmissionDocuments();
     };
 
     const nextStep = async () => {

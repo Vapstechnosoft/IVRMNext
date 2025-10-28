@@ -22,7 +22,7 @@ export async function getReligionDropdown() {
 }
 
 export async function getCasteDropdown(religion_id: number) {
-    const url = `/student_application_form/caste_drop_down_list?mi_id=30&religion_id=${religion_id}`;
+    const url = `/student_application_form/caste_drop_down_list?religion_id=${religion_id}`;
     return await api.get<ICasteDropdown[]>('preadmission', url);
 }
 
@@ -37,7 +37,7 @@ export async function getStateDropdown(country_id: number) {
 }
 
 export async function getGenderDropdown() {
-    const url = '/student_application_form/gender_drop_down_list?mi_id=30';
+    const url = '/student_application_form/gender_drop_down_list';
     return await api.get<IGenderDropdown[]>('preadmission', url);
 }
 
@@ -51,13 +51,13 @@ export async function getReferenceDropdown() {
     return await api.get<IReferenceDropdown[]>('preadmission', url);
 }
 
-export async function getPreadmissionDocumentDropdown(mi_id: number) {
-    const url = `/student_application_form/required_document_drop_down_list?mi_id=${mi_id}`;
+export async function getPreadmissionDocumentDropdown() {
+    const url = '/student_application_form/required_document_drop_down_list';
     return await api.get<IPreadmissionDocumentDropdown[]>('preadmission', url);
 }
 
 export async function getPreadmissionClassDropdown() {
-    const url = '/student_application_form/master_class_drop_down_list?mi_id=30';
+    const url = '/student_application_form/master_class_drop_down_list';
     return await api.get<IPreadmissionClassDropdown[]>('preadmission', url);
 }
 

@@ -146,13 +146,13 @@ export const useReferenceDropdown = () => {
     };
 };
 
-export const usePreadmissionDocumentsDropdown = (mi_id: number) => {
+export const usePreadmissionDocumentsDropdown = () => {
     const queryClient = useQueryClient();
 
     return {
         ...useQuery({
-            queryKey: [PREADMISSION_QUERY_KEYS.PREADMISSION_DOCUMENTS_DROPDOWN, mi_id],
-            queryFn: async () => getPreadmissionDocumentDropdown(mi_id),
+            queryKey: [PREADMISSION_QUERY_KEYS.PREADMISSION_DOCUMENTS_DROPDOWN],
+            queryFn: async () => getPreadmissionDocumentDropdown(),
             staleTime: 0
         }),
         refetchAll: () => {
