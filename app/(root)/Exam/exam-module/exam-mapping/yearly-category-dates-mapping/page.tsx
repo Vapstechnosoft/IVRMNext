@@ -87,17 +87,8 @@ function DatesMappingPageContent({
 // FORM SECTIONS
 // -------------------------
 function FormSections() {
-    const {
-        isAddFormOpen,
-        isEditFormOpen,
-        isToggleFormOpen,
-        selectedRow,
-        closeAddForm,
-        closeEditForm,
-        closeToggleForm,
-        addFormRef,
-        editFormRef
-    } = useFormContext<IYearlyCategoryDatesMapping>();
+    const { isAddFormOpen, isEditFormOpen, selectedRow, closeAddForm, closeEditForm, addFormRef, editFormRef } =
+        useFormContext<IYearlyCategoryDatesMapping>();
 
     return (
         <>

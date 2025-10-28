@@ -212,3 +212,99 @@ export const ExamSubjectGroupSchema = {
         ESG_Id: z.number().int().positive({ message: 'Invalid Exam Subject Group ID' })
     })
 };
+
+const toNumber = (val: unknown) => {
+    if (val === '' || val === null || val === undefined) return Number.NaN;
+    if (typeof val === 'number') return val;
+    if (typeof val === 'string') {
+        const n = Number(val);
+        return Number.isNaN(n) ? Number.NaN : n;
+    }
+    return Number.NaN;
+};
+
+export const ExamTermAndExamMappingSchema = {
+    addOrUpdate: z
+        .object({
+            mI_Id: z.preprocess(toNumber, z.number().int().nonnegative().optional()),
+            ecT_Id: z.preprocess(toNumber, z.number().int().nonnegative().optional().nullable()),
+
+            asmaY_Id: z.preprocess(toNumber, z.number().int().positive({ message: 'Select Academic Year' })),
+            emcA_Id: z.preprocess(toNumber, z.number().int().positive({ message: 'Select Category' })),
+            emgR_Id: z.preprocess(toNumber, z.number().int().positive({ message: 'Select Grade' })),
+            ecT_TermName: z
+                .string()
+                .min(1, { message: 'Enter Term Name' })
+                .max(100, { message: 'Term Name must be at most 100 characters' })
+                .regex(/^[A-Za-z0-9\s-]+$/, {
+                    message: 'Term Name must contain only letters, numbers, spaces, or hyphens'
+                }),
+
+            ecT_TermStartDate: z.string().min(1, { message: 'Select Start Date' }),
+            ecT_TermEndDate: z.string().min(1, { message: 'Select End Date' }),
+            ecT_MarksPublishDate: z.string().min(1, { message: 'Select Publish Date' }),
+
+            ecT_Marks: z.preprocess(
+                toNumber,
+                z.number().int({ message: 'Term Marks must be an integer' }).positive({ message: 'Enter Term Marks' })
+            ),
+
+            ecT_MinMarks: z.preprocess(
+                toNumber,
+                z
+                    .number()
+                    .int({ message: 'Min Marks must be an integer' })
+                    .min(0, { message: 'Enter Min Marks' })
+                    .max(999, { message: 'Min Marks cannot exceed 999' })
+            ),
+
+            // saved exam rows
+            exam_term: z
+                .array(
+                    z.object({
+                        emE_Id: z.preprocess(toNumber, z.number().int().positive({ message: 'Select Exam' })),
+                        emE_ExamName: z.string().min(1, { message: 'Exam name required' }),
+                        ecteX_MarksPerFlag: z.enum(['M', 'P'], { required_error: 'Select Marks or Percentage' }),
+                        ecteX_MarksPercentValue: z.preprocess(
+                            toNumber,
+                            z
+                                .number()
+                                .min(0.01, { message: 'Enter valid marks/percentage value' })
+                                .max(999, { message: 'Marks/Percentage cannot exceed 999' })
+                        ),
+                        ecteX_RoundOffReqFlg: z.boolean().optional().default(false),
+                        ecteX_ConversionReqFlg: z.boolean().optional().default(false),
+                        ecteX_NotApplicableToTotal: z.boolean().optional().default(false)
+                    })
+                )
+                .min(1, { message: 'Add at least one exam for the term' })
+        })
+        // total marks check (sum of saved details must equal ecT_Marks)
+        .refine(
+            (data) => {
+                const total = data.exam_term.reduce((sum, item) => sum + Number(item.ecteX_MarksPercentValue), 0);
+                return Number(total) === Number(data.ecT_Marks);
+            },
+            {
+                path: ['saveddetails'],
+                message: 'Total Marks / Percentage should be equal to Term Marks'
+            }
+        )
+        // duplicate exam check
+        .refine(
+            (data) => {
+                const examIds = data.exam_term.map((s) => s.emE_Id);
+                return new Set(examIds).size === examIds.length;
+            },
+            {
+                path: ['saveddetails'],
+                message: 'Duplicate exams not allowed for the same term'
+            }
+        ),
+
+    delete: z.object({
+        ecT_Id: z.number().int().positive({ message: 'Invalid Term ID' }),
+        asmaY_Id: z.number().int().positive({ message: 'Invalid Academic Year ID' }),
+        emcA_Id: z.number().int().positive({ message: 'Invalid Category ID' })
+    })
+};

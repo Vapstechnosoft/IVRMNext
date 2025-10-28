@@ -6,6 +6,7 @@ import { ActionButtons } from '@/components/ui/form/action-buttons';
 import { useFormContext } from '@/components/ui/form/form-provider';
 import type { IExamSubjectGroupMapping } from '@/types/exam/exam-module/exam-mapping';
 import type { ColumnDef } from '@tanstack/react-table';
+import { Eye } from 'lucide-react';
 import { useCallback } from 'react';
 
 export const ExamSubjectGroupMappingColumns: ColumnDef<IExamSubjectGroupMapping>[] = [
@@ -112,10 +113,15 @@ export const ExamSubjectGroupMappingColumns: ColumnDef<IExamSubjectGroupMapping>
 
 function ActionButtonsCell({ rowData }: { rowData: IExamSubjectGroupMapping }) {
     const { openEditForm } = useFormContext<IExamSubjectGroupMapping>();
+    const { openDetailsView } = useFormContext<IExamSubjectGroupMapping>();
     const handleEdit = useCallback(() => openEditForm(rowData), [openEditForm, rowData]);
+    const handleView = useCallback(() => openDetailsView(rowData), [openDetailsView, rowData]);
 
     return (
         <div className='flex justify-center gap-2'>
+            <button type='button' onClick={handleView} className='rounded-md p-2 transition hover:bg-muted' title='View Mapping Details'>
+                <Eye className='h-4 w-4 text-blue-600' />
+            </button>
             <ActionButtons rowData={rowData} buttons={{ edit: true, delete: false, toggle: false }} onEdit={handleEdit} />
         </div>
     );

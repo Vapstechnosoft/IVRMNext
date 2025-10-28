@@ -159,7 +159,6 @@ export default function UpdateCategoryClassForm({ selectedRow, onSuccess }: Upda
                 ...data,
                 section_list: data.section_list.map((s) => ({ asmS_Id: s.asmS_Id }))
             };
-            console.log('payload', payload);
             const res = await addOrUpdateCategoryClassMapping(payload);
             if (res.success) {
                 toast.success('Category Class Mapping Updated Successfully');

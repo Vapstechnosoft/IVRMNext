@@ -6,6 +6,7 @@ import { CustomMultiSelectBox } from '@/components/ui/custom-multiselect';
 import { FormError, Label } from '@/components/ui/extension/field';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { useExamSubjectGroupMapping } from '@/hooks/exam/exammodule/exam-mapping';
 import { ExamSubjectGroupSchema } from '@/schemas/exam/exam-module/exam-mapping';
 import {
     addOrUpdateYearlyCategoryDatesMapping,
@@ -47,6 +48,7 @@ export default function AddExamSubjectGroup({ mI_Id = 30, onSuccess }: { mI_Id?:
 
     const { control, handleSubmit, reset, setValue, watch, formState } = methods;
     const { isSubmitting } = formState;
+    const { refetchAll } = useExamSubjectGroupMapping();
 
     const [academicYears, setAcademicYears] = useState<IAcademicYear[]>([]);
     const [categories, setCategories] = useState<ICategory[]>([]);
@@ -133,6 +135,7 @@ export default function AddExamSubjectGroup({ mI_Id = 30, onSuccess }: { mI_Id?:
                 toast.success('Exam subject group saved successfully');
                 reset();
                 onSuccess?.();
+                refetchAll();
             } else {
                 toast.error(res?.message ?? 'Save failed');
             }
@@ -145,10 +148,14 @@ export default function AddExamSubjectGroup({ mI_Id = 30, onSuccess }: { mI_Id?:
         <div className='flex w-full flex-col gap-6'>
             <FormProvider {...methods}>
                 <form onSubmit={handleSubmit(onSubmit)} className='flex flex-col gap-6 rounded-2xl bg-white p-6 shadow-md' noValidate>
-                    <Tabs defaultValue={esG_ExamPromotionFlag}>
+                    <Tabs value={esG_ExamPromotionFlag} onValueChange={(val) => setValue('esG_ExamPromotionFlag', val as 'IE' | 'PE')}>
                         <TabsList className='mb-8 grid w-full max-w-md grid-cols-2'>
-                            <TabsTrigger value='IE'>Individual Exam</TabsTrigger>
-                            <TabsTrigger value='PE'>Promotional Exam</TabsTrigger>
+                            <TabsTrigger value='IE' className='data-[state=active]:bg-[#c475f5] data-[state=active]:text-white'>
+                                Individual Exam
+                            </TabsTrigger>
+                            <TabsTrigger value='PE' className='data-[state=active]:bg-[#c475f5] data-[state=active]:text-white'>
+                                Promotional Exam
+                            </TabsTrigger>
                         </TabsList>
 
                         {/* Individual Exam Tab */}

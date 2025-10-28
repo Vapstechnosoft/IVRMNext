@@ -111,20 +111,73 @@ export interface IYearlyCategoryDatesMapping {
 }
 
 export interface IExamSubjectGroupMapping {
-    slno: number;
+    esG_Id: number;
+    asmaY_Id: number;
     asmaY_Year: string;
     emcA_CategoryName: string;
-    emE_ExamName?: string | null;
-    eysgR_GroupName: string;
-    eysgR_Percentage: number;
+    esG_SubjectGroupName: string;
     eysgR_PromotionType: 'IE' | 'PE';
-    eysgR_CompulsoryFlag: 'Y' | 'N';
-    subjectNames?: string[];
+    esG_GroupMinMarks: number;
+    esG_GroupMaxMarks: number;
+    emE_ExamName?: string | null;
+    esgE_Id: number;
+    esG_CompulsoryFlag: 'Y' | 'N';
+    asmaY_Order: number;
+}
+
+export interface IExamSubjectGroupingDetails {
+    emcA_CategoryName: string;
+    esG_SubjectGroupName: string;
+    esG_GroupMinMarks: number;
+    esG_GroupMaxMarks: number;
+    emE_ExamName: string;
+    esG_Id: number;
+    esgE_Id: number;
+    esG_CompulsoryFlag: 'Y' | 'N';
+    ismS_SubjectName: string;
+    esgS_Id: number;
+    asmaY_Id: number;
+    emcA_Id: number;
+    emE_Id: number;
+    ismS_Id: number;
+    esgS_ActiveFlag: boolean;
 }
 
 export interface IESubject {
     ismS_Id: number;
     ismS_SubjectName: string;
     ismS_OrderFlag: number;
-    eyceS_AplResultFlg: boolean;
+    eyceS_AplResultFlg?: boolean;
+}
+
+export interface IExamTermAndExamMapping {
+    ecT_Id?: number | null;
+    asmaY_Id: number;
+    emcA_Id: number;
+    ecT_TermName: string;
+    ecT_TermStartDate: string;
+    ecT_TermEndDate: string;
+    ecT_Marks: number;
+    ecT_MinMarks: number;
+    ecT_ActiveFlag: boolean;
+    ecT_PublishDate: string;
+    asmaY_Year: string;
+    emcA_CategoryName: string;
+    emgR_GradeName?: string;
+    emgR_Id?: number;
+    saveddetails: IExamTermAndExamMappingDetails[];
+}
+
+export interface IExamTermAndExamMappingDetails {
+    ecteX_Id: number;
+    emE_Id: number;
+    emE_ExamName: string;
+    ecteX_MarksPercentValue: number;
+    ecteX_MarksPerFlag: 'M' | 'P';
+    ecteX_NotApplToTotalFlg: boolean;
+    ecteX_ActiveFlag: boolean;
+    emE_ExamOrder: number;
+    ecT_Id: number;
+    ecteX_RoundOffReqFlg: boolean;
+    ecteX_ConversionReqFlg: boolean;
 }

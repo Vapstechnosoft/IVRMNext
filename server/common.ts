@@ -302,83 +302,14 @@ export async function getUserAccessibleModules() {
                                         url: '/Exam/exam-module/exam-mapping/exam-subject-group-mapping',
                                         title: 'Subject Group Mapping',
                                         description: 'Manage Exam Subject Group Mapping Details'
-                                    }
-                                ]
-                            }
-                        ]
-                    }
-                ]
-            },
-            {
-                id: 3,
-                name: 'Fees Manageent',
-                icon: 'Settings',
-                menu: [
-                    {
-                        id: 2,
-                        name: 'Fees',
-                        icon: 'Settings',
-                        sub_menu: [
-                            {
-                                id: 3,
-                                name: 'Configuration',
-                                icon: 'Settings',
-                                pages: [
-                                    {
-                                        id: 25,
-                                        name: 'Fee configuration',
-                                        icon: 'Settings',
-                                        url: '/fees/configuration/masterfeeconfig',
-                                        title: 'Fee configuration',
-                                        description: 'Fee configuration'
-                                    }
-                                ]
-                            },
-                            {
-                                id: 2,
-                                name: 'Masters',
-                                icon: 'Settings',
-                                pages: [
+                                    },
                                     {
                                         id: 5,
-                                        name: 'Master Exam Paper',
+                                        name: 'Exam Term And Exam Mapping',
                                         icon: 'BookOpen',
-                                        url: '/Exam/exam-module/masters/exam-paper-master',
-                                        title: 'Master Exam Paper',
-                                        description: 'Manage Master Exam Paper Details'
-                                    },
-                                    {
-                                        id: 6,
-                                        name: 'Mode Of Payment',
-                                        icon: 'Settings',
-                                        url: '/Exam/exam-module/masters/master-grade',
-                                        title: 'Master Grade',
-                                        description: 'Manage Master Grade Details'
-                                    },
-
-                                    {
-                                        id: 7,
-                                        name: 'Master Subject Group',
-                                        icon: 'BookOpen',
-                                        url: '/Exam/exam-module/masters/master-group',
-                                        title: 'Master Subject Group',
-                                        description: 'Manage Master Subject Group Details'
-                                    },
-                                    {
-                                        id: 8,
-                                        name: 'Master Category',
-                                        icon: 'BookOpen',
-                                        url: '/Exam/exam-module/masters/master-category',
-                                        title: 'Master Category',
-                                        description: 'Manage Master Category Details'
-                                    },
-                                    {
-                                        id: 9,
-                                        name: 'Category Class Mapping',
-                                        icon: 'BookOpen',
-                                        url: '/Exam/exam-module/masters/category-class-mapping',
-                                        title: 'Category Class Mapping',
-                                        description: 'Manage Category Class Mapping Details'
+                                        url: '/Exam/exam-module/exam-mapping/exam-term-and-exam-mapping',
+                                        title: 'Exam Term And Exam Mapping',
+                                        description: 'Manage Exam Term And Exam Mapping Details'
                                     }
                                 ]
                             }
