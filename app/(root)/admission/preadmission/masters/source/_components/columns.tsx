@@ -60,7 +60,7 @@ export const masterSourceColumns: ColumnDef<IMasterSourceList>[] = [
 ];
 
 function ActionButtonsCell({ rowData }: { rowData: IMasterSourceList }) {
-    const { openEditForm } = useFormContext<IMasterSourceList>();
+    const { openEditForm, openDeleteForm } = useFormContext<IMasterSourceList>();
 
     const handleEdit = useCallback(
         (data: IMasterSourceList) => {
@@ -69,5 +69,19 @@ function ActionButtonsCell({ rowData }: { rowData: IMasterSourceList }) {
         [openEditForm]
     );
 
-    return <ActionButtons rowData={rowData} buttons={{ edit: true, toggle: false, delete: true }} onEdit={handleEdit} />;
+    const handleDelete = useCallback(
+        (data: IMasterSourceList) => {
+            openDeleteForm(data);
+        },
+        [openDeleteForm]
+    );
+
+    return (
+        <ActionButtons
+            rowData={rowData}
+            buttons={{ edit: true, toggle: false, delete: true }}
+            onEdit={handleEdit}
+            onDelete={handleDelete}
+        />
+    );
 }

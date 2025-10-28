@@ -67,10 +67,10 @@ function MasterDocumentPageContent({
                         error={error}
                         showViewOptions={false}
                         columnPinning={{ right: ['actions'] }}
-                        loadingMessage='Loading master classes...'
-                        noDataTitle='No Master Classes Found'
-                        noDataDescription='Get started by creating your first master class'
-                        errorTitle='Error Loading Classes'
+                        loadingMessage='Loading master document...'
+                        noDataTitle='No Master Document Found'
+                        noDataDescription='Get started by creating your first master document'
+                        errorTitle='Error Loading Document'
                     />
                 </CollapsibleSection>
 
@@ -125,7 +125,7 @@ function FormSections() {
             {isEditFormOpen && selectedRow && (
                 <div ref={editFormRef}>
                     <CollapsibleSection
-                        title='Edit Master Class'
+                        title='Edit Master Document'
                         defaultOpen={true}
                         variant='outline'
                         size='md'

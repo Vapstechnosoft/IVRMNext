@@ -61,7 +61,7 @@ export const masterReferenceColumns: ColumnDef<IMasterReferenceList>[] = [
 ];
 
 function ActionButtonsCell({ rowData }: { rowData: IMasterReferenceList }) {
-    const { openEditForm } = useFormContext<IMasterReferenceList>();
+    const { openEditForm, openDeleteForm } = useFormContext<IMasterReferenceList>();
 
     const handleEdit = useCallback(
         (data: IMasterReferenceList) => {
@@ -70,5 +70,19 @@ function ActionButtonsCell({ rowData }: { rowData: IMasterReferenceList }) {
         [openEditForm]
     );
 
-    return <ActionButtons rowData={rowData} buttons={{ edit: true, toggle: false, delete: true }} onEdit={handleEdit} />;
+    const handleDelete = useCallback(
+        (data: IMasterReferenceList) => {
+            openDeleteForm(data);
+        },
+        [openDeleteForm]
+    );
+
+    return (
+        <ActionButtons
+            rowData={rowData}
+            buttons={{ edit: true, toggle: false, delete: true }}
+            onEdit={handleEdit}
+            onDelete={handleDelete}
+        />
+    );
 }

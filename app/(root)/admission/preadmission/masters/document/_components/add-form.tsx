@@ -28,7 +28,6 @@ export default function AddDocumentForm({ onSuccess, className = '' }: AddDocume
         register,
         handleSubmit,
         control,
-        watch,
         setValue,
         reset,
         formState: { errors, isSubmitting }
@@ -43,7 +42,7 @@ export default function AddDocumentForm({ onSuccess, className = '' }: AddDocume
             const payload = {
                 amsmD_DocumentName: data?.amsmD_DocumentName,
                 amsmD_Description: data?.amsmD_Description,
-                amsmD_FLAG: data?.amsmD_FLAG
+                amsmD_FLAG: data?.amsmD_FLAG === 1
             };
 
             const response = await addOrUpdateMasterDocument(payload);

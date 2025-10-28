@@ -10,6 +10,7 @@ import { Plus, X } from 'lucide-react';
 import { use } from 'react';
 import AddMasterReferenceForm from './_components/add-form';
 import { masterReferenceColumns } from './_components/columns';
+import DeleteMasterReferenceForm from './_components/delete-form';
 import UpdateMasterReferenceForm from './_components/update-form';
 
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
@@ -66,10 +67,10 @@ function MasterReferencePageContent({
                         error={error}
                         showViewOptions={false}
                         columnPinning={{ right: ['actions'] }}
-                        loadingMessage='Loading master classes...'
+                        loadingMessage='Loading master reference...'
                         noDataTitle='No Master Reference Found'
-                        noDataDescription='Get started by creating your first master class'
-                        errorTitle='Error Loading Classes'
+                        noDataDescription='Get started by creating your first master reference'
+                        errorTitle='Error Loading Reference'
                     />
                 </CollapsibleSection>
 
@@ -84,11 +85,11 @@ function FormSections() {
     const {
         isAddFormOpen,
         isEditFormOpen,
-        isToggleFormOpen,
+        isDeleteFormOpen,
         selectedRow,
         closeAddForm,
         closeEditForm,
-        closeToggleForm,
+        closeDeleteForm,
         addFormRef,
         editFormRef
     } = useFormContext<IMasterReferenceList>();
@@ -124,7 +125,7 @@ function FormSections() {
             {isEditFormOpen && selectedRow && (
                 <div ref={editFormRef}>
                     <CollapsibleSection
-                        title='Edit Master Class'
+                        title='Edit Master Reference'
                         defaultOpen={true}
                         variant='outline'
                         size='md'
@@ -143,6 +144,9 @@ function FormSections() {
                     </CollapsibleSection>
                 </div>
             )}
+
+            {/* Delete Form */}
+            {isDeleteFormOpen && selectedRow && <DeleteMasterReferenceForm rowData={selectedRow} onClose={closeDeleteForm} />}
         </>
     );
 }

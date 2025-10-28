@@ -56,7 +56,7 @@ export default function UpdateMasterDocumentForm({ onSuccess, className = '', se
                 amsmD_Id: row.amsmD_Id,
                 amsmD_DocumentName: data?.amsmD_DocumentName,
                 amsmD_Description: data?.amsmD_Description,
-                amsmD_FLAG: data?.amsmD_FLAG
+                amsmD_FLAG: data?.amsmD_FLAG === 1
             };
             const response = await addOrUpdateMasterDocument(payload);
 

@@ -1,4 +1,5 @@
 'use client';
+import { getStatusBadge } from '@/components/extras/helpers/helper';
 import { Checkbox } from '@/components/ui/checkbox';
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
 import { ActionButtons } from '@/components/ui/form/action-buttons';
@@ -51,6 +52,13 @@ export const masterClassColumns: ColumnDef<IMasterDocumentList>[] = [
         enableHiding: true
     },
     {
+        accessorKey: 'amsmD_FLAG',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Mandatory' />,
+        cell: ({ row }) => <div>{getStatusBadge((row.getValue('amsmD_FLAG') as boolean) === true ? 'yes' : 'no')}</div>,
+        enableSorting: false,
+        enableHiding: true
+    },
+    {
         id: 'actions',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Actions' className='text-center' />,
         accessorFn: (row: any) => row,
@@ -79,7 +87,7 @@ function ActionButtonsCell({ rowData }: { rowData: IMasterDocumentList }) {
     return (
         <ActionButtons
             rowData={rowData}
-            buttons={{ edit: false, toggle: true, delete: false }}
+            buttons={{ edit: true, toggle: true, delete: false }}
             onEdit={handleEdit}
             onToggle={handleToggle}
             toggleConditionKey='amsmD_ActiveFlag'
