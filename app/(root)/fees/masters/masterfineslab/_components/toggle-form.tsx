@@ -55,7 +55,7 @@ export default function ToggleFineSlabForm({ rowData, onClose }: ToggleMFineSlab
     };
 
     return (
-        <AdaptiveDialog title='Toggle Master Fee Head Status' isOpen={true} onClose={closeDialog}>
+        <AdaptiveDialog title='Toggle Fine Slab' isOpen={true} onClose={closeDialog}>
             <form onSubmit={handleSubmit(onSubmit)} className='flex flex-col gap-4'>
                 <AdaptiveBody className='flex flex-col gap-5'>
                     <input type='hidden' {...register('fmfS_Id')} defaultValue={rowData.fmfS_Id} />

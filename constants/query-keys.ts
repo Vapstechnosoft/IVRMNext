@@ -43,9 +43,19 @@ export const FEES_QUERY_KEYS = {
     MASTER_INSTALLMENT_DROPDOWN: 'masterInstallmentsDropdown',
     FEE_MASTER_CONCESSION_DETAILS: 'masterfeeconcessiondetails',
     FEE_PAYMENTGATEWAY_DROPDOWN: 'paymentGatewayDropdown',
+
+    FEE_AMOUNT_ENTRY: 'fee_amount_entry',
+    FEE_CATEGORY_DROPDOWN: 'fee_category_dropdown',
+    FEE_GROUP_DROPDOWN: 'fee_group_dropdown',
+    ACADEMIC_DROPDOWN_FEES: 'academic_dropdown_fees',
+    FEES_PRIVILEGE_LIST: 'fees_privilege_list',
+    FEE_WAVIED_OFF: 'fee_waived_off',
+    FEE_OPENING_BALANCE: 'fee_opening_balance'
+
     GROUPS_DROPDOWN: 'groups_dropdown',
     ROLES_DROPDOWN: 'roles_dropdown',
     FEES_PRIVILEGE_LIST: 'fees_privilege_list'
+
 };
 
 export const PREADMISSION_QUERY_KEYS = {
