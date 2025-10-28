@@ -75,3 +75,41 @@ export interface IFeeOpeningBalanceList {
     pdaorfeeType: 'Fees';
     nameFormat: 'NameReg.No' | 'Reg.NoName';
 }
+
+export interface IFeeThirdPartyTransaction {
+    fyptP_Id: number;
+    fyptP_Name: string;
+    fmH_FeeName: string;
+    fmH_Id: number;
+    fyP_Receipt_No: string;
+    fyP_Bank_Name: string;
+    fyP_Bank_Or_Cash: string;
+    fyP_Tot_Amount: number;
+    fyP_DD_Cheque_No: string;
+    fyP_Id: number;
+    fyP_Date: string;
+    asmaY_Year: string;
+    fyptP_Towards: string;
+}
+
+export interface IFeeThirdPartyTransactionGroupDropDown {
+    fmG_Id: number;
+    fmG_GroupName: string;
+}
+
+export interface IFeeThirdPartyTransactionHeadDropDown {
+    fmH_Id: number;
+    fmH_FeeName: string;
+}
+
+export interface IFeeBankDetails {
+    fmbanK_Id: number;
+    mI_Id: number;
+    fmbanK_BankName: string;
+    fmbanK_BankDescription: string;
+    fmbanK_ActiveFlg: boolean;
+    fmbanK_CreatedDate: string;
+    fmbanK_UpdatedDate: string;
+    fmbanK_CreatedBy: number;
+    fmbanK_UpdatedBy: number;
+}

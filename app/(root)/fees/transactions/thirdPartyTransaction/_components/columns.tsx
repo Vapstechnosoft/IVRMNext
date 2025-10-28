@@ -4,11 +4,11 @@ import { DataTableColumnHeader } from '@/components/ui/data-table-column-header'
 import { ActionButtons } from '@/components/ui/form/action-buttons';
 import { useFormContext } from '@/components/ui/form/form-provider';
 
-import type { IFeeAmountEntryList } from '@/types/fees/transactions/transactions';
+import type { IFeeThirdPartyTransaction } from '@/types/fees/transactions/transactions';
 import type { ColumnDef } from '@tanstack/react-table';
 import { useCallback } from 'react';
 
-export const feeAmountEntryColumns: ColumnDef<IFeeAmountEntryList>[] = [
+export const feethirdpartytrasactionColumns: ColumnDef<IFeeThirdPartyTransaction>[] = [
     {
         id: 'select',
         header: ({ table }) => (
@@ -26,7 +26,7 @@ export const feeAmountEntryColumns: ColumnDef<IFeeAmountEntryList>[] = [
         size: 24
     },
     {
-        accessorKey: 'fmA_Id',
+        accessorKey: 'fyptP_Id',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Sl.No' />,
         cell: ({ row, table }) => {
             const pageIndex = table.getState().pagination.pageIndex;
@@ -38,45 +38,61 @@ export const feeAmountEntryColumns: ColumnDef<IFeeAmountEntryList>[] = [
         enableHiding: false
     },
     {
-        accessorKey: 'fmG_GroupName',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Group Name' />,
-        cell: ({ row }) => <div>{row.getValue('fmG_GroupName')}</div>,
-        enableSorting: true,
-        enableHiding: true
-    },
-    {
-        accessorKey: 'asmaY_Year',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Academic Year	' />,
-        cell: ({ row }) => <div>{row.getValue('asmaY_Year')}</div>,
-        enableSorting: true,
-        enableHiding: true
-    },
-
-    {
-        accessorKey: 'fmcC_ClassCategoryName',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Category' />,
-        cell: ({ row }) => <div>{row.getValue('fmcC_ClassCategoryName')}</div>,
+        accessorKey: 'fyptP_Name',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Student Name' />,
+        cell: ({ row }) => <div>{row.getValue('fyptP_Name')}</div>,
         enableSorting: true,
         enableHiding: true
     },
     {
         accessorKey: 'fmH_FeeName',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Head Name' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Head Name	' />,
         cell: ({ row }) => <div>{row.getValue('fmH_FeeName')}</div>,
         enableSorting: true,
         enableHiding: true
     },
+
     {
-        accessorKey: 'ftI_Name',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Installment' />,
-        cell: ({ row }) => <div>{row.getValue('ftI_Name')}</div>,
+        accessorKey: 'asmaY_Year',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Academic Year' />,
+        cell: ({ row }) => <div>{row.getValue('asmaY_Year')}</div>,
         enableSorting: true,
         enableHiding: true
     },
     {
-        accessorKey: 'fmA_Amount',
+        accessorKey: 'fyP_Receipt_No',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Receipt No' />,
+        cell: ({ row }) => <div>{row.getValue('fyP_Receipt_No')}</div>,
+        enableSorting: true,
+        enableHiding: true
+    },
+    {
+        accessorKey: 'fyP_Tot_Amount',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Amount' />,
-        cell: ({ row }) => <div>{row.getValue('fmA_Amount')}</div>,
+        cell: ({ row }) => <div>{row.getValue('fyP_Tot_Amount')}</div>,
+        enableSorting: true,
+        enableHiding: true
+    },
+    {
+        accessorKey: 'fyptP_Towards',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Remarks' />,
+        cell: ({ row }) => <div>{row.getValue('fyptP_Towards')}</div>,
+        enableSorting: true,
+        enableHiding: true
+    },
+
+    {
+        accessorKey: 'fyP_Date',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Date' />,
+        cell: ({ row }) => <div>{row.getValue('fyP_Date')}</div>,
+        enableSorting: true,
+        enableHiding: true
+    },
+
+    {
+        accessorKey: 'fyP_Bank_Or_Cash',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Mode Of Payment' />,
+        cell: ({ row }) => <div>{row.getValue('fyP_Bank_Or_Cash')}</div>,
         enableSorting: true,
         enableHiding: true
     },
@@ -90,18 +106,18 @@ export const feeAmountEntryColumns: ColumnDef<IFeeAmountEntryList>[] = [
     }
 ];
 
-function ActionButtonsCell({ rowData }: { rowData: IFeeAmountEntryList }) {
-    const { openEditForm, openToggleForm } = useFormContext<IFeeAmountEntryList>();
+function ActionButtonsCell({ rowData }: { rowData: IFeeThirdPartyTransaction }) {
+    const { openEditForm, openToggleForm } = useFormContext<IFeeThirdPartyTransaction>();
 
     const handleEdit = useCallback(
-        (data: IFeeAmountEntryList) => {
+        (data: IFeeThirdPartyTransaction) => {
             openEditForm(data);
         },
         [openEditForm]
     );
 
     const handleToggle = useCallback(
-        (data: IFeeAmountEntryList) => {
+        (data: IFeeThirdPartyTransaction) => {
             openToggleForm(data);
         },
         [openToggleForm]
