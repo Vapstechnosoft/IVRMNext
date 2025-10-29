@@ -40,6 +40,8 @@ export default function ToggleFineSlabForm({ rowData, onClose }: ToggleMFineSlab
 
     const onSubmit: SubmitHandler<FormFields | any> = async () => {
         try {
+            const toggledata = rowData.fmfS_Id;
+            console.log('Toggle data ID:', toggledata);
             const response = await toggleFineSlab(30, Number(rowData.fmfS_Id));
 
             if (response.success) {

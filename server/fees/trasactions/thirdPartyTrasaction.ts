@@ -11,24 +11,24 @@ import type {
 
 export async function getThirdPartyTrasaction(searchParams?: ApiSearchparams) {
     const urlParams = getSearchParamsUrl(searchParams ?? {});
-    const url = `ThirdPartyTransactionFacade/GetThirdPartyTransactionList30?${urlParams}`;
+    const url = `ThirdPartyTransaction/GetThirdPartyTransactionList/30?${urlParams}`;
     return await api.get<IFeeThirdPartyTransaction[]>('fees', url);
 }
 
 export async function getThirdPartyTrasactionGroupDropDown(searchParams?: ApiSearchparams) {
     const urlParams = getSearchParamsUrl(searchParams ?? {});
-    const url = `ThirdPartyTransactionFacade/group_drop_down_list/30?${urlParams}`;
+    const url = `ThirdPartyTransaction/group_drop_down_list/30?${urlParams}`;
     return await api.get<IFeeThirdPartyTransactionGroupDropDown[]>('fees', url);
 }
 
 export async function getThirdPartyTrasactionHeadDropDown(searchParams?: ApiSearchparams) {
     const urlParams = getSearchParamsUrl(searchParams ?? {});
-    const url = `ThirdPartyTransactionFacade/head_drop_down_list/30?${urlParams}`;
+    const url = `ThirdPartyTransaction/head_drop_down_list/30?${urlParams}`;
     return await api.get<IFeeThirdPartyTransactionHeadDropDown[]>('fees', url);
 }
 
 export async function getThirdPartyTrasactionBankDropDown(searchParams?: ApiSearchparams) {
     const urlParams = getSearchParamsUrl(searchParams ?? {});
-    const url = `ThirdPartyTransactionFacade/bank_drop_down_list/30?${urlParams}`;
+    const url = `ThirdPartyTransaction/bank_drop_down_list/30?${urlParams}`;
     return await api.get<IFeeBankDetails[]>('fees', url);
 }

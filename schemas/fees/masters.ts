@@ -102,7 +102,7 @@ export const fineslabSchema = {
             }
         }),
     delete: z.object({
-        fmfS_Id: z.number({ message: 'fmfS_Id is required for deletion' })
+        fmfS_Id: deleteIdSchema('fmfS_Id')
     })
 };
 // export const fineslabSchema = {
@@ -316,8 +316,8 @@ export const masterTermFeeHeadSchema = {
         heads: z.array(z.string()).nonempty('Please select at least one Head'),
         //terms: z.array(z.string()).nonempty('Please select Term'),
         installments: z.array(z.string()).nonempty('Please select at least one Term'),
-        fmT_Id: z.number({ message: 'Term is required' }),
-        ftI_Id: z.number({ message: 'Installment is required' })
+        fmT_Id: z.number({ message: 'Term is required' })
+        // ftI_Id: z.number({ message: 'Installment is required' })
     }),
     delete: z.object({
         // FPGD_Id: deleteIdSchema('FPGD_Id')
