@@ -171,7 +171,7 @@ export default function UpdatePaymentGatewayDetailsForm({ onSuccess, selectedRow
                     </Label>
                     <Controller
                         name='impG_Id'
-                        rules={{ required: true }}
+                        rules={{ required: 'Gateway Name is required' }}
                         control={control}
                         render={({ field }) => (
                             <Select onValueChange={(value) => field.onChange(Number(value))} value={field.value?.toString() || undefined}>

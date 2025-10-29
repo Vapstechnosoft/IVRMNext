@@ -55,11 +55,11 @@ export default function UpdateMasterConcessionForm({ onSuccess, fineslab = '', s
             const { fmcC_ConcessionName, fmcC_ConcessionApplLimit } = data;
             const payload = {
                 mi_id: 30,
-                fmcC_Id: row.fmcC_Id,
+                // fmcC_Id: row.fmcC_Id,
                 fmcC_ConcessionName: fmcC_ConcessionName,
-                fmcC_ConcessionApplLimit: fmcC_ConcessionApplLimit.toString(),
-                fmcC_ConcessionFlag: '',
-                fmcC_ActiveFlag: row.fmcC_ActiveFlag
+                fmcC_ConcessionApplLimit: fmcC_ConcessionApplLimit.toString()
+                // fmcC_ConcessionFlag: '',
+                // fmcC_ActiveFlag: row.fmcC_ActiveFlag
             };
 
             const response = await addOrUpdateMasterConcession(payload);
