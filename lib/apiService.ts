@@ -179,6 +179,31 @@ class ApiService {
     public addBaseUrl(key: string, baseUrl: string): void {
         this.baseUrls[key as ApiBaseUrlKey] = baseUrl;
     }
+
+    public async postMultipart<T>(
+        baseUrlKey: ApiBaseUrlKey,
+        url: string,
+        formData: FormData,
+        config?: AxiosRequestConfig
+    ): Promise<ApiResponse<T>> {
+        try {
+            const instance = this.getOrCreateInstance(baseUrlKey);
+
+            // Override Content-Type so axios sets it properly for FormData
+            const finalConfig: AxiosRequestConfig = {
+                ...config,
+                headers: {
+                    ...(config?.headers || {}),
+                    'Content-Type': undefined // Let axios auto-set boundary
+                }
+            };
+
+            const response = await instance.post<ApiResponse<T>>(url, formData, finalConfig);
+            return response.data;
+        } catch (error) {
+            throw this.handleError(error);
+        }
+    }
 }
 
 // Create a singleton instance

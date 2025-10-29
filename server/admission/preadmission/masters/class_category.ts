@@ -10,28 +10,28 @@ import type {
 } from '@/types/admission/preadmission/masters';
 
 export async function getMasterClassCategory(searchParams?: ApiSearchparams) {
-    const urlParams = getSearchParamsUrl(searchParams ?? {});
-    const url = `/master_class_category/30?${urlParams}`;
+    const urlParams = getSearchParamsUrl(searchParams ?? {}, 'asmaY_Year,amC_Name,asmcL_ClassName');
+    const url = `/master_class_category?${urlParams}`;
     return await api.get<IMasterClassCategoryList[]>('admission', url);
 }
 
 export async function getAcademicYearDropdown() {
-    const url = '/master_class_category/academic_year_drop_down_list/30';
+    const url = '/master_class_category/academic_year_drop_down_list';
     return await api.get<IAcademicYearDropDown[]>('admission', url);
 }
 
 export async function getMasterCategoryDropdown() {
-    const url = '/master_class_category/master_category_drop_down_list/30';
+    const url = '/master_class_category/master_category_drop_down_list';
     return await api.get<IMasterCategoryDropDown[]>('admission', url);
 }
 
 export async function getMasterClassDropdown() {
-    const url = '/master_class_category/master_class_drop_down_list/30';
+    const url = '/master_class_category/master_class_drop_down_list';
     return await api.get<IMasterClassDropDown[]>('admission', url);
 }
 
 export async function getMasterSectionDropdown() {
-    const url = '/master_class_category/master_section_drop_down_list/30';
+    const url = '/master_class_category/master_section_drop_down_list';
     return await api.get<IMasterClassDropDown[]>('admission', url);
 }
 
@@ -41,6 +41,6 @@ export async function addMasterClassCategory(data: any) {
 }
 
 export async function toggleMasterClassCategory(id: number) {
-    const url = `/master_class_category/toggle/30/${id}`;
+    const url = `/master_class_category/toggle/${id}`;
     return await api.put('admission', url);
 }

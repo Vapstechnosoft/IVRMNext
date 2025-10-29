@@ -1,26 +1,62 @@
+import {
+    createAlphanumericSchema,
+    createOptionalStringSchema,
+    createStringOnlySchema,
+    createStringSchema,
+    deleteIdSchema
+} from '@/schemas/validationSchemas';
 import { z } from 'zod';
-import { createStringSchema, deleteIdSchema } from '../../validationSchemas';
 
 export const loginSchema = z.object({
-    email: z.string({ message: 'Email is required' }),
+    email: z
+        .string({ message: 'Username is required' })
+        .nonempty({ message: 'Username is required' })
+        .refine((value) => value.trim() === value, {
+            message: 'Username cannot have leading or trailing spaces'
+        }),
     password: createStringSchema('Password', 6, 50)
 });
 
 export const masterClassSchema = {
-    addOrUpdate: z.object({
-        asmcl_id: z.number().int({ message: 'ASMCL_Id is required' }).optional(),
-        asmcl_classcode: createStringSchema('Code', 1, 100),
-        asmcl_classname: createStringSchema('Name', 1, 100),
-        asmcl_maxcapacity: z.number().int({ message: 'Max Capacity is required' }),
-        asmcl_order: z.number().int({ message: 'Class Order is required' }),
-        asmcl_minageyear: z.number().int({ message: 'Min Age Year is required' }),
-        asmcl_minagemonth: z.number().int({ message: 'Min Age Month is required' }),
-        asmcl_minagedays: z.number().int({ message: 'Min Age Day is required' }),
-        asmcl_maxageyear: z.number().int({ message: 'Max Age Year is required' }),
-        asmcl_maxagemonth: z.number().int({ message: 'Max Age Month is required' }),
-        asmcl_maxagedays: z.number().int({ message: 'Max Age Day is required' }),
-        asmcl_preadmflag: z.number().int({ message: 'Preadm Flag is required' })
-    }),
+    addOrUpdate: z
+        .object({
+            asmcl_id: z.number().int({ message: 'ASMCL_Id is required' }).optional(),
+            asmcl_classcode: createAlphanumericSchema('Code', 1, 10),
+            asmcl_classname: createStringOnlySchema('Name', 1, 50),
+            asmcl_maxcapacity: z
+                .number()
+                .int({ message: 'Max Capacity is required' })
+                .min(1, 'Max Capacity must be at least 1')
+                .max(500, 'Max Capacity must not exceed 500'),
+            asmcl_order: z.number().int({ message: 'Class Order is required' }),
+            asmcl_minageyear: z.number().int().min(0, 'Min Age Year must be at least 0').max(100, 'Min Age Year must not exceed 100'),
+            asmcl_minagemonth: z.number().int().min(0, 'Min Age Month must be at least 0').max(11, 'Min Age Month must be between 0-11'),
+            asmcl_minagedays: z.number().int().min(0, 'Min Age Days must be at least 0').max(31, 'Min Age Days must be between 0-31'),
+            asmcl_maxageyear: z.number().int().min(0, 'Max Age Year must be at least 0').max(100, 'Max Age Year must not exceed 100'),
+            asmcl_maxagemonth: z.number().int().min(0, 'Max Age Month must be at least 0').max(11, 'Max Age Month must be between 0-11'),
+            asmcl_maxagedays: z.number().int().min(0, 'Max Age Days must be at least 0').max(31, 'Max Age Days must be between 0-31'),
+            asmcl_preadmflag: z.number().int({ message: 'Preadm Flag is required' })
+        })
+        .refine(
+            (data) => {
+                // Compare year first
+                if (data.asmcl_minageyear > data.asmcl_maxageyear) return false;
+                if (data.asmcl_minageyear < data.asmcl_maxageyear) return true;
+
+                // Years are equal, compare months
+                if (data.asmcl_minagemonth > data.asmcl_maxagemonth) return false;
+                if (data.asmcl_minagemonth < data.asmcl_maxagemonth) return true;
+
+                // Years and months are equal, compare days
+                if (data.asmcl_minagedays >= data.asmcl_maxagedays) return false;
+
+                return true;
+            },
+            {
+                message: 'Minimum age must be less than maximum age',
+                path: ['asmcl_maxageyear']
+            }
+        ),
     delete: z.object({
         asmcL_Id: deleteIdSchema('asmcL_Id')
     })
@@ -31,7 +67,7 @@ export const masterCategorySchema = {
         amC_Id: z.number().int({ message: 'AMC_ID is required' }).optional(),
         amC_Name: createStringSchema('Category Name', 1, 100),
         amC_Address: createStringSchema('Address', 1, 200),
-        amC_Type: createStringSchema('Category Type', 1, 200)
+        amC_Type: z.string().nonempty({ message: 'Category Type is required' })
     }),
     delete: z.object({
         amC_Id: deleteIdSchema('amC_Id')
@@ -41,9 +77,13 @@ export const masterCategorySchema = {
 export const masterSectionSchema = {
     addOrUpdate: z.object({
         asmS_Id: z.number().int({ message: 'AsmS_Id is required' }).optional(),
-        asmc_sectioncode: createStringSchema('Code', 1, 100),
-        asmc_sectionname: createStringSchema('Name', 1, 100),
-        asmc_maxcapacity: z.number().int({ message: 'Max Capacity is required' }),
+        asmc_sectioncode: createAlphanumericSchema('Code', 1, 5),
+        asmc_sectionname: createStringSchema('Name', 1, 20),
+        asmc_maxcapacity: z
+            .number()
+            .min(1, { message: 'Minimum Capacity should be 1' })
+            .max(100, { message: 'Maximum Capacity is 100' })
+            .int({ message: 'Max Capacity is required' }),
         asmc_order: z.number().int({ message: 'Section Order is required' })
     }),
     delete: z.object({
@@ -54,7 +94,7 @@ export const masterSectionSchema = {
 export const masterReligionSchema = {
     addOrUpdate: z.object({
         ivrmmR_Id: z.number().int({ message: 'IVRMMR_ID is required' }).optional(),
-        ivrmmR_Name: createStringSchema('Religion Name', 1, 100)
+        ivrmmR_Name: createStringSchema('Religion Name', 1, 50)
     }),
     delete: z.object({
         ivrmmR_Id: deleteIdSchema('ivrmmR_Id')
@@ -77,8 +117,8 @@ export const masterCasteCategorySchema = {
     addOrUpdate: z.object({
         imcC_Id: z.number().int({ message: 'IMCC_ID is required' }).optional(),
         imcC_CategoryCode: z.string().nonempty({ message: 'Caste Category Code is required' }),
-        imcC_CategoryName: createStringSchema('Caste Category Code', 1, 100),
-        imcC_CategoryDesc: createStringSchema('Caste Category Description', 1, 100)
+        imcC_CategoryName: createStringSchema('Caste Category Code', 1, 50),
+        imcC_CategoryDesc: createStringSchema('Caste Category Description', 1, 500)
     }),
     delete: z.object({
         imcC_Id: deleteIdSchema('imcC_Id')
@@ -90,9 +130,54 @@ export const masterCasteSchema = {
         imC_Id: z.number().int({ message: 'IMC_ID is required' }).optional(),
         imcC_Id: z.number().int({ message: 'Caste Category is required' }),
         imC_CasteName: createStringSchema('Caste Caste Code', 1, 100),
-        imC_CasteDesc: createStringSchema('Caste Caste Description', 1, 100)
+        imC_CasteDesc: createStringSchema('Caste Caste Description', 1, 500)
     }),
     delete: z.object({
         imC_Id: deleteIdSchema('imC_Id')
+    })
+};
+
+export const masterDocumentSchema = {
+    addOrUpdate: z.object({
+        amsmD_Id: z.number().int({ message: 'AMSMD_ID is required' }).optional(),
+        amsmD_DocumentName: createStringSchema('Document Name', 1, 100),
+        amsmD_Description: createOptionalStringSchema('Description', 1, 1000),
+        amsmD_FLAG: z.number().int({ message: 'Mandatory Flag is required' })
+    }),
+    delete: z.object({
+        amsmD_Id: deleteIdSchema('amsmD_Id')
+    })
+};
+
+export const masterReferenceSchema = {
+    addOrUpdate: z.object({
+        pamR_Id: z.number().int({ message: 'PAMR_Id is required' }).optional(),
+        pamR_ReferenceName: createStringSchema('Reference Name', 1, 50),
+        pamR_ReferenceDesc: createStringSchema('Description', 1, 500)
+    }),
+    delete: z.object({
+        pamR_Id: deleteIdSchema('pamR_Id')
+    })
+};
+
+export const masterSourceSchema = {
+    addOrUpdate: z.object({
+        pamS_Id: z.number().int({ message: 'PAMS_ID is required' }).optional(),
+        pamS_SourceName: createStringSchema('Source Name', 1, 50),
+        pamS_SourceDesc: createStringSchema('Description', 1, 500)
+    }),
+    delete: z.object({
+        pamS_Id: deleteIdSchema('pamS_Id')
+    })
+};
+
+export const masterReligionCasteCategorySchema = {
+    add: z.object({
+        ircC_Id: z.number().int({ message: 'IRCC_ID is required' }).optional(),
+        ivrmmR_Id: z.number().int({ message: 'Religion is required' }),
+        caste_category_ids: z.array(z.string()).nonempty('Please select at least one caste category')
+    }),
+    delete: z.object({
+        ircC_Id: deleteIdSchema('ircC_Id')
     })
 };

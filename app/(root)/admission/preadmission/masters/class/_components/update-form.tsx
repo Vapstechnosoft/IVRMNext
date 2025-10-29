@@ -74,7 +74,6 @@ export default function UpdateMasterClassForm({ onSuccess, className = '', selec
                 asmcl_preadmflag
             } = data;
             const payload = {
-                MI_Id: 30,
                 ASMCL_Id: row.asmcL_Id,
                 ASMCL_ClassCode: asmcl_classcode,
                 ASMCL_ClassName: asmcl_classname,
@@ -144,6 +143,7 @@ export default function UpdateMasterClassForm({ onSuccess, className = '', selec
                                         defaultValue={row.asmcL_MaxCapacity || 0}
                                         onChange={(value) => field.onChange(value)}
                                         minValue={0}
+                                        step={1}
                                     />
                                 )}
                             />
@@ -161,6 +161,7 @@ export default function UpdateMasterClassForm({ onSuccess, className = '', selec
                                         defaultValue={row.asmcL_Order}
                                         onChange={(value) => field.onChange(value)}
                                         minValue={0}
+                                        step={1}
                                     />
                                 )}
                             />
@@ -180,6 +181,8 @@ export default function UpdateMasterClassForm({ onSuccess, className = '', selec
                                         defaultValue={row.asmcL_MinAgeYear}
                                         onChange={(value) => field.onChange(value)}
                                         minValue={0}
+                                        maxValue={100}
+                                        step={1}
                                     />
                                 )}
                             />
@@ -197,6 +200,8 @@ export default function UpdateMasterClassForm({ onSuccess, className = '', selec
                                         defaultValue={row.asmcL_MinAgeMonth}
                                         onChange={(value) => field.onChange(value)}
                                         minValue={0}
+                                        maxValue={11}
+                                        step={1}
                                     />
                                 )}
                             />
@@ -214,6 +219,8 @@ export default function UpdateMasterClassForm({ onSuccess, className = '', selec
                                         defaultValue={row.asmcL_MinAgeDays}
                                         onChange={(value) => field.onChange(value)}
                                         minValue={0}
+                                        maxValue={31}
+                                        step={1}
                                     />
                                 )}
                             />
@@ -233,6 +240,8 @@ export default function UpdateMasterClassForm({ onSuccess, className = '', selec
                                         defaultValue={row.asmcL_MaxAgeYear}
                                         onChange={(value) => field.onChange(value)}
                                         minValue={0}
+                                        maxValue={100}
+                                        step={1}
                                     />
                                 )}
                             />
@@ -250,6 +259,8 @@ export default function UpdateMasterClassForm({ onSuccess, className = '', selec
                                         defaultValue={row.asmcL_MaxAgeMonth}
                                         onChange={(value) => field.onChange(value)}
                                         minValue={0}
+                                        maxValue={11}
+                                        step={1}
                                     />
                                 )}
                             />
@@ -267,6 +278,8 @@ export default function UpdateMasterClassForm({ onSuccess, className = '', selec
                                         defaultValue={row.asmcL_MaxAgeDays}
                                         onChange={(value) => field.onChange(value)}
                                         minValue={0}
+                                        maxValue={31}
+                                        step={1}
                                     />
                                 )}
                             />

@@ -62,6 +62,7 @@ function MasterClassCategoryPageContent({
                         columns={masterClassCategoryColumns}
                         isLoading={isLoading}
                         error={error}
+                        showViewOptions={false}
                         columnPinning={{ right: ['actions'] }}
                         loadingMessage='Loading master class categories...'
                         noDataTitle='No Master class categories Found'

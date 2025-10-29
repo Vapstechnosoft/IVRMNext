@@ -8,6 +8,8 @@ import { createRouterMatcher } from './lib/routeMatcher';
 const routeMatcher = createRouterMatcher([
     { matcher: AUTH_ROUTES.SIGN_IN, auth: false },
     { matcher: AUTH_ROUTES.TERMS, auth: false },
+    { matcher: '/admission/preadmission/transactions/application-form/payment/success', auth: false },
+    { matcher: '/admission/preadmission/transactions/application-form/payment/failure', auth: false },
     { matcher: ROUTES.DASHBOARD, auth: true },
     {
         matcher: ROUTES.ADMISSION.ADMISSION_SUB_MENUS.PREADMISSION,
@@ -23,8 +25,50 @@ export async function middleware(request: NextRequest) {
     const isLoggedIn = session;
     const userRole = session?.role;
 
-    // Check for which must be accessible even without login - allow access to page and its sub-paths
+    // ✅ FIXED: Only intercept OLD payment page routes, not API routes
+    if (request.method === 'POST') {
+        // Check if POST is to OLD page routes (not API routes)
+        if (pathname.startsWith('/admission/preadmission/transactions/application-form/payment/success/')) {
+            const transactionId = pathname.split('/').pop();
+            const baseUrl = process.env.NEXT_PUBLIC_APP_URL || request.nextUrl.origin;
+            console.log('baseUrl Success POST Middleware', baseUrl);
+
+            const redirectUrl = `${baseUrl}/api/payment/callback/success?transaction_id=${transactionId}`;
+            const response = NextResponse.redirect(redirectUrl, { status: 307 });
+
+            response.headers.set('Cache-Control', 'no-store, no-cache, must-revalidate');
+            response.headers.set('Pragma', 'no-cache');
+
+            return response;
+        }
+
+        if (pathname.startsWith('/admission/preadmission/transactions/application-form/payment/failure/')) {
+            const transactionId = pathname.split('/').pop();
+            const baseUrl = process.env.NEXT_PUBLIC_APP_URL || request.nextUrl.origin;
+            console.log('baseUrl Failure POST Middleware', baseUrl);
+
+            const redirectUrl = `${baseUrl}/api/payment/callback/failure?transaction_id=${transactionId}`;
+            const response = NextResponse.redirect(redirectUrl, { status: 307 });
+
+            response.headers.set('Cache-Control', 'no-store, no-cache, must-revalidate');
+            response.headers.set('Pragma', 'no-cache');
+
+            return response;
+        }
+    }
+
+    // ✅ Allow API payment callback routes to pass through without auth
+    if (pathname.startsWith('/api/payment/callback/')) {
+        return NextResponse.next();
+    }
+
+    // Check for which must be accessible even without login
     if (pathname === AUTH_ROUTES.TERMS) {
+        return NextResponse.next();
+    }
+
+    // Allow payment result pages (success/failure display pages)
+    if (pathname.startsWith('/admission/preadmission/transactions/application-form/payment/')) {
         return NextResponse.next();
     }
 
@@ -50,12 +94,10 @@ export async function middleware(request: NextRequest) {
     const matchedRoute = routeMatcher(pathname);
 
     if (!matchedRoute) {
-        // If no route matches, continue or handle as needed (e.g., redirect to 404)
         return NextResponse.next();
     }
 
     if (matchedRoute.auth && !isLoggedIn) {
-        // Redirect unauthenticated users to sign-in
         const callbackUrl = encodeURIComponent(pathname);
         return NextResponse.redirect(new URL(`${AUTH_ROUTES.SIGN_IN}?callbackUrl=${callbackUrl}`, request.url));
     }
@@ -63,12 +105,10 @@ export async function middleware(request: NextRequest) {
     if (matchedRoute.role) {
         const roles = Array.isArray(matchedRoute.role) ? matchedRoute.role : [matchedRoute.role];
         if (userRole && !roles.includes(userRole)) {
-            // Redirect users without the required role
             return NextResponse.redirect(new URL(ROUTES.DASHBOARD, request.url));
         }
     }
 
-    // Handle home redirection from sign-in
     if (pathname === '/' && isLoggedIn) {
         const redirectedFrom = request.nextUrl.searchParams.get('redirectedFrom');
         if (redirectedFrom === AUTH_ROUTES.SIGN_IN) {

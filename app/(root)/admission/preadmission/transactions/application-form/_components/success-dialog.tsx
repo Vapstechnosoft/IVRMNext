@@ -7,7 +7,7 @@ export default function ApplicationFormSuccessDialog({ isOpen, onClose }: { isOp
     return (
         <div className='flex min-h-screen items-center justify-center bg-gradient-to-br from-slate-50 to-slate-100 p-4'>
             <AdaptiveDialog
-                title=''
+                title='Application Submitted Successfully'
                 isOpen={isOpen}
                 onClose={onClose}
                 size='md'

@@ -8,8 +8,11 @@ import {
     getReferenceDropdown,
     getReligionDropdown,
     getSourceDropdown,
-    getStateDropdown
+    getStateDropdown,
+    getStudentApplicationList
 } from '@/server/admission/preadmission/transactions/application_form';
+import { getExportPreadmissionStudentList } from '@/server/admission/preadmission/transactions/export_preadmission';
+import { getPreadmissionStatusCountReport } from '@/server/admission/preadmission/transactions/preadmission_reports';
 import {
     getActivePreadmissionDetails,
     getApplicationStatusDropdown,
@@ -143,13 +146,13 @@ export const useReferenceDropdown = () => {
     };
 };
 
-export const usePreadmissionDocumentsDropdown = (mi_id: number) => {
+export const usePreadmissionDocumentsDropdown = () => {
     const queryClient = useQueryClient();
 
     return {
         ...useQuery({
-            queryKey: [PREADMISSION_QUERY_KEYS.PREADMISSION_DOCUMENTS_DROPDOWN, mi_id],
-            queryFn: async () => getPreadmissionDocumentDropdown(mi_id),
+            queryKey: [PREADMISSION_QUERY_KEYS.PREADMISSION_DOCUMENTS_DROPDOWN],
+            queryFn: async () => getPreadmissionDocumentDropdown(),
             staleTime: 0
         }),
         refetchAll: () => {
@@ -189,6 +192,24 @@ export const useActivePreadmissionDetails = () => {
         refetchAll: () => {
             return queryClient.invalidateQueries({
                 queryKey: [PREADMISSION_QUERY_KEYS.ACTIVE_PREADMISSION_DETAILS]
+            });
+        }
+    };
+};
+
+export const useStudentApplicationList = (asmay_id: number, searchParams?: ApiSearchparams) => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [PREADMISSION_QUERY_KEYS.STUDENT_APPLICATION_LIST, asmay_id, searchParams ?? {}],
+            queryFn: async () => getStudentApplicationList(asmay_id, searchParams),
+            staleTime: 0,
+            enabled: !!asmay_id
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [PREADMISSION_QUERY_KEYS.STUDENT_APPLICATION_LIST]
             });
         }
     };
@@ -259,6 +280,41 @@ export const usePreadmissionStudentList = (asmay_id: number, asmcl_id: number, p
         refetchAll: () => {
             return queryClient.invalidateQueries({
                 queryKey: [PREADMISSION_QUERY_KEYS.PREADMISSION_STUDENT_LIST]
+            });
+        }
+    };
+};
+
+export const useExportPreadmissionStudentList = (asmay_id: number, asmcl_id: number, searchParams?: ApiSearchparams) => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [PREADMISSION_QUERY_KEYS.EXPORT_PREADMISSION_STUDENT_LIST, asmay_id, asmcl_id, searchParams ?? {}],
+            queryFn: async () => getExportPreadmissionStudentList(asmay_id, asmcl_id, searchParams),
+            staleTime: 0,
+            enabled: !!asmay_id && asmcl_id !== undefined
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [PREADMISSION_QUERY_KEYS.EXPORT_PREADMISSION_STUDENT_LIST]
+            });
+        }
+    };
+};
+
+export const usePreadmissionStatusCountReport = () => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [PREADMISSION_QUERY_KEYS.PREADMISSION_STATUS_COUNT_REPORT],
+            queryFn: async () => getPreadmissionStatusCountReport(),
+            staleTime: 0
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [PREADMISSION_QUERY_KEYS.PREADMISSION_STATUS_COUNT_REPORT]
             });
         }
     };

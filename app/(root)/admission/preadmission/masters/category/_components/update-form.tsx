@@ -54,7 +54,6 @@ export default function UpdateMasterCategoryForm({ onSuccess, className = '', se
         try {
             const { amC_Id, amC_Name, amC_Address, amC_Type } = data;
             const payload = {
-                MI_Id: 30,
                 AMC_Id: amC_Id,
                 AMC_Name: amC_Name,
                 AMC_Address: amC_Address,
@@ -89,6 +88,35 @@ export default function UpdateMasterCategoryForm({ onSuccess, className = '', se
             <form onSubmit={handleSubmit(onSubmit)} className='space-y-6'>
                 <div className='space-y-4'>
                     <div className='grid grid-cols-1 gap-4 md:grid-cols-4'>
+                        <div className='group flex flex-col gap-1.5'>
+                            <Label aria-label='Category Type' htmlFor='amC_Type'>
+                                Category Type <span className='ml-1 text-red-500'>*</span>
+                            </Label>
+                            <Controller
+                                name='amC_Type'
+                                control={control}
+                                render={({ field }) => (
+                                    <Select
+                                        onValueChange={(value) => {
+                                            field.onChange(value);
+                                        }}
+                                        value={field.value?.toString() || row.amC_Type}>
+                                        <SelectTrigger className='w-full'>
+                                            <SelectValue placeholder='Select a Category' />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem key={'School'} value={'School'}>
+                                                School
+                                            </SelectItem>
+                                            <SelectItem key={'College'} value={'College'}>
+                                                College
+                                            </SelectItem>
+                                        </SelectContent>
+                                    </Select>
+                                )}
+                            />
+                            {errors.amC_Type && <FormError>{errors.amC_Type.message}</FormError>}
+                        </div>
                         <InputText
                             label='Category Name'
                             required
@@ -108,35 +136,6 @@ export default function UpdateMasterCategoryForm({ onSuccess, className = '', se
                             className='transition-colors focus:ring-2 focus:ring-primary/20'
                             minHeight={20}
                         />
-                        <div className='group flex flex-col gap-1.5'>
-                            <Label aria-label='Category Type' htmlFor='amC_Type'>
-                                Category Type <span className='ml-1 text-red-500'>*</span>
-                            </Label>
-                            <Controller
-                                name='amC_Type'
-                                control={control}
-                                render={({ field }) => (
-                                    <Select
-                                        onValueChange={(value) => {
-                                            field.onChange(Number(value));
-                                        }}
-                                        value={field.value?.toString() || undefined}>
-                                        <SelectTrigger className='w-full'>
-                                            <SelectValue placeholder='Select a Category' />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            <SelectItem key={'School'} value={'School'}>
-                                                School
-                                            </SelectItem>
-                                            <SelectItem key={'College'} value={'College'}>
-                                                College
-                                            </SelectItem>
-                                        </SelectContent>
-                                    </Select>
-                                )}
-                            />
-                            {errors.amC_Type && <FormError>{errors.amC_Type.message}</FormError>}
-                        </div>
                     </div>
 
                     {/* Root Error */}

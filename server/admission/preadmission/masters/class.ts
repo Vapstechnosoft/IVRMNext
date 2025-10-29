@@ -5,8 +5,8 @@ import type { ApiSearchparams } from '@/types';
 import type { IMasterClassList } from '@/types/admission/preadmission/masters';
 
 export async function getMasterClass(searchParams?: ApiSearchparams) {
-    const urlParams = getSearchParamsUrl(searchParams ?? {});
-    const url = `/master_class/30?${urlParams}`;
+    const urlParams = getSearchParamsUrl(searchParams ?? {}, 'asmcL_ClassCode,asmcL_ClassName');
+    const url = `/master_class?${urlParams}`;
     return await api.get<IMasterClassList[]>('admission', url);
 }
 
@@ -15,7 +15,7 @@ export async function addOrUpdateMasterClass(data: any) {
     return await api.post<any>('admission', url, data);
 }
 
-export async function toggleMasterClass(mi_id: number, id: number) {
-    const url = `/master_class/toggle/${mi_id}/${id}`;
+export async function toggleMasterClass(id: number) {
+    const url = `/master_class/toggle/${id}`;
     return await api.put('admission', url);
 }

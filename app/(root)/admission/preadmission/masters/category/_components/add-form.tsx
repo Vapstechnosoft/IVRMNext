@@ -39,15 +39,14 @@ export default function AddMasterCategoryForm({ onSuccess, className = '' }: Add
         try {
             const { amC_Name, amC_Address, amC_Type } = data;
             const payload = {
-                MI_Id: 30,
-                AMC_Id: 0,
-                AMC_Name: amC_Name,
-                AMC_Address: amC_Address,
-                AMC_Type: amC_Type,
-                AMC_RegNoPrefix: '',
-                AMC_Logo: '',
-                AMC_FilePath: '',
-                AMC_ActiveFlag: true
+                amC_Id: 0,
+                amC_Name: amC_Name,
+                amC_Address: amC_Address,
+                amC_Type: amC_Type,
+                amC_RegNoPrefix: '',
+                amC_Logo: '',
+                amC_FilePath: '',
+                amC_ActiveFlag: 1
             };
 
             const response = await addOrUpdateMasterCategory(payload);
@@ -74,23 +73,6 @@ export default function AddMasterCategoryForm({ onSuccess, className = '' }: Add
             <form onSubmit={handleSubmit(onSubmit)} className='space-y-6'>
                 <div className='space-y-4'>
                     <div className='grid grid-cols-1 gap-4 md:grid-cols-4'>
-                        <InputText
-                            label='Category Name'
-                            required
-                            id='amC_Name'
-                            {...register('amC_Name')}
-                            error={errors.amC_Name?.message}
-                            className='transition-colors focus:ring-2 focus:ring-primary/20'
-                        />
-                        <InputTextarea
-                            label='Category Address'
-                            required
-                            id='amC_Address'
-                            {...register('amC_Address')}
-                            error={errors.amC_Address?.message}
-                            className='transition-colors focus:ring-2 focus:ring-primary/20'
-                            minHeight={20}
-                        />
                         <div className='group flex flex-col gap-1.5'>
                             <Label aria-label='Category Type' htmlFor='amC_Type'>
                                 Category Type <span className='ml-1 text-red-500'>*</span>
@@ -101,7 +83,7 @@ export default function AddMasterCategoryForm({ onSuccess, className = '' }: Add
                                 render={({ field }) => (
                                     <Select
                                         onValueChange={(value) => {
-                                            field.onChange(Number(value));
+                                            field.onChange(value);
                                         }}
                                         value={field.value?.toString() || undefined}>
                                         <SelectTrigger className='w-full'>
@@ -120,6 +102,23 @@ export default function AddMasterCategoryForm({ onSuccess, className = '' }: Add
                             />
                             {errors.amC_Type && <FormError>{errors.amC_Type.message}</FormError>}
                         </div>
+                        <InputText
+                            label='Category Name'
+                            required
+                            id='amC_Name'
+                            {...register('amC_Name')}
+                            error={errors.amC_Name?.message}
+                            className='transition-colors focus:ring-2 focus:ring-primary/20'
+                        />
+                        <InputTextarea
+                            label='Category Address'
+                            required
+                            id='amC_Address'
+                            {...register('amC_Address')}
+                            error={errors.amC_Address?.message}
+                            className='transition-colors focus:ring-2 focus:ring-primary/20'
+                            minHeight={20}
+                        />
                     </div>
 
                     {/* Root Error */}

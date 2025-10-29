@@ -45,6 +45,7 @@ export default function AddPreadmissionRegistrationForm({ sub_domain, closeDialo
             if (response.success) {
                 toast.success(response.message);
                 reset();
+                closeDialog();
             } else {
                 toast.error(response.message);
             }
@@ -67,7 +68,7 @@ export default function AddPreadmissionRegistrationForm({ sub_domain, closeDialo
                                 label='Mobile No.'
                                 required
                                 id='mobileno'
-                                value={field.value || ''}
+                                value={field.value}
                                 onChange={(value) => field.onChange(value)}
                                 type='number'
                                 showSpinner={false}

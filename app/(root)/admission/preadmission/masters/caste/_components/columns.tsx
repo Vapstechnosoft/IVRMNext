@@ -61,7 +61,7 @@ export const masterCasteColumns: ColumnDef<IMasterCasteList>[] = [
                     : row.getValue('imC_CasteDesc')}
             </div>
         ),
-        enableSorting: true,
+        enableSorting: false,
         enableHiding: true
     },
     {

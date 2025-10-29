@@ -92,3 +92,32 @@ export interface IMasterCasteCategoryDropDown {
     imcC_Id: number;
     imcC_CategoryName: string;
 }
+
+export interface IMasterDocumentList {
+    amsmD_Id: number;
+    mI_Id: number;
+    amsmD_DocumentName: string;
+    amsmD_Description: string;
+    amsmD_FLAG: boolean;
+}
+export interface IMasterReferenceList {
+    pamR_Id: number;
+    pamR_ReferenceName: string;
+    pamR_ReferenceDesc: string;
+    createdDate: string;
+    updatedDate: string;
+}
+export interface IMasterSourceList {
+    pamS_Id: number;
+    pamS_SourceName: string;
+    pamS_SourceDesc: string;
+    createdDate: string;
+    updatedDate: string;
+}
+export interface IMasterReligionCasteCategoryList {
+    ircC_Id: number;
+    ivrmmR_Name: string;
+    imcC_CategoryName: string;
+    ircC_ActiveFlg: boolean;
+    ircC_CreatedDate: string;
+}

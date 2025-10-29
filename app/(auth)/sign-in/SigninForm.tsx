@@ -4,7 +4,6 @@ import PreadmissionRegistration from '@/app/(root)/admission/preadmission/transa
 import Logo from '@/components/layout/navigation/logo';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Checkbox } from '@/components/ui/checkbox';
 import { InputPassword } from '@/components/ui/extension/input-password';
 import { InputText } from '@/components/ui/extension/input-text';
 import { Label } from '@/components/ui/label';
@@ -14,7 +13,6 @@ import { login } from '@/server/user';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { GraduationCap, LogIn, Mail, Phone, TriangleAlert } from 'lucide-react';
 import Image from 'next/image';
-import Link from 'next/link';
 import { useParams, useSearchParams } from 'next/navigation';
 import { useEffect, useState, useTransition } from 'react';
 import { type SubmitHandler, useForm } from 'react-hook-form';
@@ -137,12 +135,7 @@ export default function SigninForm() {
                         <CardContent>
                             <form onSubmit={handleSubmit(onSubmit)} className='space-y-6'>
                                 <div className='space-y-2'>
-                                    <InputText
-                                        label='Username/Email Address'
-                                        placeholder='Enter your username/email'
-                                        {...register('email')}
-                                        error={errors.email?.message}
-                                    />
+                                    <InputText label='Username' placeholder='Enter your username' {...register('email')} />
 
                                     <div className='space-y-2'>
                                         <Label htmlFor='password' className='font-medium text-sm'>
@@ -154,11 +147,9 @@ export default function SigninForm() {
                                             placeholder='Enter your password'
                                             {...register('password')}
                                             value={watch('password')}
-                                            error={errors.password?.message}
                                         />
                                     </div>
                                 </div>
-
                                 {(errors.email?.message || errors.password?.message || error) && (
                                     <div className='flex items-center gap-3 rounded-lg border border-red-200 bg-red-50 p-4'>
                                         <TriangleAlert className='h-5 w-5 flex-shrink-0 text-red-600' />
@@ -167,26 +158,14 @@ export default function SigninForm() {
                                         </p>
                                     </div>
                                 )}
-
-                                {/* Remember Me & Forgot Password */}
-                                <div className='flex items-center justify-between'>
-                                    <div className='flex items-center space-x-2'>
-                                        <Checkbox
-                                            id='remember'
-                                            checked={rememberMe}
-                                            onCheckedChange={(checked) => setRememberMe(checked as boolean)}
-                                        />
-                                        <Label htmlFor='remember' className='cursor-pointer text-gray-600 text-sm'>
-                                            Remember me
-                                        </Label>
-                                    </div>
+                                {/* Forgot Password */}
+                                {/* <div className='flex items-center justify-end'>
                                     <Link
                                         href='/forgot-password'
                                         className='font-medium text-primary text-sm transition-colors hover:underline'>
                                         Forgot password?
                                     </Link>
-                                </div>
-
+                                </div> */}
                                 {/* Action Buttons */}
                                 <div className='space-y-2'>
                                     <Button
@@ -215,11 +194,17 @@ export default function SigninForm() {
                     </Card>
                 </div>
                 {/* Footer */}
-                <div className='fixed bottom-0 hidden h-7 w-[50%] items-center justify-center gap-2 border border-1 bg-secondary lg:flex'>
-                    <Phone className='h-3 w-3 text-white ' />
-                    <p className='text-white text-xs'>+91 33 2641 2138, +91 33 2641 3590</p>
-                    <Mail className='h-3 w-3 text-white ' />
-                    <p className='text-white text-xs'>stcsh1860@gmail.com</p>
+                <div className='fixed bottom-0 hidden h-7 w-[50%] items-center justify-between border border-1 bg-secondary px-2 lg:flex'>
+                    {/* Center section */}
+                    <div className='flex flex-1 items-center justify-center gap-2'>
+                        <Phone className='h-3 w-3 text-white' />
+                        <p className='text-white text-xs'>+91 33 2641 2138, +91 33 2641 3590</p>
+                        <Mail className='h-3 w-3 text-white' />
+                        <p className='text-white text-xs'>stcsh1860@gmail.com</p>
+                    </div>
+
+                    {/* Version aligned to end */}
+                    <p className='ml-auto pr-2 text-white text-xs'>v1.2</p>
                 </div>
             </div>
         </div>

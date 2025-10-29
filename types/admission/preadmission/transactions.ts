@@ -64,3 +64,59 @@ export interface IPreadmissionAdmissionStatusDropdown {
     pamsT_Status: string;
     pamsT_StatusFlag: string;
 }
+export interface IPreadmissionStudentApplicationList {
+    pasr_id: number;
+    asmay_id: number;
+    pasR_RegistrationNo: string;
+    student_name: string;
+    pasR_Sex: string;
+    applied_class_name: string;
+    is_fee_applicable: number;
+    payment_status: number;
+    application_status: string;
+    admission_status: string;
+}
+export interface IInitiatePaymentResponse {
+    payment_url: string;
+    transaction_id: string;
+    amount: string;
+    customer_name: string;
+    customer_email: string;
+    customer_phone: string;
+    form_data: PaymentFormData;
+    html_form: string;
+}
+export interface PaymentFormData {
+    split_payments: string;
+    sub_merchant_id: string;
+    udf7: string;
+    udf10: string;
+    txnid: string;
+    firstname: string;
+    hash: string;
+    udf5: string;
+    udf2: string;
+    udf8: string;
+    udf1: string;
+    udf6: string;
+    productinfo: string;
+    udf4: string;
+    show_payment_mode: string;
+    furl: string;
+    key: string;
+    surl: string;
+    email: string;
+    phone: string;
+    amount: string;
+    udf9: string;
+    udf3: string;
+}
+export interface IPreadmissionStatusCountReport {
+    registered_applications: number;
+    application_not_filled: number;
+    application_filled: number;
+    application_fee_applicable: boolean;
+    payment_pending: number;
+    payment_completed: number;
+    admission_transferred: number;
+}
