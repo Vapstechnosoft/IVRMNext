@@ -12,8 +12,8 @@ export const preadmissionRegistrationSchema = {
         name: createStringOnlySchema('Name', 1, 50),
         email_id: createEmailSchema('Email Id', 1, 50),
         mobileno: z.string().min(1, { message: 'Mobile No is required' }).max(10, { message: 'Maximum 10 digits' }),
-        username: createStringSchema('Username', 1, 50),
-        password: createStringSchema('Password', 1, 8)
+        username: createStringSchema('Username', 4, 50),
+        password: createStringSchema('Password', 6, 8)
     })
 };
 

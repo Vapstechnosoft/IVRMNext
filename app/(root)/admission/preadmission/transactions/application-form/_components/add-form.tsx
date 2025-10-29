@@ -30,7 +30,7 @@ import { deleteDocument, uploadDocument } from '@/server/document_upload';
 import type { CalculatedAgeDetails } from '@/types';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { format } from 'date-fns';
-import { Calendar, Check, ChevronLeft, ChevronRight, Save } from 'lucide-react';
+import { Calendar, Check, ChevronLeft, ChevronRight, Eye, Save, Trash } from 'lucide-react';
 import { useState } from 'react';
 import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
@@ -428,22 +428,16 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
     };
 
     const handleDocumentUpload = async (amsmD_Id: number, file: File, documentName: string) => {
-        console.log('Upload started:', { amsmD_Id, fileName: file.name, documentName });
-
         try {
             // Set uploading state - ADD document if it doesn't exist
             setUploadedDocuments((prev) => {
                 const existingIndex = prev.findIndex((doc) => doc.amsmD_Id === amsmD_Id);
 
-                console.log('Existing index:', existingIndex);
-
                 if (existingIndex >= 0) {
                     const updated = [...prev];
                     updated[existingIndex] = { ...updated[existingIndex], isUploading: true };
-                    console.log('Updated existing document to uploading state');
                     return updated;
                 }
-                console.log('Adding new document with uploading state');
                 return [
                     ...prev,
                     {
@@ -575,7 +569,7 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
                                 {steps.map((step, index) => (
                                     <div key={step.id} className='flex flex-1 items-center'>
                                         <div className='flex flex-col items-center'>
-                                            <button
+                                            <Button
                                                 type='button'
                                                 // onClick={() => goToStep(step.id)}
                                                 disabled={isSubmitting}
@@ -592,7 +586,7 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
                                                 ) : (
                                                     <span className='text-sm'>{step.id}</span>
                                                 )}
-                                            </button>
+                                            </Button>
                                             <p
                                                 className={cn(
                                                     'mt-1 text-nowrap text-center font-medium text-xs transition-colors',
@@ -624,7 +618,7 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
                                             <div className='flex flex-col items-center'>
                                                 <button
                                                     type='button'
-                                                    onClick={() => goToStep(step.id)}
+                                                    // onClick={() => goToStep(step.id)}
                                                     disabled={isSubmitting}
                                                     className={cn(
                                                         'flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full border-2 font-semibold transition-all duration-300 hover:scale-110 disabled:cursor-not-allowed disabled:opacity-50',
@@ -1356,6 +1350,7 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
                                                                     onChange={(value) => field.onChange(value)}
                                                                     type='number'
                                                                     showSpinner={false}
+                                                                    disabled={sameAsResidential}
                                                                 />
                                                             )}
                                                         />
@@ -1669,7 +1664,8 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
                                         <div>
                                             <h2 className='font-bold text-2xl text-gray-900'>Document Upload</h2>
                                             <p className='mt-1 text-gray-500 text-sm'>
-                                                Please upload the required documents. Documents marked with * are mandatory.
+                                                Please upload the required documents. Documents marked with{' '}
+                                                <span className='text-red-500'>*</span> are mandatory.
                                             </p>
                                         </div>
 
@@ -1681,205 +1677,186 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
                                                 </div>
                                             </div>
                                         ) : preadmissionDocuments?.data && preadmissionDocuments.data.length > 0 ? (
-                                            <div className='grid grid-cols-1 gap-6 md:grid-cols-2'>
-                                                {preadmissionDocuments.data.map((document) => {
-                                                    const uploadedDoc = getUploadedDocument(document.amsmD_Id);
-                                                    const isUploading = uploadedDoc?.isUploading;
-                                                    const error = documentErrors[document.amsmD_Id];
+                                            <div className='overflow-x-auto rounded-lg border border-gray-200'>
+                                                <table className='min-w-full divide-y divide-gray-200'>
+                                                    <thead className='bg-gray-50'>
+                                                        <tr>
+                                                            <th
+                                                                scope='col'
+                                                                className='px-6 py-3 text-left font-medium text-gray-500 text-xs uppercase tracking-wider'>
+                                                                Document Name
+                                                            </th>
+                                                            <th
+                                                                scope='col'
+                                                                className='px-6 py-3 text-left font-medium text-gray-500 text-xs uppercase tracking-wider'>
+                                                                Status
+                                                            </th>
+                                                            <th
+                                                                scope='col'
+                                                                className='px-6 py-3 text-left font-medium text-gray-500 text-xs uppercase tracking-wider'>
+                                                                Upload
+                                                            </th>
+                                                            <th
+                                                                scope='col'
+                                                                className='px-6 py-3 text-center font-medium text-gray-500 text-xs uppercase tracking-wider'>
+                                                                Actions
+                                                            </th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody className='divide-y divide-gray-200 bg-white'>
+                                                        {preadmissionDocuments.data.map((document) => {
+                                                            const uploadedDoc = getUploadedDocument(document.amsmD_Id);
+                                                            const isUploading = uploadedDoc?.isUploading;
+                                                            const error = documentErrors[document.amsmD_Id];
 
-                                                    return (
-                                                        <div
-                                                            key={document.amsmD_Id}
-                                                            className={cn(
-                                                                'group relative overflow-hidden rounded-xl border-2 bg-white p-6 shadow-sm transition-all duration-300',
-                                                                uploadedDoc && !isUploading
-                                                                    ? 'border-green-200 bg-green-50'
-                                                                    : document.amsmD_FLAG
-                                                                      ? 'border-orange-200 bg-orange-50'
-                                                                      : 'border-gray-200 hover:border-primary hover:shadow-md'
-                                                            )}>
-                                                            {/* Status Badge */}
-                                                            <div className='mb-4 flex items-start justify-between'>
-                                                                <div className='flex-1'>
-                                                                    <h3 className='font-semibold text-gray-900 text-lg'>
-                                                                        {document.amsmD_DocumentName}
-                                                                        {document.amsmD_FLAG && (
-                                                                            <span className='ml-2 text-red-500'>*</span>
-                                                                        )}
-                                                                    </h3>
-                                                                    <p className='mt-1 text-gray-500 text-sm'>
-                                                                        {document.amsmD_FLAG ? 'Required' : 'Optional'}
-                                                                    </p>
-                                                                </div>
-
-                                                                {uploadedDoc && !isUploading && (
-                                                                    <div className='flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-green-500'>
-                                                                        <Check className='h-5 w-5 text-white' />
-                                                                    </div>
-                                                                )}
-                                                            </div>
-
-                                                            {/* Upload Area */}
-                                                            {!uploadedDoc || isUploading ? (
-                                                                <div className='space-y-3'>
-                                                                    <label
-                                                                        htmlFor={`document-${document.amsmD_Id}`}
-                                                                        className={cn(
-                                                                            'flex cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed bg-white px-6 py-8 transition-all duration-200',
-                                                                            isUploading
-                                                                                ? 'border-blue-300 bg-blue-50'
-                                                                                : 'border-gray-300 hover:border-primary hover:bg-gray-50'
-                                                                        )}>
-                                                                        {isUploading ? (
-                                                                            <>
-                                                                                <div className='h-12 w-12 animate-spin rounded-full border-4 border-primary border-t-transparent' />
-                                                                                <p className='mt-3 font-medium text-primary text-sm'>
-                                                                                    Uploading...
-                                                                                </p>
-                                                                            </>
-                                                                        ) : (
-                                                                            <>
-                                                                                <div className='rounded-full bg-primary/10 p-3'>
-                                                                                    <svg
-                                                                                        className='h-8 w-8 text-primary'
-                                                                                        fill='none'
-                                                                                        stroke='currentColor'
-                                                                                        viewBox='0 0 24 24'>
-                                                                                        <path
-                                                                                            strokeLinecap='round'
-                                                                                            strokeLinejoin='round'
-                                                                                            strokeWidth={2}
-                                                                                            d='M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12'
-                                                                                        />
-                                                                                    </svg>
-                                                                                </div>
-                                                                                <p className='mt-3 font-medium text-gray-700 text-sm'>
-                                                                                    Click to upload or drag and drop
-                                                                                </p>
-                                                                                <p className='mt-1 text-gray-500 text-xs'>
-                                                                                    PDF, JPG, PNG (max. 1MB)
-                                                                                </p>
-                                                                            </>
-                                                                        )}
-                                                                        <input
-                                                                            id={`document-${document.amsmD_Id}`}
-                                                                            type='file'
-                                                                            className='hidden'
-                                                                            accept='.pdf,.jpg,.jpeg,.png'
-                                                                            disabled={isUploading || isSubmitting}
-                                                                            onChange={(e) => {
-                                                                                const file = e.target.files?.[0];
-                                                                                if (file) {
-                                                                                    if (file.size > 1 * 1024 * 1024) {
-                                                                                        toast.error('File size must be less than 1MB');
-                                                                                        e.target.value = ''; // Reset input
-                                                                                        return;
-                                                                                    }
-                                                                                    handleDocumentUpload(
-                                                                                        document.amsmD_Id,
-                                                                                        file,
-                                                                                        document.amsmD_DocumentName
-                                                                                    );
-                                                                                    e.target.value = ''; // Reset input after starting upload
-                                                                                }
-                                                                            }}
-                                                                        />
-                                                                    </label>
-
-                                                                    {error && (
-                                                                        <div className='flex items-start gap-2 rounded-lg border border-red-200 bg-red-50 p-3'>
-                                                                            <span className='text-red-500'>⚠</span>
-                                                                            <p className='text-red-700 text-sm'>{error}</p>
-                                                                        </div>
-                                                                    )}
-                                                                </div>
-                                                            ) : (
-                                                                <div className='space-y-3'>
-                                                                    {/* Uploaded File Info */}
-                                                                    <div className='flex items-center gap-3 rounded-lg border border-green-200 bg-white p-4'>
-                                                                        <div className='flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-lg bg-green-100'>
-                                                                            <svg
-                                                                                className='h-6 w-6 text-green-600'
-                                                                                fill='none'
-                                                                                stroke='currentColor'
-                                                                                viewBox='0 0 24 24'>
-                                                                                <path
-                                                                                    strokeLinecap='round'
-                                                                                    strokeLinejoin='round'
-                                                                                    strokeWidth={2}
-                                                                                    d='M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z'
-                                                                                />
-                                                                            </svg>
-                                                                        </div>
-                                                                        <div className='flex-1 overflow-hidden'>
-                                                                            <p className='truncate font-medium text-gray-900 text-sm'>
+                                                            return (
+                                                                <tr
+                                                                    key={document.amsmD_Id}
+                                                                    className={
+                                                                        uploadedDoc && !isUploading
+                                                                            ? 'bg-green-50'
+                                                                            : document.amsmD_FLAG
+                                                                              ? 'bg-orange-50'
+                                                                              : ''
+                                                                    }>
+                                                                    <td className='whitespace-nowrap px-6 py-4'>
+                                                                        <div className='flex items-center gap-2'>
+                                                                            <span className='font-semibold text-gray-900 text-sm'>
                                                                                 {document.amsmD_DocumentName}
-                                                                            </p>
-                                                                            <p className='text-green-600 text-xs'>Successfully uploaded</p>
+                                                                            </span>
+                                                                            {document.amsmD_FLAG && <span className='text-red-500'>*</span>}
                                                                         </div>
-                                                                    </div>
+                                                                        <p className='mt-0.5 text-gray-500 text-xs'>
+                                                                            {document.amsmD_FLAG ? 'Required' : 'Optional'}
+                                                                        </p>
+                                                                    </td>
 
-                                                                    {/* Action Buttons */}
-                                                                    <div className='flex gap-2'>
-                                                                        <Button
-                                                                            type='button'
-                                                                            variant='outline'
-                                                                            size='sm'
-                                                                            onClick={() => window.open(uploadedDoc.document_Path, '_blank')}
-                                                                            className='flex-1 gap-2'>
-                                                                            <svg
-                                                                                className='h-4 w-4'
-                                                                                fill='none'
-                                                                                stroke='currentColor'
-                                                                                viewBox='0 0 24 24'>
-                                                                                <path
-                                                                                    strokeLinecap='round'
-                                                                                    strokeLinejoin='round'
-                                                                                    strokeWidth={2}
-                                                                                    d='M15 12a3 3 0 11-6 0 3 3 0 016 0z'
+                                                                    <td className='whitespace-nowrap px-6 py-4'>
+                                                                        {uploadedDoc && !isUploading ? (
+                                                                            <div className='flex items-center gap-2 font-medium text-green-600 text-sm'>
+                                                                                <Check className='h-5 w-5' />
+                                                                                Uploaded
+                                                                            </div>
+                                                                        ) : isUploading ? (
+                                                                            <div className='flex animate-pulse items-center gap-2 font-medium text-blue-600 text-sm'>
+                                                                                <svg
+                                                                                    className='h-5 w-5 animate-spin'
+                                                                                    fill='none'
+                                                                                    stroke='currentColor'
+                                                                                    viewBox='0 0 24 24'>
+                                                                                    <circle
+                                                                                        className='opacity-25'
+                                                                                        cx='12'
+                                                                                        cy='12'
+                                                                                        r='10'
+                                                                                        strokeWidth='4'
+                                                                                        stroke='currentColor'
+                                                                                    />
+                                                                                    <path
+                                                                                        className='opacity-75'
+                                                                                        fill='currentColor'
+                                                                                        d='M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z'
+                                                                                    />
+                                                                                </svg>
+                                                                                Uploading...
+                                                                            </div>
+                                                                        ) : (
+                                                                            <span className='text-gray-500 text-sm'>Not Uploaded</span>
+                                                                        )}
+                                                                        {error && (
+                                                                            <p className='mt-1 flex items-center gap-1 font-medium text-red-600 text-xs'>
+                                                                                <span>⚠</span> {error}
+                                                                            </p>
+                                                                        )}
+                                                                    </td>
+
+                                                                    <td className='whitespace-nowrap px-6 py-4'>
+                                                                        {(!uploadedDoc || isUploading) && (
+                                                                            <label
+                                                                                htmlFor={`document-${document.amsmD_Id}`}
+                                                                                className={cn(
+                                                                                    'flex cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed px-4 py-3 text-center transition-all hover:border-primary hover:bg-gray-50',
+                                                                                    isUploading
+                                                                                        ? 'border-blue-300 bg-blue-50'
+                                                                                        : 'border-gray-300 bg-white'
+                                                                                )}>
+                                                                                <svg
+                                                                                    className='mb-1 h-6 w-6 text-primary'
+                                                                                    fill='none'
+                                                                                    stroke='currentColor'
+                                                                                    viewBox='0 0 24 24'>
+                                                                                    <path
+                                                                                        strokeLinecap='round'
+                                                                                        strokeLinejoin='round'
+                                                                                        strokeWidth={2}
+                                                                                        d='M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12'
+                                                                                    />
+                                                                                </svg>
+                                                                                <span className='text-gray-600 text-xs'>
+                                                                                    Click to upload
+                                                                                </span>
+                                                                                <input
+                                                                                    id={`document-${document.amsmD_Id}`}
+                                                                                    type='file'
+                                                                                    className='hidden'
+                                                                                    accept='.pdf,.jpg,.jpeg,.png'
+                                                                                    disabled={isUploading || isSubmitting}
+                                                                                    onChange={(e) => {
+                                                                                        const file = e.target.files?.[0];
+                                                                                        if (file) {
+                                                                                            if (file.size > 1 * 1024 * 1024) {
+                                                                                                toast.error(
+                                                                                                    'File size must be less than 1MB'
+                                                                                                );
+                                                                                                e.target.value = ''; // Reset input
+                                                                                                return;
+                                                                                            }
+                                                                                            handleDocumentUpload(
+                                                                                                document.amsmD_Id,
+                                                                                                file,
+                                                                                                document.amsmD_DocumentName
+                                                                                            );
+                                                                                            e.target.value = ''; // Reset input after starting upload
+                                                                                        }
+                                                                                    }}
                                                                                 />
-                                                                                <path
-                                                                                    strokeLinecap='round'
-                                                                                    strokeLinejoin='round'
-                                                                                    strokeWidth={2}
-                                                                                    d='M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z'
-                                                                                />
-                                                                            </svg>
-                                                                            Preview
-                                                                        </Button>
-                                                                        <Button
-                                                                            type='button'
-                                                                            variant='destructive'
-                                                                            size='sm'
-                                                                            onClick={() =>
-                                                                                handleDocumentDelete(
-                                                                                    document.amsmD_Id,
-                                                                                    uploadedDoc.document_Path,
-                                                                                    document.amsmD_DocumentName
-                                                                                )
-                                                                            }
-                                                                            disabled={isSubmitting}
-                                                                            className='flex-1 gap-2'>
-                                                                            <svg
-                                                                                className='h-4 w-4'
-                                                                                fill='none'
-                                                                                stroke='currentColor'
-                                                                                viewBox='0 0 24 24'>
-                                                                                <path
-                                                                                    strokeLinecap='round'
-                                                                                    strokeLinejoin='round'
-                                                                                    strokeWidth={2}
-                                                                                    d='M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16'
-                                                                                />
-                                                                            </svg>
-                                                                            Delete
-                                                                        </Button>
-                                                                    </div>
-                                                                </div>
-                                                            )}
-                                                        </div>
-                                                    );
-                                                })}
+                                                                            </label>
+                                                                        )}
+                                                                    </td>
+
+                                                                    <td className='space-x-2 whitespace-nowrap px-6 py-4 text-center'>
+                                                                        {uploadedDoc && !isUploading && (
+                                                                            <>
+                                                                                <Button
+                                                                                    type='button'
+                                                                                    className='w-fit'
+                                                                                    onClick={() =>
+                                                                                        window.open(uploadedDoc.document_Path, '_blank')
+                                                                                    }>
+                                                                                    <Eye className='h-4 w-4' />
+                                                                                </Button>
+                                                                                <Button
+                                                                                    type='button'
+                                                                                    className='w-fit'
+                                                                                    variant='destructive'
+                                                                                    disabled={isSubmitting}
+                                                                                    onClick={() =>
+                                                                                        handleDocumentDelete(
+                                                                                            document.amsmD_Id,
+                                                                                            uploadedDoc.document_Path,
+                                                                                            document.amsmD_DocumentName
+                                                                                        )
+                                                                                    }>
+                                                                                    <Trash className='h-4 w-4' />
+                                                                                </Button>
+                                                                            </>
+                                                                        )}
+                                                                    </td>
+                                                                </tr>
+                                                            );
+                                                        })}
+                                                    </tbody>
+                                                </table>
                                             </div>
                                         ) : (
                                             <div className='rounded-lg border-2 border-gray-300 border-dashed bg-gray-50 p-12 text-center'>
