@@ -1,0 +1,209 @@
+'use client';
+
+import { Button } from '@/components/ui/button';
+import { Calendar } from '@/components/ui/calendar';
+import { FormError, Label } from '@/components/ui/extension/field';
+import { InputNumber } from '@/components/ui/extension/input-number';
+import { InputText } from '@/components/ui/extension/input-text';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { HRMS_MI_ID } from '@/constants/hrms-config';
+import { useSaveSalaryUpdation } from '@/hooks/hrms/useSalaryUpdation';
+import { cn } from '@/lib/utils';
+import { salaryUpdationSchema } from '@/schemas/hrms/salary-updation-schemas';
+import type { SalaryUpdationOnloadResponse } from '@/types/hrms/salary-updation';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { format } from 'date-fns';
+import { CalendarIcon, Save } from 'lucide-react';
+import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
+import { toast } from 'sonner';
+import type { z } from 'zod';
+
+type FormFields = z.infer<typeof salaryUpdationSchema>;
+
+interface AddFormProps {
+    onloadData: SalaryUpdationOnloadResponse | undefined;
+    onSuccess: () => void;
+    className?: string;
+}
+
+export default function AddSalaryUpdationForm({ onloadData, onSuccess, className = '' }: AddFormProps) {
+    const { mutate: saveUpdation, isPending } = useSaveSalaryUpdation();
+
+    const {
+        control,
+        register,
+        handleSubmit,
+        reset,
+        formState: { errors, isSubmitting }
+    } = useForm<FormFields>({
+        resolver: zodResolver(salaryUpdationSchema),
+        mode: 'onChange',
+        defaultValues: {
+            HRESU_Id: 0,
+            MI_Id: HRMS_MI_ID,
+            HRME_Id: 0,
+            HRESU_OldSalary: 0,
+            HRESU_NewSalary: 0,
+            HRESU_EffectiveDate: new Date(),
+            HRESU_Remarks: '',
+            HRESU_ActiveFlag: true,
+            roleId: 2
+        }
+    });
+
+    const onSubmit: SubmitHandler<FormFields> = async (data) => {
+        const payload = {
+            ...data,
+            HRESU_EffectiveDate: data.HRESU_EffectiveDate.toISOString()
+        };
+
+        saveUpdation(payload, {
+            onSuccess: (response) => {
+                if (response?.success) {
+                    toast.success(response.message || 'Salary updation added successfully');
+                    reset();
+                    onSuccess();
+                } else {
+                    toast.error(response?.message || 'Failed to add salary updation');
+                }
+            },
+            onError: (error: any) => {
+                toast.error(error.message || 'An error occurred');
+            }
+        });
+    };
+
+    const handleReset = () => {
+        reset();
+    };
+
+    const employees = onloadData?.employeedropdown || [];
+
+    return (
+        <div className={className}>
+            <form onSubmit={handleSubmit(onSubmit)} className='space-y-6'>
+                <div className='space-y-4'>
+                    <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
+                        {/* Employee */}
+                        <div className='group flex flex-col gap-1.5'>
+                            <Label htmlFor='HRME_Id'>
+                                Employee <span className='text-destructive'>*</span>
+                            </Label>
+                            <Controller
+                                name='HRME_Id'
+                                control={control}
+                                render={({ field }) => (
+                                    <Select
+                                        onValueChange={(value) => field.onChange(Number(value))}
+                                        value={field.value ? String(field.value) : ''}>
+                                        <SelectTrigger id='HRME_Id' className='transition-colors focus:ring-2 focus:ring-primary/20'>
+                                            <SelectValue placeholder='Select employee' />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            {employees.map((emp) => (
+                                                <SelectItem key={emp.HRME_Id} value={String(emp.HRME_Id)}>
+                                                    {emp.HRME_EmployeeCode} - {emp.HRME_EmployeeFirstName} {emp.HRME_EmployeeLastName}
+                                                </SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
+                                )}
+                            />
+                            {errors.HRME_Id && <FormError>{errors.HRME_Id.message}</FormError>}
+                        </div>
+
+                        {/* Old Salary */}
+                        <InputNumber
+                            label='Old Salary'
+                            required
+                            id='HRESU_OldSalary'
+                            placeholder='Enter old salary'
+                            {...register('HRESU_OldSalary', { valueAsNumber: true })}
+                            error={errors.HRESU_OldSalary?.message}
+                            className='transition-colors focus:ring-2 focus:ring-primary/20'
+                        />
+
+                        {/* New Salary */}
+                        <InputNumber
+                            label='New Salary'
+                            required
+                            id='HRESU_NewSalary'
+                            placeholder='Enter new salary'
+                            {...register('HRESU_NewSalary', { valueAsNumber: true })}
+                            error={errors.HRESU_NewSalary?.message}
+                            className='transition-colors focus:ring-2 focus:ring-primary/20'
+                        />
+
+                        {/* Effective Date */}
+                        <div className='group flex flex-col gap-1.5'>
+                            <Label htmlFor='HRESU_EffectiveDate'>
+                                Effective Date <span className='text-destructive'>*</span>
+                            </Label>
+                            <Controller
+                                name='HRESU_EffectiveDate'
+                                control={control}
+                                render={({ field }) => (
+                                    <Popover>
+                                        <PopoverTrigger asChild>
+                                            <Button
+                                                variant='outline'
+                                                className={cn(
+                                                    'w-full justify-start text-left font-normal transition-colors focus:ring-2 focus:ring-primary/20',
+                                                    !field.value && 'text-muted-foreground'
+                                                )}>
+                                                <CalendarIcon className='mr-2 h-4 w-4' />
+                                                {field.value ? format(field.value, 'PPP') : <span>Pick a date</span>}
+                                            </Button>
+                                        </PopoverTrigger>
+                                        <PopoverContent className='w-auto p-0' align='start'>
+                                            <Calendar mode='single' selected={field.value} onSelect={field.onChange} initialFocus />
+                                        </PopoverContent>
+                                    </Popover>
+                                )}
+                            />
+                            {errors.HRESU_EffectiveDate && <FormError>{errors.HRESU_EffectiveDate.message}</FormError>}
+                        </div>
+
+                        {/* Remarks */}
+                        <div className='col-span-full'>
+                            <InputText
+                                label='Remarks'
+                                id='HRESU_Remarks'
+                                placeholder='Enter remarks (optional)'
+                                {...register('HRESU_Remarks')}
+                                error={errors.HRESU_Remarks?.message}
+                                className='transition-colors focus:ring-2 focus:ring-primary/20'
+                            />
+                        </div>
+                    </div>
+
+                    {errors.root && <FormError>{errors.root.message}</FormError>}
+                </div>
+
+                {/* Action Buttons */}
+                <div className='flex flex-col gap-3 border-t pt-4 sm:flex-row sm:justify-start'>
+                    <Button
+                        type='button'
+                        variant='outline'
+                        onClick={handleReset}
+                        disabled={isSubmitting || isPending}
+                        className='order-2 w-fit transition-all duration-200 hover:scale-105 sm:order-1'>
+                        Reset
+                    </Button>
+                    <Button
+                        type='submit'
+                        disabled={isSubmitting || isPending}
+                        className='order-1 w-fit transition-all duration-200 hover:scale-105 sm:order-2'
+                        isLoading={isSubmitting || isPending}
+                        loadingText='Saving...'>
+                        <div className='flex items-center'>
+                            <Save className='mr-2 h-4 w-4' />
+                            Add Salary Updation
+                        </div>
+                    </Button>
+                </div>
+            </form>
+        </div>
+    );
+}

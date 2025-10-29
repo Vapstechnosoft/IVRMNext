@@ -4,14 +4,7 @@
         "enabled": true
     },
     "files": {
-        "ignore": [
-            ".biome/cache",
-            "next.config.js",
-            "node_modules/*",
-            "public/*",
-            ".next/*",
-            "next-env.d.ts"
-        ]
+        "ignore": [".biome/cache", "next.config.js", "node_modules/*", "public/*", ".next/*", "next-env.d.ts"]
     },
     "linter": {
         "enabled": true,
@@ -107,9 +100,7 @@
     },
     "overrides": [
         {
-            "include": [
-                "*.json"
-            ],
+            "include": ["*.json"],
             "formatter": {
                 "indentWidth": 4
             }

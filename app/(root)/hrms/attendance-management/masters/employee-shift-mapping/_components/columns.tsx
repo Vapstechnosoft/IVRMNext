@@ -1,0 +1,69 @@
+'use client';
+
+import { Button } from '@/components/ui/button';
+import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
+import type { ColumnDef } from '@tanstack/react-table';
+import { Edit, Trash2 } from 'lucide-react';
+
+export interface EmployeeShiftMapping {
+    id: number;
+    employeeTypes: string[];
+    dayTypes: string[];
+    allEmployees: boolean;
+    searchEmployee: string;
+    type: string;
+    department: string;
+    designation: string;
+    dayType: string;
+    shiftName: string;
+    applicableDate: string;
+    employee: string;
+    holidayType: string;
+    totalWork: string;
+    halfDayWork: string;
+    morningLogin: string;
+    morningLogout: string;
+    afternoonLogin: string;
+    afternoonLogout: string;
+    delayShift: string;
+    earlyShift: string;
+    lunchHour: string;
+    isActive: boolean;
+
+    createdAt: string;
+}
+
+interface EmployeeShiftMappingColumnsProps {
+    onEdit: (row: EmployeeShiftMapping) => void;
+    onDelete: (row: EmployeeShiftMapping) => void;
+}
+
+export const getEmployeeShiftMappingColumns = ({
+    onEdit,
+    onDelete
+}: EmployeeShiftMappingColumnsProps): ColumnDef<EmployeeShiftMapping>[] => [
+    {
+        id: 'sl',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='SL.NO' />,
+        cell: ({ row }) => <div className='font-medium'>{row.index + 1}</div>,
+        enableSorting: false
+    },
+    // TODO: Add other columns based on the entity fields
+    {
+        id: 'actions',
+        header: 'Action',
+        cell: ({ row }) => {
+            const entity = row.original;
+            return (
+                <div className='flex items-center gap-2'>
+                    <Button variant='outline' size='sm' onClick={() => onEdit(entity)}>
+                        <Edit className='h-4 w-4' />
+                    </Button>
+                    <Button variant='outline' size='sm' className='text-red-600' onClick={() => onDelete(entity)}>
+                        <Trash2 className='h-4 w-4' />
+                    </Button>
+                </div>
+            );
+        }
+    }
+];

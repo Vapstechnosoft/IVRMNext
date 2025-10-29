@@ -27,5 +27,29 @@ export const ROUTES = {
                 }
             }
         }
+    },
+    HRMS: {
+        HRMS: '/hrms',
+        HRMS_SUB_MENUS: {
+            CONFIG: '/hrms/config',
+            CONFIG_SUB_MENUS: {
+                MASTERS: '/masters',
+                MASTERS_SUB_MENUS: {
+                    BANK: '/bank',
+                    COURSE: '/course',
+                    EMPLOYEE_CATEGORY: '/employee-category',
+                    GENDER: '/gender',
+                    MARITAL_STATUS: '/marital-status',
+                    SPECIALIZATION: '/specialization',
+                    EARNINGS_DEDUCTIONS: '/earnings-deductions',
+                    PROFESSIONAL_TAX: '/professional-tax',
+                    PAYROLL_STANDARD: '/payroll-standard',
+                    LOAN: '/loan',
+                    LEAVE_YEAR: '/leave-year',
+                    GROUP_DEPT_DESSG_MAPPING: '/group-dept-dessg-mapping',
+                    RELIGION_CATEGORY_MAPPING: '/religion-category-mapping'
+                }
+            }
+        }
     }
 };

@@ -21,7 +21,7 @@ export interface ApiArrayResponse<T> extends Partial<PaginationData> {
     [key: string]: unknown;
 }
 
-import { env } from '@/env';
+import { clientEnv } from '@/env';
 import { auth, signOut } from '@/lib/auth';
 import type { ApiSearchparams } from '@/types';
 import axios, { type AxiosInstance, type AxiosRequestConfig } from 'axios';
@@ -38,9 +38,9 @@ class ApiService {
 
         // Map your environment variables to base URLs
         this.baseUrls = {
-            default: env.API_BASE_URL,
-            preadmission: env.PREADMISSION_API_BASE_URL || env.API_BASE_URL,
-            admission: env.ADMISSION_API_BASE_URL || env.API_BASE_URL
+            default: clientEnv.NEXT_PUBLIC_API_BASE_URL,
+            preadmission: clientEnv.NEXT_PUBLIC_PREADMISSION_API_BASE_URL || clientEnv.NEXT_PUBLIC_API_BASE_URL,
+            admission: clientEnv.NEXT_PUBLIC_ADMISSION_API_BASE_URL || clientEnv.NEXT_PUBLIC_API_BASE_URL
         };
 
         // Initialize default instance
