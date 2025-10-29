@@ -11,7 +11,7 @@ import type {
 
 export async function getThirdPartyTrasaction(searchParams?: ApiSearchparams) {
     const urlParams = getSearchParamsUrl(searchParams ?? {});
-    const url = `ThirdPartyTransaction/GetThirdPartyTransactionList/30?${urlParams}`;
+    const url = `/ThirdPartyTransaction/GetThirdPartyTransactionList/30?${urlParams}`;
     return await api.get<IFeeThirdPartyTransaction[]>('fees', url);
 }
 

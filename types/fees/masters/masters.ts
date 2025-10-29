@@ -185,6 +185,10 @@ export interface IMasterTermFeeHeadList {
     headname: string;
     installmentname: string;
     idforedt: number;
+    fmH_Id: number;
+    ftI_Id: number;
+    heads?: { fmH_Id: number }[];
+    installments?: { ftI_ID: number }[];
 }
 
 export interface IMasterTermsList {

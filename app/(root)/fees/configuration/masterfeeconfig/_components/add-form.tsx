@@ -37,65 +37,72 @@ export default function AddFeeConfigForm({ onSuccess, className = '' }: AddFeeCo
 
     const onSubmit: SubmitHandler<FormFields | any> = async (data: FormFields) => {
         try {
+            const defaultNumber = (value: any): number => (value === null || value === undefined ? 0 : Number(value));
+            const defaultString = (value: any): string => (value === null || value === undefined ? '' : String(value));
+
             const payload = {
                 mi_id: 30,
-                fmC_AutoRecieptPrintFlag: data.fmC_AutoRecieptPrintFlag,
-                FMC_RebateTypeFlag: data.fmC_AutoRecieptPrintFlag,
-                FMC_ConcessionTypeFlag: data.FMC_ConcessionTypeFlag,
-                FMC_EnablePartialPaymentFlg: data.FMC_EnablePartialPaymentFlg,
-                FMC_Receipt_Signatory: data.FMC_Receipt_Signatory,
-                FMC_RClassFlag: data.FMC_RClassFlag,
-                FMC_RSectionFlag: data.FMC_RSectionFlag,
-                FMC_No_Receipt: data.FMC_No_Receipt,
-                FMC_Online_Payment_Aca_Yr_Flag: data.FMC_Online_Payment_Aca_Yr_Flag,
-                FMC_GroupOrTermFlg: data.FMC_GroupOrTermFlg,
-                FMC_ArrearAfterFlag: data.FMC_ArrearAfterFlag,
-                FMC_Areawise_FeeFlg: data.FMC_Areawise_FeeFlg,
-                FMC_TransportFeeAreaFlag: data.FMC_TransportFeeAreaFlag,
-                FMC_TransportFeeZoneFlag: data.FMC_TransportFeeZoneFlag,
-                FMC_DOACheckFlag: data.FMC_DOACheckFlag,
-                FMC_GroupRemarksFlag: data.FMC_GroupRemarksFlag,
-                FMC_AutoReceiptFeeGroupFlag: data.FMC_AutoReceiptFeeGroupFlag,
-                FMC_Receipt_Format: data.FMC_Receipt_Format,
-                FMC_EableStaffTrans: '',
-                FMC_EableOtherStudentTrans: data.FMC_EableOtherStudentTrans,
-                FMC_FineEnableDisable: data.FMC_FineEnableDisable,
-                FMC_FineMapping: data.FMC_FineMapping,
-                FMC_USER_PREVILEDGE: data.FMC_USER_PREVILEDGE,
-                FMC_StaffConcessionCheck: data.FMC_StaffConcessionCheck,
-                FMC_ShowPreviousFeeFisrtFlg: data.FMC_ShowPreviousFeeFisrtFlg,
-                FMC_MakerCheckerReqdFlg: data.FMC_MakerCheckerReqdFlg,
-                FMC_RebateAplicableFlg: data.FMC_RebateAplicableFlg,
-                FMC_RebateAgainstFullPaymentFlg: data.FMC_RebateAgainstFullPaymentFlg,
-                FMC_RebateAgainstPartialPaymentFlg: data.FMC_RebateAgainstPartialPaymentFlg,
-                FMC_RInstallmentsFlag: data.FMC_RInstallmentsFlag,
-                FMC_RInstallmentsMergeFlag: data.FMC_RInstallmentsMergeFlag,
-                FMC_RFineFlag: data.FMC_RFineFlag,
-                FMC_RConcessionFlag: data.FMC_RConcessionFlag,
-                FMC_RWaivedFlag: data.FMC_RWaivedFlag,
-                FMC_RBalanceFlag: data.FMC_RBalanceFlag,
-                FMC_RAmountFlag: data.FMC_RAmountFlag,
-                FMC_RBankFlag: data.FMC_RBankFlag,
-                FMC_ChallanOptionFlag: data.FMC_ChallanOptionFlag,
-                FMC_RDueDateFlag: data.FMC_RDueDateFlag,
-                FMC_RAddressFlag: data.FMC_RAddressFlag,
-                FMC_RFeeHeaderFlag: data.FMC_RFeeHeaderFlag,
-                FMC_FeeSearchNoOfDigits: data.FMC_FeeSearchNoOfDigits,
-                FMC_RUserNameFlag: data.FMC_RUserNameFlag,
-                FMC_RFatherNameFlag: data.FMC_RFatherNameFlag,
-                FMC_MotherNameFlag: data.FMC_MotherNameFlag,
-                FMC_RHeaderTitleFlag: data.FMC_RHeaderTitleFlag,
-                FMC_RPaymentDetailsFlag: data.FMC_RPaymentDetailsFlag,
-                FMC_RAmountReceivedFlag: data.FMC_RAmountReceivedFlag,
-                FMC_RRemarksFlag: data.FMC_RRemarksFlag,
-                FMC_RCurrentDateFlag: data.FMC_RCurrentDateFlag,
-                FMC_Fine_Column: data.FMC_Fine_Column,
-                FMC_ArrearColumn: data.FMC_ArrearColumn,
-                FMC_RFeeGroupFeeHeadFlag: data.FMC_RFeeGroupFeeHeadFlag,
-                FMC_RSplFeeHeadFlag: data.FMC_RSplFeeHeadFlag,
-                FMC_fmC_AutoRecieptPrintFlag: data.FMC_fmC_AutoRecieptPrintFlag,
-                FMC_StudentwiseJVFlag: data.FMC_StudentwiseJVFlag
+                FMC_id: 0,
+                FMC_AutoRecieptPrintFlag: defaultNumber(data.fmC_AutoRecieptPrintFlag),
+                FMC_RebateTypeFlag: data.FMC_RebateTypeFlag,
+                FMC_EnablePartialPaymentFlg: defaultNumber(data.FMC_EnablePartialPaymentFlg),
+                FMC_Receipt_Signatory: defaultString(data.FMC_Receipt_Signatory),
+                FMC_RClassFlag: defaultNumber(data.FMC_RClassFlag),
+                FMC_RSectionFlag: defaultNumber(data.FMC_RSectionFlag),
+                FMC_No_Receipt: defaultNumber(data.FMC_No_Receipt),
+                FMC_Online_Payment_Aca_Yr_Flag: defaultString(data.FMC_Online_Payment_Aca_Yr_Flag),
+                FMC_GroupOrTermFlg: defaultString(data.FMC_GroupOrTermFlg),
+                FMC_ArrearAfterFlag: defaultNumber(data.FMC_ArrearAfterFlag),
+                FMC_Areawise_FeeFlg: defaultNumber(data.FMC_Areawise_FeeFlg),
+                FMC_TransportFeeAreaFlag: defaultNumber(data.FMC_TransportFeeAreaFlag),
+                FMC_TransportFeeZoneFlag: defaultNumber(data.FMC_TransportFeeZoneFlag),
+                FMC_DOACheckFlag: defaultNumber(data.FMC_DOACheckFlag),
+                FMC_GroupRemarksFlag: defaultNumber(data.FMC_GroupRemarksFlag),
+                FMC_AutoReceiptFeeGroupFlag: defaultNumber(data.FMC_AutoReceiptFeeGroupFlag),
+                FMC_Receipt_Format: defaultString(data.FMC_Receipt_Format),
+                FMC_EableStaffTrans: defaultNumber(''), // Empty string will be converted to 0
+                FMC_EableOtherStudentTrans: defaultNumber(data.FMC_EableOtherStudentTrans),
+                FMC_USER_PREVILEDGE: defaultNumber(data.FMC_USER_PREVILEDGE),
+                FMC_StaffConcessionCheck: Boolean(data.FMC_StaffConcessionCheck) || false,
+                FMC_ShowPreviousFeeFisrtFlg: Boolean(data.FMC_ShowPreviousFeeFisrtFlg) || false,
+                FMC_MakerCheckerReqdFlg: Boolean(data.FMC_MakerCheckerReqdFlg) || false,
+                FMC_RebateAplicableFlg: Boolean(data.FMC_RebateAplicableFlg) || false,
+                FMC_RebateAgainstFullPaymentFlg: Boolean(data.FMC_RebateAgainstFullPaymentFlg) || false,
+
+                FMC_RebateAgainstPartialPaymentFlg: Boolean(data.FMC_RebateAgainstPartialPaymentFlg) || false,
+                FMC_RInstallmentsFlag: defaultNumber(data.FMC_RInstallmentsFlag),
+                FMC_RInstallmentsMergeFlag: defaultNumber(data.FMC_RInstallmentsMergeFlag),
+                FMC_RFineFlag: defaultNumber(data.FMC_RFineFlag),
+                FMC_RConcessionFlag: defaultNumber(data.FMC_RConcessionFlag),
+                FMC_RWaivedFlag: defaultNumber(data.FMC_RWaivedFlag),
+                FMC_RBalanceFlag: defaultNumber(data.FMC_RBalanceFlag),
+                FMC_RAmountFlag: defaultNumber(data.FMC_RAmountFlag),
+                FMC_RBankFlag: defaultNumber(data.FMC_RBankFlag),
+                FMC_ChallanOptionFlag: defaultNumber(data.FMC_ChallanOptionFlag),
+                FMC_RDueDateFlag: defaultNumber(data.FMC_RDueDateFlag),
+                FMC_RAddressFlag: defaultNumber(data.FMC_RAddressFlag),
+                FMC_RFeeHeaderFlag: defaultNumber(data.FMC_RFeeHeaderFlag),
+                FMC_FeeSearchNoOfDigits: defaultNumber(data.FMC_FeeSearchNoOfDigits),
+                FMC_RUserNameFlag: defaultNumber(data.FMC_RUserNameFlag),
+                FMC_RFatherNameFlag: defaultNumber(data.FMC_RFatherNameFlag),
+                FMC_MotherNameFlag: defaultNumber(data.FMC_MotherNameFlag),
+                FMC_RHeaderTitleFlag: defaultNumber(data.FMC_RHeaderTitleFlag),
+                FMC_RPaymentDetailsFlag: defaultNumber(data.FMC_RPaymentDetailsFlag),
+                FMC_RAmountReceivedFlag: defaultNumber(data.FMC_RAmountReceivedFlag),
+                FMC_RRemarksFlag: defaultNumber(data.FMC_RRemarksFlag),
+                FMC_RCurrentDateFlag: defaultNumber(data.FMC_RCurrentDateFlag),
+                FMC_Fine_Column: defaultNumber(data.FMC_Fine_Column),
+                FMC_ArrearColumn: defaultNumber(data.FMC_ArrearColumn),
+                FMC_RFeeGroupFeeHeadFlag: defaultNumber(data.FMC_RFeeGroupFeeHeadFlag),
+                FMC_RSplFeeHeadFlag: defaultNumber(data.FMC_RSplFeeHeadFlag),
+                FMC_StudentwiseJVFlag: defaultString(data.FMC_StudentwiseJVFlag), // Assuming this is a string
+                rolenme: 't',
+                FMC_Receipt_SignatoryImage: '',
+                finemapping: false,
+                fineenabledisable: false,
+                userid: 22
             };
+
             const jsondata = JSON.stringify(payload);
 
             console.log('Payload Data', jsondata);
@@ -408,25 +415,27 @@ export default function AddFeeConfigForm({ onSuccess, className = '' }: AddFeeCo
                             </div>
                         </div>
 
-                        <div className='group mt-1.5 flex flex-col gap-1.5'>
-                            <div className='group flex flex-row gap-6'>
-                                <Controller
-                                    name='FMC_FineMapping'
-                                    control={control}
-                                    defaultValue='0'
-                                    render={({ field }) => (
-                                        <div className='flex items-center space-x-2'>
-                                            <Checkbox
-                                                checked={field.value === '1'}
-                                                onCheckedChange={(checked) => field.onChange(checked ? '1' : '0')}
-                                                id='FMC_FineMapping'
-                                            />
-                                            <Label htmlFor='Fine Mapping'>Fine Mapping</Label>
-                                        </div>
-                                    )}
-                                />
-                            </div>
-                        </div>
+                        {/* <div className="group mt-1.5 flex flex-col gap-1.5">
+              <div className="group flex flex-row gap-6">
+                <Controller
+                  name="FMC_FineMapping"
+                  control={control}
+                  defaultValue="0"
+                  render={({ field }) => (
+                    <div className="flex items-center space-x-2">
+                      <Checkbox
+                        checked={field.value === "1"}
+                        onCheckedChange={(checked) =>
+                          field.onChange(checked ? "1" : "0")
+                        }
+                        id="FMC_FineMapping"
+                      />
+                      <Label htmlFor="Fine Mapping">Fine Mapping</Label>
+                    </div>
+                  )}
+                />
+              </div>
+            </div> */}
 
                         <div className='group mt-1.5 flex flex-col gap-1.5'>
                             <div className='group flex flex-row gap-6'>
@@ -819,17 +828,18 @@ export default function AddFeeConfigForm({ onSuccess, className = '' }: AddFeeCo
                                 />
                             </div>
                         </div>
-
-                        <div className='group mt-1.5 flex flex-row items-center gap-3'>
-                            <label htmlFor='Rebate' className='w-32'>
-                                Rebate(%) :
-                            </label>
-                            <input
-                                id='FMC_RebateTypeFlag'
-                                {...register('FMC_RebateTypeFlag')}
-                                className='rounded border px-2 py-1 transition-colors focus:ring-2 focus:ring-primary/20'
-                            />
-                        </div>
+                        {/* 
+            <div className="group mt-1.5 flex flex-row items-center gap-3">
+              <label htmlFor="Rebate" className="w-32">
+                Rebate(%) :
+              </label>
+              <input
+                id="FMC_RebateTypeFlag"
+                type="checkbox" // Change input type to checkbox for boolean value
+                {...register("FMC_RebateTypeFlag")} // Registers the input with react-hook-form
+                className="rounded border px-2 py-1 transition-colors focus:ring-2 focus:ring-primary/20"
+              />
+            </div> */}
 
                         <div className='group mt-1.5 flex flex-row items-center gap-3'>
                             <label htmlFor='Receipt Signature:' className='w-32'>
