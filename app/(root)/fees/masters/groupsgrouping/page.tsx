@@ -1,4 +1,3 @@
-// pages/master-fee-group-grouping/page.tsx
 'use client';
 
 import { Heading } from '@/components/layout/heading';
@@ -9,46 +8,54 @@ import { FormProvider, useFormContext } from '@/components/ui/form/form-provider
 import { useMasterFeeGroupDropdown, useMasterFeeGroupGrouping } from '@/hooks/fees/useMasters';
 import type { IMasterGroupsGrouping } from '@/types/fees/masters/masters';
 import { Plus, X } from 'lucide-react';
+import { use } from 'react';
+
 import AddMasterFeeGroupGrouping from './_components/add-form';
 import { feegroupgroupingColoumn } from './_components/columns';
 import DeleteMasterFeeGroupGroupingForm from './_components/delete-form';
 import UpdateMasterFeeGroupGroupingForm from './_components/update-form';
 
-export default function MasterFeeGroupGroupingPage() {
-    const { data: apiResponse, isLoading, error, refetchAll } = useMasterFeeGroupGrouping();
+type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
+
+export default function MasterFeeGroupGroupingPage(props: {
+    searchParams: SearchParams;
+}) {
+    const searchParams = use(props.searchParams);
+
+    const { data: response, isLoading, error, refetch } = useMasterFeeGroupGrouping(searchParams);
+
+    // Fetch dropdown once at the root level
+    const { data: dropdownResponse } = useMasterFeeGroupDropdown();
+    const feeGroups = Array.isArray(dropdownResponse?.data) ? dropdownResponse.data : [];
 
     return (
         <FormProvider<IMasterGroupsGrouping>>
-            <MasterFeeGroupGroupingClient
-                response={apiResponse?.data ?? undefined}
+            <MasterFeeGroupGroupingContent
+                response={response}
                 isLoading={isLoading}
                 error={error}
-                refetchAll={refetchAll}
+                refetch={refetch}
+                feeGroups={feeGroups}
             />
         </FormProvider>
     );
 }
 
-function MasterFeeGroupGroupingClient({
+function MasterFeeGroupGroupingContent({
     response,
     isLoading,
     error,
-    refetchAll
+    refetch,
+    feeGroups
 }: {
-    response?: IMasterGroupsGrouping[];
+    response: any;
     isLoading: boolean;
     error: any;
-    refetchAll: () => void;
+    refetch: () => void;
+    feeGroups: any[];
 }) {
     const { openAddForm } = useFormContext<IMasterGroupsGrouping>();
-
-    // Fetch dropdown fee groups once at the parent so we can pass them to update form
-    const { data: dropdownResponse } = useMasterFeeGroupDropdown();
-
-    // Normalize feeGroups array
-    const feeGroups = Array.isArray(dropdownResponse?.data) ? dropdownResponse.data : [];
-
-    const tableProps = useDataTableProps(response ?? []);
+    const tableProps = useDataTableProps(response);
 
     return (
         <div className='min-h-screen'>
@@ -87,26 +94,24 @@ function MasterFeeGroupGroupingClient({
                 </CollapsibleSection>
 
                 {/* Forms */}
-                <FormSections refetchAll={refetchAll} feeGroups={feeGroups} />
+                <FormSections refetch={refetch} feeGroups={feeGroups} />
             </div>
         </div>
     );
 }
 
 function FormSections({
-    refetchAll,
+    refetch,
     feeGroups
 }: {
-    refetchAll: () => void;
+    refetch: () => void;
     feeGroups: any[];
 }) {
-    // cast to any because our form context exposes additional properties not included in the default TS type
     const {
         isAddFormOpen,
         isEditFormOpen,
         isDeleteFormOpen,
         selectedRow,
-        selectedRowForDelete,
         closeAddForm,
         closeEditForm,
         closeDeleteForm,
@@ -138,7 +143,7 @@ function FormSections({
                             <AddMasterFeeGroupGrouping
                                 onSuccess={() => {
                                     closeAddForm();
-                                    refetchAll();
+                                    refetch();
                                 }}
                             />
                         </div>
@@ -168,7 +173,7 @@ function FormSections({
                                 selectedRow={selectedRow}
                                 onSuccess={() => {
                                     closeEditForm();
-                                    refetchAll();
+                                    refetch();
                                 }}
                                 feeGroups={feeGroups}
                             />
@@ -178,12 +183,12 @@ function FormSections({
             )}
 
             {/* Delete Form */}
-            {isDeleteFormOpen && selectedRowForDelete && (
+            {isDeleteFormOpen && selectedRow && (
                 <DeleteMasterFeeGroupGroupingForm
-                    rowData={selectedRowForDelete}
+                    rowData={selectedRow}
                     onClose={() => {
                         closeDeleteForm();
-                        refetchAll();
+                        refetch();
                     }}
                 />
             )}

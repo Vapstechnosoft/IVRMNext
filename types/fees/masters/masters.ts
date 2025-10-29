@@ -274,3 +274,23 @@ export interface IMasterOnlinePaymentHeadgroupList {
     terms: string;
     academicYear: string;
 }
+
+export interface IMasterFeeHeadDropdownList {
+    mI_Id: number;
+    fmH_Id: number;
+    fmH_FeeName: string;
+}
+
+export interface IMasterFeeInstallmentDropdownList {
+    fmI_Id: number;
+    fmI_Name: string;
+}
+export interface IMasterFeeYearlyHeadGroupMapping {
+    mi_Id: number;
+    asmaY_Id: number;
+    fmcC_Id: number;
+    asmcL_Id: number;
+    fyccC_Id: number;
+    fmH_Id: number;
+    fmI_Id: number;
+}

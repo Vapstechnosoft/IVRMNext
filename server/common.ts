@@ -359,15 +359,15 @@ export async function getUserAccessibleModules() {
                                         url: '/fees/masters/feeprevilege',
                                         title: 'Fee Privilege',
                                         description: 'Manage Fee Privilege Details'
-                                    },
-                                    {
-                                        id: 25,
-                                        name: 'Online Payment Head Group Mapping',
-                                        icon: 'Settings',
-                                        url: '/fees/masters/onlinepaymentheadgroupmapping',
-                                        title: 'Fee Privilege',
-                                        description: 'Manage Online Payment Head GroupMapping Details'
                                     }
+                                    // {
+                                    //     id: 25,
+                                    //     name: 'Online Payment Head Group Mapping',
+                                    //     icon: 'Settings',
+                                    //     url: '/fees/masters/onlinepaymentheadgroupmapping',
+                                    //     title: 'Fee Privilege',
+                                    //     description: 'Manage Online Payment Head GroupMapping Details'
+                                    // }
                                 ]
                             },
                             {

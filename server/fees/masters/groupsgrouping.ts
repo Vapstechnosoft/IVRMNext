@@ -24,3 +24,11 @@ export async function toggleGroupGrouping(id: number) {
     const url = `/FeeGroupGroupingFacade/feegroups/${id}`;
     return await api.put('fees', url);
 }
+
+// If backend supports a hard-delete, call DELETE on the same endpoint.
+// Add a dedicated delete helper so the client can request an actual delete
+// rather than toggling an active flag.
+export async function deleteGroupGrouping(id: number) {
+    const url = `/FeeGroupGroupingFacade/feegroups/${id}`;
+    return await api.delete('fees', url);
+}

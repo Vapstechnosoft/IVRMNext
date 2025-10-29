@@ -1,4 +1,3 @@
-// _components/delete-form.tsx
 'use client';
 
 import { Button } from '@/components/ui/button';
@@ -6,7 +5,7 @@ import { AdaptiveBody, AdaptiveDialog, AdaptiveFooter } from '@/components/ui/ex
 import { FormError } from '@/components/ui/extension/field';
 import { useMasterFeeGroupGrouping } from '@/hooks/fees/useMasters';
 import { masterGroupsGroupingSchema } from '@/schemas/fees/masters';
-import { toggleGroupGrouping } from '@/server/fees/masters/groupsgrouping';
+import { deleteGroupGrouping } from '@/server/fees/masters/groupsgrouping';
 import type { IMasterGroupsGrouping } from '@/types/fees/masters/masters';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Trash2 } from 'lucide-react';
@@ -25,6 +24,7 @@ export default function DeleteMasterFeeGroupGroupingForm({ rowData, onClose }: D
     const { refetchAll } = useMasterFeeGroupGrouping();
 
     const {
+        register,
         handleSubmit,
         reset,
         formState: { errors, isSubmitting }
@@ -33,21 +33,20 @@ export default function DeleteMasterFeeGroupGroupingForm({ rowData, onClose }: D
         mode: 'onChange'
     });
 
-    const closeDialog = () => {
+    function closeDialog() {
         onClose();
         reset();
-    };
+    }
 
-    const onSubmit: SubmitHandler<FormFields> = async () => {
+    const onSubmit: SubmitHandler<FormFields | any> = async () => {
         try {
-            const response = await toggleGroupGrouping(Number(rowData.fmgG_Id));
-
-            if (response.success) {
-                toast.success(response.message);
+            const response = await deleteGroupGrouping(Number(rowData.fmgG_Id));
+            if (response?.success) {
+                toast.success(response.message || 'Deleted successfully');
                 refetchAll();
                 closeDialog();
             } else {
-                toast.error(response.message);
+                toast.error(response?.message || 'Failed to delete');
             }
         } catch (error: any) {
             toast.error(error.message ?? 'Failed to delete');
@@ -58,12 +57,13 @@ export default function DeleteMasterFeeGroupGroupingForm({ rowData, onClose }: D
         <AdaptiveDialog title='Delete Fee Group Grouping' isOpen={true} onClose={closeDialog}>
             <form onSubmit={handleSubmit(onSubmit)} className='flex flex-col gap-4'>
                 <AdaptiveBody className='flex flex-col gap-5'>
+                    <input type='hidden' {...register('fmgG_Id')} defaultValue={rowData.fmgG_Id} />
                     <p>
                         Are you sure you want to <strong>permanently delete</strong> the group <strong>{rowData.fmgG_GroupName}</strong>?
                     </p>
+                    <FormError>{errors.fmgG_Id?.message}</FormError>
                     <FormError>{errors.root?.message}</FormError>
                 </AdaptiveBody>
-
                 <AdaptiveFooter>
                     <Button variant='secondary' onClick={closeDialog} type='button'>
                         Cancel

@@ -8,6 +8,7 @@ import { getAcademicYearDropdown } from '@/server/fees/masters/class_yearly_cate
 import { getFeeTermHeadList, getheadsdropdown, getinstallmentsdropdown, gettermsdropdown } from '@/server/fees/masters/fee-term-heads';
 import { getpaymentgateway_dropdown, getpaymentgatewaydetails } from '@/server/fees/masters/fee_payment_gateway_details';
 import { getFeePrevilegeList, getGroupsDropdown, getRolesDropdown } from '@/server/fees/masters/fee_previlege';
+import { getMasterfeeInstallment, getMasterfeehead } from '@/server/fees/masters/fee_yearly_group_mapping';
 import { getfeehead } from '@/server/fees/masters/feehead';
 import { getfeeInstallment } from '@/server/fees/masters/feeinstallment';
 import { getfeeInstallmentDueDate } from '@/server/fees/masters/feeinstallmentduedate';
@@ -505,6 +506,42 @@ export const useFeePrevilegeList = () => {
         refetchAll: () => {
             return queryClient.invalidateQueries({
                 queryKey: [FEES_QUERY_KEYS.FEES_PRIVILEGE_LIST]
+            });
+        }
+    };
+};
+
+export const useFeeMasterHead = () => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [FEES_QUERY_KEYS.FEE_MASTER_HEADS_DROPDOWN],
+            queryFn: async () => getMasterfeehead(),
+
+            staleTime: 0
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [FEES_QUERY_KEYS.FEE_MASTER_HEADS_DROPDOWN]
+            });
+        }
+    };
+};
+
+export const useFeeMasterInstallment = () => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [FEES_QUERY_KEYS.FEE_MASTER_INSTALLMENT_DROPDOWN],
+            queryFn: async () => getMasterfeeInstallment(),
+
+            staleTime: 0
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [FEES_QUERY_KEYS.FEE_MASTER_INSTALLMENT_DROPDOWN]
             });
         }
     };

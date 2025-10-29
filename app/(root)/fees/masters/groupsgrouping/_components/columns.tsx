@@ -62,20 +62,7 @@ export const feegroupgroupingColoumn: ColumnDef<IMasterGroupsGrouping>[] = [
         enableSorting: true,
         enableHiding: true
     },
-    {
-        accessorKey: 'feeGroupName',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Fee Group Names' />,
-        cell: ({ row }) => {
-            const value = row.getValue('feeGroupName') as string;
-            return (
-                <div className='max-w-md truncate' title={value}>
-                    {value || '—'}
-                </div>
-            );
-        },
-        enableSorting: true,
-        enableHiding: true
-    },
+
     {
         accessorKey: 'selectedFeeGroupIds',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Fee Group IDs' />,
