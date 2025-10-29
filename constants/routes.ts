@@ -53,3 +53,8 @@ export const ROUTES = {
         }
     }
 };
+
+export const PUBLIC_ROUTES = {
+    PAYMENT_SUCCESS: '/admission/preadmission/transactions/application-form/payment/success',
+    PAYMENT_FAILURE: '/admission/preadmission/transactions/application-form/payment/failure'
+};

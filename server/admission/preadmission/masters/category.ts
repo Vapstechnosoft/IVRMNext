@@ -5,8 +5,8 @@ import type { ApiSearchparams } from '@/types';
 import type { IMasterCategoryList } from '@/types/admission/preadmission/masters';
 
 export async function getMasterCategory(searchParams?: ApiSearchparams) {
-    const urlParams = getSearchParamsUrl(searchParams ?? {});
-    const url = `/master_category/30?${urlParams}`;
+    const urlParams = getSearchParamsUrl(searchParams ?? {}, 'amC_Name,amC_Address,amC_Type,amC_PAApplicationName');
+    const url = `/master_category?${urlParams}`;
     return await api.get<IMasterCategoryList[]>('admission', url);
 }
 
@@ -15,7 +15,7 @@ export async function addOrUpdateMasterCategory(data: any) {
     return await api.post<any>('admission', url, data);
 }
 
-export async function toggleMasterCategory(mi_id: number, id: number) {
-    const url = `/master_category/toggle/${mi_id}/${id}`;
+export async function toggleMasterCategory(id: number) {
+    const url = `/master_category/toggle/${id}`;
     return await api.put('admission', url);
 }

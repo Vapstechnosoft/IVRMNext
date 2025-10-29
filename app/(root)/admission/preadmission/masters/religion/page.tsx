@@ -63,6 +63,7 @@ function MasterReligionPageContent({
                         columns={masterReligionColumns}
                         isLoading={isLoading}
                         error={error}
+                        showViewOptions={false}
                         columnPinning={{ right: ['actions'] }}
                         loadingMessage='Loading master religions...'
                         noDataTitle='No Master Religions Found'

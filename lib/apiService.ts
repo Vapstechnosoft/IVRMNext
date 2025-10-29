@@ -20,14 +20,12 @@ export interface ApiArrayResponse<T> extends Partial<PaginationData> {
     } | null;
     [key: string]: unknown;
 }
-
-import { clientEnv } from '@/env';
 import { auth, signOut } from '@/lib/auth';
 import type { ApiSearchparams } from '@/types';
 import axios, { type AxiosInstance, type AxiosRequestConfig } from 'axios';
 
 // Define available API base URLs
-export type ApiBaseUrlKey = 'default' | 'preadmission' | 'admission';
+export type ApiBaseUrlKey = 'default' | 'preadmission' | 'admission' | 'fees' | 'exam';
 
 class ApiService {
     private instances: Map<string, AxiosInstance>;
@@ -38,9 +36,11 @@ class ApiService {
 
         // Map your environment variables to base URLs
         this.baseUrls = {
-            default: clientEnv.NEXT_PUBLIC_API_BASE_URL,
-            preadmission: clientEnv.NEXT_PUBLIC_PREADMISSION_API_BASE_URL || clientEnv.NEXT_PUBLIC_API_BASE_URL,
-            admission: clientEnv.NEXT_PUBLIC_ADMISSION_API_BASE_URL || clientEnv.NEXT_PUBLIC_API_BASE_URL
+            default: env.API_BASE_URL,
+            preadmission: env.PREADMISSION_API_BASE_URL || env.API_BASE_URL,
+            admission: env.ADMISSION_API_BASE_URL || env.API_BASE_URL,
+            fees: env.FEES_API_BASE_URL || env.API_BASE_URL,
+            exam: env.EXAM_API_BASE_URL || env.API_BASE_URL
         };
 
         // Initialize default instance
@@ -114,7 +114,12 @@ class ApiService {
         data?: unknown
     ): Promise<ApiResponse<T>> {
         try {
+            console.info('request', {
+                baseUrlKey,
+                url
+            });
             const instance = this.getOrCreateInstance(baseUrlKey);
+
             const response = await instance.request<ApiResponse<T>>({
                 method,
                 url,
@@ -177,6 +182,31 @@ class ApiService {
     public addBaseUrl(key: string, baseUrl: string): void {
         this.baseUrls[key as ApiBaseUrlKey] = baseUrl;
     }
+
+    public async postMultipart<T>(
+        baseUrlKey: ApiBaseUrlKey,
+        url: string,
+        formData: FormData,
+        config?: AxiosRequestConfig
+    ): Promise<ApiResponse<T>> {
+        try {
+            const instance = this.getOrCreateInstance(baseUrlKey);
+
+            // Override Content-Type so axios sets it properly for FormData
+            const finalConfig: AxiosRequestConfig = {
+                ...config,
+                headers: {
+                    ...(config?.headers || {}),
+                    'Content-Type': undefined // Let axios auto-set boundary
+                }
+            };
+
+            const response = await instance.post<ApiResponse<T>>(url, formData, finalConfig);
+            return response.data;
+        } catch (error) {
+            throw this.handleError(error);
+        }
+    }
 }
 
 // Create a singleton instance
@@ -203,7 +233,7 @@ export const api = new ApiService();
  * @param searchParams - The searchParams object to generate the URL from.
  * @returns A string representing the URL.
  */
-export function getSearchParamsUrl(searchParams: ApiSearchparams | undefined): string {
+export function getSearchParamsUrl(searchParams: ApiSearchparams | undefined, searchColumns?: string): string {
     if (!searchParams) return '';
 
     const page = searchParams?.page || 1;
@@ -212,5 +242,9 @@ export function getSearchParamsUrl(searchParams: ApiSearchparams | undefined): s
     const sort_direction = searchParams?.sort_direction || 'asc';
     const search_query = searchParams?.search_query || '';
 
-    return `page=${page}&page_size=${page_size}&sort_column=${sort_column}&sort_direction=${sort_direction}&search_query=${search_query}`;
+    if (!search_query) {
+        return `page=${page}&page_size=${page_size}&sort_column=${sort_column}&sort_direction=${sort_direction}`;
+    }
+
+    return `page=${page}&page_size=${page_size}&sort_column=${sort_column}&sort_direction=${sort_direction}&search_query=${search_query}&search_column=${searchColumns}`;
 }

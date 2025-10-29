@@ -3,6 +3,7 @@
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { useDebounce } from '@/hooks/utils/use-debounce';
 import { tableSearchVariables } from '@/lib/data-table.config';
 import { exportToExcel } from '@/lib/utils';
 import type { Table } from '@tanstack/react-table';
@@ -10,6 +11,7 @@ import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { DownloadIcon, FileSpreadsheet, FileText, Settings2, X } from 'lucide-react';
 import { parseAsString, useQueryState } from 'nuqs';
+import { useEffect, useRef, useState } from 'react';
 import { DropdownMenu, DropdownMenuCheckboxItem, DropdownMenuContent, DropdownMenuTrigger } from '../dropdown-menu';
 
 interface DataTableToolbarProps<TData> {
@@ -25,14 +27,42 @@ export function DataTableToolbar<TData>({ table, data, showExportOptions = true,
         parseAsString.withOptions({ shallow: false }).withDefault('')
     );
 
+    // Add local state for immediate input feedback
+    const [localSearchQuery, setLocalSearchQuery] = useState(searchQuery || ''); // Initialize with searchQuery
+
+    // Debounce the local search query with 1 seconds delay
+    const debouncedSearchQuery = useDebounce(localSearchQuery, 1000);
+
+    // Only sync from URL to local state on mount or when URL changes externally
+    // Use a ref to track if this is user input or external change
+    const isUserInputRef = useRef(false);
+
+    useEffect(() => {
+        if (!isUserInputRef.current) {
+            // Only update if it's not from user input (e.g., browser back/forward, initial load)
+            setLocalSearchQuery(searchQuery || '');
+        }
+        isUserInputRef.current = false;
+    }, [searchQuery]);
+
+    // Update URL when debounced value changes
+    useEffect(() => {
+        if (debouncedSearchQuery !== searchQuery) {
+            isUserInputRef.current = true;
+            setSearchQuery(debouncedSearchQuery || null); // Use null to clear the param
+            table.setPageIndex(0);
+        }
+    }, [debouncedSearchQuery]);
+
     const handleSearch = (term: string) => {
-        setSearchQuery(term);
-        // Reset to first page when searching
-        table.setPageIndex(0);
+        isUserInputRef.current = true;
+        setLocalSearchQuery(term);
     };
 
     const handleReset = () => {
-        setSearchQuery('');
+        isUserInputRef.current = true;
+        setLocalSearchQuery('');
+        setSearchQuery(null); // Clear the URL param completely
         table.resetColumnFilters();
         table.resetColumnVisibility();
         table.resetSorting();
@@ -92,9 +122,9 @@ export function DataTableToolbar<TData>({ table, data, showExportOptions = true,
                     onChange={(event) => handleSearch(event.target.value)}
                     className='h-8 w-40 lg:w-64'
                     placeholder='Search...'
-                    value={searchQuery || ''}
+                    value={localSearchQuery || ''}
                 />
-                {searchQuery && (
+                {localSearchQuery && (
                     <Button onClick={handleReset} variant='ghost' suffix={<X className='h-4 w-4' />} className='h-8 w-fit'>
                         Reset
                     </Button>
@@ -149,13 +179,20 @@ export function DataTableToolbar<TData>({ table, data, showExportOptions = true,
                                 .getAllColumns()
                                 .filter((column) => typeof column.accessorFn !== 'undefined' && column.getCanHide())
                                 .map((column) => {
+                                    // Get display name from meta or format the column id
+                                    const displayName =
+                                        (column.columnDef.meta as any)?.title ||
+                                        column.id
+                                            .split('_')
+                                            .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+                                            .join(' ');
+
                                     return (
                                         <DropdownMenuCheckboxItem
                                             key={column.id}
-                                            className='capitalize'
                                             checked={column.getIsVisible()}
                                             onCheckedChange={(value) => column.toggleVisibility(!!value)}>
-                                            {column.id}
+                                            {displayName}
                                         </DropdownMenuCheckboxItem>
                                     );
                                 })}

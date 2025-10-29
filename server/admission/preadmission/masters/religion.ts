@@ -5,7 +5,7 @@ import type { ApiSearchparams } from '@/types';
 import type { IMasterReligionList } from '@/types/admission/preadmission/masters';
 
 export async function getMasterReligion(searchParams?: ApiSearchparams) {
-    const urlParams = getSearchParamsUrl(searchParams ?? {});
+    const urlParams = getSearchParamsUrl(searchParams ?? {}, 'ivrmmR_Name');
     const url = `/master_religion?${urlParams}`;
     return await api.get<IMasterReligionList[]>('admission', url);
 }

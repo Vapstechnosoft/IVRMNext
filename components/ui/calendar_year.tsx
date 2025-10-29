@@ -68,11 +68,11 @@ function CalendarYear({ className, classNames, showOutsideDays = true, selected,
             <div className={cn('overflow-hidden rounded-md border bg-popover shadow-md', 'flex w-auto flex-col', className)}>
                 {/* Year Selector - inside the calendar container */}
                 <div className='flex justify-end px-2 pt-1 pb-0'>
-                    <Select value={currentMonth.getFullYear().toString()} onValueChange={handleYearChange}>
+                    <Select value={currentMonth.getFullYear().toString()} onValueChange={handleYearChange} searchable={false}>
                         <SelectTrigger className='h-6 w-20 px-2 text-xs focus:ring-0'>
                             <SelectValue>{currentMonth.getFullYear()}</SelectValue>
                         </SelectTrigger>
-                        <SelectContent position='item-aligned' align='end' side='bottom' className='max-h-40'>
+                        <SelectContent position='popper' sideOffset={4} className='max-h-40'>
                             <ScrollArea className='h-40'>
                                 {years.map((year) => (
                                     <SelectItem key={year} value={year.toString()} className='py-1 text-xs'>
@@ -136,11 +136,12 @@ function CalendarYear({ className, classNames, showOutsideDays = true, selected,
                                     value={value?.toString()}
                                     onValueChange={(value) => {
                                         handleChange(value);
-                                    }}>
+                                    }}
+                                    searchable={false}>
                                     <SelectTrigger className='h-6 pr-1.5 text-xs focus:ring-0'>
                                         <SelectValue>{selected?.props?.children}</SelectValue>
                                     </SelectTrigger>
-                                    <SelectContent position='item-aligned' align='center' side='bottom' className='max-h-40'>
+                                    <SelectContent position='popper' sideOffset={4} className='max-h-40'>
                                         <ScrollArea className='h-40'>
                                             {options.map((option, id: number) => (
                                                 <SelectItem

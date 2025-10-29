@@ -42,7 +42,6 @@ export default function AddMasterSectionForm({ onSuccess, className = '' }: AddM
         try {
             const { asmc_sectioncode, asmc_sectionname, asmc_maxcapacity, asmc_order } = data;
             const payload = {
-                MI_Id: 30,
                 ASMC_Id: 0,
                 ASMC_Sectioncode: asmc_sectioncode,
                 Asmc_sectionname: asmc_sectionname,
@@ -103,6 +102,7 @@ export default function AddMasterSectionForm({ onSuccess, className = '' }: AddM
                                         value={field.value || 0}
                                         onChange={(value) => field.onChange(value)}
                                         minValue={0}
+                                        step={1}
                                     />
                                 )}
                             />
@@ -120,6 +120,7 @@ export default function AddMasterSectionForm({ onSuccess, className = '' }: AddM
                                         value={field.value || 0}
                                         onChange={(value) => field.onChange(value)}
                                         minValue={0}
+                                        step={1}
                                     />
                                 )}
                             />

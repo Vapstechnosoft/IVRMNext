@@ -5,8 +5,8 @@ import type { ApiSearchparams } from '@/types';
 import type { IMasterCasteCategoryDropDown, IMasterCasteList } from '@/types/admission/preadmission/masters';
 
 export async function getMasterCaste(searchParams?: ApiSearchparams) {
-    const urlParams = getSearchParamsUrl(searchParams ?? {});
-    const url = `/master_caste/30?${urlParams}`;
+    const urlParams = getSearchParamsUrl(searchParams ?? {}, 'imC_CasteName,imC_CasteDesc');
+    const url = `/master_caste?${urlParams}`;
     return await api.get<IMasterCasteList[]>('admission', url);
 }
 

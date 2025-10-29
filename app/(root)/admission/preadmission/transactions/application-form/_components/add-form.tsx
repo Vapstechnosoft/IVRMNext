@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { CalendarYear } from '@/components/ui/calendar_year';
 import { Checkbox } from '@/components/ui/checkbox';
 import { FormError, Label } from '@/components/ui/extension/field';
+import { MobileNumberInput } from '@/components/ui/extension/input-mobile-number';
 import { InputNumber } from '@/components/ui/extension/input-number';
 import { InputText } from '@/components/ui/extension/input-text';
 import { MultiSelect } from '@/components/ui/multi-select';
@@ -15,6 +16,7 @@ import {
     useCountryDropdown,
     useGenderDropdown,
     usePreadmissionClassDropdown,
+    usePreadmissionDocumentsDropdown,
     useReferenceDropdown,
     useReligionDropdown,
     useSourceDropdown,
@@ -24,10 +26,11 @@ import { getIconByName } from '@/lib/lucide-icon-registry';
 import { calculateAge, cn } from '@/lib/utils';
 import { studentApplicationFormSchema } from '@/schemas/admission/preadmission/transactions';
 import { addStudentApplicationForm } from '@/server/admission/preadmission/transactions/application_form';
+import { deleteDocument, uploadDocument } from '@/server/document_upload';
 import type { CalculatedAgeDetails } from '@/types';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { format } from 'date-fns';
-import { Calendar, Check, ChevronLeft, ChevronRight, Save } from 'lucide-react';
+import { Calendar, Check, ChevronLeft, ChevronRight, Eye, Save, Trash } from 'lucide-react';
 import { useState } from 'react';
 import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
@@ -41,10 +44,36 @@ interface AddStudentApplicationFormProps {
 }
 
 const steps = [
-    { id: 1, name: 'Student Information', description: 'Basic details', icon: 'User' },
-    { id: 2, name: 'Address Information', description: 'Residential & Permanent', icon: 'MapPinHouse' },
-    { id: 3, name: 'Parents Information', description: 'Father & Mother details', icon: 'Users' },
-    { id: 4, name: 'Other Information', description: 'Final details', icon: 'ReceiptText' }
+    {
+        id: 1,
+        name: 'Student Information',
+        description: 'Basic details',
+        icon: 'User'
+    },
+    {
+        id: 2,
+        name: 'Address Information',
+        description: 'Residential & Permanent',
+        icon: 'MapPinHouse'
+    },
+    {
+        id: 3,
+        name: 'Parents Information',
+        description: 'Father & Mother details',
+        icon: 'Users'
+    },
+    {
+        id: 4,
+        name: 'Document Upload',
+        description: 'Required documents',
+        icon: 'FileUp'
+    },
+    {
+        id: 5,
+        name: 'Other Information',
+        description: 'Final details',
+        icon: 'ReceiptText'
+    }
 ];
 
 export default function AddStudentApplicationForm({ onSuccess, className = '' }: AddStudentApplicationFormProps) {
@@ -68,9 +97,43 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
 
     const [isDobOpen, setIsDobOpen] = useState(false);
     const [calculatedAgeDetails, setCalculatedAgeDetails] = useState<CalculatedAgeDetails>();
+    const [ageEligibilityError, setAgeEligibilityError] = useState<string | null>(null);
     const [selectedSourceItems, setSelectedSourceItems] = useState<{ pamS_Id: string; pamS_SourceName: string }[]>([]);
     const [selectedReferenceItems, setSelectedReferenceItems] = useState<{ pamR_Id: string; pamR_ReferenceName: string }[]>([]);
     const [sameAsResidential, setSameAsResidential] = useState(false);
+    const [siblings, setSiblings] = useState<
+        Array<{
+            pasrS_Id: number;
+            pasR_Id: number;
+            pasrS_SiblingsName: string;
+            pasrS_SiblingsClass: string;
+            pasrS_SiblingsAdmissionNo: string;
+            pasrS_SiblingsSection: string;
+        }>
+    >([]);
+
+    const [previousSchool, setPreviousSchool] = useState({
+        pasrpS_Id: 0,
+        pasR_Id: 0,
+        pasrpS_PrvSchoolName: '',
+        pasrpS_PreviousClass: '',
+        pasrpS_Board: '',
+        pasrpS_LeftYear: '',
+        pasrpS_LeftReason: '',
+        pasrpS_Address: ''
+    });
+    const [uploadedDocuments, setUploadedDocuments] = useState<
+        Array<{
+            pasrD_Id: number;
+            pasR_Id: number;
+            amsmD_Id: number;
+            document_Path: string;
+            documentName?: string;
+            isUploading?: boolean;
+        }>
+    >([]);
+
+    const [documentErrors, setDocumentErrors] = useState<Record<number, string>>({});
 
     const { data: religion, isLoading: religionLoading, error: religionError, refetchAll: refetchReligion } = useReligionDropdown();
     const conConuntryId = watch('pasR_ConCountry');
@@ -98,6 +161,11 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
     } = useStateDropdown(Number(perConuntryId));
     const { data: source, isLoading: sourceLoading, refetchAll: refetchSource } = useSourceDropdown();
     const { data: reference, isLoading: referenceLoading, refetchAll: refetchReference } = useReferenceDropdown();
+    const {
+        data: preadmissionDocuments,
+        isLoading: preadmissionDocumentsLoading,
+        refetchAll: refetchPreadmissionDocuments
+    } = usePreadmissionDocumentsDropdown();
 
     const refetchDropdowns = () => {
         refetchReligion();
@@ -109,6 +177,7 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
         refetchReference();
         refetchConState();
         refetchPerState();
+        refetchPreadmissionDocuments();
     };
 
     const nextStep = async () => {
@@ -146,12 +215,30 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
             ];
         } else if (currentStep === 3) {
             fieldsToValidate = ['pasR_FatherName', 'pasR_FatherNationality', 'pasR_MotherName', 'pasR_MotherNationality'];
+        } else if (currentStep === 4) {
+            // Validate document uploads
+            const mandatoryDocs = preadmissionDocuments?.data?.filter((doc) => doc.amsmD_FLAG) || [];
+            const missingDocs = mandatoryDocs.filter((doc) => !isDocumentUploaded(doc.amsmD_Id));
+
+            if (missingDocs.length > 0) {
+                const docNames = missingDocs.map((doc) => doc.amsmD_DocumentName).join(', ');
+                toast.error(`Please upload mandatory documents: ${docNames}`);
+                return;
+            }
         }
 
         const isValid = await trigger(fieldsToValidate as any);
 
         if (isValid) {
             setCurrentStep((prev) => Math.min(prev + 1, steps.length));
+        }
+
+        if (currentStep === 1) {
+            const isAgeEligible = validateAgeEligibility(calculatedAgeDetails, watch('asmcL_Id'));
+            if (!isAgeEligible) {
+                toast.error("Please select a class that matches the student's age eligibility");
+                return;
+            }
         }
     };
 
@@ -175,7 +262,17 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
         }
 
         try {
-            const { pasR_DOB, source_ids, reference_ids, pasR_PerState, pasR_ConCountry, pasR_PerCountry, ...filteredData } = data;
+            const {
+                pasR_DOB,
+                source_ids,
+                reference_ids,
+                pasR_PerState,
+                pasR_ConCountry,
+                pasR_PerCountry,
+                pasR_ConPincode,
+                pasR_PerPincode,
+                ...filteredData
+            } = data;
             const payload = {
                 ...filteredData,
                 pasR_DOB: format(pasR_DOB, 'yyyy-MM-dd'),
@@ -183,17 +280,45 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
                 PASR_PerState: pasR_PerState?.toString() ?? '',
                 PASR_ConCountry: pasR_ConCountry?.toString() ?? '',
                 PASR_PerCountry: pasR_PerCountry?.toString() ?? '',
+                PASR_ConPincode:
+                    pasR_ConPincode === undefined || pasR_ConPincode === null || pasR_ConPincode === '' ? 0 : Number(pasR_ConPincode),
+                PASR_PerPincode:
+                    pasR_PerPincode === undefined || pasR_PerPincode === null || pasR_PerPincode === '' ? 0 : Number(pasR_PerPincode),
                 selectedSourceDetails: selectedSourceItems.map((item) => ({
                     pamS_Id: item.pamS_Id
                 })),
                 selectedRefrenceDetails: selectedReferenceItems.map((item) => ({
                     pamR_Id: item.pamR_Id
                 })),
+                siblingsDetails: siblings.map((sibling) => ({
+                    ...sibling,
+                    verrejstatus: '',
+                    pasrS_SchoolName: '',
+                    pasrS_Age: 0,
+                    pasrS_Gender: '',
+                    pasrS_Institution: '',
+                    pasrS_DOB: ''
+                })),
+                previousSchoolList: previousSchool.pasrpS_PrvSchoolName
+                    ? [
+                          {
+                              ...previousSchool,
+                              pasrpS_TcNo: '',
+                              pasrpS_PreviousPer: '',
+                              pasrpS_PreviousGrade: '',
+                              pasrpS_PreviousMarks: '',
+                              pasrpS_ConcOrScholarshipFlg: ''
+                          }
+                      ]
+                    : [],
                 examSubjectDTO: [],
-                siblingsDetails: [],
                 elesubsubject: [],
-                selectedDocuments: [],
-                PreviousSchoolList: [],
+                selectedDocuments: uploadedDocuments.map((doc) => ({
+                    pasrD_Id: doc.pasrD_Id,
+                    pasR_Id: doc.pasR_Id,
+                    amsmD_Id: doc.amsmD_Id,
+                    document_Path: doc.document_Path
+                })),
                 PASR_RegistrationNo: '',
                 pasP_Id: 0
             };
@@ -203,7 +328,7 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
             if (response.success) {
                 reset();
                 refetchDropdowns();
-                setCurrentStep(1);
+                handleReset();
                 onSuccess?.();
             } else {
                 toast.error(response.message);
@@ -220,6 +345,20 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
         setSelectedSourceItems([]);
         setSelectedReferenceItems([]);
         setSameAsResidential(false);
+        setSiblings([]);
+        setPreviousSchool({
+            pasrpS_Id: 0,
+            pasR_Id: 0,
+            pasrpS_PrvSchoolName: '',
+            pasrpS_PreviousClass: '',
+            pasrpS_Board: '',
+            pasrpS_LeftYear: '',
+            pasrpS_LeftReason: '',
+            pasrpS_Address: ''
+        });
+        setAgeEligibilityError(null);
+        setUploadedDocuments([]);
+        setDocumentErrors({});
     };
 
     const handleSourceSelection = (selectedValues: string[]) => {
@@ -255,6 +394,168 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
         }
     };
 
+    // Add these functions after handleSameAsResidential
+    const addSibling = () => {
+        setSiblings([
+            ...siblings,
+            {
+                pasrS_Id: 0,
+                pasR_Id: 0,
+                pasrS_SiblingsName: '',
+                pasrS_SiblingsClass: '',
+                pasrS_SiblingsAdmissionNo: '',
+                pasrS_SiblingsSection: ''
+            }
+        ]);
+    };
+
+    const removeSibling = (index: number) => {
+        setSiblings(siblings.filter((_, i) => i !== index));
+    };
+
+    const updateSibling = (index: number, field: string, value: string) => {
+        const updatedSiblings = siblings.map((sibling, i) => {
+            if (i === index) {
+                return { ...sibling, [field]: value };
+            }
+            return sibling;
+        });
+        setSiblings(updatedSiblings);
+    };
+
+    const updatePreviousSchool = (field: string, value: string) => {
+        setPreviousSchool({ ...previousSchool, [field]: value });
+    };
+
+    const handleDocumentUpload = async (amsmD_Id: number, file: File, documentName: string) => {
+        try {
+            // Set uploading state - ADD document if it doesn't exist
+            setUploadedDocuments((prev) => {
+                const existingIndex = prev.findIndex((doc) => doc.amsmD_Id === amsmD_Id);
+
+                if (existingIndex >= 0) {
+                    const updated = [...prev];
+                    updated[existingIndex] = { ...updated[existingIndex], isUploading: true };
+                    return updated;
+                }
+                return [
+                    ...prev,
+                    {
+                        pasrD_Id: 0,
+                        pasR_Id: 0,
+                        amsmD_Id,
+                        document_Path: '',
+                        documentName,
+                        isUploading: true
+                    }
+                ];
+            });
+
+            setDocumentErrors((prev) => {
+                const newErrors = { ...prev };
+                delete newErrors[amsmD_Id];
+                return newErrors;
+            });
+
+            const formData = new FormData();
+            formData.append('file', file);
+            formData.append('SubContainerName', 'preadmission_document');
+
+            const response = await uploadDocument(formData);
+
+            if (response.success && response.data) {
+                setUploadedDocuments((prev) => {
+                    const existingIndex = prev.findIndex((doc) => doc.amsmD_Id === amsmD_Id);
+                    const newDoc = {
+                        pasrD_Id: 0,
+                        pasR_Id: 0,
+                        amsmD_Id,
+                        document_Path: response.data as string,
+                        documentName,
+                        isUploading: false
+                    };
+
+                    if (existingIndex >= 0) {
+                        const updated = [...prev];
+                        updated[existingIndex] = newDoc;
+                        return updated;
+                    }
+                    return [...prev, newDoc];
+                });
+
+                toast.success(`${documentName} uploaded successfully`);
+            } else {
+                console.log('Upload Failed:', response.message);
+            }
+        } catch (error: any) {
+            console.error('Upload error:', error);
+            const errorMessage = error?.response?.data?.message || error?.message || 'Upload failed';
+
+            setDocumentErrors((prev) => ({
+                ...prev,
+                [amsmD_Id]: errorMessage
+            }));
+
+            setUploadedDocuments((prev) => prev.filter((doc) => doc.amsmD_Id !== amsmD_Id));
+
+            toast.error(`Failed to upload ${documentName}: ${errorMessage}`);
+        }
+    };
+
+    const handleDocumentDelete = async (amsmD_Id: number, blobUrl: string, documentName: string) => {
+        try {
+            const response = await deleteDocument(blobUrl);
+
+            if (response.success) {
+                setUploadedDocuments((prev) => prev.filter((doc) => doc.amsmD_Id !== amsmD_Id));
+                toast.success(`${documentName} deleted successfully`);
+            } else {
+                throw new Error(response.message || 'Delete failed');
+            }
+        } catch (_error: any) {
+            toast.error(`Failed to delete ${documentName}`);
+        }
+    };
+
+    const isDocumentUploaded = (amsmD_Id: number) => {
+        return uploadedDocuments.some((doc) => doc.amsmD_Id === amsmD_Id);
+    };
+
+    const getUploadedDocument = (amsmD_Id: number) => {
+        return uploadedDocuments.find((doc) => doc.amsmD_Id === amsmD_Id);
+    };
+
+    const validateAgeEligibility = (ageDetails: CalculatedAgeDetails | undefined, classId: number | undefined) => {
+        if (!ageDetails || !classId || !preadmissionClass?.data) {
+            setAgeEligibilityError(null);
+            return true;
+        }
+
+        const selectedClass = preadmissionClass.data.find((cls) => cls.asmcL_Id === classId);
+        if (!selectedClass) {
+            setAgeEligibilityError(null);
+            return true;
+        }
+
+        // Convert age to total days for accurate comparison
+        const studentTotalDays = ageDetails.years * 365 + ageDetails.months * 30 + ageDetails.days;
+        const minAgeDays = selectedClass.asmcL_MinAgeYear * 365 + selectedClass.asmcL_MinAgeMonth * 30 + selectedClass.asmcL_MinAgeDays;
+        const maxAgeDays = selectedClass.asmcL_MaxAgeYear * 365 + selectedClass.asmcL_MaxAgeMonth * 30 + selectedClass.asmcL_MaxAgeDays;
+
+        if (studentTotalDays < minAgeDays || studentTotalDays > maxAgeDays) {
+            const minAgeString = `${selectedClass.asmcL_MinAgeYear} years, ${selectedClass.asmcL_MinAgeMonth} months, ${selectedClass.asmcL_MinAgeDays} days`;
+            const maxAgeString = `${selectedClass.asmcL_MaxAgeYear} years, ${selectedClass.asmcL_MaxAgeMonth} months, ${selectedClass.asmcL_MaxAgeDays} days`;
+
+            setAgeEligibilityError(
+                `Student age (${ageDetails.ageString}) does not meet eligibility for ${selectedClass.asmcL_ClassName}. Required age range: ${minAgeString} to ${maxAgeString}`
+            );
+            return false;
+        }
+
+        setAgeEligibilityError(null);
+        return true;
+    };
+
     return (
         <>
             <div className={cn('mx-auto w-full max-w-7xl px-4 py-2', className)}>
@@ -268,9 +569,9 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
                                 {steps.map((step, index) => (
                                     <div key={step.id} className='flex flex-1 items-center'>
                                         <div className='flex flex-col items-center'>
-                                            <button
+                                            <Button
                                                 type='button'
-                                                onClick={() => goToStep(step.id)}
+                                                // onClick={() => goToStep(step.id)}
                                                 disabled={isSubmitting}
                                                 className={cn(
                                                     'flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full border-2 font-semibold transition-all duration-300 hover:scale-110 disabled:cursor-not-allowed disabled:opacity-50',
@@ -285,7 +586,7 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
                                                 ) : (
                                                     <span className='text-sm'>{step.id}</span>
                                                 )}
-                                            </button>
+                                            </Button>
                                             <p
                                                 className={cn(
                                                     'mt-1 text-nowrap text-center font-medium text-xs transition-colors',
@@ -317,7 +618,7 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
                                             <div className='flex flex-col items-center'>
                                                 <button
                                                     type='button'
-                                                    onClick={() => goToStep(step.id)}
+                                                    // onClick={() => goToStep(step.id)}
                                                     disabled={isSubmitting}
                                                     className={cn(
                                                         'flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full border-2 font-semibold transition-all duration-300 hover:scale-110 disabled:cursor-not-allowed disabled:opacity-50',
@@ -386,6 +687,7 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
                                             />
                                             <InputText
                                                 label='Middle Name'
+                                                required
                                                 id='pasR_MiddleName'
                                                 placeholder='Enter middle name'
                                                 {...register('pasR_MiddleName')}
@@ -393,6 +695,7 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
                                             />
                                             <InputText
                                                 label='Last Name'
+                                                required
                                                 id='pasR_LastName'
                                                 placeholder='Enter last name'
                                                 {...register('pasR_LastName')}
@@ -400,7 +703,8 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
                                             />
                                             <div className='flex flex-col gap-1.5'>
                                                 <Label htmlFor='pasR_DOB'>
-                                                    Date Of Birth<span className='ml-1 text-red-500'>*</span>
+                                                    Date Of Birth
+                                                    <span className='ml-1 text-red-500'>*</span>
                                                 </Label>
                                                 <Controller
                                                     control={control}
@@ -425,7 +729,9 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
                                                                     selected={field.value}
                                                                     onSelect={(selectedDate) => {
                                                                         field.onChange(selectedDate);
-                                                                        setCalculatedAgeDetails(calculateAge(watch('pasR_DOB')));
+                                                                        const ageDetails = calculateAge(selectedDate as Date);
+                                                                        setCalculatedAgeDetails(ageDetails);
+                                                                        validateAgeEligibility(ageDetails, watch('asmcL_Id'));
                                                                     }}
                                                                     onDayClick={() => setIsDobOpen(false)}
                                                                     toDate={new Date()}
@@ -444,13 +750,14 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
                                                     name='pasR_MobileNo'
                                                     control={control}
                                                     render={({ field }) => (
-                                                        <InputNumber
+                                                        <MobileNumberInput
                                                             label='Mobile No.'
-                                                            required
                                                             id='pasR_MobileNo'
-                                                            value={field.value || 0}
+                                                            required
+                                                            value={field.value}
                                                             onChange={(value) => field.onChange(value)}
-                                                            minValue={0}
+                                                            type='number'
+                                                            showSpinner={false}
                                                         />
                                                     )}
                                                 />
@@ -581,7 +888,10 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
                                                     control={control}
                                                     render={({ field }) => (
                                                         <Select
-                                                            onValueChange={(value) => field.onChange(Number(value))}
+                                                            onValueChange={(value) => {
+                                                                field.onChange(Number(value));
+                                                                validateAgeEligibility(calculatedAgeDetails, Number(value));
+                                                            }}
                                                             value={field.value?.toString() || undefined}>
                                                             <SelectTrigger>
                                                                 <SelectValue placeholder='Select class' />
@@ -607,6 +917,14 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
                                                     )}
                                                 />
                                                 {errors.asmcL_Id && <FormError>{errors.asmcL_Id.message}</FormError>}
+                                                {ageEligibilityError && (
+                                                    <div className='mt-2 rounded-md border border-red-200 bg-red-50 p-3'>
+                                                        <p className='flex items-start gap-2 font-medium text-red-700 text-sm'>
+                                                            <span className='mt-0.5 text-red-500'>⚠</span>
+                                                            <span>{ageEligibilityError}</span>
+                                                        </p>
+                                                    </div>
+                                                )}
                                             </div>
                                             <InputText
                                                 label='Email'
@@ -664,13 +982,13 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
                                                     name='pasR_AadharNo'
                                                     control={control}
                                                     render={({ field }) => (
-                                                        <InputNumber
+                                                        <MobileNumberInput
                                                             label='Aadhaar No.'
-                                                            optional
                                                             id='pasR_AadharNo'
-                                                            value={field.value || 0}
+                                                            value={field.value}
                                                             onChange={(value) => field.onChange(value)}
-                                                            minValue={0}
+                                                            type='number'
+                                                            showSpinner={false}
                                                         />
                                                     )}
                                                 />
@@ -892,12 +1210,13 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
                                                             name='pasR_ConPincode'
                                                             control={control}
                                                             render={({ field }) => (
-                                                                <InputNumber
+                                                                <MobileNumberInput
                                                                     label='Pin Code/Zip Code'
                                                                     id='pasR_ConPincode'
-                                                                    value={field.value || 0}
+                                                                    value={field.value}
                                                                     onChange={(value) => field.onChange(value)}
-                                                                    minValue={0}
+                                                                    type='number'
+                                                                    showSpinner={false}
                                                                 />
                                                             )}
                                                         />
@@ -1024,13 +1343,14 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
                                                             name='pasR_PerPincode'
                                                             control={control}
                                                             render={({ field }) => (
-                                                                <InputNumber
+                                                                <MobileNumberInput
                                                                     label='Pin Code/Zip Code'
                                                                     id='pasR_PerPincode'
-                                                                    value={field.value || 0}
+                                                                    value={field.value}
                                                                     onChange={(value) => field.onChange(value)}
-                                                                    minValue={0}
-                                                                    isDisabled={sameAsResidential}
+                                                                    type='number'
+                                                                    showSpinner={false}
+                                                                    disabled={sameAsResidential}
                                                                 />
                                                             )}
                                                         />
@@ -1142,12 +1462,13 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
                                                             name='pasR_FatherMobleNo'
                                                             control={control}
                                                             render={({ field }) => (
-                                                                <InputNumber
+                                                                <MobileNumberInput
                                                                     label='Mobile No.'
                                                                     id='pasR_FatherMobleNo'
-                                                                    value={field.value || 0}
+                                                                    value={field.value}
                                                                     onChange={(value) => field.onChange(value)}
-                                                                    minValue={0}
+                                                                    type='number'
+                                                                    showSpinner={false}
                                                                 />
                                                             )}
                                                         />
@@ -1267,12 +1588,13 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
                                                             name='pasR_MotherMobleNo'
                                                             control={control}
                                                             render={({ field }) => (
-                                                                <InputNumber
+                                                                <MobileNumberInput
                                                                     label='Mobile No.'
                                                                     id='pasR_MotherMobleNo'
-                                                                    value={field.value || 0}
+                                                                    value={field.value}
                                                                     onChange={(value) => field.onChange(value)}
-                                                                    minValue={0}
+                                                                    type='number'
+                                                                    showSpinner={false}
                                                                 />
                                                             )}
                                                         />
@@ -1309,12 +1631,13 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
                                                             name='pasR_AltContactNo'
                                                             control={control}
                                                             render={({ field }) => (
-                                                                <InputNumber
+                                                                <MobileNumberInput
                                                                     label='Alternate Contact No.'
                                                                     id='pasR_AltContactNo'
-                                                                    value={field.value || 0}
+                                                                    value={field.value}
                                                                     onChange={(value) => field.onChange(value)}
-                                                                    minValue={0}
+                                                                    type='number'
+                                                                    showSpinner={false}
                                                                 />
                                                             )}
                                                         />
@@ -1335,14 +1658,408 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
                                     </div>
                                 )}
 
-                                {/* Step 4: Other Information */}
+                                {/* Step 4: Document Upload */}
                                 {currentStep === 4 && (
                                     <div className='space-y-6'>
                                         <div>
-                                            <h2 className='font-bold text-2xl text-gray-900'>Other Information</h2>
-                                            <p className='mt-1 text-gray-500 text-sm'>Please review and accept the undertaking</p>
+                                            <h2 className='font-bold text-2xl text-gray-900'>Document Upload</h2>
+                                            <p className='mt-1 text-gray-500 text-sm'>
+                                                Please upload the required documents. Documents marked with{' '}
+                                                <span className='text-red-500'>*</span> are mandatory.
+                                            </p>
                                         </div>
 
+                                        {preadmissionDocumentsLoading ? (
+                                            <div className='flex items-center justify-center py-12'>
+                                                <div className='text-center'>
+                                                    <div className='mx-auto h-12 w-12 animate-spin rounded-full border-4 border-primary border-t-transparent' />
+                                                    <p className='mt-4 text-gray-600 text-sm'>Loading documents...</p>
+                                                </div>
+                                            </div>
+                                        ) : preadmissionDocuments?.data && preadmissionDocuments.data.length > 0 ? (
+                                            <div className='overflow-x-auto rounded-lg border border-gray-200'>
+                                                <table className='min-w-full divide-y divide-gray-200'>
+                                                    <thead className='bg-gray-50'>
+                                                        <tr>
+                                                            <th
+                                                                scope='col'
+                                                                className='px-6 py-3 text-left font-medium text-gray-500 text-xs uppercase tracking-wider'>
+                                                                Document Name
+                                                            </th>
+                                                            <th
+                                                                scope='col'
+                                                                className='px-6 py-3 text-left font-medium text-gray-500 text-xs uppercase tracking-wider'>
+                                                                Status
+                                                            </th>
+                                                            <th
+                                                                scope='col'
+                                                                className='px-6 py-3 text-left font-medium text-gray-500 text-xs uppercase tracking-wider'>
+                                                                Upload
+                                                            </th>
+                                                            <th
+                                                                scope='col'
+                                                                className='px-6 py-3 text-center font-medium text-gray-500 text-xs uppercase tracking-wider'>
+                                                                Actions
+                                                            </th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody className='divide-y divide-gray-200 bg-white'>
+                                                        {preadmissionDocuments.data.map((document) => {
+                                                            const uploadedDoc = getUploadedDocument(document.amsmD_Id);
+                                                            const isUploading = uploadedDoc?.isUploading;
+                                                            const error = documentErrors[document.amsmD_Id];
+
+                                                            return (
+                                                                <tr
+                                                                    key={document.amsmD_Id}
+                                                                    className={
+                                                                        uploadedDoc && !isUploading
+                                                                            ? 'bg-green-50'
+                                                                            : document.amsmD_FLAG
+                                                                              ? 'bg-orange-50'
+                                                                              : ''
+                                                                    }>
+                                                                    <td className='whitespace-nowrap px-6 py-4'>
+                                                                        <div className='flex items-center gap-2'>
+                                                                            <span className='font-semibold text-gray-900 text-sm'>
+                                                                                {document.amsmD_DocumentName}
+                                                                            </span>
+                                                                            {document.amsmD_FLAG && <span className='text-red-500'>*</span>}
+                                                                        </div>
+                                                                        <p className='mt-0.5 text-gray-500 text-xs'>
+                                                                            {document.amsmD_FLAG ? 'Required' : 'Optional'}
+                                                                        </p>
+                                                                    </td>
+
+                                                                    <td className='whitespace-nowrap px-6 py-4'>
+                                                                        {uploadedDoc && !isUploading ? (
+                                                                            <div className='flex items-center gap-2 font-medium text-green-600 text-sm'>
+                                                                                <Check className='h-5 w-5' />
+                                                                                Uploaded
+                                                                            </div>
+                                                                        ) : isUploading ? (
+                                                                            <div className='flex animate-pulse items-center gap-2 font-medium text-blue-600 text-sm'>
+                                                                                <svg
+                                                                                    className='h-5 w-5 animate-spin'
+                                                                                    fill='none'
+                                                                                    stroke='currentColor'
+                                                                                    viewBox='0 0 24 24'>
+                                                                                    <circle
+                                                                                        className='opacity-25'
+                                                                                        cx='12'
+                                                                                        cy='12'
+                                                                                        r='10'
+                                                                                        strokeWidth='4'
+                                                                                        stroke='currentColor'
+                                                                                    />
+                                                                                    <path
+                                                                                        className='opacity-75'
+                                                                                        fill='currentColor'
+                                                                                        d='M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z'
+                                                                                    />
+                                                                                </svg>
+                                                                                Uploading...
+                                                                            </div>
+                                                                        ) : (
+                                                                            <span className='text-gray-500 text-sm'>Not Uploaded</span>
+                                                                        )}
+                                                                        {error && (
+                                                                            <p className='mt-1 flex items-center gap-1 font-medium text-red-600 text-xs'>
+                                                                                <span>⚠</span> {error}
+                                                                            </p>
+                                                                        )}
+                                                                    </td>
+
+                                                                    <td className='whitespace-nowrap px-6 py-4'>
+                                                                        {(!uploadedDoc || isUploading) && (
+                                                                            <label
+                                                                                htmlFor={`document-${document.amsmD_Id}`}
+                                                                                className={cn(
+                                                                                    'flex cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed px-4 py-3 text-center transition-all hover:border-primary hover:bg-gray-50',
+                                                                                    isUploading
+                                                                                        ? 'border-blue-300 bg-blue-50'
+                                                                                        : 'border-gray-300 bg-white'
+                                                                                )}>
+                                                                                <svg
+                                                                                    className='mb-1 h-6 w-6 text-primary'
+                                                                                    fill='none'
+                                                                                    stroke='currentColor'
+                                                                                    viewBox='0 0 24 24'>
+                                                                                    <path
+                                                                                        strokeLinecap='round'
+                                                                                        strokeLinejoin='round'
+                                                                                        strokeWidth={2}
+                                                                                        d='M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12'
+                                                                                    />
+                                                                                </svg>
+                                                                                <span className='text-gray-600 text-xs'>
+                                                                                    Click to upload
+                                                                                </span>
+                                                                                <input
+                                                                                    id={`document-${document.amsmD_Id}`}
+                                                                                    type='file'
+                                                                                    className='hidden'
+                                                                                    accept='.pdf,.jpg,.jpeg,.png'
+                                                                                    disabled={isUploading || isSubmitting}
+                                                                                    onChange={(e) => {
+                                                                                        const file = e.target.files?.[0];
+                                                                                        if (file) {
+                                                                                            if (file.size > 1 * 1024 * 1024) {
+                                                                                                toast.error(
+                                                                                                    'File size must be less than 1MB'
+                                                                                                );
+                                                                                                e.target.value = ''; // Reset input
+                                                                                                return;
+                                                                                            }
+                                                                                            handleDocumentUpload(
+                                                                                                document.amsmD_Id,
+                                                                                                file,
+                                                                                                document.amsmD_DocumentName
+                                                                                            );
+                                                                                            e.target.value = ''; // Reset input after starting upload
+                                                                                        }
+                                                                                    }}
+                                                                                />
+                                                                            </label>
+                                                                        )}
+                                                                    </td>
+
+                                                                    <td className='space-x-2 whitespace-nowrap px-6 py-4 text-center'>
+                                                                        {uploadedDoc && !isUploading && (
+                                                                            <>
+                                                                                <Button
+                                                                                    type='button'
+                                                                                    className='w-fit'
+                                                                                    onClick={() =>
+                                                                                        window.open(uploadedDoc.document_Path, '_blank')
+                                                                                    }>
+                                                                                    <Eye className='h-4 w-4' />
+                                                                                </Button>
+                                                                                <Button
+                                                                                    type='button'
+                                                                                    className='w-fit'
+                                                                                    variant='destructive'
+                                                                                    disabled={isSubmitting}
+                                                                                    onClick={() =>
+                                                                                        handleDocumentDelete(
+                                                                                            document.amsmD_Id,
+                                                                                            uploadedDoc.document_Path,
+                                                                                            document.amsmD_DocumentName
+                                                                                        )
+                                                                                    }>
+                                                                                    <Trash className='h-4 w-4' />
+                                                                                </Button>
+                                                                            </>
+                                                                        )}
+                                                                    </td>
+                                                                </tr>
+                                                            );
+                                                        })}
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                        ) : (
+                                            <div className='rounded-lg border-2 border-gray-300 border-dashed bg-gray-50 p-12 text-center'>
+                                                <svg
+                                                    className='mx-auto h-12 w-12 text-gray-400'
+                                                    fill='none'
+                                                    stroke='currentColor'
+                                                    viewBox='0 0 24 24'>
+                                                    <path
+                                                        strokeLinecap='round'
+                                                        strokeLinejoin='round'
+                                                        strokeWidth={2}
+                                                        d='M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z'
+                                                    />
+                                                </svg>
+                                                <p className='mt-4 text-gray-600 text-sm'>No documents required at this time</p>
+                                            </div>
+                                        )}
+
+                                        {/* Upload Summary */}
+                                        {preadmissionDocuments?.data && preadmissionDocuments.data.length > 0 && (
+                                            <div className='rounded-lg border border-blue-200 bg-blue-50 p-4'>
+                                                <div className='flex items-start gap-3'>
+                                                    <div className='flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-blue-100'>
+                                                        <svg
+                                                            className='h-5 w-5 text-blue-600'
+                                                            fill='none'
+                                                            stroke='currentColor'
+                                                            viewBox='0 0 24 24'>
+                                                            <path
+                                                                strokeLinecap='round'
+                                                                strokeLinejoin='round'
+                                                                strokeWidth={2}
+                                                                d='M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z'
+                                                            />
+                                                        </svg>
+                                                    </div>
+                                                    <div className='flex-1'>
+                                                        <p className='font-medium text-blue-900 text-sm'>Upload Progress</p>
+                                                        <p className='mt-1 text-blue-700 text-sm'>
+                                                            {uploadedDocuments.length} of {preadmissionDocuments.data.length} documents
+                                                            uploaded
+                                                            {preadmissionDocuments.data.filter((d) => d.amsmD_FLAG).length > 0 && (
+                                                                <>
+                                                                    {' '}
+                                                                    (
+                                                                    {
+                                                                        preadmissionDocuments.data.filter(
+                                                                            (d) => d.amsmD_FLAG && isDocumentUploaded(d.amsmD_Id)
+                                                                        ).length
+                                                                    }{' '}
+                                                                    of {preadmissionDocuments.data.filter((d) => d.amsmD_FLAG).length}{' '}
+                                                                    mandatory)
+                                                                </>
+                                                            )}
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        )}
+                                    </div>
+                                )}
+
+                                {/* Step 4: Other Information */}
+                                {currentStep === 5 && (
+                                    <div className='space-y-6'>
+                                        <div>
+                                            <h2 className='font-bold text-2xl text-gray-900'>Other Information</h2>
+                                            <p className='mt-1 text-gray-500 text-sm'>
+                                                Sibling details, previous school information, and undertaking
+                                            </p>
+                                        </div>
+
+                                        {/* Sibling Details Section */}
+                                        <div className='space-y-4'>
+                                            <div className='flex items-center justify-between'>
+                                                <h3 className='font-semibold text-gray-800 text-lg'>Sibling Details</h3>
+                                                <Button
+                                                    type='button'
+                                                    variant='outline'
+                                                    size='sm'
+                                                    onClick={addSibling}
+                                                    disabled={isSubmitting}
+                                                    className='w-fit'>
+                                                    <span className='mr-2'>+</span>
+                                                    Add Sibling
+                                                </Button>
+                                            </div>
+
+                                            {siblings.length === 0 ? (
+                                                <p className='text-gray-500 text-sm'>
+                                                    No siblings added yet. Click "Add Sibling" to add details.
+                                                </p>
+                                            ) : (
+                                                <div className='space-y-4'>
+                                                    {siblings.map((sibling, index) => (
+                                                        <div key={index} className='rounded-lg border border-gray-200 bg-gray-50 p-4'>
+                                                            <div className='mb-3 flex items-center justify-between'>
+                                                                <h4 className='font-medium text-gray-700 text-sm'>Sibling {index + 1}</h4>
+                                                                <Button
+                                                                    type='button'
+                                                                    variant='ghost'
+                                                                    size='sm'
+                                                                    onClick={() => removeSibling(index)}
+                                                                    disabled={isSubmitting}
+                                                                    className='h-8 w-fit bg-error text-white'>
+                                                                    Remove
+                                                                </Button>
+                                                            </div>
+                                                            <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
+                                                                <InputText
+                                                                    label='Sibling Name'
+                                                                    id={`sibling_name_${index}`}
+                                                                    placeholder='Enter sibling name'
+                                                                    value={sibling.pasrS_SiblingsName}
+                                                                    onChange={(e) =>
+                                                                        updateSibling(index, 'pasrS_SiblingsName', e.target.value)
+                                                                    }
+                                                                />
+                                                                <InputText
+                                                                    label='Class'
+                                                                    id={`sibling_class_${index}`}
+                                                                    placeholder='Enter class'
+                                                                    value={sibling.pasrS_SiblingsClass}
+                                                                    onChange={(e) =>
+                                                                        updateSibling(index, 'pasrS_SiblingsClass', e.target.value)
+                                                                    }
+                                                                />
+                                                                <InputText
+                                                                    label='Admission No'
+                                                                    id={`sibling_admission_${index}`}
+                                                                    placeholder='Enter admission number'
+                                                                    value={sibling.pasrS_SiblingsAdmissionNo}
+                                                                    onChange={(e) =>
+                                                                        updateSibling(index, 'pasrS_SiblingsAdmissionNo', e.target.value)
+                                                                    }
+                                                                />
+                                                                <InputText
+                                                                    label='Section'
+                                                                    id={`sibling_section_${index}`}
+                                                                    placeholder='Enter section'
+                                                                    value={sibling.pasrS_SiblingsSection}
+                                                                    onChange={(e) =>
+                                                                        updateSibling(index, 'pasrS_SiblingsSection', e.target.value)
+                                                                    }
+                                                                />
+                                                            </div>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            )}
+                                        </div>
+
+                                        {/* Previous School Details Section */}
+                                        <div className='space-y-4'>
+                                            <h3 className='font-semibold text-gray-800 text-lg'>Previous School Details</h3>
+                                            <div className='grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3'>
+                                                <InputText
+                                                    label='Previous School Name'
+                                                    id='pasrpS_PrvSchoolName'
+                                                    placeholder='Enter school name'
+                                                    value={previousSchool.pasrpS_PrvSchoolName}
+                                                    onChange={(e) => updatePreviousSchool('pasrpS_PrvSchoolName', e.target.value)}
+                                                />
+                                                <InputText
+                                                    label='Previous Class'
+                                                    id='pasrpS_PreviousClass'
+                                                    placeholder='Enter class'
+                                                    value={previousSchool.pasrpS_PreviousClass}
+                                                    onChange={(e) => updatePreviousSchool('pasrpS_PreviousClass', e.target.value)}
+                                                />
+                                                <InputText
+                                                    label='Board'
+                                                    id='pasrpS_Board'
+                                                    placeholder='Enter board'
+                                                    value={previousSchool.pasrpS_Board}
+                                                    onChange={(e) => updatePreviousSchool('pasrpS_Board', e.target.value)}
+                                                />
+                                                <InputText
+                                                    label='Left Year'
+                                                    id='pasrpS_LeftYear'
+                                                    placeholder='Enter year'
+                                                    value={previousSchool.pasrpS_LeftYear}
+                                                    onChange={(e) => updatePreviousSchool('pasrpS_LeftYear', e.target.value)}
+                                                />
+                                                <InputText
+                                                    label='Reason for Leaving'
+                                                    id='pasrpS_LeftReason'
+                                                    placeholder='Enter reason'
+                                                    value={previousSchool.pasrpS_LeftReason}
+                                                    onChange={(e) => updatePreviousSchool('pasrpS_LeftReason', e.target.value)}
+                                                />
+                                                <InputText
+                                                    label='School Address'
+                                                    id='pasrpS_Address'
+                                                    placeholder='Enter address'
+                                                    value={previousSchool.pasrpS_Address}
+                                                    onChange={(e) => updatePreviousSchool('pasrpS_Address', e.target.value)}
+                                                />
+                                            </div>
+                                        </div>
+
+                                        {/* Undertaking Section */}
                                         <div className='rounded-lg border border-gray-200 bg-gray-200 p-6'>
                                             <Controller
                                                 name='pasR_UndertakingFlag'
@@ -1419,7 +2136,7 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
                                     )}
 
                                     {currentStep < steps.length ? (
-                                        <Button type='button' onClick={nextStep} disabled={isSubmitting}>
+                                        <Button type='button' onClick={nextStep} disabled={isSubmitting || ageEligibilityError !== null}>
                                             Next
                                             <ChevronRight className='ml-2 h-4 w-4' />
                                         </Button>

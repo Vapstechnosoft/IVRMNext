@@ -63,6 +63,7 @@ function MasterClassPageContent({
                         columns={masterClassColumns}
                         isLoading={isLoading}
                         error={error}
+                        showViewOptions={false}
                         columnPinning={{ right: ['actions'] }}
                         loadingMessage='Loading master classes...'
                         noDataTitle='No Master Classes Found'

@@ -54,7 +54,6 @@ export default function UpdateMasterSectionForm({ onSuccess, className = '', sel
         try {
             const { asmc_sectioncode, asmc_sectionname, asmc_maxcapacity, asmc_order } = data;
             const payload = {
-                MI_Id: 30,
                 ASMS_Id: row.asmS_Id,
                 ASMC_SectionCode: asmc_sectioncode,
                 ASMC_SectionName: asmc_sectionname,
@@ -117,6 +116,7 @@ export default function UpdateMasterSectionForm({ onSuccess, className = '', sel
                                         defaultValue={row.asmC_MaxCapacity || 0}
                                         onChange={(value) => field.onChange(value)}
                                         minValue={0}
+                                        step={1}
                                     />
                                 )}
                             />
@@ -134,6 +134,7 @@ export default function UpdateMasterSectionForm({ onSuccess, className = '', sel
                                         defaultValue={row.asmC_Order}
                                         onChange={(value) => field.onChange(value)}
                                         minValue={0}
+                                        step={1}
                                     />
                                 )}
                             />

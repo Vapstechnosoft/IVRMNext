@@ -15,7 +15,7 @@ export async function getApplicationStatusDropdown() {
 }
 
 export async function getApplicationStudentList(asmay_id: number, asmcl_id: number, pasraps_id: number, searchParams?: ApiSearchparams) {
-    const urlParams = getSearchParamsUrl(searchParams ?? {});
+    const urlParams = getSearchParamsUrl(searchParams ?? {}, 'PASR_RegistrationNo,student_name,PASR_Sex,applied_class_name');
     const url = `/transfer_application_status/application_student_list?asmay_id=${asmay_id}&asmcl_id=${asmcl_id}&pasraps_id=${pasraps_id}&${urlParams}`;
 
     return await api.get<IPreadmissionApplicationList[]>('preadmission', url);

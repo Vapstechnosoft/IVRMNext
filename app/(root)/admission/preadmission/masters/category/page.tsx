@@ -63,6 +63,7 @@ function MasterCategoryPageContent({
                         columns={masterCategoryColumns}
                         isLoading={isLoading}
                         error={error}
+                        showViewOptions={false}
                         columnPinning={{ right: ['actions'] }}
                         loadingMessage='Loading master categories...'
                         noDataTitle='No Master Categories Found'
