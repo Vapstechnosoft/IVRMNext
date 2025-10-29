@@ -273,6 +273,14 @@ export async function getUserAccessibleModules() {
                                 pages: [
                                     {
                                         id: 1,
+                                        name: 'Exam Subject Wizard',
+                                        icon: 'BookOpen',
+                                        url: '/Exam/exam-module/exam-mapping/exam-subject-wizard',
+                                        title: 'Exam Subject Wizard',
+                                        description: 'Manage Exam Subject Wizard Details'
+                                    },
+                                    {
+                                        id: 2,
                                         name: 'Category Subject Mapping',
                                         icon: 'BookOpen',
                                         url: '/Exam/exam-module/exam-mapping/yearly-category-subject-mapping',
@@ -280,7 +288,7 @@ export async function getUserAccessibleModules() {
                                         description: 'Manage Yearly Category Subject Mapping Details'
                                     },
                                     {
-                                        id: 2,
+                                        id: 3,
                                         name: 'Exam Login Privilages',
                                         icon: 'BookOpen',
                                         url: '/Exam/exam-module/exam-mapping/exam-login-privilages',
@@ -288,7 +296,7 @@ export async function getUserAccessibleModules() {
                                         description: 'Manage Exam Login Privilages Details'
                                     },
                                     {
-                                        id: 3,
+                                        id: 4,
                                         name: 'Yearly Category Date Mapping',
                                         icon: 'CalendarDays',
                                         url: '/Exam/exam-module/exam-mapping/yearly-category-dates-mapping',
@@ -296,7 +304,7 @@ export async function getUserAccessibleModules() {
                                         description: 'Manage Yearly Category Date Mapping Details'
                                     },
                                     {
-                                        id: 4,
+                                        id: 5,
                                         name: 'Exam Subject Group Mapping',
                                         icon: 'BookOpen',
                                         url: '/Exam/exam-module/exam-mapping/exam-subject-group-mapping',
@@ -304,7 +312,7 @@ export async function getUserAccessibleModules() {
                                         description: 'Manage Exam Subject Group Mapping Details'
                                     },
                                     {
-                                        id: 5,
+                                        id: 6,
                                         name: 'Exam Term And Exam Mapping',
                                         icon: 'BookOpen',
                                         url: '/Exam/exam-module/exam-mapping/exam-term-and-exam-mapping',

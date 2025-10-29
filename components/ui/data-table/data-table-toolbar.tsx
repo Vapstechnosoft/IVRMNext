@@ -10,7 +10,6 @@ import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { DownloadIcon, FileSpreadsheet, FileText, Settings2, X } from 'lucide-react';
 import { parseAsString, useQueryState } from 'nuqs';
-import { useEffect } from 'react';
 import { DropdownMenu, DropdownMenuCheckboxItem, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '../dropdown-menu';
 
 interface DataTableToolbarProps<TData> {
@@ -23,10 +22,6 @@ interface DataTableToolbarProps<TData> {
 export function DataTableToolbar<TData>({ table, data, showExportOptions = true, showViewOptions = true }: DataTableToolbarProps<TData>) {
     const [searchQuery, setSearchQuery] = useQueryState(
         tableSearchVariables.search,
-        parseAsString.withOptions({ shallow: false }).withDefault('')
-    );
-    const [searchColumns, setSearchColumns] = useQueryState(
-        tableSearchVariables.search_columns,
         parseAsString.withOptions({ shallow: false }).withDefault('')
     );
 
@@ -45,6 +40,11 @@ export function DataTableToolbar<TData>({ table, data, showExportOptions = true,
 
     //find if any column is hiding
     const anyColumnHiding = table.getAllColumns().filter((column) => typeof column.accessorFn !== 'undefined' && column.getCanHide());
+    const allCols = anyColumnHiding.map((c) => c.id).join(',');
+    const [searchColumns, setSearchColumns] = useQueryState(
+        tableSearchVariables.search_columns,
+        parseAsString.withOptions({ shallow: false }).withDefault(allCols)
+    );
     const handleExportToExcel = () => {
         exportToExcel(data);
     };
@@ -90,13 +90,6 @@ export function DataTableToolbar<TData>({ table, data, showExportOptions = true,
     }
     const allSearchableColumns = anyColumnHiding.map((c) => c.id);
     const selectedSearchColumns = searchColumns ? searchColumns.split(',') : [];
-    useEffect(() => {
-        // if no columns selected, set all by default
-        if (!searchColumns || searchColumns.trim() === '') {
-            const allCols = anyColumnHiding.map((c) => c.id).join(',');
-            setSearchColumns(allCols);
-        }
-    }, [anyColumnHiding, searchColumns, setSearchColumns]);
 
     const toggleSearchColumn = (colId: string, checked: boolean) => {
         let updated: string[];

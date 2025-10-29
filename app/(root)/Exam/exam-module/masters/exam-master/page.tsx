@@ -3,11 +3,14 @@ import { Button } from '@/components/ui/button';
 import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/generic-data-table';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
-import { Plus, X } from 'lucide-react';
-import { use } from 'react';
+import { List, Plus, X } from 'lucide-react';
+import { use, useState } from 'react';
 
+import { MasterViewDetails } from '@/components/ui/set-order/generic-seto-order';
 import { useMasterExam } from '@/hooks/exam/exammodule/usemasters';
-import type { IMasterExam } from '@/types/exam/exam-module/masters';
+import { addOrUpdateMasterExam, getMasterExamOrderData } from '@/server/exam/exam-module/masters/exam';
+import type { IMasterExam, IMasterExamOrder } from '@/types/exam/exam-module/masters';
+import { toast } from 'sonner';
 import AddMasterExamForm from './_components/add-form';
 import { MasterExamColumns } from './_components/columns';
 import ToggleExamForm from './_components/toggle-form';
@@ -17,11 +20,11 @@ type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 
 export default function MasterExamPage(props: { searchParams: SearchParams }) {
     const searchParams = use(props.searchParams);
-    const { data: response, isLoading, error } = useMasterExam(searchParams);
+    const { data: response, isLoading, error, refetchAll } = useMasterExam(searchParams);
 
     return (
         <FormProvider<IMasterExam>>
-            <MasterExamPageContent response={response} isLoading={isLoading} error={error} />
+            <MasterExamPageContent response={response} isLoading={isLoading} error={error} refetchAll={refetchAll} />
         </FormProvider>
     );
 }
@@ -29,20 +32,76 @@ export default function MasterExamPage(props: { searchParams: SearchParams }) {
 function MasterExamPageContent({
     response,
     isLoading,
-    error
+    error,
+    refetchAll
 }: {
     response: any;
     isLoading: boolean;
     error: any;
+    refetchAll: any;
 }) {
     const { openAddForm } = useFormContext<IMasterExam>();
     const tableProps = useDataTableProps(response);
+    const [orderModalOpen, setOrderModalOpen] = useState(false);
+    const [orderData, setOrderData] = useState<(IMasterExamOrder & { id: number })[]>([]);
+    const [isOrderSaving, setIsOrderSaving] = useState(false);
+    // Fetch and open order modal
+    const handleSetOrder = async () => {
+        try {
+            const data = await getMasterExamOrderData();
+            const examOrders: IMasterExamOrder[] = Array.isArray(data?.data) ? data.data : [];
+            const mappedData = examOrders.map((d) => ({ ...d, id: d.emE_Id }));
+            setOrderData(mappedData);
+            setOrderModalOpen(true);
+        } catch (error: any) {
+            toast.error(error.message);
+        }
+    };
+
+    // Save reordered exams
+    const handleOrderSave = async (updatedData: (IMasterExamOrder & { id: number })[]) => {
+        setOrderData(updatedData);
+        setIsOrderSaving(true);
+        try {
+            const payload = {
+                mI_Id: 30,
+                examDTO: updatedData.map((item, index) => ({
+                    emE_Id: item.emE_Id,
+                    emE_ExamOrder: index + 1
+                }))
+            };
+            const response = await addOrUpdateMasterExam(payload);
+            if (response.success) {
+                toast.success(response.message);
+                refetchAll();
+                setIsOrderSaving(false);
+                setOrderModalOpen(false);
+            } else {
+                toast.error(response.message);
+            }
+        } catch (error: any) {
+            toast.error(error.message);
+        } finally {
+            setIsOrderSaving(false);
+            setOrderModalOpen(false);
+        }
+    };
 
     return (
         <div className='min-h-screen'>
             <div className='container space-y-4 p-1'>
                 {/* Header */}
-                <div className='flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-self-end'>
+                <div className='flex gap-4 sm:flex-row sm:items-center sm:justify-self-end'>
+                    <Button
+                        type='button'
+                        variant='secondary'
+                        onClick={handleSetOrder}
+                        className='order-2 w-fit transition-all duration-200 hover:scale-105 sm:order-3'>
+                        <div className='flex items-center'>
+                            <List className='mr-2 h-4 w-4' />
+                            Set Order
+                        </div>
+                    </Button>
                     <Button
                         type='button'
                         onClick={openAddForm}
@@ -70,7 +129,24 @@ function MasterExamPageContent({
                         errorTitle='Error Loading Exams'
                     />
                 </CollapsibleSection>
-
+                {/* Order Modal */}
+                {orderModalOpen && (
+                    <MasterViewDetails
+                        isOpen={orderModalOpen}
+                        onClose={() => setOrderModalOpen(false)}
+                        data={orderData}
+                        isLoading={isOrderSaving}
+                        columns={[
+                            { key: 'id', label: 'SLNO', className: 'text-center w-12' },
+                            { key: 'emE_ExamName', label: 'Exam Name', className: 'text-left' },
+                            { key: 'emE_ExamCode', label: 'Exam Code', className: 'text-left' },
+                            { key: 'emE_ExamOrder', label: 'Exam Order', className: 'text-left' }
+                        ]}
+                        onSave={handleOrderSave}
+                        tableHeight='500px'
+                        title='Set Exam Order'
+                    />
+                )}
                 {/* Forms */}
                 <FormSections />
             </div>

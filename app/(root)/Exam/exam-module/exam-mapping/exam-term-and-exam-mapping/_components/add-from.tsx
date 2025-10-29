@@ -317,13 +317,25 @@ export default function AddExamTermAndExamMapping({ onSuccess }: { onSuccess?: (
 
         toast.info('Form has been reset');
     }
+    function handleCancel() {
+        setAddedRows([]);
+        setEntryExamId(0);
+        setEntryMarksFlag('M');
+        setEntryValue('');
+        setEntryRoundOff(false);
+        setEntryConversion(false);
+        setEntryNotApplicable(false);
+    }
 
     return (
         <div className='flex w-full flex-col gap-6'>
             <FormProvider {...methods}>
                 <form
-                    onSubmit={handleSubmit(onSubmit, (errors) => {
-                        console.info('Form validation errors:', errors);
+                    onSubmit={handleSubmit(onSubmit, (errs) => {
+                        const firstErrorKey = Object.keys(errs)[0];
+                        const firstError = firstErrorKey && (errs as Record<string, any>)[firstErrorKey];
+                        const errorMessage = firstError?.message || 'Something went wrong';
+                        toast.error(errorMessage);
                     })}
                     className='flex flex-col gap-6 rounded-2xl bg-white p-6 shadow-md'
                     noValidate>
@@ -600,9 +612,12 @@ export default function AddExamTermAndExamMapping({ onSuccess }: { onSuccess?: (
                                 </div>
                             </div>
 
-                            <div className='col-span-5 mt-3 flex justify-center'>
+                            <div className='col-span-5 mt-3 flex justify-center gap-4 '>
                                 <Button type='button' onClick={handleAddExamRow} className='w-fit' disabled={!currentEntryValid}>
                                     Add Exam
+                                </Button>
+                                <Button className='flex w-fit' type='button' variant='outline' onClick={() => handleCancel()}>
+                                    Cancel
                                 </Button>
                             </div>
                         </div>
@@ -617,15 +632,15 @@ export default function AddExamTermAndExamMapping({ onSuccess }: { onSuccess?: (
                                 <div className='overflow-hidden rounded-xl border border-gray-300 shadow-sm'>
                                     <table className='w-full border-separate border-spacing-0'>
                                         <thead>
-                                            <tr className='border-gray-300 border-b bg-gray-50 text-left font-semibold'>
-                                                <th className='border-gray-300 border-r px-3 py-2 first:rounded-tl-xl'>SLNO</th>
-                                                <th className='border-gray-300 border-r px-3 py-2'>Exam</th>
-                                                <th className='border-gray-300 border-r px-3 py-2'>Type</th>
-                                                <th className='border-gray-300 border-r px-3 py-2'>Value</th>
-                                                <th className='border-gray-300 border-r px-3 py-2'>Round Off</th>
-                                                <th className='border-gray-300 border-r px-3 py-2'>Conversion</th>
-                                                <th className='border-gray-300 border-r px-3 py-2'>Not Applicable</th>
-                                                <th className='px-3 py-2 last:rounded-tr-xl'>Actions</th>
+                                            <tr className='border-gray-300 border-b bg-gray-50 text-left font-normal text-[#78716C]'>
+                                                <th className='border-gray-300 border-r px-3 py-2 font-normal first:rounded-tl-xl'>SLNO</th>
+                                                <th className='border-gray-300 border-r px-3 py-2 font-normal'>Exam</th>
+                                                <th className='border-gray-300 border-r px-3 py-2 font-normal'>Type</th>
+                                                <th className='border-gray-300 border-r px-3 py-2 font-normal'>Value</th>
+                                                <th className='border-gray-300 border-r px-3 py-2 font-normal'>Round Off</th>
+                                                <th className='border-gray-300 border-r px-3 py-2 font-normal'>Conversion</th>
+                                                <th className='border-gray-300 border-r px-3 py-2 font-normal'>Not Applicable</th>
+                                                <th className='px-3 py-2 font-normal last:rounded-tr-xl'>Actions</th>
                                             </tr>
                                         </thead>
 

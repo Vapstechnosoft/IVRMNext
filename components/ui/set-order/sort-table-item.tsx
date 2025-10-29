@@ -31,7 +31,7 @@ export function SortableItem<T>({ id, row, columns, index, onHoverChange }: Sort
             style={style}
             {...attributes}
             {...listeners}
-            className='hover:bg-gray-50'
+            className='hover:bg-[#dfb8f8]'
             onMouseEnter={() => onHoverChange?.(true)}
             onMouseLeave={() => onHoverChange?.(false)}>
             {columns.map((col) => (

@@ -308,3 +308,176 @@ export const ExamTermAndExamMappingSchema = {
         emcA_Id: z.number().int().positive({ message: 'Invalid Category ID' })
     })
 };
+
+export const ExamSubjectWizardSchema = {
+    addOrUpdate: z
+        .object({
+            AMCO_Id: z.string().min(1, { message: 'Please Select Course' }),
+            AMB_Id: z.string().min(1, { message: 'Please Select Branch' }),
+            AMSE_Id: z.string().min(1, { message: 'Please Select Semester' }),
+            ACSS_Id: z.string().min(1, { message: 'Please Select Subject Scheme' }),
+            ACST_Id: z.string().min(1, { message: 'Please Select Scheme Type' }),
+            EMG_Id: z.string().min(1, { message: 'Please Select Subject Group' }),
+
+            ECYSE_AttendanceFromDate: z
+                .string({
+                    required_error: 'Select Date from the Calendar'
+                })
+                .min(1, { message: 'Select Date from the Calendar' }),
+
+            ECYSE_AttendanceToDate: z
+                .string({
+                    required_error: 'Select Date from the Calendar'
+                })
+                .min(1, { message: 'Select Date from the Calendar' }),
+            // other properties below
+            EMGR_Id: z.string().min(1, { message: 'Select Grade' }),
+            ECYSE_SubExamFlg: z.boolean().default(false),
+            ECYSE_SubSubjectFlg: z.boolean().default(false),
+
+            exam_list: z
+                .array(
+                    z.object({
+                        emE_Id: z.string(),
+                        checked: z.boolean()
+                    })
+                )
+                .refine((list) => list.some((e) => e.checked), {
+                    message: 'Select Atleast One Exam'
+                }),
+
+            subject_list: z.array(
+                z.object({
+                    ismS_Id: z.string(),
+                    checkedvalue: z.boolean(),
+                    ECYSES_MaxMarks: z
+                        .string()
+                        .regex(/^[0-9]{0,4}\.?[0-9]{1,2}?$/, {
+                            message: 'Enter valid format [e.g. 100.00]'
+                        })
+                        .optional()
+                        .or(z.literal('')),
+                    ECYSES_MinMarks: z
+                        .string()
+                        .regex(/^[0-9]{0,4}\.?[0-9]{1,2}?$/, {
+                            message: 'Enter valid format [e.g. 100.00]'
+                        })
+                        .optional()
+                        .or(z.literal('')),
+                    ECYSES_MarksEntryMax: z
+                        .string()
+                        .regex(/^[0-9]{0,4}\.?[0-9]{1,2}?$/, {
+                            message: 'Enter valid format [e.g. 100.00]'
+                        })
+                        .optional()
+                        .or(z.literal('')),
+                    ECYSES_MarksGradeEntryFlg: z.enum(['M', 'G'], {
+                        required_error: 'Select Marks/Grade Type'
+                    }),
+                    ECYSES_MarksDisplayFlg: z.boolean(),
+                    ECYSES_GradeDisplayFlg: z.boolean(),
+                    ECYSES_AplResultFlg: z.boolean(),
+                    EMGR_Id: z.string().min(1, { message: 'Select Grade' })
+                })
+            )
+        })
+        // ✅ FIXED refine — applied at object level
+        .refine((data) => data.ECYSE_AttendanceToDate >= data.ECYSE_AttendanceFromDate, {
+            message: 'Attendance To must be after From Date',
+            path: ['ECYSE_AttendanceToDate'] // attach error to correct field
+        }),
+
+    delete: z.object({
+        ECYSE_Id: z.number({ required_error: 'ECYSE_Id is required' }).positive({ message: 'Invalid ECYSE_Id' })
+    })
+};
+
+export const SubExamSchema = {
+    addOrUpdate: z.object({
+        subexam_list: z
+            .array(
+                z.object({
+                    emsE_Id: z.string(),
+                    checkedvalue: z.boolean(),
+                    ECYSESSS_MaxMarks: z
+                        .string()
+                        .regex(/^[0-9]{0,4}\.?[0-9]{1,2}?$/, {
+                            message: 'Enter valid format [e.g. 100.00]'
+                        })
+                        .optional()
+                        .or(z.literal('')),
+                    ECYSESSS_MinMarks: z
+                        .string()
+                        .regex(/^[0-9]{0,4}\.?[0-9]{1,2}?$/, {
+                            message: 'Enter valid format [e.g. 100.00]'
+                        })
+                        .optional()
+                        .or(z.literal('')),
+                    EMGR_Id: z.string().min(1, { message: 'Select Grade' }),
+                    ECYSESSS_ExemptedFlg: z.boolean(),
+                    ECYSESSS_ExemptedPer: z
+                        .string()
+                        .regex(/^[0-9]{0,4}\.?[0-9]{1,2}?$/, {
+                            message: 'Enter valid format [e.g. 100.00]'
+                        })
+                        .optional()
+                        .or(z.literal(''))
+                })
+            )
+            .refine((list) => list.some((s) => s.checkedvalue), {
+                message: 'Select at least one Sub-Exam'
+            })
+            .refine((list) => list.every((s) => !s.checkedvalue || (!!s.ECYSESSS_MaxMarks && !!s.ECYSESSS_MinMarks && !!s.EMGR_Id)), {
+                message: 'Enter marks and grade for selected sub-exams'
+            })
+    }),
+
+    delete: z.object({
+        ECYSESSS_Id: z.number({ required_error: 'ECYSESSS_Id is required' }).positive({ message: 'Invalid ECYSESSS_Id' })
+    })
+};
+
+export const SubSubjectSchema = {
+    addOrUpdate: z.object({
+        subsubject_list: z
+            .array(
+                z.object({
+                    emsS_Id: z.string(),
+                    checkedvalue: z.boolean(),
+                    ECYSESSS_MaxMarks: z
+                        .string()
+                        .regex(/^[0-9]{0,4}\.?[0-9]{1,2}?$/, {
+                            message: 'Enter valid format [e.g. 100.00]'
+                        })
+                        .optional()
+                        .or(z.literal('')),
+                    ECYSESSS_MinMarks: z
+                        .string()
+                        .regex(/^[0-9]{0,4}\.?[0-9]{1,2}?$/, {
+                            message: 'Enter valid format [e.g. 100.00]'
+                        })
+                        .optional()
+                        .or(z.literal('')),
+                    EMGR_Id: z.string().min(1, { message: 'Select Grade' }),
+                    ECYSESSS_ExemptedFlg: z.boolean(),
+                    ECYSESSS_ExemptedPer: z
+                        .string()
+                        .regex(/^[0-9]{0,4}\.?[0-9]{1,2}?$/, {
+                            message: 'Enter valid format [e.g. 100.00]'
+                        })
+                        .optional()
+                        .or(z.literal(''))
+                })
+            )
+            .refine((list) => list.some((s) => s.checkedvalue), {
+                message: 'Select at least one Sub-Subject'
+            })
+            .refine((list) => list.every((s) => !s.checkedvalue || (!!s.ECYSESSS_MaxMarks && !!s.ECYSESSS_MinMarks && !!s.EMGR_Id)), {
+                message: 'Enter marks and grade for selected sub-subjects'
+            })
+    }),
+
+    delete: z.object({
+        ECYSESSS_Id: z.number({ required_error: 'ECYSESSS_Id is required' }).positive({ message: 'Invalid ECYSESSS_Id' })
+    })
+};

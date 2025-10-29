@@ -85,5 +85,6 @@ export const EXAM_QUERY_KEYS = {
     EXAM_SUBJECT_GROUP_MAPPING: 'exam-subject-group-mapping',
     EXAM_SUBJECT_GROUP_MAPPING_DETAILS: 'exam-subject-group-mapping-details',
     EXAM_TERM_AND_EXAM_MAPPING: 'exam-term-and-exam-mapping',
-    EXAM_TERM_AND_EXAM_MAPPING_DETAILS: 'exam-term-and-exam-mapping-details'
+    EXAM_TERM_AND_EXAM_MAPPING_DETAILS: 'exam-term-and-exam-mapping-details',
+    EXAM_SUBJECT_WIZARD: 'exam-subject-wizard'
 };

@@ -229,6 +229,7 @@ export function getSearchParamsUrl(searchParams: ApiSearchparams | undefined, se
     const sort_column = searchParams?.sort_column || '';
     const sort_direction = searchParams?.sort_direction || 'asc';
     const search_query = searchParams?.search_query || '';
+    const search_columns = searchParams?.search_columns || '';
 
     let url = `page=${page}&page_size=${page_size}&sort_column=${sort_column}&sort_direction=${sort_direction}`;
 
@@ -236,6 +237,8 @@ export function getSearchParamsUrl(searchParams: ApiSearchparams | undefined, se
         url += `&search_query=${encodeURIComponent(search_query)}`;
         if (searchColumns) {
             url += `&search_column=${encodeURIComponent(searchColumns)}`;
+        } else {
+            url += `&search_column=${search_columns}`;
         }
     }
 

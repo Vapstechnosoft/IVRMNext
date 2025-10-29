@@ -181,3 +181,63 @@ export interface IExamTermAndExamMappingDetails {
     ecteX_RoundOffReqFlg: boolean;
     ecteX_ConversionReqFlg: boolean;
 }
+
+export interface IExamSubjectWizard {
+    ecysE_Id: number;
+    amcO_Id: number;
+    amb_Id: number;
+    amsE_Id: number;
+    acss_Id: number;
+    acst_Id: number;
+    emg_Id: number;
+    eme_Id: number;
+    emgr_Id: number;
+
+    amcO_CourseName: string;
+    amb_BranchName: string;
+    amse_SemesterName: string;
+    acss_SchemeName: string;
+    acst_SchemeType: string;
+    emg_GroupName: string;
+    eme_ExamName: string;
+    emgr_GradeName: string;
+
+    ecysE_AttendanceFromDate: string;
+    ecysE_AttendanceToDate: string;
+
+    ecysE_SubExamFlg: boolean;
+    ecysE_SubSubjectFlg: boolean;
+    ecysE_ActiveFlg: boolean;
+
+    createdBy?: string;
+    createdDate?: string;
+    modifiedBy?: string;
+    modifiedDate?: string;
+
+    slno?: number;
+    selected?: boolean;
+
+    subExamList?: {
+        emsE_Id: number;
+        emsE_SubExamName: string;
+        ecysE_SubExamFlg?: boolean;
+        ecysE_MaxMarks?: string;
+        ecysE_MinMarks?: string;
+        emgr_Id?: number;
+        emgr_GradeName?: string;
+        exemptedFlg?: boolean;
+        exemptedPer?: string;
+    }[];
+
+    subSubjectList?: {
+        emsS_Id: number;
+        emsS_SubSubjectName: string;
+        ecysE_SubSubjectFlg?: boolean;
+        ecysE_MaxMarks?: string;
+        ecysE_MinMarks?: string;
+        emgr_Id?: number;
+        emgr_GradeName?: string;
+        exemptedFlg?: boolean;
+        exemptedPer?: string;
+    }[];
+}

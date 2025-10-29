@@ -4,6 +4,7 @@ import {
     getExamSubjectGroupMapping,
     getExamSubjectGroupMappingDetails
 } from '@/server/exam/exam-module/exam-mapping/exam-subject-group-mapping';
+import { getExamSubjectWizard } from '@/server/exam/exam-module/exam-mapping/exam-subject-wizard';
 import {
     getExamTermAndExamMapping,
     getExamTermAndExamMappingDetails
@@ -132,6 +133,24 @@ export const useExamTermAndExamMappingDetails = (mi_id: number, asmay_id: number
         refetchAll: () => {
             return queryClient.invalidateQueries({
                 queryKey: [EXAM_QUERY_KEYS.EXAM_TERM_AND_EXAM_MAPPING_DETAILS]
+            });
+        }
+    };
+};
+
+export const useExamSubjectWizard = (searchParams?: ApiSearchparams) => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [EXAM_QUERY_KEYS.EXAM_SUBJECT_WIZARD, searchParams ?? {}],
+            queryFn: async () => getExamSubjectWizard(searchParams),
+            staleTime: 0
+        }),
+
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [EXAM_QUERY_KEYS.EXAM_SUBJECT_WIZARD]
             });
         }
     };

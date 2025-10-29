@@ -40,6 +40,7 @@ export type ApiSearchparams = {
     search_query?: string;
     sort_column?: string;
     sort_direction?: string;
+    search_columns?: string;
 };
 
 export interface IDropdown {
