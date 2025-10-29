@@ -1,6 +1,7 @@
 import {
     AlertTriangle,
     ArrowRight,
+    BookOpen,
     Check,
     ChevronLeft,
     ChevronRight,
@@ -53,6 +54,7 @@ export const Icons = {
     user2: UserCircle2Icon,
     media: Image,
     settings: Settings,
+    bookOpen: BookOpen,
     billing: CreditCard,
     ellipsis: MoreVertical,
     add: Plus,

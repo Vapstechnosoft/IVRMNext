@@ -38,6 +38,7 @@ export type ApiSearchparams = {
     page?: number;
     page_size?: number;
     search_query?: string;
+    search_column?: string;
     sort_column?: string;
     sort_direction?: string;
 };

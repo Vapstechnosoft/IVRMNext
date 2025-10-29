@@ -29,7 +29,6 @@ export default function SigninForm() {
     const callbackUrl = searchParams.get('callbackUrl') || '/';
     const [error, setError] = useState<string | undefined>('');
     const [isPending, startTransition] = useTransition();
-    const [rememberMe, setRememberMe] = useState(false);
 
     const [isDarkMode, setIsDarkMode] = useState(false);
     const [mounted, setMounted] = useState(false);
@@ -112,8 +111,8 @@ export default function SigninForm() {
                     </div>
 
                     <Card className='border-0 bg-white/80 shadow-xl backdrop-blur-sm'>
-                        <CardHeader className='flex items-center'>
-                            <div className='mb-4 hidden justify-center lg:flex'>
+                        <CardHeader className='flex items-center gap-2'>
+                            <div className='hidden justify-center lg:flex'>
                                 <Logo size='full' />
                             </div>
                             <div className='text-center'>
@@ -133,7 +132,7 @@ export default function SigninForm() {
                         </CardHeader>
 
                         <CardContent>
-                            <form onSubmit={handleSubmit(onSubmit)} className='space-y-6'>
+                            <form onSubmit={handleSubmit(onSubmit)} className='space-y-4'>
                                 <div className='space-y-2'>
                                     <InputText label='Username' placeholder='Enter your username' {...register('email')} />
 
@@ -167,7 +166,7 @@ export default function SigninForm() {
                                     </Link>
                                 </div> */}
                                 {/* Action Buttons */}
-                                <div className='space-y-2'>
+                                <div className='space-y-1'>
                                     <Button
                                         type='submit'
                                         isLoading={isPending}

@@ -275,7 +275,7 @@ export const usePreadmissionStudentList = (asmay_id: number, asmcl_id: number, p
             queryKey: [PREADMISSION_QUERY_KEYS.PREADMISSION_STUDENT_LIST, asmay_id, asmcl_id, pamst_id, searchParams ?? {}],
             queryFn: async () => getPreadmissionStudentList(asmay_id, asmcl_id, pamst_id, searchParams),
             staleTime: 0,
-            enabled: !!asmay_id && !!asmcl_id && !!pamst_id
+            enabled: !!asmay_id && !!pamst_id && asmcl_id !== undefined
         }),
         refetchAll: () => {
             return queryClient.invalidateQueries({
