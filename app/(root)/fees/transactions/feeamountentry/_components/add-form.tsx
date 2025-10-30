@@ -1,5 +1,3 @@
-'use client';
-
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/extension/field';
@@ -7,8 +5,12 @@ import { InputText } from '@/components/ui/extension/input-text';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useFeeAmountEntry, useacademicyerdropdowndatafee } from '@/hooks/fees/useTrasactions';
 import { amountEntrySchema } from '@/schemas/fees/trasactions';
-import { addOrUpdateMasterfeehead } from '@/server/fees/masters/feehead';
-import { getAmountentrydetails, getCategorydrodowndata, getgroupdrodown } from '@/server/fees/trasactions/feeAmountEntry';
+import {
+    addOrUpdateAmountEntry,
+    getAmountentrydetails,
+    getCategorydrodowndata,
+    getgroupdrodown
+} from '@/server/fees/trasactions/feeAmountEntry';
 import type { IFeeClassCategoryDropDownList, IFeeGroupDropDownList } from '@/types/fees/transactions/transactions';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Save } from 'lucide-react';
@@ -99,8 +101,6 @@ export default function AddAmountEntryForm({ onSuccess, headname = '' }: AddAmou
                     if (response?.data) {
                         const details = Array.isArray(response.data) ? response.data : [response.data];
                         setFeeGridData(details);
-
-                        console.log('Fetched Fee Amount Details:', details);
                     } else {
                         setFeeGridData([]);
                     }
@@ -117,10 +117,49 @@ export default function AddAmountEntryForm({ onSuccess, headname = '' }: AddAmou
         fetchFeeAmountDetails();
     }, [selectedAcademicYear, selectedCategoryId, selectedFeeGroup]);
 
+    // 🔹 Update Fee Grid Data when any input changes
+    const handleGridChange = (index: number, field: string, value: any) => {
+        const updatedFeeGridData = [...feeGridData];
+        updatedFeeGridData[index] = {
+            ...updatedFeeGridData[index],
+            [field]: value
+        };
+        setFeeGridData(updatedFeeGridData);
+    };
+
     // 🔹 Submit Handler
     const onSubmit: SubmitHandler<FormFields> = async (data) => {
         try {
-            const response = await addOrUpdateMasterfeehead(data);
+            const payload = {
+                mI_Id: 30,
+                asmaY_Id: data.asmaY_Id,
+                fmcC_Id: data.categoryId,
+                fmG_Id: data.feeGroupId,
+                savetmpdata: feeGridData.map((item) => ({
+                    fmA_Id: item.fmA_Id,
+                    mI_Id: 30,
+                    fmG_Id: item.fmG_Id,
+                    asmaY_Id: data.asmaY_Id,
+                    fmcC_Id: data.categoryId,
+                    ftI_Id: item.ftI_Id,
+                    fmA_Amount: item.fmA_Amount,
+                    fmA_Flag: item.fmA_Flag,
+                    ftdD_Month: item.ftdD_Month,
+                    ftdD_Day: item.ftdD_Day,
+                    ftddE_Month: item.ftddE_Month,
+                    ftddE_Day: item.ftdD_Day,
+                    fmH_Id: item.fmH_Id,
+                    fyghM_FineApplicableFlag: item.fyghM_FineApplicableFlag,
+                    fmA_PartialRebateApplicableDate: item.fmA_PartialRebateApplicableDate,
+                    fmA_DueDate: item.fmA_DueDate,
+                    ftddE_DueDate: item.ftddE_DueDate
+                }))
+            };
+
+            const js = JSON.stringify(payload);
+            console.log('Payload JSON:', js);
+
+            const response = await addOrUpdateAmountEntry(payload);
             if (response.success) {
                 toast.success(response.message);
                 reset();
@@ -284,25 +323,40 @@ export default function AddAmountEntryForm({ onSuccess, headname = '' }: AddAmou
                                         <td>{row.fmH_FeeName}</td>
                                         <td>{row.fmI_Name}</td>
                                         <td>
-                                            <InputText type='number' defaultValue={row.fmA_Amount} />
+                                            <InputText
+                                                type='number'
+                                                value={row.fmA_Amount}
+                                                onChange={(e) => handleGridChange(index, 'fmA_Amount', e.target.value)}
+                                            />
                                         </td>
                                         <td>
                                             <input
                                                 type='date'
-                                                defaultValue={row.fmA_DueDate?.split('T')[0]}
+                                                value={row.fmA_DueDate?.split('T')[0] || ''}
+                                                onChange={(e) => handleGridChange(index, 'fmA_DueDate', e.target.value)}
                                                 className='rounded border px-2 py-1'
                                             />
                                         </td>
                                         <td>
                                             <input
                                                 type='date'
-                                                defaultValue={row.fmA_PartialRebateApplicableDate?.split('T')[0]}
+                                                value={row.fmA_PartialRebateApplicableDate?.split('T')[0] || ''}
+                                                onChange={(e) => handleGridChange(index, 'fmA_PartialRebateApplicableDate', e.target.value)}
                                                 className='rounded border px-2 py-1'
                                             />
                                         </td>
+
                                         <td>
                                             <Checkbox
                                                 checked={row.fyghM_FineApplicableFlag === true || row.fyghM_FineApplicableFlag === 'Y'}
+                                                onChange={(e: any) => {
+                                                    // Some Checkbox implementations call onChange with an event, others with a boolean.
+                                                    // Normalize to a boolean checked value before converting to "Y"/"N".
+                                                    const checked =
+                                                        typeof e === 'boolean' ? e : (e?.target?.checked ?? (e as any)?.checked ?? false);
+                                                    const newValue = checked ? 'Y' : 'N';
+                                                    handleGridChange(index, 'fyghM_FineApplicableFlag', newValue);
+                                                }}
                                                 disabled={
                                                     row.fyghM_FineApplicableFlag === null ||
                                                     row.fyghM_FineApplicableFlag === undefined ||
@@ -310,6 +364,20 @@ export default function AddAmountEntryForm({ onSuccess, headname = '' }: AddAmou
                                                 }
                                             />
                                         </td>
+
+                                        {/* <td>
+                      <Checkbox
+                        checked={
+                          row.fyghM_FineApplicableFlag === true ||
+                          row.fyghM_FineApplicableFlag === "Y"
+                        }
+                        disabled={
+                          row.fyghM_FineApplicableFlag === null ||
+                          row.fyghM_FineApplicableFlag === undefined ||
+                          row.fyghM_FineApplicableFlag === "N"
+                        }
+                      />
+                    </td> */}
                                     </tr>
                                 ))}
                             </tbody>

@@ -14,9 +14,12 @@ import type {
 export async function getAmountEntry(searchParams?: ApiSearchparams) {
     const urlParams = getSearchParamsUrl(searchParams ?? {});
     const url = `/fee_amount_entry/30?${urlParams}`;
-
-    console.info('URL in getAmountEntry:', url); // Debugging line
     return await api.get<IFeeAmountEntryList[]>('fees', url);
+}
+
+export async function addOrUpdateAmountEntry(data: any) {
+    const url = '/fee_amount_entry';
+    return await api.post<any>('fees', url, data);
 }
 
 // export async function getCategorydrodowndata(searchParams?: ApiSearchparams) {
@@ -70,6 +73,5 @@ export async function getpaymentgateway_dropdown(searchParams?: ApiSearchparams)
 
 export async function getAmountentrydetails(mi_id: number, asmay_id: number, fmcC_id: number, fmG_id: number) {
     const url = `/fee_amount_entry/getgroupmappedheads/${mi_id}/${asmay_id}/${fmcC_id}/${fmG_id}`;
-    console.log('Constructed URL in getAmountentrydetails:', url); // Debugging line
     return await api.get<IMasterAmountEntryDetails[]>('fees', url);
 }
