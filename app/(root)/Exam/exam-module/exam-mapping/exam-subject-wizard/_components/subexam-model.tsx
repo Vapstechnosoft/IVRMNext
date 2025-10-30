@@ -1,7 +1,10 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useEffect } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
@@ -146,116 +149,108 @@ export default function SubExamModal({
                                         const gradeError = errors?.subexam_list?.[idx]?.EMGR_Id?.message;
 
                                         return (
-                                            <div key={row.emsE_Id}>table data</div>
-                                            // <tr key={row.emsE_Id} className={idx % 2 === 0 ? 'bg-white' : 'bg-slate-50'}>
-                                            //     <td className='border p-2'>{idx + 1}</td>
+                                            <tr key={row.emsE_Id} className={idx % 2 === 0 ? 'bg-white' : 'bg-slate-50'}>
+                                                <td className='border p-2'>{idx + 1}</td>
 
-                                            //     <td className='border p-2'>
-                                            //         <Checkbox
-                                            //             id={`${idPrefix}-check`}
-                                            //             checked={!!row.checkedvalue}
-                                            //             onCheckedChange={(v) => {
-                                            //                 const list = getValues('subexam_list').map((r: any) =>
-                                            //                     r.emsE_Id === row.emsE_Id ? { ...r, checkedvalue: !!v } : r
-                                            //                 );
-                                            //                 reset({ subexam_list: list });
-                                            //                 // re-run validation for this row after change
-                                            //                 setTimeout(() => trigger(`subexam_list.${idx}`), 0);
-                                            //             }}
-                                            //         />
-                                            //     </td>
+                                                <td className='border p-2'>
+                                                    <Checkbox
+                                                        id={`${idPrefix}-check`}
+                                                        checked={!!row.checkedvalue}
+                                                        onCheckedChange={(v) => {
+                                                            const list = getValues('subexam_list').map((r: any) =>
+                                                                r.emsE_Id === row.emsE_Id ? { ...r, checkedvalue: !!v } : r
+                                                            );
+                                                            reset({ subexam_list: list });
+                                                            // re-run validation for this row after change
+                                                        }}
+                                                    />
+                                                </td>
 
-                                            //     <td className='border p-2'>{row.emsE_SubExamName}</td>
+                                                <td className='border p-2'>{row.emsE_SubExamName}</td>
 
-                                            //     <td className='w-28 border p-2'>
-                                            //         <Input
-                                            //             aria-label={`Max marks for ${row.emsE_SubExamName}`}
-                                            //             value={row.ECYSESSS_MaxMarks ?? ''}
-                                            //             onChange={(e) => {
-                                            //                 const list = getValues('subexam_list').map((r: any) =>
-                                            //                     r.emsE_Id === row.emsE_Id ? { ...r, ECYSESSS_MaxMarks: e.target.value } : r
-                                            //                 );
-                                            //                 reset({ subexam_list: list });
-                                            //                 // validate this specific field/row
-                                            //                 setTimeout(() => trigger(`subexam_list.${idx}.ECYSESSS_MaxMarks`), 0);
-                                            //             }}
-                                            //         />
-                                            //         {maxMarksError && <div className='text-red-500 text-[11px] mt-1'>{maxMarksError}</div>}
-                                            //     </td>
+                                                <td className='w-28 border p-2'>
+                                                    <Input
+                                                        aria-label={`Max marks for ${row.emsE_SubExamName}`}
+                                                        value={row.ECYSESSS_MaxMarks ?? ''}
+                                                        onChange={(e) => {
+                                                            const list = getValues('subexam_list').map((r: any) =>
+                                                                r.emsE_Id === row.emsE_Id ? { ...r, ECYSESSS_MaxMarks: e.target.value } : r
+                                                            );
+                                                            reset({ subexam_list: list });
+                                                            // validate this specific field/row
+                                                        }}
+                                                    />
+                                                    {maxMarksError && <div className='mt-1 text-[11px] text-red-500'>{maxMarksError}</div>}
+                                                </td>
 
-                                            //     <td className='w-24 border p-2'>
-                                            //         <Input
-                                            //             aria-label={`Min marks for ${row.emsE_SubExamName}`}
-                                            //             value={row.ECYSESSS_MinMarks ?? ''}
-                                            //             onChange={(e) => {
-                                            //                 const list = getValues('subexam_list').map((r: any) =>
-                                            //                     r.emsE_Id === row.emsE_Id ? { ...r, ECYSESSS_MinMarks: e.target.value } : r
-                                            //                 );
-                                            //                 reset({ subexam_list: list });
-                                            //                 setTimeout(() => trigger(`subexam_list.${idx}.ECYSESSS_MinMarks`), 0);
-                                            //             }}
-                                            //         />
-                                            //         {minMarksError && <div className='text-red-500 text-[11px] mt-1'>{minMarksError}</div>}
-                                            //     </td>
+                                                <td className='w-24 border p-2'>
+                                                    <Input
+                                                        aria-label={`Min marks for ${row.emsE_SubExamName}`}
+                                                        value={row.ECYSESSS_MinMarks ?? ''}
+                                                        onChange={(e) => {
+                                                            const list = getValues('subexam_list').map((r: any) =>
+                                                                r.emsE_Id === row.emsE_Id ? { ...r, ECYSESSS_MinMarks: e.target.value } : r
+                                                            );
+                                                            reset({ subexam_list: list });
+                                                        }}
+                                                    />
+                                                    {minMarksError && <div className='mt-1 text-[11px] text-red-500'>{minMarksError}</div>}
+                                                </td>
 
-                                            //     <td className='w-44 border p-2'>
-                                            //         <Select
-                                            //             value={row.EMGR_Id ?? ''}
-                                            //             onValueChange={(val) => {
-                                            //                 const list = getValues('subexam_list').map((r: any) =>
-                                            //                     r.emsE_Id === row.emsE_Id ? { ...r, EMGR_Id: val } : r
-                                            //                 );
-                                            //                 reset({ subexam_list: list });
-                                            //                 setTimeout(() => trigger(`subexam_list.${idx}.EMGR_Id`), 0);
-                                            //             }}>
-                                            //             <SelectTrigger>
-                                            //                 <SelectValue placeholder='Select Grade' />
-                                            //             </SelectTrigger>
-                                            //             <SelectContent>
-                                            //                 {gradeList.map((g) => (
-                                            //                     <SelectItem key={g.emgR_Id} value={g.emgR_Id}>
-                                            //                         {g.emgR_GradeName}
-                                            //                     </SelectItem>
-                                            //                 ))}
-                                            //             </SelectContent>
-                                            //         </Select>
-                                            //         {gradeError && <div className='text-red-500 text-[11px] mt-1'>{gradeError}</div>}
-                                            //     </td>
+                                                <td className='w-44 border p-2'>
+                                                    <Select
+                                                        value={row.EMGR_Id ?? ''}
+                                                        onValueChange={(val) => {
+                                                            const list = getValues('subexam_list').map((r: any) =>
+                                                                r.emsE_Id === row.emsE_Id ? { ...r, EMGR_Id: val } : r
+                                                            );
+                                                            reset({ subexam_list: list });
+                                                        }}>
+                                                        <SelectTrigger>
+                                                            <SelectValue placeholder='Select Grade' />
+                                                        </SelectTrigger>
+                                                        <SelectContent>
+                                                            {gradeList.map((g) => (
+                                                                <SelectItem key={g.emgR_Id} value={g.emgR_Id}>
+                                                                    {g.emgR_GradeName}
+                                                                </SelectItem>
+                                                            ))}
+                                                        </SelectContent>
+                                                    </Select>
+                                                    {gradeError && <div className='mt-1 text-[11px] text-red-500'>{gradeError}</div>}
+                                                </td>
 
-                                            //     <td className='border p-2 text-center'>
-                                            //         <Checkbox
-                                            //             checked={!!row.ECYSESSS_ExemptedFlg}
-                                            //             onCheckedChange={(v) => {
-                                            //                 const list = getValues('subexam_list').map((r: any) =>
-                                            //                     r.emsE_Id === row.emsE_Id ? { ...r, ECYSESSS_ExemptedFlg: !!v } : r
-                                            //                 );
-                                            //                 reset({ subexam_list: list });
-                                            //                 // when toggling exempt flag, revalidate that row
-                                            //                 setTimeout(() => trigger(`subexam_list.${idx}`), 0);
-                                            //             }}
-                                            //         />
-                                            //     </td>
+                                                <td className='border p-2 text-center'>
+                                                    <Checkbox
+                                                        checked={!!row.ECYSESSS_ExemptedFlg}
+                                                        onCheckedChange={(v) => {
+                                                            const list = getValues('subexam_list').map((r: any) =>
+                                                                r.emsE_Id === row.emsE_Id ? { ...r, ECYSESSS_ExemptedFlg: !!v } : r
+                                                            );
+                                                            reset({ subexam_list: list });
+                                                        }}
+                                                    />
+                                                </td>
 
-                                            //     <td className='w-24 border p-2'>
-                                            //         <Input
-                                            //             aria-label={`Exempt percent ${row.emsE_SubExamName}`}
-                                            //             disabled={!row.ECYSESSS_ExemptedFlg}
-                                            //             value={row.ECYSESSS_ExemptedPer ?? ''}
-                                            //             onChange={(e) => {
-                                            //                 const list = getValues('subexam_list').map((r: any) =>
-                                            //                     r.emsE_Id === row.emsE_Id
-                                            //                         ? { ...r, ECYSESSS_ExemptedPer: e.target.value }
-                                            //                         : r
-                                            //                 );
-                                            //                 reset({ subexam_list: list });
-                                            //                 setTimeout(() => trigger(`subexam_list.${idx}.ECYSESSS_ExemptedPer`), 0);
-                                            //             }}
-                                            //         />
-                                            //         {exemptPerError && (
-                                            //             <div className='text-red-500 text-[11px] mt-1'>{exemptPerError}</div>
-                                            //         )}
-                                            //     </td>
-                                            // </tr>
+                                                <td className='w-24 border p-2'>
+                                                    <Input
+                                                        aria-label={`Exempt percent ${row.emsE_SubExamName}`}
+                                                        disabled={!row.ECYSESSS_ExemptedFlg}
+                                                        value={row.ECYSESSS_ExemptedPer ?? ''}
+                                                        onChange={(e) => {
+                                                            const list = getValues('subexam_list').map((r: any) =>
+                                                                r.emsE_Id === row.emsE_Id
+                                                                    ? { ...r, ECYSESSS_ExemptedPer: e.target.value }
+                                                                    : r
+                                                            );
+                                                            reset({ subexam_list: list });
+                                                        }}
+                                                    />
+                                                    {exemptPerError && (
+                                                        <div className='mt-1 text-[11px] text-red-500'>{exemptPerError}</div>
+                                                    )}
+                                                </td>
+                                            </tr>
                                         );
                                     })}
                                 </tbody>

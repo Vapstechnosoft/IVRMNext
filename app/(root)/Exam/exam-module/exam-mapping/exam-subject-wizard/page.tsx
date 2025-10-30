@@ -77,19 +77,8 @@ function ExamSubjectWizardPageContent({
 }
 
 export function FormSections() {
-    const {
-        isAddFormOpen,
-        isEditFormOpen,
-        isToggleFormOpen,
-        isDetailsViewOpen,
-        selectedRow,
-        closeAddForm,
-        closeEditForm,
-        closeToggleForm,
-        closeDetailsView,
-        addFormRef,
-        editFormRef
-    } = useFormContext<IExamSubjectWizard>();
+    const { isAddFormOpen, isEditFormOpen, selectedRow, closeAddForm, closeEditForm, addFormRef, editFormRef } =
+        useFormContext<IExamSubjectWizard>();
 
     return (
         <>
