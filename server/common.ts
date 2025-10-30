@@ -1228,7 +1228,6 @@ export async function getUserAccessibleModules() {
                             ]
                         }
                     ]
-                }
             },
             {
                 id: 4,
