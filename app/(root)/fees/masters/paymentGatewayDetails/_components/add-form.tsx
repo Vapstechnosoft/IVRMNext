@@ -69,13 +69,17 @@ export default function AddAddpaymentgatewaydetailsPropsForm({ onSuccess, gatewa
                 //     .map((item) => ({
                 //         fpgD_SubMerchantId: item.id
                 //     })),
-                submerchantIds: submerchantIds.filter((item) => item.id.trim() !== '').map((item) => Number.parseInt(item.id, 10)),
+                // submerchantIds: submerchantIds.filter((item) => item.id.trim() !== '').map((item) => Number.parseInt(item.id, 10)),
+
+                submerchantIds: submerchantIds.filter(({ id }) => id.trim()).map(({ id }) => String(id)),
 
                 fpgD_MerchantKey: data.fpgD_MerchantKey,
 
                 impG_Id: data.impG_Id,
                 fpgD_MobileActiveFlag: data.fpgD_MobileActiveFlag
             };
+
+            console.log('Payload to be sent:', JSON.stringify(payload));
 
             const response = await addOrUpdatepaymentgatewaydetails(payload);
             if (response.success) {
@@ -132,24 +136,22 @@ export default function AddAddpaymentgatewaydetailsPropsForm({ onSuccess, gatewa
                         <div className='group flex flex-col gap-1.5'>
                             <InputText
                                 label='Salt Key'
-                                required
                                 id='fpgD_SaltKey'
                                 {...register('fpgD_SaltKey')}
                                 error={errors.fpgD_SaltKey?.message}
                                 className='transition-colors focus:ring-2 focus:ring-primary/20'
                             />
-                            {errors.fpgD_SaltKey && <FormError>{errors.fpgD_SaltKey.message}</FormError>}
+                            {/* {errors.fpgD_SaltKey && <FormError>{errors.fpgD_SaltKey.message}</FormError>} */}
                         </div>
                         <div className='group flex flex-col gap-1.5'>
                             <InputText
                                 label='Image'
-                                required
                                 id='fpgD_Image'
                                 {...register('fpgD_Image')}
                                 error={errors.fpgD_Image?.message}
                                 className='transition-colors focus:ring-2 focus:ring-primary/20'
                             />
-                            {errors.fpgD_Image && <FormError>{errors.fpgD_Image.message}</FormError>}
+                            {/* {errors.fpgD_Image && <FormError>{errors.fpgD_Image.message}</FormError>} */}
                         </div>
                         <div className='group flex flex-col gap-1.5'>
                             <InputText
@@ -185,11 +187,12 @@ export default function AddAddpaymentgatewaydetailsPropsForm({ onSuccess, gatewa
                         />
 
                         <div className='group flex flex-col gap-1.5'>
-                            <Label aria-label='Term' htmlFor='fmT_Id'>
+                            <Label aria-label='Gateway' htmlFor='fmT_Id'>
                                 Gateway Name <span className='ml-1 text-red-500'>*</span>
                             </Label>
                             <Controller
                                 name='impG_Id'
+                                rules={{ required: true }}
                                 control={control}
                                 render={({ field }) => (
                                     <Select
@@ -203,11 +206,11 @@ export default function AddAddpaymentgatewaydetailsPropsForm({ onSuccess, gatewa
                                         <SelectContent>
                                             {gatewayLoading ? (
                                                 <SelectItem value='loading' disabled>
-                                                    Loading Terms...
+                                                    Loading....
                                                 </SelectItem>
                                             ) : gatewayError ? (
                                                 <SelectItem value='error' disabled>
-                                                    Error loading Terms
+                                                    Error fetching gateways..
                                                 </SelectItem>
                                             ) : (
                                                 gatewaydata?.data?.map((item) => (

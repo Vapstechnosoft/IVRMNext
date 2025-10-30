@@ -5,10 +5,13 @@ import { FormError } from '@/components/ui/extension/field';
 import { Input } from '@/components/ui/input';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { useAcademicYearDropdown } from '@/hooks/fees/useMasters';
+import { FEES_QUERY_KEYS } from '@/constants/query-keys';
+import { useAcademicYearDropdown, useMasterFeeYearlyGroup, useMasterGroupListDropDown } from '@/hooks/fees/useMasters';
 import { cn } from '@/lib/utils';
 import { YearlyGroupSchema } from '@/schemas/fees/masters';
+import { addOrUpdateMasterClassYearlyCategory } from '@/server/fees/masters/fees_yearly_group';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { useQueryClient } from '@tanstack/react-query';
 import { CheckSquare, ChevronsUpDown, Save, Search, Square } from 'lucide-react';
 import { useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
@@ -21,19 +24,14 @@ interface FeeGroup {
 }
 
 interface Payload {
-    academiYear: {
-        asmaY_Id: number;
-        asmaY_Year: number;
-    };
-    group: {
-        fmG_GroupName: string;
-        fmG_Id: number;
-    }[];
-    rebate: {
-        fyG_RebateTypeFlg: boolean;
-        fyG_RebateType: string;
-        fyG_RebateValue: string;
-    }[];
+    mI_Id: number;
+    fyG_Id: number;
+    user_id: number;
+    asmaY_Id: number;
+    grouplist: number[];
+    fyG_RebateTypeFlg: string;
+    fyG_RebateApplicableFlg: boolean;
+    fyG_PartialRebateAmtOrPercentageValue: number;
 }
 
 type FormFields = z.infer<typeof YearlyGroupSchema.addOrUpdate>;
@@ -44,12 +42,17 @@ export default function AddMasterYearlyGroup({ onSuccess }: AddMasterYearlyGroup
     const [search, setSearch] = useState('');
     const [isPopoverOpen, setIsPopoverOpen] = useState(false);
     const { data: academicYearOptions } = useAcademicYearDropdown();
+    const { data: groupData } = useMasterGroupListDropDown();
+    const { refetchAll } = useMasterFeeYearlyGroup();
+    const queryClient = useQueryClient();
 
-    const feeGroups: FeeGroup[] = [
-        { fmgg_Id: 1, fmgg_GroupName: 'Tuition Fees' },
-        { fmgg_Id: 2, fmgg_GroupName: 'Transport Fees' },
-        { fmgg_Id: 3, fmgg_GroupName: 'Hostel Fees' }
-    ];
+    const feeGroups: FeeGroup[] =
+        groupData?.success && Array.isArray(groupData.data)
+            ? groupData.data.map((group) => ({
+                  fmgg_Id: Number(group.fmG_Id),
+                  fmgg_GroupName: String(group.fmG_GroupName ?? '')
+              }))
+            : [];
 
     const {
         control,
@@ -64,7 +67,7 @@ export default function AddMasterYearlyGroup({ onSuccess }: AddMasterYearlyGroup
             academicYear: '',
             rebateApplicable: false,
             rebateType: undefined,
-            rebateValue: '',
+            rebateValue: 0,
             feeGroupIds: []
         }
     });
@@ -72,7 +75,7 @@ export default function AddMasterYearlyGroup({ onSuccess }: AddMasterYearlyGroup
     const rebateApplicable = watch('rebateApplicable');
     const rebateType = watch('rebateType');
 
-    const onSubmit = (data: FormFields) => {
+    const onSubmit = async (data: FormFields) => {
         const selectedAcademicYear = academicYearOptions?.data?.find((year) => year && year.asmaY_Id.toString() === data.academicYear);
 
         if (!selectedAcademicYear) {
@@ -80,19 +83,48 @@ export default function AddMasterYearlyGroup({ onSuccess }: AddMasterYearlyGroup
             return;
         }
 
-        const asmaY_Year = Number(selectedAcademicYear.asmaY_Year);
-        if (Number.isNaN(asmaY_Year)) {
+        const asmaY_Id = Number(selectedAcademicYear.asmaY_Id);
+        if (Number.isNaN(asmaY_Id)) {
             toast.error('Invalid Academic Year value');
             return;
         }
 
-        toast.success('Form submitted successfully!');
+        const payload: Payload = {
+            mI_Id: 30,
+            fyG_Id: 0,
+            user_id: 21602,
+            asmaY_Id,
+            grouplist: data.feeGroupIds || [],
+            fyG_RebateTypeFlg: data.rebateApplicable && data.rebateType ? data.rebateType : '',
+            fyG_RebateApplicableFlg: data.rebateApplicable,
+            fyG_PartialRebateAmtOrPercentageValue: data.rebateApplicable && data.rebateValue ? Number(data.rebateValue) : 0
+        };
+
         try {
-            onSuccess?.(); // Call onSuccess if provided
-        } catch (e) {
-            // ignore errors from parent's onSuccess
+            const response = await addOrUpdateMasterClassYearlyCategory(payload);
+            if (response.success) {
+                toast.success(response.message || 'Form submitted successfully!');
+                try {
+                    onSuccess?.();
+                } catch (_e) {}
+                try {
+                    queryClient.invalidateQueries({
+                        predicate: (query) => Array.isArray(query.queryKey) && query.queryKey[0] === FEES_QUERY_KEYS.FEE_YEARLY_GROUPS
+                    });
+                    try {
+                        refetchAll();
+                    } catch (_e) {}
+                } catch (e) {
+                    console.warn('Failed to invalidate queries:', e);
+                }
+                reset();
+            } else {
+                toast.error(response.message || 'Failed to submit form');
+            }
+        } catch (error) {
+            toast.error('An error occurred while submitting the form');
+            console.error('Submission error:', error);
         }
-        reset();
     };
 
     const handleReset = () => reset();
@@ -271,7 +303,7 @@ export default function AddMasterYearlyGroup({ onSuccess }: AddMasterYearlyGroup
                                     <label htmlFor='rebateType' className='mb-1 font-medium text-gray-700 text-sm'>
                                         Rebate Type <span className='text-red-500'>*</span>
                                     </label>
-                                    <Select onValueChange={field.onChange} value={field.value}>
+                                    <Select onValueChange={(val) => field.onChange(val)} value={field.value ?? undefined}>
                                         <SelectTrigger
                                             id='rebateType'
                                             className={cn('transition-colors', errors.rebateType ? 'border-red-500' : '')}>
@@ -298,8 +330,14 @@ export default function AddMasterYearlyGroup({ onSuccess }: AddMasterYearlyGroup
                                     </label>
                                     <Input
                                         id='rebateValue'
-                                        type='number'
+                                        type='text'
                                         {...field}
+                                        onChange={(e) => {
+                                            const value = e.target.value;
+                                            if (value === '' || /^\d*\.?\d*$/.test(value)) {
+                                                field.onChange(value);
+                                            }
+                                        }}
                                         placeholder={rebateType === 'Percentage' ? 'Enter percentage' : 'Enter amount'}
                                         className={cn('transition-colors', errors.rebateValue ? 'border-red-500' : '')}
                                     />

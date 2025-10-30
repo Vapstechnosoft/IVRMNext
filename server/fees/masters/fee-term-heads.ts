@@ -12,11 +12,14 @@ import type {
 export async function getFeeTermHeadList(searchParams?: ApiSearchparams) {
     const urlParams = getSearchParamsUrl(searchParams ?? {});
     const url = `/FeeMasterTermsFacade/fee_term_heads/30?${urlParams}`;
+
     return await api.get<IMasterTermFeeHeadList[]>('fees', url);
 }
 
 export async function addOrUpdateFeeTermHead(data: any) {
-    const url = '/FeeFineSlabFacade/AddOrUpdate';
+    const url = '/FeeMasterTermsFacade/TermHeadInstallmentMaping';
+
+    console.info('addOrUpdateFeeTermHead URL:', url);
     return await api.post<any>('fees', url, data);
 }
 

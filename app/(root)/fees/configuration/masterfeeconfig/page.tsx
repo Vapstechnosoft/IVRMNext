@@ -2,20 +2,24 @@
 
 import { Heading } from '@/components/layout/heading';
 import { Button } from '@/components/ui/button';
-import { useDataTableProps } from '@/components/ui/data-table/generic-data-table';
+import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/generic-data-table';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
-import { useMasterFineSlab } from '@/hooks/fees/useMasters';
-import type { IFeeConfig } from '@/types/fees/masters/masters';
+
+import { useFeeconfiguration } from '@/hooks/fees/useConfiguration';
+import type { IFeeConfig } from '@/types/fees/configuration/feesconfiguration';
 import { Plus, X } from 'lucide-react';
 import { use } from 'react';
 import AddFeeConfigForm from './_components/add-form';
+import { feesConfigColumns } from './_components/columns';
+import ToggleMasterFeesConfigForm from './_components/toggle-form';
+import UpdateMasterFeeConfigForm from './_components/update-form';
 
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 
 export default function fineSlabPage(props: { searchParams: SearchParams }) {
     const searchParams = use(props.searchParams);
-    const { data: response, isLoading, error } = useMasterFineSlab(searchParams);
+    const { data: response, isLoading, error } = useFeeconfiguration(searchParams);
 
     return (
         <FormProvider<IFeeConfig>>
@@ -39,7 +43,6 @@ function MasterFeeConfigPageContent({
     return (
         <div className='min-h-screen'>
             <div className='container space-y-4 p-1'>
-                {/* Header */}
                 <div className='flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between'>
                     <div className='space-y-1'>
                         <Heading title='Fees Configuration' description='' />
@@ -53,26 +56,24 @@ function MasterFeeConfigPageContent({
                     </Button>
                 </div>
 
-                {/* Data Table Section */}
-                {/* <CollapsibleSection
+                <CollapsibleSection
                     defaultOpen={true}
                     variant='default'
                     size='lg'
                     className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
                     <GenericDataTable<IFeeConfig>
                         {...tableProps}
-                        columns={feefineslabColumns}
+                        columns={feesConfigColumns}
                         isLoading={isLoading}
                         error={error}
                         columnPinning={{ right: ['actions'] }}
-                        loadingMessage='Loading master fine slabs...'
-                        noDataTitle='No Master Fine Slabs Found'
-                        noDataDescription=' You can add a new master fine slab by clicking the button below.'
-                        errorTitle='Error Loading Master Fine Slabs'
+                        loadingMessage='Loading Master fee Configurations...'
+                        noDataTitle='No Master Fee Configurations Found'
+                        noDataDescription=' You have not added any master fee configurations yet.'
+                        errorTitle='Failed to Load Master Fee Configurations'
                     />
-                </CollapsibleSection> */}
+                </CollapsibleSection>
 
-                {/* Forms */}
                 <FormSections />
             </div>
         </div>
@@ -94,7 +95,6 @@ function FormSections() {
 
     return (
         <>
-            {/* Add Form */}
             {isAddFormOpen && (
                 <div ref={addFormRef}>
                     <CollapsibleSection
@@ -119,7 +119,6 @@ function FormSections() {
                 </div>
             )}
 
-            {/* Edit Form */}
             {isEditFormOpen && selectedRow && (
                 <div ref={editFormRef}>
                     <CollapsibleSection
@@ -137,14 +136,14 @@ function FormSections() {
                                 className='-top-[3.5rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
                                 <X className='h-4 w-4 text-destructive' /> Close
                             </Button>
-                            {/* <UpdateFineSlabForm selectedRow={selectedRow} onSuccess={closeEditForm} /> */}
+                            <UpdateMasterFeeConfigForm selectedRow={selectedRow} onSuccess={closeEditForm} />
                         </div>
                     </CollapsibleSection>
                 </div>
             )}
 
             {/* Toggle Form */}
-            {/* {isToggleFormOpen && selectedRow && <ToggleFineSlabForm rowData={selectedRow} onClose={closeToggleForm} />} */}
+            {isToggleFormOpen && selectedRow && <ToggleMasterFeesConfigForm rowData={selectedRow} onClose={closeToggleForm} />}
         </>
     );
 }

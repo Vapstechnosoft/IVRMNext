@@ -11,8 +11,8 @@ import { addOrUpdatepaymentgatewaydetails } from '@/server/fees/masters/fee_paym
 import type { IMasterPaymentGatewayList } from '@/types/fees/masters/masters';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Minus, Plus, Save } from 'lucide-react';
-import { useEffect, useState } from 'react';
-import { Controller, useForm } from 'react-hook-form';
+import { useEffect } from 'react';
+import { Controller, type SubmitHandler, useFieldArray, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import type { z } from 'zod';
 
@@ -25,73 +25,66 @@ interface UpdateFormProps {
 
 export default function UpdatePaymentGatewayDetailsForm({ onSuccess, selectedRow }: UpdateFormProps) {
     const { refetchAll } = useMasterPaymentgatewaydetails();
-    const {
-        data: gatewaydata,
-        isLoading: gatewayLoading,
-        error: gatewayError,
-        refetchAll: refetchGateway
-    } = useMasterPaymentgateway_dropdown();
+    const { data: gatewaydata, isLoading: gatewayLoading, error: gatewayError } = useMasterPaymentgateway_dropdown();
 
     const {
         control,
         register,
         handleSubmit,
         reset,
-
         formState: { errors, isSubmitting }
     } = useForm<FormFields>({
         resolver: zodResolver(paymentgatewaydetailsSchema.addOrUpdate),
         mode: 'onChange',
         defaultValues: {
-            fpgD_MobileActiveFlag: false
+            fpgD_MobileActiveFlag: false,
+            submerchantIds: [{ id: '' }]
         }
     });
 
-    const [submerchantIds, setSubmerchantIds] = useState([{ id: '' }]);
+    const { fields, append, remove } = useFieldArray({
+        control,
+        name: 'submerchantIds'
+    });
+
+    const getSubmerchantIds = () => {
+        if (selectedRow.submerchantIds) {
+            try {
+                const parsed = JSON.parse(selectedRow.submerchantIds);
+                if (Array.isArray(parsed)) {
+                    return parsed.map((item: any) => ({
+                        id: item.fpgD_SubMerchantId || item.id || ''
+                    }));
+                }
+            } catch {}
+        }
+
+        if (selectedRow.fpgD_SubMerchantId) {
+            return [{ id: selectedRow.fpgD_SubMerchantId }];
+        }
+
+        return [{ id: '' }];
+    };
 
     useEffect(() => {
         if (selectedRow) {
             reset({
-                fpgD_MerchantId: selectedRow.fpgD_MerchantId,
-                fpgD_SaltKey: selectedRow.fpgD_SaltKey,
-                fpgD_Image: selectedRow.fpgD_Image,
-                fpgD_URL: selectedRow.fpgD_URL,
-                fpgD_AccNo: selectedRow.fpgD_AccNo,
-                fpgD_MerchantKey: selectedRow.fpgD_MerchantKey,
-                impG_Id: selectedRow.impG_Id,
-                fpgD_MobileActiveFlag: selectedRow.fpgD_MobileActiveFlag ?? false
+                fpgD_MerchantId: selectedRow.fpgD_MerchantId || '',
+                fpgD_SaltKey: selectedRow.fpgD_SaltKey || '',
+                fpgD_Image: selectedRow.fpgD_Image || '',
+                fpgD_URL: selectedRow.fpgD_URL || '',
+                fpgD_AccNo: selectedRow.fpgD_AccNo || '',
+                fpgD_MerchantKey: selectedRow.fpgD_MerchantKey || '',
+                impG_Id: selectedRow.impG_Id || 0,
+                fpgD_MobileActiveFlag: selectedRow.fpgD_MobileActiveFlag ?? false,
+                submerchantIds: getSubmerchantIds()
             });
-
-            if (Array.isArray(selectedRow.submerchantIds)) {
-                setSubmerchantIds(
-                    selectedRow.submerchantIds.map((id: any) => ({
-                        id: id.fpgD_SubMerchantId || id.id
-                    }))
-                );
-            }
         }
     }, [selectedRow, reset]);
 
-    const handleChange = (index: number, value: string) => {
-        const updated = [...submerchantIds];
-        updated[index].id = value;
-        setSubmerchantIds(updated);
-    };
-
-    const addNew = () => {
-        if (submerchantIds.length < 5) {
-            setSubmerchantIds([...submerchantIds, { id: '' }]);
-        }
-    };
-
-    const remove = (index: number) => {
-        const updated = [...submerchantIds];
-        updated.splice(index, 1);
-        setSubmerchantIds(updated);
-    };
-
-    const onSubmit = async (data: FormFields) => {
+    const onSubmit: SubmitHandler<FormFields | any> = async (data: FormFields) => {
         const payload = {
+            user_id: 20612,
             mi_id: 30,
             fpgD_Id: selectedRow.fpgD_Id,
             fpgD_SaltKey: data.fpgD_SaltKey,
@@ -99,11 +92,15 @@ export default function UpdatePaymentGatewayDetailsForm({ onSuccess, selectedRow
             fpgD_Image: data.fpgD_Image,
             fpgD_URL: data.fpgD_URL,
             fpgD_AccNo: data.fpgD_AccNo,
-            submerchantIds: submerchantIds.filter((item) => item.id.trim() !== '').map((item) => ({ fpgD_SubMerchantId: item.id })),
+            submerchantIds:
+                data.submerchantIds?.filter((item) => item.id.trim() !== '').map((item) => ({ fpgD_SubMerchantId: item.id })) || [],
             fpgD_MerchantKey: data.fpgD_MerchantKey,
             impG_Id: data.impG_Id,
             fpgD_MobileActiveFlag: data.fpgD_MobileActiveFlag
         };
+
+        const payloadnew = JSON.stringify(payload);
+        console.log(payloadnew);
 
         try {
             const response = await addOrUpdatepaymentgatewaydetails(payload);
@@ -117,7 +114,7 @@ export default function UpdatePaymentGatewayDetailsForm({ onSuccess, selectedRow
                 toast.error(response.message);
             }
         } catch (error: any) {
-            toast.error(error.message);
+            toast.error(error.message || 'Something went wrong');
         }
     };
 
@@ -132,24 +129,41 @@ export default function UpdatePaymentGatewayDetailsForm({ onSuccess, selectedRow
                 </div>
 
                 <div className='flex flex-col gap-1.5'>
-                    <label htmlFor='Salt Key'>
+                    <label htmlFor='fpgD_SaltKey'>
                         Salt Key<span className='text-red-500'>*</span>
                     </label>
                     <InputText id='fpgD_SaltKey' {...register('fpgD_SaltKey')} error={errors.fpgD_SaltKey?.message} />
                 </div>
 
-                <InputText label='Image' id='fpgD_Image' {...register('fpgD_Image')} error={errors.fpgD_Image?.message} />
-                <InputText label='URL' id='fpgD_URL' {...register('fpgD_URL')} error={errors.fpgD_URL?.message} />
+                <div className='flex flex-col gap-1.5'>
+                    <label htmlFor='fpgD_Image'>
+                        Image<span className='text-red-500'>*</span>
+                    </label>
+                    <InputText id='fpgD_Image' {...register('fpgD_Image')} error={errors.fpgD_Image?.message} />
+                </div>
+
+                <div className='flex flex-col gap-1.5'>
+                    <label htmlFor='fpgD_URL'>
+                        URL<span className='text-red-500'>*</span>
+                    </label>
+                    <InputText id='fpgD_URL' {...register('fpgD_URL')} error={errors.fpgD_URL?.message} />
+                </div>
             </div>
 
             <div className='grid grid-cols-1 gap-4 md:grid-cols-4'>
-                <InputText label='Account Number' id='fpgD_AccNo' {...register('fpgD_AccNo')} error={errors.fpgD_AccNo?.message} />
-                <InputText
-                    label='Merchant Key'
-                    id='fpgD_MerchantKey'
-                    {...register('fpgD_MerchantKey')}
-                    error={errors.fpgD_MerchantKey?.message}
-                />
+                <div className='flex flex-col gap-1.5'>
+                    <label htmlFor='fpgD_AccNo'>
+                        Account Number<span className='text-red-500'>*</span>
+                    </label>
+                    <InputText id='fpgD_AccNo' {...register('fpgD_AccNo')} error={errors.fpgD_AccNo?.message} />
+                </div>
+
+                <div className='flex flex-col gap-1.5'>
+                    <label htmlFor='Merchent Key'>
+                        Merchent Key<span className='text-red-500'>*</span>
+                    </label>
+                    <InputText id='fpgD_MerchantKey' {...register('fpgD_MerchantKey')} error={errors.fpgD_MerchantKey?.message} />
+                </div>
 
                 <div className='group flex flex-col gap-1.5'>
                     <Label htmlFor='impG_Id'>
@@ -157,6 +171,7 @@ export default function UpdatePaymentGatewayDetailsForm({ onSuccess, selectedRow
                     </Label>
                     <Controller
                         name='impG_Id'
+                        rules={{ required: 'Gateway Name is required' }}
                         control={control}
                         render={({ field }) => (
                             <Select onValueChange={(value) => field.onChange(Number(value))} value={field.value?.toString() || undefined}>
@@ -185,29 +200,47 @@ export default function UpdatePaymentGatewayDetailsForm({ onSuccess, selectedRow
                     />
                     {errors.impG_Id && <FormError>{errors.impG_Id.message}</FormError>}
                 </div>
+            </div>
 
-                <div className='col-span-4'>
-                    {submerchantIds.map((item, index) => (
-                        <div key={index} className='mb-4 flex items-center gap-2'>
-                            <InputText
-                                id={`submrchntId-${index}`}
-                                label={`Sub Merchant Id ${index + 1}`}
-                                value={item.id}
-                                onChange={(e) => handleChange(index, e.target.value)}
+            <div className='col-span-6'>
+                {fields.map((field, index) => (
+                    <div key={field.id} className='mb-4 flex flex-col gap-2 md:flex-row md:items-center'>
+                        <label htmlFor={`submerchantIds.${index}.id`} className='font-medium text-gray-700 text-sm md:w-1/4'>
+                            Sub Merchant Id<span className='ml-1 text-red-500'>*</span>
+                        </label>
+
+                        <div className='flex w-full items-center gap-2 md:w-3/4'>
+                            <input
+                                id={`submerchantIds.${index}.id`}
+                                type='text'
+                                {...register(`submerchantIds.${index}.id`, { required: true })}
+                                className='w-full rounded-md border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary'
                             />
-                            {index === submerchantIds.length - 1 && submerchantIds.length < 5 && (
-                                <button type='button' onClick={addNew}>
-                                    <Plus className='h-4 w-4' />
+
+                            {index === fields.length - 1 && fields.length < 5 && (
+                                <button
+                                    type='button'
+                                    onClick={() => append({ id: '' })}
+                                    className='rounded-md border p-2 transition hover:bg-gray-100'>
+                                    <Plus className='h-4 w-4 text-gray-600' />
                                 </button>
                             )}
-                            {submerchantIds.length > 1 && (
-                                <button type='button' onClick={() => remove(index)}>
-                                    <Minus className='h-4 w-4' />
+
+                            {fields.length > 1 && (
+                                <button
+                                    type='button'
+                                    onClick={() => remove(index)}
+                                    className='rounded-md border p-2 transition hover:bg-gray-100'>
+                                    <Minus className='h-4 w-4 text-gray-600' />
                                 </button>
                             )}
                         </div>
-                    ))}
-                </div>
+
+                        {errors.submerchantIds?.[index]?.id && (
+                            <p className='mt-1 text-red-500 text-xs'>{errors.submerchantIds[index]?.id?.message || 'Required'}</p>
+                        )}
+                    </div>
+                ))}
             </div>
 
             <div className='group flex items-center space-x-2'>

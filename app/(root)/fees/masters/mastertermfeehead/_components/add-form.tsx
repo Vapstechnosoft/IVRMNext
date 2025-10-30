@@ -6,6 +6,7 @@ import { MultiSelect } from '@/components/ui/multi-select';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { MASTER_HEADS_DROPDOWN, MASTER_INSTALLMENT_DROPDOWN, TERM_DROPDOWN_DATA, useMasterTermsHead } from '@/hooks/fees/useMasters';
 import { masterTermFeeHeadSchema } from '@/schemas/fees/masters';
+import { addOrUpdateFeeTermHead } from '@/server/fees/masters/fee-term-heads';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Save } from 'lucide-react';
 import { useState } from 'react';
@@ -22,9 +23,8 @@ interface FeeTermsHeadFormProps {
 
 export default function AddFeeTermsHeadFormForm({ onSuccess, termname = '' }: FeeTermsHeadFormProps) {
     const { refetchAll } = useMasterTermsHead();
-    const [selectedHeadsItems, setSelectedHeadsItems] = useState<{ fmH_Id: string; fmH_FeeName: string }[]>([]);
-
-    const [SelectedInstallmentsItems, setSelectedInstallmentsItems] = useState<{ ftI_ID: string; ftI_NAME: string }[]>([]);
+    const [selectedHeadsItems, setSelectedHeadsItems] = useState<{ fmH_Id: string }[]>([]);
+    const [SelectedInstallmentsItems, setSelectedInstallmentsItems] = useState<{ ftI_ID: string }[]>([]);
 
     const { data: terms, isLoading: termsLoading, error: termsError, refetchAll: refetchterms } = TERM_DROPDOWN_DATA();
 
@@ -60,44 +60,50 @@ export default function AddFeeTermsHeadFormForm({ onSuccess, termname = '' }: Fe
     const onSubmit: SubmitHandler<FormFields | any> = async (data: FormFields) => {
         try {
             const { fmT_Id } = data;
+
             const payload = {
-                terms: fmT_Id,
-                installments: SelectedInstallmentsItems,
-                heads: selectedHeadsItems
+                FMT_Id: fmT_Id,
+                mI_Id: 30,
+                feeHeadList: selectedHeadsItems.map((item) => ({
+                    fmH_Id: Number(item.fmH_Id)
+                })),
+                feeInsatallmentList: SelectedInstallmentsItems.map((item) => ({
+                    fmI_Id: Number(item.ftI_ID)
+                }))
             };
 
-            // const response = await addMasterClassCategory(payload);
+            const js = JSON.stringify(payload);
+            console.log('Payload JSON:', js);
 
-            // if (response.success) {
-            //     toast.success(response.message);
-            //     OnReset();
-            //     onSuccess?.();
-            // } else {
-            //     toast.error(response.message);
-            // }
+            const response = await addOrUpdateFeeTermHead(payload);
+
+            // Handle response as per your business logic
+            if (response.success) {
+                toast.success(response.message);
+                OnReset();
+                onSuccess?.();
+            } else {
+                toast.error(response.message);
+            }
         } catch (error: any) {
             toast.error(error.message);
         }
     };
 
-    const handleReset = () => {
-        reset();
-    };
-
     const handleHeadSelection = (selectedValues: string[]) => {
-        const selectedheads = selectedValues.map((value) => {
-            return { fmH_Id: value.toString(), fmH_FeeName: '' };
-        });
-
-        setSelectedHeadsItems(selectedheads);
+        setSelectedHeadsItems(
+            selectedValues.map((value) => ({
+                fmH_Id: value.toString() // Store only the fmH_Id as a string
+            }))
+        );
     };
 
     const handleInstallmentSelection = (selectedValues: string[]) => {
-        const selectedInstallment = selectedValues.map((value) => {
-            return { ftI_ID: value.toString(), ftI_NAME: '' };
-        });
-
-        setSelectedInstallmentsItems(selectedInstallment);
+        setSelectedInstallmentsItems(
+            selectedValues.map((value) => ({
+                ftI_ID: value.toString() // Store only the ftI_ID as a string
+            }))
+        );
     };
 
     return (
@@ -110,7 +116,7 @@ export default function AddFeeTermsHeadFormForm({ onSuccess, termname = '' }: Fe
                                 Term <span className='ml-1 text-red-500'>*</span>
                             </Label>
                             <Controller
-                                name='ftI_Id'
+                                name='fmT_Id'
                                 control={control}
                                 render={({ field }) => (
                                     <Select
@@ -141,62 +147,72 @@ export default function AddFeeTermsHeadFormForm({ onSuccess, termname = '' }: Fe
                                     </Select>
                                 )}
                             />
-                            {errors.ftI_Id && <FormError>{errors.ftI_Id.message}</FormError>}
+                            {errors.fmT_Id && <FormError>{errors.fmT_Id.message}</FormError>}
                         </div>
 
-                        <Controller
-                            name='heads'
-                            control={control}
-                            render={({ field }) => (
-                                <MultiSelect
-                                    options={
-                                        masterHeads?.data?.map((data) => ({
-                                            label: data.fmH_Id !== undefined ? data.fmH_Id.toString() : '',
-                                            value: data.fmH_FeeName !== undefined ? data.fmH_FeeName.toString() : ''
-                                        })) ?? []
-                                    }
-                                    onValueChange={(selectedValues) => {
-                                        field.onChange(selectedValues);
-                                        handleHeadSelection(selectedValues);
-                                    }}
-                                    defaultValue={selectedHeadsItems.map((data) =>
-                                        data.fmH_Id !== undefined ? data.fmH_Id.toString() : ''
-                                    )}
-                                    value={selectedHeadsItems.map((data) => (data.fmH_Id !== undefined ? data.fmH_Id.toString() : ''))}
-                                    placeholder='Select Heads'
-                                    variant='inverted'
-                                    disabled={masterHeadsLoading}
-                                />
-                            )}
-                        />
+                        <div className='group flex flex-col gap-1.5'>
+                            <Label aria-label='Heads' htmlFor='fmH_Id'>
+                                Heads <span className='ml-1 text-red-500'>*</span>
+                            </Label>
+                            <Controller
+                                name='heads'
+                                control={control}
+                                render={({ field }) => (
+                                    <MultiSelect
+                                        options={
+                                            masterHeads?.data?.map((data) => ({
+                                                label: data.fmH_FeeName || '',
+                                                value: data.fmH_Id.toString()
+                                            })) ?? []
+                                        }
+                                        onValueChange={(selectedValues) => {
+                                            field.onChange(selectedValues);
+                                            handleHeadSelection(selectedValues);
+                                        }}
+                                        defaultValue={selectedHeadsItems.map((data) =>
+                                            data.fmH_Id !== undefined ? data.fmH_Id.toString() : ''
+                                        )}
+                                        value={selectedHeadsItems.map((data) => (data.fmH_Id !== undefined ? data.fmH_Id.toString() : ''))}
+                                        placeholder='Select Heads'
+                                        variant='inverted'
+                                        disabled={masterHeadsLoading}
+                                    />
+                                )}
+                            />
+                        </div>
 
-                        <Controller
-                            name='installments'
-                            control={control}
-                            render={({ field }) => (
-                                <MultiSelect
-                                    options={
-                                        masterInstallment?.data?.map((data) => ({
-                                            label: data.ftI_ID !== undefined ? data.ftI_ID.toString() : '',
-                                            value: data.ftI_NAME !== undefined ? data.ftI_NAME.toString() : ''
-                                        })) ?? []
-                                    }
-                                    onValueChange={(selectedValues) => {
-                                        field.onChange(selectedValues);
-                                        handleInstallmentSelection(selectedValues);
-                                    }}
-                                    defaultValue={SelectedInstallmentsItems.map((data) =>
-                                        data.ftI_ID !== undefined ? data.ftI_ID.toString() : ''
-                                    )}
-                                    value={SelectedInstallmentsItems.map((data) =>
-                                        data.ftI_ID !== undefined ? data.ftI_ID.toString() : ''
-                                    )}
-                                    placeholder='Select Installment'
-                                    variant='inverted'
-                                    disabled={masterInstallmentLoading}
-                                />
-                            )}
-                        />
+                        <div className='group flex flex-col gap-1.5'>
+                            <Label aria-label='Installments' htmlFor='ftI_Id'>
+                                Installments <span className='ml-1 text-red-500'>*</span>
+                            </Label>
+                            <Controller
+                                name='installments'
+                                control={control}
+                                render={({ field }) => (
+                                    <MultiSelect
+                                        options={
+                                            masterInstallment?.data?.map((data) => ({
+                                                label: data.ftI_NAME || '',
+                                                value: data.ftI_ID.toString()
+                                            })) ?? []
+                                        }
+                                        onValueChange={(selectedValues) => {
+                                            field.onChange(selectedValues);
+                                            handleInstallmentSelection(selectedValues);
+                                        }}
+                                        defaultValue={SelectedInstallmentsItems.map((data) =>
+                                            data.ftI_ID !== undefined ? data.ftI_ID.toString() : ''
+                                        )}
+                                        value={SelectedInstallmentsItems.map((data) =>
+                                            data.ftI_ID !== undefined ? data.ftI_ID.toString() : ''
+                                        )}
+                                        placeholder='Select Installments'
+                                        variant='inverted'
+                                        disabled={masterInstallmentLoading}
+                                    />
+                                )}
+                            />
+                        </div>
                     </div>
 
                     {/* Root Error */}
@@ -208,7 +224,7 @@ export default function AddFeeTermsHeadFormForm({ onSuccess, termname = '' }: Fe
                     <Button
                         type='button'
                         variant='outline'
-                        onClick={handleReset}
+                        onClick={OnReset}
                         disabled={isSubmitting}
                         className='order-2 w-fit transition-all duration-200 hover:scale-105 sm:order-1'>
                         Reset

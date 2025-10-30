@@ -5,31 +5,31 @@ import { Button } from '@/components/ui/button';
 import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/generic-data-table';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
-import { useMasterFeehead } from '@/hooks/fees/useMasters';
+import { useMasterFeeInstallment } from '@/hooks/fees/useMasters';
 import type { IMasterFeesInstallmentList } from '@/types/fees/masters';
 import { Plus, X } from 'lucide-react';
 import { use } from 'react';
 import AddMasterFeeHeadForm from './_components/add-form';
-import { feeheadColumns } from './_components/columns';
+import { feeInstallmentColumns } from './_components/columns';
 import ToggleMasterClassForm from './_components/toggle-form';
 import UpdateMasterFeeheadForm from './_components/update-form';
 
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 
-export default function MasterFeeheadPage(props: {
+export default function MasterFeeInstallmentPage(props: {
     searchParams: SearchParams;
 }) {
     const searchParams = use(props.searchParams);
-    const { data: response, isLoading, error } = useMasterFeehead(searchParams);
+    const { data: response, isLoading, error } = useMasterFeeInstallment(searchParams);
 
     return (
         <FormProvider<IMasterFeesInstallmentList>>
-            <MasterFeeheadPageContent response={response} isLoading={isLoading} error={error} />
+            <MasterFeeInstallmentPageContent response={response} isLoading={isLoading} error={error} />
         </FormProvider>
     );
 }
 
-function MasterFeeheadPageContent({
+function MasterFeeInstallmentPageContent({
     response,
     isLoading,
     error
@@ -39,6 +39,7 @@ function MasterFeeheadPageContent({
     error: any;
 }) {
     const { openAddForm } = useFormContext<IMasterFeesInstallmentList>();
+
     const tableProps = useDataTableProps(response);
 
     return (
@@ -47,7 +48,7 @@ function MasterFeeheadPageContent({
                 {/* Header */}
                 <div className='flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between'>
                     <div className='space-y-1'>
-                        <Heading title='Fees Installment' description='' />
+                        <Heading title='Fees Installment' description='Manage fee installments and payment schedules' />
                     </div>
                     <Button
                         type='button'
@@ -66,14 +67,14 @@ function MasterFeeheadPageContent({
                     className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
                     <GenericDataTable<IMasterFeesInstallmentList>
                         {...tableProps}
-                        columns={feeheadColumns}
+                        columns={feeInstallmentColumns}
                         isLoading={isLoading}
                         error={error}
                         columnPinning={{ right: ['actions'] }}
-                        loadingMessage='Loading master Installment...'
-                        noDataTitle='No Master Classes Found'
-                        noDataDescription='Get started by creating your first master class'
-                        errorTitle='Error Loading Classes'
+                        loadingMessage='Loading fee installments...'
+                        noDataTitle='No Fee Installments Found'
+                        noDataDescription='Get started by creating your first fee installment'
+                        errorTitle='Error Loading Installments'
                     />
                 </CollapsibleSection>
 
@@ -104,7 +105,7 @@ function FormSections() {
                 <div ref={addFormRef}>
                     <CollapsibleSection
                         title='Add New Fee Installment'
-                        description='Fill in the details below to create a new Fee Installment'
+                        description='Fill in the details below to create a new fee installment'
                         defaultOpen={true}
                         variant='outline'
                         size='md'
@@ -128,7 +129,8 @@ function FormSections() {
             {isEditFormOpen && selectedRow && (
                 <div ref={editFormRef}>
                     <CollapsibleSection
-                        title='Edit Master Fees Installment'
+                        title='Edit Fee Installment'
+                        description='Update the fee installment details below'
                         defaultOpen={true}
                         variant='outline'
                         size='md'
