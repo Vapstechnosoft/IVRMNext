@@ -23,7 +23,6 @@ export async function toggleMasterSubExam(mi_id: number, id: number) {
 export async function getMasterSubExamOrderData(searchParams?: ApiSearchparams) {
     const urlParams = getSearchParamsUrl(searchParams ?? {});
     const url = `/master_sub_exam/master_sub_exam_order_list/30?${urlParams}`;
-    console.info(url);
     return await api.get<any>('exam', url);
 }
 export async function UpdatedOrderdSubExams(data: any) {

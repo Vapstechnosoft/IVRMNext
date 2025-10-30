@@ -21,6 +21,7 @@ interface MasterOrderViewProps<T extends { id: number }> {
     onSave: (updatedData: T[]) => void;
     tableHeight?: string;
     isLoading?: boolean;
+    title: string;
 }
 
 export function MasterViewDetails<T extends { id: number }>({
@@ -30,7 +31,8 @@ export function MasterViewDetails<T extends { id: number }>({
     columns,
     onSave,
     isLoading,
-    tableHeight = '800px'
+    tableHeight = '800px',
+    title
 }: MasterOrderViewProps<T>) {
     const [items, setItems] = useState<T[]>([]);
 
@@ -58,7 +60,7 @@ export function MasterViewDetails<T extends { id: number }>({
         <Dialog open={isOpen} onOpenChange={onClose}>
             <DialogContent className='w-full max-w-6xl'>
                 <DialogHeader>
-                    <DialogTitle>Set Sub-Subject Order</DialogTitle>
+                    <DialogTitle>{title}</DialogTitle>
                     <DialogDescription>Drag and drop to reorder</DialogDescription>
                 </DialogHeader>
 

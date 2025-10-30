@@ -4,11 +4,11 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
 import { ActionButtons } from '@/components/ui/form/action-buttons';
 import { useFormContext } from '@/components/ui/form/form-provider';
-import type { IMasterYearlyRebateSettingsList } from '@/types/fees/masters/masters';
+import type { IMasterYearlyRebateList } from '@/types/fees/masters/masters';
 import type { ColumnDef } from '@tanstack/react-table';
 import { useCallback } from 'react';
 
-export const YearlyRebateSettingColumns: ColumnDef<IMasterYearlyRebateSettingsList>[] = [
+export const YearlyRebateSettingColumns: ColumnDef<IMasterYearlyRebateList>[] = [
     {
         id: 'select',
         header: ({ table }) => (
@@ -72,9 +72,9 @@ export const YearlyRebateSettingColumns: ColumnDef<IMasterYearlyRebateSettingsLi
 function ActionButtonsCell({
     rowData
 }: {
-    rowData: IMasterYearlyRebateSettingsList;
+    rowData: IMasterYearlyRebateList;
 }) {
-    const { openEditForm, openToggleForm } = useFormContext<IMasterYearlyRebateSettingsList>();
+    const { openEditForm, openToggleForm } = useFormContext<IMasterYearlyRebateList>();
 
     const handleEdit = useCallback(() => openEditForm(rowData), [openEditForm, rowData]);
     const handleToggle = useCallback(() => openToggleForm?.(rowData), [openToggleForm, rowData]);

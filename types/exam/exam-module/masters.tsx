@@ -96,7 +96,7 @@ export interface IMasterGrade {
     emgR_GradeName: string;
     emgR_MarksPerFlag: string;
     emgR_ActiveFlag: boolean;
-    sub_list: IGradeDetails[];
+    grade_list: IGradeDetails[];
 }
 
 export interface IMasterSubjectGroup {
@@ -159,8 +159,9 @@ export interface IMasterExamCategoryMapping {
 }
 
 export interface IAcademicYear {
-    id: number;
-    year: string;
+    mI_Id?: number;
+    asmaY_Id: number;
+    asmaY_Year: string;
 }
 
 export interface ICategory {
@@ -170,19 +171,35 @@ export interface ICategory {
 
 export interface IClass {
     asmcL_Id: number;
-    asmcL_ClassCode: string;
+    asmcL_ClassCode?: string;
     asmcL_ClassName: string;
-    asmcL_Order: number;
-    asmcL_MinAgeYear: number;
-    asmcL_MinAgeMonth: number;
-    asmcL_MinAgeDays: number;
-    asmcL_MaxAgeYear: number;
-    asmcL_MaxAgeMonth: number;
-    asmcL_MaxAgeDays: number;
-    asmcL_MaxCapacity: number;
+    asmcL_Order?: number;
+    asmcL_MinAgeYear?: number;
+    asmcL_MinAgeMonth?: number;
+    asmcL_MinAgeDays?: number;
+    asmcL_MaxAgeYear?: number;
+    asmcL_MaxAgeMonth?: number;
+    asmcL_MaxAgeDays?: number;
+    asmcL_MaxCapacity?: number;
 }
 
 export interface ISection {
-    id: number;
-    name: string;
+    mI_Id?: number;
+    asmS_Id: number;
+    asmC_SectionName: string;
+    asmC_SectionCode?: string;
+    ecaC_Id: number;
+    ecaC_ActiveFlag: boolean;
+}
+
+export interface ICategoryClassMappingDetails {
+    mI_Id: number;
+    asmS_Id: number;
+    ecaC_Id: number;
+    asmcL_ClassName: string;
+    asmC_SectionCode: string;
+    asmC_SectionName: string;
+    asmC_MaxCapacity: number;
+    asmC_Order: number;
+    asmC_ActiveFlag: boolean;
 }
