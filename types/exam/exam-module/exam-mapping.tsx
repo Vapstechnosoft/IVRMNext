@@ -183,31 +183,28 @@ export interface IExamTermAndExamMappingDetails {
 }
 
 export interface IExamSubjectWizard {
-    ecysE_Id: number;
-    amcO_Id: number;
-    amb_Id: number;
-    amsE_Id: number;
-    acss_Id: number;
-    acst_Id: number;
-    emg_Id: number;
-    eme_Id: number;
-    emgr_Id: number;
+    eycE_Id: number;
+    eyC_Id: number;
+    emcA_Id: number;
+    asmaY_Id: number;
+    emE_Id: number;
 
-    amcO_CourseName: string;
-    amb_BranchName: string;
-    amse_SemesterName: string;
-    acss_SchemeName: string;
-    acst_SchemeType: string;
-    emg_GroupName: string;
-    eme_ExamName: string;
-    emgr_GradeName: string;
+    asmaY_Year: string;
+    emcA_CategoryName: string;
+    emE_ExamName: string;
+    emE_ExamCode: string;
+    emgR_GradeName: string;
 
-    ecysE_AttendanceFromDate: string;
-    ecysE_AttendanceToDate: string;
+    eycE_AttendanceFromDate: string;
+    eycE_AttendanceToDate: string;
 
-    ecysE_SubExamFlg: boolean;
-    ecysE_SubSubjectFlg: boolean;
-    ecysE_ActiveFlg: boolean;
+    eycE_SubExamFlg: boolean;
+    eycE_SubSubjectFlg: boolean;
+    eycE_ActiveFlg: boolean;
+
+    asmaY_Order: number;
+    eycE_BestOf: number;
+    eycE_BestOfApplicableFlg: boolean;
 
     createdBy?: string;
     createdDate?: string;
@@ -220,11 +217,11 @@ export interface IExamSubjectWizard {
     subExamList?: {
         emsE_Id: number;
         emsE_SubExamName: string;
-        ecysE_SubExamFlg?: boolean;
-        ecysE_MaxMarks?: string;
-        ecysE_MinMarks?: string;
-        emgr_Id?: number;
-        emgr_GradeName?: string;
+        eycE_SubExamFlg?: boolean;
+        eycE_MaxMarks?: string;
+        eycE_MinMarks?: string;
+        emgR_Id?: number;
+        emgR_GradeName?: string;
         exemptedFlg?: boolean;
         exemptedPer?: string;
     }[];
@@ -232,11 +229,11 @@ export interface IExamSubjectWizard {
     subSubjectList?: {
         emsS_Id: number;
         emsS_SubSubjectName: string;
-        ecysE_SubSubjectFlg?: boolean;
-        ecysE_MaxMarks?: string;
-        ecysE_MinMarks?: string;
-        emgr_Id?: number;
-        emgr_GradeName?: string;
+        eycE_SubSubjectFlg?: boolean;
+        eycE_MaxMarks?: string;
+        eycE_MinMarks?: string;
+        emgR_Id?: number;
+        emgR_GradeName?: string;
         exemptedFlg?: boolean;
         exemptedPer?: string;
     }[];

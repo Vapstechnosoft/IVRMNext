@@ -438,7 +438,7 @@ export async function getUserAccessibleModules() {
                     ]
                 },
                 {
-                    id: 2,
+                    id: 3,
                     name: 'Exam',
                     icon: 'BookOpen',
                     menu: [
@@ -531,14 +531,14 @@ export async function getUserAccessibleModules() {
                                     name: 'Exam Mapping',
                                     icon: 'Settings',
                                     pages: [
-                                        {
-                                            id: 1,
-                                            name: 'Exam Subject Wizard',
-                                            icon: 'BookOpen',
-                                            url: '/Exam/exam-module/exam-mapping/exam-subject-wizard',
-                                            title: 'Exam Subject Wizard',
-                                            description: 'Manage Exam Subject Wizard Details'
-                                        },
+                                        // {
+                                        //     id: 1,
+                                        //     name: 'Exam Subject Wizard',
+                                        //     icon: 'BookOpen',
+                                        //     url: '/Exam/exam-module/exam-mapping/exam-subject-wizard',
+                                        //     title: 'Exam Subject Wizard',
+                                        //     description: 'Manage Exam Subject Wizard Details'
+                                        // },
                                         {
                                             id: 2,
                                             name: 'Category Subject Mapping',

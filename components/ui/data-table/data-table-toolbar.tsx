@@ -138,6 +138,7 @@ export function DataTableToolbar<TData>({ table, data, showExportOptions = true,
             setSearchColumns(allSearchableColumns.join(','));
         }
     };
+    const [isSearchColumnModalOpen, setIsSearchColumnModalOpen] = useState(false);
 
     return (
         <div className='flex w-full items-center justify-between gap-2 overflow-auto p-0.5'>
@@ -189,7 +190,7 @@ export function DataTableToolbar<TData>({ table, data, showExportOptions = true,
                 )}
 
                 {/* Search Columns */}
-                {showViewOptions && anyColumnHiding.length > 0 && (
+                {isSearchColumnModalOpen && anyColumnHiding.length > 0 && (
                     <DropdownMenu>
                         <DropdownMenuTrigger asChild>
                             <Button
