@@ -401,39 +401,54 @@ export const SubExamSchema = {
                     checkedvalue: z.boolean(),
                     ECYSESSS_MaxMarks: z
                         .string()
-                        .regex(/^[0-9]{0,4}\.?[0-9]{1,2}?$/, {
+                        .regex(/^\d{1,4}(\.\d{1,2})?$/, {
                             message: 'Enter valid format [e.g. 100.00]'
                         })
                         .optional()
                         .or(z.literal('')),
                     ECYSESSS_MinMarks: z
                         .string()
-                        .regex(/^[0-9]{0,4}\.?[0-9]{1,2}?$/, {
-                            message: 'Enter valid format [e.g. 100.00]'
+                        .regex(/^\d{1,4}(\.\d{1,2})?$/, {
+                            message: 'Enter valid format [e.g. 35.00]'
                         })
                         .optional()
                         .or(z.literal('')),
-                    EMGR_Id: z.string().min(1, { message: 'Select Grade' }),
-                    ECYSESSS_ExemptedFlg: z.boolean(),
+                    EMGR_Id: z.string().optional().or(z.literal('')),
+                    ECYSESSS_ExemptedFlg: z.boolean().optional(),
                     ECYSESSS_ExemptedPer: z
                         .string()
-                        .regex(/^[0-9]{0,4}\.?[0-9]{1,2}?$/, {
-                            message: 'Enter valid format [e.g. 100.00]'
+                        .regex(/^\d{1,4}(\.\d{1,2})?$/, {
+                            message: 'Enter valid percentage [e.g. 10.00]'
                         })
                         .optional()
                         .or(z.literal(''))
                 })
             )
+
+            // Ensure at least one sub-exam is selected
             .refine((list) => list.some((s) => s.checkedvalue), {
                 message: 'Select at least one Sub-Exam'
             })
+
+            // Ensure marks and grade are provided when a sub-exam is selected
             .refine((list) => list.every((s) => !s.checkedvalue || (!!s.ECYSESSS_MaxMarks && !!s.ECYSESSS_MinMarks && !!s.EMGR_Id)), {
-                message: 'Enter marks and grade for selected sub-exams'
+                message: 'Please fill Max Marks, Min Marks, and Grade for all selected sub-exams'
+            })
+
+            // Ensure numeric consistency (Min ≤ Max)
+            .refine((list) => list.every((s) => !s.checkedvalue || Number(s.ECYSESSS_MinMarks || 0) <= Number(s.ECYSESSS_MaxMarks || 0)), {
+                message: 'Min Marks cannot be greater than Max Marks'
             })
     }),
 
     delete: z.object({
-        ECYSESSS_Id: z.number({ required_error: 'ECYSESSS_Id is required' }).positive({ message: 'Invalid ECYSESSS_Id' })
+        ECYSESSS_Id: z
+            .number({
+                required_error: 'ECYSESSS_Id is required'
+            })
+            .positive({
+                message: 'Invalid ECYSESSS_Id'
+            })
     })
 };
 

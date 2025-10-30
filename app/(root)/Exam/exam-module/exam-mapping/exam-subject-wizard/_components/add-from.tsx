@@ -2,6 +2,7 @@
 
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
+import { CustomMultiSelectBox } from '@/components/ui/custom-multiselect';
 import { DateField } from '@/components/ui/dateField';
 import { FormError, Label } from '@/components/ui/extension/field';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
@@ -217,7 +218,7 @@ export default function AddExamSubjectWizard({ onSuccess }: { onSuccess?: () => 
     return (
         <FormProvider {...methods}>
             <form onSubmit={handleSubmit(onSubmit)}>
-                <CollapsibleSection title='Add Exam Subject Wizard' defaultOpen>
+                <CollapsibleSection defaultOpen>
                     <div className='grid grid-cols-1 gap-6 md:grid-cols-2'>
                         {/* Left side */}
                         <div className='space-y-4'>
@@ -256,22 +257,23 @@ export default function AddExamSubjectWizard({ onSuccess }: { onSuccess?: () => 
                             </div>
 
                             <div>
-                                <Label>Exam *</Label>
-                                <div className='space-y-2 rounded-md border p-2'>
-                                    {exams.map((ex) => (
-                                        <label key={ex.emE_Id} className='flex items-center gap-2'>
-                                            <input
-                                                type='checkbox'
-                                                checked={!!ex.checked}
-                                                onChange={(e) => {
-                                                    ex.checked = e.target.checked;
-                                                    setExams([...exams]);
-                                                }}
-                                            />
-                                            <span>{ex.emE_ExamName}</span>
-                                        </label>
-                                    ))}
-                                </div>
+                                <CustomMultiSelectBox
+                                    label='Exam *'
+                                    options={exams.map((ex) => ({
+                                        label: ex.emE_ExamName,
+                                        value: ex.emE_Id.toString()
+                                    }))}
+                                    value={exams.filter((ex) => ex.checked).map((ex) => ex.emE_Id.toString())}
+                                    onChange={(selectedValues) => {
+                                        const updatedExams = exams.map((ex) => ({
+                                            ...ex,
+                                            checked: selectedValues.includes(ex.emE_Id.toString())
+                                        }));
+                                        setExams(updatedExams);
+                                    }}
+                                    isSearchRequired={true}
+                                    height='220px'
+                                />
                             </div>
                         </div>
 
@@ -374,11 +376,11 @@ export default function AddExamSubjectWizard({ onSuccess }: { onSuccess?: () => 
                         />
                     </div>
 
-                    <div className='mt-6 flex gap-4'>
-                        <Button type='submit' disabled={isSubmitting}>
+                    <div className='mt-6 flex w-fit gap-4'>
+                        <Button className='w-fit' type='submit' disabled={isSubmitting}>
                             {isSubmitting ? 'Saving...' : 'Save'}
                         </Button>
-                        <Button type='button' variant='outline' onClick={() => window.location.reload()}>
+                        <Button className='w-fit' type='button' variant='outline' onClick={() => window.location.reload()}>
                             Cancel
                         </Button>
                     </div>

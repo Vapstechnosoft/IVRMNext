@@ -57,7 +57,7 @@ export const CustomMultiSelectBox: React.FC<CustomMultiSelectBoxProps> = ({
         <div className='flex flex-col gap-1'>
             {label && <Label>{label}</Label>}
 
-            <div className='relative rounded-md border' style={{ height }}>
+            <div className='relative overflow-hidden rounded-md border' style={{ height }}>
                 {isSearchRequired && (
                     <div className='sticky top-0 z-10 border-b bg-white p-2'>
                         <input
