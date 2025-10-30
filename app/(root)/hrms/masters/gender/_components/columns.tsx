@@ -25,7 +25,7 @@ export const columns: ColumnDef<GenderItem>[] = [
 
 function ActionButtonsCell({ rowData }: { rowData: GenderItem }) {
     const { openEditForm } = useFormContext<MasterGenderResponse>();
-    const { toggleActiveMutation } = useMasterGender(HRMS_MI_ID);
+    const { toggleMutation } = useMasterGender(HRMS_MI_ID);
 
     const handleEdit = useCallback(
         (data: GenderItem) => {
@@ -37,7 +37,7 @@ function ActionButtonsCell({ rowData }: { rowData: GenderItem }) {
     const handleToggle = useCallback(
         async (data: GenderItem, newState: boolean) => {
             try {
-                await toggleActiveMutation.mutateAsync({
+                await toggleMutation.mutateAsync({
                     IVRMMG_Id: data.IVRMMG_Id,
                     IVRMMG_ActiveFlag: newState,
                     roleId: HRMS_MI_ID
@@ -47,7 +47,7 @@ function ActionButtonsCell({ rowData }: { rowData: GenderItem }) {
                 toast.error(`Failed to ${newState ? 'activate' : 'deactivate'} gender`);
             }
         },
-        [toggleActiveMutation]
+        [toggleMutation]
     );
 
     return (

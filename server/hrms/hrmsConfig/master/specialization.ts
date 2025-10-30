@@ -53,12 +53,16 @@ export async function getMasterSpecializationList(roleId: number): Promise<ApiRe
 
 /**
  * Create or Update master specialization item
- * POST /api/MasterSpecializationFacade
+ * POST /api/masterSpecialisationFacade/savedata (create)
+ * POST /api/masterSpecialisationFacade/EditData (update)
  */
 export async function saveMasterSpecialization(data: MasterSpecializationInput): Promise<ApiResponse<MasterSpecializationResponse>> {
     try {
         const baseURL = clientEnv.NEXT_PUBLIC_API_BASE_URL;
-        const apiPath = '/api/MasterSpecializationFacade';
+        const isEdit = data.HRMSPL_Id && data.HRMSPL_Id > 0;
+        const apiPath = isEdit 
+            ? '/api/masterSpecialisationFacade/EditData' 
+            : '/api/masterSpecialisationFacade/savedata';
         const url = `${baseURL}${apiPath}`;
 
         const requestBody = {
@@ -107,12 +111,29 @@ export async function saveMasterSpecialization(data: MasterSpecializationInput):
 
 /**
  * Get details of a specific master specialization by ID
- * GET /api/MasterSpecialization/details/{id}
+ * GET /api/MasterSpecialisationFacade/getRecordById/{id}
  */
-export async function getMasterSpecializationDetails(id: number): Promise<ApiResponse<SpecializationItem>> {
+export async function getMasterSpecializationDetails(id: number): Promise<ApiResponse<MasterSpecializationResponse>> {
     try {
-        const url = `/api/MasterSpecialization/details/${id}`;
-        const response = await api.get<SpecializationItem>('default', url);
+        const baseURL = clientEnv.NEXT_PUBLIC_API_BASE_URL;
+        const apiPath = `/api/MasterSpecialisationFacade/getRecordById/${id}`;
+        const url = `${baseURL}${apiPath}`;
+
+        const axiosResponse = await axios.get<MasterSpecializationResponse>(url, {
+            headers: {
+                'Content-Type': 'application/json',
+                Accept: 'application/json'
+            },
+            timeout: 30000,
+            validateStatus: (status) => status < 500
+        });
+
+        const response: ApiResponse<MasterSpecializationResponse> = {
+            success: axiosResponse.status >= 200 && axiosResponse.status < 300,
+            message: axiosResponse.data.msg || 'Specialization details fetched successfully',
+            data: axiosResponse.data
+        };
+
         return response;
     } catch (error) {
         console.error('Error fetching master specialization details:', error);
@@ -122,7 +143,7 @@ export async function getMasterSpecializationDetails(id: number): Promise<ApiRes
 
 /**
  * Activate or Deactivate a master specialization record
- * POST /api/masterSpecialisationFacade/deactivateRecordById
+ * POST /api/masterSpecialisationFacade/masterDecative
  */
 export async function activateDeactivateMasterSpecialization(data: {
     HRMSPL_Id: number;
@@ -131,7 +152,7 @@ export async function activateDeactivateMasterSpecialization(data: {
 }): Promise<ApiResponse<MasterSpecializationResponse>> {
     try {
         const baseURL = clientEnv.NEXT_PUBLIC_API_BASE_URL;
-        const apiPath = '/api/masterSpecialisationFacade/deactivateRecordById';
+        const apiPath = '/api/masterSpecialisationFacade/masterDecative';
         const url = `${baseURL}${apiPath}`;
 
         const requestBody = {

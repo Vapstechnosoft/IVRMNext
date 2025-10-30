@@ -94,14 +94,18 @@ export async function getReligionCategoryMappingList(_roleId = 0, userId = 2): P
 
 /**
  * Save or Update religion category mapping record
- * POST /api/ReligionCategory_MappingFacade/savedata
+ * POST /api/ReligionCategory_MappingFacade/savedata (create)
+ * POST /api/ReligionCategory_MappingFacade/Editdata (update)
  */
 export async function saveReligionCategoryMapping(
     data: ReligionCategoryMappingInput
 ): Promise<ApiResponse<ReligionCategoryMappingResponse>> {
     try {
         const baseURL = clientEnv.NEXT_PUBLIC_API_BASE_URL;
-        const apiPath = '/api/ReligionCategory_MappingFacade/savedata';
+        const isEdit = data.IRCC_Id && data.IRCC_Id > 0;
+        const apiPath = isEdit 
+            ? '/api/ReligionCategory_MappingFacade/Editdata' 
+            : '/api/ReligionCategory_MappingFacade/savedata';
         const url = `${baseURL}${apiPath}`;
 
         const requestBody = {
@@ -218,7 +222,7 @@ export async function activateDeactivateReligionCategoryMapping(data: { IRCC_Id:
         });
 
         const response: ApiResponse<ReligionCategoryMappingResponse> = {
-            success: axiosResponse.status >= 200 && axiosResponse.status < 300,
+            success: axiosResponse.status >= 200 && axiosResponse.status < 300 && (axiosResponse.data.returnval !== false),
             message:
                 axiosResponse.data.msg || (data.IRCC_ActiveFlg ? 'Mapping activated successfully' : 'Mapping deactivated successfully'),
             data: axiosResponse.data

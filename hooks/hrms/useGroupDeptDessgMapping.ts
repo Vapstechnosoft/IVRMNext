@@ -46,12 +46,35 @@ export function useSaveGroupDeptDessgMapping() {
 }
 
 /**
- * Hook to activate/deactivate group dept dessg mapping
+ * Hook to fetch, save, and manage group dept dessg mapping
  */
-export function useActivateDeactivateGroupDeptDessgMapping() {
+export function useGroupDeptDessgMappingCRUD() {
     const queryClient = useQueryClient();
 
-    return useMutation({
+    const listQuery = useQuery({
+        queryKey: [HRMS_QUERY_KEYS.GROUP_DEPT_DESSG_MAPPING],
+        queryFn: () => getGroupDeptDessgMappingList(0),
+        staleTime: 1000 * 60 * 5
+    });
+
+    const saveMutation = useMutation({
+        mutationFn: (data: GroupDeptDessgMappingInput) => saveGroupDeptDessgMapping(data),
+        onSuccess: (response) => {
+            if (response.success) {
+                toast.success(response.message || 'Mapping saved successfully');
+                queryClient.invalidateQueries({
+                    queryKey: [HRMS_QUERY_KEYS.GROUP_DEPT_DESSG_MAPPING]
+                });
+            } else {
+                toast.error(response.message || 'Failed to save mapping');
+            }
+        },
+        onError: (error: Error) => {
+            toast.error(error.message || 'An error occurred while saving mapping');
+        }
+    });
+
+    const toggleMutation = useMutation({
         mutationFn: (data: { HRGTDDS_Id: number; HRGTDDS_ActiveFlg: boolean }) => activateDeactivateGroupDeptDessgMapping(data),
         onSuccess: (response) => {
             if (response.success) {
@@ -67,4 +90,20 @@ export function useActivateDeactivateGroupDeptDessgMapping() {
             toast.error(error.message || 'An error occurred while updating mapping status');
         }
     });
+
+    const refetchAll = () => {
+        queryClient.invalidateQueries({
+            queryKey: [HRMS_QUERY_KEYS.GROUP_DEPT_DESSG_MAPPING]
+        });
+    };
+
+    return { listQuery, saveMutation, toggleMutation, refetchAll };
+}
+
+/**
+ * @deprecated Use useGroupDeptDessgMappingCRUD instead
+ */
+export function useActivateDeactivateGroupDeptDessgMapping() {
+    const { toggleMutation } = useGroupDeptDessgMappingCRUD();
+    return toggleMutation;
 }

@@ -38,7 +38,7 @@ export const columns: ColumnDef<GradeDetail>[] = [
 
 function ActionButtonsCell({ rowData }: { rowData: GradeDetail }) {
     const { openEditForm } = useFormContext<MasterGradeResponse>();
-    const { toggleActiveMutation } = useMasterGrade(HRMS_MI_ID);
+    const { toggleMutation } = useMasterGrade(HRMS_MI_ID);
 
     const handleEdit = useCallback(
         (data: GradeDetail) => {
@@ -50,7 +50,7 @@ function ActionButtonsCell({ rowData }: { rowData: GradeDetail }) {
     const handleToggle = useCallback(
         async (data: GradeDetail, newState: boolean) => {
             try {
-                await toggleActiveMutation.mutateAsync({
+                await toggleMutation.mutateAsync({
                     HRMG_Id: data.HRMG_Id,
                     HRMG_ActiveFlag: newState,
                     roleId: HRMS_MI_ID
@@ -60,7 +60,7 @@ function ActionButtonsCell({ rowData }: { rowData: GradeDetail }) {
                 toast.error(`Failed to ${newState ? 'activate' : 'deactivate'} grade`);
             }
         },
-        [toggleActiveMutation]
+        [toggleMutation]
     );
 
     return (

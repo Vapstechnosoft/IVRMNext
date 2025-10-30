@@ -103,7 +103,7 @@ export async function saveMasterGroupType(data: MasterGroupTypeInput): Promise<A
 
 /**
  * Activate/Deactivate a master group type record
- * PUT /api/MasterGroupType/activate-deactivate
+ * POST /api/MasterGroupTypeFacade/deactivateRecordById
  */
 export async function activateDeactivateMasterGroupType(data: {
     HRMGT_Id: number;
@@ -112,26 +112,47 @@ export async function activateDeactivateMasterGroupType(data: {
 }): Promise<ApiResponse<MasterGroupTypeResponse>> {
     try {
         const baseURL = clientEnv.NEXT_PUBLIC_API_BASE_URL;
-        const apiPath = '/api/MasterGroupType/activate-deactivate';
+        const apiPath = '/api/MasterGroupTypeFacade/deactivateRecordById';
         const url = `${baseURL}${apiPath}`;
 
         const requestBody = {
+            CreatedDate: new Date().toISOString(),
+            UpdatedDate: new Date().toISOString(),
             HRMGT_Id: data.HRMGT_Id,
+            MI_Id: data.MI_Id || 30,
+            HRMGT_EmployeeGroupType: 'string',
+            HRMGT_Code: 'string',
+            HRMGT_Order: 0,
             HRMGT_ActiveFlag: data.HRMGT_ActiveFlag,
-            MI_Id: data.MI_Id || 0
+            grouptypeList: [
+                {
+                    CreatedDate: new Date().toISOString(),
+                    UpdatedDate: new Date().toISOString(),
+                    HRMGT_Id: 0,
+                    MI_Id: 0,
+                    HRMGT_EmployeeGroupType: 'string',
+                    HRMGT_Code: 'string',
+                    HRMGT_Order: 0,
+                    HRMGT_ActiveFlag: true
+                }
+            ],
+            retrunMsg: 'string',
+            roleId: data.MI_Id || 0,
+            GroupTypeDTO: []
         };
 
-        const axiosResponse = await axios.put<MasterGroupTypeResponse>(url, requestBody, {
+        const axiosResponse = await axios.post<MasterGroupTypeResponse>(url, requestBody, {
             headers: {
                 'Content-Type': 'application/json',
                 Accept: 'application/json'
             },
-            timeout: 30000
+            timeout: 30000,
+            validateStatus: (status) => status < 500
         });
 
         const response: ApiResponse<MasterGroupTypeResponse> = {
             success: axiosResponse.status >= 200 && axiosResponse.status < 300,
-            message: axiosResponse.data.retrunMsg || 'Status updated successfully',
+            message: axiosResponse.data.retrunMsg || `Group type ${data.HRMGT_ActiveFlag ? 'activated' : 'deactivated'} successfully`,
             data: axiosResponse.data
         };
 
@@ -144,12 +165,29 @@ export async function activateDeactivateMasterGroupType(data: {
 
 /**
  * Get details of a specific master group type by ID
- * GET /api/MasterGroupType/details/{id}
+ * GET /api/MasterGroupTypeFacade/getRecordById/{id}
  */
-export async function getMasterGroupTypeDetails(id: number): Promise<ApiResponse<GroupTypeDetail>> {
+export async function getMasterGroupTypeDetails(id: number): Promise<ApiResponse<MasterGroupTypeResponse>> {
     try {
-        const url = `/api/MasterGroupType/details/${id}`;
-        const response = await api.get<GroupTypeDetail>('default', url);
+        const baseURL = clientEnv.NEXT_PUBLIC_API_BASE_URL;
+        const apiPath = `/api/MasterGroupTypeFacade/getRecordById/${id}`;
+        const url = `${baseURL}${apiPath}`;
+
+        const axiosResponse = await axios.get<MasterGroupTypeResponse>(url, {
+            headers: {
+                'Content-Type': 'application/json',
+                Accept: 'application/json'
+            },
+            timeout: 30000,
+            validateStatus: (status) => status < 500
+        });
+
+        const response: ApiResponse<MasterGroupTypeResponse> = {
+            success: axiosResponse.status >= 200 && axiosResponse.status < 300,
+            message: axiosResponse.data.retrunMsg || 'Group type details fetched successfully',
+            data: axiosResponse.data
+        };
+
         return response;
     } catch (error) {
         console.error('Error fetching master group type details:', error);

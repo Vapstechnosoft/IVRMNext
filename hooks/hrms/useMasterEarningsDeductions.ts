@@ -27,7 +27,7 @@ export function useMasterEarningsDeductions(roleId: number) {
         }
     });
 
-    const toggleActiveMutation = useMutation({
+    const toggleMutation = useMutation({
         mutationFn: (data: {
             HRMED_Id: number;
             HRMED_ActiveFlag: boolean;
@@ -52,7 +52,7 @@ export function useMasterEarningsDeductions(roleId: number) {
     return {
         listQuery,
         saveMutation,
-        toggleActiveMutation,
+        toggleMutation,
         saveOrderMutation
     };
 }

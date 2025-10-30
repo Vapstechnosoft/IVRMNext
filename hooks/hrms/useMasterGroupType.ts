@@ -30,7 +30,7 @@ export function useMasterGroupType(roleId: number) {
     });
 
     // Mutation: Activate/Deactivate group type
-    const toggleActiveMutation = useMutation({
+    const toggleMutation = useMutation({
         mutationFn: (data: {
             HRMGT_Id: number;
             HRMGT_ActiveFlag: boolean;
@@ -53,11 +53,18 @@ export function useMasterGroupType(roleId: number) {
         }
     });
 
+    const refetchAll = () => {
+        queryClient.invalidateQueries({
+            queryKey: [HRMS_QUERY_KEYS.MASTER_GROUP_TYPE]
+        });
+    };
+
     return {
         listQuery,
         saveMutation,
-        toggleActiveMutation,
-        saveOrderMutation
+        toggleMutation,
+        saveOrderMutation,
+        refetchAll
     };
 }
 

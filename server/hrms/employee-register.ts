@@ -27,7 +27,27 @@ import type {
     EmployeeRegisterSaveResponse,
     GetEmployeeByIdResponse,
     SaveQualificationRequest,
-    SaveQualificationResponse
+    SaveQualificationResponse,
+    SaveExperienceDetailsRequest,
+    SaveExperienceDetailsResponse,
+    SaveDocumentDetailsRequest,
+    SaveDocumentDetailsResponse,
+    SaveMedicalDetailsRequest,
+    SaveMedicalDetailsResponse,
+    SaveOtherDetailsRequest,
+    SaveOtherDetailsResponse,
+    GetEmployeeSalaryDetailsRequest,
+    GetEmployeeSalaryDetailsResponse,
+    GetEmployeeSalaryDetailsByHeadRequest,
+    GetEmployeeSalaryDetailsByHeadResponse,
+    SaveIncrementDetailsRequest,
+    SaveIncrementDetailsResponse,
+    SaveEarningDetailsRequest,
+    SaveEarningDetailsResponse,
+    SaveArrearDetailsRequest,
+    SaveArrearDetailsResponse,
+    SaveDeductionDetailsRequest,
+    SaveDeductionDetailsResponse
 } from '@/types/hrms/employee-register';
 import axios from 'axios';
 
@@ -636,6 +656,420 @@ export async function savePersonalDetails(payload: any): Promise<ApiResponse<any
         return {
             success: false,
             message: error.message || 'Failed to save personal details',
+            data: null
+        };
+    }
+}
+
+/**
+ * Save Experience Details (New Endpoint)
+ * POST /api/EmployeeRegistrationNew/SaveExperienceDetails
+ * This endpoint takes an array of experience objects
+ */
+export async function saveExperienceDetails(
+    experiences: SaveExperienceDetailsRequest[]
+): Promise<ApiResponse<SaveExperienceDetailsResponse>> {
+    try {
+        const baseURL = clientEnv.NEXT_PUBLIC_API_BASE_URL;
+        const apiPath = '/api/EmployeeRegistrationNew/SaveExperienceDetails';
+        const url = `${baseURL}${apiPath}`;
+
+        const axiosResponse = await axios.post<SaveExperienceDetailsResponse>(url, experiences, {
+            headers: {
+                'Content-Type': 'application/json',
+                Accept: 'application/json'
+            },
+            timeout: 30000,
+            validateStatus: (status) => status < 500
+        });
+
+        const response: ApiResponse<SaveExperienceDetailsResponse> = {
+            success: axiosResponse.status >= 200 && axiosResponse.status < 300,
+            message: (axiosResponse.data as any)?.retrunMsg || 'Experience details saved successfully',
+            data: axiosResponse.data
+        };
+
+        return response;
+    } catch (error: any) {
+        console.error('=== Error saving experience details ===');
+        console.error('Error:', error);
+        console.error('Error message:', error.message);
+
+        return {
+            success: false,
+            message: error.message || 'Failed to save experience details',
+            data: null
+        };
+    }
+}
+
+/**
+ * Save Document Details (New Endpoint)
+ * POST /api/EmployeeRegistrationNew/SaveDocumentDetails
+ * This endpoint takes an array of document objects
+ */
+export async function saveDocumentDetails(
+    documents: SaveDocumentDetailsRequest[]
+): Promise<ApiResponse<SaveDocumentDetailsResponse>> {
+    try {
+        const baseURL = clientEnv.NEXT_PUBLIC_API_BASE_URL;
+        const apiPath = '/api/EmployeeRegistrationNew/SaveDocumentDetails';
+        const url = `${baseURL}${apiPath}`;
+
+        const axiosResponse = await axios.post<SaveDocumentDetailsResponse>(url, documents, {
+            headers: {
+                'Content-Type': 'application/json',
+                Accept: 'application/json'
+            },
+            timeout: 30000,
+            validateStatus: (status) => status < 500
+        });
+
+        const response: ApiResponse<SaveDocumentDetailsResponse> = {
+            success: axiosResponse.status >= 200 && axiosResponse.status < 300,
+            message: (axiosResponse.data as any)?.retrunMsg || 'Document details saved successfully',
+            data: axiosResponse.data
+        };
+
+        return response;
+    } catch (error: any) {
+        console.error('=== Error saving document details ===');
+        console.error('Error:', error);
+        console.error('Error message:', error.message);
+
+        return {
+            success: false,
+            message: error.message || 'Failed to save document details',
+            data: null
+        };
+    }
+}
+
+/**
+ * Save Medical Details (New Endpoint)
+ * POST /api/EmployeeRegistrationNew/SaveMedicalDetails
+ * This endpoint takes a single employee object with medical details
+ */
+export async function saveMedicalDetails(
+    payload: SaveMedicalDetailsRequest
+): Promise<ApiResponse<SaveMedicalDetailsResponse>> {
+    try {
+        const baseURL = clientEnv.NEXT_PUBLIC_API_BASE_URL;
+        const apiPath = '/api/EmployeeRegistrationNew/SaveMedicalDetails';
+        const url = `${baseURL}${apiPath}`;
+
+        const axiosResponse = await axios.post<SaveMedicalDetailsResponse>(url, payload, {
+            headers: {
+                'Content-Type': 'application/json',
+                Accept: 'application/json'
+            },
+            timeout: 30000,
+            validateStatus: (status) => status < 500
+        });
+
+        const response: ApiResponse<SaveMedicalDetailsResponse> = {
+            success: axiosResponse.status >= 200 && axiosResponse.status < 300,
+            message: (axiosResponse.data as any)?.retrunMsg || 'Medical details saved successfully',
+            data: axiosResponse.data
+        };
+
+        return response;
+    } catch (error: any) {
+        console.error('=== Error saving medical details ===');
+        console.error('Error:', error);
+        console.error('Error message:', error.message);
+
+        return {
+            success: false,
+            message: error.message || 'Failed to save medical details',
+            data: null
+        };
+    }
+}
+
+/**
+ * Save Other Details (New Endpoint)
+ * POST /api/EmployeeRegistrationNew/SaveOtherDetails
+ * This endpoint takes a single employee object with other details
+ */
+export async function saveOtherDetails(
+    payload: SaveOtherDetailsRequest
+): Promise<ApiResponse<SaveOtherDetailsResponse>> {
+    try {
+        const baseURL = clientEnv.NEXT_PUBLIC_API_BASE_URL;
+        const apiPath = '/api/EmployeeRegistrationNew/SaveOtherDetails';
+        const url = `${baseURL}${apiPath}`;
+
+        const axiosResponse = await axios.post<SaveOtherDetailsResponse>(url, payload, {
+            headers: {
+                'Content-Type': 'application/json',
+                Accept: 'application/json'
+            },
+            timeout: 30000,
+            validateStatus: (status) => status < 500
+        });
+
+        const response: ApiResponse<SaveOtherDetailsResponse> = {
+            success: axiosResponse.status >= 200 && axiosResponse.status < 300,
+            message: (axiosResponse.data as any)?.retrunMsg || 'Other details saved successfully',
+            data: axiosResponse.data
+        };
+
+        return response;
+    } catch (error: any) {
+        console.error('=== Error saving other details ===');
+        console.error('Error:', error);
+        console.error('Error message:', error.message);
+
+        return {
+            success: false,
+            message: error.message || 'Failed to save other details',
+            data: null
+        };
+    }
+}
+
+/**
+ * Get Employee Salary Details (Load Payroll Data)
+ * POST /api/EmployeeRegistrationNew/getEmployeeSalaryDetails
+ */
+export async function getEmployeeSalaryDetails(
+    payload: GetEmployeeSalaryDetailsRequest
+): Promise<ApiResponse<GetEmployeeSalaryDetailsResponse>> {
+    try {
+        const baseURL = clientEnv.NEXT_PUBLIC_API_BASE_URL;
+        const apiPath = '/api/EmployeeRegistrationNew/getEmployeeSalaryDetails';
+        const url = `${baseURL}${apiPath}`;
+
+        const axiosResponse = await axios.post<GetEmployeeSalaryDetailsResponse>(url, payload, {
+            headers: {
+                'Content-Type': 'application/json',
+                Accept: 'application/json'
+            },
+            timeout: 30000,
+            validateStatus: (status) => status < 500
+        });
+
+        const response: ApiResponse<GetEmployeeSalaryDetailsResponse> = {
+            success: axiosResponse.status >= 200 && axiosResponse.status < 300,
+            message: (axiosResponse.data as any)?.retrunMsg || 'Salary details fetched successfully',
+            data: axiosResponse.data
+        };
+
+        return response;
+    } catch (error: any) {
+        console.error('=== Error fetching salary details ===');
+        console.error('Error:', error);
+        console.error('Error message:', error.message);
+
+        return {
+            success: false,
+            message: error.message || 'Failed to fetch salary details',
+            data: null
+        };
+    }
+}
+
+/**
+ * Get Employee Salary Details By Head (Calculate Salary)
+ * POST /api/EmployeeRegistrationNew/getEmployeeSalaryDetailsByHead
+ */
+export async function getEmployeeSalaryDetailsByHead(
+    payload: GetEmployeeSalaryDetailsByHeadRequest
+): Promise<ApiResponse<GetEmployeeSalaryDetailsByHeadResponse>> {
+    try {
+        const baseURL = clientEnv.NEXT_PUBLIC_API_BASE_URL;
+        const apiPath = '/api/EmployeeRegistrationNew/getEmployeeSalaryDetailsByHead';
+        const url = `${baseURL}${apiPath}`;
+
+        const axiosResponse = await axios.post<GetEmployeeSalaryDetailsByHeadResponse>(url, payload, {
+            headers: {
+                'Content-Type': 'application/json',
+                Accept: 'application/json'
+            },
+            timeout: 30000,
+            validateStatus: (status) => status < 500
+        });
+
+        const response: ApiResponse<GetEmployeeSalaryDetailsByHeadResponse> = {
+            success: axiosResponse.status >= 200 && axiosResponse.status < 300,
+            message: (axiosResponse.data as any)?.retrunMsg || 'Salary calculated successfully',
+            data: axiosResponse.data
+        };
+
+        return response;
+    } catch (error: any) {
+        console.error('=== Error calculating salary by head ===');
+        console.error('Error:', error);
+        console.error('Error message:', error.message);
+
+        return {
+            success: false,
+            message: error.message || 'Failed to calculate salary',
+            data: null
+        };
+    }
+}
+
+/**
+ * Save Increment Details (Payroll Tab)
+ * POST /api/EmployeeRegistrationNew/SaveIncreamentDetails
+ */
+export async function saveIncrementDetails(
+    payload: SaveIncrementDetailsRequest
+): Promise<ApiResponse<SaveIncrementDetailsResponse>> {
+    try {
+        const baseURL = clientEnv.NEXT_PUBLIC_API_BASE_URL;
+        const apiPath = '/api/EmployeeRegistrationNew/SaveIncreamentDetails';
+        const url = `${baseURL}${apiPath}`;
+
+        const axiosResponse = await axios.post<SaveIncrementDetailsResponse>(url, payload, {
+            headers: {
+                'Content-Type': 'application/json',
+                Accept: 'application/json'
+            },
+            timeout: 30000,
+            validateStatus: (status) => status < 500
+        });
+
+        const response: ApiResponse<SaveIncrementDetailsResponse> = {
+            success: axiosResponse.status >= 200 && axiosResponse.status < 300,
+            message: (axiosResponse.data as any)?.retrunMsg || 'Increment details saved successfully',
+            data: axiosResponse.data
+        };
+
+        return response;
+    } catch (error: any) {
+        console.error('=== Error saving increment details ===');
+        console.error('Error:', error);
+        console.error('Error message:', error.message);
+
+        return {
+            success: false,
+            message: error.message || 'Failed to save increment details',
+            data: null
+        };
+    }
+}
+
+/**
+ * Save Earning Details (Payroll Tab)
+ * POST /api/EmployeeRegistrationNew/SaveEarningDetails
+ */
+export async function saveEarningDetails(
+    earnings: SaveEarningDetailsRequest[]
+): Promise<ApiResponse<SaveEarningDetailsResponse>> {
+    try {
+        const baseURL = clientEnv.NEXT_PUBLIC_API_BASE_URL;
+        const apiPath = '/api/EmployeeRegistrationNew/SaveEarningDetails';
+        const url = `${baseURL}${apiPath}`;
+
+        const axiosResponse = await axios.post<SaveEarningDetailsResponse>(url, earnings, {
+            headers: {
+                'Content-Type': 'application/json',
+                Accept: 'application/json'
+            },
+            timeout: 30000,
+            validateStatus: (status) => status < 500
+        });
+
+        const response: ApiResponse<SaveEarningDetailsResponse> = {
+            success: axiosResponse.status >= 200 && axiosResponse.status < 300,
+            message: (axiosResponse.data as any)?.retrunMsg || 'Earning details saved successfully',
+            data: axiosResponse.data
+        };
+
+        return response;
+    } catch (error: any) {
+        console.error('=== Error saving earning details ===');
+        console.error('Error:', error);
+        console.error('Error message:', error.message);
+
+        return {
+            success: false,
+            message: error.message || 'Failed to save earning details',
+            data: null
+        };
+    }
+}
+
+/**
+ * Save Arrear Details (Payroll Tab)
+ * POST /api/EmployeeRegistrationNew/SaveArrearDetails
+ */
+export async function saveArrearDetails(
+    arrears: SaveArrearDetailsRequest[]
+): Promise<ApiResponse<SaveArrearDetailsResponse>> {
+    try {
+        const baseURL = clientEnv.NEXT_PUBLIC_API_BASE_URL;
+        const apiPath = '/api/EmployeeRegistrationNew/SaveArrearDetails';
+        const url = `${baseURL}${apiPath}`;
+
+        const axiosResponse = await axios.post<SaveArrearDetailsResponse>(url, arrears, {
+            headers: {
+                'Content-Type': 'application/json',
+                Accept: 'application/json'
+            },
+            timeout: 30000,
+            validateStatus: (status) => status < 500
+        });
+
+        const response: ApiResponse<SaveArrearDetailsResponse> = {
+            success: axiosResponse.status >= 200 && axiosResponse.status < 300,
+            message: (axiosResponse.data as any)?.retrunMsg || 'Arrear details saved successfully',
+            data: axiosResponse.data
+        };
+
+        return response;
+    } catch (error: any) {
+        console.error('=== Error saving arrear details ===');
+        console.error('Error:', error);
+        console.error('Error message:', error.message);
+
+        return {
+            success: false,
+            message: error.message || 'Failed to save arrear details',
+            data: null
+        };
+    }
+}
+
+/**
+ * Save Deduction Details (Payroll Tab)
+ * POST /api/EmployeeRegistrationNew/SaveDeductionDetails
+ */
+export async function saveDeductionDetails(
+    deductions: SaveDeductionDetailsRequest[]
+): Promise<ApiResponse<SaveDeductionDetailsResponse>> {
+    try {
+        const baseURL = clientEnv.NEXT_PUBLIC_API_BASE_URL;
+        const apiPath = '/api/EmployeeRegistrationNew/SaveDeductionDetails';
+        const url = `${baseURL}${apiPath}`;
+
+        const axiosResponse = await axios.post<SaveDeductionDetailsResponse>(url, deductions, {
+            headers: {
+                'Content-Type': 'application/json',
+                Accept: 'application/json'
+            },
+            timeout: 30000,
+            validateStatus: (status) => status < 500
+        });
+
+        const response: ApiResponse<SaveDeductionDetailsResponse> = {
+            success: axiosResponse.status >= 200 && axiosResponse.status < 300,
+            message: (axiosResponse.data as any)?.retrunMsg || 'Deduction details saved successfully',
+            data: axiosResponse.data
+        };
+
+        return response;
+    } catch (error: any) {
+        console.error('=== Error saving deduction details ===');
+        console.error('Error:', error);
+        console.error('Error message:', error.message);
+
+        return {
+            success: false,
+            message: error.message || 'Failed to save deduction details',
             data: null
         };
     }

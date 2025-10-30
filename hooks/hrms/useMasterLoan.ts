@@ -1,5 +1,5 @@
 import { HRMS_QUERY_KEYS } from '@/constants/query-keys';
-import { getMasterLoanDetails, getMasterLoanList, saveMasterLoan } from '@/server/hrms/hrmsConfig/master/loan';
+import { activateDeactivateMasterLoan, getMasterLoanDetails, getMasterLoanList, saveMasterLoan } from '@/server/hrms/hrmsConfig/master/loan';
 import type { MasterLoanInput } from '@/types/hrms/master-loan';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
@@ -23,9 +23,21 @@ export function useMasterLoan(roleId: number) {
         }
     });
 
+    // Mutation: Activate/Deactivate loan
+    const toggleMutation = useMutation({
+        mutationFn: (payload: { HRMLN_Id: number; HRMLN_ActiveFlag: boolean; MI_Id?: number }) =>
+            activateDeactivateMasterLoan(payload),
+        onSuccess: () => {
+            queryClient.invalidateQueries({
+                queryKey: [HRMS_QUERY_KEYS.MASTER_LOAN]
+            });
+        }
+    });
+
     return {
         listQuery,
-        saveMutation
+        saveMutation,
+        toggleMutation
     };
 }
 

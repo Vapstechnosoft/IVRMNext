@@ -54,12 +54,14 @@ export async function getMasterLeaveYearList(roleId: number): Promise<ApiRespons
 
 /**
  * Create or Update a master leave year record
- * POST /api/MasterLeaveYearFacade
+ * POST /api/MasterLeaveYearFacade (create)
+ * POST /api/MasterLeaveYear/editRecord (update)
  */
 export async function saveMasterLeaveYear(data: MasterLeaveYearInput): Promise<ApiResponse<MasterLeaveYearResponse>> {
     try {
         const baseURL = clientEnv.NEXT_PUBLIC_API_BASE_URL;
-        const apiPath = '/api/MasterLeaveYearFacade';
+        const isEdit = data.HRMLY_Id && data.HRMLY_Id > 0;
+        const apiPath = isEdit ? '/api/MasterLeaveYear/editRecord' : '/api/MasterLeaveYearFacade';
         const url = `${baseURL}${apiPath}`;
 
         const requestBody = {
@@ -108,12 +110,29 @@ export async function saveMasterLeaveYear(data: MasterLeaveYearInput): Promise<A
 
 /**
  * Get details of a specific master leave year by ID
- * GET /api/MasterLeaveYear/details/{id}
+ * GET /api/MasterLeaveYearFacade/getRecordById/{id}
  */
-export async function getMasterLeaveYearDetails(id: number): Promise<ApiResponse<LeaveYearDetail>> {
+export async function getMasterLeaveYearDetails(id: number): Promise<ApiResponse<MasterLeaveYearResponse>> {
     try {
-        const url = `/api/MasterLeaveYear/details/${id}`;
-        const response = await api.get<LeaveYearDetail>('default', url);
+        const baseURL = clientEnv.NEXT_PUBLIC_API_BASE_URL;
+        const apiPath = `/api/MasterLeaveYearFacade/getRecordById/${id}`;
+        const url = `${baseURL}${apiPath}`;
+
+        const axiosResponse = await axios.get<MasterLeaveYearResponse>(url, {
+            headers: {
+                'Content-Type': 'application/json',
+                Accept: 'application/json'
+            },
+            timeout: 30000,
+            validateStatus: (status) => status < 500
+        });
+
+        const response: ApiResponse<MasterLeaveYearResponse> = {
+            success: axiosResponse.status >= 200 && axiosResponse.status < 300,
+            message: axiosResponse.data.retrunMsg || 'Leave year details fetched successfully',
+            data: axiosResponse.data
+        };
+
         return response;
     } catch (error) {
         console.error('Error fetching master leave year details:', error);
@@ -136,6 +155,8 @@ export async function activateDeactivateMasterLeaveYear(data: {
         const url = `${baseURL}${apiPath}`;
 
         const requestBody = {
+            CreatedDate: new Date().toISOString(),
+            UpdatedDate: new Date().toISOString(),
             HRMLY_Id: data.HRMLY_Id,
             MI_Id: 30,
             HRMLY_LeaveYear: 'string',

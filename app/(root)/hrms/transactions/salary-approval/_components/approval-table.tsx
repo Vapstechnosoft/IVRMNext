@@ -101,7 +101,7 @@ export default function ApprovalTable({ employees, searchCriteria }: ApprovalTab
             </div>
 
             {/* Employee Table */}
-            <div className='rounded-md border'>
+            <div className='overflow-x-auto rounded-md border'>
                 <Table>
                     <TableHeader>
                         <TableRow>
@@ -117,26 +117,36 @@ export default function ApprovalTable({ employees, searchCriteria }: ApprovalTab
                                     }}
                                 />
                             </TableHead>
+                            <TableHead>Sl. No</TableHead>
                             <TableHead>Employee Code</TableHead>
                             <TableHead>Employee Name</TableHead>
-                            <TableHead>Department</TableHead>
-                            <TableHead>Designation</TableHead>
-                            <TableHead>Group</TableHead>
                             <TableHead className='text-right'>Working Days</TableHead>
+                            <TableHead className='text-right'>LOP Days</TableHead>
+                            <TableHead className='text-right'>Gross Salary</TableHead>
+                            <TableHead className='text-right'>Basic</TableHead>
+                            <TableHead className='text-right'>DA</TableHead>
+                            <TableHead className='text-right'>HRA</TableHead>
+                            <TableHead className='text-right'>Conveyance</TableHead>
+                            <TableHead className='text-right'>Medical</TableHead>
+                            <TableHead className='text-right'>Spl Allowance</TableHead>
                             <TableHead className='text-right'>Total Earning</TableHead>
+                            <TableHead className='text-right'>PF</TableHead>
+                            <TableHead className='text-right'>ESI</TableHead>
+                            <TableHead className='text-right'>Others (C.D)</TableHead>
+                            <TableHead className='text-right'>PT</TableHead>
                             <TableHead className='text-right'>Total Deduction</TableHead>
-                            <TableHead className='text-right'>Net Salary</TableHead>
+                            <TableHead className='text-right'>Salary</TableHead>
                         </TableRow>
                     </TableHeader>
                     <TableBody>
                         {employees.length === 0 ? (
                             <TableRow>
-                                <TableCell colSpan={10} className='h-24 text-center'>
+                                <TableCell colSpan={21} className='h-24 text-center'>
                                     No employees found.
                                 </TableCell>
                             </TableRow>
                         ) : (
-                            employees.map((employee) => {
+                            employees.map((employee, index) => {
                                 const fullName = [
                                     employee.HRME_EmployeeFirstName,
                                     employee.HRME_EmployeeMiddleName,
@@ -156,20 +166,28 @@ export default function ApprovalTable({ employees, searchCriteria }: ApprovalTab
                                                 aria-label={`Select ${fullName}`}
                                             />
                                         </TableCell>
-                                        <TableCell className='font-medium'>{employee.HRME_EmployeeCode}</TableCell>
-                                        <TableCell>{fullName}</TableCell>
-                                        <TableCell>{employee.HRMD_DepartmentName || '-'}</TableCell>
-                                        <TableCell>{employee.HRMDES_DesignationName || '-'}</TableCell>
-                                        <TableCell>{employee.HRMGT_EmployeeGroupType || '-'}</TableCell>
-                                        <TableCell className='text-right'>{employee.HRES_WorkingDays || '-'}</TableCell>
+                                        <TableCell>{index + 1}</TableCell>
+                                        <TableCell className='font-medium'>{employee.HRME_EmployeeCode || '-'}</TableCell>
+                                        <TableCell className='whitespace-nowrap'>{fullName || '-'}</TableCell>
+                                        <TableCell className='text-right'>{employee.HRES_WorkingDays || 0}</TableCell>
+                                        <TableCell className='text-right'>{employee.Lopdays || 0}</TableCell>
+                                        <TableCell className='text-right'>{employee.empGrossSal ? `₹${employee.empGrossSal.toFixed(2)}` : '₹0.00'}</TableCell>
+                                        <TableCell className='text-right'>{employee.basicamount ? `₹${employee.basicamount.toFixed(2)}` : '₹0.00'}</TableCell>
+                                        <TableCell className='text-right'>{employee.da ? `₹${employee.da.toFixed(2)}` : '₹0.00'}</TableCell>
+                                        <TableCell className='text-right'>{employee.hra ? `₹${employee.hra.toFixed(2)}` : '₹0.00'}</TableCell>
+                                        <TableCell className='text-right'>{employee.conveyance ? `₹${employee.conveyance.toFixed(2)}` : '₹0.00'}</TableCell>
+                                        <TableCell className='text-right'>{employee.medical ? `₹${employee.medical.toFixed(2)}` : '₹0.00'}</TableCell>
+                                        <TableCell className='text-right'>{employee.splAllowance ? `₹${employee.splAllowance.toFixed(2)}` : '₹0.00'}</TableCell>
+                                        <TableCell className='text-right font-semibold'>{employee.TotalEarning ? `₹${employee.TotalEarning.toFixed(2)}` : '₹0.00'}</TableCell>
+                                        <TableCell className='text-right'>{employee.HRES_EPF ? `₹${employee.HRES_EPF.toFixed(2)}` : '₹0.00'}</TableCell>
+                                        <TableCell className='text-right'>{employee.esi ? `₹${employee.esi.toFixed(2)}` : '₹0.00'}</TableCell>
+                                        <TableCell className='text-right'>{employee.HRESD_Amount ? `₹${employee.HRESD_Amount.toFixed(2)}` : '₹0.00'}</TableCell>
+                                        <TableCell className='text-right'>{employee.pt ? `₹${employee.pt.toFixed(2)}` : '₹0.00'}</TableCell>
+                                        <TableCell className='text-right font-semibold'>{employee.TotalDeduction ? `₹${employee.TotalDeduction.toFixed(2)}` : '₹0.00'}</TableCell>
                                         <TableCell className='text-right'>
-                                            {employee.TotalEarning ? `₹${employee.TotalEarning.toFixed(2)}` : '-'}
-                                        </TableCell>
-                                        <TableCell className='text-right'>
-                                            {employee.TotalDeduction ? `₹${employee.TotalDeduction.toFixed(2)}` : '-'}
-                                        </TableCell>
-                                        <TableCell className='text-right font-semibold'>
-                                            {employee.NetSalary ? <Badge variant='default'>₹{employee.NetSalary.toFixed(2)}</Badge> : '-'}
+                                            <Badge variant='default' className='font-semibold'>
+                                                {employee.NetSalary ? `₹${employee.NetSalary.toFixed(2)}` : '₹0.00'}
+                                            </Badge>
                                         </TableCell>
                                     </TableRow>
                                 );

@@ -62,7 +62,7 @@ export async function saveMasterLoan(data: MasterLoanInput): Promise<ApiResponse
             HRMLN_Id: data.HRMLN_Id || 0,
             MI_Id: 30,
             HRML_LoanType: data.HRML_LoanType,
-            HRML_Max: data.HRML_Max,
+            HRML_Max: Number(data.HRML_Max) || 0,
             HRMLN_ActiveFlag: data.HRMLN_ActiveFlag,
             gmasterloanList: [],
             retrunMsg: 'string',
@@ -100,12 +100,29 @@ export async function saveMasterLoan(data: MasterLoanInput): Promise<ApiResponse
 
 /**
  * Get details of a specific master loan by ID
- * GET /api/MasterLoan/details/{id}
+ * GET /api/MasterLoanFacade/getRecordById/{id}
  */
-export async function getMasterLoanDetails(id: number): Promise<ApiResponse<MasterLoanDetail>> {
+export async function getMasterLoanDetails(id: number): Promise<ApiResponse<MasterLoanResponse>> {
     try {
-        const url = `/api/MasterLoan/details/${id}`;
-        const response = await api.get<MasterLoanDetail>('default', url);
+        const baseURL = clientEnv.NEXT_PUBLIC_API_BASE_URL;
+        const apiPath = `/api/MasterLoanFacade/getRecordById/${id}`;
+        const url = `${baseURL}${apiPath}`;
+
+        const axiosResponse = await axios.get<MasterLoanResponse>(url, {
+            headers: {
+                'Content-Type': 'application/json',
+                Accept: 'application/json'
+            },
+            timeout: 30000,
+            validateStatus: (status) => status < 500
+        });
+
+        const response: ApiResponse<MasterLoanResponse> = {
+            success: axiosResponse.status >= 200 && axiosResponse.status < 300,
+            message: axiosResponse.data.retrunMsg || 'Loan details fetched successfully',
+            data: axiosResponse.data
+        };
+
         return response;
     } catch (error) {
         console.error('Error fetching master loan details:', error);

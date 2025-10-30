@@ -1,55 +1,629 @@
-'use client';
+"use client";
 
-import { GenericDataTable } from '@/components/ui/data-table/generic-data-table';
-import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
-import { FormProvider } from '@/components/ui/form/form-provider';
-import { useSalaryUpdationList } from '@/hooks/hrms/useSalaryUpdation';
-import type { SalaryUpdationItem } from '@/types/hrms/salary-updation';
-import AddSalaryUpdationForm from './_components/add-form';
-import { salaryUpdationColumns } from './_components/columns';
-import UpdateSalaryUpdationForm from './_components/update-form';
+import { Heading } from "@/components/layout/heading";
+import { DataTable } from "@/components/ui/data-table/data-table";
+import { Button } from "@/components/ui/button";
+import { CollapsibleSection } from "@/components/ui/form/collapsible-section";
+import { Label } from "@/components/ui/extension/field";
+import { DataTableColumnHeader } from "@/components/ui/data-table-column-header";
+import { Checkbox } from "@/components/ui/checkbox";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import type { ColumnDef } from "@tanstack/react-table";
+import { X, RefreshCw } from "lucide-react";
+import React, { useState, useEffect } from "react";
+import { type SubmitHandler, useForm, Controller } from "react-hook-form";
+import { toast } from "sonner";
+import { getCumulativeSalaryReportOnload } from "@/server/hrms/reports/cumulative-salary-report";
+import type {
+  GroupTypeDropdown,
+  DepartmentDropdown,
+  DesignationDropdown,
+  EarningDeductionDetail,
+  MonthDropdown,
+  LeaveYearDropdown,
+} from "@/types/hrms/reports/cumulative-salary-report";
+
+interface Employee {
+  hrmE_Id: number;
+  hrmE_EmployeeCode: string;
+  hrmE_EmployeeFirstName: string;
+  hrmE_EmployeeMiddleName?: string;
+  hrmE_EmployeeLastName?: string;
+  hrmgT_Id: number;
+  hrmD_Id: number;
+  hrmdeS_Id: number;
+  hrmD_DepartmentName?: string;
+  hrmdeS_DesignationName?: string;
+  hrmgT_EmployeeGroupType?: string;
+  [key: string]: any;
+}
+
+interface SearchForm {
+  groupType: string;
+  department: string;
+  designation: string;
+  year?: string;
+  month?: string;
+  earningDeduction: string;
+  amountType: string;
+  heads: string;
+}
 
 export default function SalaryUpdationPage() {
-    const { data: onloadData, isLoading, error } = useSalaryUpdationList({ roleId: 2 });
+  const [employees, setEmployees] = useState<Employee[]>([]);
+  const [filteredEmployees, setFilteredEmployees] = useState<Employee[]>([]);
+  const [selectedEmployees, setSelectedEmployees] = useState<number[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [hasSearched, setHasSearched] = useState(false);
+  const [groupTypes, setGroupTypes] = useState<GroupTypeDropdown[]>([]);
+  const [departments, setDepartments] = useState<DepartmentDropdown[]>([]);
+  const [designations, setDesignations] = useState<DesignationDropdown[]>([]);
+  const [availableHeads, setAvailableHeads] = useState<EarningDeductionDetail[]>([]);
+  const [selectedHeads, setSelectedHeads] = useState<string[]>([]);
+  const [monthOptions, setMonthOptions] = useState<MonthDropdown[]>([]);
+  const [leaveYearOptions, setLeaveYearOptions] = useState<LeaveYearDropdown[]>([]);
 
-    if (error) {
-        return (
-            <div className='flex h-full items-center justify-center'>
-                <CollapsibleSection
-                    title='Error'
-                    description='Failed to load salary updation data.'
-                    variant='destructive'
-                    defaultOpen={true}>
-                    <p className='text-destructive-foreground'>{error.message}</p>
-                </CollapsibleSection>
-            </div>
+  const {
+    register,
+    handleSubmit,
+    reset,
+    watch,
+    control,
+    formState: { isSubmitting },
+  } = useForm<SearchForm>({
+    mode: "onChange",
+    defaultValues: {
+      groupType: "All",
+      department: "All",
+      designation: "All",
+      year: new Date().getFullYear().toString(),
+      month: (new Date().getMonth() + 1).toString(),
+      earningDeduction: "All Earning & Deduction",
+      amountType: "All",
+      heads: "All",
+    },
+  });
+
+  const watchedGroupType = watch("groupType");
+  const watchedDepartment = watch("department");
+  const watchedDesignation = watch("designation");
+  const watchedHeads = watch("heads");
+
+  useEffect(() => {
+    loadData();
+  }, []);
+
+  useEffect(() => {
+    if (hasSearched) {
+      filterEmployees();
+    }
+  }, [watchedGroupType, watchedDepartment, watchedDesignation, employees, hasSearched]);
+
+  useEffect(() => {
+    if (watchedHeads === "All") {
+      const allHeadNames = availableHeads.map((head) => head.hrmeD_Name);
+      setSelectedHeads(allHeadNames);
+    } else if (watchedHeads && watchedHeads !== "All") {
+      setSelectedHeads([watchedHeads]);
+    }
+  }, [watchedHeads, availableHeads]);
+
+  const loadData = async () => {
+    try {
+      setIsLoading(true);
+      const response = await getCumulativeSalaryReportOnload(30);
+
+      if (response.success && response.data) {
+        const data = response.data;
+
+        setMonthOptions(data.monthdropdown || []);
+        setLeaveYearOptions(data.leaveyeardropdown || []);
+        setGroupTypes(data.groupTypedropdown || []);
+        setDepartments(data.departmentdropdown || []);
+        setDesignations(data.designationdropdown || []);
+        setAvailableHeads(data.earningdeductiondetails || []);
+
+        const salaryFields: Record<string, number> = {};
+        (data.earningdeductiondetails || []).forEach((head: EarningDeductionDetail) => {
+          salaryFields[head.hrmeD_Name] = 0;
+        });
+
+        if (data.employeedropdown && data.employeedropdown.length > 0) {
+          const apiEmployees: Employee[] = data.employeedropdown.map((emp: any) => ({
+            hrmE_Id: emp.hrmE_Id,
+            hrmE_EmployeeCode: emp.hrmE_EmployeeCode,
+            hrmE_EmployeeFirstName: emp.hrmE_EmployeeFirstName,
+            hrmE_EmployeeMiddleName: emp.hrmE_EmployeeMiddleName,
+            hrmE_EmployeeLastName: emp.hrmE_EmployeeLastName,
+            hrmgT_Id: emp.hrmgT_Id,
+            hrmD_Id: emp.hrmD_Id,
+            hrmdeS_Id: emp.hrmdeS_Id,
+            hrmD_DepartmentName: emp.hrmD_DepartmentName,
+            hrmdeS_DesignationName: emp.hrmdeS_DesignationName,
+            hrmgT_EmployeeGroupType: emp.hrmgT_EmployeeGroupType,
+            ...salaryFields,
+            ...Object.keys(emp).reduce((acc: Record<string, any>, key: string) => {
+              if (
+                ![
+                  "hrmE_Id",
+                  "hrmE_EmployeeCode",
+                  "hrmE_EmployeeFirstName",
+                  "hrmE_EmployeeMiddleName",
+                  "hrmE_EmployeeLastName",
+                  "hrmgT_Id",
+                  "hrmD_Id",
+                  "hrmdeS_Id",
+                  "hrmD_DepartmentName",
+                  "hrmdeS_DesignationName",
+                  "hrmgT_EmployeeGroupType",
+                ].includes(key)
+              ) {
+                acc[key] = emp[key] ?? 0;
+              }
+              return acc;
+            }, {}),
+          }));
+          setEmployees(apiEmployees);
+        }
+
+        const headNames = (data.earningdeductiondetails || []).map(
+          (head: EarningDeductionDetail) => head.hrmeD_Name
         );
+        setSelectedHeads(headNames);
+      } else {
+        toast.error(response.message || "Failed to load data");
+      }
+    } catch (error: any) {
+      toast.error(error.message || "Failed to load data");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const filterEmployees = () => {
+    let filtered = employees;
+
+    if (watchedGroupType && watchedGroupType !== "All") {
+      const groupType = groupTypes.find((g) => g.hrmgT_EmployeeGroupType === watchedGroupType);
+      if (groupType) {
+        filtered = filtered.filter((emp) => emp.hrmgT_Id === groupType.hrmgT_Id);
+      }
     }
 
-    const updationList = onloadData?.salaryUpdationList || [];
+    if (watchedDepartment && watchedDepartment !== "All") {
+      const department = departments.find((d) => d.hrmD_DepartmentName === watchedDepartment);
+      if (department) {
+        filtered = filtered.filter((emp) => emp.hrmD_Id === department.hrmD_Id);
+      }
+    }
+
+    if (watchedDesignation && watchedDesignation !== "All") {
+      const designation = designations.find((d) => d.hrmdeS_DesignationName === watchedDesignation);
+      if (designation) {
+        filtered = filtered.filter((emp) => emp.hrmdeS_Id === designation.hrmdeS_Id);
+      }
+    }
+
+    setFilteredEmployees(filtered);
+  };
+
+  const onSubmit: SubmitHandler<SearchForm> = async (data: SearchForm) => {
+    try {
+      filterEmployees();
+      setHasSearched(true);
+      toast.success("Search completed successfully");
+    } catch (error: any) {
+      console.error("Error performing search:", error);
+      toast.error(error.message || "Search failed");
+    }
+  };
+
+  const handleEmployeeSelect = (employeeId: number, selected: boolean) => {
+    if (selected) {
+      setSelectedEmployees([...selectedEmployees, employeeId]);
+    } else {
+      setSelectedEmployees(selectedEmployees.filter((id) => id !== employeeId));
+    }
+  };
+
+  const handleSelectAll = (selected: boolean) => {
+    if (selected) {
+      setSelectedEmployees(filteredEmployees.map((emp) => emp.hrmE_Id));
+    } else {
+      setSelectedEmployees([]);
+    }
+  };
 
     return (
-        <div className='min-h-screen'>
-            <div className='container space-y-4 p-1'>
-                <FormProvider<SalaryUpdationItem>
-                    addFormTitle='Add Salary Updation'
-                    addFormDescription='Create a new salary updation record.'
-                    updateFormTitle='Update Salary Updation'
-                    updateFormDescription='Modify the selected salary updation record.'
-                    addForm={(onSuccess) => <AddSalaryUpdationForm onloadData={onloadData} onSuccess={onSuccess} />}
-                    updateForm={(selectedRow, onSuccess) => (
-                        <UpdateSalaryUpdationForm selectedRow={selectedRow} onloadData={onloadData} onSuccess={onSuccess} />
-                    )}>
-                    <GenericDataTable
-                        data={updationList}
-                        columns={salaryUpdationColumns}
-                        isLoading={isLoading}
-                        dataKey='HRESU_Id'
-                        noDataTitle='No Salary Updations'
-                        noDataDescription="Click 'Add Salary Updation' to create your first salary updation record."
-                        errorTitle='Error Loading Salary Updations'
+    <div className="min-h-screen">
+      <div className="container p-1 space-y-4">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div className="space-y-1">
+            <Heading title="Salary Updation" description="Search and update employee salary records" />
+          </div>
+        </div>
+
+        <CollapsibleSection
+          title="SALARY UPDATION"
+          description="Search and filter employee salary records"
+          defaultOpen={true}
+          variant="outline"
+          size="lg"
+          className="shadow-lg"
+          headerClassName=""
+        >
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+            <div className="grid grid-cols-1 gap-6 lg:grid-cols-6">
+              <div className="space-y-3">
+                <Label className="font-semibold">Group Type</Label>
+                <Controller
+                  name="groupType"
+                  control={control}
+                  render={({ field }) => (
+                    <Select onValueChange={field.onChange} value={field.value}>
+                      <SelectTrigger className="w-full">
+                        <SelectValue placeholder="Select Group Type" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="All">All Group Types</SelectItem>
+                        {groupTypes.map((groupType) => (
+                          <SelectItem key={groupType.hrmgT_Id} value={groupType.hrmgT_EmployeeGroupType}>
+                            {groupType.hrmgT_EmployeeGroupType}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  )}
+                />
+              </div>
+
+              <div className="space-y-3">
+                <Label className="font-semibold">Department</Label>
+                <Controller
+                  name="department"
+                  control={control}
+                  render={({ field }) => (
+                    <Select onValueChange={field.onChange} value={field.value}>
+                      <SelectTrigger className="w-full">
+                        <SelectValue placeholder="Select Department" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="All">All Departments</SelectItem>
+                        {departments.map((department) => (
+                          <SelectItem key={department.hrmD_Id} value={department.hrmD_DepartmentName}>
+                            {department.hrmD_DepartmentName}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  )}
+                />
+              </div>
+
+              <div className="space-y-3">
+                <Label className="font-semibold">Designation</Label>
+                <Controller
+                  name="designation"
+                  control={control}
+                  render={({ field }) => (
+                    <Select onValueChange={field.onChange} value={field.value}>
+                      <SelectTrigger className="w-full">
+                        <SelectValue placeholder="Select Designation" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="All">All Designations</SelectItem>
+                        {designations.map((designation) => (
+                          <SelectItem key={designation.hrmdeS_Id} value={designation.hrmdeS_DesignationName}>
+                            {designation.hrmdeS_DesignationName}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  )}
+                />
+              </div>
+
+              <div className="space-y-3">
+                <Label className="font-semibold">Month</Label>
+                <Controller
+                  name="month"
+                  control={control}
+                  render={({ field }) => (
+                    <Select onValueChange={field.onChange} value={field.value}>
+                      <SelectTrigger className="w-full">
+                        <SelectValue placeholder="Select Month" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {monthOptions.map((month) => (
+                          <SelectItem key={month.IVRM_Month_Id} value={month.IVRM_Month_Id.toString()}>
+                            {month.IVRM_Month_Name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  )}
+                />
+              </div>
+
+              <div className="space-y-3">
+                <Label className="font-semibold">Year</Label>
+                <Controller
+                  name="year"
+                  control={control}
+                  render={({ field }) => (
+                    <Select onValueChange={field.onChange} value={field.value}>
+                      <SelectTrigger className="w-full">
+                        <SelectValue placeholder="Select Year" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {leaveYearOptions.map((year) => (
+                          <SelectItem key={year.HRMLY_Id} value={year.HRMLY_Id.toString()}>
+                            {year.HRMLY_LeaveYear}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  )}
+                />
+              </div>
+
+              <div className="space-y-3">
+                <Label className="font-semibold">Head</Label>
+                <Controller
+                  name="heads"
+                  control={control}
+                  render={({ field }) => (
+                    <Select onValueChange={field.onChange} value={field.value}>
+                      <SelectTrigger className="w-full">
+                        <SelectValue placeholder="Select Head" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="All">All Heads</SelectItem>
+                        {availableHeads.map((head) => (
+                          <SelectItem key={head.hrmeD_Id} value={head.hrmeD_Name}>
+                            {head.hrmeD_Name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  )}
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+              <div className="space-y-3">
+                <Label className="font-semibold">Earning/Deduction</Label>
+                <div className="flex space-x-4">
+                  <div className="flex items-center space-x-2">
+                    <input
+                      type="radio"
+                      id="all-earning"
+                      value="All Earning & Deduction"
+                      {...register("earningDeduction")}
+                      className="text-primary"
                     />
-                </FormProvider>
+                    <Label htmlFor="all-earning">All Earning & Deduction</Label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <input type="radio" id="earning" value="Earning" {...register("earningDeduction")} className="text-primary" />
+                    <Label htmlFor="earning">Earning</Label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <input type="radio" id="deduction" value="Deduction" {...register("earningDeduction")} className="text-primary" />
+                    <Label htmlFor="deduction">Deduction</Label>
+                  </div>
+                </div>
+              </div>
+
+              <div className="space-y-3">
+                <Label className="font-semibold">Amount Type</Label>
+                <div className="flex space-x-4">
+                  <div className="flex items-center space-x-2">
+                    <input type="radio" id="all-amount" value="All" {...register("amountType")} className="text-primary" />
+                    <Label htmlFor="all-amount">All</Label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <input type="radio" id="amount" value="Amount" {...register("amountType")} className="text-primary" />
+                    <Label htmlFor="amount">Amount</Label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <input type="radio" id="percentage" value="Percentage" {...register("amountType")} className="text-primary" />
+                    <Label htmlFor="percentage">Percentage</Label>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="flex gap-2 pt-4">
+              <Button type="submit" className="transition-all duration-200 hover:scale-105 w-fit">
+                <RefreshCw className="h-4 w-4 mr-2" />
+                SEARCH
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                className="transition-all duration-200 hover:scale-105 w-fit"
+                onClick={() => {
+                  reset();
+                  setHasSearched(false);
+                  setSelectedEmployees([]);
+                }}
+              >
+                <X className="h-4 w-4 mr-2" />
+                CANCEL
+              </Button>
+            </div>
+          </form>
+        </CollapsibleSection>
+
+        {hasSearched && (
+          <CollapsibleSection
+            title="EMPLOYEE SALARY UPDATION"
+            description={`View and update employee salary records (${selectedEmployees.length} selected)`}
+            defaultOpen={true}
+            variant="default"
+            size="lg"
+            className="shadow-lg transition-shadow duration-300 hover:shadow-xl"
+            headerClassName=""
+          >
+            <SalaryUpdationTable
+              employees={filteredEmployees}
+              isLoading={isLoading}
+              selectedEmployees={selectedEmployees}
+              onEmployeeSelect={handleEmployeeSelect}
+              onSelectAll={handleSelectAll}
+              selectedHeads={selectedHeads}
+            />
+          </CollapsibleSection>
+        )}
+
+        {!hasSearched && (
+          <div className="flex items-center justify-center py-12 bg-muted/50 rounded-lg">
+            <div className="text-center space-y-2">
+              <div className="text-muted-foreground text-lg">
+                Please use the search form above to find employee salary records
+              </div>
+              <div className="text-sm text-muted-foreground">Select your criteria and click "SEARCH" to view results</div>
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+interface SalaryUpdationTableProps {
+  employees: Employee[];
+  isLoading: boolean;
+  selectedEmployees: number[];
+  onEmployeeSelect: (employeeId: number, selected: boolean) => void;
+  onSelectAll: (selected: boolean) => void;
+  selectedHeads: string[];
+}
+
+function SalaryUpdationTable({
+  employees,
+  isLoading,
+  selectedEmployees,
+  onEmployeeSelect,
+  onSelectAll,
+  selectedHeads,
+}: SalaryUpdationTableProps) {
+  const sanitizedEmployees = employees.map((emp) => {
+    const sanitized = { ...emp };
+    selectedHeads.forEach((headName) => {
+      if (sanitized[headName] == null) {
+        sanitized[headName] = 0;
+      }
+    });
+    return sanitized;
+  });
+
+  const columns: ColumnDef<Employee>[] = [
+    {
+      id: "select",
+      header: ({ table }: { table: any }) => (
+        <Checkbox
+          checked={sanitizedEmployees.length > 0 && selectedEmployees.length === sanitizedEmployees.length}
+          onCheckedChange={(value: boolean) => onSelectAll(!!value)}
+          aria-label="Select all"
+        />
+      ),
+      cell: ({ row }: { row: any }) => (
+        <Checkbox
+          checked={selectedEmployees.includes(row.original.hrmE_Id)}
+          onCheckedChange={(value: boolean) => onEmployeeSelect(row.original.hrmE_Id, !!value)}
+          aria-label="Select row"
+        />
+      ),
+      enableSorting: false,
+      enableHiding: false,
+    },
+    {
+      accessorKey: "slNo",
+      header: ({ column }: { column: any }) => <DataTableColumnHeader column={column} title="Sl.No" />,
+      cell: ({ row, table }: { row: any; table: any }) => {
+        const index = table.getSortedRowModel().rows.findIndex((r: any) => r.id === row.id);
+        return <div>{index + 1}</div>;
+      },
+      enableSorting: false,
+      enableHiding: false,
+    },
+    {
+      accessorKey: "hrmE_EmployeeCode",
+      header: ({ column }: { column: any }) => <DataTableColumnHeader column={column} title="Employee Code" />,
+      cell: ({ row }: { row: any }) => <div>{row.getValue("hrmE_EmployeeCode")}</div>,
+      enableSorting: true,
+      enableHiding: true,
+    },
+    {
+      accessorKey: "hrmE_EmployeeName",
+      header: ({ column }: { column: any }) => <DataTableColumnHeader column={column} title="Employee Name" />,
+      cell: ({ row }: { row: any }) => {
+        const employee = row.original;
+        const fullName = `${employee.hrmE_EmployeeFirstName} ${employee.hrmE_EmployeeLastName || ""}`.trim();
+        return <div>{fullName}</div>;
+      },
+      enableSorting: true,
+      enableHiding: true,
+    },
+    ...selectedHeads.map((headName) => ({
+      id: headName,
+      accessorFn: (row: Employee) => {
+        const value = row[headName];
+        return value == null ? 0 : Number(value);
+      },
+      header: ({ column }: { column: any }) => <DataTableColumnHeader column={column} title={headName} />,
+      cell: ({ row }: { row: any }) => {
+        const currentValue = row.original[headName] ?? 0;
+        return (
+          <div className="w-20">
+            <input
+              type="number"
+              defaultValue={currentValue}
+              className="w-full px-2 py-1 text-sm border rounded"
+              onChange={(e) => {
+                const newValue = parseFloat(e.target.value) || 0;
+                row.original[headName] = newValue;
+              }}
+            />
+          </div>
+        );
+      },
+      enableSorting: true,
+      enableHiding: true,
+    })),
+  ];
+
+  return (
+    <div className="space-y-4">
+      <div className="rounded-lg bg-card overflow-hidden">
+        <DataTable
+          isLoading={isLoading}
+          columns={columns}
+          data={sanitizedEmployees}
+          totalItems={sanitizedEmployees.length}
+          showViewOptions={true}
+          columnPinning={{ left: ["select"] }}
+        />
+      </div>
+
+      <div className="flex gap-2 justify-end">
+        <Button className="transition-all duration-200 hover:scale-105 w-fit">
+          <RefreshCw className="h-4 w-4 mr-2" />
+          UPDATE
+        </Button>
+        <Button variant="outline" className="transition-all duration-200 hover:scale-105 w-fit">
+          <X className="h-4 w-4 mr-2" />
+          CANCEL
+        </Button>
             </div>
         </div>
     );

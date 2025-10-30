@@ -141,14 +141,14 @@ export async function saveGroupDeptDessgMapping(data: GroupDeptDessgMappingInput
 
 /**
  * Activate/Deactivate group department designation mapping
- * POST /api/GroupDeptDessgFacade/deactivate
+ * POST /api/GroupDeptDessgFacade/masterDecative
  */
 export async function activateDeactivateGroupDeptDessgMapping(data: { HRGTDDS_Id: number; HRGTDDS_ActiveFlg: boolean }): Promise<
     ApiResponse<GroupDeptDessgMappingResponse>
 > {
     try {
         const baseURL = clientEnv.NEXT_PUBLIC_API_BASE_URL;
-        const apiPath = '/api/GroupDeptDessgFacade/deactivate';
+        const apiPath = '/api/GroupDeptDessgFacade/masterDecative';
         const url = `${baseURL}${apiPath}`;
 
         const requestBody = {
@@ -185,7 +185,7 @@ export async function activateDeactivateGroupDeptDessgMapping(data: { HRGTDDS_Id
         });
 
         const response: ApiResponse<GroupDeptDessgMappingResponse> = {
-            success: axiosResponse.status >= 200 && axiosResponse.status < 300,
+            success: axiosResponse.status >= 200 && axiosResponse.status < 300 && (axiosResponse.data.returnval !== false),
             message:
                 axiosResponse.data.msg || (data.HRGTDDS_ActiveFlg ? 'Mapping activated successfully' : 'Mapping deactivated successfully'),
             data: axiosResponse.data

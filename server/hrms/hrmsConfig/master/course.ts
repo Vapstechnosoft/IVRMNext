@@ -122,6 +122,8 @@ export async function activateDeactivateMasterCourse(data: {
         const url = `${baseURL}${apiPath}`;
 
         const requestBody = {
+            CreatedDate: new Date().toISOString(),
+            UpdatedDate: new Date().toISOString(),
             HRMC_Id: data.HRMC_Id,
             MI_Id: 30,
             HRMC_QulaificationName: 'string',
@@ -165,12 +167,29 @@ export async function activateDeactivateMasterCourse(data: {
 
 /**
  * Get details of a specific master course by ID
- * GET /api/MasterCourse/details/{id}
+ * GET /api/MasterCourseFacade/getRecordById/{id}
  */
-export async function getMasterCourseDetails(id: number): Promise<ApiResponse<CourseDetail>> {
+export async function getMasterCourseDetails(id: number): Promise<ApiResponse<MasterCourseResponse>> {
     try {
-        const url = `/api/MasterCourse/details/${id}`;
-        const response = await api.get<CourseDetail>('default', url);
+        const baseURL = clientEnv.NEXT_PUBLIC_API_BASE_URL;
+        const apiPath = `/api/MasterCourseFacade/getRecordById/${id}`;
+        const url = `${baseURL}${apiPath}`;
+
+        const axiosResponse = await axios.get<MasterCourseResponse>(url, {
+            headers: {
+                'Content-Type': 'application/json',
+                Accept: 'application/json'
+            },
+            timeout: 30000,
+            validateStatus: (status) => status < 500
+        });
+
+        const response: ApiResponse<MasterCourseResponse> = {
+            success: axiosResponse.status >= 200 && axiosResponse.status < 300,
+            message: axiosResponse.data.retrunMsg || 'Course details fetched successfully',
+            data: axiosResponse.data
+        };
+
         return response;
     } catch (error) {
         console.error('Error fetching master course details:', error);

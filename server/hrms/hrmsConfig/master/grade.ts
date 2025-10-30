@@ -98,6 +98,8 @@ export async function activateDeactivateMasterGrade(data: {
         const url = `${baseURL}${apiPath}`;
 
         const requestBody = {
+            CreatedDate: new Date().toISOString(),
+            UpdatedDate: new Date().toISOString(),
             HRMG_Id: data.HRMG_Id,
             MI_Id: 30,
             HRMG_GradeName: 'string',

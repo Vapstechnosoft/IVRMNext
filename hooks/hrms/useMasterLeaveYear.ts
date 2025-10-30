@@ -27,7 +27,7 @@ export function useMasterLeaveYear(roleId: number) {
         }
     });
 
-    const toggleActiveMutation = useMutation({
+    const toggleMutation = useMutation({
         mutationFn: (data: {
             HRMLY_Id: number;
             HRMLY_ActiveFlag: boolean;
@@ -52,7 +52,7 @@ export function useMasterLeaveYear(roleId: number) {
     return {
         listQuery,
         saveMutation,
-        toggleActiveMutation,
+        toggleMutation,
         saveOrderMutation
     };
 }

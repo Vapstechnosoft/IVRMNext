@@ -162,6 +162,8 @@ export async function activateDeactivateMasterEarningsDeductions(data: {
         const url = `${baseURL}${apiPath}`;
 
         const requestBody = {
+            CreatedDate: new Date().toISOString(),
+            UpdatedDate: new Date().toISOString(),
             HRMED_Id: data.HRMED_Id,
             MI_Id: 30,
             HRMED_Name: 'string',

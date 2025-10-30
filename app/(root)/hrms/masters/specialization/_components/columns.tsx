@@ -25,7 +25,7 @@ export const columns: ColumnDef<SpecializationItem>[] = [
 
 function ActionButtonsCell({ rowData }: { rowData: SpecializationItem }) {
     const { openEditForm } = useFormContext<MasterSpecializationResponse>();
-    const { toggleActiveMutation } = useMasterSpecialization(HRMS_MI_ID);
+    const { toggleMutation } = useMasterSpecialization(HRMS_MI_ID);
 
     const handleEdit = useCallback(
         (data: SpecializationItem) => {
@@ -37,7 +37,7 @@ function ActionButtonsCell({ rowData }: { rowData: SpecializationItem }) {
     const handleToggle = useCallback(
         async (data: SpecializationItem, newState: boolean) => {
             try {
-                await toggleActiveMutation.mutateAsync({
+                await toggleMutation.mutateAsync({
                     HRMSPL_Id: data.HRMSPL_Id,
                     HRMSPL_ActiveFlg: newState,
                     MI_Id: HRMS_MI_ID
@@ -47,7 +47,7 @@ function ActionButtonsCell({ rowData }: { rowData: SpecializationItem }) {
                 toast.error(`Failed to ${newState ? 'activate' : 'deactivate'} specialization`);
             }
         },
-        [toggleActiveMutation]
+        [toggleMutation]
     );
 
     return (

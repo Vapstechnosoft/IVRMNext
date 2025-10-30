@@ -25,7 +25,7 @@ export const columns: ColumnDef<MaritalStatusDetail>[] = [
 
 function ActionButtonsCell({ rowData }: { rowData: MaritalStatusDetail }) {
     const { openEditForm } = useFormContext<MasterMaritalStatusResponse>();
-    const { toggleActiveMutation } = useMasterMaritalStatus(HRMS_MI_ID);
+    const { toggleMutation } = useMasterMaritalStatus(HRMS_MI_ID);
 
     const handleEdit = useCallback(
         (data: MaritalStatusDetail) => {
@@ -37,7 +37,7 @@ function ActionButtonsCell({ rowData }: { rowData: MaritalStatusDetail }) {
     const handleToggle = useCallback(
         async (data: MaritalStatusDetail, newState: boolean) => {
             try {
-                await toggleActiveMutation.mutateAsync({
+                await toggleMutation.mutateAsync({
                     IVRMMMS_Id: data.IVRMMMS_Id,
                     IVRMMMS_ActiveFlag: newState,
                     roleId: HRMS_MI_ID
@@ -47,7 +47,7 @@ function ActionButtonsCell({ rowData }: { rowData: MaritalStatusDetail }) {
                 toast.error(`Failed to ${newState ? 'activate' : 'deactivate'} marital status`);
             }
         },
-        [toggleActiveMutation]
+        [toggleMutation]
     );
 
     return (

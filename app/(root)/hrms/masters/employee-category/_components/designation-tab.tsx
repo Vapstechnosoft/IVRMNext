@@ -1,132 +1,159 @@
-'use client';
+"use client";
 
-import { Button } from '@/components/ui/button';
-import { GenericDataTable } from '@/components/ui/data-table/generic-data-table';
-import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
-import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
-import { HRMS_MI_ID } from '@/constants/hrms-config';
-import { useMasterDesignation } from '@/hooks/hrms/useMasterDesignation';
-import type { DesignationDetail, MasterDesignationResponse } from '@/types/hrms/master-designation';
-import { Plus, X } from 'lucide-react';
-import AddDesignationForm from '../../designation/_components/add-form';
-import { columns } from '../../designation/_components/columns';
-import UpdateDesignationForm from '../../designation/_components/update-form';
+import { Button } from "@/components/ui/button";
+import { GenericDataTable } from "@/components/ui/data-table/generic-data-table";
+import { CollapsibleSection } from "@/components/ui/form/collapsible-section";
+import {
+  FormProvider,
+  useFormContext,
+} from "@/components/ui/form/form-provider";
+import { HRMS_MI_ID } from "@/constants/hrms-config";
+import { useMasterDesignation } from "@/hooks/hrms/useMasterDesignation";
+import type {
+  DesignationDetail,
+  MasterDesignationResponse,
+} from "@/types/hrms/master-designation";
+import { Plus, X } from "lucide-react";
+import DesignationForm from "../../designation/_components/designation-form";
+import { columns } from "../../designation/_components/columns";
 
 export default function DesignationTab() {
-    const roleId = HRMS_MI_ID;
-    const { listQuery } = useMasterDesignation(roleId);
+  const roleId = HRMS_MI_ID;
+  const { listQuery } = useMasterDesignation(roleId);
 
-    return (
-        <FormProvider<MasterDesignationResponse>>
-            <DesignationTabContent response={listQuery.data} isLoading={listQuery.isLoading} error={listQuery.error} />
-        </FormProvider>
-    );
+  return (
+    <FormProvider<MasterDesignationResponse>>
+      <DesignationTabContent
+        response={listQuery.data}
+        isLoading={listQuery.isLoading}
+        error={listQuery.error}
+      />
+    </FormProvider>
+  );
 }
 
 function DesignationTabContent({
-    response,
-    isLoading,
-    error
+  response,
+  isLoading,
+  error,
 }: {
-    response: any;
-    isLoading: boolean;
-    error: any;
+  response: any;
+  isLoading: boolean;
+  error: any;
 }) {
-    const { openAddForm } = useFormContext<MasterDesignationResponse>();
-    const rows: DesignationDetail[] = response?.data?.designationlList ?? [];
+  const { openAddForm } = useFormContext<MasterDesignationResponse>();
+  const rows: DesignationDetail[] = response?.data?.designationlList ?? [];
 
-    return (
-        <div className='space-y-4'>
-            <div className='flex items-center justify-between'>
-                <div>
-                    <h3 className='font-semibold text-lg'>Designation Data</h3>
-                    <p className='text-muted-foreground text-sm'>View, search, and manage all designations in the system</p>
-                </div>
-                <Button
-                    type='button'
-                    onClick={openAddForm}
-                    className='shadow-md transition-all duration-200 hover:scale-105 hover:shadow-lg'>
-                    <Plus className='h-4 w-4' />
-                    Add Designation
-                </Button>
-            </div>
-
-            <CollapsibleSection
-                defaultOpen={true}
-                variant='default'
-                size='lg'
-                className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
-                <GenericDataTable<DesignationDetail>
-                    data={rows}
-                    totalItems={rows.length}
-                    columns={columns}
-                    isLoading={isLoading}
-                    error={error}
-                    columnPinning={{ right: ['actions'] }}
-                    loadingMessage='Loading designations...'
-                    noDataTitle='No Designations Found'
-                    noDataDescription='Get started by creating your first designation'
-                    errorTitle='Error Loading Designations'
-                />
-            </CollapsibleSection>
-
-            <FormSections />
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <div>
+          <h3 className="font-semibold text-lg">Designation Data</h3>
+          <p className="text-muted-foreground text-sm">
+            View, search, and manage all designations in the system
+          </p>
         </div>
-    );
+        <Button
+          type="button"
+          onClick={openAddForm}
+          className="shadow-md transition-all duration-200 hover:scale-105 hover:shadow-lg"
+        >
+          <Plus className="h-4 w-4" />
+          Add Designation
+        </Button>
+      </div>
+
+      <CollapsibleSection
+        defaultOpen={true}
+        variant="default"
+        size="lg"
+        className="shadow-lg transition-shadow duration-300 hover:shadow-xl"
+      >
+        <GenericDataTable<DesignationDetail>
+          data={rows}
+          totalItems={rows.length}
+          columns={columns}
+          isLoading={isLoading}
+          error={error}
+          columnPinning={{ right: ["actions"] }}
+          loadingMessage="Loading designations..."
+          noDataTitle="No Designations Found"
+          noDataDescription="Get started by creating your first designation"
+          errorTitle="Error Loading Designations"
+        />
+      </CollapsibleSection>
+
+      <FormSections />
+    </div>
+  );
 }
 
 function FormSections() {
-    const { isAddFormOpen, isEditFormOpen, selectedRow, closeAddForm, closeEditForm, addFormRef, editFormRef } =
-        useFormContext<MasterDesignationResponse>();
+  const {
+    isAddFormOpen,
+    isEditFormOpen,
+    selectedRow,
+    closeAddForm,
+    closeEditForm,
+    addFormRef,
+    editFormRef,
+  } = useFormContext<MasterDesignationResponse>();
 
-    return (
-        <>
-            {isAddFormOpen && (
-                <div ref={addFormRef}>
-                    <CollapsibleSection
-                        title='Add New Designation'
-                        description='Fill in the details below to create a new designation'
-                        defaultOpen={true}
-                        variant='outline'
-                        size='md'
-                        className='slide-in-from-top-4 animate-in shadow-lg duration-300'>
-                        <div className='relative'>
-                            <Button
-                                type='button'
-                                onClick={closeAddForm}
-                                variant='ghost'
-                                size='sm'
-                                className='-top-[3.5rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
-                                <X className='h-4 w-4 text-destructive' /> Close
-                            </Button>
-                            <AddDesignationForm onSuccess={closeAddForm} />
-                        </div>
-                    </CollapsibleSection>
-                </div>
-            )}
+  return (
+    <>
+      {isAddFormOpen && (
+        <div ref={addFormRef}>
+          <CollapsibleSection
+            title="Add New Designation"
+            description="Fill in the details below to create a new designation"
+            defaultOpen={true}
+            variant="outline"
+            size="md"
+            className="slide-in-from-top-4 animate-in shadow-lg duration-300"
+          >
+            <div className="relative">
+              <Button
+                type="button"
+                onClick={closeAddForm}
+                variant="ghost"
+                size="sm"
+                className="-top-[3.5rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10"
+              >
+                <X className="h-4 w-4 text-destructive" /> Close
+              </Button>
+              <DesignationForm onSuccess={closeAddForm} />
+            </div>
+          </CollapsibleSection>
+        </div>
+      )}
 
-            {isEditFormOpen && selectedRow && (
-                <div ref={editFormRef}>
-                    <CollapsibleSection
-                        title='Edit Designation'
-                        defaultOpen={true}
-                        variant='outline'
-                        size='md'
-                        className='slide-in-from-top-4 animate-in border-primary/20 shadow-lg duration-300'>
-                        <div className='relative'>
-                            <Button
-                                type='button'
-                                onClick={closeEditForm}
-                                variant='ghost'
-                                size='sm'
-                                className='-top-[3.5rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
-                                <X className='h-4 w-4 text-destructive' /> Close
-                            </Button>
-                            <UpdateDesignationForm selectedRow={selectedRow} onSuccess={closeEditForm} />
-                        </div>
-                    </CollapsibleSection>
-                </div>
-            )}
-        </>
-    );
+      {isEditFormOpen && selectedRow && (
+        <div ref={editFormRef}>
+          <CollapsibleSection
+            title="Edit Designation"
+            defaultOpen={true}
+            variant="outline"
+            size="md"
+            className="slide-in-from-top-4 animate-in border-primary/20 shadow-lg duration-300"
+          >
+            <div className="relative">
+              <Button
+                type="button"
+                onClick={closeEditForm}
+                variant="ghost"
+                size="sm"
+                className="-top-[3.5rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10"
+              >
+                <X className="h-4 w-4 text-destructive" /> Close
+              </Button>
+              <DesignationForm
+                selectedRow={selectedRow}
+                onSuccess={closeEditForm}
+              />
+            </div>
+          </CollapsibleSection>
+        </div>
+      )}
+    </>
+  );
 }

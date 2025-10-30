@@ -29,7 +29,7 @@ export const columns: ColumnDef<MasterLoanDetail>[] = [
 
 function ActionButtonsCell({ rowData }: { rowData: MasterLoanDetail }) {
     const { openEditForm } = useFormContext<MasterLoanResponse>();
-    const { toggleActiveMutation } = useMasterLoan(HRMS_MI_ID);
+    const { toggleMutation } = useMasterLoan(HRMS_MI_ID);
 
     const handleEdit = useCallback(
         (data: MasterLoanDetail) => {
@@ -41,7 +41,7 @@ function ActionButtonsCell({ rowData }: { rowData: MasterLoanDetail }) {
     const handleToggle = useCallback(
         async (data: MasterLoanDetail, newState: boolean) => {
             try {
-                await toggleActiveMutation.mutateAsync({
+                await toggleMutation.mutateAsync({
                     HRMLN_Id: data.HRMLN_Id,
                     HRMLN_ActiveFlag: newState,
                     MI_Id: HRMS_MI_ID
@@ -51,7 +51,7 @@ function ActionButtonsCell({ rowData }: { rowData: MasterLoanDetail }) {
                 toast.error(`Failed to ${newState ? 'activate' : 'deactivate'} loan`);
             }
         },
-        [toggleActiveMutation]
+        [toggleMutation]
     );
 
     return (

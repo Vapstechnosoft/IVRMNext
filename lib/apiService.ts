@@ -36,11 +36,11 @@ class ApiService {
 
         // Map your environment variables to base URLs
         this.baseUrls = {
-            default: env.API_BASE_URL,
-            preadmission: env.PREADMISSION_API_BASE_URL || env.API_BASE_URL,
-            admission: env.ADMISSION_API_BASE_URL || env.API_BASE_URL,
-            fees: env.FEES_API_BASE_URL || env.API_BASE_URL,
-            exam: env.EXAM_API_BASE_URL || env.API_BASE_URL
+            default: process.env.NEXT_PUBLIC_API_BASE_URL || '',
+            preadmission: process.env.NEXT_PUBLIC_PREADMISSION_API_BASE_URL || process.env.NEXT_PUBLIC_API_BASE_URL || '',
+            admission: process.env.NEXT_PUBLIC_ADMISSION_API_BASE_URL || process.env.NEXT_PUBLIC_API_BASE_URL || '',
+            fees: process.env.NEXT_PUBLIC_FEES_API_BASE_URL || process.env.NEXT_PUBLIC_API_BASE_URL || '',
+            exam: process.env.NEXT_PUBLIC_EXAM_API_BASE_URL || process.env.NEXT_PUBLIC_API_BASE_URL || ''
         };
 
         // Initialize default instance

@@ -43,7 +43,7 @@ export const columns: ColumnDef<EarningsDeductionDetail>[] = [
 
 function ActionButtonsCell({ rowData }: { rowData: EarningsDeductionDetail }) {
     const { openEditForm } = useFormContext<MasterEarningsDeductionsResponse>();
-    const { toggleActiveMutation } = useMasterEarningsDeductions(HRMS_MI_ID);
+    const { toggleMutation } = useMasterEarningsDeductions(HRMS_MI_ID);
 
     const handleEdit = useCallback(
         (data: EarningsDeductionDetail) => {
@@ -55,7 +55,7 @@ function ActionButtonsCell({ rowData }: { rowData: EarningsDeductionDetail }) {
     const handleToggle = useCallback(
         async (data: EarningsDeductionDetail, newState: boolean) => {
             try {
-                await toggleActiveMutation.mutateAsync({
+                await toggleMutation.mutateAsync({
                     HRMED_Id: data.HRMED_Id,
                     HRMED_ActiveFlag: newState,
                     MI_Id: HRMS_MI_ID
@@ -65,7 +65,7 @@ function ActionButtonsCell({ rowData }: { rowData: EarningsDeductionDetail }) {
                 toast.error(`Failed to ${newState ? 'activate' : 'deactivate'} earnings/deduction`);
             }
         },
-        [toggleActiveMutation]
+        [toggleMutation]
     );
 
     return (

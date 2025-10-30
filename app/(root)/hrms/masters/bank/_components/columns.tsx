@@ -44,7 +44,7 @@ export const columns: ColumnDef<BankItem>[] = [
 
 function ActionButtonsCell({ rowData }: { rowData: BankItem }) {
     const { openEditForm } = useFormContext<MasterBankResponse>();
-    const { toggleActiveMutation } = useMasterBank(HRMS_MI_ID);
+    const { toggleMutation } = useMasterBank(HRMS_MI_ID);
 
     const handleEdit = useCallback(
         (data: BankItem) => {
@@ -56,7 +56,7 @@ function ActionButtonsCell({ rowData }: { rowData: BankItem }) {
     const handleToggle = useCallback(
         async (data: BankItem, newState: boolean) => {
             try {
-                await toggleActiveMutation.mutateAsync({
+                await toggleMutation.mutateAsync({
                     HRMBD_Id: data.HRMBD_Id,
                     HRMBD_ActiveFlag: newState,
                     MI_Id: HRMS_MI_ID
@@ -66,7 +66,7 @@ function ActionButtonsCell({ rowData }: { rowData: BankItem }) {
                 toast.error(`Failed to ${newState ? 'activate' : 'deactivate'} bank`);
             }
         },
-        [toggleActiveMutation]
+        [toggleMutation]
     );
 
     return (

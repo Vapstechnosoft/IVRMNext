@@ -37,7 +37,9 @@ export async function getMasterGenderList(roleId: number): Promise<ApiResponse<M
 
 export async function saveMasterGender(data: MasterGenderInput): Promise<ApiResponse<MasterGenderResponse>> {
     const baseURL = clientEnv.NEXT_PUBLIC_API_BASE_URL;
-    const url = `${baseURL}/api/MasterGenderFacade`;
+    const isEdit = data.IVRMMG_Id && data.IVRMMG_Id > 0;
+    const apiPath = isEdit ? '/api/MasterGender/editRecord' : '/api/MasterGenderFacade';
+    const url = `${baseURL}${apiPath}`;
 
     const requestBody = {
         CreatedDate: new Date().toISOString(),
@@ -81,6 +83,8 @@ export async function activateDeactivateMasterGender(data: {
         const url = `${baseURL}${apiPath}`;
 
         const requestBody = {
+            CreatedDate: new Date().toISOString(),
+            UpdatedDate: new Date().toISOString(),
             IVRMMG_Id: data.IVRMMG_Id,
             MI_Id: 30,
             IVRMMG_GenderName: 'string',

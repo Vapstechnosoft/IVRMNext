@@ -64,17 +64,17 @@ export async function saveMasterProfessionalTax(data: MasterProfessionalTaxInput
         const url = `${baseURL}${apiPath}`;
 
         const requestBody = {
+            CreatedDate: new Date().toISOString(),
+            UpdatedDate: new Date().toISOString(),
             HRMPT_Id: data.HRMPT_Id || 0,
             MI_Id: 30,
-            HRMPT_SalaryFrom: data.HRMPT_SalaryFrom,
-            HRMPT_SalaryTo: data.HRMPT_SalaryTo,
-            HRMPT_PTax: data.HRMPT_PTax,
-            HRMPT_ActiveFlag: data.HRMPT_ActiveFlag,
+            HRMPT_SalaryFrom: Number(data.HRMPT_SalaryFrom) || 0,
+            HRMPT_SalaryTo: Number(data.HRMPT_SalaryTo) || 0,
+            HRMPT_PTax: Number(data.HRMPT_PTax) || 0,
+            HRMPT_ActiveFlag: data.HRMPT_ActiveFlag ?? true,
             pTaxrList: [],
             retrunMsg: 'string',
-            roleId: data.MI_Id || 0,
-            CreatedDate: new Date().toISOString(),
-            UpdatedDate: new Date().toISOString()
+            roleId: data.MI_Id || 30
         };
 
         const axiosResponse = await axios.post<MasterProfessionalTaxResponse>(url, requestBody, {
@@ -106,12 +106,29 @@ export async function saveMasterProfessionalTax(data: MasterProfessionalTaxInput
 
 /**
  * Get details of a specific master professional tax by ID
- * GET /api/MasterProfessionalTax/details/{id}
+ * GET /api/MasterProfessionalTaxFacade/getRecordById/{id}
  */
-export async function getMasterProfessionalTaxDetails(id: number): Promise<ApiResponse<ProfessionalTaxDetail>> {
+export async function getMasterProfessionalTaxDetails(id: number): Promise<ApiResponse<MasterProfessionalTaxResponse>> {
     try {
-        const url = `/api/MasterProfessionalTax/details/${id}`;
-        const response = await api.get<ProfessionalTaxDetail>('default', url);
+        const baseURL = clientEnv.NEXT_PUBLIC_API_BASE_URL;
+        const apiPath = `/api/MasterProfessionalTaxFacade/getRecordById/${id}`;
+        const url = `${baseURL}${apiPath}`;
+
+        const axiosResponse = await axios.get<MasterProfessionalTaxResponse>(url, {
+            headers: {
+                'Content-Type': 'application/json',
+                Accept: 'application/json'
+            },
+            timeout: 30000,
+            validateStatus: (status) => status < 500
+        });
+
+        const response: ApiResponse<MasterProfessionalTaxResponse> = {
+            success: axiosResponse.status >= 200 && axiosResponse.status < 300,
+            message: axiosResponse.data.retrunMsg || 'Professional tax details fetched successfully',
+            data: axiosResponse.data
+        };
+
         return response;
     } catch (error) {
         console.error('Error fetching master professional tax details:', error);

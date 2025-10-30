@@ -86,6 +86,8 @@ export async function activateDeactivateMasterMaritalStatus(data: {
         const url = `${baseURL}${apiPath}`;
 
         const requestBody = {
+            CreatedDate: new Date().toISOString(),
+            UpdatedDate: new Date().toISOString(),
             IVRMMMS_Id: data.IVRMMMS_Id,
             MI_Id: 30,
             IVRMMMS_MaritalStatus: 'string',

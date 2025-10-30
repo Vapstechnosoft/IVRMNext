@@ -34,7 +34,7 @@ export const columns: ColumnDef<GroupTypeDetail>[] = [
 
 function ActionButtonsCell({ rowData }: { rowData: GroupTypeDetail }) {
     const { openEditForm } = useFormContext<MasterGroupTypeResponse>();
-    const { toggleActiveMutation } = useMasterGroupType(HRMS_MI_ID);
+    const { toggleMutation } = useMasterGroupType(HRMS_MI_ID);
 
     const handleEdit = useCallback(
         (data: GroupTypeDetail) => {
@@ -46,7 +46,7 @@ function ActionButtonsCell({ rowData }: { rowData: GroupTypeDetail }) {
     const handleToggle = useCallback(
         async (data: GroupTypeDetail, newState: boolean) => {
             try {
-                await toggleActiveMutation.mutateAsync({
+                await toggleMutation.mutateAsync({
                     HRMGT_Id: data.HRMGT_Id,
                     HRMGT_ActiveFlag: newState,
                     MI_Id: HRMS_MI_ID
@@ -56,7 +56,7 @@ function ActionButtonsCell({ rowData }: { rowData: GroupTypeDetail }) {
                 toast.error(`Failed to ${newState ? 'activate' : 'deactivate'} group type`);
             }
         },
-        [toggleActiveMutation]
+        [toggleMutation]
     );
 
     return (

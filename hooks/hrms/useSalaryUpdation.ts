@@ -19,7 +19,7 @@ export function useSalaryUpdationList(payload: SalaryUpdationOnloadRequest) {
     return useQuery<SalaryUpdationOnloadResponse, Error>({
         queryKey: [HRMS_QUERY_KEYS.SALARY_UPDATION_ONLOAD, payload],
         queryFn: () =>
-            getSalaryUpdationList(payload).then((res) => {
+            getSalaryUpdationList(payload.roleId).then((res) => {
                 if (!res.success) {
                     throw new Error(res.message);
                 }

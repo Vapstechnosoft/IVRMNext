@@ -106,7 +106,7 @@ export async function saveMasterBank(data: MasterBankInput): Promise<ApiResponse
 
 /**
  * Activate/Deactivate a master bank record
- * PUT /api/MasterBank/activate-deactivate
+ * POST /api/MasterBankFacade/deactivateRecordById
  */
 export async function activateDeactivateMasterBank(data: {
     HRMBD_Id: number;
@@ -115,26 +115,37 @@ export async function activateDeactivateMasterBank(data: {
 }): Promise<ApiResponse<MasterBankResponse>> {
     try {
         const baseURL = clientEnv.NEXT_PUBLIC_API_BASE_URL;
-        const apiPath = '/api/MasterBank/activate-deactivate';
+        const apiPath = '/api/MasterBankFacade/deactivateRecordById';
         const url = `${baseURL}${apiPath}`;
 
         const requestBody = {
+            CreatedDate: new Date().toISOString(),
+            UpdatedDate: new Date().toISOString(),
             HRMBD_Id: data.HRMBD_Id,
+            MI_Id: data.MI_Id || 30,
+            HRMBD_BankName: 'string',
+            HRMBD_BankAccountNo: 'string',
+            HRMBD_BankAddress: 'string',
+            HRMBD_BranchName: 'string',
+            HRMBD_IFSCCode: 'string',
             HRMBD_ActiveFlag: data.HRMBD_ActiveFlag,
-            MI_Id: data.MI_Id || 0
+            bankdetailList: [],
+            retrunMsg: 'string',
+            roleId: data.MI_Id || 0
         };
 
-        const axiosResponse = await axios.put<MasterBankResponse>(url, requestBody, {
+        const axiosResponse = await axios.post<MasterBankResponse>(url, requestBody, {
             headers: {
                 'Content-Type': 'application/json',
                 Accept: 'application/json'
             },
-            timeout: 30000
+            timeout: 30000,
+            validateStatus: (status) => status < 500
         });
 
         const response: ApiResponse<MasterBankResponse> = {
             success: axiosResponse.status >= 200 && axiosResponse.status < 300,
-            message: axiosResponse.data.retrunMsg || 'Status updated successfully',
+            message: axiosResponse.data.retrunMsg || `Bank ${data.HRMBD_ActiveFlag ? 'activated' : 'deactivated'} successfully`,
             data: axiosResponse.data
         };
 
@@ -147,12 +158,29 @@ export async function activateDeactivateMasterBank(data: {
 
 /**
  * Get details of a specific master bank by ID
- * GET /api/MasterBank/details/{id}
+ * GET /api/MasterBankFacade/getRecordById/{id}
  */
-export async function getMasterBankDetails(id: number): Promise<ApiResponse<BankItem>> {
+export async function getMasterBankDetails(id: number): Promise<ApiResponse<MasterBankResponse>> {
     try {
-        const url = `/api/MasterBank/details/${id}`;
-        const response = await api.get<BankItem>('default', url);
+        const baseURL = clientEnv.NEXT_PUBLIC_API_BASE_URL;
+        const apiPath = `/api/MasterBankFacade/getRecordById/${id}`;
+        const url = `${baseURL}${apiPath}`;
+
+        const axiosResponse = await axios.get<MasterBankResponse>(url, {
+            headers: {
+                'Content-Type': 'application/json',
+                Accept: 'application/json'
+            },
+            timeout: 30000,
+            validateStatus: (status) => status < 500
+        });
+
+        const response: ApiResponse<MasterBankResponse> = {
+            success: axiosResponse.status >= 200 && axiosResponse.status < 300,
+            message: axiosResponse.data.retrunMsg || 'Bank details fetched successfully',
+            data: axiosResponse.data
+        };
+
         return response;
     } catch (error) {
         console.error('Error fetching master bank details:', error);

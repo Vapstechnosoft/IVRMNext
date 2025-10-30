@@ -135,34 +135,105 @@ export default function PayrollStandardForm({ existingData, className = '' }: Pa
             reset({
                 HRC_Id: existingData.HRC_Id,
                 MI_Id: existingData.MI_Id,
+                // Provident Fund
+                HRC_PFAccPrefix: existingData.HRC_PFAccNoPrefix || '',
                 HRC_PFMaxAmt: existingData.HRC_PFMaxAmt,
                 HRC_FPFPer: existingData.HRC_FPFPer,
                 HRC_EPFPer: existingData.HRC_EPFPer,
+                HRC_EPFPerAfterRetirement: existingData.HRC_ARTFPFPer || 0,
+                HRC_EPFPerAfterRetirement2: existingData.HRC_ARTEPFPer || 0,
+                HRC_AccNo2Per: existingData.HRC_AccNo2 || 0,
+                HRC_AccNo21Per: existingData.HRC_AccNo21 || 0,
+                HRC_AccNo22Per: existingData.HRC_AccNo22 || 0,
+                HRC_AC2MinAmt: existingData.HRC_AC2MinAmount || 0,
+                HRC_AC21MinAmt: existingData.HRC_AC21MinAmount || 0,
+                HRC_AC22MinAmt: existingData.HRC_AC22MinAmount || 0,
+                HRC_EducationCess: existingData.HRC_EducationCess || 0,
+                HRC_PartAMaxLimit: existingData.HRC_partAmaxflag || 0,
+                HRC_PartBMaxLimit: existingData.HRC_partBmaxflag || 0,
+                HRC_AsPerEmployee: existingData.HRC_AsPerEmpFlag ?? false,
                 HRC_RetirementYrs: existingData.HRC_RetirementYrs,
+                // ESI
+                HRC_ESIAccPrefix: existingData.HRC_ECodePrefix || '',
                 HRC_ESIMax: existingData.HRC_ESIMax,
                 HRC_ESIEmplrCont: existingData.HRC_ESIEmplrCont,
+                // Arrear Details
+                HRC_ArrearSalaryReport: existingData.HRC_ArrSalaryFlag ? 'Separate' : 'OnlyArrearHead',
+                // Approval Process
+                HRC_SalaryApproval: existingData.HRC_SalApprovalFlg ?? false,
+                HRC_SalaryAdvance: existingData.HRC_SalAdvApprovalFlg ?? false,
+                HRC_Loan: existingData.HRC_LoanApprovalFlg ?? false,
+                HRC_Leave: existingData.HRC_LeaveApprovalFlg ?? false,
+                HRC_Increment: existingData.HRC_IncrementApprovalFlg ?? false,
+                HRC_Probation: existingData.HRC_ProbationApprovalFlg ?? false,
+                // Payment Method
+                HRC_PaymentMethod: Number(existingData.HRC_PayMethodFlg) || 1,
+                // Increment Process
+                HRC_OptionalHolidays: existingData.HRC_NoOfOptionalHolidays || 0,
+                HRC_ApplicableFlag: existingData.HRC_FixedIncrmentFlg ?? false,
+                HRC_MinimumPeriods: existingData.HRC_MinimumWorkingPeriod || 0,
+                HRC_IncrementMonth: existingData.HRC_IncrementMonth || '',
+                HRC_IncrementOnceInMonths: existingData.HRC_IncrementOnceInMonths || 0,
+                HRC_AlertDays: existingData.HRC_AlertDay || 0,
+                // Salary Days
                 HRC_SalaryFromDay: existingData.HRC_SalaryFromDay,
                 HRC_SalaryToDay: existingData.HRC_SalaryToDay,
-                HRC_ActiveFlag: existingData.HRC_ActiveFlag
-                // Add other fields as they come from API
+                HRC_ActiveFlag: existingData.HRC_ActiveFlag ?? true
             } as any);
         }
     }, [existingData, reset]);
 
     const onSubmit: SubmitHandler<FormFields> = async (data) => {
-        // Only send the fields that are in the current API
+        // Map form fields to API fields
         const payload = {
             HRC_Id: data.HRC_Id || 0,
             MI_Id: data.MI_Id,
-            HRC_PFMaxAmt: data.HRC_PFMaxAmt,
-            HRC_FPFPer: data.HRC_FPFPer,
-            HRC_EPFPer: data.HRC_EPFPer,
-            HRC_RetirementYrs: data.HRC_RetirementYrs,
-            HRC_ESIMax: data.HRC_ESIMax,
-            HRC_ESIEmplrCont: data.HRC_ESIEmplrCont,
-            HRC_SalaryFromDay: data.HRC_SalaryFromDay,
-            HRC_SalaryToDay: data.HRC_SalaryToDay,
-            HRC_ActiveFlag: data.HRC_ActiveFlag
+            // Provident Fund
+            HRC_PFAccNoPrefix: data.HRC_PFAccPrefix || '',
+            HRC_PFMaxAmt: data.HRC_PFMaxAmt || 0,
+            HRC_FPFPer: data.HRC_FPFPer || 0,
+            HRC_EPFPer: data.HRC_EPFPer || 0,
+            HRC_ARTFPFPer: data.HRC_EPFPerAfterRetirement || 0,
+            HRC_ARTEPFPer: data.HRC_EPFPerAfterRetirement2 || 0,
+            HRC_AccNo2: data.HRC_AccNo2Per || 0,
+            HRC_AccNo21: data.HRC_AccNo21Per || 0,
+            HRC_AccNo22: data.HRC_AccNo22Per || 0,
+            HRC_AC2MinAmount: data.HRC_AC2MinAmt || 0,
+            HRC_AC21MinAmount: data.HRC_AC21MinAmt || 0,
+            HRC_AC22MinAmount: data.HRC_AC22MinAmt || 0,
+            HRC_EducationCess: data.HRC_EducationCess || 0,
+            HRC_partAmaxflag: data.HRC_PartAMaxLimit || 0,
+            HRC_partBmaxflag: data.HRC_PartBMaxLimit || 0,
+            HRC_AsPerEmpFlag: data.HRC_AsPerEmployee ?? false,
+            HRC_RetirementYrs: data.HRC_RetirementYrs || 60,
+            // ESI
+            HRC_ECodePrefix: data.HRC_ESIAccPrefix || '',
+            HRC_ESIMax: data.HRC_ESIMax || 0,
+            HRC_ESIMaxAmount: data.HRC_ESIMax || 0,
+            HRC_ESIEmplrCont: data.HRC_ESIEmplrCont || 0,
+            // Arrear Details
+            HRC_ArrSalaryFlag: data.HRC_ArrearSalaryReport === 'Separate',
+            HRC_CummArrFlag: data.HRC_ArrearSalaryReport === 'OnlyArrearHead',
+            // Approval Process
+            HRC_SalApprovalFlg: data.HRC_SalaryApproval ?? false,
+            HRC_SalAdvApprovalFlg: data.HRC_SalaryAdvance ?? false,
+            HRC_LoanApprovalFlg: data.HRC_Loan ?? false,
+            HRC_LeaveApprovalFlg: data.HRC_Leave ?? false,
+            HRC_IncrementApprovalFlg: data.HRC_Increment ?? false,
+            HRC_ProbationApprovalFlg: data.HRC_Probation ?? false,
+            // Payment Method
+            HRC_PayMethodFlg: String(data.HRC_PaymentMethod || 1),
+            // Increment Process
+            HRC_NoOfOptionalHolidays: data.HRC_OptionalHolidays || 0,
+            HRC_FixedIncrmentFlg: data.HRC_ApplicableFlag ?? false,
+            HRC_MinimumWorkingPeriod: data.HRC_MinimumPeriods || 0,
+            HRC_IncrementMonth: data.HRC_IncrementMonth || '',
+            HRC_IncrementOnceInMonths: data.HRC_IncrementOnceInMonths || 0,
+            HRC_AlertDay: data.HRC_AlertDays || 0,
+            // Salary Days
+            HRC_SalaryFromDay: data.HRC_SalaryFromDay || 1,
+            HRC_SalaryToDay: data.HRC_SalaryToDay || 31,
+            HRC_ActiveFlag: data.HRC_ActiveFlag ?? true
         };
 
         saveMutation.mutate(payload, {

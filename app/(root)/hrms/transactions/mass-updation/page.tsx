@@ -1,69 +1,645 @@
-'use client';
+"use client";
 
-import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
-import { useMassUpdationOnload } from '@/hooks/hrms/useMassUpdation';
-import type { EmployeeDetail } from '@/types/hrms/mass-updation';
-import { useState } from 'react';
-import { EmployeeList } from './_components/employee-list';
-import SearchForm from './_components/search-form';
-import UpdateForm from './_components/update-form';
+import { Heading } from "@/components/layout/heading";
+import { DataTable } from "@/components/ui/data-table/data-table";
+import { Button } from "@/components/ui/button";
+import { CollapsibleSection } from "@/components/ui/form/collapsible-section";
+import { Label } from "@/components/ui/extension/field";
+import { InputText } from "@/components/ui/extension/input-text";
+import { Checkbox } from "@/components/ui/checkbox";
+import { DataTableColumnHeader } from "@/components/ui/data-table-column-header";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { MultiSelect } from "@/components/ui/multi-select";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import type { ColumnDef } from "@tanstack/react-table";
+import { Users, X, Search } from "lucide-react";
+import React, { useState, useEffect, useRef } from "react";
+import { type SubmitHandler, useForm, Controller } from "react-hook-form";
+import { toast } from "sonner";
+import {
+  getMassUpdationOnload,
+  saveMassUpdation,
+  searchMassUpdationEmployees,
+  getEmployeeDetailsBySelection,
+} from "@/server/hrms/mass-updation";
+import type {
+  EmployeeDropdown,
+  DepartmentDropdown,
+  DesignationDropdown,
+  GroupTypeDropdown,
+  HeadDropdown,
+  EarningDeductionType,
+} from "@/types/hrms/mass-updation";
+
+interface Employee extends EmployeeDropdown {
+  selected?: boolean;
+}
+
+interface MassUpdateForm {
+  groupType: string[];
+  department: string[];
+  designation: string[];
+  selectedHead: string;
+  updateType: "Percentage" | "Amount";
+  updateValue: number;
+  effectiveDate: string;
+  earningDeduction: "Earning" | "Deduction";
+  addRemove: "Add" | "Remove";
+}
 
 export default function MassUpdationPage() {
-    const {
-        data: onloadData,
-        isLoading: isLoadingOnload,
-        error: onloadError
-    } = useMassUpdationOnload({
-        MI_Id: 30,
-        roleId: 2
+  const [employees, setEmployees] = useState<Employee[]>([]);
+  const [filteredEmployees, setFilteredEmployees] = useState<Employee[]>([]);
+  const [selectedEmployees, setSelectedEmployees] = useState<number[]>([]);
+  const [groupTypes, setGroupTypes] = useState<GroupTypeDropdown[]>([]);
+  const [departments, setDepartments] = useState<DepartmentDropdown[]>([]);
+  const [designations, setDesignations] = useState<DesignationDropdown[]>([]);
+  const [heads, setHeads] = useState<HeadDropdown[]>([]);
+  const [earningDeductionTypes, setEarningDeductionTypes] = useState<EarningDeductionType[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [hasSearched, setHasSearched] = useState(false);
+  const formRef = useRef<HTMLDivElement>(null);
+
+  const {
+    register,
+    handleSubmit,
+    reset,
+    watch,
+    control,
+    getValues,
+    formState: { errors, isSubmitting },
+  } = useForm<MassUpdateForm>({
+    mode: "onChange",
+    defaultValues: {
+      groupType: [],
+      department: [],
+      designation: [],
+      selectedHead: "",
+      updateType: "Percentage",
+      updateValue: 0,
+      effectiveDate: "",
+      earningDeduction: "Earning",
+      addRemove: "Add",
+    },
+  });
+
+  const watchedGroupType = watch("groupType");
+  const watchedDepartment = watch("department");
+  const watchedDesignation = watch("designation");
+  const watchedEarningDeduction = watch("earningDeduction");
+  const watchedUpdateType = watch("updateType");
+
+  const filteredHeads = React.useMemo(() => {
+    if (!heads || heads.length === 0) return [];
+
+    const filtered = heads.filter((head) => {
+      const earnDedMatch = head.HRMED_EarnDedFlag === watchedEarningDeduction;
+      const amountPercentMatch = head.HRMED_AmountPercentFlag === watchedUpdateType;
+      return earnDedMatch && amountPercentMatch;
     });
-    const [employeesForUpdation, setEmployeesForUpdation] = useState<EmployeeDetail[]>([]);
-    const [selectedEmployees, setSelectedEmployees] = useState<number[]>([]);
 
-    const handleSearchResults = (data: EmployeeDetail[]) => {
-        setEmployeesForUpdation(data);
-        setSelectedEmployees([]);
-    };
+    return filtered;
+  }, [heads, watchedEarningDeduction, watchedUpdateType]);
 
-    const handleUpdationSuccess = () => {
-        setEmployeesForUpdation([]);
-        setSelectedEmployees([]);
-    };
+  useEffect(() => {
+    loadData();
+  }, []);
 
-    if (onloadError) {
-        return (
-            <div className='flex h-full items-center justify-center'>
-                <CollapsibleSection title='Error' description='Failed to load mass updation data.' variant='destructive' defaultOpen={true}>
-                    <p className='text-destructive-foreground'>{onloadError.message}</p>
-                </CollapsibleSection>
-            </div>
-        );
+  useEffect(() => {
+    if (hasSearched) {
+      filterEmployees();
+    }
+  }, [watchedGroupType, watchedDepartment, watchedDesignation, employees, hasSearched]);
+
+  useEffect(() => {
+    const currentHead = getValues("selectedHead");
+    if (currentHead) {
+      const isValidHead = filteredHeads.some((head) => head.HRMED_Id.toString() === currentHead);
+      if (!isValidHead) {
+        reset({
+          ...getValues(),
+          selectedHead: "",
+        });
+      }
+    }
+  }, [filteredHeads, getValues, reset]);
+
+  const loadData = async () => {
+    try {
+      setIsLoading(true);
+      const response = await getMassUpdationOnload({
+        MI_Id: 30,
+        roleId: 2,
+      });
+
+      if (response.success && response.data) {
+        setGroupTypes(response.data.groupTypedropdown || []);
+        setDepartments(response.data.departmentdropdown || []);
+        setDesignations(response.data.designationdropdown || []);
+        setHeads(response.data.headdropdown || []);
+        setEarningDeductionTypes(response.data.eardettypelist || []);
+
+        setEmployees([]);
+        setFilteredEmployees([]);
+      } else {
+        toast.error(response.message || "Failed to load data");
+      }
+    } catch (error: any) {
+      console.error("Error loading mass updation data:", error);
+      toast.error(error.message || "Failed to load data");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const filterEmployees = () => {
+    let filtered = employees;
+
+    if (watchedGroupType && watchedGroupType.length > 0) {
+      const groupTypeIds = new Set(watchedGroupType.map((v) => Number(v)));
+      filtered = filtered.filter((emp) => groupTypeIds.has(emp.HRMGT_Id));
     }
 
-    return (
-        <div className='min-h-screen'>
-            <div className='container space-y-4 p-1'>
-                <SearchForm onloadData={onloadData} isLoadingOnload={isLoadingOnload} onSearch={handleSearchResults} />
+    if (watchedDepartment && watchedDepartment.length > 0) {
+      const departmentIds = new Set(watchedDepartment.map((v) => Number(v)));
+      filtered = filtered.filter((emp) => departmentIds.has(emp.HRMD_Id));
+    }
 
-                {employeesForUpdation.length > 0 && (
-                    <>
-                        <CollapsibleSection
-                            title='Employees for Mass Updation'
-                            description='Select employees to apply salary updates.'
-                            defaultOpen={true}
-                            className='shadow-lg'>
-                            <EmployeeList
-                                data={employeesForUpdation}
-                                isLoading={false}
-                                selectedEmployees={selectedEmployees}
-                                onSelectionChange={setSelectedEmployees}
-                            />
-                        </CollapsibleSection>
+    if (watchedDesignation && watchedDesignation.length > 0) {
+      const designationIds = new Set(watchedDesignation.map((v) => Number(v)));
+      filtered = filtered.filter((emp) => designationIds.has(emp.HRMDES_Id));
+    }
 
-                        <UpdateForm onloadData={onloadData} selectedEmployees={selectedEmployees} onSuccess={handleUpdationSuccess} />
-                    </>
-                )}
+    setFilteredEmployees(filtered);
+  };
+
+  const onSubmit: SubmitHandler<MassUpdateForm> = async (data: MassUpdateForm) => {
+    try {
+      const searchPayload = {
+        MI_Id: 30,
+        roleId: 2,
+        Type: "string",
+        HRME_Id: 0,
+        groupTypeselected: data.groupType.map((v) => Number(v)),
+        departmentselected: data.department.map((v) => Number(v)),
+        designationselected: data.designation.map((v) => Number(v)),
+        employeeselected: [0],
+        EarningDeduction: "string",
+        AmountPercentage: "string",
+        HREED_Amount: 0,
+        HREED_Percentage: "string",
+        HRMED_Id: 0,
+        AddRemove: "string",
+        LogInUserId: 0,
+        hrmgT_IdList: data.groupType.map((v) => Number(v)),
+        employeeTypeIdList: [0],
+        hrmD_IdList: data.department.map((v) => Number(v)),
+        hrmdeS_IdList: data.designation.map((v) => Number(v)),
+        groupTypeIdList: data.groupType.map((v) => Number(v)),
+      };
+
+      const response = await searchMassUpdationEmployees(searchPayload);
+
+      if (response.success && response.data) {
+        const hasEmployeeData = response.data.employeedropdown && response.data.employeedropdown.length > 0;
+
+        if (hasEmployeeData) {
+          const mappedEmployees: Employee[] = response.data.employeedropdown.map((emp: any) => ({
+            ...emp,
+            selected: false,
+          }));
+
+          setEmployees(mappedEmployees);
+          setFilteredEmployees(mappedEmployees);
+          setHasSearched(true);
+          toast.success(`Found ${mappedEmployees.length} employee records`);
+        } else {
+          setEmployees([]);
+          setFilteredEmployees([]);
+          setHasSearched(true);
+
+          const errorMsg = response.data.retrunMsg || "No employees found matching the criteria";
+          if (errorMsg.toLowerCase().includes("error") || errorMsg.toLowerCase().includes("no data")) {
+            toast.warning(errorMsg);
+          } else {
+            toast.info(errorMsg);
+          }
+        }
+      } else {
+        toast.error(response.message || "Search failed");
+      }
+    } catch (error: any) {
+      console.error("Error searching employees:", error);
+      toast.error(error.message || "Search failed");
+    }
+  };
+
+  const handleSelectAll = (selected: boolean) => {
+    if (selected) {
+      setSelectedEmployees(filteredEmployees.map((emp) => emp.HRME_Id));
+    } else {
+      setSelectedEmployees([]);
+    }
+  };
+
+  const handleEmployeeSelect = (employeeId: number, selected: boolean) => {
+    if (selected) {
+      setSelectedEmployees((prev) => [...prev, employeeId]);
+    } else {
+      setSelectedEmployees((prev) => prev.filter((id) => id !== employeeId));
+    }
+  };
+
+  const handleMassUpdate = async () => {
+    if (selectedEmployees.length === 0) {
+      toast.error("Please select at least one employee");
+      return;
+    }
+
+    const values = getValues();
+    if (!values.selectedHead) {
+      toast.error("Please select a Head");
+      return;
+    }
+    if (!values.updateType) {
+      toast.error("Please choose Amount or Percentage");
+      return;
+    }
+    if (!values.updateValue || Number(values.updateValue) <= 0) {
+      toast.error("Please enter a valid value");
+      return;
+    }
+
+    try {
+      const payload = {
+        MI_Id: 30,
+        roleId: 2,
+        Type: "string",
+        HRME_Id: 0,
+        employeeselected: selectedEmployees,
+        EarningDeduction: values.earningDeduction,
+        AmountPercentage: values.updateType,
+        HREED_Amount: values.updateType === "Amount" ? Number(values.updateValue) : 0,
+        HREED_Percentage: values.updateType === "Percentage" ? String(values.updateValue) : "0",
+        HRMED_Id: Number(values.selectedHead),
+        AddRemove: values.addRemove,
+        LogInUserId: 0,
+        groupTypeselected: values.groupType.map((v) => Number(v)),
+        departmentselected: values.department.map((v) => Number(v)),
+        designationselected: values.designation.map((v) => Number(v)),
+        hrmgT_IdList: values.groupType.map((v) => Number(v)),
+        hrmD_IdList: values.department.map((v) => Number(v)),
+        hrmdeS_IdList: values.designation.map((v) => Number(v)),
+        groupTypeIdList: values.groupType.map((v) => Number(v)),
+      } as const;
+
+      const resp = await getEmployeeDetailsBySelection(payload as any);
+
+      if (resp.success) {
+        toast.success(resp.message || "Mass update applied successfully");
+        if (resp.data?.employeedropdown) {
+          const updatedEmployees: Employee[] = resp.data.employeedropdown.map((emp: any) => ({
+            ...emp,
+            selected: false,
+          }));
+          setEmployees(updatedEmployees);
+          setFilteredEmployees(updatedEmployees);
+        }
+      } else {
+        toast.error(resp.message || "Save failed");
+      }
+    } catch (error: any) {
+      console.error("Error in mass update:", error);
+      toast.error(error.message || "Save failed");
+    }
+  };
+
+  const EmployeeTable = ({
+    employees,
+    isLoading,
+    onSelectAll,
+    onEmployeeSelect,
+  }: {
+    employees: Employee[];
+    isLoading: boolean;
+    onSelectAll: (selected: boolean) => void;
+    onEmployeeSelect: (employeeId: number, selected: boolean) => void;
+  }) => {
+    const columns: ColumnDef<Employee>[] = [
+      {
+        id: "select",
+        header: ({ table }) => (
+          <Checkbox
+            checked={employees.length > 0 && selectedEmployees.length === employees.length}
+            onCheckedChange={(value) => onSelectAll(!!value)}
+            aria-label="Select all"
+          />
+        ),
+        cell: ({ row }) => (
+          <Checkbox
+            checked={selectedEmployees.includes(row.original.HRME_Id)}
+            onCheckedChange={(value) => onEmployeeSelect(row.original.HRME_Id, !!value)}
+            aria-label="Select row"
+          />
+        ),
+        enableSorting: false,
+        enableHiding: false,
+      },
+      {
+        accessorKey: "HRME_EmployeeCode",
+        header: ({ column }) => <DataTableColumnHeader column={column} title="Employee Code" />,
+        cell: ({ row }) => <div>{row.getValue("HRME_EmployeeCode")}</div>,
+        enableSorting: true,
+        enableHiding: true,
+      },
+      {
+        accessorKey: "HRME_EmployeeFirstName",
+        header: ({ column }) => <DataTableColumnHeader column={column} title="Employee Name" />,
+        cell: ({ row }) => {
+          const emp = row.original;
+          return (
+            <div>
+              {`${emp.HRME_EmployeeFirstName} ${emp.HRME_EmployeeMiddleName || ""} ${emp.HRME_EmployeeLastName || ""}`.trim()}
             </div>
-        </div>
+          );
+        },
+        enableSorting: true,
+        enableHiding: true,
+      },
+    ];
+
+    return (
+      <div className="rounded-lg bg-card overflow-hidden">
+        <DataTable<Employee, any> columns={columns} data={employees} totalItems={employees.length} isLoading={isLoading} />
+      </div>
     );
+  };
+
+  return (
+    <div className="min-h-screen">
+      <div className="container p-1 space-y-4">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div className="space-y-1">
+            <Heading title="Mass Updation" description="Update salary components for multiple employees" />
+          </div>
+        </div>
+
+        <CollapsibleSection
+          title="Search Criteria"
+          description="Select filters to search for employees"
+          defaultOpen={true}
+          variant="default"
+          size="lg"
+          className="shadow-lg transition-shadow duration-300 hover:shadow-xl"
+        >
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="space-y-2">
+                <Label>Group Type *</Label>
+                <Controller
+                  name="groupType"
+                  control={control}
+                  render={({ field }) => (
+                    <MultiSelect
+                      options={groupTypes.map((gt) => ({
+                        value: gt.HRMGT_Id.toString(),
+                        label: gt.HRMGT_EmployeeGroupType,
+                      }))}
+                      defaultValue={field.value}
+                      onValueChange={field.onChange}
+                      placeholder="Select Group Types"
+                      className="w-full"
+                    />
+                  )}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label>Department *</Label>
+                <Controller
+                  name="department"
+                  control={control}
+                  render={({ field }) => (
+                    <MultiSelect
+                      options={departments.map((d) => ({
+                        value: d.HRMD_Id.toString(),
+                        label: d.HRMD_DepartmentName,
+                      }))}
+                      defaultValue={field.value}
+                      onValueChange={field.onChange}
+                      placeholder="Select Departments"
+                      className="w-full"
+                    />
+                  )}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label>Designation *</Label>
+                <Controller
+                  name="designation"
+                  control={control}
+                  render={({ field }) => (
+                    <MultiSelect
+                      options={designations.map((d) => ({
+                        value: d.HRMDES_Id.toString(),
+                        label: d.HRMDES_DesignationName,
+                      }))}
+                      defaultValue={field.value}
+                      onValueChange={field.onChange}
+                      placeholder="Select Designations"
+                      className="w-full"
+                    />
+                  )}
+                />
+              </div>
+            </div>
+
+            <div className="flex gap-4">
+              <Button type="submit" disabled={isSubmitting} className="flex items-center gap-2">
+                <Search className="h-4 w-4" />
+                {isSubmitting ? "Searching..." : "Search"}
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => {
+                  reset();
+                  setEmployees([]);
+                  setFilteredEmployees([]);
+                  setSelectedEmployees([]);
+                  setHasSearched(false);
+                }}
+                className="flex items-center gap-2"
+              >
+                <X className="h-4 w-4" />
+                Cancel
+              </Button>
+            </div>
+          </form>
+        </CollapsibleSection>
+
+        {hasSearched && (
+          <CollapsibleSection
+            title="Employee Records"
+            description={`Found ${filteredEmployees.length} employees`}
+            defaultOpen={true}
+            variant="default"
+            size="lg"
+            className="shadow-lg transition-shadow duration-300 hover:shadow-xl"
+          >
+            <div className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-4 rounded-md border p-4">
+                  <div className="flex items-center gap-6">
+                    <span className="font-medium">Earning</span>
+                    <Controller
+                      name="earningDeduction"
+                      control={control}
+                      render={({ field }) => (
+                        <RadioGroup className="flex items-center gap-6" value={field.value} onValueChange={field.onChange}>
+                          <div className="flex items-center gap-2">
+                            <RadioGroupItem value="Earning" id="rd-earn" />
+                            <Label htmlFor="rd-earn">Earning</Label>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <RadioGroupItem value="Deduction" id="rd-ded" />
+                            <Label htmlFor="rd-ded">Deduction</Label>
+                          </div>
+                        </RadioGroup>
+                      )}
+                    />
+                  </div>
+
+                  <div className="flex items-center gap-6">
+                    <span className="font-medium">Amount</span>
+                    <Controller
+                      name="updateType"
+                      control={control}
+                      render={({ field }) => (
+                        <RadioGroup className="flex items-center gap-6" value={field.value} onValueChange={field.onChange}>
+                          <div className="flex items-center gap-2">
+                            <RadioGroupItem value="Amount" id="rd-amt" />
+                            <Label htmlFor="rd-amt">Amount</Label>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <RadioGroupItem value="Percentage" id="rd-per" />
+                            <Label htmlFor="rd-per">Percentage</Label>
+                          </div>
+                        </RadioGroup>
+                      )}
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label>Head</Label>
+                      <Controller
+                        name="selectedHead"
+                        control={control}
+                        render={({ field }) => (
+                          <Select value={field.value} onValueChange={field.onChange}>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select Head" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {filteredHeads.length === 0 ? (
+                                <div className="p-2 text-sm text-muted-foreground text-center">
+                                  No heads available for selected Earning/Deduction and Amount/Percentage
+                                </div>
+                              ) : (
+                                filteredHeads.map((h) => (
+                                  <SelectItem key={h.HRMED_Id} value={h.HRMED_Id.toString()}>
+                                    {h.HRMED_Name}
+                                  </SelectItem>
+                                ))
+                              )}
+                            </SelectContent>
+                          </Select>
+                        )}
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label>{watch("updateType") === "Amount" ? "Amount" : "Percentage"}</Label>
+                      <InputText
+                        type="number"
+                        step="any"
+                        placeholder={`Enter ${watch("updateType") === "Amount" ? "amount" : "percentage"}`}
+                        {...register("updateValue", { valueAsNumber: true })}
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                <div className="space-y-4 rounded-md border p-4">
+                  <div className="flex items-center gap-6">
+                    <span className="font-medium">Action</span>
+                    <Controller
+                      name="addRemove"
+                      control={control}
+                      render={({ field }) => (
+                        <RadioGroup className="flex items-center gap-6" value={field.value} onValueChange={field.onChange}>
+                          <div className="flex items-center gap-2">
+                            <RadioGroupItem value="Add" id="rd-add" />
+                            <Label htmlFor="rd-add">Add</Label>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <RadioGroupItem value="Remove" id="rd-rem" />
+                            <Label htmlFor="rd-rem">Remove</Label>
+                          </div>
+                        </RadioGroup>
+                      )}
+                    />
+                  </div>
+
+                  <div className="flex items-center gap-4 pt-6">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => {
+                        reset({
+                          ...getValues(),
+                          earningDeduction: "Earning",
+                          updateType: "Percentage",
+                          updateValue: 0,
+                          selectedHead: "",
+                          addRemove: "Add",
+                        });
+                      }}
+                    >
+                      Cancel
+                    </Button>
+                  </div>
+                </div>
+              </div>
+
+              {selectedEmployees.length > 0 && (
+                <div className="flex items-center gap-4 p-4 bg-blue-50 rounded-lg">
+                  <span className="text-sm font-medium">{selectedEmployees.length} employee(s) selected</span>
+                  <Button onClick={handleMassUpdate} className="flex items-center gap-2">
+                    <Users className="h-4 w-4" />
+                    Save
+                  </Button>
+                </div>
+              )}
+
+              <EmployeeTable
+                employees={filteredEmployees}
+                isLoading={isLoading}
+                onSelectAll={handleSelectAll}
+                onEmployeeSelect={handleEmployeeSelect}
+              />
+            </div>
+          </CollapsibleSection>
+        )}
+      </div>
+    </div>
+  );
 }

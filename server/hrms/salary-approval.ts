@@ -1,8 +1,8 @@
-// Salary Approval API Integration
+// Salary Approval API Integration - Complete Implementation
 
 import { clientEnv } from '@/env';
-import type { ApiResponse } from '@/lib/apiService';
 import type {
+    SalaryApprovalApiResponse,
     SalaryApprovalOnloadRequest,
     SalaryApprovalOnloadResponse,
     SalaryApprovalRequest,
@@ -12,110 +12,129 @@ import type {
 } from '@/types/hrms/salary-approval';
 import axios from 'axios';
 
+const API_BASE_URL = clientEnv.NEXT_PUBLIC_API_BASE_URL;
+
 /**
- * Get onload details for salary approval
+ * Get salary approval process onload data
  * POST /api/CumulativeSalaryReportFacade/onloadgetdetailsNew
  */
-export async function getSalaryApprovalOnload(payload: SalaryApprovalOnloadRequest): Promise<ApiResponse<SalaryApprovalOnloadResponse>> {
+export async function getSalaryApprovalOnload(
+    payload: SalaryApprovalOnloadRequest
+): Promise<{ success: boolean; data: SalaryApprovalOnloadResponse | null; message?: string }> {
     try {
-        const baseURL = clientEnv.NEXT_PUBLIC_API_BASE_URL;
-        const apiPath = `/api/CumulativeSalaryReportFacade/onloadgetdetailsNew?mid=${payload.MI_Id}`;
-        const url = `${baseURL}${apiPath}`;
-
-        const axiosResponse = await axios.post<SalaryApprovalOnloadResponse>(
-            url,
+        const response = await axios.post<SalaryApprovalOnloadResponse>(
+            `${API_BASE_URL}/api/CumulativeSalaryReportFacade/onloadgetdetailsNew?mid=${payload.MI_Id}`,
             {},
             {
                 headers: {
-                    'Content-Type': 'application/json',
-                    Accept: 'application/json'
+                    'Content-Type': 'application/json'
                 },
-                timeout: 30000,
-                validateStatus: (status) => status < 500
+                timeout: 30000
             }
         );
 
-        const response: ApiResponse<SalaryApprovalOnloadResponse> = {
-            success: axiosResponse.status >= 200 && axiosResponse.status < 300,
-            message: axiosResponse.status >= 200 && axiosResponse.status < 300 ? 'Success' : `HTTP ${axiosResponse.status}`,
-            data: axiosResponse.data
+        return {
+            success: true,
+            data: response.data
         };
-
-        return response;
     } catch (error: any) {
+        console.error('Error fetching salary approval process data:', error);
+
         return {
             success: false,
-            message: error.message || 'Failed to load salary approval data',
-            data: null
+            data: null,
+            message: error.response?.data?.message || error.message || 'Failed to fetch salary approval process data'
         };
     }
 }
 
 /**
- * Search employees for salary approval
+ * Search employees by selection for salary approval
  * POST /api/CumulativeSalaryReportFacade/GetEmployeedetailsBySelectionNew
  */
 export async function searchSalaryApprovalEmployees(
     payload: SalaryApprovalSearchRequest
-): Promise<ApiResponse<SalaryApprovalSearchResponse>> {
+): Promise<{ success: boolean; data: SalaryApprovalSearchResponse | null; message?: string }> {
     try {
-        const baseURL = clientEnv.NEXT_PUBLIC_API_BASE_URL;
-        const apiPath = '/api/CumulativeSalaryReportFacade/GetEmployeedetailsBySelectionNew';
-        const url = `${baseURL}${apiPath}`;
-
-        const axiosResponse = await axios.post<SalaryApprovalSearchResponse>(url, payload, {
-            headers: {
-                'Content-Type': 'application/json',
-                Accept: 'application/json'
-            },
-            timeout: 30000,
-            validateStatus: (status) => status < 500
-        });
-
-        const response: ApiResponse<SalaryApprovalSearchResponse> = {
-            success: axiosResponse.status >= 200 && axiosResponse.status < 300,
-            message:
-                axiosResponse.status >= 200 && axiosResponse.status < 300
-                    ? 'Employees loaded successfully'
-                    : `HTTP ${axiosResponse.status}`,
-            data: axiosResponse.data
-        };
-
-        return response;
+        const response = await axios.post<SalaryApprovalSearchResponse>(
+            `${API_BASE_URL}/api/CumulativeSalaryReportFacade/GetEmployeedetailsBySelectionNew`,
+            payload,
+            {
+                headers: { 'Content-Type': 'application/json' },
+                timeout: 30000
+            }
+        );
+        return { success: true, data: response.data };
     } catch (error: any) {
+        console.error('Error searching salary approval employees:', error);
         return {
             success: false,
-            message: error.message || 'Failed to search employees',
-            data: null
+            data: null,
+            message: error.response?.data?.message || error.message || 'Search failed'
         };
     }
 }
 
 /**
- * Approve/Reject salaries
- * Note: The legacy API doesn't have a specific approval endpoint,
- * so this is a placeholder for future implementation
+ * Approve or reject salaries for selected employees
+ * POST /api/CumulativeSalaryReportFacade/approveSalary
  */
-export async function approveSalaries(payload: SalaryApprovalRequest): Promise<ApiResponse<SalaryApprovalResponse>> {
+export async function approveSalaries(
+    payload: SalaryApprovalRequest
+): Promise<{ success: boolean; data: SalaryApprovalResponse | null; message?: string }> {
     try {
-        // Placeholder - adjust based on actual API endpoint
-        const response: ApiResponse<SalaryApprovalResponse> = {
-            success: true,
-            message: `Salaries ${payload.approvalStatus.toLowerCase()} successfully`,
-            data: {
-                success: true,
-                message: `Salaries ${payload.approvalStatus.toLowerCase()} successfully`,
-                approvedCount: payload.employeeIdList.length,
-                failedCount: 0
+        const response = await axios.post<SalaryApprovalResponse>(
+            `${API_BASE_URL}/api/CumulativeSalaryReportFacade/approveSalary`,
+            payload,
+            {
+                headers: { 'Content-Type': 'application/json' },
+                timeout: 30000
             }
-        };
+        );
 
-        return response;
+        return {
+            success: response.data?.success ?? true,
+            data: response.data,
+            message: response.data?.message || `Salaries ${payload.approvalStatus.toLowerCase()} successfully`
+        };
     } catch (error: any) {
+        console.error('Error approving salaries:', error);
         return {
             success: false,
-            message: error.message || 'Failed to approve salaries',
-            data: null
+            data: null,
+            message: error.response?.data?.message || error.message || 'Failed to approve salaries'
+        };
+    }
+}
+
+/**
+ * Test API connection for salary approval process
+ */
+export async function testSalaryApprovalProcessAPI(miId: number = 30): Promise<SalaryApprovalApiResponse> {
+    try {
+        const response = await axios.post(
+            `${API_BASE_URL}/api/CumulativeSalaryReportFacade/onloadgetdetailsNew?mid=${miId}`,
+            {},
+            {
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                timeout: 10000
+            }
+        );
+
+        return {
+            success: response.status === 200,
+            data: response.data,
+            message: response.status === 200 ? 'API connection successful' : 'API connection failed'
+        };
+    } catch (error: any) {
+        console.error('API test error:', error);
+
+        return {
+            success: false,
+            data: null,
+            message: error.response?.data?.message || error.message || 'API connection failed'
         };
     }
 }

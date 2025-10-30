@@ -29,7 +29,7 @@ export function useMasterBank(roleId: number) {
     });
 
     // Mutation: Activate/Deactivate bank
-    const toggleActiveMutation = useMutation({
+    const toggleMutation = useMutation({
         mutationFn: (data: {
             HRMBD_Id: number;
             HRMBD_ActiveFlag: boolean;
@@ -45,7 +45,7 @@ export function useMasterBank(roleId: number) {
     return {
         listQuery,
         saveMutation,
-        toggleActiveMutation
+        toggleMutation
     };
 }
 

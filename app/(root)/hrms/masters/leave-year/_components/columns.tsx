@@ -40,7 +40,7 @@ export const columns: ColumnDef<LeaveYearDetail>[] = [
 
 function ActionButtonsCell({ rowData }: { rowData: LeaveYearDetail }) {
     const { openEditForm } = useFormContext<MasterLeaveYearResponse>();
-    const { toggleActiveMutation } = useMasterLeaveYear(HRMS_MI_ID);
+    const { toggleMutation } = useMasterLeaveYear(HRMS_MI_ID);
 
     const handleEdit = useCallback(
         (data: LeaveYearDetail) => {
@@ -52,7 +52,7 @@ function ActionButtonsCell({ rowData }: { rowData: LeaveYearDetail }) {
     const handleToggle = useCallback(
         async (data: LeaveYearDetail, newState: boolean) => {
             try {
-                await toggleActiveMutation.mutateAsync({
+                await toggleMutation.mutateAsync({
                     HRMLY_Id: data.HRMLY_Id,
                     HRMLY_ActiveFlag: newState,
                     roleId: HRMS_MI_ID
@@ -62,7 +62,7 @@ function ActionButtonsCell({ rowData }: { rowData: LeaveYearDetail }) {
                 toast.error(`Failed to ${newState ? 'activate' : 'deactivate'} leave year`);
             }
         },
-        [toggleActiveMutation]
+        [toggleMutation]
     );
 
     return (

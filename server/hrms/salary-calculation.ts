@@ -53,6 +53,94 @@ export async function getSalaryCalculationOnload(
 }
 
 /**
+ * Save salary calculation
+ * POST /api/SalaryCalculation/
+ */
+export async function saveSalaryCalculation(
+    data: any
+): Promise<ApiResponse<SalaryCalculationOnloadResponse>> {
+    try {
+        const baseURL = clientEnv.NEXT_PUBLIC_API_BASE_URL;
+        const apiPath = '/api/SalaryCalculation/';
+        const url = `${baseURL}${apiPath}`;
+
+        const axiosResponse = await axios.post<SalaryCalculationOnloadResponse>(url, data, {
+            headers: {
+                'Content-Type': 'application/json',
+                Accept: 'application/json'
+            },
+            timeout: 30000,
+            validateStatus: (status) => status < 500
+        });
+
+        const response: ApiResponse<SalaryCalculationOnloadResponse> = {
+            success: axiosResponse.status >= 200 && axiosResponse.status < 300,
+            message:
+                (axiosResponse.data as any)?.retrunMsg ||
+                (axiosResponse.status >= 200 && axiosResponse.status < 300
+                    ? 'Salary calculation saved successfully'
+                    : `HTTP ${axiosResponse.status}`),
+            data: axiosResponse.data
+        };
+
+        return response;
+    } catch (error: any) {
+        console.error('=== Error saving salary calculation ===');
+        console.error('Error:', error);
+
+        return {
+            success: false,
+            message: error.message || 'Failed to save salary calculation',
+            data: null
+        };
+    }
+}
+
+/**
+ * Search salary calculation by selection criteria
+ * POST /api/employeeSalaryCalculationFacade/getEmployeedetailsBySelectionNew
+ */
+export async function searchSalaryCalculationBySelection(
+    payload: any
+): Promise<ApiResponse<SalaryCalculationOnloadResponse>> {
+    try {
+        const baseURL = clientEnv.NEXT_PUBLIC_API_BASE_URL;
+        const apiPath = '/api/employeeSalaryCalculationFacade/getEmployeedetailsBySelectionNew';
+        const url = `${baseURL}${apiPath}`;
+
+        const axiosResponse = await axios.post<SalaryCalculationOnloadResponse>(url, payload, {
+            headers: {
+                'Content-Type': 'application/json',
+                Accept: 'application/json'
+            },
+            timeout: 30000,
+            validateStatus: (status) => status < 500
+        });
+
+        const response: ApiResponse<SalaryCalculationOnloadResponse> = {
+            success: axiosResponse.status >= 200 && axiosResponse.status < 300,
+            message:
+                (axiosResponse.data as any)?.retrunMsg ||
+                (axiosResponse.status >= 200 && axiosResponse.status < 300
+                    ? 'Search completed successfully'
+                    : `HTTP ${axiosResponse.status}`),
+            data: axiosResponse.data
+        };
+
+        return response;
+    } catch (error: any) {
+        console.error('=== Error searching salary calculation data ===');
+        console.error('Error:', error);
+
+        return {
+            success: false,
+            message: error.message || 'Failed to search salary calculation data',
+            data: null
+        };
+    }
+}
+
+/**
  * Generate salary for selected employees
  * POST /api/employeeSalaryCalculationFacade/calculateSelectedEmployeeSalaryNew
  */

@@ -2,9 +2,13 @@
 
 import { Badge } from '@/components/ui/badge';
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
-import type { ReligionCategoryMappingDetail } from '@/types/hrms/religion-category-mapping';
+import { ActionButtons } from '@/components/ui/form/action-buttons';
+import { useFormContext } from '@/components/ui/form/form-provider';
+import { useReligionCategoryMappingCRUD } from '@/hooks/hrms/useReligionCategoryMapping';
+import type { ReligionCategoryMappingDetail, ReligionCategoryMappingResponse } from '@/types/hrms/religion-category-mapping';
 import type { ColumnDef } from '@tanstack/react-table';
-import { ActionsCell } from './actions-cell';
+import { useCallback } from 'react';
+import { toast } from 'sonner';
 
 export const religionCategoryMappingColumns: ColumnDef<ReligionCategoryMappingDetail>[] = [
     {
@@ -44,7 +48,46 @@ export const religionCategoryMappingColumns: ColumnDef<ReligionCategoryMappingDe
     },
     {
         id: 'actions',
-        header: 'Actions',
-        cell: ({ row }) => <ActionsCell row={row} />
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Actions' className='text-start' />,
+        cell: ({ row }) => <ActionButtonsCell rowData={row.original} />,
+        enableSorting: false
     }
 ];
+
+function ActionButtonsCell({ rowData }: { rowData: ReligionCategoryMappingDetail }) {
+    const { openEditForm } = useFormContext<ReligionCategoryMappingResponse>();
+    const { toggleMutation } = useReligionCategoryMappingCRUD();
+
+    const handleEdit = useCallback(
+        (data: ReligionCategoryMappingDetail) => {
+            openEditForm(data as any);
+        },
+        [openEditForm]
+    );
+
+    const handleToggle = useCallback(
+        async (data: ReligionCategoryMappingDetail, newState: boolean) => {
+            try {
+                await toggleMutation.mutateAsync({
+                    IRCC_Id: data.IRCC_Id,
+                    IRCC_ActiveFlg: newState
+                });
+                toast.success(`Mapping ${newState ? 'activated' : 'deactivated'} successfully`);
+            } catch (_error) {
+                toast.error(`Failed to ${newState ? 'activate' : 'deactivate'} mapping`);
+            }
+        },
+        [toggleMutation]
+    );
+
+    return (
+        <ActionButtons
+            rowData={rowData}
+            buttons={{ edit: true, toggle: true, delete: false }}
+            onEdit={handleEdit}
+            onToggle={handleToggle}
+            toggleConditionKey='IRCC_ActiveFlg'
+        />
+    );
+}
+

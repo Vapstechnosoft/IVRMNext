@@ -33,7 +33,7 @@ export const columns: ColumnDef<ProfessionalTaxDetail>[] = [
 
 function ActionButtonsCell({ rowData }: { rowData: ProfessionalTaxDetail }) {
     const { openEditForm } = useFormContext<MasterProfessionalTaxResponse>();
-    const { toggleActiveMutation } = useMasterProfessionalTax(HRMS_MI_ID);
+    const { toggleMutation } = useMasterProfessionalTax(HRMS_MI_ID);
 
     const handleEdit = useCallback(
         (data: ProfessionalTaxDetail) => {
@@ -45,7 +45,7 @@ function ActionButtonsCell({ rowData }: { rowData: ProfessionalTaxDetail }) {
     const handleToggle = useCallback(
         async (data: ProfessionalTaxDetail, newState: boolean) => {
             try {
-                await toggleActiveMutation.mutateAsync({
+                await toggleMutation.mutateAsync({
                     HRMPT_Id: data.HRMPT_Id,
                     HRMPT_ActiveFlag: newState,
                     roleId: HRMS_MI_ID
@@ -55,7 +55,7 @@ function ActionButtonsCell({ rowData }: { rowData: ProfessionalTaxDetail }) {
                 toast.error(`Failed to ${newState ? 'activate' : 'deactivate'} professional tax`);
             }
         },
-        [toggleActiveMutation]
+        [toggleMutation]
     );
 
     return (

@@ -2,9 +2,13 @@
 
 import { Badge } from '@/components/ui/badge';
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
-import type { GroupDeptDessgMappingDetail } from '@/types/hrms/group-dept-dessg-mapping';
+import { ActionButtons } from '@/components/ui/form/action-buttons';
+import { useFormContext } from '@/components/ui/form/form-provider';
+import { useGroupDeptDessgMappingCRUD } from '@/hooks/hrms/useGroupDeptDessgMapping';
+import type { GroupDeptDessgMappingDetail, GroupDeptDessgMappingResponse } from '@/types/hrms/group-dept-dessg-mapping';
 import type { ColumnDef } from '@tanstack/react-table';
-import { ActionsCell } from './actions-cell';
+import { useCallback } from 'react';
+import { toast } from 'sonner';
 
 export const groupDeptDessgMappingColumns: ColumnDef<GroupDeptDessgMappingDetail>[] = [
     {
@@ -53,7 +57,45 @@ export const groupDeptDessgMappingColumns: ColumnDef<GroupDeptDessgMappingDetail
     },
     {
         id: 'actions',
-        header: 'Actions',
-        cell: ({ row }) => <ActionsCell row={row} />
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Actions' className='text-start' />,
+        cell: ({ row }) => <ActionButtonsCell rowData={row.original} />,
+        enableSorting: false
     }
 ];
+
+function ActionButtonsCell({ rowData }: { rowData: GroupDeptDessgMappingDetail }) {
+    const { openEditForm } = useFormContext<GroupDeptDessgMappingResponse>();
+    const { toggleMutation } = useGroupDeptDessgMappingCRUD();
+
+    const handleEdit = useCallback(
+        (data: GroupDeptDessgMappingDetail) => {
+            openEditForm(data as any);
+        },
+        [openEditForm]
+    );
+
+    const handleToggle = useCallback(
+        async (data: GroupDeptDessgMappingDetail, newState: boolean) => {
+            try {
+                await toggleMutation.mutateAsync({
+                    HRGTDDS_Id: data.HRGTDDS_Id,
+                    HRGTDDS_ActiveFlg: newState
+                });
+                toast.success(`Mapping ${newState ? 'activated' : 'deactivated'} successfully`);
+            } catch (_error) {
+                toast.error(`Failed to ${newState ? 'activate' : 'deactivate'} mapping`);
+            }
+        },
+        [toggleMutation]
+    );
+
+    return (
+        <ActionButtons
+            rowData={rowData}
+            buttons={{ edit: true, toggle: true, delete: false }}
+            onEdit={handleEdit}
+            onToggle={handleToggle}
+            toggleConditionKey='HRGTDDS_ActiveFlg'
+        />
+    );
+}

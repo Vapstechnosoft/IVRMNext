@@ -34,7 +34,7 @@ export const columns: ColumnDef<DepartmentDetail>[] = [
 
 function ActionButtonsCell({ rowData }: { rowData: DepartmentDetail }) {
     const { openEditForm } = useFormContext<MasterDepartmentResponse>();
-    const { toggleActiveMutation } = useMasterDepartment(HRMS_MI_ID);
+    const { toggleMutation } = useMasterDepartment(HRMS_MI_ID);
 
     const handleEdit = useCallback(
         (data: DepartmentDetail) => {
@@ -46,7 +46,7 @@ function ActionButtonsCell({ rowData }: { rowData: DepartmentDetail }) {
     const handleToggle = useCallback(
         async (data: DepartmentDetail, newState: boolean) => {
             try {
-                await toggleActiveMutation.mutateAsync({
+                await toggleMutation.mutateAsync({
                     HRMD_Id: data.HRMD_Id,
                     HRMD_ActiveFlag: newState,
                     roleId: HRMS_MI_ID
@@ -56,7 +56,7 @@ function ActionButtonsCell({ rowData }: { rowData: DepartmentDetail }) {
                 toast.error(`Failed to ${newState ? 'activate' : 'deactivate'} department`);
             }
         },
-        [toggleActiveMutation]
+        [toggleMutation]
     );
 
     return (

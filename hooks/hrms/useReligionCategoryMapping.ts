@@ -46,12 +46,35 @@ export function useSaveReligionCategoryMapping() {
 }
 
 /**
- * Hook to activate/deactivate religion category mapping
+ * Hook to fetch, save, and manage religion category mapping
  */
-export function useActivateDeactivateReligionCategoryMapping() {
+export function useReligionCategoryMappingCRUD() {
     const queryClient = useQueryClient();
 
-    return useMutation({
+    const listQuery = useQuery({
+        queryKey: [HRMS_QUERY_KEYS.RELIGION_CATEGORY_MAPPING],
+        queryFn: () => getReligionCategoryMappingList(0, 2),
+        staleTime: 1000 * 60 * 5
+    });
+
+    const saveMutation = useMutation({
+        mutationFn: (data: ReligionCategoryMappingInput) => saveReligionCategoryMapping(data),
+        onSuccess: (response) => {
+            if (response.success) {
+                toast.success(response.message || 'Mapping saved successfully');
+                queryClient.invalidateQueries({
+                    queryKey: [HRMS_QUERY_KEYS.RELIGION_CATEGORY_MAPPING]
+                });
+            } else {
+                toast.error(response.message || 'Failed to save mapping');
+            }
+        },
+        onError: (error: Error) => {
+            toast.error(error.message || 'An error occurred while saving mapping');
+        }
+    });
+
+    const toggleMutation = useMutation({
         mutationFn: (data: { IRCC_Id: number; IRCC_ActiveFlg: boolean }) => activateDeactivateReligionCategoryMapping(data),
         onSuccess: (response) => {
             if (response.success) {
@@ -67,4 +90,20 @@ export function useActivateDeactivateReligionCategoryMapping() {
             toast.error(error.message || 'An error occurred while updating mapping status');
         }
     });
+
+    const refetchAll = () => {
+        queryClient.invalidateQueries({
+            queryKey: [HRMS_QUERY_KEYS.RELIGION_CATEGORY_MAPPING]
+        });
+    };
+
+    return { listQuery, saveMutation, toggleMutation, refetchAll };
+}
+
+/**
+ * @deprecated Use useReligionCategoryMappingCRUD instead
+ */
+export function useActivateDeactivateReligionCategoryMapping() {
+    const { toggleMutation } = useReligionCategoryMappingCRUD();
+    return toggleMutation;
 }

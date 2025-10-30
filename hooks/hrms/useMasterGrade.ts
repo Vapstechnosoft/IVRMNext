@@ -23,7 +23,7 @@ export const useMasterGrade = (roleId: number, _searchParams?: ApiSearchparams) 
         onSuccess: () => queryClient.invalidateQueries({ queryKey: [HRMS_QUERY_KEYS.MASTER_GRADE] })
     });
 
-    const toggleActiveMutation = useMutation({
+    const toggleMutation = useMutation({
         mutationFn: (payload: { HRMG_Id: number; HRMG_ActiveFlag: boolean; roleId?: number }) => activateDeactivateMasterGrade(payload),
         onSuccess: () => queryClient.invalidateQueries({ queryKey: [HRMS_QUERY_KEYS.MASTER_GRADE] })
     });
@@ -35,5 +35,5 @@ export const useMasterGrade = (roleId: number, _searchParams?: ApiSearchparams) 
 
     const refetchAll = () => queryClient.invalidateQueries({ queryKey: [HRMS_QUERY_KEYS.MASTER_GRADE] });
 
-    return { listQuery, saveMutation, toggleActiveMutation, saveOrderMutation, refetchAll };
+    return { listQuery, saveMutation, toggleMutation, saveOrderMutation, refetchAll };
 };

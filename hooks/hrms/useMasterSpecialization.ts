@@ -1,5 +1,6 @@
 import { HRMS_QUERY_KEYS } from '@/constants/query-keys';
 import {
+    activateDeactivateMasterSpecialization,
     getMasterSpecializationDetails,
     getMasterSpecializationList,
     saveMasterSpecialization
@@ -25,9 +26,20 @@ export function useMasterSpecialization(roleId: number) {
         }
     });
 
+    const toggleMutation = useMutation({
+        mutationFn: (payload: { HRMSPL_Id: number; HRMSPL_ActiveFlg: boolean; MI_Id?: number }) =>
+            activateDeactivateMasterSpecialization(payload),
+        onSuccess: () => {
+            queryClient.invalidateQueries({
+                queryKey: [HRMS_QUERY_KEYS.MASTER_SPECIALIZATION]
+            });
+        }
+    });
+
     return {
         listQuery,
-        saveMutation
+        saveMutation,
+        toggleMutation
     };
 }
 

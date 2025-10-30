@@ -30,7 +30,7 @@ export function useMasterCourse(roleId: number) {
     });
 
     // Mutation: Activate/Deactivate course
-    const toggleActiveMutation = useMutation({
+    const toggleMutation = useMutation({
         mutationFn: (data: { HRMC_Id: number; HRMC_ActiveFlag: boolean; MI_Id?: number }) => activateDeactivateMasterCourse(data),
         onSuccess: () => {
             queryClient.invalidateQueries({
@@ -52,7 +52,7 @@ export function useMasterCourse(roleId: number) {
     return {
         listQuery,
         saveMutation,
-        toggleActiveMutation,
+        toggleMutation,
         saveOrderMutation
     };
 }

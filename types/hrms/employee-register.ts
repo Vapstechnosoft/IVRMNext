@@ -435,6 +435,31 @@ export interface EmployeeExperienceDetailsResponse {
     roleId?: number;
 }
 
+// New SaveExperienceDetails request type (array format)
+export interface SaveExperienceDetailsRequest {
+    CreatedDate: string;
+    UpdatedDate: string;
+    HRMEE_Id: number;
+    MI_Id: number;
+    HRME_Id: number;
+    HRMEE_OrganisationName: string;
+    HRMEE_OrganisationAddress: string;
+    HRMEE_Department: string;
+    HRMEE_Designation: string;
+    HRMEE_JoinDate: string | null;
+    HRMEE_ExitDate: string | null;
+    HRMEE_NoOfYears: number;
+    HRMEE_NoOfMonths: number;
+    HRMEE_AnnualSalary: number;
+    HRMEE_ReasonForLeaving: string;
+    retrunMsg: string;
+}
+
+export interface SaveExperienceDetailsResponse {
+    retrunMsg?: string;
+    [key: string]: any;
+}
+
 export interface EmployeeDocumentDetailsRequest {
     MI_Id: number;
     Employeedto: any; // Same structure as EmployeePersonalDetailsRequest.Employeedto
@@ -457,6 +482,24 @@ export interface EmployeeDocumentDetailsResponse {
     roleId?: number;
 }
 
+// New SaveDocumentDetails request type (array format)
+export interface SaveDocumentDetailsRequest {
+    CreatedDate: string;
+    UpdatedDate: string;
+    HRMEDS_Id: number;
+    MI_Id: number;
+    HRME_Id: number;
+    HRMEDS_DocumentName: string;
+    HRMEDS_DocumentImageName: string;
+    HRMEDS_DucumentDescription: string;
+    retrunMsg: string;
+}
+
+export interface SaveDocumentDetailsResponse {
+    retrunMsg?: string;
+    [key: string]: any;
+}
+
 export interface EmployeeMedicalDetailsRequest {
     MI_Id: number;
     Employeedto: any; // Same structure as EmployeePersonalDetailsRequest.Employeedto
@@ -475,6 +518,111 @@ export interface EmployeeMedicalDetailsResponse {
     roleId?: number;
 }
 
+// New SaveMedicalDetails request type (flat object format)
+export interface SaveMedicalDetailsRequest {
+    CreatedDate: string;
+    UpdatedDate: string;
+    HRME_Id: number;
+    MI_Id: number;
+    HRMET_Id: number;
+    HRMGT_Id: number;
+    HRMD_Id: number;
+    HRMDES_Id: number;
+    HRMG_Id: number;
+    HRME_EmployeeFirstName: string;
+    HRME_EmployeeMiddleName: string;
+    HRME_EmployeeLastName: string;
+    HRME_EmployeeCode: string;
+    HRME_BiometricCode: string;
+    HRME_RFCardId: string;
+    HRME_PerStreet: string;
+    HRME_PerArea: string;
+    HRME_PerCity: string;
+    HRME_PerAdd4: string;
+    HRME_PerStateId: number;
+    HRME_PerCountryId: number;
+    HRME_PerPincode: number;
+    HRME_LocStreet: string;
+    HRME_LocArea: string;
+    HRME_LocCity: string;
+    HRME_LocAdd4: string;
+    HRME_LocStateId: number;
+    HRME_LocCountryId: number;
+    HRME_LocPincode: number;
+    IVRMMMS_Id: number;
+    IVRMMG_Id: number;
+    CasteCategoryId: number;
+    CasteId: number;
+    ReligionId: number;
+    HRME_FatherName: string;
+    HRME_MotherName: string;
+    HRME_SpouseName: string;
+    HRME_SpouseOccupation: string;
+    HRME_SpouseMobileNo: number;
+    HRME_SpouseEmailId: string;
+    HRME_SpouseAddress: string;
+    HRME_DOB: string;
+    HRME_DOJ: string;
+    HRME_ExpectedRetirementDate: string;
+    HRME_PFDate: string;
+    HRME_ESIDate: string;
+    HRME_MobileNo: number;
+    HRME_EmailId: string;
+    HRME_BloodGroup: string;
+    HRME_PaymentType: string;
+    HRME_BankAccountNo: string;
+    HRME_PFApplicableFlag: boolean;
+    HRME_PFMaxFlag: boolean;
+    HRME_PFFixedFlag: boolean;
+    HRME_PFAccNo: string;
+    HRME_ESIAccNo: string;
+    HRME_GratuityAccNo: string;
+    HRME_ESIApplicableFlag: boolean;
+    HRME_Photo: string;
+    HRME_LeftFlag: boolean;
+    HRME_DOL: string;
+    HRME_LeavingReason: string;
+    HRME_Height: string;
+    HRME_HeightUOM: string;
+    HRME_Weight: number;
+    HRME_WeightUOM: string;
+    HRME_IdentificationMark: string;
+    HRME_ApprovalNo: string;
+    HRME_PANCardNo: string;
+    HRME_AadharCardNo: number;
+    HRME_SubstituteFlag: boolean;
+    HRME_NationalSSN: string;
+    HRME_SalaryType: string;
+    HRME_EmployeeOrder: number;
+    HRME_ActiveFlag: boolean;
+    HRME_UINumber: string;
+    HRME_DOC: string;
+    HRME_SubjectsTaught: string;
+    HRME_AppDownloadedDeviceId: string;
+    HRME_PHDResearchGuideFlg: boolean;
+    HRME_TechNonTeachingFlg: string;
+    HRME_RGRecognitionYear: number;
+    HRME_AnyHealthIssue: string;
+    HRME_EyeSightIssue: string;
+    HRME_TransfferedTo: number;
+    HRME_RecordTransferredFlg: boolean;
+    HRME_MSTeamsUserId: string;
+    HRME_MSTeamsEmailId: string;
+    HRME_MSTeamsPassword: string;
+    HRME_ExcPunch: boolean;
+    HRME_RetiredFlg: boolean;
+    HRME_PensionStoppedDate: string;
+    HRME_FPFNotApplicableFlg: boolean;
+    HRME_EPFNotApplicableFlg: boolean;
+    HRME_AllowSoftwareAccessFlg: boolean;
+}
+
+export interface SaveMedicalDetailsResponse {
+    HRME_Id?: number;
+    retrunMsg?: string;
+    [key: string]: any;
+}
+
 export interface EmployeeOtherDetailsRequest {
     MI_Id: number;
     Employeedto: any; // Same structure as EmployeePersonalDetailsRequest.Employeedto
@@ -486,6 +634,15 @@ export interface EmployeeOtherDetailsResponse {
     HRME_Id?: number;
     retrunMsg?: string;
     roleId?: number;
+}
+
+// New SaveOtherDetails request type (same structure as SaveMedicalDetails)
+export type SaveOtherDetailsRequest = SaveMedicalDetailsRequest;
+
+export interface SaveOtherDetailsResponse {
+    HRME_Id?: number;
+    retrunMsg?: string;
+    [key: string]: any;
 }
 
 // Employee Earning Details Request (for Payroll - Earning tab)
@@ -623,5 +780,158 @@ export interface SaveQualificationRequest {
 export interface SaveQualificationResponse {
     success?: boolean;
     message?: string;
+    [key: string]: any;
+}
+
+// Payroll APIs
+
+// Get Employee Salary Details Request
+export interface GetEmployeeSalaryDetailsRequest {
+    MI_Id: number;
+    HRME_Id: number;
+    HRMED_Id: number;
+    HRME_EmployeeCode: string;
+}
+
+export interface SalaryDetailItem {
+    HREED_Id: number;
+    HRME_Id: number;
+    HRMED_Id: number;
+    HRMED_Name: string;
+    HREED_Amount: number;
+    HREED_Percentage: string;
+    HRMED_AmountPercentFlag: string;
+    HREED_ApplicableMaxValue: number;
+    HREED_MaxApplicableFlg: boolean;
+    HREED_ActiveFlag: boolean;
+    HRMED_EarnDedFlag: string;
+    [key: string]: any;
+}
+
+export interface GetEmployeeSalaryDetailsResponse {
+    earningList?: SalaryDetailItem[];
+    detectionList?: SalaryDetailItem[];
+    arrearList?: SalaryDetailItem[];
+    retrunMsg?: string;
+    [key: string]: any;
+}
+
+// Get Employee Salary Details By Head Request (for calculation)
+export interface GetEmployeeSalaryDetailsByHeadRequest {
+    HREED_Id: number;
+    MI_Id: number;
+    HRME_Id: number;
+    HRMED_Id: number;
+    HREED_Amount: number;
+    HREED_Percentage: string;
+    HREED_ActiveFlag: boolean;
+    HRMED_Name: string;
+    HRMED_EarnDedFlag: string;
+    HRMED_AmountPercentFlag: string;
+    HREED_ApplicableMaxValue: number;
+    HREED_MaxApplicableFlg: boolean;
+    roleId: number;
+    [key: string]: any;
+}
+
+export interface GetEmployeeSalaryDetailsByHeadResponse {
+    HREED_Amount?: number;
+    retrunMsg?: string;
+    [key: string]: any;
+}
+
+// Save Increment Details Request
+export interface SaveIncrementDetailsRequest {
+    HRMEID_Id: number;
+    MI_Id: number;
+    HRME_Id: number;
+    HRMEID_Date: string;
+    HRMEID_Amount: number;
+    HRMEID_PayScaleRange: string;
+    HRMEID_IncrementAmount: number;
+    HRMEID_AfterYear: number;
+    HRMEID_AfterMonth: number;
+    HRMEID_AfterDays: number;
+}
+
+export interface SaveIncrementDetailsResponse {
+    success?: boolean;
+    message?: string;
+    retrunMsg?: string;
+    [key: string]: any;
+}
+
+// Save Earning Details Request
+export interface SaveEarningDetailsRequest {
+    HREED_Id: number;
+    MI_Id: number;
+    HRME_Id: number;
+    HRMED_Id: number;
+    HREED_Amount: number;
+    HREED_Percentage: string;
+    HREED_ActiveFlag: boolean;
+    HRMED_Name: string;
+    HRMED_EarnDedFlag: string;
+    HRMED_AmountPercentFlag: string;
+    HREED_ApplicableMaxValue: number;
+    HREED_MaxApplicableFlg: boolean;
+    roleId: number;
+    [key: string]: any; // For all the complex nested arrays
+}
+
+export interface SaveEarningDetailsResponse {
+    success?: boolean;
+    message?: string;
+    retrunMsg?: string;
+    [key: string]: any;
+}
+
+// Save Arrear Details Request
+export interface SaveArrearDetailsRequest {
+    HREED_Id: number;
+    MI_Id: number;
+    HRME_Id: number;
+    HRMED_Id: number;
+    HREED_Amount: number;
+    HREED_Percentage: string;
+    HREED_ActiveFlag: boolean;
+    HRMED_Name: string;
+    HRMED_EarnDedFlag: string;
+    HRMED_AmountPercentFlag: string;
+    HREED_ApplicableMaxValue: number;
+    HREED_MaxApplicableFlg: boolean;
+    roleId: number;
+    [key: string]: any; // For all the complex nested arrays
+}
+
+export interface SaveArrearDetailsResponse {
+    success?: boolean;
+    message?: string;
+    retrunMsg?: string;
+    [key: string]: any;
+}
+
+// Save Deduction Details Request
+export interface SaveDeductionDetailsRequest {
+    HREED_Id: number;
+    MI_Id: number;
+    HRME_Id: number;
+    HRMED_Id: number;
+    HREED_Amount: number;
+    HREED_Percentage: string;
+    HREED_ActiveFlag: boolean;
+    HRMED_Name: string;
+    HRMED_EarnDedFlag: string;
+    HRMED_AmountPercentFlag: string;
+    HREED_ApplicableMaxValue: number;
+    HREED_MaxApplicableFlg: boolean;
+    roleId: number;
+    [key: string]: any; // For all the complex nested arrays
+}
+
+export interface SaveDeductionDetailsResponse {
+    success?: boolean;
+    message?: string;
+    retrunMsg?: string;
     [key: string]: any;
 }

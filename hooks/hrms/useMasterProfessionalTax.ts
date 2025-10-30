@@ -1,5 +1,6 @@
 import { HRMS_QUERY_KEYS } from '@/constants/query-keys';
 import {
+    activateDeactivateMasterProfessionalTax,
     getMasterProfessionalTaxDetails,
     getMasterProfessionalTaxList,
     saveMasterProfessionalTax
@@ -25,9 +26,20 @@ export function useMasterProfessionalTax(roleId: number) {
         }
     });
 
+    const toggleMutation = useMutation({
+        mutationFn: (payload: { HRMPT_Id: number; HRMPT_ActiveFlag: boolean; MI_Id?: number }) =>
+            activateDeactivateMasterProfessionalTax(payload),
+        onSuccess: () => {
+            queryClient.invalidateQueries({
+                queryKey: [HRMS_QUERY_KEYS.MASTER_PROFESSIONAL_TAX]
+            });
+        }
+    });
+
     return {
         listQuery,
-        saveMutation
+        saveMutation,
+        toggleMutation
     };
 }
 
