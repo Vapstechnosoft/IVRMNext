@@ -2,7 +2,6 @@
 
 import { Button } from '@/components/ui/button';
 import { Calendar } from '@/components/ui/calendar';
-import { Checkbox } from '@/components/ui/checkbox';
 import { FormError, Label } from '@/components/ui/extension/field';
 import { InputNumber } from '@/components/ui/extension/input-number';
 import { InputText } from '@/components/ui/extension/input-text';
@@ -20,7 +19,7 @@ import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import type { z } from 'zod';
 
-type FormFields = z.infer<typeof salaryIncrementSchema>;
+type FormFields = z.infer<typeof salaryIncrementSchema.addOrUpdate>;
 
 interface UpdateFormProps {
     selectedRow: SalaryIncrementGridItem | null;
@@ -39,41 +38,33 @@ export default function UpdateSalaryIncrementForm({ selectedRow, onloadData, onS
         reset,
         formState: { errors, isSubmitting }
     } = useForm<FormFields>({
-        resolver: zodResolver(salaryIncrementSchema),
+        resolver: zodResolver(salaryIncrementSchema.addOrUpdate),
         mode: 'onChange',
         defaultValues: {
-            HREIC_Id: 0,
+            HRESI_Id: 0,
             MI_Id: 30,
             HRME_Id: 0,
-            HRMED_Id: 0,
-            HREIC_IncrementDate: new Date(),
-            HREICED_Amount: 0,
-            HREICED_Percentage: '',
-            HREIC_ArrearApplicableFlg: false,
-            HREIC_ArrearGivenFlg: false,
-            HREIC_ArrearMonths: 0,
-            HREIC_ActiveFlag: true,
-            roleId: 2,
-            UserId: 5
+            HRESI_EffectiveDate: new Date(),
+            HRESI_IncrementAmount: 0,
+            HRESI_IncrementPercentage: 0,
+            HRESI_Remarks: '',
+            HRESI_ActiveFlg: true,
+            LogInUserId: 2
         }
     });
 
     useEffect(() => {
         if (selectedRow?.HRME_Id) {
             reset({
-                HREIC_Id: selectedRow.HREIC_Id,
+                HRESI_Id: selectedRow.HREIC_Id,
                 MI_Id: 30,
                 HRME_Id: selectedRow.HRME_Id,
-                HRMED_Id: 0,
-                HREIC_IncrementDate: new Date(),
-                HREICED_Amount: selectedRow.Amount,
-                HREICED_Percentage: '',
-                HREIC_ArrearApplicableFlg: false,
-                HREIC_ArrearGivenFlg: false,
-                HREIC_ArrearMonths: 0,
-                HREIC_ActiveFlag: true,
-                roleId: 2,
-                UserId: 5
+                HRESI_EffectiveDate: new Date(),
+                HRESI_IncrementAmount: selectedRow.Amount,
+                HRESI_IncrementPercentage: 0,
+                HRESI_Remarks: '',
+                HRESI_ActiveFlg: true,
+                LogInUserId: 2
             });
         }
     }, [selectedRow, reset]);
@@ -85,18 +76,25 @@ export default function UpdateSalaryIncrementForm({ selectedRow, onloadData, onS
         }
 
         const payload = {
-            ...data,
-            HREIC_IncrementDate: data.HREIC_IncrementDate.toISOString()
+            HREIC_Id: data.HRESI_Id || selectedRow.HREIC_Id || 0,
+            MI_Id: data.MI_Id,
+            HRME_Id: data.HRME_Id,
+            HREIC_IncrementDate: data.HRESI_EffectiveDate.toISOString(),
+            HREIC_ArrearApplicableFlg: false,
+            HREIC_ArrearGivenFlg: false,
+            HREIC_ArrearMonths: 0,
+            HRMED_Id: 0,
+            HREICED_Amount: data.HRESI_IncrementAmount,
+            HREICED_Percentage: data.HRESI_IncrementPercentage?.toString() || '0',
+            HREIC_ActiveFlag: data.HRESI_ActiveFlg,
+            roleId: data.LogInUserId || 2,
+            UserId: data.LogInUserId || 2
         };
 
-        saveIncrement(payload, {
+        saveIncrement(payload as any, {
             onSuccess: (response) => {
-                if (response?.success) {
-                    toast.success(response.message || 'Salary increment updated successfully');
-                    onSuccess();
-                } else {
-                    toast.error(response?.message || 'Failed to update salary increment');
-                }
+                toast.success(response?.retrunMsg || 'Salary increment updated successfully');
+                onSuccess();
             },
             onError: (error: any) => {
                 toast.error(error.message || 'An error occurred');
@@ -105,7 +103,7 @@ export default function UpdateSalaryIncrementForm({ selectedRow, onloadData, onS
     };
 
     const employees = onloadData?.employeelist || [];
-    const earningDeductions = onloadData?.earningdeductiontype || [];
+    const _earningDeductions = onloadData?.earningdeductiontype || [];
 
     return (
         <div className={className}>
@@ -140,8 +138,8 @@ export default function UpdateSalaryIncrementForm({ selectedRow, onloadData, onS
                             {errors.HRME_Id && <FormError>{errors.HRME_Id.message}</FormError>}
                         </div>
 
-                        {/* Earning/Deduction Head */}
-                        <div className='group flex flex-col gap-1.5'>
+                        {/* Earning/Deduction Head - Commented out as not in schema */}
+                        {/* <div className='group flex flex-col gap-1.5'>
                             <Label htmlFor='HRMED_Id'>
                                 Earning/Deduction Head <span className='text-destructive'>*</span>
                             </Label>
@@ -166,15 +164,15 @@ export default function UpdateSalaryIncrementForm({ selectedRow, onloadData, onS
                                 )}
                             />
                             {errors.HRMED_Id && <FormError>{errors.HRMED_Id.message}</FormError>}
-                        </div>
+                        </div> */}
 
                         {/* Increment Date */}
                         <div className='group flex flex-col gap-1.5'>
-                            <Label htmlFor='HREIC_IncrementDate'>
+                            <Label htmlFor='HRESI_EffectiveDate'>
                                 Increment Date <span className='text-destructive'>*</span>
                             </Label>
                             <Controller
-                                name='HREIC_IncrementDate'
+                                name='HRESI_EffectiveDate'
                                 control={control}
                                 render={({ field }) => (
                                     <Popover>
@@ -195,42 +193,48 @@ export default function UpdateSalaryIncrementForm({ selectedRow, onloadData, onS
                                     </Popover>
                                 )}
                             />
-                            {errors.HREIC_IncrementDate && <FormError>{errors.HREIC_IncrementDate.message}</FormError>}
+                            {errors.HRESI_EffectiveDate && <FormError>{errors.HRESI_EffectiveDate.message}</FormError>}
                         </div>
 
                         {/* Amount */}
-                        <InputNumber
-                            label='Amount'
-                            required
-                            id='HREICED_Amount'
-                            placeholder='Enter amount'
-                            {...register('HREICED_Amount', { valueAsNumber: true })}
-                            error={errors.HREICED_Amount?.message}
-                            className='transition-colors focus:ring-2 focus:ring-primary/20'
-                        />
+                        <div className='group flex flex-col gap-1.5'>
+                            <Label htmlFor='HRESI_IncrementAmount'>
+                                Amount <span className='text-destructive'>*</span>
+                            </Label>
+                            <Controller
+                                name='HRESI_IncrementAmount'
+                                control={control}
+                                render={({ field }) => (
+                                    <InputNumber
+                                        id='HRESI_IncrementAmount'
+                                        value={field.value}
+                                        onChange={field.onChange}
+                                        error={errors.HRESI_IncrementAmount?.message}
+                                        className='transition-colors focus:ring-2 focus:ring-primary/20'
+                                    />
+                                )}
+                            />
+                        </div>
 
                         {/* Percentage */}
                         <InputText
                             label='Percentage'
-                            id='HREICED_Percentage'
-                            placeholder='e.g., 10%'
-                            {...register('HREICED_Percentage')}
-                            error={errors.HREICED_Percentage?.message}
+                            id='HRESI_IncrementPercentage'
+                            {...register('HRESI_IncrementPercentage')}
+                            error={errors.HRESI_IncrementPercentage?.message}
                             className='transition-colors focus:ring-2 focus:ring-primary/20'
                         />
 
-                        {/* Arrear Months */}
-                        <InputNumber
+                        {/* Arrear fields commented out - not in schema */}
+                        {/* <InputNumber
                             label='Arrear Months'
                             id='HREIC_ArrearMonths'
-                            placeholder='Enter arrear months'
                             {...register('HREIC_ArrearMonths', { valueAsNumber: true })}
                             error={errors.HREIC_ArrearMonths?.message}
                             className='transition-colors focus:ring-2 focus:ring-primary/20'
-                        />
+                        /> */}
 
-                        {/* Arrear Applicable */}
-                        <div className='group flex flex-col gap-1.5'>
+                        {/* <div className='group flex flex-col gap-1.5'>
                             <div className='flex items-center space-x-3 rounded-md border p-4'>
                                 <Controller
                                     name='HREIC_ArrearApplicableFlg'
@@ -244,10 +248,9 @@ export default function UpdateSalaryIncrementForm({ selectedRow, onloadData, onS
                                 </Label>
                             </div>
                             {errors.HREIC_ArrearApplicableFlg && <FormError>{errors.HREIC_ArrearApplicableFlg.message}</FormError>}
-                        </div>
+                        </div> */}
 
-                        {/* Arrear Given */}
-                        <div className='group flex flex-col gap-1.5'>
+                        {/* <div className='group flex flex-col gap-1.5'>
                             <div className='flex items-center space-x-3 rounded-md border p-4'>
                                 <Controller
                                     name='HREIC_ArrearGivenFlg'
@@ -261,7 +264,7 @@ export default function UpdateSalaryIncrementForm({ selectedRow, onloadData, onS
                                 </Label>
                             </div>
                             {errors.HREIC_ArrearGivenFlg && <FormError>{errors.HREIC_ArrearGivenFlg.message}</FormError>}
-                        </div>
+                        </div> */}
                     </div>
 
                     {errors.root && <FormError>{errors.root.message}</FormError>}

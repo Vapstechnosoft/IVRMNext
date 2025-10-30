@@ -30,9 +30,7 @@ type ResignationFormData = {
     resignationRemark: string;
 };
 
-type RelievingFormData = {
-    // Add relieving specific fields if needed
-};
+// type RelievingFormData = Record<string, unknown>;
 
 export default function EmployeeResignPage() {
     const [activeTab, setActiveTab] = useState('resignation');
@@ -107,8 +105,11 @@ export default function EmployeeResignPage() {
                                             <div className='grid grid-cols-1 gap-6 md:grid-cols-2'>
                                                 {/* HR Manager Name */}
                                                 <div className='space-y-2'>
-                                                    <label className='font-medium text-gray-700 text-sm'>HR Manager Name</label>
+                                                    <label htmlFor='hr-manager-name-input' className='font-medium text-gray-700 text-sm'>
+                                                        HR Manager Name
+                                                    </label>
                                                     <InputText
+                                                        id='hr-manager-name-input'
                                                         placeholder='Enter HR Manager Name'
                                                         {...register('hrManagerName')}
                                                         error={errors.hrManagerName?.message}
@@ -117,8 +118,11 @@ export default function EmployeeResignPage() {
 
                                                 {/* HR Manager Email */}
                                                 <div className='space-y-2'>
-                                                    <label className='font-medium text-gray-700 text-sm'>HR Manager Mail-Id</label>
+                                                    <label htmlFor='hr-manager-email-input' className='font-medium text-gray-700 text-sm'>
+                                                        HR Manager Mail-Id
+                                                    </label>
                                                     <InputText
+                                                        id='hr-manager-email-input'
                                                         type='email'
                                                         placeholder='Enter Manager EmailId'
                                                         {...register('hrManagerEmail', {
@@ -133,11 +137,11 @@ export default function EmployeeResignPage() {
 
                                                 {/* Reason */}
                                                 <div className='space-y-2'>
-                                                    <label className='font-medium text-gray-700 text-sm'>
+                                                    <label htmlFor='reason-select' className='font-medium text-gray-700 text-sm'>
                                                         Reason <span className='text-red-500'>*</span>
                                                     </label>
                                                     <Select value={watch('reason')} onValueChange={(value) => setValue('reason', value)}>
-                                                        <SelectTrigger>
+                                                        <SelectTrigger id='reason-select'>
                                                             <SelectValue placeholder='--Select Reason--' />
                                                         </SelectTrigger>
                                                         <SelectContent>
@@ -154,10 +158,11 @@ export default function EmployeeResignPage() {
 
                                                 {/* Notice Period */}
                                                 <div className='space-y-2'>
-                                                    <label className='font-medium text-gray-700 text-sm'>
+                                                    <label htmlFor='notice-period-input' className='font-medium text-gray-700 text-sm'>
                                                         Notice Period In Days <span className='text-red-500'>*</span>
                                                     </label>
                                                     <InputText
+                                                        id='notice-period-input'
                                                         type='number'
                                                         placeholder='Enter Notice Period'
                                                         {...register('noticePeriodInDays', {
@@ -171,8 +176,11 @@ export default function EmployeeResignPage() {
 
                                                 {/* Department Head Name */}
                                                 <div className='space-y-2'>
-                                                    <label className='font-medium text-gray-700 text-sm'>Department Head Name</label>
+                                                    <label htmlFor='dept-head-name-input' className='font-medium text-gray-700 text-sm'>
+                                                        Department Head Name
+                                                    </label>
                                                     <InputText
+                                                        id='dept-head-name-input'
                                                         placeholder='Enter Department Head Name'
                                                         {...register('departmentHeadName')}
                                                         error={errors.departmentHeadName?.message}
@@ -181,8 +189,11 @@ export default function EmployeeResignPage() {
 
                                                 {/* Department Head Email */}
                                                 <div className='space-y-2'>
-                                                    <label className='font-medium text-gray-700 text-sm'>Department Head Mail-Id</label>
+                                                    <label htmlFor='dept-head-email-input' className='font-medium text-gray-700 text-sm'>
+                                                        Department Head Mail-Id
+                                                    </label>
                                                     <InputText
+                                                        id='dept-head-email-input'
                                                         type='email'
                                                         placeholder='Enter Department Head EmailId'
                                                         {...register('departmentHeadEmail', {
@@ -198,8 +209,11 @@ export default function EmployeeResignPage() {
 
                                             {/* Resignation Remark */}
                                             <div className='space-y-2'>
-                                                <label className='font-medium text-gray-700 text-sm'>Resignation Remark</label>
+                                                <label htmlFor='resignation-remark-textarea' className='font-medium text-gray-700 text-sm'>
+                                                    Resignation Remark
+                                                </label>
                                                 <Textarea
+                                                    id='resignation-remark-textarea'
                                                     placeholder='Enter your resignation remarks...'
                                                     rows={4}
                                                     {...register('resignationRemark')}

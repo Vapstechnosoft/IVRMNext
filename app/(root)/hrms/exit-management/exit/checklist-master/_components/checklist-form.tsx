@@ -1,13 +1,11 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
-import { RefreshCw, Save, X } from 'lucide-react';
+import { Save, X } from 'lucide-react';
 import { type SubmitHandler, useForm } from 'react-hook-form';
 import type { Checklist } from './columns';
 
-export type ChecklistFormData = {
-    // TODO: Add form fields based on the entity
-};
+export type ChecklistFormData = Record<string, unknown>;
 
 interface ChecklistFormProps {
     editingChecklist: Checklist | null;
@@ -16,15 +14,9 @@ interface ChecklistFormProps {
 }
 
 export function ChecklistForm({ editingChecklist, onSubmit, onCancel }: ChecklistFormProps) {
-    const {
-        register,
-        handleSubmit,
-        watch,
-        setValue,
-        formState: { errors, isSubmitting }
-    } = useForm<ChecklistFormData>({
+    const { handleSubmit } = useForm<ChecklistFormData>({
         mode: 'onChange',
-        defaultValues: editingChecklist || {}
+        defaultValues: (editingChecklist as any) || {}
     });
 
     const handleFormSubmit: SubmitHandler<ChecklistFormData> = async (data) => {
@@ -40,18 +32,11 @@ export function ChecklistForm({ editingChecklist, onSubmit, onCancel }: Checklis
                     <X className='mr-2 h-4 w-4' />
                     Cancel
                 </Button>
-                <Button type='submit' disabled={isSubmitting}>
-                    {isSubmitting ? (
-                        <div className='flex items-center'>
-                            <RefreshCw className='mr-2 h-4 w-4 animate-spin' />
-                            Saving...
-                        </div>
-                    ) : (
-                        <div className='flex items-center'>
-                            <Save className='mr-2 h-4 w-4' />
-                            Save
-                        </div>
-                    )}
+                <Button type='submit' disabled={false}>
+                    <div className='flex items-center'>
+                        <Save className='mr-2 h-4 w-4' />
+                        Save
+                    </div>
                 </Button>
             </div>
         </form>

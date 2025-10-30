@@ -258,6 +258,7 @@ export default function ChecklistMasterPage() {
                         ]}
                         data={filtered}
                         totalItems={filtered.length}
+                        isLoading={false}
                     />
                 </div>
 
@@ -287,10 +288,11 @@ export default function ChecklistMasterPage() {
                                     <div className='grid grid-cols-1 gap-6 md:grid-cols-2'>
                                         {/* Checklist Title */}
                                         <div className='space-y-2'>
-                                            <label className='font-medium text-gray-700 text-sm'>
+                                            <label htmlFor='checklist-title-input' className='font-medium text-gray-700 text-sm'>
                                                 Checklist Title <span className='text-red-500'>*</span>
                                             </label>
                                             <InputText
+                                                id='checklist-title-input'
                                                 placeholder='Enter Checklist Title'
                                                 {...register('title', { required: 'Title is required' })}
                                                 error={errors.title?.message}
@@ -299,13 +301,13 @@ export default function ChecklistMasterPage() {
 
                                         {/* Checklist Type */}
                                         <div className='space-y-2'>
-                                            <label className='font-medium text-gray-700 text-sm'>
+                                            <label htmlFor='checklist-type-select' className='font-medium text-gray-700 text-sm'>
                                                 Checklist Type <span className='text-red-500'>*</span>
                                             </label>
                                             <Select
                                                 value={watch('checklistType')}
                                                 onValueChange={(value) => setValue('checklistType', value)}>
-                                                <SelectTrigger>
+                                                <SelectTrigger id='checklist-type-select'>
                                                     <SelectValue placeholder='--Select Checklist Type--' />
                                                 </SelectTrigger>
                                                 <SelectContent>
@@ -321,8 +323,11 @@ export default function ChecklistMasterPage() {
 
                                         {/* Remark */}
                                         <div className='space-y-2 md:col-span-2'>
-                                            <label className='font-medium text-gray-700 text-sm'>Remark</label>
+                                            <label htmlFor='remark-textarea' className='font-medium text-gray-700 text-sm'>
+                                                Remark
+                                            </label>
                                             <textarea
+                                                id='remark-textarea'
                                                 className='w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500'
                                                 rows={3}
                                                 placeholder='Enter remarks'
@@ -332,11 +337,11 @@ export default function ChecklistMasterPage() {
 
                                         {/* Company */}
                                         <div className='space-y-2'>
-                                            <label className='font-medium text-gray-700 text-sm'>
+                                            <label htmlFor='company-select' className='font-medium text-gray-700 text-sm'>
                                                 Company <span className='text-red-500'>*</span>
                                             </label>
                                             <Select value={watch('company')} onValueChange={(value) => setValue('company', value)}>
-                                                <SelectTrigger>
+                                                <SelectTrigger id='company-select'>
                                                     <SelectValue placeholder='Select or search company Name in the list...' />
                                                 </SelectTrigger>
                                                 <SelectContent>
@@ -352,11 +357,11 @@ export default function ChecklistMasterPage() {
 
                                         {/* Department */}
                                         <div className='space-y-2'>
-                                            <label className='font-medium text-gray-700 text-sm'>
+                                            <label htmlFor='department-select' className='font-medium text-gray-700 text-sm'>
                                                 Department <span className='text-red-500'>*</span>
                                             </label>
                                             <Select value={watch('department')} onValueChange={(value) => setValue('department', value)}>
-                                                <SelectTrigger>
+                                                <SelectTrigger id='department-select'>
                                                     <SelectValue placeholder='Select or search DepartmentName Name in the list...' />
                                                 </SelectTrigger>
                                                 <SelectContent>
@@ -371,11 +376,11 @@ export default function ChecklistMasterPage() {
 
                                         {/* Designation */}
                                         <div className='space-y-2'>
-                                            <label className='font-medium text-gray-700 text-sm'>
+                                            <label htmlFor='designation-select' className='font-medium text-gray-700 text-sm'>
                                                 Designation <span className='text-red-500'>*</span>
                                             </label>
                                             <Select value={watch('designation')} onValueChange={(value) => setValue('designation', value)}>
-                                                <SelectTrigger>
+                                                <SelectTrigger id='designation-select'>
                                                     <SelectValue placeholder='Select or search Designation Name in the list...' />
                                                 </SelectTrigger>
                                                 <SelectContent>
@@ -390,14 +395,13 @@ export default function ChecklistMasterPage() {
 
                                         {/* Compulsory Flag */}
                                         <div className='space-y-2'>
-                                            <label className='font-medium text-gray-700 text-sm'>Compulsory Flag</label>
                                             <div className='flex items-center space-x-2'>
                                                 <Checkbox
-                                                    id='isCompulsory'
+                                                    id='compulsory-flag-checkbox'
                                                     checked={watch('isCompulsory')}
                                                     onCheckedChange={(checked) => setValue('isCompulsory', checked as boolean)}
                                                 />
-                                                <label htmlFor='isCompulsory' className='font-medium text-sm'>
+                                                <label htmlFor='compulsory-flag-checkbox' className='font-medium text-sm'>
                                                     Compulsory
                                                 </label>
                                             </div>

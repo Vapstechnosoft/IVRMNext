@@ -21,7 +21,9 @@ export default function FOMonthEndReportPage() {
     const [month, setMonth] = useState<string>('01');
     const [date, setDate] = useState<string>('');
 
-    const handleReport = () => {};
+    const handleReport = () => {
+        // TODO: Implement report generation
+    };
     const handleClear = () => {
         setMode('Month Wise');
         setYear('2023');
@@ -56,9 +58,11 @@ export default function FOMonthEndReportPage() {
                         </div>
 
                         <div className='md:col-span-3'>
-                            <label className='font-medium text-sm'>Year</label>
+                            <label htmlFor='year-select' className='font-medium text-sm'>
+                                Year
+                            </label>
                             <Select value={year} onValueChange={setYear}>
-                                <SelectTrigger>
+                                <SelectTrigger id='year-select'>
                                     <SelectValue />
                                 </SelectTrigger>
                                 <SelectContent>
@@ -73,9 +77,11 @@ export default function FOMonthEndReportPage() {
 
                         {mode === 'Month Wise' ? (
                             <div className='md:col-span-3'>
-                                <label className='font-medium text-sm'>Month</label>
+                                <label htmlFor='month-select' className='font-medium text-sm'>
+                                    Month
+                                </label>
                                 <Select value={month} onValueChange={setMonth}>
-                                    <SelectTrigger>
+                                    <SelectTrigger id='month-select'>
                                         <SelectValue />
                                     </SelectTrigger>
                                     <SelectContent>
@@ -89,8 +95,10 @@ export default function FOMonthEndReportPage() {
                             </div>
                         ) : (
                             <div className='md:col-span-3'>
-                                <label className='font-medium text-sm'>Date</label>
-                                <InputText type='date' value={date} onChange={(e) => setDate(e.target.value)} />
+                                <label htmlFor='date-input' className='font-medium text-sm'>
+                                    Date
+                                </label>
+                                <InputText id='date-input' type='date' value={date} onChange={(e) => setDate(e.target.value)} />
                             </div>
                         )}
 

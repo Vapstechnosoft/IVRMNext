@@ -302,130 +302,224 @@ export default function PayrollStandardForm({ existingData, className = '' }: Pa
                             className='transition-colors focus:ring-2 focus:ring-primary/20'
                         />
 
-                        <InputNumber
-                            label='PF Max Amount'
-                            required
-                            id='HRC_PFMaxAmt'
-                            {...register('HRC_PFMaxAmt', { valueAsNumber: true })}
-                            error={errors.HRC_PFMaxAmt?.message}
-                            className='transition-colors focus:ring-2 focus:ring-primary/20'
+                        <Controller
+                            name='HRC_PFMaxAmt'
+                            control={control}
+                            render={({ field }) => (
+                                <InputNumber
+                                    label='PF Max Amount'
+                                    required
+                                    id='HRC_PFMaxAmt'
+                                    value={field.value}
+                                    onChange={field.onChange}
+                                    error={errors.HRC_PFMaxAmt?.message}
+                                    className='transition-colors focus:ring-2 focus:ring-primary/20'
+                                />
+                            )}
                         />
 
-                        <InputNumber
-                            label='FPF %'
-                            required
-                            id='HRC_FPFPer'
-                            step='0.01'
-                            {...register('HRC_FPFPer', { valueAsNumber: true })}
-                            error={errors.HRC_FPFPer?.message}
-                            className='transition-colors focus:ring-2 focus:ring-primary/20'
+                        <Controller
+                            name='HRC_FPFPer'
+                            control={control}
+                            render={({ field }) => (
+                                <InputNumber
+                                    label='FPF %'
+                                    required
+                                    id='HRC_FPFPer'
+                                    step={0.01}
+                                    value={field.value}
+                                    onChange={field.onChange}
+                                    error={errors.HRC_FPFPer?.message}
+                                    className='transition-colors focus:ring-2 focus:ring-primary/20'
+                                />
+                            )}
                         />
 
-                        <InputNumber
-                            label='EPF %'
-                            required
-                            id='HRC_EPFPer'
-                            step='0.01'
-                            {...register('HRC_EPFPer', { valueAsNumber: true })}
-                            error={errors.HRC_EPFPer?.message}
-                            className='transition-colors focus:ring-2 focus:ring-primary/20'
+                        <Controller
+                            name='HRC_EPFPer'
+                            control={control}
+                            render={({ field }) => (
+                                <InputNumber
+                                    label='EPF %'
+                                    required
+                                    id='HRC_EPFPer'
+                                    step={0.01}
+                                    value={field.value}
+                                    onChange={field.onChange}
+                                    error={errors.HRC_EPFPer?.message}
+                                    className='transition-colors focus:ring-2 focus:ring-primary/20'
+                                />
+                            )}
                         />
 
-                        <InputNumber
-                            label='EPF % After Retirement'
-                            id='HRC_EPFPerAfterRetirement'
-                            step='0.01'
-                            {...register('HRC_EPFPerAfterRetirement', {
-                                valueAsNumber: true
-                            })}
-                            error={errors.HRC_EPFPerAfterRetirement?.message}
-                            className='transition-colors focus:ring-2 focus:ring-primary/20'
+                        <Controller
+                            name='HRC_EPFPerAfterRetirement'
+                            control={control}
+                            render={({ field }) => (
+                                <InputNumber
+                                    label='EPF % After Retirement'
+                                    id='HRC_EPFPerAfterRetirement'
+                                    step={0.01}
+                                    value={field.value}
+                                    onChange={field.onChange}
+                                    error={errors.HRC_EPFPerAfterRetirement?.message}
+                                    className='transition-colors focus:ring-2 focus:ring-primary/20'
+                                />
+                            )}
                         />
 
-                        <InputNumber
-                            label='EPF % After Retirement (2)'
-                            id='HRC_EPFPerAfterRetirement2'
-                            step='0.01'
-                            {...register('HRC_EPFPerAfterRetirement2', {
-                                valueAsNumber: true
-                            })}
-                            error={errors.HRC_EPFPerAfterRetirement2?.message}
-                            className='transition-colors focus:ring-2 focus:ring-primary/20'
+                        <Controller
+                            name='HRC_EPFPerAfterRetirement2'
+                            control={control}
+                            render={({ field }) => (
+                                <InputNumber
+                                    label='EPF % After Retirement (2)'
+                                    id='HRC_EPFPerAfterRetirement2'
+                                    step={0.01}
+                                    value={field.value}
+                                    onChange={field.onChange}
+                                    error={errors.HRC_EPFPerAfterRetirement2?.message}
+                                    className='transition-colors focus:ring-2 focus:ring-primary/20'
+                                />
+                            )}
                         />
 
-                        <InputNumber
-                            label='Acc No. 2 %'
-                            id='HRC_AccNo2Per'
-                            step='0.01'
-                            {...register('HRC_AccNo2Per', { valueAsNumber: true })}
-                            error={errors.HRC_AccNo2Per?.message}
-                            className='transition-colors focus:ring-2 focus:ring-primary/20'
+                        <Controller
+                            name='HRC_AccNo2Per'
+                            control={control}
+                            render={({ field }) => (
+                                <InputNumber
+                                    label='Acc No. 2 %'
+                                    id='HRC_AccNo2Per'
+                                    step={0.01}
+                                    value={field.value}
+                                    onChange={field.onChange}
+                                    error={errors.HRC_AccNo2Per?.message}
+                                    className='transition-colors focus:ring-2 focus:ring-primary/20'
+                                />
+                            )}
                         />
 
-                        <InputNumber
-                            label='A/C2 Min Amount'
-                            id='HRC_AC2MinAmt'
-                            {...register('HRC_AC2MinAmt', { valueAsNumber: true })}
-                            error={errors.HRC_AC2MinAmt?.message}
-                            className='transition-colors focus:ring-2 focus:ring-primary/20'
+                        <Controller
+                            name='HRC_AC2MinAmt'
+                            control={control}
+                            render={({ field }) => (
+                                <InputNumber
+                                    label='A/C2 Min Amount'
+                                    id='HRC_AC2MinAmt'
+                                    value={field.value}
+                                    onChange={field.onChange}
+                                    error={errors.HRC_AC2MinAmt?.message}
+                                    className='transition-colors focus:ring-2 focus:ring-primary/20'
+                                />
+                            )}
                         />
 
-                        <InputNumber
-                            label='Acc No. 21 %'
-                            id='HRC_AccNo21Per'
-                            step='0.01'
-                            {...register('HRC_AccNo21Per', { valueAsNumber: true })}
-                            error={errors.HRC_AccNo21Per?.message}
-                            className='transition-colors focus:ring-2 focus:ring-primary/20'
+                        <Controller
+                            name='HRC_AccNo21Per'
+                            control={control}
+                            render={({ field }) => (
+                                <InputNumber
+                                    label='Acc No. 21 %'
+                                    id='HRC_AccNo21Per'
+                                    step={0.01}
+                                    value={field.value}
+                                    onChange={field.onChange}
+                                    error={errors.HRC_AccNo21Per?.message}
+                                    className='transition-colors focus:ring-2 focus:ring-primary/20'
+                                />
+                            )}
                         />
 
-                        <InputNumber
-                            label='A/C21 Min Amount'
-                            id='HRC_AC21MinAmt'
-                            {...register('HRC_AC21MinAmt', { valueAsNumber: true })}
-                            error={errors.HRC_AC21MinAmt?.message}
-                            className='transition-colors focus:ring-2 focus:ring-primary/20'
+                        <Controller
+                            name='HRC_AC21MinAmt'
+                            control={control}
+                            render={({ field }) => (
+                                <InputNumber
+                                    label='A/C21 Min Amount'
+                                    id='HRC_AC21MinAmt'
+                                    value={field.value}
+                                    onChange={field.onChange}
+                                    error={errors.HRC_AC21MinAmt?.message}
+                                    className='transition-colors focus:ring-2 focus:ring-primary/20'
+                                />
+                            )}
                         />
 
-                        <InputNumber
-                            label='Acc No. 22 %'
-                            id='HRC_AccNo22Per'
-                            step='0.01'
-                            {...register('HRC_AccNo22Per', { valueAsNumber: true })}
-                            error={errors.HRC_AccNo22Per?.message}
-                            className='transition-colors focus:ring-2 focus:ring-primary/20'
+                        <Controller
+                            name='HRC_AccNo22Per'
+                            control={control}
+                            render={({ field }) => (
+                                <InputNumber
+                                    label='Acc No. 22 %'
+                                    id='HRC_AccNo22Per'
+                                    step={0.01}
+                                    value={field.value}
+                                    onChange={field.onChange}
+                                    error={errors.HRC_AccNo22Per?.message}
+                                    className='transition-colors focus:ring-2 focus:ring-primary/20'
+                                />
+                            )}
                         />
 
-                        <InputNumber
-                            label='A/C22 Min Amount'
-                            id='HRC_AC22MinAmt'
-                            {...register('HRC_AC22MinAmt', { valueAsNumber: true })}
-                            error={errors.HRC_AC22MinAmt?.message}
-                            className='transition-colors focus:ring-2 focus:ring-primary/20'
+                        <Controller
+                            name='HRC_AC22MinAmt'
+                            control={control}
+                            render={({ field }) => (
+                                <InputNumber
+                                    label='A/C22 Min Amount'
+                                    id='HRC_AC22MinAmt'
+                                    value={field.value}
+                                    onChange={field.onChange}
+                                    error={errors.HRC_AC22MinAmt?.message}
+                                    className='transition-colors focus:ring-2 focus:ring-primary/20'
+                                />
+                            )}
                         />
 
-                        <InputNumber
-                            label='Education Cess'
-                            id='HRC_EducationCess'
-                            {...register('HRC_EducationCess', { valueAsNumber: true })}
-                            error={errors.HRC_EducationCess?.message}
-                            className='transition-colors focus:ring-2 focus:ring-primary/20'
+                        <Controller
+                            name='HRC_EducationCess'
+                            control={control}
+                            render={({ field }) => (
+                                <InputNumber
+                                    label='Education Cess'
+                                    id='HRC_EducationCess'
+                                    value={field.value}
+                                    onChange={field.onChange}
+                                    error={errors.HRC_EducationCess?.message}
+                                    className='transition-colors focus:ring-2 focus:ring-primary/20'
+                                />
+                            )}
                         />
 
-                        <InputNumber
-                            label='Part A Max Limit'
-                            id='HRC_PartAMaxLimit'
-                            {...register('HRC_PartAMaxLimit', { valueAsNumber: true })}
-                            error={errors.HRC_PartAMaxLimit?.message}
-                            className='transition-colors focus:ring-2 focus:ring-primary/20'
+                        <Controller
+                            name='HRC_PartAMaxLimit'
+                            control={control}
+                            render={({ field }) => (
+                                <InputNumber
+                                    label='Part A Max Limit'
+                                    id='HRC_PartAMaxLimit'
+                                    value={field.value}
+                                    onChange={field.onChange}
+                                    error={errors.HRC_PartAMaxLimit?.message}
+                                    className='transition-colors focus:ring-2 focus:ring-primary/20'
+                                />
+                            )}
                         />
 
-                        <InputNumber
-                            label='Part B Max Limit'
-                            id='HRC_PartBMaxLimit'
-                            {...register('HRC_PartBMaxLimit', { valueAsNumber: true })}
-                            error={errors.HRC_PartBMaxLimit?.message}
-                            className='transition-colors focus:ring-2 focus:ring-primary/20'
+                        <Controller
+                            name='HRC_PartBMaxLimit'
+                            control={control}
+                            render={({ field }) => (
+                                <InputNumber
+                                    label='Part B Max Limit'
+                                    id='HRC_PartBMaxLimit'
+                                    value={field.value}
+                                    onChange={field.onChange}
+                                    error={errors.HRC_PartBMaxLimit?.message}
+                                    className='transition-colors focus:ring-2 focus:ring-primary/20'
+                                />
+                            )}
                         />
 
                         <div className='flex items-center space-x-3'>
@@ -441,13 +535,20 @@ export default function PayrollStandardForm({ existingData, className = '' }: Pa
                             </Label>
                         </div>
 
-                        <InputNumber
-                            label='Retirement Years'
-                            required
-                            id='HRC_RetirementYrs'
-                            {...register('HRC_RetirementYrs', { valueAsNumber: true })}
-                            error={errors.HRC_RetirementYrs?.message}
-                            className='transition-colors focus:ring-2 focus:ring-primary/20'
+                        <Controller
+                            name='HRC_RetirementYrs'
+                            control={control}
+                            render={({ field }) => (
+                                <InputNumber
+                                    label='Retirement Years'
+                                    required
+                                    id='HRC_RetirementYrs'
+                                    value={field.value}
+                                    onChange={field.onChange}
+                                    error={errors.HRC_RetirementYrs?.message}
+                                    className='transition-colors focus:ring-2 focus:ring-primary/20'
+                                />
+                            )}
                         />
                     </div>
                 </div>
@@ -466,31 +567,52 @@ export default function PayrollStandardForm({ existingData, className = '' }: Pa
                             className='transition-colors focus:ring-2 focus:ring-primary/20'
                         />
 
-                        <InputNumber
-                            label='ESI Max (₹)'
-                            required
-                            id='HRC_ESIMax'
-                            {...register('HRC_ESIMax', { valueAsNumber: true })}
-                            error={errors.HRC_ESIMax?.message}
-                            className='transition-colors focus:ring-2 focus:ring-primary/20'
+                        <Controller
+                            name='HRC_ESIMax'
+                            control={control}
+                            render={({ field }) => (
+                                <InputNumber
+                                    label='ESI Max (₹)'
+                                    required
+                                    id='HRC_ESIMax'
+                                    value={field.value}
+                                    onChange={field.onChange}
+                                    error={errors.HRC_ESIMax?.message}
+                                    className='transition-colors focus:ring-2 focus:ring-primary/20'
+                                />
+                            )}
                         />
 
-                        <InputNumber
-                            label='ESI Max Amount'
-                            id='HRC_ESIMax2'
-                            {...register('HRC_ESIMax', { valueAsNumber: true })}
-                            error={errors.HRC_ESIMax?.message}
-                            className='transition-colors focus:ring-2 focus:ring-primary/20'
+                        <Controller
+                            name='HRC_ESIMax'
+                            control={control}
+                            render={({ field }) => (
+                                <InputNumber
+                                    label='ESI Max Amount'
+                                    id='HRC_ESIMax2'
+                                    value={field.value}
+                                    onChange={field.onChange}
+                                    error={errors.HRC_ESIMax?.message}
+                                    className='transition-colors focus:ring-2 focus:ring-primary/20'
+                                />
+                            )}
                         />
 
-                        <InputNumber
-                            label='Employer Contribution (%)'
-                            required
-                            id='HRC_ESIEmplrCont'
-                            step='0.01'
-                            {...register('HRC_ESIEmplrCont', { valueAsNumber: true })}
-                            error={errors.HRC_ESIEmplrCont?.message}
-                            className='transition-colors focus:ring-2 focus:ring-primary/20'
+                        <Controller
+                            name='HRC_ESIEmplrCont'
+                            control={control}
+                            render={({ field }) => (
+                                <InputNumber
+                                    label='Employer Contribution (%)'
+                                    required
+                                    id='HRC_ESIEmplrCont'
+                                    step={0.01}
+                                    value={field.value}
+                                    onChange={field.onChange}
+                                    error={errors.HRC_ESIEmplrCont?.message}
+                                    className='transition-colors focus:ring-2 focus:ring-primary/20'
+                                />
+                            )}
                         />
                     </div>
                 </div>
@@ -663,12 +785,19 @@ export default function PayrollStandardForm({ existingData, className = '' }: Pa
                 </div>
                 <div className='space-y-4'>
                     <div className='grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3'>
-                        <InputNumber
-                            label='Optional Holidays'
-                            id='HRC_OptionalHolidays'
-                            {...register('HRC_OptionalHolidays', { valueAsNumber: true })}
-                            error={errors.HRC_OptionalHolidays?.message}
-                            className='transition-colors focus:ring-2 focus:ring-primary/20'
+                        <Controller
+                            name='HRC_OptionalHolidays'
+                            control={control}
+                            render={({ field }) => (
+                                <InputNumber
+                                    label='Optional Holidays'
+                                    id='HRC_OptionalHolidays'
+                                    value={field.value}
+                                    onChange={field.onChange}
+                                    error={errors.HRC_OptionalHolidays?.message}
+                                    className='transition-colors focus:ring-2 focus:ring-primary/20'
+                                />
+                            )}
                         />
 
                         <div className='flex items-center space-x-3 pt-6'>
@@ -684,12 +813,19 @@ export default function PayrollStandardForm({ existingData, className = '' }: Pa
                             </Label>
                         </div>
 
-                        <InputNumber
-                            label='Minimum Periods'
-                            id='HRC_MinimumPeriods'
-                            {...register('HRC_MinimumPeriods', { valueAsNumber: true })}
-                            error={errors.HRC_MinimumPeriods?.message}
-                            className='transition-colors focus:ring-2 focus:ring-primary/20'
+                        <Controller
+                            name='HRC_MinimumPeriods'
+                            control={control}
+                            render={({ field }) => (
+                                <InputNumber
+                                    label='Minimum Periods'
+                                    id='HRC_MinimumPeriods'
+                                    value={field.value}
+                                    onChange={field.onChange}
+                                    error={errors.HRC_MinimumPeriods?.message}
+                                    className='transition-colors focus:ring-2 focus:ring-primary/20'
+                                />
+                            )}
                         />
 
                         <div className='group flex flex-col gap-1.5'>
@@ -717,22 +853,34 @@ export default function PayrollStandardForm({ existingData, className = '' }: Pa
                             {errors.HRC_IncrementMonth && <FormError>{errors.HRC_IncrementMonth.message}</FormError>}
                         </div>
 
-                        <InputNumber
-                            label='Increment Once In Months'
-                            id='HRC_IncrementOnceInMonths'
-                            {...register('HRC_IncrementOnceInMonths', {
-                                valueAsNumber: true
-                            })}
-                            error={errors.HRC_IncrementOnceInMonths?.message}
-                            className='transition-colors focus:ring-2 focus:ring-primary/20'
+                        <Controller
+                            name='HRC_IncrementOnceInMonths'
+                            control={control}
+                            render={({ field }) => (
+                                <InputNumber
+                                    label='Increment Once In Months'
+                                    id='HRC_IncrementOnceInMonths'
+                                    value={field.value}
+                                    onChange={field.onChange}
+                                    error={errors.HRC_IncrementOnceInMonths?.message}
+                                    className='transition-colors focus:ring-2 focus:ring-primary/20'
+                                />
+                            )}
                         />
 
-                        <InputNumber
-                            label='Alert Days'
-                            id='HRC_AlertDays'
-                            {...register('HRC_AlertDays', { valueAsNumber: true })}
-                            error={errors.HRC_AlertDays?.message}
-                            className='transition-colors focus:ring-2 focus:ring-primary/20'
+                        <Controller
+                            name='HRC_AlertDays'
+                            control={control}
+                            render={({ field }) => (
+                                <InputNumber
+                                    label='Alert Days'
+                                    id='HRC_AlertDays'
+                                    value={field.value}
+                                    onChange={field.onChange}
+                                    error={errors.HRC_AlertDays?.message}
+                                    className='transition-colors focus:ring-2 focus:ring-primary/20'
+                                />
+                            )}
                         />
                     </div>
                 </div>

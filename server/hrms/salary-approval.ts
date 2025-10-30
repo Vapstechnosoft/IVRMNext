@@ -1,8 +1,8 @@
 // Salary Approval API Integration - Complete Implementation
 
 import { clientEnv } from '@/env';
+import type { ApiResponse } from '@/lib/apiService';
 import type {
-    SalaryApprovalApiResponse,
     SalaryApprovalOnloadRequest,
     SalaryApprovalOnloadResponse,
     SalaryApprovalRequest,
@@ -110,7 +110,7 @@ export async function approveSalaries(
 /**
  * Test API connection for salary approval process
  */
-export async function testSalaryApprovalProcessAPI(miId: number = 30): Promise<SalaryApprovalApiResponse> {
+export async function testSalaryApprovalProcessAPI(miId: number = 30): Promise<ApiResponse<SalaryApprovalResponse>> {
     try {
         const response = await axios.post(
             `${API_BASE_URL}/api/CumulativeSalaryReportFacade/onloadgetdetailsNew?mid=${miId}`,

@@ -3,28 +3,23 @@
 import { Button } from '@/components/ui/button';
 import { RefreshCw, Save, X } from 'lucide-react';
 import { type SubmitHandler, useForm } from 'react-hook-form';
-import type { Holiday } from './columns';
+import type { MasterHoliday } from './columns';
 
-export type HolidayFormData = {
-    // TODO: Add form fields based on the entity
-};
+export type HolidayFormData = Record<string, never>;
 
 interface HolidayFormProps {
-    editingHoliday: Holiday | null;
+    editingHoliday: MasterHoliday | null;
     onSubmit: (data: HolidayFormData) => void;
     onCancel: () => void;
 }
 
 export function HolidayForm({ editingHoliday, onSubmit, onCancel }: HolidayFormProps) {
     const {
-        register,
         handleSubmit,
-        watch,
-        setValue,
-        formState: { errors, isSubmitting }
+        formState: { isSubmitting }
     } = useForm<HolidayFormData>({
         mode: 'onChange',
-        defaultValues: editingHoliday || {}
+        defaultValues: (editingHoliday as any) || {}
     });
 
     const handleFormSubmit: SubmitHandler<HolidayFormData> = async (data) => {

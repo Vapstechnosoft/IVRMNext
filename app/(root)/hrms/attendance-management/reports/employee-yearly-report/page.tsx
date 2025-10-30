@@ -14,6 +14,7 @@ import { DataTableColumnHeader } from '@/components/ui/data-table-column-header'
 import { GenericDataTable } from '@/components/ui/data-table/generic-data-table';
 import { InputText } from '@/components/ui/extension/input-text';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
+import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { type BaseEntity, createLocalCrud } from '@/lib/localdb';
 import type { ColumnDef } from '@tanstack/react-table';
@@ -71,8 +72,12 @@ export default function EmployeeYearlyReportPage() {
         }
     ];
 
-    const handleReport = () => {};
-    const handleExport = () => {};
+    const handleReport = () => {
+        // TODO: Implement report generation
+    };
+    const handleExport = () => {
+        // TODO: Implement export functionality
+    };
     const handlePrint = () => window.print();
 
     return (
@@ -93,21 +98,29 @@ export default function EmployeeYearlyReportPage() {
                     className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
                     <div className='grid grid-cols-1 gap-4 md:grid-cols-12'>
                         <div className='flex items-center gap-4 md:col-span-12'>
-                            <label className='flex items-center gap-2 text-sm'>
-                                <Checkbox checked={allOrIndividual === 'All'} onCheckedChange={() => setAllOrIndividual('All')} /> All
-                            </label>
-                            <label className='flex items-center gap-2 text-sm'>
+                            <div className='flex items-center gap-2 text-sm'>
                                 <Checkbox
+                                    id='all-checkbox'
+                                    checked={allOrIndividual === 'All'}
+                                    onCheckedChange={() => setAllOrIndividual('All')}
+                                />
+                                <Label htmlFor='all-checkbox'>All</Label>
+                            </div>
+                            <div className='flex items-center gap-2 text-sm'>
+                                <Checkbox
+                                    id='individual-checkbox'
                                     checked={allOrIndividual === 'Individual'}
                                     onCheckedChange={() => setAllOrIndividual('Individual')}
-                                />{' '}
-                                Individual
-                            </label>
+                                />
+                                <Label htmlFor='individual-checkbox'>Individual</Label>
+                            </div>
                         </div>
                         <div className='md:col-span-6'>
-                            <label className='font-medium text-sm'>Employee</label>
+                            <label htmlFor='employee-select' className='font-medium text-sm'>
+                                Employee
+                            </label>
                             <Select onValueChange={setEmployee}>
-                                <SelectTrigger>
+                                <SelectTrigger id='employee-select'>
                                     <SelectValue placeholder='Select or Search Employee in list' />
                                 </SelectTrigger>
                                 <SelectContent>
@@ -120,12 +133,16 @@ export default function EmployeeYearlyReportPage() {
                             </Select>
                         </div>
                         <div className='md:col-span-3'>
-                            <label className='font-medium text-sm'>From Date</label>
-                            <InputText type='date' value={fromDate} onChange={(e) => setFromDate(e.target.value)} />
+                            <label htmlFor='from-date-input' className='font-medium text-sm'>
+                                From Date
+                            </label>
+                            <InputText id='from-date-input' type='date' value={fromDate} onChange={(e) => setFromDate(e.target.value)} />
                         </div>
                         <div className='md:col-span-3'>
-                            <label className='font-medium text-sm'>To Date</label>
-                            <InputText type='date' value={toDate} onChange={(e) => setToDate(e.target.value)} />
+                            <label htmlFor='to-date-input' className='font-medium text-sm'>
+                                To Date
+                            </label>
+                            <InputText id='to-date-input' type='date' value={toDate} onChange={(e) => setToDate(e.target.value)} />
                         </div>
                         <div className='flex gap-2 md:col-span-12'>
                             <Button onClick={handleReport}>

@@ -380,11 +380,11 @@ export default function PFForm3APage() {
                 <div className='flex items-center justify-center gap-6'>
                     {/* Year Filter */}
                     <div className='space-y-2'>
-                        <label className='font-medium text-foreground text-sm'>
+                        <label htmlFor='year-select' className='font-medium text-foreground text-sm'>
                             Year: <span className='text-red-500'>*</span>
                         </label>
                         <Select value={filters.year} onValueChange={(value) => handleFilterChange('year', value)}>
-                            <SelectTrigger className='w-40'>
+                            <SelectTrigger id='year-select' className='w-40'>
                                 <SelectValue placeholder='Select' />
                             </SelectTrigger>
                             <SelectContent>
@@ -399,11 +399,11 @@ export default function PFForm3APage() {
 
                     {/* Employee Filter */}
                     <div className='space-y-2'>
-                        <label className='font-medium text-foreground text-sm'>
+                        <label htmlFor='employee-select' className='font-medium text-foreground text-sm'>
                             Employee: <span className='text-red-500'>*</span>
                         </label>
                         <Select value={filters.employeeCode} onValueChange={(value) => handleFilterChange('employeeCode', value)}>
-                            <SelectTrigger className='w-80'>
+                            <SelectTrigger id='employee-select' className='w-80'>
                                 <SelectValue placeholder='Select' />
                             </SelectTrigger>
                             <SelectContent>

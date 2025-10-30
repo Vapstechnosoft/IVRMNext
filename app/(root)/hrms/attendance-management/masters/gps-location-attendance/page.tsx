@@ -120,24 +120,28 @@ export default function GPSLocationAttendancePage() {
                             <form onSubmit={handleSubmit(onSubmit)} className='space-y-6'>
                                 <div className='grid grid-cols-1 gap-6 md:grid-cols-4'>
                                     <div className='space-y-2 md:col-span-2'>
-                                        <label className='font-medium text-sm'>
+                                        <label className='font-medium text-sm' htmlFor='employeeName'>
                                             Employee Name <span className='text-red-500'>*</span>
                                         </label>
                                         <InputText
+                                            id='employeeName'
                                             placeholder='Employee Name'
                                             {...register('employeeName', { required: 'Required' })}
                                             error={errors.employeeName?.message}
                                         />
                                     </div>
                                     <div className='space-y-2'>
-                                        <label className='font-medium text-sm'>Designation</label>
-                                        <InputText placeholder='Designation' {...register('designation')} />
+                                        <label className='font-medium text-sm' htmlFor='designation'>
+                                            Designation
+                                        </label>
+                                        <InputText id='designation' placeholder='Designation' {...register('designation')} />
                                     </div>
                                     <div className='space-y-2'>
-                                        <label className='font-medium text-sm'>
+                                        <label className='font-medium text-sm' htmlFor='date'>
                                             Date <span className='text-red-500'>*</span>
                                         </label>
                                         <InputText
+                                            id='date'
                                             type='date'
                                             {...register('date', { required: 'Required' })}
                                             error={errors.date?.message}
@@ -147,11 +151,11 @@ export default function GPSLocationAttendancePage() {
 
                                 <div className='grid grid-cols-1 gap-6 md:grid-cols-4'>
                                     <div className='space-y-2 md:col-span-2'>
-                                        <label className='font-medium text-sm'>
+                                        <label className='font-medium text-sm' htmlFor='clientName'>
                                             Client Name <span className='text-red-500'>*</span>
                                         </label>
                                         <Select onValueChange={(v) => setValue('clientName', v)}>
-                                            <SelectTrigger>
+                                            <SelectTrigger id='clientName'>
                                                 <SelectValue placeholder='Select or Search Client Name' />
                                             </SelectTrigger>
                                             <SelectContent>
@@ -161,9 +165,11 @@ export default function GPSLocationAttendancePage() {
                                         </Select>
                                     </div>
                                     <div className='space-y-2 md:col-span-2'>
-                                        <label className='font-medium text-sm'>Sales Lead</label>
+                                        <label className='font-medium text-sm' htmlFor='salesLead'>
+                                            Sales Lead
+                                        </label>
                                         <Select onValueChange={(v) => setValue('salesLead', v)}>
-                                            <SelectTrigger>
+                                            <SelectTrigger id='salesLead'>
                                                 <SelectValue placeholder='Select or Search Sales Lead' />
                                             </SelectTrigger>
                                             <SelectContent>
@@ -175,7 +181,7 @@ export default function GPSLocationAttendancePage() {
                                 </div>
 
                                 <div className='space-y-2'>
-                                    <label className='font-medium text-sm'>Location</label>
+                                    <span className='font-medium text-sm'>Location</span>
                                     <div className='flex items-center gap-2'>
                                         <MapPin className='h-4 w-4 opacity-70' />
                                         <InputText placeholder='Address or coordinates' className='flex-1' {...register('location')} />
@@ -184,13 +190,15 @@ export default function GPSLocationAttendancePage() {
 
                                 <div className='grid grid-cols-1 items-center gap-6 md:grid-cols-2'>
                                     <div className='space-y-2'>
-                                        <label className='font-medium text-sm'>Remarks</label>
-                                        <InputText placeholder='Enter Remarks' {...register('remarks')} />
+                                        <label className='font-medium text-sm' htmlFor='remarks'>
+                                            Remarks
+                                        </label>
+                                        <InputText id='remarks' placeholder='Enter Remarks' {...register('remarks')} />
                                     </div>
-                                    <label className='flex items-center gap-2 pt-6 text-sm md:pt-0'>
-                                        <Checkbox checked={watch('punchFlag')} onCheckedChange={(v) => setValue('punchFlag', Boolean(v))} />{' '}
-                                        Punch Flag
-                                    </label>
+                                    <div className='flex items-center gap-2 pt-6 text-sm md:pt-0'>
+                                        <Checkbox checked={watch('punchFlag')} onCheckedChange={(v) => setValue('punchFlag', Boolean(v))} />
+                                        <span>Punch Flag</span>
+                                    </div>
                                 </div>
 
                                 <div className='flex justify-center gap-4 border-t pt-6'>

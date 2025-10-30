@@ -23,6 +23,8 @@ export interface MasterLeave {
     createdAt: string;
 }
 
+export type Leave = MasterLeave;
+
 interface MasterLeaveColumnsProps {
     onEdit: (row: MasterLeave) => void;
     onDelete: (row: MasterLeave) => void;

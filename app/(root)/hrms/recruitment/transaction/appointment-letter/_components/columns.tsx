@@ -5,6 +5,20 @@ import { DataTableColumnHeader } from '@/components/ui/data-table-column-header'
 import type { ColumnDef } from '@tanstack/react-table';
 import { Edit, Trash2 } from 'lucide-react';
 
+export interface EarningDetail {
+    id: number;
+    earningHead: string;
+    amount: number;
+    percentage: number;
+}
+
+export interface DeductionDetail {
+    id: number;
+    deductionHead: string;
+    amount: number;
+    percentage: number;
+}
+
 export interface AppointmentLetter {
     id: number;
     candidateName: string;

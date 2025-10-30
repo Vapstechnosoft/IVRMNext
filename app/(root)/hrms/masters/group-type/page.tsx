@@ -6,13 +6,12 @@ import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
 import { HRMS_MI_ID } from '@/constants/hrms-config';
 import { useMasterGroupType } from '@/hooks/hrms/useMasterGroupType';
-import type { GroupTypeDetail, MasterGroupTypeResponse } from '@/types/hrms/master-group-type';
+import type { GroupTypeDetail } from '@/types/hrms/master-group-type';
 import { ListOrdered, Plus, Save, X } from 'lucide-react';
 import { useState } from 'react';
 import { toast } from 'sonner';
-import AddGroupTypeForm from './_components/add-form';
 import { columns, getEditableColumns } from './_components/columns';
-import UpdateGroupTypeForm from './_components/update-form';
+import GroupTypeForm from './_components/group-type-form';
 
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 
@@ -23,7 +22,7 @@ export default function MasterGroupTypePage(_props: {
     const { listQuery } = useMasterGroupType(roleId);
 
     return (
-        <FormProvider<MasterGroupTypeResponse>>
+        <FormProvider<GroupTypeDetail>>
             <MasterGroupTypePageContent response={listQuery.data} isLoading={listQuery.isLoading} error={listQuery.error} />
         </FormProvider>
     );
@@ -38,7 +37,7 @@ function MasterGroupTypePageContent({
     isLoading: boolean;
     error: any;
 }) {
-    const { openAddForm } = useFormContext<MasterGroupTypeResponse>();
+    const { openAddForm } = useFormContext<GroupTypeDetail>();
     const { saveOrderMutation } = useMasterGroupType(HRMS_MI_ID);
     const rows: GroupTypeDetail[] = response?.data?.grouptypeList ?? [];
 
@@ -145,7 +144,7 @@ function MasterGroupTypePageContent({
 
 function FormSections() {
     const { isAddFormOpen, isEditFormOpen, selectedRow, closeAddForm, closeEditForm, addFormRef, editFormRef } =
-        useFormContext<MasterGroupTypeResponse>();
+        useFormContext<GroupTypeDetail>();
 
     return (
         <>
@@ -167,7 +166,7 @@ function FormSections() {
                                 className='-top-[3.5rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
                                 <X className='h-4 w-4 text-destructive' /> Close
                             </Button>
-                            <AddGroupTypeForm onSuccess={closeAddForm} />
+                            <GroupTypeForm onSuccess={closeAddForm} />
                         </div>
                     </CollapsibleSection>
                 </div>
@@ -190,7 +189,7 @@ function FormSections() {
                                 className='-top-[3.5rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
                                 <X className='h-4 w-4 text-destructive' /> Close
                             </Button>
-                            <UpdateGroupTypeForm selectedRow={selectedRow} onSuccess={closeEditForm} />
+                            <GroupTypeForm selectedRow={selectedRow} onSuccess={closeEditForm} />
                         </div>
                     </CollapsibleSection>
                 </div>

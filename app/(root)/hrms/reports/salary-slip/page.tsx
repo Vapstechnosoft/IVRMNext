@@ -5,9 +5,9 @@ import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
 import { DataTable } from '@/components/ui/data-table/data-table';
-import { Label } from '@/components/ui/extension/field';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { type BaseEntity, createLocalCrud } from '@/lib/localdb';
 import type { ColumnDef } from '@tanstack/react-table';
@@ -502,9 +502,11 @@ export default function SalarySlipReportPage() {
                     <div className='grid grid-cols-1 gap-4 md:grid-cols-3'>
                         {/* Month Filter */}
                         <div className='space-y-2'>
-                            <label className='font-medium text-foreground text-sm'>Month</label>
+                            <label htmlFor='month-select' className='font-medium text-foreground text-sm'>
+                                Month
+                            </label>
                             <Select value={filters.month} onValueChange={(value) => handleFilterChange('month', value)}>
-                                <SelectTrigger>
+                                <SelectTrigger id='month-select'>
                                     <SelectValue placeholder='Select' />
                                 </SelectTrigger>
                                 <SelectContent>
@@ -532,9 +534,11 @@ export default function SalarySlipReportPage() {
 
                         {/* Year Filter */}
                         <div className='space-y-2'>
-                            <label className='font-medium text-foreground text-sm'>Year</label>
+                            <label htmlFor='year-select' className='font-medium text-foreground text-sm'>
+                                Year
+                            </label>
                             <Select value={filters.year} onValueChange={(value) => handleFilterChange('year', value)}>
-                                <SelectTrigger>
+                                <SelectTrigger id='year-select'>
                                     <SelectValue placeholder='Select' />
                                 </SelectTrigger>
                                 <SelectContent>
@@ -569,34 +573,38 @@ export default function SalarySlipReportPage() {
 
                     {/* Options Section */}
                     <div className='grid grid-cols-2 gap-4 md:grid-cols-4'>
-                        <label className='flex cursor-pointer items-center gap-2 text-sm'>
+                        <div className='flex cursor-pointer items-center gap-2 text-sm'>
                             <Checkbox
+                                id='lop-days-checkbox'
                                 checked={filters.options.lopDays}
                                 onCheckedChange={(checked) => handleOptionChange('lopDays', !!checked)}
                             />
-                            LOP Days
-                        </label>
-                        <label className='flex cursor-pointer items-center gap-2 text-sm'>
+                            <Label htmlFor='lop-days-checkbox'>LOP Days</Label>
+                        </div>
+                        <div className='flex cursor-pointer items-center gap-2 text-sm'>
                             <Checkbox
+                                id='leave-details-checkbox'
                                 checked={filters.options.leaveDetails}
                                 onCheckedChange={(checked) => handleOptionChange('leaveDetails', !!checked)}
                             />
-                            Leave Details
-                        </label>
-                        <label className='flex cursor-pointer items-center gap-2 text-sm'>
+                            <Label htmlFor='leave-details-checkbox'>Leave Details</Label>
+                        </div>
+                        <div className='flex cursor-pointer items-center gap-2 text-sm'>
                             <Checkbox
+                                id='pan-card-checkbox'
                                 checked={filters.options.panCardNo}
                                 onCheckedChange={(checked) => handleOptionChange('panCardNo', !!checked)}
                             />
-                            Pan Card No.
-                        </label>
-                        <label className='flex cursor-pointer items-center gap-2 text-sm'>
+                            <Label htmlFor='pan-card-checkbox'>Pan Card No.</Label>
+                        </div>
+                        <div className='flex cursor-pointer items-center gap-2 text-sm'>
                             <Checkbox
+                                id='bank-details-checkbox'
                                 checked={filters.options.bankDetails}
                                 onCheckedChange={(checked) => handleOptionChange('bankDetails', !!checked)}
                             />
-                            Bank Details
-                        </label>
+                            <Label htmlFor='bank-details-checkbox'>Bank Details</Label>
+                        </div>
                     </div>
 
                     {/* Employee Table with Search */}

@@ -18,6 +18,8 @@ export interface LeaveCarryForward {
     createdAt: string;
 }
 
+export type LeaveCarryforward = LeaveCarryForward;
+
 interface LeaveCarryForwardColumnsProps {
     onEdit: (row: LeaveCarryForward) => void;
     onDelete: (row: LeaveCarryForward) => void;

@@ -1,13 +1,11 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
-import { RefreshCw, Save, X } from 'lucide-react';
+import { Save, X } from 'lucide-react';
 import { type SubmitHandler, useForm } from 'react-hook-form';
 import type { Leave } from './columns';
 
-export type LeaveFormData = {
-    // TODO: Add form fields based on the entity
-};
+export type LeaveFormData = Record<string, unknown>;
 
 interface LeaveFormProps {
     editingLeave: Leave | null;
@@ -16,15 +14,9 @@ interface LeaveFormProps {
 }
 
 export function LeaveForm({ editingLeave, onSubmit, onCancel }: LeaveFormProps) {
-    const {
-        register,
-        handleSubmit,
-        watch,
-        setValue,
-        formState: { errors, isSubmitting }
-    } = useForm<LeaveFormData>({
+    const { handleSubmit } = useForm<LeaveFormData>({
         mode: 'onChange',
-        defaultValues: editingLeave || {}
+        defaultValues: (editingLeave as any) || {}
     });
 
     const handleFormSubmit: SubmitHandler<LeaveFormData> = async (data) => {
@@ -40,18 +32,11 @@ export function LeaveForm({ editingLeave, onSubmit, onCancel }: LeaveFormProps) 
                     <X className='mr-2 h-4 w-4' />
                     Cancel
                 </Button>
-                <Button type='submit' disabled={isSubmitting}>
-                    {isSubmitting ? (
-                        <div className='flex items-center'>
-                            <RefreshCw className='mr-2 h-4 w-4 animate-spin' />
-                            Saving...
-                        </div>
-                    ) : (
-                        <div className='flex items-center'>
-                            <Save className='mr-2 h-4 w-4' />
-                            Save
-                        </div>
-                    )}
+                <Button type='submit' disabled={false}>
+                    <div className='flex items-center'>
+                        <Save className='mr-2 h-4 w-4' />
+                        Save
+                    </div>
                 </Button>
             </div>
         </form>

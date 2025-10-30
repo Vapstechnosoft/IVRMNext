@@ -301,13 +301,15 @@ export default function MasterHolidayPage() {
                                     <div className='space-y-4'>
                                         <div className='grid grid-cols-1 gap-4 lg:grid-cols-3'>
                                             <div className='space-y-2'>
-                                                <label className='font-medium text-sm'>
+                                                <label className='font-medium text-sm' htmlFor='calendarYear'>
                                                     Calendar Year <span className='text-red-500'>*</span>
                                                 </label>
                                                 <Select
                                                     value={calendarYear || ''}
                                                     onValueChange={(value) => setValue('calendarYear', value)}>
-                                                    <SelectTrigger className={errors.calendarYear ? 'border-red-500' : ''}>
+                                                    <SelectTrigger
+                                                        id='calendarYear'
+                                                        className={errors.calendarYear ? 'border-red-500' : ''}>
                                                         <SelectValue placeholder='--Select--' />
                                                     </SelectTrigger>
                                                     <SelectContent>
@@ -330,11 +332,11 @@ export default function MasterHolidayPage() {
                                             </div>
 
                                             <div className='space-y-2'>
-                                                <label className='font-medium text-sm'>
+                                                <label className='font-medium text-sm' htmlFor='department'>
                                                     Department <span className='text-red-500'>*</span>
                                                 </label>
                                                 <Select value={department || ''} onValueChange={(value) => setValue('department', value)}>
-                                                    <SelectTrigger className={errors.department ? 'border-red-500' : ''}>
+                                                    <SelectTrigger id='department' className={errors.department ? 'border-red-500' : ''}>
                                                         <SelectValue placeholder='--Select--' />
                                                     </SelectTrigger>
                                                     <SelectContent>
@@ -357,11 +359,11 @@ export default function MasterHolidayPage() {
                                             </div>
 
                                             <div className='space-y-2'>
-                                                <label className='font-medium text-sm'>
+                                                <label className='font-medium text-sm' htmlFor='holidayType'>
                                                     Holiday Type <span className='text-red-500'>*</span>
                                                 </label>
                                                 <Select value={holidayType || ''} onValueChange={(value) => setValue('holidayType', value)}>
-                                                    <SelectTrigger className={errors.holidayType ? 'border-red-500' : ''}>
+                                                    <SelectTrigger id='holidayType' className={errors.holidayType ? 'border-red-500' : ''}>
                                                         <SelectValue placeholder='--Select--' />
                                                     </SelectTrigger>
                                                     <SelectContent>
@@ -411,19 +413,17 @@ export default function MasterHolidayPage() {
                                         {/* Day Selection */}
                                         {selectDay && (
                                             <div className='space-y-2'>
-                                                <label className='font-medium text-sm'>Select Days:</label>
+                                                <span className='font-medium text-sm'>Select Days:</span>
                                                 <div className='max-h-32 overflow-y-auto rounded-md border bg-background p-3'>
                                                     <div className='grid grid-cols-4 gap-2'>
                                                         {weekDays.map((day) => (
-                                                            <label
-                                                                key={day.value}
-                                                                className='flex cursor-pointer items-center gap-2 text-sm'>
+                                                            <div key={day.value} className='flex cursor-pointer items-center gap-2 text-sm'>
                                                                 <Checkbox
                                                                     checked={selectedDays?.includes(day.value) || false}
                                                                     onCheckedChange={() => handleDayToggle(day.value)}
                                                                 />
-                                                                {day.label}
-                                                            </label>
+                                                                <span>{day.label}</span>
+                                                            </div>
                                                         ))}
                                                     </div>
                                                 </div>
@@ -432,10 +432,11 @@ export default function MasterHolidayPage() {
 
                                         <div className='grid grid-cols-1 gap-4 lg:grid-cols-3'>
                                             <div className='space-y-2'>
-                                                <label className='font-medium text-sm'>
+                                                <label className='font-medium text-sm' htmlFor='fromDate'>
                                                     From Date <span className='text-red-500'>*</span>
                                                 </label>
                                                 <input
+                                                    id='fromDate'
                                                     type='date'
                                                     {...register('fromDate', {
                                                         required: 'From Date is required'
@@ -449,10 +450,11 @@ export default function MasterHolidayPage() {
                                             </div>
 
                                             <div className='space-y-2'>
-                                                <label className='font-medium text-sm'>
+                                                <label className='font-medium text-sm' htmlFor='toDate'>
                                                     To Date <span className='text-red-500'>*</span>
                                                 </label>
                                                 <input
+                                                    id='toDate'
                                                     type='date'
                                                     {...register('toDate', {
                                                         required: 'To Date is required'

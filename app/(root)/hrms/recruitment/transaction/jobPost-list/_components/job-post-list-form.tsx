@@ -3,28 +3,23 @@
 import { Button } from '@/components/ui/button';
 import { RefreshCw, Save, X } from 'lucide-react';
 import { type SubmitHandler, useForm } from 'react-hook-form';
-import type { JobPostList } from './columns';
+import type { MRF } from './columns';
 
-export type JobPostListFormData = {
-    // TODO: Add form fields based on the entity
-};
+export type JobPostListFormData = Record<string, unknown>;
 
 interface JobPostListFormProps {
-    editingJobPostList: JobPostList | null;
+    editingJobPostList: MRF | null;
     onSubmit: (data: JobPostListFormData) => void;
     onCancel: () => void;
 }
 
 export function JobPostListForm({ editingJobPostList, onSubmit, onCancel }: JobPostListFormProps) {
     const {
-        register,
         handleSubmit,
-        watch,
-        setValue,
-        formState: { errors, isSubmitting }
+        formState: { isSubmitting }
     } = useForm<JobPostListFormData>({
         mode: 'onChange',
-        defaultValues: editingJobPostList || {}
+        defaultValues: ((editingJobPostList as any) || {}) as JobPostListFormData
     });
 
     const handleFormSubmit: SubmitHandler<JobPostListFormData> = async (data) => {

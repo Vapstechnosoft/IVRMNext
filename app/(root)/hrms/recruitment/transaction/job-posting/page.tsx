@@ -227,9 +227,9 @@ export default function JobPostingPage() {
                                 <div className='grid grid-cols-1 gap-6 md:grid-cols-2'>
                                     <div className='space-y-4'>
                                         <div className='space-y-2'>
-                                            <label className='font-medium text-sm'>
+                                            <span className='font-medium text-sm'>
                                                 Position <span className='text-red-500'>*</span>
-                                            </label>
+                                            </span>
                                             <Select onValueChange={(v) => setValue('position', v)}>
                                                 <SelectTrigger>
                                                     <SelectValue placeholder='--Select--' />
@@ -245,9 +245,9 @@ export default function JobPostingPage() {
                                         </div>
 
                                         <div className='space-y-2'>
-                                            <label className='font-medium text-sm'>
+                                            <span className='font-medium text-sm'>
                                                 Priority <span className='text-red-500'>*</span>
-                                            </label>
+                                            </span>
                                             <Select onValueChange={(v) => setValue('priority', v)}>
                                                 <SelectTrigger>
                                                     <SelectValue placeholder='--Select--' />
@@ -261,9 +261,9 @@ export default function JobPostingPage() {
                                         </div>
 
                                         <div className='space-y-2'>
-                                            <label className='font-medium text-sm'>
+                                            <span className='font-medium text-sm'>
                                                 Qualification <span className='text-red-500'>*</span>
-                                            </label>
+                                            </span>
                                             <Select onValueChange={(v) => setValue('qualification', v)}>
                                                 <SelectTrigger>
                                                     <SelectValue placeholder='--Select--' />
@@ -279,9 +279,9 @@ export default function JobPostingPage() {
                                         </div>
 
                                         <div className='space-y-2'>
-                                            <label className='font-medium text-sm'>
+                                            <span className='font-medium text-sm'>
                                                 No. of Position <span className='text-red-500'>*</span>
-                                            </label>
+                                            </span>
                                             <InputText
                                                 placeholder='e.g. 3'
                                                 {...register('noOfPositions', { required: 'Required' })}
@@ -290,9 +290,9 @@ export default function JobPostingPage() {
                                         </div>
 
                                         <div className='space-y-2'>
-                                            <label className='font-medium text-sm'>
+                                            <span className='font-medium text-sm'>
                                                 Job Description <span className='text-red-500'>*</span>
-                                            </label>
+                                            </span>
                                             <InputText
                                                 placeholder='Short description'
                                                 {...register('jobDescription', { required: 'Required' })}
@@ -301,9 +301,9 @@ export default function JobPostingPage() {
                                         </div>
 
                                         <div className='space-y-2'>
-                                            <label className='font-medium text-sm'>
+                                            <span className='font-medium text-sm'>
                                                 Age <span className='text-red-500'>*</span>
-                                            </label>
+                                            </span>
                                             <InputText
                                                 placeholder='e.g. 22-30'
                                                 {...register('age', { required: 'Required' })}
@@ -312,9 +312,9 @@ export default function JobPostingPage() {
                                         </div>
 
                                         <div className='space-y-2'>
-                                            <label className='font-medium text-sm'>
+                                            <span className='font-medium text-sm'>
                                                 Reason <span className='text-red-500'>*</span>
-                                            </label>
+                                            </span>
                                             <InputText
                                                 placeholder='Reason'
                                                 {...register('reason', { required: 'Required' })}
@@ -323,7 +323,7 @@ export default function JobPostingPage() {
                                         </div>
 
                                         <div className='space-y-2'>
-                                            <label className='font-medium text-sm'>Job Attachment</label>
+                                            <span className='font-medium text-sm'>Job Attachment</span>
                                             <Button type='button' variant='outline' size='sm'>
                                                 <Upload className='mr-2 h-4 w-4' />
                                                 Upload Document
@@ -333,43 +333,52 @@ export default function JobPostingPage() {
 
                                     <div className='space-y-4'>
                                         <div className='space-y-2'>
-                                            <label className='font-medium text-sm'>
+                                            <span className='font-medium text-sm'>
                                                 Location <span className='text-red-500'>*</span>
-                                            </label>
+                                            </span>
                                             <InputText
                                                 placeholder='City / Site'
                                                 {...register('location', { required: 'Required' })}
                                                 error={errors.location?.message}
                                             />
                                             <div className='flex items-center gap-6 pt-1'>
-                                                <label className='flex items-center gap-2 text-sm'>
+                                                <div className='flex items-center gap-2 text-sm'>
                                                     <Checkbox
+                                                        id='locTypeHO'
                                                         checked={watch('locationType') === 'HO'}
                                                         onCheckedChange={(_v) => setValue('locationType', 'HO')}
-                                                    />{' '}
-                                                    HO
-                                                </label>
-                                                <label className='flex items-center gap-2 text-sm'>
+                                                    />
+                                                    <label htmlFor='locTypeHO' className='cursor-pointer'>
+                                                        HO
+                                                    </label>
+                                                </div>
+                                                <div className='flex items-center gap-2 text-sm'>
                                                     <Checkbox
+                                                        id='locTypeClient'
                                                         checked={watch('locationType') === 'Client'}
                                                         onCheckedChange={(_v) => setValue('locationType', 'Client')}
-                                                    />{' '}
-                                                    Client
-                                                </label>
-                                                <label className='flex items-center gap-2 text-sm'>
+                                                    />
+                                                    <label htmlFor='locTypeClient' className='cursor-pointer'>
+                                                        Client
+                                                    </label>
+                                                </div>
+                                                <div className='flex items-center gap-2 text-sm'>
                                                     <Checkbox
+                                                        id='locTypeLocation'
                                                         checked={watch('locationType') === 'Location'}
                                                         onCheckedChange={(_v) => setValue('locationType', 'Location')}
-                                                    />{' '}
-                                                    Location
-                                                </label>
+                                                    />
+                                                    <label htmlFor='locTypeLocation' className='cursor-pointer'>
+                                                        Location
+                                                    </label>
+                                                </div>
                                             </div>
                                         </div>
 
                                         <div className='space-y-2'>
-                                            <label className='font-medium text-sm'>
+                                            <span className='font-medium text-sm'>
                                                 Department <span className='text-red-500'>*</span>
-                                            </label>
+                                            </span>
                                             <Select onValueChange={(v) => setValue('department', v)}>
                                                 <SelectTrigger>
                                                     <SelectValue placeholder='--Select--' />
@@ -384,9 +393,9 @@ export default function JobPostingPage() {
                                         </div>
 
                                         <div className='space-y-2'>
-                                            <label className='font-medium text-sm'>
+                                            <span className='font-medium text-sm'>
                                                 Position Type <span className='text-red-500'>*</span>
-                                            </label>
+                                            </span>
                                             <Select onValueChange={(v) => setValue('positionType', v)}>
                                                 <SelectTrigger>
                                                     <SelectValue placeholder='--Select--' />
@@ -400,9 +409,9 @@ export default function JobPostingPage() {
                                         </div>
 
                                         <div className='space-y-2'>
-                                            <label className='font-medium text-sm'>
+                                            <span className='font-medium text-sm'>
                                                 MRF No. <span className='text-red-500'>*</span>
-                                            </label>
+                                            </span>
                                             <InputText
                                                 placeholder='Enter MRF number'
                                                 {...register('mrfNo', { required: 'Required' })}
@@ -411,9 +420,9 @@ export default function JobPostingPage() {
                                         </div>
 
                                         <div className='space-y-2'>
-                                            <label className='font-medium text-sm'>
+                                            <span className='font-medium text-sm'>
                                                 Skill <span className='text-red-500'>*</span>
-                                            </label>
+                                            </span>
                                             <InputText
                                                 placeholder='Primary skills'
                                                 {...register('skill', { required: 'Required' })}
@@ -422,9 +431,9 @@ export default function JobPostingPage() {
                                         </div>
 
                                         <div className='space-y-2'>
-                                            <label className='font-medium text-sm'>
+                                            <span className='font-medium text-sm'>
                                                 Experience (Year) <span className='text-red-500'>*</span>
-                                            </label>
+                                            </span>
                                             <div className='grid grid-cols-3 items-center gap-2'>
                                                 <InputText
                                                     placeholder='From'
@@ -441,9 +450,9 @@ export default function JobPostingPage() {
                                         </div>
 
                                         <div className='space-y-2'>
-                                            <label className='font-medium text-sm'>
+                                            <span className='font-medium text-sm'>
                                                 Gender <span className='text-red-500'>*</span>
-                                            </label>
+                                            </span>
                                             <Select onValueChange={(v) => setValue('gender', v)}>
                                                 <SelectTrigger>
                                                     <SelectValue placeholder='--Select--' />
@@ -457,32 +466,41 @@ export default function JobPostingPage() {
                                         </div>
 
                                         <div className='space-y-2'>
-                                            <label className='font-medium text-sm'>Remark</label>
+                                            <span className='font-medium text-sm'>Remark</span>
                                             <InputText placeholder='Remark' {...register('reason')} />
                                         </div>
 
                                         <div className='flex gap-6 pt-2'>
-                                            <label className='flex items-center gap-2 text-sm'>
+                                            <div className='flex items-center gap-2 text-sm'>
                                                 <Checkbox
+                                                    id='testWritten'
                                                     checked={tests.written}
                                                     onCheckedChange={(v) => setTests((s) => ({ ...s, written: Boolean(v) }))}
-                                                />{' '}
-                                                Written Test
-                                            </label>
-                                            <label className='flex items-center gap-2 text-sm'>
+                                                />
+                                                <label htmlFor='testWritten' className='cursor-pointer'>
+                                                    Written Test
+                                                </label>
+                                            </div>
+                                            <div className='flex items-center gap-2 text-sm'>
                                                 <Checkbox
+                                                    id='testOnline'
                                                     checked={tests.online}
                                                     onCheckedChange={(v) => setTests((s) => ({ ...s, online: Boolean(v) }))}
-                                                />{' '}
-                                                Online Test
-                                            </label>
-                                            <label className='flex items-center gap-2 text-sm'>
+                                                />
+                                                <label htmlFor='testOnline' className='cursor-pointer'>
+                                                    Online Test
+                                                </label>
+                                            </div>
+                                            <div className='flex items-center gap-2 text-sm'>
                                                 <Checkbox
+                                                    id='testTechnical'
                                                     checked={tests.technical}
                                                     onCheckedChange={(v) => setTests((s) => ({ ...s, technical: Boolean(v) }))}
-                                                />{' '}
-                                                Technical Interview
-                                            </label>
+                                                />
+                                                <label htmlFor='testTechnical' className='cursor-pointer'>
+                                                    Technical Interview
+                                                </label>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>

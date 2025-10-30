@@ -392,9 +392,9 @@ export default function HeadWiseReportPage() {
                     <div className='space-y-4'>
                         <div className='space-y-3'>
                             <div className='flex items-center justify-between'>
-                                <label className='font-medium text-foreground text-sm'>
+                                <span className='font-medium text-foreground text-sm'>
                                     Group Type: <span className='text-red-500'>*</span>
-                                </label>
+                                </span>
                                 <Button variant='outline' size='sm' onClick={handleSelectAllGroupTypes} className='text-xs'>
                                     {filters.selectedGroupTypes.length === groupTypes.length ? 'Deselect All' : 'Select All'}
                                 </Button>
@@ -402,21 +402,27 @@ export default function HeadWiseReportPage() {
 
                             <div className='max-h-48 overflow-y-auto rounded-md border bg-background p-3'>
                                 <div className='space-y-2'>
-                                    <label className='flex cursor-pointer items-center gap-2 font-medium text-sm'>
+                                    <div className='flex items-center gap-2 font-medium text-sm'>
                                         <Checkbox
+                                            id='all-group-types'
                                             checked={filters.selectedGroupTypes.length === groupTypes.length}
                                             onCheckedChange={handleSelectAllGroupTypes}
                                         />
-                                        All
-                                    </label>
+                                        <label htmlFor='all-group-types' className='cursor-pointer'>
+                                            All
+                                        </label>
+                                    </div>
                                     {groupTypes.map((group) => (
-                                        <label key={group.id} className='flex cursor-pointer items-center gap-2 text-sm'>
+                                        <div key={group.id} className='flex items-center gap-2 text-sm'>
                                             <Checkbox
+                                                id={`group-${group.id}`}
                                                 checked={filters.selectedGroupTypes.includes(group.groupType)}
                                                 onCheckedChange={() => handleGroupTypeToggle(group.groupType)}
                                             />
-                                            {group.groupType}
-                                        </label>
+                                            <label htmlFor={`group-${group.id}`} className='cursor-pointer'>
+                                                {group.groupType}
+                                            </label>
+                                        </div>
                                     ))}
                                 </div>
                             </div>
@@ -427,9 +433,9 @@ export default function HeadWiseReportPage() {
                     <div className='space-y-4'>
                         {/* Month Selection */}
                         <div className='space-y-2'>
-                            <label className='font-medium text-foreground text-sm'>
+                            <span className='font-medium text-foreground text-sm'>
                                 Month: <span className='text-red-500'>*</span>
-                            </label>
+                            </span>
                             <Select value={filters.month} onValueChange={(value) => handleFilterChange('month', value)}>
                                 <SelectTrigger>
                                     <SelectValue placeholder='Select' />
@@ -459,9 +465,9 @@ export default function HeadWiseReportPage() {
 
                         {/* Year Selection */}
                         <div className='space-y-2'>
-                            <label className='font-medium text-foreground text-sm'>
+                            <span className='font-medium text-foreground text-sm'>
                                 Year: <span className='text-red-500'>*</span>
-                            </label>
+                            </span>
                             <Select value={filters.year} onValueChange={(value) => handleFilterChange('year', value)}>
                                 <SelectTrigger>
                                     <SelectValue placeholder='Select' />
@@ -482,7 +488,7 @@ export default function HeadWiseReportPage() {
                         {/* Selected Group Types Display */}
                         {filters.selectedGroupTypes.length > 0 && (
                             <div className='space-y-2'>
-                                <label className='font-medium text-foreground text-sm'>Selected Group Types:</label>
+                                <span className='font-medium text-foreground text-sm'>Selected Group Types:</span>
                                 <div className='text-muted-foreground text-sm'>
                                     {filters.selectedGroupTypes.length} group type(s) selected
                                 </div>

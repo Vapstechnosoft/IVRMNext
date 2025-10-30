@@ -16,7 +16,7 @@ export interface MissingLog {
     reportedBy?: string;
     status: 'Pending' | 'Approved' | 'Rejected';
 
-    createdAt: string;
+    createdAt: Date;
 }
 
 interface MissingLogColumnsProps {

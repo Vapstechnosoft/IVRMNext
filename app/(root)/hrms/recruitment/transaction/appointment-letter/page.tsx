@@ -140,7 +140,6 @@ export default function AppointmentLetterPage() {
         handleSubmit,
         reset,
         setValue,
-        watch,
         control,
         formState: { errors, isSubmitting }
     } = useForm<AppointmentLetterForm>({
@@ -441,9 +440,9 @@ export default function AppointmentLetterPage() {
                                                 <div className='grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3'>
                                                     {/* Candidate Name */}
                                                     <div className='space-y-2'>
-                                                        <label className='font-medium text-gray-700 text-sm'>
+                                                        <span className='font-medium text-gray-700 text-sm'>
                                                             Candidate Name <span className='text-red-500'>*</span>
-                                                        </label>
+                                                        </span>
                                                         <Select onValueChange={(value) => setValue('candidateId', value)}>
                                                             <SelectTrigger>
                                                                 <SelectValue placeholder='Select Candidate' />
@@ -461,9 +460,9 @@ export default function AppointmentLetterPage() {
 
                                                     {/* Company Name */}
                                                     <div className='space-y-2'>
-                                                        <label className='font-medium text-gray-700 text-sm'>
+                                                        <span className='font-medium text-gray-700 text-sm'>
                                                             Company Name <span className='text-red-500'>*</span>
-                                                        </label>
+                                                        </span>
                                                         <Select onValueChange={(value) => setValue('companyName', value)}>
                                                             <SelectTrigger>
                                                                 <SelectValue placeholder='--Select--' />
@@ -479,9 +478,9 @@ export default function AppointmentLetterPage() {
 
                                                     {/* Department */}
                                                     <div className='space-y-2'>
-                                                        <label className='font-medium text-gray-700 text-sm'>
+                                                        <span className='font-medium text-gray-700 text-sm'>
                                                             Department <span className='text-red-500'>*</span>
-                                                        </label>
+                                                        </span>
                                                         <Select onValueChange={(value) => setValue('department', value)}>
                                                             <SelectTrigger>
                                                                 <SelectValue placeholder='--Select--' />
@@ -501,9 +500,9 @@ export default function AppointmentLetterPage() {
 
                                                     {/* Designation */}
                                                     <div className='space-y-2'>
-                                                        <label className='font-medium text-gray-700 text-sm'>
+                                                        <span className='font-medium text-gray-700 text-sm'>
                                                             Designation <span className='text-red-500'>*</span>
-                                                        </label>
+                                                        </span>
                                                         <Select onValueChange={(value) => setValue('designation', value)}>
                                                             <SelectTrigger>
                                                                 <SelectValue placeholder='--Select--' />
@@ -523,9 +522,9 @@ export default function AppointmentLetterPage() {
 
                                                     {/* Qualification */}
                                                     <div className='space-y-2'>
-                                                        <label className='font-medium text-gray-700 text-sm'>
+                                                        <span className='font-medium text-gray-700 text-sm'>
                                                             Qualification <span className='text-red-500'>*</span>
-                                                        </label>
+                                                        </span>
                                                         <Select onValueChange={(value) => setValue('qualification', value)}>
                                                             <SelectTrigger>
                                                                 <SelectValue placeholder='--Select--' />
@@ -544,9 +543,9 @@ export default function AppointmentLetterPage() {
 
                                                     {/* Marital Status */}
                                                     <div className='space-y-2'>
-                                                        <label className='font-medium text-gray-700 text-sm'>
+                                                        <span className='font-medium text-gray-700 text-sm'>
                                                             Marital Status <span className='text-red-500'>*</span>
-                                                        </label>
+                                                        </span>
                                                         <Select onValueChange={(value) => setValue('maritalStatus', value)}>
                                                             <SelectTrigger>
                                                                 <SelectValue placeholder='--Select--' />
@@ -563,9 +562,9 @@ export default function AppointmentLetterPage() {
 
                                                     {/* Caste */}
                                                     <div className='space-y-2'>
-                                                        <label className='font-medium text-gray-700 text-sm'>
+                                                        <span className='font-medium text-gray-700 text-sm'>
                                                             Caste <span className='text-red-500'>*</span>
-                                                        </label>
+                                                        </span>
                                                         <Select onValueChange={(value) => setValue('caste', value)}>
                                                             <SelectTrigger>
                                                                 <SelectValue placeholder='--Select--' />
@@ -583,9 +582,9 @@ export default function AppointmentLetterPage() {
 
                                                     {/* Date of Joining */}
                                                     <div className='space-y-2'>
-                                                        <label className='font-medium text-gray-700 text-sm'>
+                                                        <span className='font-medium text-gray-700 text-sm'>
                                                             Date of Joining <span className='text-red-500'>*</span>
-                                                        </label>
+                                                        </span>
                                                         <Controller
                                                             control={control}
                                                             name='dateOfJoining'
@@ -621,9 +620,9 @@ export default function AppointmentLetterPage() {
 
                                                     {/* Probation Period */}
                                                     <div className='space-y-2'>
-                                                        <label className='font-medium text-gray-700 text-sm'>
+                                                        <span className='font-medium text-gray-700 text-sm'>
                                                             Probation Period (Months) <span className='text-red-500'>*</span>
-                                                        </label>
+                                                        </span>
                                                         <InputText
                                                             type='number'
                                                             placeholder='6'
@@ -634,9 +633,9 @@ export default function AppointmentLetterPage() {
 
                                                     {/* Basic Salary */}
                                                     <div className='space-y-2'>
-                                                        <label className='font-medium text-gray-700 text-sm'>
+                                                        <span className='font-medium text-gray-700 text-sm'>
                                                             Basic Salary <span className='text-red-500'>*</span>
-                                                        </label>
+                                                        </span>
                                                         <InputText
                                                             type='number'
                                                             placeholder='Enter basic salary'
@@ -671,7 +670,7 @@ export default function AppointmentLetterPage() {
                                                         {earningDetails.map((earning, index) => (
                                                             <div key={index} className='grid grid-cols-6 gap-2 rounded border p-3'>
                                                                 <div>
-                                                                    <label className='font-medium text-xs'>Earning Head</label>
+                                                                    <span className='font-medium text-xs'>Earning Head</span>
                                                                     <Select
                                                                         onValueChange={(value) =>
                                                                             updateEarningDetail(index, 'earningHead', value)
@@ -703,7 +702,7 @@ export default function AppointmentLetterPage() {
                                                                     </Select>
                                                                 </div>
                                                                 <div>
-                                                                    <label className='font-medium text-xs'>Amount %</label>
+                                                                    <span className='font-medium text-xs'>Amount %</span>
                                                                     <InputText
                                                                         type='number'
                                                                         className='h-8'
@@ -718,7 +717,7 @@ export default function AppointmentLetterPage() {
                                                                     />
                                                                 </div>
                                                                 <div>
-                                                                    <label className='font-medium text-xs'>% Applicable</label>
+                                                                    <span className='font-medium text-xs'>% Applicable</span>
                                                                     <InputText
                                                                         className='h-8'
                                                                         value={earning.applicability}
@@ -728,7 +727,7 @@ export default function AppointmentLetterPage() {
                                                                     />
                                                                 </div>
                                                                 <div>
-                                                                    <label className='font-medium text-xs'>Amount</label>
+                                                                    <span className='font-medium text-xs'>Amount</span>
                                                                     <InputText
                                                                         type='number'
                                                                         className='h-8'
@@ -743,7 +742,7 @@ export default function AppointmentLetterPage() {
                                                                     />
                                                                 </div>
                                                                 <div>
-                                                                    <label className='font-medium text-xs'>Remarks</label>
+                                                                    <span className='font-medium text-xs'>Remarks</span>
                                                                     <InputText
                                                                         className='h-8'
                                                                         value={earning.remarks}
@@ -792,7 +791,7 @@ export default function AppointmentLetterPage() {
                                                         {deductionDetails.map((deduction, index) => (
                                                             <div key={index} className='grid grid-cols-6 gap-2 rounded border p-3'>
                                                                 <div>
-                                                                    <label className='font-medium text-xs'>Deduction Head</label>
+                                                                    <span className='font-medium text-xs'>Deduction Head</span>
                                                                     <Select
                                                                         onValueChange={(value) =>
                                                                             updateDeductionDetail(index, 'deductionHead', value)
@@ -812,7 +811,7 @@ export default function AppointmentLetterPage() {
                                                                     </Select>
                                                                 </div>
                                                                 <div>
-                                                                    <label className='font-medium text-xs'>Amount %</label>
+                                                                    <span className='font-medium text-xs'>Amount %</span>
                                                                     <InputText
                                                                         type='number'
                                                                         className='h-8'
@@ -827,7 +826,7 @@ export default function AppointmentLetterPage() {
                                                                     />
                                                                 </div>
                                                                 <div>
-                                                                    <label className='font-medium text-xs'>% Applicable</label>
+                                                                    <span className='font-medium text-xs'>% Applicable</span>
                                                                     <InputText
                                                                         className='h-8'
                                                                         value={deduction.applicability}
@@ -837,7 +836,7 @@ export default function AppointmentLetterPage() {
                                                                     />
                                                                 </div>
                                                                 <div>
-                                                                    <label className='font-medium text-xs'>Amount</label>
+                                                                    <span className='font-medium text-xs'>Amount</span>
                                                                     <InputText
                                                                         type='number'
                                                                         className='h-8'
@@ -852,7 +851,7 @@ export default function AppointmentLetterPage() {
                                                                     />
                                                                 </div>
                                                                 <div>
-                                                                    <label className='font-medium text-xs'>Remarks</label>
+                                                                    <span className='font-medium text-xs'>Remarks</span>
                                                                     <InputText
                                                                         className='h-8'
                                                                         value={deduction.remarks}
@@ -897,9 +896,9 @@ export default function AppointmentLetterPage() {
                                                 <div className='grid grid-cols-1 gap-6 md:grid-cols-2'>
                                                     {/* First Document Name */}
                                                     <div className='space-y-2'>
-                                                        <label className='font-medium text-gray-700 text-sm'>
+                                                        <span className='font-medium text-gray-700 text-sm'>
                                                             First Document Name <span className='text-red-500'>*</span>
-                                                        </label>
+                                                        </span>
                                                         <InputText
                                                             placeholder='Offer Letter'
                                                             {...register('firstDocumentName', {
@@ -911,9 +910,9 @@ export default function AppointmentLetterPage() {
 
                                                     {/* Second Document Name */}
                                                     <div className='space-y-2'>
-                                                        <label className='font-medium text-gray-700 text-sm'>
+                                                        <span className='font-medium text-gray-700 text-sm'>
                                                             Second Document Name <span className='text-red-500'>*</span>
-                                                        </label>
+                                                        </span>
                                                         <InputText
                                                             placeholder='Offer letter'
                                                             {...register('secondDocumentName', {
@@ -925,9 +924,9 @@ export default function AppointmentLetterPage() {
 
                                                     {/* First Document Date */}
                                                     <div className='space-y-2'>
-                                                        <label className='font-medium text-gray-700 text-sm'>
+                                                        <span className='font-medium text-gray-700 text-sm'>
                                                             First Document Date <span className='text-red-500'>*</span>
-                                                        </label>
+                                                        </span>
                                                         <Controller
                                                             control={control}
                                                             name='firstDocumentDate'
@@ -965,9 +964,9 @@ export default function AppointmentLetterPage() {
 
                                                     {/* Second Document Date */}
                                                     <div className='space-y-2'>
-                                                        <label className='font-medium text-gray-700 text-sm'>
+                                                        <span className='font-medium text-gray-700 text-sm'>
                                                             Second Document Date <span className='text-red-500'>*</span>
-                                                        </label>
+                                                        </span>
                                                         <Controller
                                                             control={control}
                                                             name='secondDocumentDate'
@@ -1005,9 +1004,9 @@ export default function AppointmentLetterPage() {
 
                                                     {/* Appointment Ref No */}
                                                     <div className='space-y-2'>
-                                                        <label className='font-medium text-gray-700 text-sm'>
+                                                        <span className='font-medium text-gray-700 text-sm'>
                                                             Appointment Ref. No. <span className='text-red-500'>*</span>
-                                                        </label>
+                                                        </span>
                                                         <InputText
                                                             placeholder='111'
                                                             {...register('appointmentRefNo', {
@@ -1019,9 +1018,9 @@ export default function AppointmentLetterPage() {
 
                                                     {/* Acknowledgment Ref No */}
                                                     <div className='space-y-2'>
-                                                        <label className='font-medium text-gray-700 text-sm'>
+                                                        <span className='font-medium text-gray-700 text-sm'>
                                                             Acknowledgment Ref. No. <span className='text-red-500'>*</span>
-                                                        </label>
+                                                        </span>
                                                         <InputText
                                                             placeholder='111'
                                                             {...register('acknowledgmentRefNo', {
@@ -1033,9 +1032,9 @@ export default function AppointmentLetterPage() {
 
                                                     {/* Annual CTC */}
                                                     <div className='space-y-2'>
-                                                        <label className='font-medium text-gray-700 text-sm'>
+                                                        <span className='font-medium text-gray-700 text-sm'>
                                                             Annual CTC <span className='text-red-500'>*</span>
-                                                        </label>
+                                                        </span>
                                                         <InputText
                                                             type='number'
                                                             placeholder='120000'
@@ -1046,9 +1045,9 @@ export default function AppointmentLetterPage() {
 
                                                     {/* Monthly CTC */}
                                                     <div className='space-y-2'>
-                                                        <label className='font-medium text-gray-700 text-sm'>
+                                                        <span className='font-medium text-gray-700 text-sm'>
                                                             Monthly CTC <span className='text-red-500'>*</span>
-                                                        </label>
+                                                        </span>
                                                         <InputText
                                                             type='number'
                                                             placeholder='10000'
@@ -1059,9 +1058,9 @@ export default function AppointmentLetterPage() {
 
                                                     {/* Company Owner Name */}
                                                     <div className='space-y-2'>
-                                                        <label className='font-medium text-gray-700 text-sm'>
+                                                        <span className='font-medium text-gray-700 text-sm'>
                                                             Company Owner Name <span className='text-red-500'>*</span>
-                                                        </label>
+                                                        </span>
                                                         <InputText
                                                             placeholder='Mr.Govindaswami M'
                                                             {...register('companyOwnerName', {
@@ -1126,7 +1125,14 @@ interface AppointmentLetterTableProps {
     getCandidateName: (candidateId: number) => string;
 }
 
-function AppointmentLetterTable({ letters, isLoading, onEdit, onDelete, onGenerateLetter, getCandidateName }: AppointmentLetterTableProps) {
+function AppointmentLetterTable({
+    letters,
+    isLoading,
+    onEdit,
+    onDelete,
+    onGenerateLetter,
+    getCandidateName: _getCandidateName
+}: AppointmentLetterTableProps) {
     const letterColumns: ColumnDef<AppointmentLetter>[] = [
         {
             id: 'serialNumber',

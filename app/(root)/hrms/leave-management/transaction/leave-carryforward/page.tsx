@@ -161,7 +161,7 @@ export default function LeaveCarryForwardPage() {
                     variant='default'
                     size='lg'
                     className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
-                    <GenericDataTable data={data} columns={columns} totalItems={data.length} />
+                    <GenericDataTable data={data} columns={columns} totalItems={data.length} isLoading={false} />
                 </CollapsibleSection>
 
                 {isFormOpen && (
@@ -176,9 +176,11 @@ export default function LeaveCarryForwardPage() {
                             <form onSubmit={handleSubmit(onSubmit)} className='space-y-4'>
                                 <div className='grid grid-cols-1 gap-4 md:grid-cols-4'>
                                     <div>
-                                        <label className='font-medium text-sm'>From Year</label>
+                                        <label htmlFor='from-year-select' className='font-medium text-sm'>
+                                            From Year
+                                        </label>
                                         <Select value={watch('fromYear')} onValueChange={(v) => setValue('fromYear', v)}>
-                                            <SelectTrigger>
+                                            <SelectTrigger id='from-year-select'>
                                                 <SelectValue placeholder='From' />
                                             </SelectTrigger>
                                             <SelectContent>
@@ -191,9 +193,11 @@ export default function LeaveCarryForwardPage() {
                                         </Select>
                                     </div>
                                     <div>
-                                        <label className='font-medium text-sm'>To Year</label>
+                                        <label htmlFor='to-year-select' className='font-medium text-sm'>
+                                            To Year
+                                        </label>
                                         <Select value={watch('toYear')} onValueChange={(v) => setValue('toYear', v)}>
-                                            <SelectTrigger>
+                                            <SelectTrigger id='to-year-select'>
                                                 <SelectValue placeholder='To' />
                                             </SelectTrigger>
                                             <SelectContent>
@@ -206,28 +210,40 @@ export default function LeaveCarryForwardPage() {
                                         </Select>
                                     </div>
                                     <div>
-                                        <label className='font-medium text-sm'>Department</label>
-                                        <InputText {...register('department')} placeholder='Department' />
+                                        <label htmlFor='department-input' className='font-medium text-sm'>
+                                            Department
+                                        </label>
+                                        <InputText id='department-input' {...register('department')} placeholder='Department' />
                                     </div>
                                     <div>
-                                        <label className='font-medium text-sm'>Designation</label>
-                                        <InputText {...register('designation')} placeholder='Designation' />
+                                        <label htmlFor='designation-input' className='font-medium text-sm'>
+                                            Designation
+                                        </label>
+                                        <InputText id='designation-input' {...register('designation')} placeholder='Designation' />
                                     </div>
                                     <div className='md:col-span-2'>
-                                        <label className='font-medium text-sm'>Employee Name</label>
+                                        <label htmlFor='employee-name-input' className='font-medium text-sm'>
+                                            Employee Name
+                                        </label>
                                         <InputText
+                                            id='employee-name-input'
                                             {...register('employeeName', { required: 'Employee Name is required' })}
                                             placeholder='Employee name'
                                         />
                                         {errors.employeeName && <p className='mt-1 text-red-500 text-xs'>{errors.employeeName.message}</p>}
                                     </div>
                                     <div className='md:col-span-2'>
-                                        <label className='font-medium text-sm'>Leave Name</label>
-                                        <InputText {...register('leaveName')} placeholder='Leave name' />
+                                        <label htmlFor='leave-name-input' className='font-medium text-sm'>
+                                            Leave Name
+                                        </label>
+                                        <InputText id='leave-name-input' {...register('leaveName')} placeholder='Leave name' />
                                     </div>
                                     <div>
-                                        <label className='font-medium text-sm'>Carry Days</label>
+                                        <label htmlFor='carry-days-input' className='font-medium text-sm'>
+                                            Carry Days
+                                        </label>
                                         <InputText
+                                            id='carry-days-input'
                                             type='number'
                                             step='0.5'
                                             {...register('carryDays', { valueAsNumber: true })}

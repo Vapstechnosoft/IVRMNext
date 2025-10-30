@@ -3,28 +3,23 @@
 import { Button } from '@/components/ui/button';
 import { RefreshCw, Save, X } from 'lucide-react';
 import { type SubmitHandler, useForm } from 'react-hook-form';
-import type { MRFRequisition } from './columns';
+import type { MRF } from './columns';
 
-export type MRFRequisitionFormData = {
-    // TODO: Add form fields based on the entity
-};
+export type MRFRequisitionFormData = Record<string, unknown>;
 
 interface MRFRequisitionFormProps {
-    editingMRFRequisition: MRFRequisition | null;
+    editingMRFRequisition: MRF | null;
     onSubmit: (data: MRFRequisitionFormData) => void;
     onCancel: () => void;
 }
 
 export function MRFRequisitionForm({ editingMRFRequisition, onSubmit, onCancel }: MRFRequisitionFormProps) {
     const {
-        register,
         handleSubmit,
-        watch,
-        setValue,
-        formState: { errors, isSubmitting }
+        formState: { isSubmitting }
     } = useForm<MRFRequisitionFormData>({
         mode: 'onChange',
-        defaultValues: editingMRFRequisition || {}
+        defaultValues: (editingMRFRequisition as any) || {}
     });
 
     const handleFormSubmit: SubmitHandler<MRFRequisitionFormData> = async (data) => {

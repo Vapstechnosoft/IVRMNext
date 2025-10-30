@@ -14,6 +14,7 @@ import { DataTableColumnHeader } from '@/components/ui/data-table-column-header'
 import { GenericDataTable } from '@/components/ui/data-table/generic-data-table';
 import { InputText } from '@/components/ui/extension/input-text';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
+import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { type BaseEntity, createLocalCrud } from '@/lib/localdb';
 import type { ColumnDef } from '@tanstack/react-table';
@@ -62,8 +63,12 @@ export default function GPSLocationReportPage() {
         { accessorKey: 'remarks', header: ({ column }) => <DataTableColumnHeader column={column} title='Remarks' /> }
     ];
 
-    const handleReport = () => {};
-    const handleExport = () => {};
+    const handleReport = () => {
+        // TODO: Implement report generation
+    };
+    const handleExport = () => {
+        // TODO: Implement export functionality
+    };
     const handlePrint = () => window.print();
 
     return (
@@ -84,25 +89,41 @@ export default function GPSLocationReportPage() {
                     className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
                     <div className='grid grid-cols-1 items-end gap-4 md:grid-cols-12'>
                         <div className='flex items-center gap-6 md:col-span-12'>
-                            <label className='flex items-center gap-2 text-sm'>
-                                <Checkbox checked={betweenDates} onCheckedChange={(v) => setBetweenDates(Boolean(v))} /> Between Date
+                            <div className='flex items-center gap-2 text-sm'>
+                                <Checkbox
+                                    id='between-dates-checkbox'
+                                    checked={betweenDates}
+                                    onCheckedChange={(v) => setBetweenDates(Boolean(v))}
+                                />
+                                <Label htmlFor='between-dates-checkbox'>Between Date</Label>
+                            </div>
+                            <div className='flex items-center gap-2 text-sm'>
+                                <Checkbox
+                                    id='employee-wise-checkbox'
+                                    checked={!betweenDates}
+                                    onCheckedChange={(v) => setBetweenDates(!v)}
+                                />
+                                <Label htmlFor='employee-wise-checkbox'>Employee Wise</Label>
+                            </div>
+                        </div>
+                        <div className='md:col-span-4'>
+                            <label htmlFor='from-date-input' className='font-medium text-sm'>
+                                From Date
                             </label>
-                            <label className='flex items-center gap-2 text-sm'>
-                                <Checkbox checked={!betweenDates} onCheckedChange={(v) => setBetweenDates(!v)} /> Employee Wise
+                            <InputText id='from-date-input' type='date' value={fromDate} onChange={(e) => setFromDate(e.target.value)} />
+                        </div>
+                        <div className='md:col-span-4'>
+                            <label htmlFor='to-date-input' className='font-medium text-sm'>
+                                To Date
                             </label>
+                            <InputText id='to-date-input' type='date' value={toDate} onChange={(e) => setToDate(e.target.value)} />
                         </div>
                         <div className='md:col-span-4'>
-                            <label className='font-medium text-sm'>From Date</label>
-                            <InputText type='date' value={fromDate} onChange={(e) => setFromDate(e.target.value)} />
-                        </div>
-                        <div className='md:col-span-4'>
-                            <label className='font-medium text-sm'>To Date</label>
-                            <InputText type='date' value={toDate} onChange={(e) => setToDate(e.target.value)} />
-                        </div>
-                        <div className='md:col-span-4'>
-                            <label className='font-medium text-sm'>Employee Name</label>
+                            <label htmlFor='employee-select' className='font-medium text-sm'>
+                                Employee Name
+                            </label>
                             <Select onValueChange={setEmployee}>
-                                <SelectTrigger>
+                                <SelectTrigger id='employee-select'>
                                     <SelectValue placeholder='Search Employee Name here...' />
                                 </SelectTrigger>
                                 <SelectContent>

@@ -71,9 +71,9 @@ export default function CandidateReportPage() {
                     className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
                     <div className='grid grid-cols-1 gap-6 md:grid-cols-3'>
                         <div className='space-y-2'>
-                            <label className='font-medium text-sm'>
+                            <span className='font-medium text-sm'>
                                 Institution <span className='text-red-500'>*</span>
-                            </label>
+                            </span>
                             <Select onValueChange={setInstitution}>
                                 <SelectTrigger>
                                     <SelectValue placeholder='--Select--' />
@@ -88,9 +88,9 @@ export default function CandidateReportPage() {
                             </Select>
                         </div>
                         <div className='space-y-2 md:col-span-2'>
-                            <label className='font-medium text-sm'>
+                            <span className='font-medium text-sm'>
                                 Candidate Name <span className='text-red-500'>*</span>
-                            </label>
+                            </span>
                             <Select onValueChange={setCandidateId} value={candidateId}>
                                 <SelectTrigger>
                                     <SelectValue placeholder='Select Candidate' />

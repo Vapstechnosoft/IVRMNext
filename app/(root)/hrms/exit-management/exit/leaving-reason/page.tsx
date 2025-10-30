@@ -303,11 +303,11 @@ export default function LeavingReasonPage() {
                                     <div className='grid grid-cols-1 gap-6 md:grid-cols-2'>
                                         {/* Company Name */}
                                         <div className='space-y-2'>
-                                            <label className='font-medium text-gray-700 text-sm'>
+                                            <label htmlFor='company-select' className='font-medium text-gray-700 text-sm'>
                                                 Company Name <span className='text-red-500'>*</span>
                                             </label>
                                             <Select value={watch('company')} onValueChange={(value) => setValue('company', value)}>
-                                                <SelectTrigger>
+                                                <SelectTrigger id='company-select'>
                                                     <SelectValue placeholder='Search Companys here...' />
                                                 </SelectTrigger>
                                                 <SelectContent>
@@ -326,10 +326,11 @@ export default function LeavingReasonPage() {
 
                                         {/* Leaving Reason */}
                                         <div className='space-y-2'>
-                                            <label className='font-medium text-gray-700 text-sm'>
+                                            <label htmlFor='leaving-reason-input' className='font-medium text-gray-700 text-sm'>
                                                 Leaving Reason <span className='text-red-500'>*</span>
                                             </label>
                                             <InputText
+                                                id='leaving-reason-input'
                                                 placeholder='Enter Leaving Reason'
                                                 {...register('reason', { required: 'Leaving reason is required' })}
                                                 error={errors.reason?.message}
@@ -338,11 +339,11 @@ export default function LeavingReasonPage() {
 
                                         {/* Reason Type */}
                                         <div className='space-y-2'>
-                                            <label className='font-medium text-gray-700 text-sm'>
+                                            <label htmlFor='reason-type-select' className='font-medium text-gray-700 text-sm'>
                                                 Reason Type <span className='text-red-500'>*</span>
                                             </label>
                                             <Select value={watch('reasonType')} onValueChange={(value) => setValue('reasonType', value)}>
-                                                <SelectTrigger>
+                                                <SelectTrigger id='reason-type-select'>
                                                     <SelectValue placeholder='--Select Checklist Type--' />
                                                 </SelectTrigger>
                                                 <SelectContent>
@@ -357,8 +358,11 @@ export default function LeavingReasonPage() {
 
                                         {/* Notice Period In Days */}
                                         <div className='space-y-2'>
-                                            <label className='font-medium text-gray-700 text-sm'>Notice Period In Days</label>
+                                            <label htmlFor='notice-period-input' className='font-medium text-gray-700 text-sm'>
+                                                Notice Period In Days
+                                            </label>
                                             <InputText
+                                                id='notice-period-input'
                                                 type='number'
                                                 placeholder='Enter notice period in days'
                                                 {...register('noticePeriodInDays', {
@@ -425,7 +429,7 @@ function LeavingReasonTable({
             </div>
 
             {/* Data Table */}
-            <GenericDataTable columns={columns} data={data} totalItems={totalItems} />
+            <GenericDataTable columns={columns} data={data} totalItems={totalItems} isLoading={false} />
         </div>
     );
 }

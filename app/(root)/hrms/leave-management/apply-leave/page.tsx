@@ -184,11 +184,11 @@ export default function ApplyLeavePage() {
                     <div className='grid grid-cols-1 gap-6 md:grid-cols-2'>
                         <div>
                             <h3 className='mb-2 font-semibold text-sm'>Current Balances</h3>
-                            <GenericDataTable data={balances} columns={balanceColumns} totalItems={balances.length} />
+                            <GenericDataTable data={balances} columns={balanceColumns} totalItems={balances.length} isLoading={false} />
                         </div>
                         <div>
                             <h3 className='mb-2 font-semibold text-sm'>Past Applications</h3>
-                            <GenericDataTable data={history} columns={historyColumns} totalItems={history.length} />
+                            <GenericDataTable data={history} columns={historyColumns} totalItems={history.length} isLoading={false} />
                         </div>
                     </div>
                 </CollapsibleSection>
@@ -205,25 +205,33 @@ export default function ApplyLeavePage() {
                             {/* Read-only employee details */}
                             <div className='grid grid-cols-1 gap-4 md:grid-cols-3'>
                                 <div>
-                                    <label className='font-medium text-sm'>Employee Name</label>
-                                    <InputText readOnly {...register('employeeName')} />
+                                    <label htmlFor='employee-name-input' className='font-medium text-sm'>
+                                        Employee Name
+                                    </label>
+                                    <InputText id='employee-name-input' readOnly {...register('employeeName')} />
                                 </div>
                                 <div>
-                                    <label className='font-medium text-sm'>Designation</label>
-                                    <InputText readOnly {...register('designation')} />
+                                    <label htmlFor='designation-input' className='font-medium text-sm'>
+                                        Designation
+                                    </label>
+                                    <InputText id='designation-input' readOnly {...register('designation')} />
                                 </div>
                                 <div>
-                                    <label className='font-medium text-sm'>DOJ</label>
-                                    <InputText type='date' readOnly {...register('doj')} />
+                                    <label htmlFor='doj-input' className='font-medium text-sm'>
+                                        DOJ
+                                    </label>
+                                    <InputText id='doj-input' type='date' readOnly {...register('doj')} />
                                 </div>
                             </div>
 
                             {/* Leave inputs */}
                             <div className='grid grid-cols-1 gap-4 md:grid-cols-3'>
                                 <div>
-                                    <label className='font-medium text-sm'>Leave Type *</label>
+                                    <label htmlFor='leave-type-select' className='font-medium text-sm'>
+                                        Leave Type *
+                                    </label>
                                     <Select value={watch('leaveType')} onValueChange={(v) => setValue('leaveType', v)}>
-                                        <SelectTrigger>
+                                        <SelectTrigger id='leave-type-select'>
                                             <SelectValue placeholder='Select Leave Type' />
                                         </SelectTrigger>
                                         <SelectContent>
@@ -235,20 +243,34 @@ export default function ApplyLeavePage() {
                                     {errors.leaveType && <p className='mt-1 text-red-500 text-xs'>Leave Type is required</p>}
                                 </div>
                                 <div>
-                                    <label className='font-medium text-sm'>From Date *</label>
-                                    <InputText type='date' {...register('fromDate', { required: true })} min={todayISO} />
+                                    <label htmlFor='from-date-input' className='font-medium text-sm'>
+                                        From Date *
+                                    </label>
+                                    <InputText
+                                        id='from-date-input'
+                                        type='date'
+                                        {...register('fromDate', { required: true })}
+                                        min={todayISO}
+                                    />
                                 </div>
                                 <div>
-                                    <label className='font-medium text-sm'>To Date *</label>
-                                    <InputText type='date' {...register('toDate', { required: true })} min={todayISO} />
+                                    <label htmlFor='to-date-input' className='font-medium text-sm'>
+                                        To Date *
+                                    </label>
+                                    <InputText id='to-date-input' type='date' {...register('toDate', { required: true })} min={todayISO} />
                                 </div>
                                 <div>
-                                    <label className='font-medium text-sm'>No. of Days</label>
-                                    <InputText readOnly {...register('numDays', { valueAsNumber: true })} />
+                                    <label htmlFor='num-days-input' className='font-medium text-sm'>
+                                        No. of Days
+                                    </label>
+                                    <InputText id='num-days-input' readOnly {...register('numDays', { valueAsNumber: true })} />
                                 </div>
                                 <div className='md:col-span-3'>
-                                    <label className='font-medium text-sm'>Reason *</label>
+                                    <label htmlFor='reason-textarea' className='font-medium text-sm'>
+                                        Reason *
+                                    </label>
                                     <textarea
+                                        id='reason-textarea'
                                         {...(register as any)('reason', { required: true, maxLength: 255 })}
                                         maxLength={255}
                                         placeholder='Enter reason (max 255 chars)'

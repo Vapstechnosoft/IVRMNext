@@ -5,9 +5,7 @@ import { RefreshCw, Save, X } from 'lucide-react';
 import { type SubmitHandler, useForm } from 'react-hook-form';
 import type { MRF } from './columns';
 
-export type MRFFormData = {
-    // TODO: Add form fields based on the entity
-};
+export type MRFFormData = Record<string, unknown>;
 
 interface MRFFormProps {
     editingMRF: MRF | null;
@@ -17,14 +15,11 @@ interface MRFFormProps {
 
 export function MRFForm({ editingMRF, onSubmit, onCancel }: MRFFormProps) {
     const {
-        register,
         handleSubmit,
-        watch,
-        setValue,
-        formState: { errors, isSubmitting }
+        formState: { isSubmitting }
     } = useForm<MRFFormData>({
         mode: 'onChange',
-        defaultValues: editingMRF || {}
+        defaultValues: ((editingMRF as any) || {}) as MRFFormData
     });
 
     const handleFormSubmit: SubmitHandler<MRFFormData> = async (data) => {

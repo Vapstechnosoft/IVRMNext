@@ -135,9 +135,9 @@ export default function CandidateFeedbackPage() {
                             className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
                             <form onSubmit={handleSubmit(onSubmit)} className='grid grid-cols-1 gap-6 md:grid-cols-2'>
                                 <div className='space-y-2'>
-                                    <label className='font-medium text-sm'>
+                                    <span className='font-medium text-sm'>
                                         Candidate Name <span className='text-red-500'>*</span>
-                                    </label>
+                                    </span>
                                     <InputText
                                         placeholder='Enter candidate name'
                                         {...register('candidateName', { required: 'Required' })}
@@ -145,9 +145,9 @@ export default function CandidateFeedbackPage() {
                                     />
                                 </div>
                                 <div className='space-y-2'>
-                                    <label className='font-medium text-sm'>
+                                    <span className='font-medium text-sm'>
                                         Interview Type <span className='text-red-500'>*</span>
-                                    </label>
+                                    </span>
                                     <Select onValueChange={(v) => setValue('interviewType', v)}>
                                         <SelectTrigger>
                                             <SelectValue placeholder='--Select--' />
@@ -162,9 +162,9 @@ export default function CandidateFeedbackPage() {
                                     </Select>
                                 </div>
                                 <div className='space-y-2'>
-                                    <label className='font-medium text-sm'>
+                                    <span className='font-medium text-sm'>
                                         Interview Date <span className='text-red-500'>*</span>
-                                    </label>
+                                    </span>
                                     <InputText
                                         type='date'
                                         {...register('interviewDate', { required: 'Required' })}
@@ -172,9 +172,9 @@ export default function CandidateFeedbackPage() {
                                     />
                                 </div>
                                 <div className='space-y-2'>
-                                    <label className='font-medium text-sm'>
+                                    <span className='font-medium text-sm'>
                                         Interview Status <span className='text-red-500'>*</span>
-                                    </label>
+                                    </span>
                                     <Select onValueChange={(v) => setValue('status', v as any)}>
                                         <SelectTrigger>
                                             <SelectValue placeholder='--Select--' />
@@ -188,7 +188,7 @@ export default function CandidateFeedbackPage() {
                                     </Select>
                                 </div>
                                 <div className='space-y-2 md:col-span-2'>
-                                    <label className='font-medium text-sm'>Comments</label>
+                                    <span className='font-medium text-sm'>Comments</span>
                                     <InputText placeholder='Add any notes' {...register('comments')} />
                                 </div>
 

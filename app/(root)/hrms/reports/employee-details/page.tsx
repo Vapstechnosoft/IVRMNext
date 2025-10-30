@@ -1031,9 +1031,9 @@ export default function EmployeeDetailsReportPage() {
                                 {/* Group Type Selection */}
                                 <div className='space-y-3'>
                                     <div className='flex items-center justify-between'>
-                                        <label className='font-medium text-foreground text-sm'>
+                                        <span className='font-medium text-foreground text-sm'>
                                             Group Type: <span className='text-red-500'>*</span>
-                                        </label>
+                                        </span>
                                         <Button variant='outline' size='sm' onClick={handleSelectAllGroupTypes} className='text-xs'>
                                             {filters.selectedGroupTypes.length === groupTypes.length ? 'Deselect All' : 'Select All'}
                                         </Button>
@@ -1041,21 +1041,27 @@ export default function EmployeeDetailsReportPage() {
 
                                     <div className='max-h-48 overflow-y-auto rounded-md border bg-background p-3'>
                                         <div className='space-y-2'>
-                                            <label className='flex cursor-pointer items-center gap-2 font-medium text-sm'>
+                                            <div className='flex items-center gap-2 font-medium text-sm'>
                                                 <Checkbox
+                                                    id='groupTypeAll'
                                                     checked={filters.selectedGroupTypes.length === groupTypes.length}
                                                     onCheckedChange={handleSelectAllGroupTypes}
                                                 />
-                                                All
-                                            </label>
+                                                <Label htmlFor='groupTypeAll' className='cursor-pointer'>
+                                                    All
+                                                </Label>
+                                            </div>
                                             {groupTypes.map((groupType) => (
-                                                <label key={groupType.HRMGT_Id} className='flex cursor-pointer items-center gap-2 text-sm'>
+                                                <div key={groupType.HRMGT_Id} className='flex items-center gap-2 text-sm'>
                                                     <Checkbox
+                                                        id={`groupType-${groupType.HRMGT_Id}`}
                                                         checked={filters.selectedGroupTypes.includes(groupType.HRMGT_Id.toString())}
                                                         onCheckedChange={() => handleGroupTypeToggle(groupType.HRMGT_Id.toString())}
                                                     />
-                                                    {groupType.HRMGT_EmployeeGroupType}
-                                                </label>
+                                                    <Label htmlFor={`groupType-${groupType.HRMGT_Id}`} className='cursor-pointer'>
+                                                        {groupType.HRMGT_EmployeeGroupType}
+                                                    </Label>
+                                                </div>
                                             ))}
                                         </div>
                                     </div>
@@ -1064,9 +1070,9 @@ export default function EmployeeDetailsReportPage() {
                                 {/* Department Selection */}
                                 <div className='space-y-3'>
                                     <div className='flex items-center justify-between'>
-                                        <label className='font-medium text-foreground text-sm'>
+                                        <span className='font-medium text-foreground text-sm'>
                                             Department: <span className='text-red-500'>*</span>
-                                        </label>
+                                        </span>
                                         <Button variant='outline' size='sm' onClick={handleSelectAllDepartments} className='text-xs'>
                                             {filters.selectedDepartments.length === departments.length ? 'Deselect All' : 'Select All'}
                                         </Button>
@@ -1074,21 +1080,27 @@ export default function EmployeeDetailsReportPage() {
 
                                     <div className='max-h-48 overflow-y-auto rounded-md border bg-background p-3'>
                                         <div className='space-y-2'>
-                                            <label className='flex cursor-pointer items-center gap-2 font-medium text-sm'>
+                                            <div className='flex items-center gap-2 font-medium text-sm'>
                                                 <Checkbox
+                                                    id='departmentAll'
                                                     checked={filters.selectedDepartments.length === departments.length}
                                                     onCheckedChange={handleSelectAllDepartments}
                                                 />
-                                                All
-                                            </label>
+                                                <Label htmlFor='departmentAll' className='cursor-pointer'>
+                                                    All
+                                                </Label>
+                                            </div>
                                             {departments.map((department) => (
-                                                <label key={department.HRMD_Id} className='flex cursor-pointer items-center gap-2 text-sm'>
+                                                <div key={department.HRMD_Id} className='flex items-center gap-2 text-sm'>
                                                     <Checkbox
+                                                        id={`department-${department.HRMD_Id}`}
                                                         checked={filters.selectedDepartments.includes(department.HRMD_Id.toString())}
                                                         onCheckedChange={() => handleDepartmentToggle(department.HRMD_Id.toString())}
                                                     />
-                                                    {department.HRMD_DepartmentName}
-                                                </label>
+                                                    <Label htmlFor={`department-${department.HRMD_Id}`} className='cursor-pointer'>
+                                                        {department.HRMD_DepartmentName}
+                                                    </Label>
+                                                </div>
                                             ))}
                                         </div>
                                     </div>
@@ -1097,9 +1109,9 @@ export default function EmployeeDetailsReportPage() {
                                 {/* Designation Selection */}
                                 <div className='space-y-3'>
                                     <div className='flex items-center justify-between'>
-                                        <label className='font-medium text-foreground text-sm'>
+                                        <span className='font-medium text-foreground text-sm'>
                                             Designation: <span className='text-red-500'>*</span>
-                                        </label>
+                                        </span>
                                         <Button variant='outline' size='sm' onClick={handleSelectAllDesignations} className='text-xs'>
                                             {filters.selectedDesignations.length === designations.length ? 'Deselect All' : 'Select All'}
                                         </Button>
@@ -1107,23 +1119,27 @@ export default function EmployeeDetailsReportPage() {
 
                                     <div className='max-h-48 overflow-y-auto rounded-md border bg-background p-3'>
                                         <div className='space-y-2'>
-                                            <label className='flex cursor-pointer items-center gap-2 font-medium text-sm'>
+                                            <div className='flex items-center gap-2 font-medium text-sm'>
                                                 <Checkbox
+                                                    id='designationAll'
                                                     checked={filters.selectedDesignations.length === designations.length}
                                                     onCheckedChange={handleSelectAllDesignations}
                                                 />
-                                                All
-                                            </label>
+                                                <Label htmlFor='designationAll' className='cursor-pointer'>
+                                                    All
+                                                </Label>
+                                            </div>
                                             {designations.map((designation) => (
-                                                <label
-                                                    key={designation.HRMDES_Id}
-                                                    className='flex cursor-pointer items-center gap-2 text-sm'>
+                                                <div key={designation.HRMDES_Id} className='flex items-center gap-2 text-sm'>
                                                     <Checkbox
+                                                        id={`designation-${designation.HRMDES_Id}`}
                                                         checked={filters.selectedDesignations.includes(designation.HRMDES_Id.toString())}
                                                         onCheckedChange={() => handleDesignationToggle(designation.HRMDES_Id.toString())}
                                                     />
-                                                    {designation.HRMDES_DesignationName}
-                                                </label>
+                                                    <Label htmlFor={`designation-${designation.HRMDES_Id}`} className='cursor-pointer'>
+                                                        {designation.HRMDES_DesignationName}
+                                                    </Label>
+                                                </div>
                                             ))}
                                         </div>
                                     </div>

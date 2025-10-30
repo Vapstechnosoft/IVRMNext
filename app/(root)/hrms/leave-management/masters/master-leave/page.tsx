@@ -288,7 +288,7 @@ export default function MasterLeavePage() {
                     variant='default'
                     size='lg'
                     className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
-                    <GenericDataTable data={data} columns={columns} totalItems={data.length} />
+                    <GenericDataTable data={data} columns={columns} totalItems={data.length} isLoading={false} />
                 </CollapsibleSection>
 
                 {/* Form Section */}
@@ -304,8 +304,11 @@ export default function MasterLeavePage() {
                             <form onSubmit={handleSubmit(onSubmit)} className='space-y-4'>
                                 <div className='grid grid-cols-1 gap-4 md:grid-cols-3'>
                                     <div>
-                                        <label className='font-medium text-sm'>Leave Name *</label>
+                                        <label htmlFor='leave-name-input' className='font-medium text-sm'>
+                                            Leave Name *
+                                        </label>
                                         <InputText
+                                            id='leave-name-input'
                                             {...register('leaveName', { required: 'Leave name is required' })}
                                             placeholder='Enter leave name'
                                             className={errors.leaveName ? 'border-red-500' : ''}
@@ -314,8 +317,11 @@ export default function MasterLeavePage() {
                                     </div>
 
                                     <div>
-                                        <label className='font-medium text-sm'>Leave Code *</label>
+                                        <label htmlFor='leave-code-input' className='font-medium text-sm'>
+                                            Leave Code *
+                                        </label>
                                         <InputText
+                                            id='leave-code-input'
                                             {...register('leaveCode', { required: 'Leave code is required' })}
                                             placeholder='Enter leave code'
                                             className={errors.leaveCode ? 'border-red-500' : ''}
@@ -324,9 +330,11 @@ export default function MasterLeavePage() {
                                     </div>
 
                                     <div>
-                                        <label className='font-medium text-sm'>Leave Type *</label>
+                                        <label htmlFor='leave-type-select' className='font-medium text-sm'>
+                                            Leave Type *
+                                        </label>
                                         <Select value={watch('leaveType')} onValueChange={(value) => setValue('leaveType', value)}>
-                                            <SelectTrigger className={errors.leaveType ? 'border-red-500' : ''}>
+                                            <SelectTrigger id='leave-type-select' className={errors.leaveType ? 'border-red-500' : ''}>
                                                 <SelectValue placeholder='Select Leave Type' />
                                             </SelectTrigger>
                                             <SelectContent>
@@ -341,11 +349,15 @@ export default function MasterLeavePage() {
                                     </div>
 
                                     <div>
-                                        <label className='font-medium text-sm'>Leave Apply Criteria *</label>
+                                        <label htmlFor='leave-apply-criteria-select' className='font-medium text-sm'>
+                                            Leave Apply Criteria *
+                                        </label>
                                         <Select
                                             value={watch('leaveApplyCriteria')}
                                             onValueChange={(value) => setValue('leaveApplyCriteria', value)}>
-                                            <SelectTrigger className={errors.leaveApplyCriteria ? 'border-red-500' : ''}>
+                                            <SelectTrigger
+                                                id='leave-apply-criteria-select'
+                                                className={errors.leaveApplyCriteria ? 'border-red-500' : ''}>
                                                 <SelectValue placeholder='Select Apply Criteria' />
                                             </SelectTrigger>
                                             <SelectContent>
@@ -360,18 +372,35 @@ export default function MasterLeavePage() {
                                     </div>
 
                                     <div>
-                                        <label className='font-medium text-sm'>Days for Apply Criteria</label>
-                                        <InputText {...register('daysForApplyCriteria')} placeholder='Enter days' type='number' />
+                                        <label htmlFor='days-apply-criteria-input' className='font-medium text-sm'>
+                                            Days for Apply Criteria
+                                        </label>
+                                        <InputText
+                                            id='days-apply-criteria-input'
+                                            {...register('daysForApplyCriteria')}
+                                            placeholder='Enter days'
+                                            type='number'
+                                        />
                                     </div>
 
                                     <div>
-                                        <label className='font-medium text-sm'>Max Days For Apply</label>
-                                        <InputText {...register('maxDaysForApply')} placeholder='Enter max days' type='number' />
+                                        <label htmlFor='max-days-apply-input' className='font-medium text-sm'>
+                                            Max Days For Apply
+                                        </label>
+                                        <InputText
+                                            id='max-days-apply-input'
+                                            {...register('maxDaysForApply')}
+                                            placeholder='Enter max days'
+                                            type='number'
+                                        />
                                     </div>
 
                                     <div className='md:col-span-3'>
-                                        <label className='font-medium text-sm'>Leave Details</label>
+                                        <label htmlFor='leave-details-textarea' className='font-medium text-sm'>
+                                            Leave Details
+                                        </label>
                                         <textarea
+                                            id='leave-details-textarea'
                                             {...register('leaveDetails')}
                                             placeholder='Enter leave details'
                                             className='w-full rounded-md border border-gray-300 p-2 focus:border-transparent focus:ring-2 focus:ring-blue-500'
@@ -415,8 +444,11 @@ export default function MasterLeavePage() {
                                     </div>
 
                                     <div>
-                                        <label className='font-medium text-sm'>Leave Order</label>
+                                        <label htmlFor='leave-order-input' className='font-medium text-sm'>
+                                            Leave Order
+                                        </label>
                                         <InputText
+                                            id='leave-order-input'
                                             {...register('leaveOrder', { valueAsNumber: true })}
                                             placeholder='Enter order'
                                             type='number'

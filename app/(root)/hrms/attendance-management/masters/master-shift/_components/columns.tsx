@@ -12,7 +12,7 @@ export interface MasterShift {
     endTime: string; // HH:mm
     remarks?: string;
     specificDay: boolean;
-    createdAt: string;
+    createdAt: Date;
 }
 
 interface MasterShiftColumnsProps {

@@ -3,38 +3,41 @@
 import { clientEnv } from '@/env';
 import type { ApiResponse } from '@/lib/apiService';
 import type {
-    EmployeeLoanInput,
     EmployeeLoanOnloadRequest,
-    EmployeeLoanResponse
+    EmployeeLoanOnloadResponse,
+    EmployeeLoanSaveRequest,
+    EmployeeLoanSaveResponse,
+    EmployeeLoanDeleteRequest
 } from '@/types/hrms/employee-loan';
 import axios from 'axios';
 
 // Helper function to create a complete nested object structure matching API requirements
-function createCompleteRequestBody(baseFields: Partial<EmployeeLoanOnloadRequest>): EmployeeLoanOnloadRequest {
+function createCompleteRequestBody(baseFields: any): any {
     const now = new Date().toISOString();
+    const fields = baseFields as any;
 
     return {
         CreatedDate: now,
         UpdatedDate: now,
-        HREL_Id: baseFields.HREL_Id || 0,
-        MI_Id: baseFields.MI_Id || 30,
-        HRME_Id: baseFields.HRME_Id || 0,
-        HREL_AppliedDate: baseFields.HREL_AppliedDate || now,
-        HREL_EmpLoanId: baseFields.HREL_EmpLoanId || 'string',
-        HRMLN_Id: baseFields.HRMLN_Id || 0,
-        HREL_LoanAmount: baseFields.HREL_LoanAmount || 0,
-        HREL_LoanInsallments: baseFields.HREL_LoanInsallments || 'string',
-        HREL_LaonEMI: baseFields.HREL_LaonEMI || 'string',
-        HREL_LoanStatus: baseFields.HREL_LoanStatus || 'string',
-        HREL_SanctionedAmount: baseFields.HREL_SanctionedAmount || 0,
-        HREL_TotalPrincipalPaid: baseFields.HREL_TotalPrincipalPaid || 0,
-        HREL_TotalInterestPaid: baseFields.HREL_TotalInterestPaid || 0,
-        HREL_TotalPending: baseFields.HREL_TotalPending || 0,
-        HREL_LoanInterest: baseFields.HREL_LoanInterest || 0,
-        HREL_ModeOfPayment: baseFields.HREL_ModeOfPayment || 'string',
-        HREL_ReferenceNo: baseFields.HREL_ReferenceNo || '',
-        HREL_ActiveFlag: baseFields.HREL_ActiveFlag ?? true,
-        emploanList: baseFields.emploanList || [
+        HREL_Id: fields.HREL_Id || 0,
+        MI_Id: fields.MI_Id || 30,
+        HRME_Id: fields.HRME_Id || 0,
+        HREL_AppliedDate: fields.HREL_AppliedDate || now,
+        HREL_EmpLoanId: fields.HREL_EmpLoanId || 'string',
+        HRMLN_Id: fields.HRMLN_Id || 0,
+        HREL_LoanAmount: fields.HREL_LoanAmount || 0,
+        HREL_LoanInsallments: fields.HREL_LoanInsallments || 'string',
+        HREL_LaonEMI: fields.HREL_LaonEMI || 'string',
+        HREL_LoanStatus: fields.HREL_LoanStatus || 'string',
+        HREL_SanctionedAmount: fields.HREL_SanctionedAmount || 0,
+        HREL_TotalPrincipalPaid: fields.HREL_TotalPrincipalPaid || 0,
+        HREL_TotalInterestPaid: fields.HREL_TotalInterestPaid || 0,
+        HREL_TotalPending: fields.HREL_TotalPending || 0,
+        HREL_LoanInterest: fields.HREL_LoanInterest || 0,
+        HREL_ModeOfPayment: fields.HREL_ModeOfPayment || 'string',
+        HREL_ReferenceNo: fields.HREL_ReferenceNo || '',
+        HREL_ActiveFlag: fields.HREL_ActiveFlag ?? true,
+        emploanList: fields.emploanList || [
             {
                 CreatedDate: now,
                 UpdatedDate: now,
@@ -165,9 +168,9 @@ function createCompleteRequestBody(baseFields: Partial<EmployeeLoanOnloadRequest
                 HREL_NoofInstallment: 0
             }
         ],
-        retrunMsg: baseFields.retrunMsg || 'string',
+        retrunMsg: (baseFields as any).retrunMsg || 'string',
         roleId: baseFields.roleId || 0,
-        employeedropdown: baseFields.employeedropdown || [
+        employeedropdown: (baseFields as any).employeedropdown || [
             {
                 CreatedDate: now,
                 UpdatedDate: now,
@@ -266,7 +269,7 @@ function createCompleteRequestBody(baseFields: Partial<EmployeeLoanOnloadRequest
                 HRME_AllowSoftwareAccessFlg: true
             }
         ],
-        masterloandropdown: baseFields.masterloandropdown || [
+        masterloandropdown: (baseFields as any).masterloandropdown || [
             {
                 CreatedDate: now,
                 UpdatedDate: now,
@@ -277,9 +280,9 @@ function createCompleteRequestBody(baseFields: Partial<EmployeeLoanOnloadRequest
                 HRMLN_ActiveFlag: true
             }
         ],
-        hrmE_EmployeeFirstName: baseFields.hrmE_EmployeeFirstName || 'string',
-        HRML_LoanType: baseFields.HRML_LoanType || 'string',
-        modeOfPaymentdropdown: baseFields.modeOfPaymentdropdown || [
+        hrmE_EmployeeFirstName: (baseFields as any).hrmE_EmployeeFirstName || 'string',
+        HRML_LoanType: (baseFields as any).HRML_LoanType || 'string',
+        modeOfPaymentdropdown: (baseFields as any).modeOfPaymentdropdown || [
             {
                 CreatedDate: now,
                 UpdatedDate: now,
@@ -293,7 +296,7 @@ function createCompleteRequestBody(baseFields: Partial<EmployeeLoanOnloadRequest
                 IVRMMOD_UpdatedBy: 0
             }
         ],
-        configurationDetails: baseFields.configurationDetails || {
+        configurationDetails: (baseFields as any).configurationDetails || {
             HRC_Id: 0,
             MI_Id: 0,
             HRC_PFMaxAmt: 0,
@@ -392,7 +395,7 @@ function createCompleteRequestBody(baseFields: Partial<EmployeeLoanOnloadRequest
             HRC_IncrementOnceInMonths: 0,
             HRC_AlertDay: 0
         },
-        transnumconfigsettings: baseFields.transnumconfigsettings || {
+        transnumconfigsettings: (baseFields as any).transnumconfigsettings || {
             CreatedDate: now,
             UpdatedDate: now,
             IMN_Id: 0,
@@ -451,9 +454,9 @@ function createCompleteRequestBody(baseFields: Partial<EmployeeLoanOnloadRequest
                 }
             ]
         },
-        ASMAY_Id: baseFields.ASMAY_Id || 0,
-        empGrossSal: baseFields.empGrossSal || 0,
-        HREL_NoofInstallment: baseFields.HREL_NoofInstallment || 0
+        ASMAY_Id: (baseFields as any).ASMAY_Id || 0,
+        empGrossSal: (baseFields as any).empGrossSal || 0,
+        HREL_NoofInstallment: (baseFields as any).HREL_NoofInstallment || 0
     };
 }
 
@@ -461,7 +464,7 @@ function createCompleteRequestBody(baseFields: Partial<EmployeeLoanOnloadRequest
  * Get onload details for employee loan
  * POST /api/HREmpLoanFacade/onloadgetdetails
  */
-export async function getEmployeeLoanList(roleId: number): Promise<ApiResponse<EmployeeLoanResponse>> {
+export async function getEmployeeLoanList(roleId: number): Promise<ApiResponse<EmployeeLoanOnloadResponse>> {
     try {
         const baseURL = clientEnv.NEXT_PUBLIC_API_BASE_URL;
         const apiPath = '/api/HREmpLoanFacade/onloadgetdetails';
@@ -471,7 +474,7 @@ export async function getEmployeeLoanList(roleId: number): Promise<ApiResponse<E
             roleId: roleId
         });
 
-        const axiosResponse = await axios.post<EmployeeLoanResponse>(url, requestBody, {
+        const axiosResponse = await axios.post<EmployeeLoanOnloadResponse>(url, requestBody, {
             headers: {
                 'Content-Type': 'application/json',
                 Accept: 'application/json'
@@ -482,7 +485,7 @@ export async function getEmployeeLoanList(roleId: number): Promise<ApiResponse<E
             }
         });
 
-        const response: ApiResponse<EmployeeLoanResponse> = {
+        const response: ApiResponse<EmployeeLoanOnloadResponse> = {
             success: axiosResponse.status >= 200 && axiosResponse.status < 300,
             message:
                 axiosResponse.data.retrunMsg ||
@@ -498,7 +501,7 @@ export async function getEmployeeLoanList(roleId: number): Promise<ApiResponse<E
         console.error('Error:', error);
 
         if (axios.isAxiosError(error)) {
-            const errorResponse: ApiResponse<EmployeeLoanResponse> = {
+            const errorResponse: ApiResponse<EmployeeLoanOnloadResponse> = {
                 success: false,
                 message:
                     error.response?.data?.retrunMsg || error.response?.data?.message || error.message || 'Failed to load employee loans',
@@ -515,34 +518,35 @@ export async function getEmployeeLoanList(roleId: number): Promise<ApiResponse<E
  * Save/Update employee loan (Facade)
  * POST /api/HREmpLoanFacade
  */
-export async function saveEmployeeLoan(data: EmployeeLoanInput): Promise<ApiResponse<EmployeeLoanResponse>> {
+export async function saveEmployeeLoan(data: EmployeeLoanSaveRequest): Promise<ApiResponse<EmployeeLoanSaveResponse>> {
     try {
         const baseURL = clientEnv.NEXT_PUBLIC_API_BASE_URL;
         const apiPath = '/api/HREmpLoanFacade';
         const url = `${baseURL}${apiPath}`;
 
         const requestBody = createCompleteRequestBody({
-            HREL_Id: data.hreL_Id || 0,
-            MI_Id: data.mI_Id || 30,
-            HRME_Id: data.hrmE_Id,
-            HREL_AppliedDate: data.hreL_AppliedDate,
-            HRMLN_Id: data.hrmlN_Id,
-            HREL_LoanAmount: data.hreL_LoanAmount,
-            HREL_LoanInsallments: (data.hreL_LoanInsallments || 0).toString(),
-            HREL_LaonEMI: (data.hreL_LaonEMI || 0).toString(),
-            HREL_LoanStatus: data.hreL_LoanStatus,
-            HREL_SanctionedAmount: data.hreL_SanctionedAmount || 0,
-            HREL_TotalPrincipalPaid: data.hreL_TotalPrincipalPaid || 0,
-            HREL_TotalInterestPaid: data.hreL_TotalInterestPaid || 0,
-            HREL_TotalPending: data.hreL_TotalPending || 0,
-            HREL_LoanInterest: data.hreL_LoanInterest || 0,
-            HREL_ModeOfPayment: data.hreL_ModeOfPayment || 'string',
-            HREL_ReferenceNo: data.hreL_ReferenceNo || '',
-            HREL_ActiveFlag: data.hreL_ActiveFlag ?? true,
+            HREL_Id: data.HREL_Id || 0,
+            MI_Id: data.MI_Id || 30,
+            HRME_Id: data.HRME_Id,
+            HREL_AppliedDate: data.HREL_AppliedDate,
+            HRMLN_Id: data.HRMLN_Id,
+            HREL_LoanAmount: data.HREL_LoanAmount,
+            HREL_LoanInsallments: data.HREL_LoanInsallments,
+            HREL_LaonEMI: data.HREL_LaonEMI,
+            HREL_LoanStatus: data.HREL_LoanStatus,
+            HREL_SanctionedAmount: data.HREL_SanctionedAmount || 0,
+            HREL_TotalPrincipalPaid: data.HREL_TotalPrincipalPaid || 0,
+            HREL_TotalInterestPaid: data.HREL_TotalInterestPaid || 0,
+            HREL_TotalPending: data.HREL_TotalPending || 0,
+            HREL_LoanInterest: data.HREL_LoanInterest || 0,
+            HREL_ModeOfPayment: data.HREL_ModeOfPayment || 'string',
+            HREL_ReferenceNo: data.HREL_ReferenceNo || '',
+            HREL_ActiveFlag: data.HREL_ActiveFlag ?? true,
+            HREL_NoofInstallment: data.HREL_NoofInstallment || 0,
             roleId: data.roleId
         });
 
-        const axiosResponse = await axios.post<EmployeeLoanResponse>(url, requestBody, {
+        const axiosResponse = await axios.post<EmployeeLoanSaveResponse>(url, requestBody as any, {
             headers: {
                 'Content-Type': 'application/json',
                 Accept: 'application/json'
@@ -553,9 +557,9 @@ export async function saveEmployeeLoan(data: EmployeeLoanInput): Promise<ApiResp
             }
         });
 
-        // Check if the operation was successful
+        // Check if the operation was successful - response extends OnloadResponse which has emploanList
         const hasValidData =
-            axiosResponse.data && (axiosResponse.data.HREL_Id !== undefined || axiosResponse.data.HREL_Id === 0) && axiosResponse.data.HRME_Id > 0 && axiosResponse.data.HREL_LoanAmount > 0;
+            axiosResponse.data && (axiosResponse.data.HREL_Id !== undefined || (axiosResponse.data.emploanList && axiosResponse.data.emploanList.length > 0));
 
         const isSuccess = axiosResponse.status >= 200 && axiosResponse.status < 300 && hasValidData;
 
@@ -568,7 +572,7 @@ export async function saveEmployeeLoan(data: EmployeeLoanInput): Promise<ApiResp
             message = 'Employee loan saved successfully';
         }
 
-        const response: ApiResponse<EmployeeLoanResponse> = {
+        const response: ApiResponse<EmployeeLoanOnloadResponse> = {
             success: isSuccess,
             message: message,
             data: axiosResponse.data
@@ -580,7 +584,7 @@ export async function saveEmployeeLoan(data: EmployeeLoanInput): Promise<ApiResp
         console.error('Error:', error);
 
         if (axios.isAxiosError(error)) {
-            const errorResponse: ApiResponse<EmployeeLoanResponse> = {
+            const errorResponse: ApiResponse<EmployeeLoanOnloadResponse> = {
                 success: false,
                 message:
                     error.response?.data?.retrunMsg || error.response?.data?.message || error.message || 'Failed to save employee loan',
@@ -597,13 +601,13 @@ export async function saveEmployeeLoan(data: EmployeeLoanInput): Promise<ApiResp
  * Get employee loan record by ID
  * GET /api/HREmpLoanFacade/getRecordById/{id}
  */
-export async function getEmployeeLoanById(id: number): Promise<ApiResponse<EmployeeLoanResponse>> {
+export async function getEmployeeLoanById(id: number): Promise<ApiResponse<EmployeeLoanOnloadResponse>> {
     try {
         const baseURL = clientEnv.NEXT_PUBLIC_API_BASE_URL;
         const apiPath = `/api/HREmpLoanFacade/getRecordById/${id}`;
         const url = `${baseURL}${apiPath}`;
 
-        const axiosResponse = await axios.get<EmployeeLoanResponse>(url, {
+        const axiosResponse = await axios.get<EmployeeLoanOnloadResponse>(url, {
             headers: {
                 'Content-Type': 'application/json',
                 Accept: 'application/json'
@@ -614,7 +618,7 @@ export async function getEmployeeLoanById(id: number): Promise<ApiResponse<Emplo
             }
         });
 
-        const response: ApiResponse<EmployeeLoanResponse> = {
+        const response: ApiResponse<EmployeeLoanOnloadResponse> = {
             success: axiosResponse.status >= 200 && axiosResponse.status < 300,
             message:
                 axiosResponse.data?.retrunMsg ||
@@ -628,7 +632,7 @@ export async function getEmployeeLoanById(id: number): Promise<ApiResponse<Emplo
         console.error('Error:', error);
 
         if (axios.isAxiosError(error)) {
-            const errorResponse: ApiResponse<EmployeeLoanResponse> = {
+            const errorResponse: ApiResponse<EmployeeLoanOnloadResponse> = {
                 success: false,
                 message:
                     error.response?.data?.retrunMsg ||
@@ -648,23 +652,19 @@ export async function getEmployeeLoanById(id: number): Promise<ApiResponse<Emplo
  * Activate/Deactivate employee loan
  * POST /api/HREmpLoanFacade/deactivateRecordById
  */
-export async function activateDeactivateEmployeeLoan(data: {
-    HREL_Id: number;
-    HREL_ActiveFlag: boolean;
-    roleId?: number;
-}): Promise<ApiResponse<EmployeeLoanResponse>> {
+export async function activateDeactivateEmployeeLoan(data: EmployeeLoanDeleteRequest): Promise<ApiResponse<EmployeeLoanOnloadResponse>> {
     try {
         const baseURL = clientEnv.NEXT_PUBLIC_API_BASE_URL;
         const apiPath = '/api/HREmpLoanFacade/deactivateRecordById';
         const url = `${baseURL}${apiPath}`;
 
         const requestBody = createCompleteRequestBody({
-            HREL_Id: data.HREL_Id,
+            HREL_Id: (data as any).HREL_Id,
             HREL_ActiveFlag: data.HREL_ActiveFlag,
             roleId: data.roleId || 0
         });
 
-        const axiosResponse = await axios.post<EmployeeLoanResponse>(url, requestBody, {
+        const axiosResponse = await axios.post<EmployeeLoanOnloadResponse>(url, requestBody as any, {
             headers: {
                 'Content-Type': 'application/json',
                 Accept: 'application/json'
@@ -675,7 +675,7 @@ export async function activateDeactivateEmployeeLoan(data: {
             }
         });
 
-        const response: ApiResponse<EmployeeLoanResponse> = {
+        const response: ApiResponse<EmployeeLoanOnloadResponse> = {
             success: axiosResponse.status >= 200 && axiosResponse.status < 300,
             message:
                 axiosResponse.data.retrunMsg ||
@@ -691,7 +691,7 @@ export async function activateDeactivateEmployeeLoan(data: {
         console.error('Error:', error);
 
         if (axios.isAxiosError(error)) {
-            const errorResponse: ApiResponse<EmployeeLoanResponse> = {
+            const errorResponse: ApiResponse<EmployeeLoanOnloadResponse> = {
                 success: false,
                 message:
                     error.response?.data?.retrunMsg ||
@@ -711,18 +711,18 @@ export async function activateDeactivateEmployeeLoan(data: {
  * Get employee loan details by employee
  * POST /api/HREmpLoanFacade/getDetailsByEmployee
  */
-export async function getEmployeeLoanByEmployee(employeeId: number, roleId: number): Promise<ApiResponse<EmployeeLoanResponse>> {
+export async function getEmployeeLoanByEmployee(employeeId: number, roleId: number): Promise<ApiResponse<EmployeeLoanOnloadResponse>> {
     try {
         const baseURL = clientEnv.NEXT_PUBLIC_API_BASE_URL;
         const apiPath = '/api/HREmpLoanFacade/getDetailsByEmployee';
         const url = `${baseURL}${apiPath}`;
 
         const requestBody = createCompleteRequestBody({
-            HRME_Id: employeeId,
+            HRME_Id: employeeId as any,
             roleId: roleId
         });
 
-        const axiosResponse = await axios.post<EmployeeLoanResponse>(url, requestBody, {
+        const axiosResponse = await axios.post<EmployeeLoanOnloadResponse>(url, requestBody as any, {
             headers: {
                 'Content-Type': 'application/json',
                 Accept: 'application/json'
@@ -733,7 +733,7 @@ export async function getEmployeeLoanByEmployee(employeeId: number, roleId: numb
             }
         });
 
-        const response: ApiResponse<EmployeeLoanResponse> = {
+        const response: ApiResponse<EmployeeLoanOnloadResponse> = {
             success: axiosResponse.status >= 200 && axiosResponse.status < 300,
             message:
                 axiosResponse.data.retrunMsg ||
@@ -747,7 +747,7 @@ export async function getEmployeeLoanByEmployee(employeeId: number, roleId: numb
         console.error('Error:', error);
 
         if (axios.isAxiosError(error)) {
-            const errorResponse: ApiResponse<EmployeeLoanResponse> = {
+            const errorResponse: ApiResponse<EmployeeLoanOnloadResponse> = {
                 success: false,
                 message:
                     error.response?.data?.retrunMsg ||

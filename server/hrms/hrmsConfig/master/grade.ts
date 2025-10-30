@@ -8,7 +8,7 @@ export async function getMasterGradeList(roleId: number): Promise<ApiResponse<Ma
     const apiPath = '/api/MasterGradeFacade/onloadgetdetails';
     const url = `${baseURL}${apiPath}`;
 
-    const requestBody: OnloadGetGradeDetailsRequest = {
+    const requestBody = {
         CreatedDate: new Date().toISOString(),
         UpdatedDate: new Date().toISOString(),
         HRMG_Id: 0,

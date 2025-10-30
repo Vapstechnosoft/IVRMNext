@@ -226,7 +226,7 @@ export default function EmployeeSalaryDetailsReportPage() {
                 <div className='space-y-4'>
                     {/* Financial Year Selection */}
                     <div className='flex items-center justify-center gap-4'>
-                        <label className='font-medium text-foreground text-sm'>Financial Year :</label>
+                        <span className='font-medium text-foreground text-sm'>Financial Year :</span>
                         <Select value={selectedFinancialYear} onValueChange={setSelectedFinancialYear}>
                             <SelectTrigger className='w-48'>
                                 <SelectValue />

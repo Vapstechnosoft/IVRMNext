@@ -3,28 +3,23 @@
 import { Button } from '@/components/ui/button';
 import { RefreshCw, Save, X } from 'lucide-react';
 import { type SubmitHandler, useForm } from 'react-hook-form';
-import type { ShiftMapping } from './columns';
+import type { EmployeeShiftMapping } from './columns';
 
-export type ShiftMappingFormData = {
-    // TODO: Add form fields based on the entity
-};
+export type ShiftMappingFormData = Record<string, never>;
 
 interface ShiftMappingFormProps {
-    editingShiftMapping: ShiftMapping | null;
+    editingShiftMapping: EmployeeShiftMapping | null;
     onSubmit: (data: ShiftMappingFormData) => void;
     onCancel: () => void;
 }
 
 export function ShiftMappingForm({ editingShiftMapping, onSubmit, onCancel }: ShiftMappingFormProps) {
     const {
-        register,
         handleSubmit,
-        watch,
-        setValue,
-        formState: { errors, isSubmitting }
+        formState: { isSubmitting }
     } = useForm<ShiftMappingFormData>({
         mode: 'onChange',
-        defaultValues: editingShiftMapping || {}
+        defaultValues: (editingShiftMapping as any) || {}
     });
 
     const handleFormSubmit: SubmitHandler<ShiftMappingFormData> = async (data) => {

@@ -460,9 +460,9 @@ export default function ESIReportPage() {
                     <div className='grid grid-cols-1 gap-4 md:grid-cols-3'>
                         {/* Group Type Filter */}
                         <div className='space-y-2'>
-                            <label className='font-medium text-foreground text-sm'>
+                            <span className='font-medium text-foreground text-sm'>
                                 Group Type: <span className='text-red-500'>*</span>
-                            </label>
+                            </span>
                             <Select value={filters.groupType} onValueChange={(value) => handleFilterChange('groupType', value)}>
                                 <SelectTrigger>
                                     <SelectValue />
@@ -480,9 +480,9 @@ export default function ESIReportPage() {
 
                         {/* Department Filter */}
                         <div className='space-y-2'>
-                            <label className='font-medium text-foreground text-sm'>
+                            <span className='font-medium text-foreground text-sm'>
                                 Department: <span className='text-red-500'>*</span>
-                            </label>
+                            </span>
                             <Select value={filters.department} onValueChange={(value) => handleFilterChange('department', value)}>
                                 <SelectTrigger>
                                     <SelectValue />
@@ -500,9 +500,9 @@ export default function ESIReportPage() {
 
                         {/* Designation Filter */}
                         <div className='space-y-2'>
-                            <label className='font-medium text-foreground text-sm'>
+                            <span className='font-medium text-foreground text-sm'>
                                 Designation: <span className='text-red-500'>*</span>
-                            </label>
+                            </span>
                             <Select value={filters.designation} onValueChange={(value) => handleFilterChange('designation', value)}>
                                 <SelectTrigger>
                                     <SelectValue />
@@ -523,9 +523,9 @@ export default function ESIReportPage() {
                     <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
                         {/* Month Filter */}
                         <div className='space-y-2'>
-                            <label className='font-medium text-foreground text-sm'>
+                            <span className='font-medium text-foreground text-sm'>
                                 Month: <span className='text-red-500'>*</span>
-                            </label>
+                            </span>
                             <Select value={filters.month} onValueChange={(value) => handleFilterChange('month', value)}>
                                 <SelectTrigger>
                                     <SelectValue placeholder='Select' />
@@ -555,9 +555,9 @@ export default function ESIReportPage() {
 
                         {/* Year Filter */}
                         <div className='space-y-2'>
-                            <label className='font-medium text-foreground text-sm'>
+                            <span className='font-medium text-foreground text-sm'>
                                 Year: <span className='text-red-500'>*</span>
-                            </label>
+                            </span>
                             <Select value={filters.year} onValueChange={(value) => handleFilterChange('year', value)}>
                                 <SelectTrigger>
                                     <SelectValue placeholder='Select' />

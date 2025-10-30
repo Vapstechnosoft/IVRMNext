@@ -94,7 +94,6 @@ export default function ScheduleInterviewPage() {
         handleSubmit,
         reset,
         setValue,
-        watch,
         control,
         formState: { errors, isSubmitting }
     } = useForm<InterviewForm>({
@@ -306,9 +305,9 @@ export default function ScheduleInterviewPage() {
                                 <div className='grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3'>
                                     {/* Candidate Selection */}
                                     <div className='space-y-2'>
-                                        <label className='font-medium text-gray-700 text-sm'>
+                                        <span className='font-medium text-gray-700 text-sm'>
                                             Candidate Name <span className='text-red-500'>*</span>
-                                        </label>
+                                        </span>
                                         <Select onValueChange={(value) => setValue('candidateId', value)}>
                                             <SelectTrigger>
                                                 <SelectValue placeholder='Select OR Search Candidate in the list...' />
@@ -327,9 +326,9 @@ export default function ScheduleInterviewPage() {
 
                                     {/* Interview Date */}
                                     <div className='space-y-2'>
-                                        <label className='font-medium text-gray-700 text-sm'>
+                                        <span className='font-medium text-gray-700 text-sm'>
                                             Interview Date <span className='text-red-500'>*</span>
-                                        </label>
+                                        </span>
                                         <Controller
                                             control={control}
                                             name='interviewDate'
@@ -364,9 +363,9 @@ export default function ScheduleInterviewPage() {
 
                                     {/* Interview Time */}
                                     <div className='space-y-2'>
-                                        <label className='font-medium text-gray-700 text-sm'>
+                                        <span className='font-medium text-gray-700 text-sm'>
                                             Interview Time <span className='text-red-500'>*</span>
-                                        </label>
+                                        </span>
                                         <InputText
                                             type='time'
                                             {...register('interviewTime', { required: 'Interview time is required' })}
@@ -376,9 +375,9 @@ export default function ScheduleInterviewPage() {
 
                                     {/* Interview Rounds */}
                                     <div className='space-y-2'>
-                                        <label className='font-medium text-gray-700 text-sm'>
+                                        <span className='font-medium text-gray-700 text-sm'>
                                             Interview Rounds <span className='text-red-500'>*</span>
-                                        </label>
+                                        </span>
                                         <Select onValueChange={(value) => setValue('interviewRounds', value)}>
                                             <SelectTrigger>
                                                 <SelectValue placeholder='--Select--' />
@@ -396,9 +395,9 @@ export default function ScheduleInterviewPage() {
 
                                     {/* Interviewer Name */}
                                     <div className='space-y-2'>
-                                        <label className='font-medium text-gray-700 text-sm'>
+                                        <span className='font-medium text-gray-700 text-sm'>
                                             Interviewer Name <span className='text-red-500'>*</span>
-                                        </label>
+                                        </span>
                                         <Select onValueChange={(value) => setValue('interviewerId', value)}>
                                             <SelectTrigger>
                                                 <SelectValue placeholder='Select OR Search Interviewer in the list...' />
@@ -416,9 +415,9 @@ export default function ScheduleInterviewPage() {
 
                                     {/* Interview Venue */}
                                     <div className='space-y-2'>
-                                        <label className='font-medium text-gray-700 text-sm'>
+                                        <span className='font-medium text-gray-700 text-sm'>
                                             Interview Venue <span className='text-red-500'>*</span>
-                                        </label>
+                                        </span>
                                         <InputText
                                             placeholder='Enter interview venue'
                                             {...register('interviewVenue', { required: 'Interview venue is required' })}
@@ -428,9 +427,9 @@ export default function ScheduleInterviewPage() {
 
                                     {/* Status */}
                                     <div className='space-y-2'>
-                                        <label className='font-medium text-gray-700 text-sm'>
+                                        <span className='font-medium text-gray-700 text-sm'>
                                             Status <span className='text-red-500'>*</span>
-                                        </label>
+                                        </span>
                                         <Select onValueChange={(value) => setValue('status', value)}>
                                             <SelectTrigger>
                                                 <SelectValue placeholder='--Select--' />
@@ -448,7 +447,7 @@ export default function ScheduleInterviewPage() {
 
                                 {/* Notify Candidate By */}
                                 <div className='space-y-4'>
-                                    <label className='font-medium text-gray-700 text-sm'>Notify Candidate By</label>
+                                    <span className='font-medium text-gray-700 text-sm'>Notify Candidate By</span>
                                     <div className='flex items-center space-x-6'>
                                         <div className='flex items-center space-x-2'>
                                             <Checkbox id='notifyByEmail' {...register('notifyByEmail')} />
@@ -467,7 +466,7 @@ export default function ScheduleInterviewPage() {
 
                                 {/* Remarks */}
                                 <div className='space-y-2'>
-                                    <label className='font-medium text-gray-700 text-sm'>Remarks</label>
+                                    <span className='font-medium text-gray-700 text-sm'>Remarks</span>
                                     <Textarea
                                         placeholder='Additional notes or remarks about the interview'
                                         rows={3}
@@ -513,7 +512,14 @@ interface InterviewTableProps {
     getInterviewerName: (interviewerId: number) => string;
 }
 
-function InterviewTable({ interviews, isLoading, onEdit, onDelete, getCandidateName, getInterviewerName }: InterviewTableProps) {
+function InterviewTable({
+    interviews,
+    isLoading,
+    onEdit,
+    onDelete,
+    getCandidateName: _getCandidateName,
+    getInterviewerName: _getInterviewerName
+}: InterviewTableProps) {
     const interviewColumns: ColumnDef<Interview>[] = [
         {
             id: 'serialNumber',

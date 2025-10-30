@@ -8,7 +8,7 @@ export async function getMasterMaritalStatusList(roleId: number): Promise<ApiRes
     const apiPath = '/api/MasterMaritalStatusFacade/onloadgetdetails';
     const url = `${baseURL}${apiPath}`;
 
-    const requestBody: OnloadGetMaritalStatusDetailsRequest = {
+    const requestBody = {
         CreatedDate: new Date().toISOString(),
         UpdatedDate: new Date().toISOString(),
         IVRMMMS_Id: 0,

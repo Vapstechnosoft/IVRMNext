@@ -204,7 +204,7 @@ export default function MasterLeaveYearPage() {
                     variant='default'
                     size='lg'
                     className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
-                    <GenericDataTable data={data} columns={columns} totalItems={data.length} />
+                    <GenericDataTable data={data} columns={columns} totalItems={data.length} isLoading={false} />
                 </CollapsibleSection>
 
                 {/* Form Section */}
@@ -220,8 +220,11 @@ export default function MasterLeaveYearPage() {
                             <form onSubmit={handleSubmit(onSubmit)} className='space-y-4'>
                                 <div className='grid grid-cols-1 gap-4 md:grid-cols-3'>
                                     <div>
-                                        <label className='font-medium text-sm'>Leave Year *</label>
+                                        <label htmlFor='leave-year-input' className='font-medium text-sm'>
+                                            Leave Year *
+                                        </label>
                                         <InputText
+                                            id='leave-year-input'
                                             {...register('leaveYear', { required: 'Leave year is required' })}
                                             placeholder='Enter leave year'
                                             className={errors.leaveYear ? 'border-red-500' : ''}
@@ -230,8 +233,11 @@ export default function MasterLeaveYearPage() {
                                     </div>
 
                                     <div>
-                                        <label className='font-medium text-sm'>From Date *</label>
+                                        <label htmlFor='from-date-input' className='font-medium text-sm'>
+                                            From Date *
+                                        </label>
                                         <InputText
+                                            id='from-date-input'
                                             type='date'
                                             {...register('fromDate', { required: 'From date is required' })}
                                             className={errors.fromDate ? 'border-red-500' : ''}
@@ -240,8 +246,11 @@ export default function MasterLeaveYearPage() {
                                     </div>
 
                                     <div>
-                                        <label className='font-medium text-sm'>To Date *</label>
+                                        <label htmlFor='to-date-input' className='font-medium text-sm'>
+                                            To Date *
+                                        </label>
                                         <InputText
+                                            id='to-date-input'
                                             type='date'
                                             {...register('toDate', { required: 'To date is required' })}
                                             className={errors.toDate ? 'border-red-500' : ''}

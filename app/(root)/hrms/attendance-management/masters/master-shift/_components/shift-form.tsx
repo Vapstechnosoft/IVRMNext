@@ -62,10 +62,11 @@ export function ShiftForm({ editingShift, onSubmit, onCancel }: ShiftFormProps) 
     return (
         <form onSubmit={handleSubmit(handleFormSubmit)} className='grid grid-cols-1 gap-6 md:grid-cols-2'>
             <div className='space-y-2'>
-                <label className='font-medium text-sm'>
+                <label className='font-medium text-sm' htmlFor='shiftName'>
                     Shift Name <span className='text-red-500'>*</span>
                 </label>
                 <InputText
+                    id='shiftName'
                     placeholder='Enter Name'
                     {...register('shiftName', { required: 'Required' })}
                     error={errors.shiftName?.message}
@@ -73,15 +74,18 @@ export function ShiftForm({ editingShift, onSubmit, onCancel }: ShiftFormProps) 
             </div>
 
             <div className='space-y-2'>
-                <label className='font-medium text-sm'>Remarks</label>
-                <InputText placeholder='Enter Remarks' {...register('remarks')} />
+                <label className='font-medium text-sm' htmlFor='remarks'>
+                    Remarks
+                </label>
+                <InputText id='remarks' placeholder='Enter Remarks' {...register('remarks')} />
             </div>
 
             <div className='space-y-2'>
-                <label className='font-medium text-sm'>
+                <label className='font-medium text-sm' htmlFor='startTime'>
                     Shift Start Time <span className='text-red-500'>*</span>
                 </label>
                 <input
+                    id='startTime'
                     type='time'
                     {...register('startTime', {
                         required: 'Start time is required'
@@ -92,10 +96,11 @@ export function ShiftForm({ editingShift, onSubmit, onCancel }: ShiftFormProps) 
             </div>
 
             <div className='space-y-2'>
-                <label className='font-medium text-sm'>
+                <label className='font-medium text-sm' htmlFor='endTime'>
                     Shift End Time <span className='text-red-500'>*</span>
                 </label>
                 <input
+                    id='endTime'
                     type='time'
                     {...register('endTime', {
                         required: 'End time is required'
@@ -107,9 +112,10 @@ export function ShiftForm({ editingShift, onSubmit, onCancel }: ShiftFormProps) 
             </div>
 
             <div className='flex items-center gap-8'>
-                <label className='flex items-center gap-2 text-sm'>
-                    <Checkbox checked={watch('specificDay')} onCheckedChange={(v) => setValue('specificDay', Boolean(v))} /> Specific Day
-                </label>
+                <div className='flex items-center gap-2 text-sm'>
+                    <Checkbox checked={watch('specificDay')} onCheckedChange={(v) => setValue('specificDay', Boolean(v))} />
+                    <span>Specific Day</span>
+                </div>
             </div>
 
             <div className='flex justify-center gap-4 border-t pt-6 md:col-span-2'>

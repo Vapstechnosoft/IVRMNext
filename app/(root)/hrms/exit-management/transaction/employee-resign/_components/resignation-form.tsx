@@ -1,13 +1,11 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
-import { RefreshCw, Save, X } from 'lucide-react';
+import { Save, X } from 'lucide-react';
 import { type SubmitHandler, useForm } from 'react-hook-form';
 import type { Resignation } from './columns';
 
-export type ResignationFormData = {
-    // TODO: Add form fields based on the entity
-};
+export type ResignationFormData = Record<string, unknown>;
 
 interface ResignationFormProps {
     editingResignation: Resignation | null;
@@ -16,15 +14,9 @@ interface ResignationFormProps {
 }
 
 export function ResignationForm({ editingResignation, onSubmit, onCancel }: ResignationFormProps) {
-    const {
-        register,
-        handleSubmit,
-        watch,
-        setValue,
-        formState: { errors, isSubmitting }
-    } = useForm<ResignationFormData>({
+    const { handleSubmit } = useForm<ResignationFormData>({
         mode: 'onChange',
-        defaultValues: editingResignation || {}
+        defaultValues: (editingResignation as any) || {}
     });
 
     const handleFormSubmit: SubmitHandler<ResignationFormData> = async (data) => {
@@ -40,18 +32,11 @@ export function ResignationForm({ editingResignation, onSubmit, onCancel }: Resi
                     <X className='mr-2 h-4 w-4' />
                     Cancel
                 </Button>
-                <Button type='submit' disabled={isSubmitting}>
-                    {isSubmitting ? (
-                        <div className='flex items-center'>
-                            <RefreshCw className='mr-2 h-4 w-4 animate-spin' />
-                            Saving...
-                        </div>
-                    ) : (
-                        <div className='flex items-center'>
-                            <Save className='mr-2 h-4 w-4' />
-                            Save
-                        </div>
-                    )}
+                <Button type='submit' disabled={false}>
+                    <div className='flex items-center'>
+                        <Save className='mr-2 h-4 w-4' />
+                        Save
+                    </div>
                 </Button>
             </div>
         </form>

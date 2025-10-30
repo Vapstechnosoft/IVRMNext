@@ -107,9 +107,12 @@ export default function UnauthorizedLeaveCountReportPage() {
                         <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
                             {mode === 'Company Wise' ? (
                                 <div>
-                                    <label className='font-medium text-sm'>Company Name</label>
+                                    <label htmlFor='company-name-input' className='font-medium text-sm'>
+                                        Company Name
+                                    </label>
                                     <div className='rounded-md border p-2'>
                                         <InputText
+                                            id='company-name-input'
                                             placeholder='search here...'
                                             value={companyQuery}
                                             onChange={(e) => setCompanyQuery(e.target.value)}
@@ -135,9 +138,11 @@ export default function UnauthorizedLeaveCountReportPage() {
                                 </div>
                             ) : (
                                 <div>
-                                    <label className='font-medium text-sm'>Department Name</label>
+                                    <label htmlFor='department-select' className='font-medium text-sm'>
+                                        Department Name
+                                    </label>
                                     <Select value={department} onValueChange={setDepartment}>
-                                        <SelectTrigger>
+                                        <SelectTrigger id='department-select'>
                                             <SelectValue placeholder='Select Department' />
                                         </SelectTrigger>
                                         <SelectContent>
@@ -182,9 +187,11 @@ export default function UnauthorizedLeaveCountReportPage() {
 
                         <div className='grid grid-cols-1 items-end gap-4 md:grid-cols-3'>
                             <div>
-                                <label className='font-medium text-sm'>Year</label>
+                                <label htmlFor='year-select' className='font-medium text-sm'>
+                                    Year
+                                </label>
                                 <Select value={year} onValueChange={setYear}>
-                                    <SelectTrigger>
+                                    <SelectTrigger id='year-select'>
                                         <SelectValue />
                                     </SelectTrigger>
                                     <SelectContent>
@@ -199,9 +206,11 @@ export default function UnauthorizedLeaveCountReportPage() {
 
                             {rangeMode === 'Month Wise' ? (
                                 <div>
-                                    <label className='font-medium text-sm'>Month</label>
+                                    <label htmlFor='month-select' className='font-medium text-sm'>
+                                        Month
+                                    </label>
                                     <Select value={month} onValueChange={setMonth}>
-                                        <SelectTrigger>
+                                        <SelectTrigger id='month-select'>
                                             <SelectValue />
                                         </SelectTrigger>
                                         <SelectContent>
@@ -229,12 +238,26 @@ export default function UnauthorizedLeaveCountReportPage() {
                             ) : (
                                 <div className='grid grid-cols-2 gap-2'>
                                     <div>
-                                        <label className='font-medium text-sm'>From Date</label>
-                                        <InputText type='date' value={fromDate} onChange={(e) => setFromDate(e.target.value)} />
+                                        <label htmlFor='from-date-input' className='font-medium text-sm'>
+                                            From Date
+                                        </label>
+                                        <InputText
+                                            id='from-date-input'
+                                            type='date'
+                                            value={fromDate}
+                                            onChange={(e) => setFromDate(e.target.value)}
+                                        />
                                     </div>
                                     <div>
-                                        <label className='font-medium text-sm'>To Date</label>
-                                        <InputText type='date' value={toDate} onChange={(e) => setToDate(e.target.value)} />
+                                        <label htmlFor='to-date-input' className='font-medium text-sm'>
+                                            To Date
+                                        </label>
+                                        <InputText
+                                            id='to-date-input'
+                                            type='date'
+                                            value={toDate}
+                                            onChange={(e) => setToDate(e.target.value)}
+                                        />
                                     </div>
                                 </div>
                             )}
@@ -262,7 +285,7 @@ export default function UnauthorizedLeaveCountReportPage() {
                     variant='default'
                     size='lg'
                     className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
-                    <GenericDataTable data={rows} columns={columns} totalItems={rows.length} />
+                    <GenericDataTable data={rows} columns={columns} totalItems={rows.length} isLoading={false} />
                 </CollapsibleSection>
             </div>
         </div>

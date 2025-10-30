@@ -2,11 +2,11 @@
 
 import { clientEnv } from '@/env';
 import type { ApiResponse } from '@/lib/apiService';
-import type { SalaryAdvanceInput, SalaryAdvanceRequest, SalaryAdvanceResponse } from '@/types/hrms/salary-advance';
+import type { SalaryAdvanceOnloadRequest, SalaryAdvanceOnloadResponse, SalaryAdvanceSaveRequest } from '@/types/hrms/salary-advance';
 import axios from 'axios';
 
 // Helper function to create a complete request body matching the exact API structure
-function createSalaryAdvanceRequestBody(baseFields: Partial<SalaryAdvanceRequest>): SalaryAdvanceRequest {
+function createSalaryAdvanceRequestBody(baseFields: any): any {
     const now = new Date().toISOString();
 
     // Create a sample employee object for empadvaList
@@ -396,7 +396,7 @@ function createSalaryAdvanceRequestBody(baseFields: Partial<SalaryAdvanceRequest
  * Get salary advance onload details
  * POST /api/HREmpSalaryAdvanceFacade/onloadgetdetails
  */
-export async function getSalaryAdvanceList(roleId: number = 2): Promise<ApiResponse<SalaryAdvanceResponse>> {
+export async function getSalaryAdvanceList(roleId: number = 2): Promise<ApiResponse<SalaryAdvanceOnloadResponse>> {
     try {
         const baseURL = clientEnv.NEXT_PUBLIC_API_BASE_URL;
         const apiPath = '/api/HREmpSalaryAdvanceFacade/onloadgetdetails';
@@ -407,7 +407,7 @@ export async function getSalaryAdvanceList(roleId: number = 2): Promise<ApiRespo
             roleId: roleId
         });
 
-        const axiosResponse = await axios.post<SalaryAdvanceResponse>(url, requestBody, {
+        const axiosResponse = await axios.post<SalaryAdvanceOnloadResponse>(url, requestBody, {
             headers: {
                 'Content-Type': 'application/json',
                 Accept: 'application/json'
@@ -418,7 +418,7 @@ export async function getSalaryAdvanceList(roleId: number = 2): Promise<ApiRespo
             }
         });
 
-        const response: ApiResponse<SalaryAdvanceResponse> = {
+        const response: ApiResponse<SalaryAdvanceOnloadResponse> = {
             success: axiosResponse.status >= 200 && axiosResponse.status < 300,
             message:
                 axiosResponse.data.retrunMsg ||
@@ -432,7 +432,7 @@ export async function getSalaryAdvanceList(roleId: number = 2): Promise<ApiRespo
         console.error('Error:', error);
 
         if (axios.isAxiosError(error)) {
-            const errorResponse: ApiResponse<SalaryAdvanceResponse> = {
+            const errorResponse: ApiResponse<SalaryAdvanceOnloadResponse> = {
                 success: false,
                 message:
                     error.response?.data?.retrunMsg || error.response?.data?.message || error.message || 'Failed to load salary advance data',
@@ -449,7 +449,7 @@ export async function getSalaryAdvanceList(roleId: number = 2): Promise<ApiRespo
  * Save/Update salary advance
  * POST /api/HREmpSalaryAdvanceFacade
  */
-export async function saveSalaryAdvance(data: SalaryAdvanceInput): Promise<ApiResponse<SalaryAdvanceResponse>> {
+export async function saveSalaryAdvance(data: SalaryAdvanceSaveRequest): Promise<ApiResponse<SalaryAdvanceOnloadResponse>> {
     try {
         const baseURL = clientEnv.NEXT_PUBLIC_API_BASE_URL;
         const apiPath = '/api/HREmpSalaryAdvanceFacade';
@@ -470,10 +470,10 @@ export async function saveSalaryAdvance(data: SalaryAdvanceInput): Promise<ApiRe
             HRESA_ModeOfPayment: data.HRESA_ModeOfPayment || 'string',
             HRESA_ReferenceNo: data.HRESA_ReferenceNo || 0,
             roleId: data.roleId || 0,
-            searchfilter: data.searchfilter || 'string'
+            searchfilter: (data as any).searchfilter || 'string'
         });
 
-        const axiosResponse = await axios.post<SalaryAdvanceResponse>(url, requestBody, {
+        const axiosResponse = await axios.post<SalaryAdvanceOnloadResponse>(url, requestBody, {
             headers: {
                 'Content-Type': 'application/json',
                 Accept: 'application/json'
@@ -489,7 +489,7 @@ export async function saveSalaryAdvance(data: SalaryAdvanceInput): Promise<ApiRe
             axiosResponse.status < 300 &&
             (!axiosResponse.data.retrunMsg || !axiosResponse.data.retrunMsg.toLowerCase().includes('error'));
 
-        const response: ApiResponse<SalaryAdvanceResponse> = {
+        const response: ApiResponse<SalaryAdvanceOnloadResponse> = {
             success: isSuccess,
             message: axiosResponse.data.retrunMsg || (isSuccess ? 'Salary advance saved successfully' : `HTTP ${axiosResponse.status}`),
             data: axiosResponse.data
@@ -501,7 +501,7 @@ export async function saveSalaryAdvance(data: SalaryAdvanceInput): Promise<ApiRe
         console.error('Error:', error);
 
         if (axios.isAxiosError(error)) {
-            const errorResponse: ApiResponse<SalaryAdvanceResponse> = {
+            const errorResponse: ApiResponse<SalaryAdvanceOnloadResponse> = {
                 success: false,
                 message: error.response?.data?.retrunMsg || error.response?.data?.message || error.message || 'Failed to save salary advance',
                 data: null
@@ -517,7 +517,7 @@ export async function saveSalaryAdvance(data: SalaryAdvanceInput): Promise<ApiRe
  * Delete salary advance
  * POST /api/HREmpSalaryAdvanceFacade/delete
  */
-export async function deleteSalaryAdvance(hresaId: number): Promise<ApiResponse<SalaryAdvanceResponse>> {
+export async function deleteSalaryAdvance(hresaId: number): Promise<ApiResponse<SalaryAdvanceOnloadResponse>> {
     try {
         const baseURL = clientEnv.NEXT_PUBLIC_API_BASE_URL;
         const apiPath = '/api/HREmpSalaryAdvanceFacade/delete';
@@ -528,7 +528,7 @@ export async function deleteSalaryAdvance(hresaId: number): Promise<ApiResponse<
             MI_Id: 30
         });
 
-        const axiosResponse = await axios.post<SalaryAdvanceResponse>(url, requestBody, {
+        const axiosResponse = await axios.post<SalaryAdvanceOnloadResponse>(url, requestBody, {
             headers: {
                 'Content-Type': 'application/json',
                 Accept: 'application/json'
@@ -544,7 +544,7 @@ export async function deleteSalaryAdvance(hresaId: number): Promise<ApiResponse<
             axiosResponse.status < 300 &&
             (!axiosResponse.data.retrunMsg || !axiosResponse.data.retrunMsg.toLowerCase().includes('error'));
 
-        const response: ApiResponse<SalaryAdvanceResponse> = {
+        const response: ApiResponse<SalaryAdvanceOnloadResponse> = {
             success: isSuccess,
             message: axiosResponse.data.retrunMsg || (isSuccess ? 'Salary advance deleted successfully' : `HTTP ${axiosResponse.status}`),
             data: axiosResponse.data
@@ -556,7 +556,7 @@ export async function deleteSalaryAdvance(hresaId: number): Promise<ApiResponse<
         console.error('Error:', error);
 
         if (axios.isAxiosError(error)) {
-            const errorResponse: ApiResponse<SalaryAdvanceResponse> = {
+            const errorResponse: ApiResponse<SalaryAdvanceOnloadResponse> = {
                 success: false,
                 message: error.response?.data?.retrunMsg || error.response?.data?.message || error.message || 'Failed to delete salary advance',
                 data: null
@@ -572,7 +572,7 @@ export async function deleteSalaryAdvance(hresaId: number): Promise<ApiResponse<
  * Activate/Deactivate salary advance record by ID
  * POST /api/HREmpSalaryAdvanceFacade/deactivateRecordById
  */
-export async function toggleSalaryAdvanceStatus(hresaId: number): Promise<ApiResponse<SalaryAdvanceResponse>> {
+export async function toggleSalaryAdvanceStatus(hresaId: number): Promise<ApiResponse<SalaryAdvanceOnloadResponse>> {
     try {
         const baseURL = clientEnv.NEXT_PUBLIC_API_BASE_URL;
         const apiPath = '/api/HREmpSalaryAdvanceFacade/deactivateRecordById';
@@ -583,7 +583,7 @@ export async function toggleSalaryAdvanceStatus(hresaId: number): Promise<ApiRes
             MI_Id: 30
         });
 
-        const axiosResponse = await axios.post<SalaryAdvanceResponse>(url, requestBody, {
+        const axiosResponse = await axios.post<SalaryAdvanceOnloadResponse>(url, requestBody, {
             headers: {
                 'Content-Type': 'application/json',
                 Accept: 'application/json'
@@ -599,7 +599,7 @@ export async function toggleSalaryAdvanceStatus(hresaId: number): Promise<ApiRes
             axiosResponse.status < 300 &&
             (!axiosResponse.data.retrunMsg || !axiosResponse.data.retrunMsg.toLowerCase().includes('error'));
 
-        const response: ApiResponse<SalaryAdvanceResponse> = {
+        const response: ApiResponse<SalaryAdvanceOnloadResponse> = {
             success: isSuccess,
             message: axiosResponse.data.retrunMsg || (isSuccess ? 'Status updated successfully' : `HTTP ${axiosResponse.status}`),
             data: axiosResponse.data
@@ -611,7 +611,7 @@ export async function toggleSalaryAdvanceStatus(hresaId: number): Promise<ApiRes
         console.error('Error:', error);
 
         if (axios.isAxiosError(error)) {
-            const errorResponse: ApiResponse<SalaryAdvanceResponse> = {
+            const errorResponse: ApiResponse<SalaryAdvanceOnloadResponse> = {
                 success: false,
                 message: error.response?.data?.retrunMsg || error.response?.data?.message || error.message || 'Failed to update status',
                 data: null

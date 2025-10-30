@@ -1,13 +1,11 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
-import { RefreshCw, Save, X } from 'lucide-react';
+import { Save, X } from 'lucide-react';
 import { type SubmitHandler, useForm } from 'react-hook-form';
 import type { LeaveCreditDetails } from './columns';
 
-export type LeaveCreditDetailsFormData = {
-    // TODO: Add form fields based on the entity
-};
+export type LeaveCreditDetailsFormData = Record<string, unknown>;
 
 interface LeaveCreditDetailsFormProps {
     editingLeaveCreditDetails: LeaveCreditDetails | null;
@@ -16,15 +14,9 @@ interface LeaveCreditDetailsFormProps {
 }
 
 export function LeaveCreditDetailsForm({ editingLeaveCreditDetails, onSubmit, onCancel }: LeaveCreditDetailsFormProps) {
-    const {
-        register,
-        handleSubmit,
-        watch,
-        setValue,
-        formState: { errors, isSubmitting }
-    } = useForm<LeaveCreditDetailsFormData>({
+    const { handleSubmit } = useForm<LeaveCreditDetailsFormData>({
         mode: 'onChange',
-        defaultValues: editingLeaveCreditDetails || {}
+        defaultValues: (editingLeaveCreditDetails as any) || {}
     });
 
     const handleFormSubmit: SubmitHandler<LeaveCreditDetailsFormData> = async (data) => {
@@ -40,18 +32,11 @@ export function LeaveCreditDetailsForm({ editingLeaveCreditDetails, onSubmit, on
                     <X className='mr-2 h-4 w-4' />
                     Cancel
                 </Button>
-                <Button type='submit' disabled={isSubmitting}>
-                    {isSubmitting ? (
-                        <div className='flex items-center'>
-                            <RefreshCw className='mr-2 h-4 w-4 animate-spin' />
-                            Saving...
-                        </div>
-                    ) : (
-                        <div className='flex items-center'>
-                            <Save className='mr-2 h-4 w-4' />
-                            Save
-                        </div>
-                    )}
+                <Button type='submit' disabled={false}>
+                    <div className='flex items-center'>
+                        <Save className='mr-2 h-4 w-4' />
+                        Save
+                    </div>
                 </Button>
             </div>
         </form>

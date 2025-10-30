@@ -520,9 +520,9 @@ export default function AddCandidatePage() {
                                             />
 
                                             <div className='space-y-2'>
-                                                <label className='font-medium text-sm'>
+                                                <span className='font-medium text-sm'>
                                                     Nationality <span className='text-red-500'>*</span>
-                                                </label>
+                                                </span>
                                                 <Select onValueChange={(value) => setValue('nationality', value)}>
                                                     <SelectTrigger>
                                                         <SelectValue placeholder='India' />
@@ -535,9 +535,9 @@ export default function AddCandidatePage() {
                                             </div>
 
                                             <div className='space-y-2'>
-                                                <label className='font-medium text-sm'>
+                                                <span className='font-medium text-sm'>
                                                     Religion <span className='text-red-500'>*</span>
-                                                </label>
+                                                </span>
                                                 <Select onValueChange={(value) => setValue('religion', value)}>
                                                     <SelectTrigger>
                                                         <SelectValue placeholder='HINDU' />
@@ -553,9 +553,9 @@ export default function AddCandidatePage() {
                                             </div>
 
                                             <div className='space-y-2'>
-                                                <label className='font-medium text-sm'>
+                                                <span className='font-medium text-sm'>
                                                     Caste <span className='text-red-500'>*</span>
-                                                </label>
+                                                </span>
                                                 <Select onValueChange={(value) => setValue('caste', value)}>
                                                     <SelectTrigger>
                                                         <SelectValue placeholder='General' />
@@ -578,9 +578,9 @@ export default function AddCandidatePage() {
                                             />
 
                                             <div className='space-y-2'>
-                                                <label className='font-medium text-sm'>
+                                                <span className='font-medium text-sm'>
                                                     Gender <span className='text-red-500'>*</span>
-                                                </label>
+                                                </span>
                                                 <Select onValueChange={(value) => setValue('gender', value)}>
                                                     <SelectTrigger>
                                                         <SelectValue placeholder='MALE' />
@@ -602,9 +602,9 @@ export default function AddCandidatePage() {
                                             />
 
                                             <div className='space-y-2'>
-                                                <label className='font-medium text-sm'>
+                                                <span className='font-medium text-sm'>
                                                     Marital Status <span className='text-red-500'>*</span>
-                                                </label>
+                                                </span>
                                                 <Select onValueChange={(value) => setValue('maritalStatus', value)}>
                                                     <SelectTrigger>
                                                         <SelectValue placeholder='MARRIED' />
@@ -628,9 +628,9 @@ export default function AddCandidatePage() {
                                             />
 
                                             <div className='space-y-2'>
-                                                <label className='font-medium text-sm'>
+                                                <span className='font-medium text-sm'>
                                                     Blood Group <span className='text-red-500'>*</span>
-                                                </label>
+                                                </span>
                                                 <Select onValueChange={(value) => setValue('bloodGroup', value)}>
                                                     <SelectTrigger>
                                                         <SelectValue placeholder='AB+' />
@@ -649,9 +649,9 @@ export default function AddCandidatePage() {
                                             </div>
 
                                             <div className='space-y-2'>
-                                                <label className='font-medium text-sm'>
+                                                <span className='font-medium text-sm'>
                                                     Qualification <span className='text-red-500'>*</span>
-                                                </label>
+                                                </span>
                                                 <Select onValueChange={(value) => setValue('qualification', value)}>
                                                     <SelectTrigger>
                                                         <SelectValue placeholder='UG' />
@@ -666,9 +666,9 @@ export default function AddCandidatePage() {
                                             </div>
 
                                             <div className='space-y-2'>
-                                                <label className='font-medium text-sm'>
+                                                <span className='font-medium text-sm'>
                                                     Job Title <span className='text-red-500'>*</span>
-                                                </label>
+                                                </span>
                                                 <Select onValueChange={(value) => setValue('jobTitle', value)}>
                                                     <SelectTrigger>
                                                         <SelectValue placeholder='Hardware and network engineer' />
@@ -691,9 +691,9 @@ export default function AddCandidatePage() {
                                             />
 
                                             <div className='space-y-2'>
-                                                <label className='font-medium text-sm'>
+                                                <span className='font-medium text-sm'>
                                                     Position Type <span className='text-red-500'>*</span>
-                                                </label>
+                                                </span>
                                                 <Select onValueChange={(value) => setValue('positionType', value)}>
                                                     <SelectTrigger>
                                                         <SelectValue placeholder='Permanent' />
@@ -713,9 +713,9 @@ export default function AddCandidatePage() {
                                             />
 
                                             <div className='space-y-2'>
-                                                <label className='font-medium text-sm'>
+                                                <span className='font-medium text-sm'>
                                                     Position <span className='text-red-500'>*</span>
-                                                </label>
+                                                </span>
                                                 <Select onValueChange={(value) => setValue('position', value)}>
                                                     <SelectTrigger>
                                                         <SelectValue placeholder='Select Position' />
@@ -758,9 +758,9 @@ export default function AddCandidatePage() {
                                             />
 
                                             <div className='space-y-2'>
-                                                <label className='font-medium text-sm'>
+                                                <span className='font-medium text-sm'>
                                                     Ref. HR <span className='text-red-500'>*</span>
-                                                </label>
+                                                </span>
                                                 <Select onValueChange={(value) => setValue('refHR', value)}>
                                                     <SelectTrigger>
                                                         <SelectValue placeholder='Select HR' />
@@ -773,9 +773,9 @@ export default function AddCandidatePage() {
                                             </div>
 
                                             <div className='space-y-2'>
-                                                <label className='font-medium text-sm'>
+                                                <span className='font-medium text-sm'>
                                                     Application Date <span className='text-red-500'>*</span>
-                                                </label>
+                                                </span>
                                                 <input
                                                     type='date'
                                                     {...register('applicationDate', { required: 'Application Date is required' })}
@@ -787,9 +787,9 @@ export default function AddCandidatePage() {
                                             <InputText label='Source' {...register('source')} />
 
                                             <div className='space-y-2'>
-                                                <label className='font-medium text-sm'>
+                                                <span className='font-medium text-sm'>
                                                     Interview Date <span className='text-red-500'>*</span>
-                                                </label>
+                                                </span>
                                                 <input
                                                     type='date'
                                                     {...register('interviewDate', { required: 'Interview Date is required' })}
@@ -801,9 +801,9 @@ export default function AddCandidatePage() {
                                             <InputText label='Remark' {...register('remark')} />
 
                                             <div className='space-y-2'>
-                                                <label className='font-medium text-sm'>
+                                                <span className='font-medium text-sm'>
                                                     Date of Birth <span className='text-red-500'>*</span>
-                                                </label>
+                                                </span>
                                                 <input
                                                     type='date'
                                                     {...register('dateOfBirth', { required: 'Date of Birth is required' })}
@@ -813,7 +813,7 @@ export default function AddCandidatePage() {
                                             </div>
 
                                             <div className='space-y-2'>
-                                                <label className='font-medium text-sm'>Consultency</label>
+                                                <span className='font-medium text-sm'>Consultency</span>
                                                 <Select onValueChange={(value) => setValue('consultency', value)}>
                                                     <SelectTrigger>
                                                         <SelectValue placeholder='--Select--' />

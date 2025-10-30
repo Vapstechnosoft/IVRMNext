@@ -65,13 +65,7 @@ export default function EmployeeExitReportPage() {
     const [fromDateOpen, setFromDateOpen] = useState(false);
     const [toDateOpen, setToDateOpen] = useState(false);
 
-    const {
-        register,
-        handleSubmit,
-        setValue,
-        watch,
-        formState: { errors, isSubmitting }
-    } = useForm<ReportFormData>({
+    const { handleSubmit, setValue, watch } = useForm<ReportFormData>({
         defaultValues: {
             departments: ['ALL'],
             designations: ['ALL'],
@@ -311,26 +305,19 @@ export default function EmployeeExitReportPage() {
                                         setValue('toDate', new Date('2024-01-31'));
                                         setValue('status', ['ALL', 'APPROVED', 'REJECTED', 'PENDING']);
                                     }}
-                                    disabled={isSubmitting}
+                                    disabled={false}
                                     className='order-2 w-fit transition-all duration-200 hover:scale-105 sm:order-1'>
                                     <X className='mr-2 h-4 w-4' />
                                     Cancel
                                 </Button>
                                 <Button
                                     type='submit'
-                                    disabled={isSubmitting}
+                                    disabled={false}
                                     className='order-1 w-fit transition-all duration-200 hover:scale-105 sm:order-2'>
-                                    {isSubmitting ? (
-                                        <div className='flex items-center'>
-                                            <RefreshCw className='mr-2 h-4 w-4 animate-spin' />
-                                            Generating...
-                                        </div>
-                                    ) : (
-                                        <div className='flex items-center'>
-                                            <BarChart3 className='mr-2 h-4 w-4' />
-                                            Generate Report
-                                        </div>
-                                    )}
+                                    <div className='flex items-center'>
+                                        <BarChart3 className='mr-2 h-4 w-4' />
+                                        Generate Report
+                                    </div>
                                 </Button>
                             </div>
                         </form>

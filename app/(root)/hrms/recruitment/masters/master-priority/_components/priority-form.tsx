@@ -3,28 +3,23 @@
 import { Button } from '@/components/ui/button';
 import { RefreshCw, Save, X } from 'lucide-react';
 import { type SubmitHandler, useForm } from 'react-hook-form';
-import type { Priority } from './columns';
+import type { MasterPriority } from './columns';
 
-export type PriorityFormData = {
-    // TODO: Add form fields based on the entity
-};
+export type PriorityFormData = Record<string, unknown>;
 
 interface PriorityFormProps {
-    editingPriority: Priority | null;
+    editingPriority: MasterPriority | null;
     onSubmit: (data: PriorityFormData) => void;
     onCancel: () => void;
 }
 
 export function PriorityForm({ editingPriority, onSubmit, onCancel }: PriorityFormProps) {
     const {
-        register,
         handleSubmit,
-        watch,
-        setValue,
-        formState: { errors, isSubmitting }
+        formState: { isSubmitting }
     } = useForm<PriorityFormData>({
         mode: 'onChange',
-        defaultValues: editingPriority || {}
+        defaultValues: (editingPriority as any) || {}
     });
 
     const handleFormSubmit: SubmitHandler<PriorityFormData> = async (data) => {

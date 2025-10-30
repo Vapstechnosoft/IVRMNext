@@ -6,11 +6,11 @@ import type {
     EmployeeDetailsReportOnloadResponse,
     EmployeeDetailsReportSearchRequest,
     EmployeeDetailsReportSearchResponse
-} from '@/types/hrms/employee-details-report';
+} from '@/types/hrms/reports/employee-details-report';
+import { clientEnv } from '@/env';
 import axios from 'axios';
 
-const API_BASE_URL =
-    process.clientEnv.NEXT_PUBLIC_API_BASE_URL || 'https://hrmsservicehub-bwfuevcrhyeaccgv.canadacentral-01.azurewebsites.net';
+const API_BASE_URL = clientEnv.NEXT_PUBLIC_API_BASE_URL || 'https://hrmsservicehub-bwfuevcrhyeaccgv.canadacentral-01.azurewebsites.net';
 
 export async function getEmployeeDetailsReportOnload(
     MI_Id = 30,

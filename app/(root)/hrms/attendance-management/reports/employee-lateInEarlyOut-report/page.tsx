@@ -80,8 +80,12 @@ export default function EmployeeLateInEarlyOutReportPage() {
         { accessorKey: 'earlyOut', header: ({ column }) => <DataTableColumnHeader column={column} title='Early Out' /> }
     ];
 
-    const handleReport = () => {};
-    const handleExport = () => {};
+    const handleReport = () => {
+        /* TODO: implement */
+    };
+    const handleExport = () => {
+        /* TODO: implement */
+    };
     const handlePrint = () => window.print();
 
     return (
@@ -102,9 +106,11 @@ export default function EmployeeLateInEarlyOutReportPage() {
                     className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
                     <div className='grid grid-cols-1 gap-4 md:grid-cols-12'>
                         <div className='md:col-span-4'>
-                            <label className='font-medium text-sm'>Type</label>
+                            <label className='font-medium text-sm' htmlFor='type'>
+                                Type
+                            </label>
                             <Select onValueChange={setType}>
-                                <SelectTrigger>
+                                <SelectTrigger id='type'>
                                     <SelectValue placeholder='Type' />
                                 </SelectTrigger>
                                 <SelectContent>
@@ -114,9 +120,11 @@ export default function EmployeeLateInEarlyOutReportPage() {
                             </Select>
                         </div>
                         <div className='md:col-span-4'>
-                            <label className='font-medium text-sm'>Department</label>
+                            <label className='font-medium text-sm' htmlFor='department'>
+                                Department
+                            </label>
                             <Select onValueChange={setDepartment}>
-                                <SelectTrigger>
+                                <SelectTrigger id='department'>
                                     <SelectValue placeholder='Department' />
                                 </SelectTrigger>
                                 <SelectContent>
@@ -129,9 +137,11 @@ export default function EmployeeLateInEarlyOutReportPage() {
                             </Select>
                         </div>
                         <div className='md:col-span-4'>
-                            <label className='font-medium text-sm'>Designation</label>
+                            <label className='font-medium text-sm' htmlFor='designation'>
+                                Designation
+                            </label>
                             <Select onValueChange={setDesignation}>
-                                <SelectTrigger>
+                                <SelectTrigger id='designation'>
                                     <SelectValue placeholder='Designation' />
                                 </SelectTrigger>
                                 <SelectContent>
@@ -145,23 +155,26 @@ export default function EmployeeLateInEarlyOutReportPage() {
                         </div>
 
                         <div className='flex items-center gap-4 pt-2 md:col-span-12'>
-                            <label className='flex items-center gap-2 text-sm'>
-                                <Checkbox checked={allOrIndividual === 'All'} onCheckedChange={() => setAllOrIndividual('All')} /> All
-                            </label>
-                            <label className='flex items-center gap-2 text-sm'>
+                            <div className='flex items-center gap-2 text-sm'>
+                                <Checkbox checked={allOrIndividual === 'All'} onCheckedChange={() => setAllOrIndividual('All')} />
+                                <span>All</span>
+                            </div>
+                            <div className='flex items-center gap-2 text-sm'>
                                 <Checkbox
                                     checked={allOrIndividual === 'Individual'}
                                     onCheckedChange={() => setAllOrIndividual('Individual')}
-                                />{' '}
-                                Individual
-                            </label>
+                                />
+                                <span>Individual</span>
+                            </div>
                             <div className='flex items-center gap-4'>
-                                <label className='flex items-center gap-2 text-sm'>
-                                    <Checkbox checked={codeOrName === 'Code'} onCheckedChange={() => setCodeOrName('Code')} /> Code
-                                </label>
-                                <label className='flex items-center gap-2 text-sm'>
-                                    <Checkbox checked={codeOrName === 'Name'} onCheckedChange={() => setCodeOrName('Name')} /> Name
-                                </label>
+                                <div className='flex items-center gap-2 text-sm'>
+                                    <Checkbox checked={codeOrName === 'Code'} onCheckedChange={() => setCodeOrName('Code')} />
+                                    <span>Code</span>
+                                </div>
+                                <div className='flex items-center gap-2 text-sm'>
+                                    <Checkbox checked={codeOrName === 'Name'} onCheckedChange={() => setCodeOrName('Name')} />
+                                    <span>Name</span>
+                                </div>
                                 <InputText
                                     placeholder={codeOrName === 'Code' ? 'Code' : 'Name'}
                                     value={query}
@@ -171,17 +184,23 @@ export default function EmployeeLateInEarlyOutReportPage() {
                         </div>
 
                         <div className='md:col-span-3'>
-                            <label className='font-medium text-sm'>From Date</label>
-                            <InputText type='date' value={fromDate} onChange={(e) => setFromDate(e.target.value)} />
+                            <label className='font-medium text-sm' htmlFor='fromDate'>
+                                From Date
+                            </label>
+                            <InputText id='fromDate' type='date' value={fromDate} onChange={(e) => setFromDate(e.target.value)} />
                         </div>
                         <div className='md:col-span-3'>
-                            <label className='font-medium text-sm'>To Date</label>
-                            <InputText type='date' value={toDate} onChange={(e) => setToDate(e.target.value)} />
+                            <label className='font-medium text-sm' htmlFor='toDate'>
+                                To Date
+                            </label>
+                            <InputText id='toDate' type='date' value={toDate} onChange={(e) => setToDate(e.target.value)} />
                         </div>
                         <div className='md:col-span-3'>
-                            <label className='font-medium text-sm'>Mode</label>
+                            <label className='font-medium text-sm' htmlFor='mode'>
+                                Mode
+                            </label>
                             <Select onValueChange={(v) => setMode(v as any)}>
-                                <SelectTrigger>
+                                <SelectTrigger id='mode'>
                                     <SelectValue placeholder='Mode' />
                                 </SelectTrigger>
                                 <SelectContent>

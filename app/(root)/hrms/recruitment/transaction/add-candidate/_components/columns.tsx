@@ -5,6 +5,46 @@ import { DataTableColumnHeader } from '@/components/ui/data-table-column-header'
 import type { ColumnDef } from '@tanstack/react-table';
 import { Edit, Trash2 } from 'lucide-react';
 
+export interface QualificationDetail {
+    id: number;
+    qualification: string;
+    board: string;
+    year: string;
+    percentage: string;
+}
+
+export interface ExperienceDetail {
+    id: number;
+    company: string;
+    designation: string;
+    from: string;
+    to: string;
+    experience: string;
+}
+
+export interface FamilyDetail {
+    id: number;
+    name: string;
+    relation: string;
+    occupation: string;
+    contactNo: string;
+}
+
+export interface LanguageDetail {
+    id: number;
+    language: string;
+    read: boolean;
+    write: boolean;
+    speak: boolean;
+}
+
+export interface DocumentDetail {
+    id: number;
+    documentType: string;
+    fileName: string;
+    filePath: string;
+}
+
 export interface Candidate {
     id: number;
     // Personal Details

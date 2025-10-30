@@ -6,13 +6,12 @@ import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
 import { HRMS_MI_ID } from '@/constants/hrms-config';
 import { useMasterGrade } from '@/hooks/hrms/useMasterGrade';
-import type { GradeDetail, MasterGradeResponse } from '@/types/hrms/master-grade';
+import type { GradeDetail } from '@/types/hrms/master-grade';
 import { ListOrdered, Plus, Save, X } from 'lucide-react';
 import { useState } from 'react';
 import { toast } from 'sonner';
-import AddGradeForm from './_components/add-form';
 import { columns, getEditableColumns } from './_components/columns';
-import UpdateGradeForm from './_components/update-form';
+import GradeForm from './_components/grade-form';
 
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 
@@ -23,7 +22,7 @@ export default function MasterGradePage(_props: {
     const { listQuery } = useMasterGrade(roleId);
 
     return (
-        <FormProvider<MasterGradeResponse>>
+        <FormProvider<GradeDetail>>
             <MasterGradePageContent response={listQuery.data} isLoading={listQuery.isLoading} error={listQuery.error} />
         </FormProvider>
     );
@@ -38,7 +37,7 @@ function MasterGradePageContent({
     isLoading: boolean;
     error: any;
 }) {
-    const { openAddForm } = useFormContext<MasterGradeResponse>();
+    const { openAddForm } = useFormContext<GradeDetail>();
     const { saveOrderMutation } = useMasterGrade(HRMS_MI_ID);
     const rows: GradeDetail[] = response?.data?.gradelList ?? [];
 
@@ -145,7 +144,7 @@ function MasterGradePageContent({
 
 function FormSections() {
     const { isAddFormOpen, isEditFormOpen, selectedRow, closeAddForm, closeEditForm, addFormRef, editFormRef } =
-        useFormContext<MasterGradeResponse>();
+        useFormContext<GradeDetail>();
 
     return (
         <>
@@ -167,7 +166,7 @@ function FormSections() {
                                 className='-top-[3.5rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
                                 <X className='h-4 w-4 text-destructive' /> Close
                             </Button>
-                            <AddGradeForm onSuccess={closeAddForm} />
+                            <GradeForm onSuccess={closeAddForm} />
                         </div>
                     </CollapsibleSection>
                 </div>
@@ -190,7 +189,7 @@ function FormSections() {
                                 className='-top-[3.5rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
                                 <X className='h-4 w-4 text-destructive' /> Close
                             </Button>
-                            <UpdateGradeForm selectedRow={selectedRow} onSuccess={closeEditForm} />
+                            <GradeForm selectedRow={selectedRow} onSuccess={closeEditForm} />
                         </div>
                     </CollapsibleSection>
                 </div>

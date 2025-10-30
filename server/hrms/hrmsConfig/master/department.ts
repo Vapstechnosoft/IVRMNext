@@ -198,15 +198,7 @@ export async function saveMasterDepartmentOrder(departments: DepartmentDetail[])
         HRMDC_ID: 0,
         roleId: 0,
         HRMD_InternalTrainingMinimumHrs: 0,
-        DeraptmentDTO: departments.map((dept) => ({
-            HRMD_Id: dept.HRMD_Id,
-            MI_Id: 30,
-            HRMD_DepartmentName: dept.HRMD_DepartmentName,
-            HRMD_Order: dept.HRMD_Order,
-            HRMD_ActiveFlag: dept.HRMD_ActiveFlag,
-            HRMDC_ID: dept.HRMDC_ID,
-            HRMD_InternalTrainingMinimumHrs: dept.HRMD_InternalTrainingMinimumHrs
-        }))
+        DeraptmentDTO: departments.map((dept) => dept.HRMD_DepartmentName)
     };
 
     const axiosResponse = await axios.post<MasterDepartmentResponse>(url, requestBody, {

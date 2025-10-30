@@ -5,9 +5,7 @@ import { RefreshCw, Save, X } from 'lucide-react';
 import { type SubmitHandler, useForm } from 'react-hook-form';
 import type { ShiftSetting } from './columns';
 
-export type ShiftSettingFormData = {
-    // TODO: Add form fields based on the entity
-};
+export type ShiftSettingFormData = Record<string, never>;
 
 interface ShiftSettingFormProps {
     editingShiftSetting: ShiftSetting | null;
@@ -17,14 +15,11 @@ interface ShiftSettingFormProps {
 
 export function ShiftSettingForm({ editingShiftSetting, onSubmit, onCancel }: ShiftSettingFormProps) {
     const {
-        register,
         handleSubmit,
-        watch,
-        setValue,
-        formState: { errors, isSubmitting }
+        formState: { isSubmitting }
     } = useForm<ShiftSettingFormData>({
         mode: 'onChange',
-        defaultValues: editingShiftSetting || {}
+        defaultValues: (editingShiftSetting as any) || {}
     });
 
     const handleFormSubmit: SubmitHandler<ShiftSettingFormData> = async (data) => {

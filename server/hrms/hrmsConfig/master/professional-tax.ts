@@ -42,7 +42,7 @@ export async function getMasterProfessionalTaxList(roleId: number): Promise<ApiR
 
         const response: ApiResponse<MasterProfessionalTaxResponse> = {
             success: axiosResponse.status >= 200 && axiosResponse.status < 300,
-            message: axiosResponse.data.retrunMsg || 'Data fetched successfully',
+            message: (axiosResponse.data as any).retrunMsg || 'Data fetched successfully',
             data: axiosResponse.data
         };
 
@@ -89,11 +89,11 @@ export async function saveMasterProfessionalTax(data: MasterProfessionalTaxInput
         const isSuccess =
             axiosResponse.status >= 200 &&
             axiosResponse.status < 300 &&
-            (!axiosResponse.data.retrunMsg || !axiosResponse.data.retrunMsg.toLowerCase().includes('error'));
+            (!(((axiosResponse.data as any).retrunMsg || '') as string).toLowerCase().includes('error'));
 
         const response: ApiResponse<MasterProfessionalTaxResponse> = {
             success: isSuccess,
-            message: axiosResponse.data.retrunMsg || 'Operation completed',
+            message: (axiosResponse.data as any).retrunMsg || 'Operation completed',
             data: axiosResponse.data
         };
 
@@ -125,7 +125,7 @@ export async function getMasterProfessionalTaxDetails(id: number): Promise<ApiRe
 
         const response: ApiResponse<MasterProfessionalTaxResponse> = {
             success: axiosResponse.status >= 200 && axiosResponse.status < 300,
-            message: axiosResponse.data.retrunMsg || 'Professional tax details fetched successfully',
+            message: (axiosResponse.data as any).retrunMsg || 'Professional tax details fetched successfully',
             data: axiosResponse.data
         };
 
@@ -176,12 +176,12 @@ export async function activateDeactivateMasterProfessionalTax(data: {
         const isSuccess =
             axiosResponse.status >= 200 &&
             axiosResponse.status < 300 &&
-            (!axiosResponse.data.retrunMsg || !axiosResponse.data.retrunMsg.toLowerCase().includes('error'));
+            (!(((axiosResponse.data as any).retrunMsg || '') as string).toLowerCase().includes('error'));
 
         const response: ApiResponse<MasterProfessionalTaxResponse> = {
             success: isSuccess,
             message:
-                axiosResponse.data.retrunMsg ||
+                (axiosResponse.data as any).retrunMsg ||
                 (isSuccess ? 'Professional tax status updated successfully' : `HTTP ${axiosResponse.status}`),
             data: axiosResponse.data
         };

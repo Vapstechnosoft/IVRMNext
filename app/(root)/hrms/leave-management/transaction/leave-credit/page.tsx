@@ -276,7 +276,7 @@ export default function LeaveCreditPage() {
                     <div className='mb-4'>
                         <p className='text-gray-600 text-sm'>Total grid records: {data.length}</p>
                     </div>
-                    <GenericDataTable data={data} columns={columns} totalItems={data.length} />
+                    <GenericDataTable data={data} columns={columns} totalItems={data.length} isLoading={false} />
                 </CollapsibleSection>
 
                 {/* Form Section */}
@@ -301,8 +301,12 @@ export default function LeaveCreditPage() {
                                     <form onSubmit={handleSubmit(onSubmit)} className='space-y-4'>
                                         <div className='grid grid-cols-1 gap-4 md:grid-cols-3'>
                                             <div>
-                                                <label className='font-medium text-sm'>Type</label>
-                                                <div className='max-h-32 overflow-y-auto rounded-md border border-gray-300 p-2'>
+                                                <label htmlFor='type-checkboxes' className='font-medium text-sm'>
+                                                    Type
+                                                </label>
+                                                <div
+                                                    id='type-checkboxes'
+                                                    className='max-h-32 overflow-y-auto rounded-md border border-gray-300 p-2'>
                                                     <div className='mb-2 flex items-center space-x-2'>
                                                         <Checkbox
                                                             id='type-all'
@@ -335,8 +339,12 @@ export default function LeaveCreditPage() {
                                             </div>
 
                                             <div>
-                                                <label className='font-medium text-sm'>Department</label>
-                                                <div className='max-h-32 overflow-y-auto rounded-md border border-gray-300 p-2'>
+                                                <label htmlFor='department-checkboxes' className='font-medium text-sm'>
+                                                    Department
+                                                </label>
+                                                <div
+                                                    id='department-checkboxes'
+                                                    className='max-h-32 overflow-y-auto rounded-md border border-gray-300 p-2'>
                                                     <div className='mb-2 flex items-center space-x-2'>
                                                         <Checkbox
                                                             id='dept-all'
@@ -371,8 +379,12 @@ export default function LeaveCreditPage() {
                                             </div>
 
                                             <div>
-                                                <label className='font-medium text-sm'>Designation</label>
-                                                <div className='max-h-32 overflow-y-auto rounded-md border border-gray-300 p-2'>
+                                                <label htmlFor='designation-checkboxes' className='font-medium text-sm'>
+                                                    Designation
+                                                </label>
+                                                <div
+                                                    id='designation-checkboxes'
+                                                    className='max-h-32 overflow-y-auto rounded-md border border-gray-300 p-2'>
                                                     <div className='mb-2 flex items-center space-x-2'>
                                                         <Checkbox
                                                             id='desig-all'
@@ -409,9 +421,13 @@ export default function LeaveCreditPage() {
 
                                         <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
                                             <div>
-                                                <label className='font-medium text-sm'>Leave Year *</label>
+                                                <label htmlFor='leave-year-select' className='font-medium text-sm'>
+                                                    Leave Year *
+                                                </label>
                                                 <Select value={watch('leaveYear')} onValueChange={(value) => setValue('leaveYear', value)}>
-                                                    <SelectTrigger className={errors.leaveYear ? 'border-red-500' : ''}>
+                                                    <SelectTrigger
+                                                        id='leave-year-select'
+                                                        className={errors.leaveYear ? 'border-red-500' : ''}>
                                                         <SelectValue placeholder='Select Leave Year' />
                                                     </SelectTrigger>
                                                     <SelectContent>
@@ -430,9 +446,13 @@ export default function LeaveCreditPage() {
                                             </div>
 
                                             <div>
-                                                <label className='font-medium text-sm'>Leave Name *</label>
+                                                <label htmlFor='leave-name-select' className='font-medium text-sm'>
+                                                    Leave Name *
+                                                </label>
                                                 <Select value={watch('leaveName')} onValueChange={(value) => setValue('leaveName', value)}>
-                                                    <SelectTrigger className={errors.leaveName ? 'border-red-500' : ''}>
+                                                    <SelectTrigger
+                                                        id='leave-name-select'
+                                                        className={errors.leaveName ? 'border-red-500' : ''}>
                                                         <SelectValue placeholder='Select Leave Name' />
                                                     </SelectTrigger>
                                                     <SelectContent>
@@ -450,13 +470,22 @@ export default function LeaveCreditPage() {
                                             </div>
 
                                             <div>
-                                                <label className='font-medium text-sm'>Employee Name</label>
-                                                <InputText {...register('employeeName')} placeholder='Enter employee name' />
+                                                <label htmlFor='employee-name-input' className='font-medium text-sm'>
+                                                    Employee Name
+                                                </label>
+                                                <InputText
+                                                    id='employee-name-input'
+                                                    {...register('employeeName')}
+                                                    placeholder='Enter employee name'
+                                                />
                                             </div>
 
                                             <div>
-                                                <label className='font-medium text-sm'>Leave Credit</label>
+                                                <label htmlFor='leave-credit-input' className='font-medium text-sm'>
+                                                    Leave Credit
+                                                </label>
                                                 <InputText
+                                                    id='leave-credit-input'
                                                     {...register('leaveCredit', { valueAsNumber: true })}
                                                     placeholder='Enter leave credit'
                                                     type='number'
@@ -465,8 +494,11 @@ export default function LeaveCreditPage() {
                                             </div>
 
                                             <div>
-                                                <label className='font-medium text-sm'>Leave Balance</label>
+                                                <label htmlFor='leave-balance-input' className='font-medium text-sm'>
+                                                    Leave Balance
+                                                </label>
                                                 <InputText
+                                                    id='leave-balance-input'
                                                     {...register('leaveBalance', { valueAsNumber: true })}
                                                     placeholder='Enter leave balance'
                                                     type='number'

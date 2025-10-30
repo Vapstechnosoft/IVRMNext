@@ -6,11 +6,10 @@ import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
 import { HRMS_MI_ID } from '@/constants/hrms-config';
 import { useMasterEmployeeType } from '@/hooks/hrms/useMasterEmployeeType';
-import type { EmployeeTypeDetail, MasterEmployeeTypeResponse } from '@/types/hrms/master-employee-type';
+import type { EmployeeTypeDetail } from '@/types/hrms/master-employee-type';
 import { Plus, X } from 'lucide-react';
-import AddEmployeeTypeForm from './_components/add-form';
 import { columns } from './_components/columns';
-import UpdateEmployeeTypeForm from './_components/update-form';
+import EmployeeTypeForm from './_components/employee-type-form';
 
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 
@@ -21,7 +20,7 @@ export default function MasterEmployeeTypePage(_props: {
     const { listQuery } = useMasterEmployeeType(roleId);
 
     return (
-        <FormProvider<MasterEmployeeTypeResponse>>
+        <FormProvider<EmployeeTypeDetail>>
             <MasterEmployeeTypePageContent response={listQuery.data} isLoading={listQuery.isLoading} error={listQuery.error} />
         </FormProvider>
     );
@@ -36,7 +35,7 @@ function MasterEmployeeTypePageContent({
     isLoading: boolean;
     error: any;
 }) {
-    const { openAddForm } = useFormContext<MasterEmployeeTypeResponse>();
+    const { openAddForm } = useFormContext<EmployeeTypeDetail>();
     const rows: EmployeeTypeDetail[] = response?.data?.employeeTypeList ?? [];
 
     return (
@@ -79,7 +78,7 @@ function MasterEmployeeTypePageContent({
 
 function FormSections() {
     const { isAddFormOpen, isEditFormOpen, selectedRow, closeAddForm, closeEditForm, addFormRef, editFormRef } =
-        useFormContext<MasterEmployeeTypeResponse>();
+        useFormContext<EmployeeTypeDetail>();
 
     return (
         <>
@@ -101,7 +100,7 @@ function FormSections() {
                                 className='-top-[3.5rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
                                 <X className='h-4 w-4 text-destructive' /> Close
                             </Button>
-                            <AddEmployeeTypeForm onSuccess={closeAddForm} />
+                            <EmployeeTypeForm onSuccess={closeAddForm} />
                         </div>
                     </CollapsibleSection>
                 </div>
@@ -124,7 +123,7 @@ function FormSections() {
                                 className='-top-[3.5rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
                                 <X className='h-4 w-4 text-destructive' /> Close
                             </Button>
-                            <UpdateEmployeeTypeForm selectedRow={selectedRow} onSuccess={closeEditForm} />
+                            <EmployeeTypeForm selectedRow={selectedRow} onSuccess={closeEditForm} />
                         </div>
                     </CollapsibleSection>
                 </div>

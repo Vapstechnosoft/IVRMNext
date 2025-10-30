@@ -574,7 +574,7 @@ export default function DepartmentSalaryReportPage() {
                         {/* Group Type Section */}
                         <div className='space-y-3'>
                             <div className='flex items-center gap-2'>
-                                <label className='font-medium text-foreground text-sm'>Group Type:</label>
+                                <span className='font-medium text-foreground text-sm'>Group Type:</span>
                                 <span className='text-red-500'>*</span>
                                 <div className='flex items-center gap-2'>
                                     <Checkbox
@@ -608,7 +608,7 @@ export default function DepartmentSalaryReportPage() {
                         {/* Department Section */}
                         <div className='space-y-3'>
                             <div className='flex items-center gap-2'>
-                                <label className='font-medium text-foreground text-sm'>Department:</label>
+                                <span className='font-medium text-foreground text-sm'>Department:</span>
                                 <span className='text-red-500'>*</span>
                                 <div className='flex items-center gap-2'>
                                     <Checkbox
@@ -642,7 +642,7 @@ export default function DepartmentSalaryReportPage() {
                         {/* Designation Section */}
                         <div className='space-y-3'>
                             <div className='flex items-center gap-2'>
-                                <label className='font-medium text-foreground text-sm'>Designation:</label>
+                                <span className='font-medium text-foreground text-sm'>Designation:</span>
                                 <span className='text-red-500'>*</span>
                                 <div className='flex items-center gap-2'>
                                     <Checkbox
@@ -678,9 +678,9 @@ export default function DepartmentSalaryReportPage() {
                     <div className='flex items-center justify-center gap-6 pt-4'>
                         {/* Month Filter */}
                         <div className='space-y-2'>
-                            <label className='font-medium text-foreground text-sm'>
+                            <span className='font-medium text-foreground text-sm'>
                                 Month: <span className='text-red-500'>*</span>
-                            </label>
+                            </span>
                             <Select value={filters.month} onValueChange={(value) => handleFilterChange('month', value)}>
                                 <SelectTrigger className='w-40'>
                                     <SelectValue placeholder='Select' />
@@ -710,9 +710,9 @@ export default function DepartmentSalaryReportPage() {
 
                         {/* Year Filter */}
                         <div className='space-y-2'>
-                            <label className='font-medium text-foreground text-sm'>
+                            <span className='font-medium text-foreground text-sm'>
                                 Year: <span className='text-red-500'>*</span>
-                            </label>
+                            </span>
                             <Select value={filters.year} onValueChange={(value) => handleFilterChange('year', value)}>
                                 <SelectTrigger className='w-32'>
                                     <SelectValue placeholder='Select' />

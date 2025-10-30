@@ -17,6 +17,8 @@ export interface LeaveCreditDetail {
     createdAt: string;
 }
 
+export type LeaveCreditDetails = LeaveCreditDetail;
+
 interface LeaveCreditDetailColumnsProps {
     onEdit: (row: LeaveCreditDetail) => void;
     onDelete: (row: LeaveCreditDetail) => void;

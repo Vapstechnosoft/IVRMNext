@@ -41,7 +41,7 @@ export default function LeaveAuthorizationPage() {
     const [filteredData, setFilteredData] = useState<LeaveAuthorization[]>([]);
 
     const {
-        register,
+        // register,
         handleSubmit,
         reset,
         setValue,
@@ -339,7 +339,7 @@ export default function LeaveAuthorizationPage() {
                     {/* Tab Section */}
                     <div className='mt-6 border-gray-200 border-b'>
                         <div className='flex space-x-8'>
-                            <button className='border-red-500 border-b-2 px-1 py-2 font-medium text-red-600 text-sm'>
+                            <button type='button' className='border-red-500 border-b-2 px-1 py-2 font-medium text-red-600 text-sm'>
                                 LEAVE AUTHORIZATION
                             </button>
                         </div>
@@ -353,8 +353,12 @@ export default function LeaveAuthorizationPage() {
                     <form onSubmit={handleSubmit(onSubmit)} className='space-y-6'>
                         {/* Institution Field */}
                         <div className='mb-4'>
-                            <label className='mb-2 block font-medium text-gray-700 text-sm'>Institution</label>
-                            <div className='rounded-md bg-gray-100 p-3 text-gray-600'>{watch('institution')}</div>
+                            <label htmlFor='institution-display' className='mb-2 block font-medium text-gray-700 text-sm'>
+                                Institution
+                            </label>
+                            <div id='institution-display' className='rounded-md bg-gray-100 p-3 text-gray-600'>
+                                {watch('institution')}
+                            </div>
                         </div>
 
                         {/* Form Fields Grid */}
@@ -362,11 +366,11 @@ export default function LeaveAuthorizationPage() {
                             {/* Left Column */}
                             <div className='space-y-4'>
                                 <div>
-                                    <label className='mb-2 block font-medium text-gray-700 text-sm'>
+                                    <label htmlFor='grade-select' className='mb-2 block font-medium text-gray-700 text-sm'>
                                         Select Grade <span className='text-red-500'>*</span>
                                     </label>
                                     <Select value={watch('gradeName')} onValueChange={(value) => setValue('gradeName', value)}>
-                                        <SelectTrigger className={errors.gradeName ? 'border-red-500' : ''}>
+                                        <SelectTrigger id='grade-select' className={errors.gradeName ? 'border-red-500' : ''}>
                                             <SelectValue placeholder='--Select--' />
                                         </SelectTrigger>
                                         <SelectContent>
@@ -380,11 +384,11 @@ export default function LeaveAuthorizationPage() {
                                 </div>
 
                                 <div>
-                                    <label className='mb-2 block font-medium text-gray-700 text-sm'>
+                                    <label htmlFor='group-type-select' className='mb-2 block font-medium text-gray-700 text-sm'>
                                         Group Type <span className='text-red-500'>*</span>
                                     </label>
                                     <Select value={watch('groupTypeName')} onValueChange={(value) => setValue('groupTypeName', value)}>
-                                        <SelectTrigger className={errors.groupTypeName ? 'border-red-500' : ''}>
+                                        <SelectTrigger id='group-type-select' className={errors.groupTypeName ? 'border-red-500' : ''}>
                                             <SelectValue placeholder='--Select--' />
                                         </SelectTrigger>
                                         <SelectContent>
@@ -398,11 +402,11 @@ export default function LeaveAuthorizationPage() {
                                 </div>
 
                                 <div>
-                                    <label className='mb-2 block font-medium text-gray-700 text-sm'>
+                                    <label htmlFor='department-select' className='mb-2 block font-medium text-gray-700 text-sm'>
                                         Department Type <span className='text-red-500'>*</span>
                                     </label>
                                     <Select value={watch('departmentName')} onValueChange={(value) => setValue('departmentName', value)}>
-                                        <SelectTrigger className={errors.departmentName ? 'border-red-500' : ''}>
+                                        <SelectTrigger id='department-select' className={errors.departmentName ? 'border-red-500' : ''}>
                                             <SelectValue placeholder='--Select--' />
                                         </SelectTrigger>
                                         <SelectContent>
@@ -417,11 +421,11 @@ export default function LeaveAuthorizationPage() {
                                 </div>
 
                                 <div>
-                                    <label className='mb-2 block font-medium text-gray-700 text-sm'>
+                                    <label htmlFor='designation-select' className='mb-2 block font-medium text-gray-700 text-sm'>
                                         Designation Type <span className='text-red-500'>*</span>
                                     </label>
                                     <Select value={watch('designationName')} onValueChange={(value) => setValue('designationName', value)}>
-                                        <SelectTrigger className={errors.designationName ? 'border-red-500' : ''}>
+                                        <SelectTrigger id='designation-select' className={errors.designationName ? 'border-red-500' : ''}>
                                             <SelectValue placeholder='--Select--' />
                                         </SelectTrigger>
                                         <SelectContent>
@@ -445,11 +449,11 @@ export default function LeaveAuthorizationPage() {
                             {/* Right Column */}
                             <div className='space-y-4'>
                                 <div>
-                                    <label className='mb-2 block font-medium text-gray-700 text-sm'>
+                                    <label htmlFor='leave-type-select' className='mb-2 block font-medium text-gray-700 text-sm'>
                                         Leave Type <span className='text-red-500'>*</span>
                                     </label>
                                     <Select value={watch('leaveType')} onValueChange={(value) => setValue('leaveType', value)}>
-                                        <SelectTrigger className={errors.leaveType ? 'border-red-500' : ''}>
+                                        <SelectTrigger id='leave-type-select' className={errors.leaveType ? 'border-red-500' : ''}>
                                             <SelectValue placeholder='--Select--' />
                                         </SelectTrigger>
                                         <SelectContent>
@@ -465,11 +469,13 @@ export default function LeaveAuthorizationPage() {
                                 </div>
 
                                 <div>
-                                    <label className='mb-2 block font-medium text-gray-700 text-sm'>
+                                    <label htmlFor='order-approval-select' className='mb-2 block font-medium text-gray-700 text-sm'>
                                         Order Of Approval <span className='text-red-500'>*</span>
                                     </label>
                                     <Select value={watch('orderOfApproval')} onValueChange={(value) => setValue('orderOfApproval', value)}>
-                                        <SelectTrigger className={errors.orderOfApproval ? 'border-red-500' : ''}>
+                                        <SelectTrigger
+                                            id='order-approval-select'
+                                            className={errors.orderOfApproval ? 'border-red-500' : ''}>
                                             <SelectValue placeholder='--Select--' />
                                         </SelectTrigger>
                                         <SelectContent>
@@ -486,11 +492,13 @@ export default function LeaveAuthorizationPage() {
                                 </div>
 
                                 <div>
-                                    <label className='mb-2 block font-medium text-gray-700 text-sm'>
+                                    <label htmlFor='approval-person-select' className='mb-2 block font-medium text-gray-700 text-sm'>
                                         Approval Person <span className='text-red-500'>*</span>
                                     </label>
                                     <Select value={watch('approvalPerson')} onValueChange={(value) => setValue('approvalPerson', value)}>
-                                        <SelectTrigger className={errors.approvalPerson ? 'border-red-500' : ''}>
+                                        <SelectTrigger
+                                            id='approval-person-select'
+                                            className={errors.approvalPerson ? 'border-red-500' : ''}>
                                             <SelectValue placeholder='--Select--' />
                                         </SelectTrigger>
                                         <SelectContent>
@@ -592,7 +600,7 @@ export default function LeaveAuthorizationPage() {
 
                     {/* Data Table */}
                     <div className='overflow-x-auto'>
-                        <GenericDataTable data={filteredData} columns={columns} totalItems={filteredData.length} />
+                        <GenericDataTable data={filteredData} columns={columns} totalItems={filteredData.length} isLoading={false} />
                     </div>
                 </div>
             </div>

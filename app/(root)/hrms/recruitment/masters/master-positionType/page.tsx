@@ -199,9 +199,9 @@ export default function MasterPositionTypePage() {
                                     <div className='space-y-4'>
                                         <div className='grid grid-cols-1 gap-4 lg:grid-cols-2'>
                                             <div className='space-y-2'>
-                                                <label className='font-medium text-sm'>
+                                                <span className='font-medium text-sm'>
                                                     Institution <span className='text-red-500'>*</span>
-                                                </label>
+                                                </span>
                                                 <Select value={institution || ''} onValueChange={(value) => setValue('institution', value)}>
                                                     <SelectTrigger className={errors.institution ? 'border-red-500' : ''}>
                                                         <SelectValue placeholder='Select Institution' />

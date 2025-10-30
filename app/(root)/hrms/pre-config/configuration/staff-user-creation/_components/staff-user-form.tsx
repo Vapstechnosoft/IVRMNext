@@ -5,9 +5,7 @@ import { RefreshCw, Save, X } from 'lucide-react';
 import { type SubmitHandler, useForm } from 'react-hook-form';
 import type { StaffUser } from './columns';
 
-export type StaffUserFormData = {
-    // TODO: Add form fields based on the entity
-};
+export type StaffUserFormData = Record<string, unknown>;
 
 interface StaffUserFormProps {
     editingStaffUser: StaffUser | null;
@@ -17,11 +15,8 @@ interface StaffUserFormProps {
 
 export function StaffUserForm({ editingStaffUser, onSubmit, onCancel }: StaffUserFormProps) {
     const {
-        register,
         handleSubmit,
-        watch,
-        setValue,
-        formState: { errors, isSubmitting }
+        formState: { isSubmitting }
     } = useForm<StaffUserFormData>({
         mode: 'onChange',
         defaultValues: editingStaffUser || {}

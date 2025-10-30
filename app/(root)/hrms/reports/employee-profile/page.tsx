@@ -22,7 +22,7 @@ export default function EmployeeProfileReportPage() {
     const [showReport, setShowReport] = useState(false);
 
     // React Query hooks
-    const { data: onloadData, isLoading: isLoadingOnload } = useEmployeeProfileReportOnload(roleId);
+    const { data: onloadData } = useEmployeeProfileReportOnload(roleId);
     const filterMutation = useFilterEmployeesBySelection();
     const searchMutation = useSearchEmployeeProfileDetails();
 
@@ -192,42 +192,42 @@ export default function EmployeeProfileReportPage() {
                         <div className='grid grid-cols-1 gap-6 md:grid-cols-3'>
                             {/* Group Type Filter */}
                             <div className='space-y-2'>
-                                <label className='font-medium text-foreground text-sm'>Group Type: All</label>
+                                <span className='font-medium text-foreground text-sm'>Group Type: All</span>
                                 <MultiSelect
                                     options={groupTypes.map((gt) => ({
                                         label: gt.HRMGT_EmployeeGroupType,
                                         value: gt.HRMGT_Id.toString()
                                     }))}
-                                    selected={selectedGroupTypes.map((id) => id.toString())}
-                                    onChange={(values) => setSelectedGroupTypes(values.map((v) => Number.parseInt(v)))}
+                                    defaultValue={selectedGroupTypes.map((id) => id.toString())}
+                                    onValueChange={(values) => setSelectedGroupTypes(values.map((v) => Number.parseInt(v)))}
                                     placeholder='Select group types'
                                 />
                             </div>
 
                             {/* Department Filter */}
                             <div className='space-y-2'>
-                                <label className='font-medium text-foreground text-sm'>Department: All</label>
+                                <span className='font-medium text-foreground text-sm'>Department: All</span>
                                 <MultiSelect
                                     options={departments.map((dept) => ({
                                         label: dept.HRMD_DepartmentName,
                                         value: dept.HRMD_Id.toString()
                                     }))}
-                                    selected={selectedDepartments.map((id) => id.toString())}
-                                    onChange={(values) => setSelectedDepartments(values.map((v) => Number.parseInt(v)))}
+                                    defaultValue={selectedDepartments.map((id) => id.toString())}
+                                    onValueChange={(values) => setSelectedDepartments(values.map((v) => Number.parseInt(v)))}
                                     placeholder='Select departments'
                                 />
                             </div>
 
                             {/* Designation Filter */}
                             <div className='space-y-2'>
-                                <label className='font-medium text-foreground text-sm'>Designation: All</label>
+                                <span className='font-medium text-foreground text-sm'>Designation: All</span>
                                 <MultiSelect
                                     options={designations.map((desg) => ({
                                         label: desg.HRMDES_DesignationName,
                                         value: desg.HRMDES_Id.toString()
                                     }))}
-                                    selected={selectedDesignations.map((id) => id.toString())}
-                                    onChange={(values) => setSelectedDesignations(values.map((v) => Number.parseInt(v)))}
+                                    defaultValue={selectedDesignations.map((id) => id.toString())}
+                                    onValueChange={(values) => setSelectedDesignations(values.map((v) => Number.parseInt(v)))}
                                     placeholder='Select designations'
                                 />
                             </div>
@@ -235,7 +235,7 @@ export default function EmployeeProfileReportPage() {
 
                         {/* Employee Selection */}
                         <div className='space-y-2'>
-                            <label className='font-medium text-foreground text-sm'>Employee: All</label>
+                            <span className='font-medium text-foreground text-sm'>Employee: All</span>
                             <div className='space-y-2'>
                                 <InputText
                                     type='text'
@@ -375,7 +375,7 @@ export default function EmployeeProfileReportPage() {
                                     {selectedEmployeeDetails.ProfilePhoto ? (
                                         <img
                                             src={selectedEmployeeDetails.ProfilePhoto}
-                                            alt='Employee Photo'
+                                            alt='Employee'
                                             className='h-full w-full object-cover'
                                         />
                                     ) : (

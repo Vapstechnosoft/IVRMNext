@@ -94,8 +94,12 @@ export default function EmployeeLogReportPage() {
         { accessorKey: 'designation', header: ({ column }) => <DataTableColumnHeader column={column} title='Designation' /> }
     ];
 
-    const handleReport = () => {};
-    const handleExport = () => {};
+    const handleReport = () => {
+        /* TODO: implement */
+    };
+    const handleExport = () => {
+        /* TODO: implement */
+    };
     const handlePrint = () => window.print();
 
     return (
@@ -116,9 +120,11 @@ export default function EmployeeLogReportPage() {
                     className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
                     <div className='grid grid-cols-1 gap-4 md:grid-cols-12'>
                         <div className='md:col-span-3'>
-                            <label className='font-medium text-sm'>Type</label>
+                            <label className='font-medium text-sm' htmlFor='type'>
+                                Type
+                            </label>
                             <Select onValueChange={setType}>
-                                <SelectTrigger>
+                                <SelectTrigger id='type'>
                                     <SelectValue placeholder='Type' />
                                 </SelectTrigger>
                                 <SelectContent>
@@ -128,9 +134,11 @@ export default function EmployeeLogReportPage() {
                             </Select>
                         </div>
                         <div className='md:col-span-3'>
-                            <label className='font-medium text-sm'>Department</label>
+                            <label className='font-medium text-sm' htmlFor='department'>
+                                Department
+                            </label>
                             <Select onValueChange={setDepartment}>
-                                <SelectTrigger>
+                                <SelectTrigger id='department'>
                                     <SelectValue placeholder='Department' />
                                 </SelectTrigger>
                                 <SelectContent>
@@ -143,9 +151,11 @@ export default function EmployeeLogReportPage() {
                             </Select>
                         </div>
                         <div className='md:col-span-3'>
-                            <label className='font-medium text-sm'>Designation</label>
+                            <label className='font-medium text-sm' htmlFor='designation'>
+                                Designation
+                            </label>
                             <Select onValueChange={setDesignation}>
-                                <SelectTrigger>
+                                <SelectTrigger id='designation'>
                                     <SelectValue placeholder='Designation' />
                                 </SelectTrigger>
                                 <SelectContent>
@@ -159,25 +169,28 @@ export default function EmployeeLogReportPage() {
                         </div>
 
                         <div className='flex items-center gap-4 pt-2 md:col-span-3'>
-                            <label className='flex items-center gap-2 text-sm'>
-                                <Checkbox checked={allOrIndividual === 'All'} onCheckedChange={() => setAllOrIndividual('All')} /> All
-                            </label>
-                            <label className='flex items-center gap-2 text-sm'>
+                            <div className='flex items-center gap-2 text-sm'>
+                                <Checkbox checked={allOrIndividual === 'All'} onCheckedChange={() => setAllOrIndividual('All')} />
+                                <span>All</span>
+                            </div>
+                            <div className='flex items-center gap-2 text-sm'>
                                 <Checkbox
                                     checked={allOrIndividual === 'Individual'}
                                     onCheckedChange={() => setAllOrIndividual('Individual')}
-                                />{' '}
-                                Individual
-                            </label>
+                                />
+                                <span>Individual</span>
+                            </div>
                         </div>
 
                         <div className='flex gap-4 md:col-span-6'>
-                            <label className='flex items-center gap-2 text-sm'>
-                                <Checkbox checked={codeOrName === 'Code'} onCheckedChange={() => setCodeOrName('Code')} /> Code
-                            </label>
-                            <label className='flex items-center gap-2 text-sm'>
-                                <Checkbox checked={codeOrName === 'Name'} onCheckedChange={() => setCodeOrName('Name')} /> Name
-                            </label>
+                            <div className='flex items-center gap-2 text-sm'>
+                                <Checkbox checked={codeOrName === 'Code'} onCheckedChange={() => setCodeOrName('Code')} />
+                                <span>Code</span>
+                            </div>
+                            <div className='flex items-center gap-2 text-sm'>
+                                <Checkbox checked={codeOrName === 'Name'} onCheckedChange={() => setCodeOrName('Name')} />
+                                <span>Name</span>
+                            </div>
                             <InputText
                                 placeholder={codeOrName === 'Code' ? 'Code' : 'Name'}
                                 value={query}
@@ -186,13 +199,15 @@ export default function EmployeeLogReportPage() {
                         </div>
 
                         <div className='flex items-center gap-4 md:col-span-12'>
-                            <label className='flex items-center gap-2 text-sm'>
-                                <Checkbox checked={dateMode === 'Date'} onCheckedChange={() => setDateMode('Date')} /> Date
-                            </label>
+                            <div className='flex items-center gap-2 text-sm'>
+                                <Checkbox checked={dateMode === 'Date'} onCheckedChange={() => setDateMode('Date')} />
+                                <span>Date</span>
+                            </div>
                             <InputText type='date' value={date} onChange={(e) => setDate(e.target.value)} />
-                            <label className='flex items-center gap-2 text-sm'>
-                                <Checkbox checked={dateMode === 'Monthly'} onCheckedChange={() => setDateMode('Monthly')} /> Monthly
-                            </label>
+                            <div className='flex items-center gap-2 text-sm'>
+                                <Checkbox checked={dateMode === 'Monthly'} onCheckedChange={() => setDateMode('Monthly')} />
+                                <span>Monthly</span>
+                            </div>
                             <Select onValueChange={setMonth}>
                                 <SelectTrigger className='w-40'>
                                     <SelectValue placeholder='--Select--' />
@@ -205,18 +220,21 @@ export default function EmployeeLogReportPage() {
                                     ))}
                                 </SelectContent>
                             </Select>
-                            <label className='flex items-center gap-2 text-sm'>
-                                <Checkbox checked={dateMode === 'From Date'} onCheckedChange={() => setDateMode('From Date')} /> From Date
-                            </label>
+                            <div className='flex items-center gap-2 text-sm'>
+                                <Checkbox checked={dateMode === 'From Date'} onCheckedChange={() => setDateMode('From Date')} />
+                                <span>From Date</span>
+                            </div>
                             <InputText type='date' value={fromDate} onChange={(e) => setFromDate(e.target.value)} />
                             <span>To Date :</span>
                             <InputText type='date' value={toDate} onChange={(e) => setToDate(e.target.value)} />
                         </div>
 
                         <div className='md:col-span-3'>
-                            <label className='font-medium text-sm'>Mode</label>
+                            <label htmlFor='mode-select' className='font-medium text-sm'>
+                                Mode
+                            </label>
                             <Select onValueChange={(v) => setMetric(v as any)}>
-                                <SelectTrigger>
+                                <SelectTrigger id='mode-select'>
                                     <SelectValue placeholder='Mode' />
                                 </SelectTrigger>
                                 <SelectContent>

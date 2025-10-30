@@ -1,13 +1,11 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
-import { RefreshCw, Save, X } from 'lucide-react';
+import { Save, X } from 'lucide-react';
 import { type SubmitHandler, useForm } from 'react-hook-form';
 import type { LeaveYear } from './columns';
 
-export type LeaveYearFormData = {
-    // TODO: Add form fields based on the entity
-};
+export type LeaveYearFormData = Record<string, unknown>;
 
 interface LeaveYearFormProps {
     editingLeaveYear: LeaveYear | null;
@@ -16,15 +14,9 @@ interface LeaveYearFormProps {
 }
 
 export function LeaveYearForm({ editingLeaveYear, onSubmit, onCancel }: LeaveYearFormProps) {
-    const {
-        register,
-        handleSubmit,
-        watch,
-        setValue,
-        formState: { errors, isSubmitting }
-    } = useForm<LeaveYearFormData>({
+    const { handleSubmit } = useForm<LeaveYearFormData>({
         mode: 'onChange',
-        defaultValues: editingLeaveYear || {}
+        defaultValues: (editingLeaveYear as any) || {}
     });
 
     const handleFormSubmit: SubmitHandler<LeaveYearFormData> = async (data) => {
@@ -40,18 +32,11 @@ export function LeaveYearForm({ editingLeaveYear, onSubmit, onCancel }: LeaveYea
                     <X className='mr-2 h-4 w-4' />
                     Cancel
                 </Button>
-                <Button type='submit' disabled={isSubmitting}>
-                    {isSubmitting ? (
-                        <div className='flex items-center'>
-                            <RefreshCw className='mr-2 h-4 w-4 animate-spin' />
-                            Saving...
-                        </div>
-                    ) : (
-                        <div className='flex items-center'>
-                            <Save className='mr-2 h-4 w-4' />
-                            Save
-                        </div>
-                    )}
+                <Button type='submit' disabled={false}>
+                    <div className='flex items-center'>
+                        <Save className='mr-2 h-4 w-4' />
+                        Save
+                    </div>
                 </Button>
             </div>
         </form>

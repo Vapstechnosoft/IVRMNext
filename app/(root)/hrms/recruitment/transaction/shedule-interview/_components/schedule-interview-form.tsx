@@ -3,28 +3,23 @@
 import { Button } from '@/components/ui/button';
 import { RefreshCw, Save, X } from 'lucide-react';
 import { type SubmitHandler, useForm } from 'react-hook-form';
-import type { ScheduleInterview } from './columns';
+import type { Interview } from './columns';
 
-export type ScheduleInterviewFormData = {
-    // TODO: Add form fields based on the entity
-};
+export type ScheduleInterviewFormData = Record<string, unknown>;
 
 interface ScheduleInterviewFormProps {
-    editingScheduleInterview: ScheduleInterview | null;
+    editingScheduleInterview: Interview | null;
     onSubmit: (data: ScheduleInterviewFormData) => void;
     onCancel: () => void;
 }
 
 export function ScheduleInterviewForm({ editingScheduleInterview, onSubmit, onCancel }: ScheduleInterviewFormProps) {
     const {
-        register,
         handleSubmit,
-        watch,
-        setValue,
-        formState: { errors, isSubmitting }
+        formState: { isSubmitting }
     } = useForm<ScheduleInterviewFormData>({
         mode: 'onChange',
-        defaultValues: editingScheduleInterview || {}
+        defaultValues: ((editingScheduleInterview as any) || {}) as ScheduleInterviewFormData
     });
 
     const handleFormSubmit: SubmitHandler<ScheduleInterviewFormData> = async (data) => {

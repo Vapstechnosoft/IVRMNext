@@ -5,9 +5,7 @@ import { RefreshCw, Save, X } from 'lucide-react';
 import { type SubmitHandler, useForm } from 'react-hook-form';
 import type { AppointmentLetter } from './columns';
 
-export type AppointmentLetterFormData = {
-    // TODO: Add form fields based on the entity
-};
+export type AppointmentLetterFormData = Record<string, unknown>;
 
 interface AppointmentLetterFormProps {
     editingAppointmentLetter: AppointmentLetter | null;
@@ -17,14 +15,11 @@ interface AppointmentLetterFormProps {
 
 export function AppointmentLetterForm({ editingAppointmentLetter, onSubmit, onCancel }: AppointmentLetterFormProps) {
     const {
-        register,
         handleSubmit,
-        watch,
-        setValue,
-        formState: { errors, isSubmitting }
+        formState: { isSubmitting }
     } = useForm<AppointmentLetterFormData>({
         mode: 'onChange',
-        defaultValues: editingAppointmentLetter || {}
+        defaultValues: ((editingAppointmentLetter as any) || {}) as AppointmentLetterFormData
     });
 
     const handleFormSubmit: SubmitHandler<AppointmentLetterFormData> = async (data) => {

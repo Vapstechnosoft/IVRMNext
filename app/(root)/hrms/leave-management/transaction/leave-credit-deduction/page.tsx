@@ -161,7 +161,7 @@ export default function LeaveCreditDeductionPage() {
                     variant='default'
                     size='lg'
                     className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
-                    <GenericDataTable data={data} columns={columns} totalItems={data.length} />
+                    <GenericDataTable data={data} columns={columns} totalItems={data.length} isLoading={false} />
                 </CollapsibleSection>
 
                 {isFormOpen && (
@@ -176,9 +176,11 @@ export default function LeaveCreditDeductionPage() {
                             <form onSubmit={handleSubmit(onSubmit)} className='space-y-4'>
                                 <div className='grid grid-cols-1 gap-4 md:grid-cols-4'>
                                     <div className='md:col-span-1'>
-                                        <label className='font-medium text-sm'>Leave Year</label>
+                                        <label htmlFor='leave-year-select' className='font-medium text-sm'>
+                                            Leave Year
+                                        </label>
                                         <Select value={watch('leaveYear')} onValueChange={(v) => setValue('leaveYear', v)}>
-                                            <SelectTrigger>
+                                            <SelectTrigger id='leave-year-select'>
                                                 <SelectValue placeholder='Select year' />
                                             </SelectTrigger>
                                             <SelectContent>
@@ -191,28 +193,40 @@ export default function LeaveCreditDeductionPage() {
                                         </Select>
                                     </div>
                                     <div className='md:col-span-1'>
-                                        <label className='font-medium text-sm'>Department</label>
-                                        <InputText {...register('department')} placeholder='Department' />
+                                        <label htmlFor='department-input' className='font-medium text-sm'>
+                                            Department
+                                        </label>
+                                        <InputText id='department-input' {...register('department')} placeholder='Department' />
                                     </div>
                                     <div className='md:col-span-1'>
-                                        <label className='font-medium text-sm'>Designation</label>
-                                        <InputText {...register('designation')} placeholder='Designation' />
+                                        <label htmlFor='designation-input' className='font-medium text-sm'>
+                                            Designation
+                                        </label>
+                                        <InputText id='designation-input' {...register('designation')} placeholder='Designation' />
                                     </div>
                                     <div className='md:col-span-1'>
-                                        <label className='font-medium text-sm'>Employee Name</label>
+                                        <label htmlFor='employee-name-input' className='font-medium text-sm'>
+                                            Employee Name
+                                        </label>
                                         <InputText
+                                            id='employee-name-input'
                                             {...register('employeeName', { required: 'Employee Name is required' })}
                                             placeholder='Employee name'
                                         />
                                         {errors.employeeName && <p className='mt-1 text-red-500 text-xs'>{errors.employeeName.message}</p>}
                                     </div>
                                     <div className='md:col-span-2'>
-                                        <label className='font-medium text-sm'>Leave Name</label>
-                                        <InputText {...register('leaveName')} placeholder='Leave name' />
+                                        <label htmlFor='leave-name-input' className='font-medium text-sm'>
+                                            Leave Name
+                                        </label>
+                                        <InputText id='leave-name-input' {...register('leaveName')} placeholder='Leave name' />
                                     </div>
                                     <div className='md:col-span-1'>
-                                        <label className='font-medium text-sm'>Deduct Days</label>
+                                        <label htmlFor='deduct-days-input' className='font-medium text-sm'>
+                                            Deduct Days
+                                        </label>
                                         <InputText
+                                            id='deduct-days-input'
                                             type='number'
                                             step='0.5'
                                             {...register('deductDays', { valueAsNumber: true })}
@@ -220,8 +234,10 @@ export default function LeaveCreditDeductionPage() {
                                         />
                                     </div>
                                     <div className='md:col-span-4'>
-                                        <label className='font-medium text-sm'>Remarks</label>
-                                        <InputText {...register('remarks')} placeholder='Remarks' />
+                                        <label htmlFor='remarks-input' className='font-medium text-sm'>
+                                            Remarks
+                                        </label>
+                                        <InputText id='remarks-input' {...register('remarks')} placeholder='Remarks' />
                                     </div>
                                 </div>
                                 <div className='flex gap-2'>

@@ -584,7 +584,7 @@ export default function RetirementReportPage() {
                         {/* Header Selection */}
                         <div className='space-y-3'>
                             <div className='flex items-center gap-2'>
-                                <label className='font-medium text-foreground text-sm'>Header:</label>
+                                <span className='font-medium text-foreground text-sm'>Header:</span>
                                 <span className='text-red-500'>*</span>
                                 <div className='flex items-center gap-2'>
                                     <Checkbox
@@ -618,7 +618,7 @@ export default function RetirementReportPage() {
                     <div className='space-y-4'>
                         {/* Format Selection */}
                         <div className='space-y-3'>
-                            <label className='font-medium text-foreground text-sm'>Format:</label>
+                            <span className='font-medium text-foreground text-sm'>Format:</span>
                             <RadioGroup
                                 value={filters.format}
                                 onValueChange={(value) => handleFilterChange('format', value)}
@@ -640,7 +640,7 @@ export default function RetirementReportPage() {
 
                         {/* Date Filter Selection */}
                         <div className='space-y-3'>
-                            <label className='font-medium text-foreground text-sm'>Date Filter:</label>
+                            <span className='font-medium text-foreground text-sm'>Date Filter:</span>
                             <RadioGroup
                                 value={filters.dateFilter}
                                 onValueChange={(value) => handleFilterChange('dateFilter', value)}
@@ -669,7 +669,7 @@ export default function RetirementReportPage() {
                         {/* Date Range Selection */}
                         <div className='flex items-center gap-4'>
                             <div className='space-y-2'>
-                                <label className='font-medium text-foreground text-sm'>From:</label>
+                                <span className='font-medium text-foreground text-sm'>From:</span>
                                 <span className='text-red-500'>*</span>
                                 <Popover>
                                     <PopoverTrigger asChild>
@@ -695,7 +695,7 @@ export default function RetirementReportPage() {
                             </div>
 
                             <div className='space-y-2'>
-                                <label className='font-medium text-foreground text-sm'>To:</label>
+                                <span className='font-medium text-foreground text-sm'>To:</span>
                                 <span className='text-red-500'>*</span>
                                 <Popover>
                                     <PopoverTrigger asChild>
@@ -749,7 +749,7 @@ export default function RetirementReportPage() {
 
                         {/* Report Scope */}
                         <div className='space-y-3'>
-                            <label className='font-medium text-foreground text-sm'>Report Scope:</label>
+                            <span className='font-medium text-foreground text-sm'>Report Scope:</span>
                             <RadioGroup
                                 value={filters.reportScope}
                                 onValueChange={(value) => handleFilterChange('reportScope', value)}

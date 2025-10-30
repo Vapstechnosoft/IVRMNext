@@ -4,7 +4,7 @@ import type {
     CumulativeSalaryReportOnloadResponse,
     CumulativeSalaryReportSearchRequest,
     CumulativeSalaryReportSearchResponse
-} from '@/types/hrms/cumulative-salary-report';
+} from '@/types/hrms/reports/cumulative-salary-report';
 import axios from 'axios';
 
 export async function getCumulativeSalaryReportOnload(MI_Id = 30): Promise<ApiResponse<CumulativeSalaryReportOnloadResponse>> {

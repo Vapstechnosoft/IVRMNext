@@ -47,8 +47,7 @@ function ActionButtonsCell({ rowData }: { rowData: ProfessionalTaxDetail }) {
             try {
                 await toggleMutation.mutateAsync({
                     HRMPT_Id: data.HRMPT_Id,
-                    HRMPT_ActiveFlag: newState,
-                    roleId: HRMS_MI_ID
+                    HRMPT_ActiveFlag: newState
                 });
                 toast.success(`Professional Tax ${newState ? 'activated' : 'deactivated'} successfully`);
             } catch (_error) {

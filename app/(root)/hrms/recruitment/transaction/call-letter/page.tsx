@@ -118,7 +118,6 @@ export default function CallLetterPage() {
         handleSubmit,
         reset,
         setValue,
-        watch,
         control,
         formState: { errors, isSubmitting }
     } = useForm<CallLetterForm>({
@@ -376,9 +375,9 @@ export default function CallLetterPage() {
                                     <div className='space-y-6'>
                                         {/* Candidate First Name */}
                                         <div className='space-y-2'>
-                                            <label className='font-medium text-gray-700 text-sm'>
+                                            <span className='font-medium text-gray-700 text-sm'>
                                                 Candidate First Name <span className='text-red-500'>*</span>
-                                            </label>
+                                            </span>
                                             <InputText
                                                 placeholder='Enter first name'
                                                 {...register('candidateFirstName', { required: 'First name is required' })}
@@ -388,9 +387,9 @@ export default function CallLetterPage() {
 
                                         {/* Middle Name */}
                                         <div className='space-y-2'>
-                                            <label className='font-medium text-gray-700 text-sm'>
+                                            <span className='font-medium text-gray-700 text-sm'>
                                                 Middle Name <span className='text-red-500'>*</span>
-                                            </label>
+                                            </span>
                                             <InputText
                                                 placeholder='Enter middle name'
                                                 {...register('candidateMiddleName', { required: 'Middle name is required' })}
@@ -400,9 +399,9 @@ export default function CallLetterPage() {
 
                                         {/* Last Name */}
                                         <div className='space-y-2'>
-                                            <label className='font-medium text-gray-700 text-sm'>
+                                            <span className='font-medium text-gray-700 text-sm'>
                                                 Last Name <span className='text-red-500'>*</span>
-                                            </label>
+                                            </span>
                                             <InputText
                                                 placeholder='Enter last name'
                                                 {...register('candidateLastName', { required: 'Last name is required' })}
@@ -412,9 +411,9 @@ export default function CallLetterPage() {
 
                                         {/* Address */}
                                         <div className='space-y-2'>
-                                            <label className='font-medium text-gray-700 text-sm'>
+                                            <span className='font-medium text-gray-700 text-sm'>
                                                 Address <span className='text-red-500'>*</span>
-                                            </label>
+                                            </span>
                                             <Textarea
                                                 placeholder='Local Address'
                                                 rows={3}
@@ -425,9 +424,9 @@ export default function CallLetterPage() {
 
                                         {/* Position */}
                                         <div className='space-y-2'>
-                                            <label className='font-medium text-gray-700 text-sm'>
+                                            <span className='font-medium text-gray-700 text-sm'>
                                                 Position <span className='text-red-500'>*</span>
-                                            </label>
+                                            </span>
                                             <Select onValueChange={(value) => setValue('position', value)}>
                                                 <SelectTrigger>
                                                     <SelectValue placeholder='--Select--' />
@@ -446,9 +445,9 @@ export default function CallLetterPage() {
 
                                         {/* Candidate Email Id */}
                                         <div className='space-y-2'>
-                                            <label className='font-medium text-gray-700 text-sm'>
+                                            <span className='font-medium text-gray-700 text-sm'>
                                                 Candidate Email Id <span className='text-red-500'>*</span>
-                                            </label>
+                                            </span>
                                             <InputText
                                                 type='email'
                                                 placeholder='candidate@email.com'
@@ -465,9 +464,9 @@ export default function CallLetterPage() {
 
                                         {/* Company */}
                                         <div className='space-y-2'>
-                                            <label className='font-medium text-gray-700 text-sm'>
+                                            <span className='font-medium text-gray-700 text-sm'>
                                                 Company <span className='text-red-500'>*</span>
-                                            </label>
+                                            </span>
                                             <Select onValueChange={(value) => setValue('company', value)}>
                                                 <SelectTrigger>
                                                     <SelectValue placeholder='--Select--' />
@@ -485,9 +484,9 @@ export default function CallLetterPage() {
 
                                         {/* HR */}
                                         <div className='space-y-2'>
-                                            <label className='font-medium text-gray-700 text-sm'>
+                                            <span className='font-medium text-gray-700 text-sm'>
                                                 HR <span className='text-red-500'>*</span>
-                                            </label>
+                                            </span>
                                             <Select onValueChange={(value) => setValue('hr', value)}>
                                                 <SelectTrigger>
                                                     <SelectValue placeholder='--Select--' />
@@ -508,9 +507,9 @@ export default function CallLetterPage() {
                                     <div className='space-y-6'>
                                         {/* Job Posting Site */}
                                         <div className='space-y-2'>
-                                            <label className='font-medium text-gray-700 text-sm'>
+                                            <span className='font-medium text-gray-700 text-sm'>
                                                 Job Posting Site <span className='text-red-500'>*</span>
-                                            </label>
+                                            </span>
                                             <Select onValueChange={(value) => setValue('jobPostingSite', value)}>
                                                 <SelectTrigger>
                                                     <SelectValue placeholder='--Select--' />
@@ -529,9 +528,9 @@ export default function CallLetterPage() {
 
                                         {/* Job Location */}
                                         <div className='space-y-2'>
-                                            <label className='font-medium text-gray-700 text-sm'>
+                                            <span className='font-medium text-gray-700 text-sm'>
                                                 Job Location <span className='text-red-500'>*</span>
-                                            </label>
+                                            </span>
                                             <InputText
                                                 placeholder='Enter job location'
                                                 {...register('jobLocation', { required: 'Job location is required' })}
@@ -541,7 +540,7 @@ export default function CallLetterPage() {
 
                                         {/* Job Post Date */}
                                         <div className='space-y-2'>
-                                            <label className='font-medium text-gray-700 text-sm'>Job Post Date</label>
+                                            <span className='font-medium text-gray-700 text-sm'>Job Post Date</span>
                                             <Controller
                                                 control={control}
                                                 name='jobPostDate'
@@ -573,7 +572,7 @@ export default function CallLetterPage() {
 
                                         {/* Interview Date */}
                                         <div className='space-y-2'>
-                                            <label className='font-medium text-gray-700 text-sm'>Interview Date</label>
+                                            <span className='font-medium text-gray-700 text-sm'>Interview Date</span>
                                             <Controller
                                                 control={control}
                                                 name='interviewDate'
@@ -606,9 +605,9 @@ export default function CallLetterPage() {
 
                                         {/* Interview Time */}
                                         <div className='space-y-2'>
-                                            <label className='font-medium text-gray-700 text-sm'>
+                                            <span className='font-medium text-gray-700 text-sm'>
                                                 Interview Time <span className='text-red-500'>*</span>
-                                            </label>
+                                            </span>
                                             <div className='flex items-center gap-2'>
                                                 <Select onValueChange={(value) => setValue('interviewTimeHH', value)}>
                                                     <SelectTrigger className='w-20'>
@@ -640,9 +639,9 @@ export default function CallLetterPage() {
 
                                         {/* Office Email Id */}
                                         <div className='space-y-2'>
-                                            <label className='font-medium text-gray-700 text-sm'>
+                                            <span className='font-medium text-gray-700 text-sm'>
                                                 Office Email Id <span className='text-red-500'>*</span>
-                                            </label>
+                                            </span>
                                             <InputText
                                                 type='email'
                                                 placeholder='noreply@vapstech.com'
@@ -659,9 +658,9 @@ export default function CallLetterPage() {
 
                                         {/* Office Ph. No. */}
                                         <div className='space-y-2'>
-                                            <label className='font-medium text-gray-700 text-sm'>
+                                            <span className='font-medium text-gray-700 text-sm'>
                                                 Office Ph. No. <span className='text-red-500'>*</span>
-                                            </label>
+                                            </span>
                                             <InputText
                                                 type='tel'
                                                 placeholder='Enter office phone number'

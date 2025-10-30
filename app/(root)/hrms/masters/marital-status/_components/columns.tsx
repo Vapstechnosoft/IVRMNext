@@ -39,8 +39,7 @@ function ActionButtonsCell({ rowData }: { rowData: MaritalStatusDetail }) {
             try {
                 await toggleMutation.mutateAsync({
                     IVRMMMS_Id: data.IVRMMMS_Id,
-                    IVRMMMS_ActiveFlag: newState,
-                    roleId: HRMS_MI_ID
+                    IVRMMMS_ActiveFlag: newState
                 });
                 toast.success(`Marital Status ${newState ? 'activated' : 'deactivated'} successfully`);
             } catch (_error) {

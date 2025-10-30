@@ -103,7 +103,7 @@ export default function CompOffApprovalPage() {
                     {data.length === 0 ? (
                         <div className='py-10 text-center text-muted-foreground text-sm'>No Approvals Pending</div>
                     ) : (
-                        <GenericDataTable data={data} columns={columns} totalItems={data.length} />
+                        <GenericDataTable data={data} columns={columns} totalItems={data.length} isLoading={false} />
                     )}
                 </CollapsibleSection>
             </div>

@@ -32,7 +32,7 @@ interface ActionsCellProps {
 }
 
 export function ActionsCell({ row }: ActionsCellProps) {
-    const { onOpenChange, setSelectedRow } = useFormContext<SalaryIncrementGridItem>();
+    const { openEditForm } = useFormContext<SalaryIncrementGridItem>();
     const { mutate: deleteIncrement, isPending: isDeleting } = useDeleteSalaryIncrement();
 
     const handleDelete = () => {
@@ -66,8 +66,7 @@ export function ActionsCell({ row }: ActionsCellProps) {
                     <DropdownMenuLabel>Actions</DropdownMenuLabel>
                     <DropdownMenuItem
                         onClick={() => {
-                            setSelectedRow(row.original);
-                            onOpenChange(true, 'update');
+                            openEditForm(row.original);
                         }}>
                         Edit
                     </DropdownMenuItem>

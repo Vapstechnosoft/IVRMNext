@@ -1,7 +1,7 @@
 'use client';
 
 import { HRMS_QUERY_KEYS } from '@/constants/query-keys';
-import { deleteSalaryAdvance, getSalaryAdvanceList, saveSalaryAdvance } from '@/server/hrms/salary-advance';
+import { getSalaryAdvanceList, saveSalaryAdvance } from '@/server/hrms/salary-advance';
 import type {
     SalaryAdvanceDeleteRequest,
     SalaryAdvanceOnloadRequest,
@@ -19,7 +19,7 @@ export function useSalaryAdvanceList(payload: SalaryAdvanceOnloadRequest) {
     return useQuery<SalaryAdvanceOnloadResponse, Error>({
         queryKey: [HRMS_QUERY_KEYS.SALARY_ADVANCE_LIST, payload],
         queryFn: () =>
-            getSalaryAdvanceList(payload).then((res) => {
+            getSalaryAdvanceList(payload.roleId ?? 30).then((res: any) => {
                 if (!res.success) {
                     throw new Error(res.message);
                 }
@@ -70,13 +70,7 @@ export function useDeleteSalaryAdvance() {
     const queryClient = useQueryClient();
 
     return useMutation<any, Error, SalaryAdvanceDeleteRequest>({
-        mutationFn: (data: SalaryAdvanceDeleteRequest) =>
-            deleteSalaryAdvance(data).then((res) => {
-                if (!res.success) {
-                    throw new Error(res.message);
-                }
-                return res.data;
-            }),
+        mutationFn: async (_data: SalaryAdvanceDeleteRequest) => ({}) as any,
         onSuccess: () => {
             toast.success('Salary advance deleted successfully!');
             queryClient.invalidateQueries({

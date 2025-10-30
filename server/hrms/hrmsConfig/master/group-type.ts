@@ -13,7 +13,7 @@ export async function getMasterGroupTypeList(roleId: number): Promise<ApiRespons
         const apiPath = '/api/MasterGroupTypeFacade/onloadgetdetails';
         const url = `${baseURL}${apiPath}`;
 
-        const requestBody: OnloadGetGroupTypeDetailsRequest = {
+        const requestBody = {
             CreatedDate: new Date().toISOString(),
             UpdatedDate: new Date().toISOString(),
             HRMGT_Id: 0,
@@ -37,7 +37,7 @@ export async function getMasterGroupTypeList(roleId: number): Promise<ApiRespons
         return {
             success: axiosResponse.status >= 200 && axiosResponse.status < 300,
             message:
-                axiosResponse.data.retrunMsg ||
+                (axiosResponse.data as any).retrunMsg ||
                 (axiosResponse.status >= 200 && axiosResponse.status < 300
                     ? 'Group types loaded successfully'
                     : `HTTP ${axiosResponse.status}`),
@@ -86,11 +86,11 @@ export async function saveMasterGroupType(data: MasterGroupTypeInput): Promise<A
         const isSuccess =
             axiosResponse.status >= 200 &&
             axiosResponse.status < 300 &&
-            (!axiosResponse.data.retrunMsg || !axiosResponse.data.retrunMsg.toLowerCase().includes('error'));
+            (!(((axiosResponse.data as any).retrunMsg || '') as string).toLowerCase().includes('error'));
 
         const response: ApiResponse<MasterGroupTypeResponse> = {
             success: isSuccess,
-            message: axiosResponse.data.retrunMsg || 'Operation completed',
+            message: (axiosResponse.data as any).retrunMsg || 'Operation completed',
             data: axiosResponse.data
         };
 
@@ -152,7 +152,8 @@ export async function activateDeactivateMasterGroupType(data: {
 
         const response: ApiResponse<MasterGroupTypeResponse> = {
             success: axiosResponse.status >= 200 && axiosResponse.status < 300,
-            message: axiosResponse.data.retrunMsg || `Group type ${data.HRMGT_ActiveFlag ? 'activated' : 'deactivated'} successfully`,
+            message:
+                (axiosResponse.data as any).retrunMsg || `Group type ${data.HRMGT_ActiveFlag ? 'activated' : 'deactivated'} successfully`,
             data: axiosResponse.data
         };
 
@@ -184,7 +185,7 @@ export async function getMasterGroupTypeDetails(id: number): Promise<ApiResponse
 
         const response: ApiResponse<MasterGroupTypeResponse> = {
             success: axiosResponse.status >= 200 && axiosResponse.status < 300,
-            message: axiosResponse.data.retrunMsg || 'Group type details fetched successfully',
+            message: (axiosResponse.data as any).retrunMsg || 'Group type details fetched successfully',
             data: axiosResponse.data
         };
 
@@ -235,11 +236,12 @@ export async function saveMasterGroupTypeOrder(groupTypes: GroupTypeDetail[]): P
         const isSuccess =
             axiosResponse.status >= 200 &&
             axiosResponse.status < 300 &&
-            (!axiosResponse.data.retrunMsg || !axiosResponse.data.retrunMsg.toLowerCase().includes('error'));
+            (!(((axiosResponse.data as any).retrunMsg || '') as string).toLowerCase().includes('error'));
 
         const response: ApiResponse<MasterGroupTypeResponse> = {
             success: isSuccess,
-            message: axiosResponse.data.retrunMsg || (isSuccess ? 'Order saved successfully' : `HTTP ${axiosResponse.status}`),
+            message:
+                (axiosResponse.data as any).retrunMsg || (isSuccess ? 'Order saved successfully' : `HTTP ${axiosResponse.status}`),
             data: axiosResponse.data
         };
 

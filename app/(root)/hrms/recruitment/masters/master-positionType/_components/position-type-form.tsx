@@ -3,28 +3,23 @@
 import { Button } from '@/components/ui/button';
 import { RefreshCw, Save, X } from 'lucide-react';
 import { type SubmitHandler, useForm } from 'react-hook-form';
-import type { PositionType } from './columns';
+import type { MasterPositionType } from './columns';
 
-export type PositionTypeFormData = {
-    // TODO: Add form fields based on the entity
-};
+export type PositionTypeFormData = Record<string, unknown>;
 
 interface PositionTypeFormProps {
-    editingPositionType: PositionType | null;
+    editingPositionType: MasterPositionType | null;
     onSubmit: (data: PositionTypeFormData) => void;
     onCancel: () => void;
 }
 
 export function PositionTypeForm({ editingPositionType, onSubmit, onCancel }: PositionTypeFormProps) {
     const {
-        register,
         handleSubmit,
-        watch,
-        setValue,
-        formState: { errors, isSubmitting }
+        formState: { isSubmitting }
     } = useForm<PositionTypeFormData>({
         mode: 'onChange',
-        defaultValues: editingPositionType || {}
+        defaultValues: (editingPositionType as any) || {}
     });
 
     const handleFormSubmit: SubmitHandler<PositionTypeFormData> = async (data) => {

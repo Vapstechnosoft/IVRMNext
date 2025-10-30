@@ -389,7 +389,7 @@ export default function PFForm6APage() {
                 <div className='flex items-center justify-center gap-6'>
                     {/* From Date */}
                     <div className='space-y-2'>
-                        <label className='font-medium text-foreground text-sm'>From :</label>
+                        <span className='font-medium text-foreground text-sm'>From :</span>
                         <Popover>
                             <PopoverTrigger asChild>
                                 <Button
@@ -415,7 +415,7 @@ export default function PFForm6APage() {
 
                     {/* To Date */}
                     <div className='space-y-2'>
-                        <label className='font-medium text-foreground text-sm'>To :</label>
+                        <span className='font-medium text-foreground text-sm'>To :</span>
                         <Popover>
                             <PopoverTrigger asChild>
                                 <Button

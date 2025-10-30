@@ -49,33 +49,34 @@ export function MissingLogForm({ editingMissingLog, onSubmit, onCancel }: Missin
     return (
         <form onSubmit={handleSubmit(handleFormSubmit)} className='grid grid-cols-1 gap-6 md:grid-cols-2'>
             <div className='space-y-2'>
-                <label className='font-medium text-sm'>
+                <label className='font-medium text-sm' htmlFor='employeeName'>
                     Employee Name <span className='text-red-500'>*</span>
                 </label>
                 <InputText
+                    id='employeeName'
                     placeholder='Employee Name'
                     {...register('employeeName', { required: 'Required' })}
                     error={errors.employeeName?.message}
                 />
             </div>
             <div className='space-y-2'>
-                <label className='font-medium text-sm'>
+                <label className='font-medium text-sm' htmlFor='date'>
                     Date <span className='text-red-500'>*</span>
                 </label>
-                <InputText type='date' {...register('date', { required: 'Required' })} error={errors.date?.message} />
+                <InputText id='date' type='date' {...register('date', { required: 'Required' })} error={errors.date?.message} />
             </div>
             <div className='space-y-2'>
-                <label className='font-medium text-sm'>
+                <label className='font-medium text-sm' htmlFor='time'>
                     Time <span className='text-red-500'>*</span>
                 </label>
-                <InputText type='time' {...register('time', { required: 'Required' })} error={errors.time?.message} />
+                <InputText id='time' type='time' {...register('time', { required: 'Required' })} error={errors.time?.message} />
             </div>
             <div className='space-y-2'>
-                <label className='font-medium text-sm'>
+                <label className='font-medium text-sm' htmlFor='inOut'>
                     Input/Output <span className='text-red-500'>*</span>
                 </label>
                 <Select onValueChange={(v) => setValue('inOut', v as 'IN' | 'OUT')}>
-                    <SelectTrigger>
+                    <SelectTrigger id='inOut'>
                         <SelectValue placeholder='Select' />
                     </SelectTrigger>
                     <SelectContent>
@@ -85,14 +86,18 @@ export function MissingLogForm({ editingMissingLog, onSubmit, onCancel }: Missin
                 </Select>
             </div>
             <div className='space-y-2'>
-                <label className='font-medium text-sm'>Upload</label>
+                <label className='font-medium text-sm' htmlFor='upload'>
+                    Upload
+                </label>
                 <Button type='button' variant='outline' size='sm'>
                     <Upload className='mr-2 h-4 w-4' /> Choose File
                 </Button>
             </div>
             <div className='space-y-2 md:col-span-2'>
-                <label className='font-medium text-sm'>Remarks</label>
-                <InputText placeholder='Remarks' {...register('remarks')} />
+                <label className='font-medium text-sm' htmlFor='remarks'>
+                    Remarks
+                </label>
+                <InputText id='remarks' placeholder='Remarks' {...register('remarks')} />
             </div>
 
             <div className='flex justify-center gap-4 border-t pt-6 md:col-span-2'>

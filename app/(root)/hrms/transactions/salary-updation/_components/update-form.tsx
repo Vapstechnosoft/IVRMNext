@@ -19,7 +19,7 @@ import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import type { z } from 'zod';
 
-type FormFields = z.infer<typeof salaryUpdationSchema>;
+type FormFields = z.infer<typeof salaryUpdationSchema.addOrUpdate>;
 
 interface UpdateFormProps {
     selectedRow: SalaryUpdationItem | null;
@@ -38,7 +38,7 @@ export default function UpdateSalaryUpdationForm({ selectedRow, onloadData, onSu
         reset,
         formState: { errors, isSubmitting }
     } = useForm<FormFields>({
-        resolver: zodResolver(salaryUpdationSchema),
+        resolver: zodResolver(salaryUpdationSchema.addOrUpdate),
         mode: 'onChange',
         defaultValues: {
             HRESU_Id: 0,
@@ -48,8 +48,8 @@ export default function UpdateSalaryUpdationForm({ selectedRow, onloadData, onSu
             HRESU_NewSalary: 0,
             HRESU_EffectiveDate: new Date(),
             HRESU_Remarks: '',
-            HRESU_ActiveFlag: true,
-            roleId: 2
+            HRESU_ActiveFlg: true,
+            LogInUserId: 2
         }
     });
 
@@ -63,8 +63,8 @@ export default function UpdateSalaryUpdationForm({ selectedRow, onloadData, onSu
                 HRESU_NewSalary: selectedRow.HRESU_NewSalary,
                 HRESU_EffectiveDate: new Date(selectedRow.HRESU_EffectiveDate),
                 HRESU_Remarks: selectedRow.HRESU_Remarks || '',
-                HRESU_ActiveFlag: true,
-                roleId: 2
+                HRESU_ActiveFlg: true,
+                LogInUserId: 2
             });
         }
     }, [selectedRow, reset]);
@@ -76,18 +76,21 @@ export default function UpdateSalaryUpdationForm({ selectedRow, onloadData, onSu
         }
 
         const payload = {
-            ...data,
-            HRESU_EffectiveDate: data.HRESU_EffectiveDate.toISOString()
+            HRESU_Id: data.HRESU_Id || 0,
+            MI_Id: data.MI_Id,
+            HRME_Id: data.HRME_Id,
+            HRESU_OldSalary: data.HRESU_OldSalary,
+            HRESU_NewSalary: data.HRESU_NewSalary,
+            HRESU_EffectiveDate: data.HRESU_EffectiveDate.toISOString(),
+            HRESU_Remarks: data.HRESU_Remarks,
+            HRESU_ActiveFlag: data.HRESU_ActiveFlg,
+            roleId: data.LogInUserId || 2
         };
 
-        saveUpdation(payload, {
+        saveUpdation(payload as any, {
             onSuccess: (response) => {
-                if (response?.success) {
-                    toast.success(response.message || 'Salary updation updated successfully');
-                    onSuccess();
-                } else {
-                    toast.error(response?.message || 'Failed to update salary updation');
-                }
+                toast.success((response as any)?.retrunMsg || 'Salary updation updated successfully');
+                onSuccess();
             },
             onError: (error: any) => {
                 toast.error(error.message || 'An error occurred');
@@ -131,26 +134,44 @@ export default function UpdateSalaryUpdationForm({ selectedRow, onloadData, onSu
                         </div>
 
                         {/* Old Salary */}
-                        <InputNumber
-                            label='Old Salary'
-                            required
-                            id='HRESU_OldSalary'
-                            placeholder='Enter old salary'
-                            {...register('HRESU_OldSalary', { valueAsNumber: true })}
-                            error={errors.HRESU_OldSalary?.message}
-                            className='transition-colors focus:ring-2 focus:ring-primary/20'
-                        />
+                        <div className='group flex flex-col gap-1.5'>
+                            <Label htmlFor='HRESU_OldSalary'>
+                                Old Salary <span className='text-destructive'>*</span>
+                            </Label>
+                            <Controller
+                                name='HRESU_OldSalary'
+                                control={control}
+                                render={({ field }) => (
+                                    <InputNumber
+                                        id='HRESU_OldSalary'
+                                        value={field.value}
+                                        onChange={field.onChange}
+                                        error={errors.HRESU_OldSalary?.message}
+                                        className='transition-colors focus:ring-2 focus:ring-primary/20'
+                                    />
+                                )}
+                            />
+                        </div>
 
                         {/* New Salary */}
-                        <InputNumber
-                            label='New Salary'
-                            required
-                            id='HRESU_NewSalary'
-                            placeholder='Enter new salary'
-                            {...register('HRESU_NewSalary', { valueAsNumber: true })}
-                            error={errors.HRESU_NewSalary?.message}
-                            className='transition-colors focus:ring-2 focus:ring-primary/20'
-                        />
+                        <div className='group flex flex-col gap-1.5'>
+                            <Label htmlFor='HRESU_NewSalary'>
+                                New Salary <span className='text-destructive'>*</span>
+                            </Label>
+                            <Controller
+                                name='HRESU_NewSalary'
+                                control={control}
+                                render={({ field }) => (
+                                    <InputNumber
+                                        id='HRESU_NewSalary'
+                                        value={field.value}
+                                        onChange={field.onChange}
+                                        error={errors.HRESU_NewSalary?.message}
+                                        className='transition-colors focus:ring-2 focus:ring-primary/20'
+                                    />
+                                )}
+                            />
+                        </div>
 
                         {/* Effective Date */}
                         <div className='group flex flex-col gap-1.5'>

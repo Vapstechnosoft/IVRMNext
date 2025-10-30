@@ -95,15 +95,15 @@ export default function InterviewReportPage() {
                     className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
                     <div className='grid grid-cols-1 items-end gap-4 md:grid-cols-12'>
                         <div className='space-y-2 md:col-span-3'>
-                            <label className='font-medium text-sm'>From Date</label>
+                            <span className='font-medium text-sm'>From Date</span>
                             <InputText type='date' value={fromDate} onChange={(e) => setFromDate(e.target.value)} />
                         </div>
                         <div className='space-y-2 md:col-span-3'>
-                            <label className='font-medium text-sm'>To Date</label>
+                            <span className='font-medium text-sm'>To Date</span>
                             <InputText type='date' value={toDate} onChange={(e) => setToDate(e.target.value)} />
                         </div>
                         <div className='space-y-2 md:col-span-3'>
-                            <label className='font-medium text-sm'>Status</label>
+                            <span className='font-medium text-sm'>Status</span>
                             <Select onValueChange={(v) => setStatus(v as any)}>
                                 <SelectTrigger>
                                     <SelectValue placeholder='All' />

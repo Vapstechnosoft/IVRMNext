@@ -5,9 +5,7 @@ import { RefreshCw, Save, X } from 'lucide-react';
 import { type SubmitHandler, useForm } from 'react-hook-form';
 import type { Candidate } from './columns';
 
-export type CandidateFormData = {
-    // TODO: Add form fields based on the entity
-};
+export type CandidateFormData = Record<string, unknown>;
 
 interface CandidateFormProps {
     editingCandidate: Candidate | null;
@@ -17,14 +15,11 @@ interface CandidateFormProps {
 
 export function CandidateForm({ editingCandidate, onSubmit, onCancel }: CandidateFormProps) {
     const {
-        register,
         handleSubmit,
-        watch,
-        setValue,
-        formState: { errors, isSubmitting }
+        formState: { isSubmitting }
     } = useForm<CandidateFormData>({
         mode: 'onChange',
-        defaultValues: editingCandidate || {}
+        defaultValues: ((editingCandidate as any) || {}) as CandidateFormData
     });
 
     const handleFormSubmit: SubmitHandler<CandidateFormData> = async (data) => {

@@ -88,12 +88,10 @@ export default function HRAuthorisationPage() {
     const _users = ['BATMAN', 'WendyHazra', 'PoonamJaiswal'];
 
     const {
-        register,
-        handleSubmit,
         reset,
         setValue,
         watch,
-        formState: { errors, isSubmitting }
+        formState: { isSubmitting }
     } = useForm<HRAuthorisationForm>({
         mode: 'onChange',
         defaultValues: {
@@ -356,7 +354,7 @@ export default function HRAuthorisationPage() {
                                     setValue={setValue}
                                     watchedActivities={watchedActivities}
                                     handleActivityChange={handleActivityChange}
-                                    errors={errors}
+                                    errors={{}}
                                     isSubmitting={isSubmitting}
                                 />
                             </div>
@@ -484,7 +482,7 @@ function HRAuthorisationForm({
                 {/* Left Column */}
                 <div className='space-y-4'>
                     <div className='space-y-2'>
-                        <label className='font-medium text-sm'>Select Group :*</label>
+                        <span className='font-medium text-sm'>Select Group :*</span>
                         <Select onValueChange={(value) => setValue('group', value)}>
                             <SelectTrigger>
                                 <SelectValue placeholder='--Select--' />
@@ -500,7 +498,7 @@ function HRAuthorisationForm({
                     </div>
 
                     <div className='space-y-2'>
-                        <label className='font-medium text-sm'>Department :*</label>
+                        <span className='font-medium text-sm'>Department :*</span>
                         <Select onValueChange={(value) => setValue('department', value)}>
                             <SelectTrigger>
                                 <SelectValue placeholder='--Select--' />
@@ -516,7 +514,7 @@ function HRAuthorisationForm({
                     </div>
 
                     <div className='space-y-2'>
-                        <label className='font-medium text-sm'>Designation Type :*</label>
+                        <span className='font-medium text-sm'>Designation Type :*</span>
                         <Select onValueChange={(value) => setValue('designationType', value)}>
                             <SelectTrigger>
                                 <SelectValue placeholder='--Select--' />
@@ -532,7 +530,7 @@ function HRAuthorisationForm({
                     </div>
 
                     <div className='space-y-2'>
-                        <label className='font-medium text-sm'>Grade Type :*</label>
+                        <span className='font-medium text-sm'>Grade Type :*</span>
                         <Select onValueChange={(value) => setValue('gradeType', value)}>
                             <SelectTrigger>
                                 <SelectValue placeholder='--Select--' />
@@ -548,7 +546,7 @@ function HRAuthorisationForm({
                     </div>
 
                     <div className='space-y-2'>
-                        <label className='font-medium text-sm'>Activities :*</label>
+                        <span className='font-medium text-sm'>Activities :*</span>
                         <div className='max-h-32 space-y-1 overflow-y-auto rounded-md border p-2'>
                             {activities.map((activity) => (
                                 <div key={activity} className='flex items-center space-x-2'>
@@ -587,7 +585,7 @@ function HRAuthorisationForm({
                     />
 
                     <div className='space-y-2'>
-                        <label className='font-medium text-sm'>Orderby :*</label>
+                        <span className='font-medium text-sm'>Orderby :*</span>
                         <Select onValueChange={(value) => setValue('orderBy', value)}>
                             <SelectTrigger>
                                 <SelectValue placeholder='--Select--' />
@@ -601,7 +599,7 @@ function HRAuthorisationForm({
                     </div>
 
                     <div className='space-y-2'>
-                        <label className='font-medium text-sm'>Approved by :*</label>
+                        <span className='font-medium text-sm'>Approved by :*</span>
                         <Select onValueChange={(value) => setValue('approvedBy', value)}>
                             <SelectTrigger>
                                 <SelectValue placeholder='--Select--' />

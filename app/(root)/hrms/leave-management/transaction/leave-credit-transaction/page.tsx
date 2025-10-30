@@ -13,6 +13,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { GenericDataTable } from '@/components/ui/data-table/generic-data-table';
 import { InputText } from '@/components/ui/extension/input-text';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
+import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { type BaseEntity, createLocalCrud } from '@/lib/localdb';
 import { useEffect, useMemo, useState } from 'react';
@@ -52,14 +53,7 @@ export default function LeaveCreditTransactionPage() {
     const [isFormOpen, setIsFormOpen] = useState(false);
     const [editingRow, setEditingRow] = useState<LeaveCreditTransaction | null>(null);
 
-    const {
-        register,
-        handleSubmit,
-        reset,
-        setValue,
-        watch,
-        formState: { errors }
-    } = useForm<LeaveCreditTransaction>({
+    const { register, handleSubmit, reset, setValue, watch } = useForm<LeaveCreditTransaction>({
         defaultValues: {
             type: [],
             department: [],
@@ -200,7 +194,7 @@ export default function LeaveCreditTransactionPage() {
                     variant='default'
                     size='lg'
                     className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
-                    <GenericDataTable data={data} columns={columns} totalItems={data.length} />
+                    <GenericDataTable data={data} columns={columns} totalItems={data.length} isLoading={false} />
                 </CollapsibleSection>
 
                 {isFormOpen && (
@@ -215,55 +209,66 @@ export default function LeaveCreditTransactionPage() {
                             <form onSubmit={handleSubmit(onSubmit)} className='space-y-4'>
                                 <div className='grid grid-cols-1 gap-4 lg:grid-cols-4'>
                                     <div className='space-y-2'>
-                                        <label className='font-medium text-sm'>Type</label>
-                                        <div className='max-h-44 overflow-y-auto rounded-md border p-2'>
+                                        <label htmlFor='type-checkboxes' className='font-medium text-sm'>
+                                            Type
+                                        </label>
+                                        <div id='type-checkboxes' className='max-h-44 overflow-y-auto rounded-md border p-2'>
                                             {typeOptions.map((t) => (
-                                                <label key={t} className='flex items-center gap-2 text-sm'>
+                                                <div key={t} className='flex items-center gap-2 text-sm'>
                                                     <Checkbox
+                                                        id={`type-${t}`}
                                                         checked={watch('type').includes(t)}
                                                         onCheckedChange={(c) => toggleMulti('type', t, c as boolean)}
                                                     />
-                                                    <span>{t}</span>
-                                                </label>
+                                                    <Label htmlFor={`type-${t}`}>{t}</Label>
+                                                </div>
                                             ))}
                                         </div>
                                     </div>
 
                                     <div className='space-y-2'>
-                                        <label className='font-medium text-sm'>Department</label>
-                                        <div className='max-h-44 overflow-y-auto rounded-md border p-2'>
+                                        <label htmlFor='department-checkboxes' className='font-medium text-sm'>
+                                            Department
+                                        </label>
+                                        <div id='department-checkboxes' className='max-h-44 overflow-y-auto rounded-md border p-2'>
                                             {departmentOptions.map((t) => (
-                                                <label key={t} className='flex items-center gap-2 text-sm'>
+                                                <div key={t} className='flex items-center gap-2 text-sm'>
                                                     <Checkbox
+                                                        id={`dept-${t}`}
                                                         checked={watch('department').includes(t)}
                                                         onCheckedChange={(c) => toggleMulti('department', t, c as boolean)}
                                                     />
-                                                    <span>{t}</span>
-                                                </label>
+                                                    <Label htmlFor={`dept-${t}`}>{t}</Label>
+                                                </div>
                                             ))}
                                         </div>
                                     </div>
 
                                     <div className='space-y-2'>
-                                        <label className='font-medium text-sm'>Designation</label>
-                                        <div className='max-h-44 overflow-y-auto rounded-md border p-2'>
+                                        <label htmlFor='designation-checkboxes' className='font-medium text-sm'>
+                                            Designation
+                                        </label>
+                                        <div id='designation-checkboxes' className='max-h-44 overflow-y-auto rounded-md border p-2'>
                                             {designationOptions.map((t) => (
-                                                <label key={t} className='flex items-center gap-2 text-sm'>
+                                                <div key={t} className='flex items-center gap-2 text-sm'>
                                                     <Checkbox
+                                                        id={`desig-${t}`}
                                                         checked={watch('designation').includes(t)}
                                                         onCheckedChange={(c) => toggleMulti('designation', t, c as boolean)}
                                                     />
-                                                    <span>{t}</span>
-                                                </label>
+                                                    <Label htmlFor={`desig-${t}`}>{t}</Label>
+                                                </div>
                                             ))}
                                         </div>
                                     </div>
 
                                     <div className='space-y-4'>
                                         <div>
-                                            <label className='font-medium text-sm'>Leave Year</label>
+                                            <label htmlFor='leave-year-select' className='font-medium text-sm'>
+                                                Leave Year
+                                            </label>
                                             <Select value={watch('leaveYear')} onValueChange={(v) => setValue('leaveYear', v)}>
-                                                <SelectTrigger>
+                                                <SelectTrigger id='leave-year-select'>
                                                     <SelectValue placeholder='Year' />
                                                 </SelectTrigger>
                                                 <SelectContent>
@@ -277,18 +282,24 @@ export default function LeaveCreditTransactionPage() {
                                         </div>
                                         <div className='grid grid-cols-1 gap-2 md:grid-cols-2'>
                                             <div>
-                                                <label className='font-medium text-sm'>From Date</label>
-                                                <InputText type='date' {...register('fromDate')} />
+                                                <label htmlFor='from-date-input' className='font-medium text-sm'>
+                                                    From Date
+                                                </label>
+                                                <InputText id='from-date-input' type='date' {...register('fromDate')} />
                                             </div>
                                             <div>
-                                                <label className='font-medium text-sm'>To Date</label>
-                                                <InputText type='date' {...register('toDate')} />
+                                                <label htmlFor='to-date-input' className='font-medium text-sm'>
+                                                    To Date
+                                                </label>
+                                                <InputText id='to-date-input' type='date' {...register('toDate')} />
                                             </div>
                                         </div>
                                         <div>
-                                            <label className='font-medium text-sm'>Employee</label>
+                                            <label htmlFor='employee-select' className='font-medium text-sm'>
+                                                Employee
+                                            </label>
                                             <Select value={watch('employee')} onValueChange={(v) => setValue('employee', v)}>
-                                                <SelectTrigger>
+                                                <SelectTrigger id='employee-select'>
                                                     <SelectValue placeholder='Select employee' />
                                                 </SelectTrigger>
                                                 <SelectContent>
@@ -312,9 +323,11 @@ export default function LeaveCreditTransactionPage() {
 
                                 <div className='grid grid-cols-1 gap-4 md:grid-cols-3'>
                                     <div>
-                                        <label className='font-medium text-sm'>Leave Name</label>
+                                        <label htmlFor='leave-name-select' className='font-medium text-sm'>
+                                            Leave Name
+                                        </label>
                                         <Select value={watch('leaveName')} onValueChange={(v) => setValue('leaveName', v)}>
-                                            <SelectTrigger>
+                                            <SelectTrigger id='leave-name-select'>
                                                 <SelectValue placeholder='Leave' />
                                             </SelectTrigger>
                                             <SelectContent>
@@ -327,8 +340,15 @@ export default function LeaveCreditTransactionPage() {
                                         </Select>
                                     </div>
                                     <div>
-                                        <label className='font-medium text-sm'>Availed</label>
-                                        <InputText type='number' step='0.5' {...register('availed', { valueAsNumber: true })} />
+                                        <label htmlFor='availed-input' className='font-medium text-sm'>
+                                            Availed
+                                        </label>
+                                        <InputText
+                                            id='availed-input'
+                                            type='number'
+                                            step='0.5'
+                                            {...register('availed', { valueAsNumber: true })}
+                                        />
                                     </div>
                                 </div>
 

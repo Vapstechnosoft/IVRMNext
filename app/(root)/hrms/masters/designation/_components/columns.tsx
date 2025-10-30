@@ -52,8 +52,7 @@ function ActionButtonsCell({ rowData }: { rowData: DesignationDetail }) {
             try {
                 await toggleMutation.mutateAsync({
                     HRMDES_Id: data.HRMDES_Id,
-                    HRMDES_ActiveFlag: newState,
-                    roleId: HRMS_MI_ID
+                    HRMDES_ActiveFlag: newState
                 });
                 toast.success(`Designation ${newState ? 'activated' : 'deactivated'} successfully`);
             } catch (_error) {

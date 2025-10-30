@@ -316,9 +316,9 @@ export default function PFChallanPage() {
                 <div className='flex items-center justify-center gap-6'>
                     {/* Month Filter */}
                     <div className='space-y-2'>
-                        <label className='font-medium text-foreground text-sm'>
+                        <span className='font-medium text-foreground text-sm'>
                             Month: <span className='text-red-500'>*</span>
-                        </label>
+                        </span>
                         <Select value={filters.month} onValueChange={(value) => handleFilterChange('month', value)}>
                             <SelectTrigger className='w-40'>
                                 <SelectValue placeholder='Select' />
@@ -348,9 +348,9 @@ export default function PFChallanPage() {
 
                     {/* Year Filter */}
                     <div className='space-y-2'>
-                        <label className='font-medium text-foreground text-sm'>
+                        <span className='font-medium text-foreground text-sm'>
                             Year: <span className='text-red-500'>*</span>
-                        </label>
+                        </span>
                         <Select value={filters.year} onValueChange={(value) => handleFilterChange('year', value)}>
                             <SelectTrigger className='w-32'>
                                 <SelectValue placeholder='Select' />

@@ -215,9 +215,9 @@ export default function MasterJobPage() {
 
                                         <div className='grid grid-cols-1 gap-4 lg:grid-cols-2'>
                                             <div className='space-y-2'>
-                                                <label className='font-medium text-sm'>
+                                                <span className='font-medium text-sm'>
                                                     Job Location <span className='text-red-500'>*</span>
-                                                </label>
+                                                </span>
                                                 <Select value={jobLocation || ''} onValueChange={(value) => setValue('jobLocation', value)}>
                                                     <SelectTrigger className={errors.jobLocation ? 'border-red-500' : ''}>
                                                         <SelectValue placeholder='--Select--' />

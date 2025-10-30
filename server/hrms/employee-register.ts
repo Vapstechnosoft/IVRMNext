@@ -86,7 +86,7 @@ export async function getEmployeeRegisterOnload(
         return {
             success: false,
             message: error.message || 'Failed to load employee registration data',
-            data: null
+            data: undefined
         };
     }
 }
@@ -128,7 +128,7 @@ export async function saveEmployeeRegister(payload: EmployeeRegisterSaveRequest)
         return {
             success: false,
             message: error.message || 'Failed to save employee registration data',
-            data: null
+            data: undefined
         };
     }
 }
@@ -169,7 +169,7 @@ export async function addUpdateEmployeePersonalDetails(
         return {
             success: false,
             message: error.message || 'Failed to save employee personal details',
-            data: null
+            data: undefined
         };
     }
 }
@@ -210,7 +210,7 @@ export async function addUpdateEmployeeAddressDetails(
         return {
             success: false,
             message: error.message || 'Failed to save employee address details',
-            data: null
+            data: undefined
         };
     }
 }
@@ -251,7 +251,7 @@ export async function addUpdateEmployeeQualificationDetails(
         return {
             success: false,
             message: error.message || 'Failed to save employee qualification details',
-            data: null
+            data: undefined
         };
     }
 }
@@ -292,7 +292,7 @@ export async function addUpdateEmployeeExperienceDetails(
         return {
             success: false,
             message: error.message || 'Failed to save employee experience details',
-            data: null
+            data: undefined
         };
     }
 }
@@ -333,7 +333,7 @@ export async function addUpdateEmployeeDocumentDetails(
         return {
             success: false,
             message: error.message || 'Failed to save employee document details',
-            data: null
+            data: undefined
         };
     }
 }
@@ -374,7 +374,7 @@ export async function addUpdateEmployeeMedicalDetails(
         return {
             success: false,
             message: error.message || 'Failed to save employee medical details',
-            data: null
+            data: undefined
         };
     }
 }
@@ -415,7 +415,7 @@ export async function addUpdateEmployeeOtherDetails(
         return {
             success: false,
             message: error.message || 'Failed to save employee other details',
-            data: null
+            data: undefined
         };
     }
 }
@@ -456,7 +456,7 @@ export async function addUpdateEmployeeEarningDetails(
         return {
             success: false,
             message: error.message || 'Failed to save employee earning details',
-            data: null
+            data: undefined
         };
     }
 }
@@ -497,7 +497,7 @@ export async function addUpdateEmployeeDeductionDetails(
         return {
             success: false,
             message: error.message || 'Failed to save employee deduction details',
-            data: null
+            data: undefined
         };
     }
 }
@@ -538,7 +538,7 @@ export async function addUpdateEmployeeArrearDetails(
         return {
             success: false,
             message: error.message || 'Failed to save employee arrear details',
-            data: null
+            data: undefined
         };
     }
 }
@@ -577,7 +577,7 @@ export async function getEmployeeById(id: number): Promise<ApiResponse<GetEmploy
         return {
             success: false,
             message: error.message || 'Failed to fetch employee data',
-            data: null
+            data: undefined
         };
     }
 }
@@ -617,7 +617,7 @@ export async function saveQualification(qualifications: SaveQualificationRequest
         return {
             success: false,
             message: error.message || 'Failed to save qualification',
-            data: null
+            data: undefined
         };
     }
 }
@@ -656,7 +656,7 @@ export async function savePersonalDetails(payload: any): Promise<ApiResponse<any
         return {
             success: false,
             message: error.message || 'Failed to save personal details',
-            data: null
+            data: undefined
         };
     }
 }
@@ -698,7 +698,7 @@ export async function saveExperienceDetails(
         return {
             success: false,
             message: error.message || 'Failed to save experience details',
-            data: null
+            data: undefined
         };
     }
 }
@@ -740,7 +740,7 @@ export async function saveDocumentDetails(
         return {
             success: false,
             message: error.message || 'Failed to save document details',
-            data: null
+            data: undefined
         };
     }
 }
@@ -782,7 +782,7 @@ export async function saveMedicalDetails(
         return {
             success: false,
             message: error.message || 'Failed to save medical details',
-            data: null
+            data: undefined
         };
     }
 }
@@ -824,7 +824,7 @@ export async function saveOtherDetails(
         return {
             success: false,
             message: error.message || 'Failed to save other details',
-            data: null
+            data: undefined
         };
     }
 }
@@ -865,7 +865,7 @@ export async function getEmployeeSalaryDetails(
         return {
             success: false,
             message: error.message || 'Failed to fetch salary details',
-            data: null
+            data: undefined
         };
     }
 }
@@ -906,7 +906,7 @@ export async function getEmployeeSalaryDetailsByHead(
         return {
             success: false,
             message: error.message || 'Failed to calculate salary',
-            data: null
+            data: undefined
         };
     }
 }
@@ -947,7 +947,7 @@ export async function saveIncrementDetails(
         return {
             success: false,
             message: error.message || 'Failed to save increment details',
-            data: null
+            data: undefined
         };
     }
 }
@@ -988,7 +988,7 @@ export async function saveEarningDetails(
         return {
             success: false,
             message: error.message || 'Failed to save earning details',
-            data: null
+            data: undefined
         };
     }
 }
@@ -1029,7 +1029,7 @@ export async function saveArrearDetails(
         return {
             success: false,
             message: error.message || 'Failed to save arrear details',
-            data: null
+            data: undefined
         };
     }
 }
@@ -1070,7 +1070,7 @@ export async function saveDeductionDetails(
         return {
             success: false,
             message: error.message || 'Failed to save deduction details',
-            data: null
+            data: undefined
         };
     }
 }

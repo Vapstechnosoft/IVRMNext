@@ -3,28 +3,23 @@
 import { Button } from '@/components/ui/button';
 import { RefreshCw, Save, X } from 'lucide-react';
 import { type SubmitHandler, useForm } from 'react-hook-form';
-import type { Job } from './columns';
+import type { MasterJob } from './columns';
 
-export type JobFormData = {
-    // TODO: Add form fields based on the entity
-};
+export type JobFormData = Record<string, unknown>;
 
 interface JobFormProps {
-    editingJob: Job | null;
+    editingJob: MasterJob | null;
     onSubmit: (data: JobFormData) => void;
     onCancel: () => void;
 }
 
 export function JobForm({ editingJob, onSubmit, onCancel }: JobFormProps) {
     const {
-        register,
         handleSubmit,
-        watch,
-        setValue,
-        formState: { errors, isSubmitting }
+        formState: { isSubmitting }
     } = useForm<JobFormData>({
         mode: 'onChange',
-        defaultValues: editingJob || {}
+        defaultValues: (editingJob as any) || {}
     });
 
     const handleFormSubmit: SubmitHandler<JobFormData> = async (data) => {

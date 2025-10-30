@@ -320,28 +320,28 @@ export default function EmployeeShiftMappingPage() {
                                         {/* Employee Type Selection */}
                                         <div className='grid grid-cols-1 gap-4 lg:grid-cols-4'>
                                             <div className='space-y-2'>
-                                                <label className='font-medium text-sm'>Employee Types:</label>
+                                                <span className='font-medium text-sm'>Employee Types:</span>
                                                 <div className='max-h-40 overflow-y-auto rounded-md border bg-background p-3'>
                                                     <div className='space-y-2'>
                                                         {employeeTypeOptions.map((empType) => (
-                                                            <label key={empType} className='flex cursor-pointer items-center gap-2 text-sm'>
+                                                            <div key={empType} className='flex cursor-pointer items-center gap-2 text-sm'>
                                                                 <Checkbox
                                                                     checked={employeeTypes?.includes(empType) || false}
                                                                     onCheckedChange={() => handleEmployeeTypeToggle(empType)}
                                                                 />
-                                                                {empType}
-                                                            </label>
+                                                                <span>{empType}</span>
+                                                            </div>
                                                         ))}
                                                     </div>
                                                 </div>
                                             </div>
 
                                             <div className='space-y-2'>
-                                                <label className='font-medium text-sm'>
+                                                <label className='font-medium text-sm' htmlFor='type'>
                                                     Type <span className='text-red-500'>*</span>
                                                 </label>
                                                 <Select value={type || ''} onValueChange={(value) => setValue('type', value)}>
-                                                    <SelectTrigger>
+                                                    <SelectTrigger id='type'>
                                                         <SelectValue placeholder='All' />
                                                     </SelectTrigger>
                                                     <SelectContent>
@@ -355,11 +355,11 @@ export default function EmployeeShiftMappingPage() {
                                             </div>
 
                                             <div className='space-y-2'>
-                                                <label className='font-medium text-sm'>
+                                                <label className='font-medium text-sm' htmlFor='department'>
                                                     Department <span className='text-red-500'>*</span>
                                                 </label>
                                                 <Select value={department || ''} onValueChange={(value) => setValue('department', value)}>
-                                                    <SelectTrigger>
+                                                    <SelectTrigger id='department'>
                                                         <SelectValue placeholder='All' />
                                                     </SelectTrigger>
                                                     <SelectContent>
@@ -373,11 +373,11 @@ export default function EmployeeShiftMappingPage() {
                                             </div>
 
                                             <div className='space-y-2'>
-                                                <label className='font-medium text-sm'>
+                                                <label className='font-medium text-sm' htmlFor='designation'>
                                                     Designation <span className='text-red-500'>*</span>
                                                 </label>
                                                 <Select value={designation || ''} onValueChange={(value) => setValue('designation', value)}>
-                                                    <SelectTrigger>
+                                                    <SelectTrigger id='designation'>
                                                         <SelectValue placeholder='All' />
                                                     </SelectTrigger>
                                                     <SelectContent>
@@ -394,19 +394,19 @@ export default function EmployeeShiftMappingPage() {
                                         {/* Day Types and Employee Selection */}
                                         <div className='grid grid-cols-1 gap-4 lg:grid-cols-2'>
                                             <div className='space-y-2'>
-                                                <label className='font-medium text-sm'>Day Types:</label>
+                                                <span className='font-medium text-sm'>Day Types:</span>
                                                 <div className='rounded-md border bg-background p-3'>
                                                     <div className='space-y-2'>
                                                         {dayTypeOptions.map((dayTypeOption) => (
-                                                            <label
+                                                            <div
                                                                 key={dayTypeOption}
                                                                 className='flex cursor-pointer items-center gap-2 text-sm'>
                                                                 <Checkbox
                                                                     checked={dayTypes?.includes(dayTypeOption) || false}
                                                                     onCheckedChange={() => handleDayTypeToggle(dayTypeOption)}
                                                                 />
-                                                                {dayTypeOption}
-                                                            </label>
+                                                                <span>{dayTypeOption}</span>
+                                                            </div>
                                                         ))}
                                                     </div>
                                                 </div>
@@ -418,7 +418,7 @@ export default function EmployeeShiftMappingPage() {
                                                         checked={allEmployees}
                                                         onCheckedChange={(checked) => setValue('allEmployees', !!checked)}
                                                     />
-                                                    <label className='font-medium text-sm'>Employee: All</label>
+                                                    <span className='font-medium text-sm'>Employee: All</span>
                                                 </div>
                                                 <InputText
                                                     placeholder='Search here...'
@@ -431,11 +431,11 @@ export default function EmployeeShiftMappingPage() {
                                         {/* Required Fields */}
                                         <div className='grid grid-cols-1 gap-4 lg:grid-cols-3'>
                                             <div className='space-y-2'>
-                                                <label className='font-medium text-sm'>
+                                                <label className='font-medium text-sm' htmlFor='dayType'>
                                                     Day Type <span className='text-red-500'>*</span>
                                                 </label>
                                                 <Select value={dayType || ''} onValueChange={(value) => setValue('dayType', value)}>
-                                                    <SelectTrigger className={errors.dayType ? 'border-red-500' : ''}>
+                                                    <SelectTrigger id='dayType' className={errors.dayType ? 'border-red-500' : ''}>
                                                         <SelectValue placeholder='--Select--' />
                                                     </SelectTrigger>
                                                     <SelectContent>
@@ -458,11 +458,11 @@ export default function EmployeeShiftMappingPage() {
                                             </div>
 
                                             <div className='space-y-2'>
-                                                <label className='font-medium text-sm'>
+                                                <label className='font-medium text-sm' htmlFor='shiftName'>
                                                     Shift Name <span className='text-red-500'>*</span>
                                                 </label>
                                                 <Select value={shiftName || ''} onValueChange={(value) => setValue('shiftName', value)}>
-                                                    <SelectTrigger className={errors.shiftName ? 'border-red-500' : ''}>
+                                                    <SelectTrigger id='shiftName' className={errors.shiftName ? 'border-red-500' : ''}>
                                                         <SelectValue placeholder='--Select--' />
                                                     </SelectTrigger>
                                                     <SelectContent>
@@ -485,10 +485,11 @@ export default function EmployeeShiftMappingPage() {
                                             </div>
 
                                             <div className='space-y-2'>
-                                                <label className='font-medium text-sm'>
+                                                <label className='font-medium text-sm' htmlFor='applicableDate'>
                                                     Applicable Date <span className='text-red-500'>*</span>
                                                 </label>
                                                 <input
+                                                    id='applicableDate'
                                                     type='date'
                                                     {...register('applicableDate', { required: 'Applicable Date is required' })}
                                                     className={`w-full rounded-md border px-3 py-2 ${errors.applicableDate ? 'border-red-500' : 'border-input'}`}

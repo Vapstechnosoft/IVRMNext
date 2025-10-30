@@ -501,11 +501,11 @@ export default function SalaryCertificatePage() {
                 <div className='grid grid-cols-1 gap-4 md:grid-cols-3'>
                     {/* Group Type Filter */}
                     <div className='space-y-2'>
-                        <label className='font-medium text-foreground text-sm'>
+                        <label htmlFor='group-type-select' className='font-medium text-foreground text-sm'>
                             Group Type: <span className='text-red-500'>*</span>
                         </label>
                         <Select value={filters.groupType} onValueChange={(value) => handleFilterChange('groupType', value)}>
-                            <SelectTrigger>
+                            <SelectTrigger id='group-type-select'>
                                 <SelectValue />
                             </SelectTrigger>
                             <SelectContent>
@@ -521,11 +521,11 @@ export default function SalaryCertificatePage() {
 
                     {/* Department Filter */}
                     <div className='space-y-2'>
-                        <label className='font-medium text-foreground text-sm'>
+                        <label htmlFor='department-select' className='font-medium text-foreground text-sm'>
                             Department: <span className='text-red-500'>*</span>
                         </label>
                         <Select value={filters.department} onValueChange={(value) => handleFilterChange('department', value)}>
-                            <SelectTrigger>
+                            <SelectTrigger id='department-select'>
                                 <SelectValue />
                             </SelectTrigger>
                             <SelectContent>
@@ -541,11 +541,11 @@ export default function SalaryCertificatePage() {
 
                     {/* Designation Filter */}
                     <div className='space-y-2'>
-                        <label className='font-medium text-foreground text-sm'>
+                        <label htmlFor='designation-select' className='font-medium text-foreground text-sm'>
                             Designation: <span className='text-red-500'>*</span>
                         </label>
                         <Select value={filters.designation} onValueChange={(value) => handleFilterChange('designation', value)}>
-                            <SelectTrigger>
+                            <SelectTrigger id='designation-select'>
                                 <SelectValue />
                             </SelectTrigger>
                             <SelectContent>
@@ -564,11 +564,11 @@ export default function SalaryCertificatePage() {
                 <div className='grid grid-cols-1 gap-4 md:grid-cols-3'>
                     {/* Month Filter */}
                     <div className='space-y-2'>
-                        <label className='font-medium text-foreground text-sm'>
+                        <label htmlFor='month-select' className='font-medium text-foreground text-sm'>
                             Month: <span className='text-red-500'>*</span>
                         </label>
                         <Select value={filters.month} onValueChange={(value) => handleFilterChange('month', value)}>
-                            <SelectTrigger>
+                            <SelectTrigger id='month-select'>
                                 <SelectValue placeholder='Select' />
                             </SelectTrigger>
                             <SelectContent>
@@ -596,11 +596,11 @@ export default function SalaryCertificatePage() {
 
                     {/* Year Filter */}
                     <div className='space-y-2'>
-                        <label className='font-medium text-foreground text-sm'>
+                        <label htmlFor='year-select' className='font-medium text-foreground text-sm'>
                             Year: <span className='text-red-500'>*</span>
                         </label>
                         <Select value={filters.year} onValueChange={(value) => handleFilterChange('year', value)}>
-                            <SelectTrigger>
+                            <SelectTrigger id='year-select'>
                                 <SelectValue placeholder='Select' />
                             </SelectTrigger>
                             <SelectContent>
@@ -618,11 +618,11 @@ export default function SalaryCertificatePage() {
 
                     {/* Employee Selection */}
                     <div className='space-y-2'>
-                        <label className='font-medium text-foreground text-sm'>
+                        <label htmlFor='employee-select' className='font-medium text-foreground text-sm'>
                             Employee: <span className='text-red-500'>*</span>
                         </label>
                         <Select value={filters.selectedEmployee} onValueChange={(value) => handleFilterChange('selectedEmployee', value)}>
-                            <SelectTrigger>
+                            <SelectTrigger id='employee-select'>
                                 <SelectValue placeholder='Select' />
                             </SelectTrigger>
                             <SelectContent>

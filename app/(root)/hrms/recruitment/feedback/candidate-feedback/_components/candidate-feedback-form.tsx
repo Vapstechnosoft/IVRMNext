@@ -5,9 +5,7 @@ import { RefreshCw, Save, X } from 'lucide-react';
 import { type SubmitHandler, useForm } from 'react-hook-form';
 import type { CandidateFeedback } from './columns';
 
-export type CandidateFeedbackFormData = {
-    // TODO: Add form fields based on the entity
-};
+export type CandidateFeedbackFormData = Record<string, unknown>;
 
 interface CandidateFeedbackFormProps {
     editingCandidateFeedback: CandidateFeedback | null;
@@ -17,14 +15,11 @@ interface CandidateFeedbackFormProps {
 
 export function CandidateFeedbackForm({ editingCandidateFeedback, onSubmit, onCancel }: CandidateFeedbackFormProps) {
     const {
-        register,
         handleSubmit,
-        watch,
-        setValue,
-        formState: { errors, isSubmitting }
+        formState: { isSubmitting }
     } = useForm<CandidateFeedbackFormData>({
         mode: 'onChange',
-        defaultValues: editingCandidateFeedback || {}
+        defaultValues: (editingCandidateFeedback as any) || {}
     });
 
     const handleFormSubmit: SubmitHandler<CandidateFeedbackFormData> = async (data) => {

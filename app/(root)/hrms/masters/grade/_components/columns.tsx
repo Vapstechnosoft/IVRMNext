@@ -52,8 +52,7 @@ function ActionButtonsCell({ rowData }: { rowData: GradeDetail }) {
             try {
                 await toggleMutation.mutateAsync({
                     HRMG_Id: data.HRMG_Id,
-                    HRMG_ActiveFlag: newState,
-                    roleId: HRMS_MI_ID
+                    HRMG_ActiveFlag: newState
                 });
                 toast.success(`Grade ${newState ? 'activated' : 'deactivated'} successfully`);
             } catch (_error) {

@@ -41,7 +41,7 @@ export async function getMasterLeaveYearList(roleId: number): Promise<ApiRespons
 
         const response: ApiResponse<MasterLeaveYearResponse> = {
             success: axiosResponse.status >= 200 && axiosResponse.status < 300,
-            message: axiosResponse.data.retrunMsg || 'Data fetched successfully',
+            message: (axiosResponse.data as any).retrunMsg || 'Data fetched successfully',
             data: axiosResponse.data
         };
 
@@ -93,11 +93,11 @@ export async function saveMasterLeaveYear(data: MasterLeaveYearInput): Promise<A
         const isSuccess =
             axiosResponse.status >= 200 &&
             axiosResponse.status < 300 &&
-            (!axiosResponse.data.retrunMsg || !axiosResponse.data.retrunMsg.toLowerCase().includes('error'));
+            (!(((axiosResponse.data as any).retrunMsg || '') as string).toLowerCase().includes('error'));
 
         const response: ApiResponse<MasterLeaveYearResponse> = {
             success: isSuccess,
-            message: axiosResponse.data.retrunMsg || 'Operation completed',
+            message: (axiosResponse.data as any).retrunMsg || 'Operation completed',
             data: axiosResponse.data
         };
 
@@ -129,7 +129,7 @@ export async function getMasterLeaveYearDetails(id: number): Promise<ApiResponse
 
         const response: ApiResponse<MasterLeaveYearResponse> = {
             success: axiosResponse.status >= 200 && axiosResponse.status < 300,
-            message: axiosResponse.data.retrunMsg || 'Leave year details fetched successfully',
+            message: (axiosResponse.data as any).retrunMsg || 'Leave year details fetched successfully',
             data: axiosResponse.data
         };
 
@@ -185,12 +185,12 @@ export async function activateDeactivateMasterLeaveYear(data: {
         const isSuccess =
             axiosResponse.status >= 200 &&
             axiosResponse.status < 300 &&
-            (!axiosResponse.data.retrunMsg || !axiosResponse.data.retrunMsg.toLowerCase().includes('error'));
+            (!(((axiosResponse.data as any).retrunMsg || '') as string).toLowerCase().includes('error'));
 
         const response: ApiResponse<MasterLeaveYearResponse> = {
             success: isSuccess,
             message:
-                axiosResponse.data.retrunMsg || (isSuccess ? 'Leave year status updated successfully' : `HTTP ${axiosResponse.status}`),
+                (axiosResponse.data as any).retrunMsg || (isSuccess ? 'Leave year status updated successfully' : `HTTP ${axiosResponse.status}`),
             data: axiosResponse.data
         };
 
@@ -244,11 +244,12 @@ export async function saveMasterLeaveYearOrder(leaveYears: LeaveYearDetail[]): P
         const isSuccess =
             axiosResponse.status >= 200 &&
             axiosResponse.status < 300 &&
-            (!axiosResponse.data.retrunMsg || !axiosResponse.data.retrunMsg.toLowerCase().includes('error'));
+            (!(((axiosResponse.data as any).retrunMsg || '') as string).toLowerCase().includes('error'));
 
         const response: ApiResponse<MasterLeaveYearResponse> = {
             success: isSuccess,
-            message: axiosResponse.data.retrunMsg || (isSuccess ? 'Order saved successfully' : `HTTP ${axiosResponse.status}`),
+            message:
+                (axiosResponse.data as any).retrunMsg || (isSuccess ? 'Order saved successfully' : `HTTP ${axiosResponse.status}`),
             data: axiosResponse.data
         };
 

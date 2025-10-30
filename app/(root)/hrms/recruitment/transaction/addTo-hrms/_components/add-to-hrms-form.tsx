@@ -3,28 +3,23 @@
 import { Button } from '@/components/ui/button';
 import { RefreshCw, Save, X } from 'lucide-react';
 import { type SubmitHandler, useForm } from 'react-hook-form';
-import type { AddToHRMS } from './columns';
+import type { HRMSEmployee } from './columns';
 
-export type AddToHRMSFormData = {
-    // TODO: Add form fields based on the entity
-};
+export type AddToHRMSFormData = Record<string, unknown>;
 
 interface AddToHRMSFormProps {
-    editingAddToHRMS: AddToHRMS | null;
+    editingAddToHRMS: HRMSEmployee | null;
     onSubmit: (data: AddToHRMSFormData) => void;
     onCancel: () => void;
 }
 
 export function AddToHRMSForm({ editingAddToHRMS, onSubmit, onCancel }: AddToHRMSFormProps) {
     const {
-        register,
         handleSubmit,
-        watch,
-        setValue,
-        formState: { errors, isSubmitting }
+        formState: { isSubmitting }
     } = useForm<AddToHRMSFormData>({
         mode: 'onChange',
-        defaultValues: editingAddToHRMS || {}
+        defaultValues: ((editingAddToHRMS as any) || {}) as AddToHRMSFormData
     });
 
     const handleFormSubmit: SubmitHandler<AddToHRMSFormData> = async (data) => {

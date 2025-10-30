@@ -227,9 +227,9 @@ export default function MRFPage() {
                             <form onSubmit={handleSubmit(onSubmit)} className='space-y-6'>
                                 <div className='grid grid-cols-1 gap-6 md:grid-cols-2'>
                                     <div className='space-y-3'>
-                                        <label className='font-medium text-sm'>
+                                        <span className='font-medium text-sm'>
                                             Department <span className='text-red-500'>*</span>
-                                        </label>
+                                        </span>
                                         <Select onValueChange={(v) => setValue('department', v)}>
                                             <SelectTrigger>
                                                 <SelectValue placeholder='--Select--' />
@@ -242,9 +242,9 @@ export default function MRFPage() {
                                             </SelectContent>
                                         </Select>
 
-                                        <label className='font-medium text-sm'>
+                                        <span className='font-medium text-sm'>
                                             Position <span className='text-red-500'>*</span>
-                                        </label>
+                                        </span>
                                         <Select onValueChange={(v) => setValue('position', v)}>
                                             <SelectTrigger>
                                                 <SelectValue placeholder='--Select--' />
@@ -256,9 +256,9 @@ export default function MRFPage() {
                                             </SelectContent>
                                         </Select>
 
-                                        <label className='font-medium text-sm'>
+                                        <span className='font-medium text-sm'>
                                             Priority <span className='text-red-500'>*</span>
-                                        </label>
+                                        </span>
                                         <Select onValueChange={(v) => setValue('priority', v)}>
                                             <SelectTrigger>
                                                 <SelectValue placeholder='--Select--' />
@@ -271,9 +271,9 @@ export default function MRFPage() {
                                             </SelectContent>
                                         </Select>
 
-                                        <label className='font-medium text-sm'>
+                                        <span className='font-medium text-sm'>
                                             Position Type <span className='text-red-500'>*</span>
-                                        </label>
+                                        </span>
                                         <Select onValueChange={(v) => setValue('positionType', v)}>
                                             <SelectTrigger>
                                                 <SelectValue placeholder='--Select--' />
@@ -285,9 +285,9 @@ export default function MRFPage() {
                                             </SelectContent>
                                         </Select>
 
-                                        <label className='font-medium text-sm'>
+                                        <span className='font-medium text-sm'>
                                             Qualification <span className='text-red-500'>*</span>
-                                        </label>
+                                        </span>
                                         <Select onValueChange={(v) => setValue('qualification', v)}>
                                             <SelectTrigger>
                                                 <SelectValue placeholder='--Select--' />
@@ -299,27 +299,27 @@ export default function MRFPage() {
                                             </SelectContent>
                                         </Select>
 
-                                        <label className='font-medium text-sm'>
+                                        <span className='font-medium text-sm'>
                                             No of Position <span className='text-red-500'>*</span>
-                                        </label>
+                                        </span>
                                         <InputText
                                             placeholder='1'
                                             {...register('noOfPosition', { required: 'Required' })}
                                             error={errors.noOfPosition?.message}
                                         />
 
-                                        <label className='font-medium text-sm'>
+                                        <span className='font-medium text-sm'>
                                             Age <span className='text-red-500'>*</span>
-                                        </label>
+                                        </span>
                                         <InputText
                                             placeholder='e.g. 22-30'
                                             {...register('age', { required: 'Required' })}
                                             error={errors.age?.message}
                                         />
 
-                                        <label className='font-medium text-sm'>
+                                        <span className='font-medium text-sm'>
                                             Gender <span className='text-red-500'>*</span>
-                                        </label>
+                                        </span>
                                         <Select onValueChange={(v) => setValue('gender', v)}>
                                             <SelectTrigger>
                                                 <SelectValue placeholder='--Select--' />
@@ -331,9 +331,9 @@ export default function MRFPage() {
                                             </SelectContent>
                                         </Select>
 
-                                        <label className='font-medium text-sm'>
+                                        <span className='font-medium text-sm'>
                                             Experience <span className='text-red-500'>*</span>
-                                        </label>
+                                        </span>
                                         <div className='grid grid-cols-3 items-center gap-2'>
                                             <InputText
                                                 placeholder='From'
@@ -348,7 +348,7 @@ export default function MRFPage() {
                                             />
                                         </div>
 
-                                        <label className='font-medium text-sm'>Pay Scale</label>
+                                        <span className='font-medium text-sm'>Pay Scale</span>
                                         <div className='grid grid-cols-3 items-center gap-2'>
                                             <InputText placeholder='From' {...register('payScaleFrom')} />
                                             <span className='text-center'>To</span>
@@ -357,54 +357,63 @@ export default function MRFPage() {
                                     </div>
 
                                     <div className='space-y-3'>
-                                        <label className='font-medium text-sm'>
+                                        <span className='font-medium text-sm'>
                                             Skill <span className='text-red-500'>*</span>
-                                        </label>
+                                        </span>
                                         <InputText
                                             placeholder='Primary skills'
                                             {...register('skill', { required: 'Required' })}
                                             error={errors.skill?.message}
                                         />
 
-                                        <label className='font-medium text-sm'>
+                                        <span className='font-medium text-sm'>
                                             Job Description <span className='text-red-500'>*</span>
-                                        </label>
+                                        </span>
                                         <InputText
                                             placeholder='Enter description'
                                             {...register('jobDescription', { required: 'Required' })}
                                             error={errors.jobDescription?.message}
                                         />
 
-                                        <label className='font-medium text-sm'>
+                                        <span className='font-medium text-sm'>
                                             Location <span className='text-red-500'>*</span>
-                                        </label>
+                                        </span>
                                         <div className='flex items-center gap-6 pt-1'>
-                                            <label className='flex items-center gap-2 text-sm'>
+                                            <div className='flex items-center gap-2 text-sm'>
                                                 <Checkbox
+                                                    id='mrfLocHO'
                                                     checked={watch('locationType') === 'HO'}
                                                     onCheckedChange={(_v) => setValue('locationType', 'HO')}
-                                                />{' '}
-                                                HO
-                                            </label>
-                                            <label className='flex items-center gap-2 text-sm'>
+                                                />
+                                                <label htmlFor='mrfLocHO' className='cursor-pointer'>
+                                                    HO
+                                                </label>
+                                            </div>
+                                            <div className='flex items-center gap-2 text-sm'>
                                                 <Checkbox
+                                                    id='mrfLocClient'
                                                     checked={watch('locationType') === 'Client'}
                                                     onCheckedChange={(_v) => setValue('locationType', 'Client')}
-                                                />{' '}
-                                                Client
-                                            </label>
-                                            <label className='flex items-center gap-2 text-sm'>
+                                                />
+                                                <label htmlFor='mrfLocClient' className='cursor-pointer'>
+                                                    Client
+                                                </label>
+                                            </div>
+                                            <div className='flex items-center gap-2 text-sm'>
                                                 <Checkbox
+                                                    id='mrfLocLocation'
                                                     checked={watch('locationType') === 'Location'}
                                                     onCheckedChange={(_v) => setValue('locationType', 'Location')}
-                                                />{' '}
-                                                Location
-                                            </label>
+                                                />
+                                                <label htmlFor='mrfLocLocation' className='cursor-pointer'>
+                                                    Location
+                                                </label>
+                                            </div>
                                         </div>
 
-                                        <label className='font-medium text-sm'>
+                                        <span className='font-medium text-sm'>
                                             Country <span className='text-red-500'>*</span>
-                                        </label>
+                                        </span>
                                         <Select onValueChange={(v) => setValue('country', v)}>
                                             <SelectTrigger>
                                                 <SelectValue placeholder='--Select--' />
@@ -416,9 +425,9 @@ export default function MRFPage() {
                                             </SelectContent>
                                         </Select>
 
-                                        <label className='font-medium text-sm'>
+                                        <span className='font-medium text-sm'>
                                             State <span className='text-red-500'>*</span>
-                                        </label>
+                                        </span>
                                         <Select onValueChange={(v) => setValue('state', v)}>
                                             <SelectTrigger>
                                                 <SelectValue placeholder='--Select--' />
@@ -430,12 +439,12 @@ export default function MRFPage() {
                                             </SelectContent>
                                         </Select>
 
-                                        <label className='font-medium text-sm'>Remark</label>
+                                        <span className='font-medium text-sm'>Remark</span>
                                         <InputText placeholder='Enter remark' {...register('remark')} />
 
-                                        <label className='font-medium text-sm'>
+                                        <span className='font-medium text-sm'>
                                             Reason <span className='text-red-500'>*</span>
-                                        </label>
+                                        </span>
                                         <InputText
                                             placeholder='Enter reason'
                                             {...register('reason', { required: 'Required' })}
@@ -443,27 +452,36 @@ export default function MRFPage() {
                                         />
 
                                         <div className='flex gap-6 pt-2'>
-                                            <label className='flex items-center gap-2 text-sm'>
+                                            <div className='flex items-center gap-2 text-sm'>
                                                 <Checkbox
+                                                    id='mrfTestWritten'
                                                     checked={tests.written}
                                                     onCheckedChange={(v) => setTests((s) => ({ ...s, written: Boolean(v) }))}
-                                                />{' '}
-                                                Written Test
-                                            </label>
-                                            <label className='flex items-center gap-2 text-sm'>
+                                                />
+                                                <label htmlFor='mrfTestWritten' className='cursor-pointer'>
+                                                    Written Test
+                                                </label>
+                                            </div>
+                                            <div className='flex items-center gap-2 text-sm'>
                                                 <Checkbox
+                                                    id='mrfTestOnline'
                                                     checked={tests.online}
                                                     onCheckedChange={(v) => setTests((s) => ({ ...s, online: Boolean(v) }))}
-                                                />{' '}
-                                                Online Test
-                                            </label>
-                                            <label className='flex items-center gap-2 text-sm'>
+                                                />
+                                                <label htmlFor='mrfTestOnline' className='cursor-pointer'>
+                                                    Online Test
+                                                </label>
+                                            </div>
+                                            <div className='flex items-center gap-2 text-sm'>
                                                 <Checkbox
+                                                    id='mrfTestTechnical'
                                                     checked={tests.technical}
                                                     onCheckedChange={(v) => setTests((s) => ({ ...s, technical: Boolean(v) }))}
-                                                />{' '}
-                                                Technical Interview
-                                            </label>
+                                                />
+                                                <label htmlFor='mrfTestTechnical' className='cursor-pointer'>
+                                                    Technical Interview
+                                                </label>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>

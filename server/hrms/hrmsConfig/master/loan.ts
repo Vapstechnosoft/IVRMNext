@@ -37,7 +37,7 @@ export async function getMasterLoanList(roleId: number): Promise<ApiResponse<Mas
 
         const response: ApiResponse<MasterLoanResponse> = {
             success: axiosResponse.status >= 200 && axiosResponse.status < 300,
-            message: axiosResponse.data.retrunMsg || 'Data fetched successfully',
+            message: (axiosResponse.data as any).retrunMsg || 'Data fetched successfully',
             data: axiosResponse.data
         };
 
@@ -83,11 +83,11 @@ export async function saveMasterLoan(data: MasterLoanInput): Promise<ApiResponse
         const isSuccess =
             axiosResponse.status >= 200 &&
             axiosResponse.status < 300 &&
-            (!axiosResponse.data.retrunMsg || !axiosResponse.data.retrunMsg.toLowerCase().includes('error'));
+            (!(((axiosResponse.data as any).retrunMsg || '') as string).toLowerCase().includes('error'));
 
         const response: ApiResponse<MasterLoanResponse> = {
             success: isSuccess,
-            message: axiosResponse.data.retrunMsg || 'Operation completed',
+            message: (axiosResponse.data as any).retrunMsg || 'Operation completed',
             data: axiosResponse.data
         };
 
@@ -119,7 +119,7 @@ export async function getMasterLoanDetails(id: number): Promise<ApiResponse<Mast
 
         const response: ApiResponse<MasterLoanResponse> = {
             success: axiosResponse.status >= 200 && axiosResponse.status < 300,
-            message: axiosResponse.data.retrunMsg || 'Loan details fetched successfully',
+            message: (axiosResponse.data as any).retrunMsg || 'Loan details fetched successfully',
             data: axiosResponse.data
         };
 
@@ -169,11 +169,12 @@ export async function activateDeactivateMasterLoan(data: {
         const isSuccess =
             axiosResponse.status >= 200 &&
             axiosResponse.status < 300 &&
-            (!axiosResponse.data.retrunMsg || !axiosResponse.data.retrunMsg.toLowerCase().includes('error'));
+            (!(((axiosResponse.data as any).retrunMsg || '') as string).toLowerCase().includes('error'));
 
         const response: ApiResponse<MasterLoanResponse> = {
             success: isSuccess,
-            message: axiosResponse.data.retrunMsg || (isSuccess ? 'Loan status updated successfully' : `HTTP ${axiosResponse.status}`),
+            message:
+                (axiosResponse.data as any).retrunMsg || (isSuccess ? 'Loan status updated successfully' : `HTTP ${axiosResponse.status}`),
             data: axiosResponse.data
         };
 

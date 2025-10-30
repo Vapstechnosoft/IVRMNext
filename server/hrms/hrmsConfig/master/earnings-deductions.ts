@@ -7,6 +7,10 @@ import type {
 } from '@/types/hrms/master-earnings-deductions';
 import axios from 'axios';
 
+function getResponseMessage(data: any, fallback: string): string {
+    return data?.retrunMsg ?? data?.message ?? fallback;
+}
+
 /**
  * Get onload details for master earnings deductions
  * POST /api/MasterEarningsDeductionsFacade/onloadgetdetails
@@ -56,7 +60,7 @@ export async function getMasterEarningsDeductionsList(roleId: number): Promise<A
 
         const response: ApiResponse<MasterEarningsDeductionsResponse> = {
             success: axiosResponse.status >= 200 && axiosResponse.status < 300,
-            message: axiosResponse.data.retrunMsg || 'Data fetched successfully',
+            message: getResponseMessage(axiosResponse.data, 'Data fetched successfully'),
             data: axiosResponse.data
         };
 
@@ -117,11 +121,11 @@ export async function saveMasterEarningsDeductions(
         const isSuccess =
             axiosResponse.status >= 200 &&
             axiosResponse.status < 300 &&
-            (!axiosResponse.data.retrunMsg || !axiosResponse.data.retrunMsg.toLowerCase().includes('error'));
+            (!getResponseMessage(axiosResponse.data, '').toLowerCase().includes('error'));
 
         const response: ApiResponse<MasterEarningsDeductionsResponse> = {
             success: isSuccess,
-            message: axiosResponse.data.retrunMsg || 'Operation completed',
+            message: getResponseMessage(axiosResponse.data, 'Operation completed'),
             data: axiosResponse.data
         };
 
@@ -203,13 +207,15 @@ export async function activateDeactivateMasterEarningsDeductions(data: {
         const isSuccess =
             axiosResponse.status >= 200 &&
             axiosResponse.status < 300 &&
-            (!axiosResponse.data.retrunMsg || !axiosResponse.data.retrunMsg.toLowerCase().includes('error'));
+            (!getResponseMessage(axiosResponse.data, '').toLowerCase().includes('error'));
 
         const response: ApiResponse<MasterEarningsDeductionsResponse> = {
             success: isSuccess,
             message:
-                axiosResponse.data.retrunMsg ||
-                (isSuccess ? 'Earnings deductions status updated successfully' : `HTTP ${axiosResponse.status}`),
+                getResponseMessage(
+                    axiosResponse.data,
+                    isSuccess ? 'Earnings deductions status updated successfully' : `HTTP ${axiosResponse.status}`
+                ),
             data: axiosResponse.data
         };
 
@@ -277,11 +283,14 @@ export async function saveMasterEarningsDeductionsOrder(
         const isSuccess =
             axiosResponse.status >= 200 &&
             axiosResponse.status < 300 &&
-            (!axiosResponse.data.retrunMsg || !axiosResponse.data.retrunMsg.toLowerCase().includes('error'));
+            (!getResponseMessage(axiosResponse.data, '').toLowerCase().includes('error'));
 
         const response: ApiResponse<MasterEarningsDeductionsResponse> = {
             success: isSuccess,
-            message: axiosResponse.data.retrunMsg || (isSuccess ? 'Order saved successfully' : `HTTP ${axiosResponse.status}`),
+            message: getResponseMessage(
+                axiosResponse.data,
+                isSuccess ? 'Order saved successfully' : `HTTP ${axiosResponse.status}`
+            ),
             data: axiosResponse.data
         };
 

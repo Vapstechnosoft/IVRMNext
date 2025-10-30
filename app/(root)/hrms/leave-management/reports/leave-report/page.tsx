@@ -120,9 +120,11 @@ export default function LeaveReportPage() {
 
                         <div className='grid grid-cols-1 items-end gap-4 md:grid-cols-3'>
                             <div>
-                                <label className='font-medium text-sm'>Employee</label>
+                                <label htmlFor='employee-select' className='font-medium text-sm'>
+                                    Employee
+                                </label>
                                 <Select value={employee} onValueChange={setEmployee}>
-                                    <SelectTrigger>
+                                    <SelectTrigger id='employee-select'>
                                         <SelectValue placeholder='Select or Search Employee' />
                                     </SelectTrigger>
                                     <SelectContent>
@@ -135,9 +137,11 @@ export default function LeaveReportPage() {
                             </div>
 
                             <div>
-                                <label className='font-medium text-sm'>Leave</label>
+                                <label htmlFor='leave-select' className='font-medium text-sm'>
+                                    Leave
+                                </label>
                                 <Select value={leave} onValueChange={setLeave}>
-                                    <SelectTrigger>
+                                    <SelectTrigger id='leave-select'>
                                         <SelectValue placeholder='All' />
                                     </SelectTrigger>
                                     <SelectContent>
@@ -152,12 +156,21 @@ export default function LeaveReportPage() {
 
                             <div className='grid grid-cols-1 gap-2 md:col-span-1 md:grid-cols-2'>
                                 <div>
-                                    <label className='font-medium text-sm'>From Date</label>
-                                    <InputText type='date' value={fromDate} onChange={(e) => setFromDate(e.target.value)} />
+                                    <label htmlFor='from-date-input' className='font-medium text-sm'>
+                                        From Date
+                                    </label>
+                                    <InputText
+                                        id='from-date-input'
+                                        type='date'
+                                        value={fromDate}
+                                        onChange={(e) => setFromDate(e.target.value)}
+                                    />
                                 </div>
                                 <div>
-                                    <label className='font-medium text-sm'>To Date</label>
-                                    <InputText type='date' value={toDate} onChange={(e) => setToDate(e.target.value)} />
+                                    <label htmlFor='to-date-input' className='font-medium text-sm'>
+                                        To Date
+                                    </label>
+                                    <InputText id='to-date-input' type='date' value={toDate} onChange={(e) => setToDate(e.target.value)} />
                                 </div>
                             </div>
 
@@ -185,7 +198,7 @@ export default function LeaveReportPage() {
                     variant='default'
                     size='lg'
                     className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
-                    <GenericDataTable data={rows} columns={columns} totalItems={rows.length} />
+                    <GenericDataTable data={rows} columns={columns} totalItems={rows.length} isLoading={false} />
                 </CollapsibleSection>
             </div>
         </div>

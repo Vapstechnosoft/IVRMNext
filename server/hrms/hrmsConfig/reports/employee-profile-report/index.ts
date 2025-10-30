@@ -7,7 +7,7 @@ import type {
     EmployeeProfileReportResponse,
     EmployeeProfileReportSearchRequest,
     EmployeeProfileReportSearchResponse
-} from '@/types/hrms/employee-profile-report';
+} from '@/types/hrms/reports/employee-profile-report';
 
 /**
  * Get onload details for employee profile report
@@ -25,12 +25,12 @@ export async function getEmployeeProfileReportOnload(roleId = 30): Promise<Emplo
             employeedropdown: []
         };
 
-        const response = await api.post<EmployeeProfileReportResponse>('/api/EmployeeProfileReportFacade/onloadgetdetailsNew', requestBody);
+        const response = await api.post<EmployeeProfileReportResponse>('default', '/api/EmployeeProfileReportFacade/onloadgetdetailsNew', requestBody);
 
         return {
             success: true,
             message: 'Employee profile report details loaded successfully',
-            data: response.data
+            data: (response.data || undefined) as any
         };
     } catch (error: any) {
         console.error('Error fetching employee profile report onload details:', error);
@@ -66,7 +66,7 @@ export async function filterEmployeesBySelection(
             hrmdeS_IdList: request.hrmdeS_IdList || [0]
         };
 
-        const response = await api.post<any>('/api/EmployeeProfileReportFacade/FilterEmployeedetailsBySelectionNew', requestBody);
+        const response = await api.post<any>('default', '/api/EmployeeProfileReportFacade/FilterEmployeedetailsBySelectionNew', requestBody);
 
         return {
             success: true,
@@ -98,7 +98,7 @@ export async function searchEmployeeProfileDetails(
             hrmE_multiId: request.employeeIds.length > 0 ? request.employeeIds : [0]
         };
 
-        const response = await api.post<any>('/api/EmployeeProfileReportFacade/getEmployeedetailsBySelectionNew', requestBody);
+        const response = await api.post<any>('default', '/api/EmployeeProfileReportFacade/getEmployeedetailsBySelectionNew', requestBody);
 
         return {
             success: true,

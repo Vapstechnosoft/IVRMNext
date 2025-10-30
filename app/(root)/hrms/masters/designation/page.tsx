@@ -6,13 +6,12 @@ import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
 import { HRMS_MI_ID } from '@/constants/hrms-config';
 import { useMasterDesignation } from '@/hooks/hrms/useMasterDesignation';
-import type { DesignationDetail, MasterDesignationResponse } from '@/types/hrms/master-designation';
+import type { DesignationDetail } from '@/types/hrms/master-designation';
 import { ListOrdered, Plus, Save, X } from 'lucide-react';
 import { useState } from 'react';
 import { toast } from 'sonner';
-import AddDesignationForm from './_components/add-form';
 import { columns, getEditableColumns } from './_components/columns';
-import UpdateDesignationForm from './_components/update-form';
+import DesignationForm from './_components/designation-form';
 
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 
@@ -24,7 +23,7 @@ export default function MasterDesignationPage(_props: {
     const { listQuery } = useMasterDesignation(roleId);
 
     return (
-        <FormProvider<MasterDesignationResponse>>
+        <FormProvider<DesignationDetail>>
             <MasterDesignationPageContent response={listQuery.data} isLoading={listQuery.isLoading} error={listQuery.error} />
         </FormProvider>
     );
@@ -39,7 +38,7 @@ function MasterDesignationPageContent({
     isLoading: boolean;
     error: any;
 }) {
-    const { openAddForm } = useFormContext<MasterDesignationResponse>();
+    const { openAddForm } = useFormContext<DesignationDetail>();
     const { saveOrderMutation } = useMasterDesignation(HRMS_MI_ID);
     const rows: DesignationDetail[] = response?.data?.designationlList ?? [];
 
@@ -146,7 +145,7 @@ function MasterDesignationPageContent({
 
 function FormSections() {
     const { isAddFormOpen, isEditFormOpen, selectedRow, closeAddForm, closeEditForm, addFormRef, editFormRef } =
-        useFormContext<MasterDesignationResponse>();
+        useFormContext<DesignationDetail>();
 
     return (
         <>
@@ -168,7 +167,7 @@ function FormSections() {
                                 className='-top-[3.5rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
                                 <X className='h-4 w-4 text-destructive' /> Close
                             </Button>
-                            <AddDesignationForm onSuccess={closeAddForm} />
+                            <DesignationForm onSuccess={closeAddForm} />
                         </div>
                     </CollapsibleSection>
                 </div>
@@ -191,7 +190,7 @@ function FormSections() {
                                 className='-top-[3.5rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
                                 <X className='h-4 w-4 text-destructive' /> Close
                             </Button>
-                            <UpdateDesignationForm selectedRow={selectedRow} onSuccess={closeEditForm} />
+                            <DesignationForm selectedRow={selectedRow} onSuccess={closeEditForm} />
                         </div>
                     </CollapsibleSection>
                 </div>

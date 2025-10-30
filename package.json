@@ -18,7 +18,9 @@
         "build-uat": "cp .env.uat .env.local && next build",
         "lint-fix": "biome check --fix --unsafe",
         "precommit": "lint-staged",
-        "prepare": "husky install"
+        "prepare": "husky install",
+        "check:hrms": "powershell -ExecutionPolicy Bypass -File scripts/check-hrms.ps1",
+        "fix:hrms": "npx biome check app/(root)/hrms --write --unsafe"
     },
     "dependencies": {
         "@dnd-kit/core": "^6.3.1",

@@ -8,7 +8,7 @@ export async function getMasterGenderList(roleId: number): Promise<ApiResponse<M
     const apiPath = '/api/MasterGenderFacade/onloadgetdetails';
     const url = `${baseURL}${apiPath}`;
 
-    const requestBody: OnloadGetDetailsRequest = {
+    const requestBody = {
         CreatedDate: new Date().toISOString(),
         UpdatedDate: new Date().toISOString(),
         IVRMMG_Id: 0,

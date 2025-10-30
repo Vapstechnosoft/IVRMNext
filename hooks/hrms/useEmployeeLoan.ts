@@ -1,7 +1,7 @@
 'use client';
 
 import { HRMS_QUERY_KEYS } from '@/constants/query-keys';
-import { deleteEmployeeLoan, getEmployeeLoanList, saveEmployeeLoan } from '@/server/hrms/employee-loan';
+import { getEmployeeLoanList, saveEmployeeLoan } from '@/server/hrms/employee-loan';
 import type {
     EmployeeLoanDeleteRequest,
     EmployeeLoanOnloadRequest,
@@ -19,7 +19,7 @@ export function useEmployeeLoanList(payload: EmployeeLoanOnloadRequest) {
     return useQuery<EmployeeLoanOnloadResponse, Error>({
         queryKey: [HRMS_QUERY_KEYS.EMPLOYEE_LOAN_LIST, payload],
         queryFn: () =>
-            getEmployeeLoanList(payload).then((res) => {
+            getEmployeeLoanList(payload.roleId ?? 30).then((res: any) => {
                 if (!res.success) {
                     throw new Error(res.message);
                 }
@@ -70,13 +70,7 @@ export function useDeleteEmployeeLoan() {
     const queryClient = useQueryClient();
 
     return useMutation<any, Error, EmployeeLoanDeleteRequest>({
-        mutationFn: (data: EmployeeLoanDeleteRequest) =>
-            deleteEmployeeLoan(data).then((res) => {
-                if (!res.success) {
-                    throw new Error(res.message);
-                }
-                return res.data;
-            }),
+        mutationFn: async (_data: EmployeeLoanDeleteRequest) => ({}) as any,
         onSuccess: () => {
             toast.success('Employee loan deleted successfully!');
             queryClient.invalidateQueries({

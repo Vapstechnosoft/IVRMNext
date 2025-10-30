@@ -54,8 +54,7 @@ function ActionButtonsCell({ rowData }: { rowData: LeaveYearDetail }) {
             try {
                 await toggleMutation.mutateAsync({
                     HRMLY_Id: data.HRMLY_Id,
-                    HRMLY_ActiveFlag: newState,
-                    roleId: HRMS_MI_ID
+                    HRMLY_ActiveFlag: newState
                 });
                 toast.success(`Leave Year ${newState ? 'activated' : 'deactivated'} successfully`);
             } catch (_error) {

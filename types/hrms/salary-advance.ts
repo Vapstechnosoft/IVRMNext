@@ -35,8 +35,10 @@ export interface MonthDropdown {
 }
 
 export interface ModeOfPaymentDropdown {
-    value: string;
-    label: string;
+    IVRMMOD_Id: number;
+    IVRMMOD_ModeOfPayment: string;
+    value?: string;
+    label?: string;
 }
 
 // Salary Advance Item

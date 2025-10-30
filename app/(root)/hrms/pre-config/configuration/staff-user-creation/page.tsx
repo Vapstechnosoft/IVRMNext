@@ -376,9 +376,9 @@ function StaffUserForm({
                 {/* Left Column */}
                 <div className='space-y-4'>
                     <div className='space-y-2'>
-                        <label className='font-medium text-sm'>
+                        <span className='font-medium text-sm'>
                             Select Role Type :<span className='text-red-500'>*</span>
-                        </label>
+                        </span>
                         <Select onValueChange={(value) => setValue('roleType', value)}>
                             <SelectTrigger>
                                 <SelectValue placeholder='--SELECT ROLE--' />
@@ -394,9 +394,9 @@ function StaffUserForm({
                     </div>
 
                     <div className='space-y-2'>
-                        <label className='font-medium text-sm'>
+                        <span className='font-medium text-sm'>
                             Institution Name :<span className='text-red-500'>*</span>
-                        </label>
+                        </span>
                         <Select onValueChange={(value) => setValue('institutionName', value)}>
                             <SelectTrigger>
                                 <SelectValue placeholder='--SELECT INSTITUTION--' />
@@ -439,9 +439,9 @@ function StaffUserForm({
 
             {/* Module Selection */}
             <div className='space-y-2'>
-                <label className='font-medium text-sm'>
+                <span className='font-medium text-sm'>
                     Module Name :<span className='text-red-500'>*</span>
-                </label>
+                </span>
                 <div className='max-h-40 space-y-2 overflow-y-auto rounded-md border bg-gray-50 p-3'>
                     {modules.map((module) => (
                         <div key={module} className='flex items-center space-x-2'>

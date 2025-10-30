@@ -1,13 +1,11 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
-import { RefreshCw, Save, X } from 'lucide-react';
+import { Save, X } from 'lucide-react';
 import { type SubmitHandler, useForm } from 'react-hook-form';
 import type { CompOffApproval } from './columns';
 
-export type CompOffApprovalFormData = {
-    // TODO: Add form fields based on the entity
-};
+export type CompOffApprovalFormData = Record<string, unknown>;
 
 interface CompOffApprovalFormProps {
     editingCompOffApproval: CompOffApproval | null;
@@ -16,15 +14,9 @@ interface CompOffApprovalFormProps {
 }
 
 export function CompOffApprovalForm({ editingCompOffApproval, onSubmit, onCancel }: CompOffApprovalFormProps) {
-    const {
-        register,
-        handleSubmit,
-        watch,
-        setValue,
-        formState: { errors, isSubmitting }
-    } = useForm<CompOffApprovalFormData>({
+    const { handleSubmit } = useForm<CompOffApprovalFormData>({
         mode: 'onChange',
-        defaultValues: editingCompOffApproval || {}
+        defaultValues: (editingCompOffApproval as any) || {}
     });
 
     const handleFormSubmit: SubmitHandler<CompOffApprovalFormData> = async (data) => {
@@ -40,18 +32,11 @@ export function CompOffApprovalForm({ editingCompOffApproval, onSubmit, onCancel
                     <X className='mr-2 h-4 w-4' />
                     Cancel
                 </Button>
-                <Button type='submit' disabled={isSubmitting}>
-                    {isSubmitting ? (
-                        <div className='flex items-center'>
-                            <RefreshCw className='mr-2 h-4 w-4 animate-spin' />
-                            Saving...
-                        </div>
-                    ) : (
-                        <div className='flex items-center'>
-                            <Save className='mr-2 h-4 w-4' />
-                            Save
-                        </div>
-                    )}
+                <Button type='submit' disabled={false}>
+                    <div className='flex items-center'>
+                        <Save className='mr-2 h-4 w-4' />
+                        Save
+                    </div>
                 </Button>
             </div>
         </form>

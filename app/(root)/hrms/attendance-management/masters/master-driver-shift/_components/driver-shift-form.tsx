@@ -5,9 +5,7 @@ import { RefreshCw, Save, X } from 'lucide-react';
 import { type SubmitHandler, useForm } from 'react-hook-form';
 import type { DriverShift } from './columns';
 
-export type DriverShiftFormData = {
-    // TODO: Add form fields based on the entity
-};
+export type DriverShiftFormData = Record<string, never>;
 
 interface DriverShiftFormProps {
     editingDriverShift: DriverShift | null;
@@ -17,14 +15,11 @@ interface DriverShiftFormProps {
 
 export function DriverShiftForm({ editingDriverShift, onSubmit, onCancel }: DriverShiftFormProps) {
     const {
-        register,
         handleSubmit,
-        watch,
-        setValue,
-        formState: { errors, isSubmitting }
+        formState: { isSubmitting }
     } = useForm<DriverShiftFormData>({
         mode: 'onChange',
-        defaultValues: editingDriverShift || {}
+        defaultValues: (editingDriverShift as any) || {}
     });
 
     const handleFormSubmit: SubmitHandler<DriverShiftFormData> = async (data) => {

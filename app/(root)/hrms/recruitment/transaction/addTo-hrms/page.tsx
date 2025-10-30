@@ -121,7 +121,6 @@ export default function AddToHRMSPage() {
         handleSubmit,
         reset,
         setValue,
-        watch,
         formState: { errors, isSubmitting }
     } = useForm<HRMSForm>({
         mode: 'onChange'
@@ -359,9 +358,9 @@ export default function AddToHRMSPage() {
                                 <div className='grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3'>
                                     {/* Candidate Name */}
                                     <div className='space-y-2'>
-                                        <label className='font-medium text-gray-700 text-sm'>
+                                        <span className='font-medium text-gray-700 text-sm'>
                                             Candidate Name <span className='text-red-500'>*</span>
-                                        </label>
+                                        </span>
                                         <Select onValueChange={(value) => setValue('candidateId', value)}>
                                             <SelectTrigger>
                                                 <SelectValue placeholder='Select or Search Candidate' />
@@ -380,9 +379,9 @@ export default function AddToHRMSPage() {
 
                                     {/* Employee Department */}
                                     <div className='space-y-2'>
-                                        <label className='font-medium text-gray-700 text-sm'>
+                                        <span className='font-medium text-gray-700 text-sm'>
                                             Employee Department <span className='text-red-500'>*</span>
-                                        </label>
+                                        </span>
                                         <Select onValueChange={(value) => setValue('employeeDepartment', value)}>
                                             <SelectTrigger>
                                                 <SelectValue placeholder='--Select--' />
@@ -400,9 +399,9 @@ export default function AddToHRMSPage() {
 
                                     {/* Company Name */}
                                     <div className='space-y-2'>
-                                        <label className='font-medium text-gray-700 text-sm'>
+                                        <span className='font-medium text-gray-700 text-sm'>
                                             Company Name <span className='text-red-500'>*</span>
-                                        </label>
+                                        </span>
                                         <Select onValueChange={(value) => setValue('companyName', value)}>
                                             <SelectTrigger>
                                                 <SelectValue placeholder='--Select--' />
@@ -420,9 +419,9 @@ export default function AddToHRMSPage() {
 
                                     {/* Employee Designation */}
                                     <div className='space-y-2'>
-                                        <label className='font-medium text-gray-700 text-sm'>
+                                        <span className='font-medium text-gray-700 text-sm'>
                                             Employee Designation <span className='text-red-500'>*</span>
-                                        </label>
+                                        </span>
                                         <Select onValueChange={(value) => setValue('employeeDesignation', value)}>
                                             <SelectTrigger>
                                                 <SelectValue placeholder='--Select--' />
@@ -440,9 +439,9 @@ export default function AddToHRMSPage() {
 
                                     {/* Employee Type */}
                                     <div className='space-y-2'>
-                                        <label className='font-medium text-gray-700 text-sm'>
+                                        <span className='font-medium text-gray-700 text-sm'>
                                             Employee Type <span className='text-red-500'>*</span>
-                                        </label>
+                                        </span>
                                         <Select onValueChange={(value) => setValue('employeeType', value)}>
                                             <SelectTrigger>
                                                 <SelectValue placeholder='--Select--' />
@@ -460,9 +459,9 @@ export default function AddToHRMSPage() {
 
                                     {/* Employee Grade */}
                                     <div className='space-y-2'>
-                                        <label className='font-medium text-gray-700 text-sm'>
+                                        <span className='font-medium text-gray-700 text-sm'>
                                             Employee Grade <span className='text-red-500'>*</span>
-                                        </label>
+                                        </span>
                                         <Select onValueChange={(value) => setValue('employeeGrade', value)}>
                                             <SelectTrigger>
                                                 <SelectValue placeholder='--Select--' />
@@ -480,9 +479,9 @@ export default function AddToHRMSPage() {
 
                                     {/* Religion */}
                                     <div className='space-y-2'>
-                                        <label className='font-medium text-gray-700 text-sm'>
+                                        <span className='font-medium text-gray-700 text-sm'>
                                             Religion <span className='text-red-500'>*</span>
-                                        </label>
+                                        </span>
                                         <Select onValueChange={(value) => setValue('religion', value)}>
                                             <SelectTrigger>
                                                 <SelectValue placeholder='--Select--' />
@@ -501,9 +500,9 @@ export default function AddToHRMSPage() {
 
                                     {/* Group Type */}
                                     <div className='space-y-2'>
-                                        <label className='font-medium text-gray-700 text-sm'>
+                                        <span className='font-medium text-gray-700 text-sm'>
                                             Group Type <span className='text-red-500'>*</span>
-                                        </label>
+                                        </span>
                                         <Select onValueChange={(value) => setValue('groupType', value)}>
                                             <SelectTrigger>
                                                 <SelectValue placeholder='--Select--' />
@@ -521,9 +520,9 @@ export default function AddToHRMSPage() {
 
                                     {/* Caste */}
                                     <div className='space-y-2'>
-                                        <label className='font-medium text-gray-700 text-sm'>
+                                        <span className='font-medium text-gray-700 text-sm'>
                                             Caste <span className='text-red-500'>*</span>
-                                        </label>
+                                        </span>
                                         <Select onValueChange={(value) => setValue('caste', value)}>
                                             <SelectTrigger>
                                                 <SelectValue placeholder='--Select--' />
@@ -541,9 +540,9 @@ export default function AddToHRMSPage() {
 
                                     {/* Employee Code */}
                                     <div className='space-y-2'>
-                                        <label className='font-medium text-gray-700 text-sm'>
+                                        <span className='font-medium text-gray-700 text-sm'>
                                             Employee Code <span className='text-red-500'>*</span>
-                                        </label>
+                                        </span>
                                         <InputText
                                             placeholder='Enter employee code'
                                             {...register('employeeCode', { required: 'Employee code is required' })}
@@ -553,9 +552,9 @@ export default function AddToHRMSPage() {
 
                                     {/* Marital Status */}
                                     <div className='space-y-2'>
-                                        <label className='font-medium text-gray-700 text-sm'>
+                                        <span className='font-medium text-gray-700 text-sm'>
                                             Marital Status <span className='text-red-500'>*</span>
-                                        </label>
+                                        </span>
                                         <Select onValueChange={(value) => setValue('maritalStatus', value)}>
                                             <SelectTrigger>
                                                 <SelectValue placeholder='--Select--' />
@@ -572,9 +571,9 @@ export default function AddToHRMSPage() {
 
                                     {/* HID Card No */}
                                     <div className='space-y-2'>
-                                        <label className='font-medium text-gray-700 text-sm'>
+                                        <span className='font-medium text-gray-700 text-sm'>
                                             HID Card No. <span className='text-red-500'>*</span>
-                                        </label>
+                                        </span>
                                         <InputText
                                             placeholder='Enter HID card number'
                                             {...register('hidCardNo', { required: 'HID card number is required' })}
@@ -620,7 +619,7 @@ interface HRMSEmployeeTableProps {
     getCandidateName: (candidateId: number) => string;
 }
 
-function HRMSEmployeeTable({ employees, isLoading, onEdit, onDelete, getCandidateName }: HRMSEmployeeTableProps) {
+function HRMSEmployeeTable({ employees, isLoading, onEdit, onDelete, getCandidateName: _getCandidateName }: HRMSEmployeeTableProps) {
     const employeeColumns: ColumnDef<HRMSEmployee>[] = [
         {
             id: 'serialNumber',

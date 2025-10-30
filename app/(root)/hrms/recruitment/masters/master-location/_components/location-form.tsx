@@ -3,28 +3,23 @@
 import { Button } from '@/components/ui/button';
 import { RefreshCw, Save, X } from 'lucide-react';
 import { type SubmitHandler, useForm } from 'react-hook-form';
-import type { Location } from './columns';
+import type { MasterLocation } from './columns';
 
-export type LocationFormData = {
-    // TODO: Add form fields based on the entity
-};
+export type LocationFormData = Record<string, unknown>;
 
 interface LocationFormProps {
-    editingLocation: Location | null;
+    editingLocation: MasterLocation | null;
     onSubmit: (data: LocationFormData) => void;
     onCancel: () => void;
 }
 
 export function LocationForm({ editingLocation, onSubmit, onCancel }: LocationFormProps) {
     const {
-        register,
         handleSubmit,
-        watch,
-        setValue,
-        formState: { errors, isSubmitting }
+        formState: { isSubmitting }
     } = useForm<LocationFormData>({
         mode: 'onChange',
-        defaultValues: editingLocation || {}
+        defaultValues: (editingLocation as any) || {}
     });
 
     const handleFormSubmit: SubmitHandler<LocationFormData> = async (data) => {

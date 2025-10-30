@@ -13,6 +13,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { GenericDataTable } from '@/components/ui/data-table/generic-data-table';
 import { InputText } from '@/components/ui/extension/input-text';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
+import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { type BaseEntity, createLocalCrud } from '@/lib/localdb';
 import { useEffect, useMemo, useState } from 'react';
@@ -51,7 +52,13 @@ export default function LeaveCreditDetailsPage() {
             designation: [],
             leaveName: '',
             leaveCode: '',
-            months: MONTHS.reduce((acc, m) => ({ ...acc, [m]: 0 }), {} as Record<string, number>)
+            months: MONTHS.reduce(
+                (acc, m) => {
+                    acc[m] = 0;
+                    return acc;
+                },
+                {} as Record<string, number>
+            )
         }
     });
 
@@ -78,7 +85,13 @@ export default function LeaveCreditDetailsPage() {
             designation: [],
             leaveName: '',
             leaveCode: '',
-            months: MONTHS.reduce((acc, m) => ({ ...acc, [m]: 0 }), {} as Record<string, number>)
+            months: MONTHS.reduce(
+                (acc, m) => {
+                    acc[m] = 0;
+                    return acc;
+                },
+                {} as Record<string, number>
+            )
         });
         setTimeout(() => document.getElementById('leave-credit-details-form')?.scrollIntoView({ behavior: 'smooth' }), 100);
     };
@@ -92,7 +105,13 @@ export default function LeaveCreditDetailsPage() {
             designation: [],
             leaveName: '',
             leaveCode: '',
-            months: MONTHS.reduce((acc, m) => ({ ...acc, [m]: 0 }), {} as Record<string, number>)
+            months: MONTHS.reduce(
+                (acc, m) => {
+                    acc[m] = 0;
+                    return acc;
+                },
+                {} as Record<string, number>
+            )
         });
     };
 
@@ -194,7 +213,7 @@ export default function LeaveCreditDetailsPage() {
                     variant='default'
                     size='lg'
                     className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
-                    <GenericDataTable data={data} columns={columns} totalItems={data.length} />
+                    <GenericDataTable data={data} columns={columns} totalItems={data.length} isLoading={false} />
                 </CollapsibleSection>
 
                 {isFormOpen && (
@@ -210,44 +229,53 @@ export default function LeaveCreditDetailsPage() {
                                 <div className='grid grid-cols-1 gap-6 xl:grid-cols-3'>
                                     <div className='space-y-4'>
                                         <div>
-                                            <label className='font-medium text-sm'>Type</label>
-                                            <div className='max-h-40 overflow-y-auto rounded-md border p-2'>
+                                            <label htmlFor='type-checkboxes' className='font-medium text-sm'>
+                                                Type
+                                            </label>
+                                            <div id='type-checkboxes' className='max-h-40 overflow-y-auto rounded-md border p-2'>
                                                 {typeOptions.map((t) => (
-                                                    <label key={t} className='flex items-center gap-2 text-sm'>
+                                                    <div key={t} className='flex items-center gap-2 text-sm'>
                                                         <Checkbox
+                                                            id={`type-${t}`}
                                                             checked={watch('type').includes(t)}
                                                             onCheckedChange={(c) => toggleMulti('type', t, c as boolean)}
                                                         />
-                                                        <span>{t}</span>
-                                                    </label>
+                                                        <Label htmlFor={`type-${t}`}>{t}</Label>
+                                                    </div>
                                                 ))}
                                             </div>
                                         </div>
                                         <div>
-                                            <label className='font-medium text-sm'>Department</label>
-                                            <div className='max-h-40 overflow-y-auto rounded-md border p-2'>
+                                            <label htmlFor='department-checkboxes' className='font-medium text-sm'>
+                                                Department
+                                            </label>
+                                            <div id='department-checkboxes' className='max-h-40 overflow-y-auto rounded-md border p-2'>
                                                 {departmentOptions.map((t) => (
-                                                    <label key={t} className='flex items-center gap-2 text-sm'>
+                                                    <div key={t} className='flex items-center gap-2 text-sm'>
                                                         <Checkbox
+                                                            id={`dept-${t}`}
                                                             checked={watch('department').includes(t)}
                                                             onCheckedChange={(c) => toggleMulti('department', t, c as boolean)}
                                                         />
-                                                        <span>{t}</span>
-                                                    </label>
+                                                        <Label htmlFor={`dept-${t}`}>{t}</Label>
+                                                    </div>
                                                 ))}
                                             </div>
                                         </div>
                                         <div>
-                                            <label className='font-medium text-sm'>Designation</label>
-                                            <div className='max-h-40 overflow-y-auto rounded-md border p-2'>
+                                            <label htmlFor='designation-checkboxes' className='font-medium text-sm'>
+                                                Designation
+                                            </label>
+                                            <div id='designation-checkboxes' className='max-h-40 overflow-y-auto rounded-md border p-2'>
                                                 {designationOptions.map((t) => (
-                                                    <label key={t} className='flex items-center gap-2 text-sm'>
+                                                    <div key={t} className='flex items-center gap-2 text-sm'>
                                                         <Checkbox
+                                                            id={`desig-${t}`}
                                                             checked={watch('designation').includes(t)}
                                                             onCheckedChange={(c) => toggleMulti('designation', t, c as boolean)}
                                                         />
-                                                        <span>{t}</span>
-                                                    </label>
+                                                        <Label htmlFor={`desig-${t}`}>{t}</Label>
+                                                    </div>
                                                 ))}
                                             </div>
                                         </div>
@@ -255,9 +283,11 @@ export default function LeaveCreditDetailsPage() {
 
                                     <div className='space-y-4'>
                                         <div>
-                                            <label className='font-medium text-sm'>Leave Name *</label>
+                                            <label htmlFor='leave-name-select' className='font-medium text-sm'>
+                                                Leave Name *
+                                            </label>
                                             <Select value={watch('leaveName')} onValueChange={(v) => setValue('leaveName', v)}>
-                                                <SelectTrigger className={errors.leaveName ? 'border-red-500' : ''}>
+                                                <SelectTrigger id='leave-name-select' className={errors.leaveName ? 'border-red-500' : ''}>
                                                     <SelectValue placeholder='Select Leave' />
                                                 </SelectTrigger>
                                                 <SelectContent>
@@ -269,8 +299,10 @@ export default function LeaveCreditDetailsPage() {
                                             </Select>
                                         </div>
                                         <div>
-                                            <label className='font-medium text-sm'>Leave Code</label>
-                                            <InputText {...register('leaveCode')} placeholder='Enter leave code' />
+                                            <label htmlFor='leave-code-input' className='font-medium text-sm'>
+                                                Leave Code
+                                            </label>
+                                            <InputText id='leave-code-input' {...register('leaveCode')} placeholder='Enter leave code' />
                                         </div>
                                     </div>
 
@@ -278,8 +310,11 @@ export default function LeaveCreditDetailsPage() {
                                         <div className='grid grid-cols-2 gap-3 md:grid-cols-3'>
                                             {MONTHS.map((m) => (
                                                 <div key={m} className='flex items-center gap-2'>
-                                                    <label className='w-24 text-sm'>{m}</label>
+                                                    <label htmlFor={`month-${m}`} className='w-24 text-sm'>
+                                                        {m}
+                                                    </label>
                                                     <InputText
+                                                        id={`month-${m}`}
                                                         type='number'
                                                         step='0.5'
                                                         value={watch('months')[m] ?? 0}

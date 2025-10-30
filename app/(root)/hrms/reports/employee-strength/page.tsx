@@ -8,6 +8,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
 import { DataTable } from '@/components/ui/data-table/data-table';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
+import { Label } from '@/components/ui/label';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { type BaseEntity, createLocalCrud } from '@/lib/localdb';
@@ -401,11 +402,11 @@ export default function EmployeeStrengthReportPage() {
                     <div className='grid grid-cols-1 gap-4 md:grid-cols-3'>
                         {/* Group Type Filter */}
                         <div className='space-y-2'>
-                            <label className='font-medium text-foreground text-sm'>
+                            <Label htmlFor='groupType' className='font-medium text-foreground text-sm'>
                                 Group Type: <span className='text-red-500'>*</span>
-                            </label>
+                            </Label>
                             <Select value={filters.groupType} onValueChange={(value) => handleFilterChange('groupType', value)}>
-                                <SelectTrigger>
+                                <SelectTrigger id='groupType'>
                                     <SelectValue />
                                 </SelectTrigger>
                                 <SelectContent>
@@ -421,11 +422,11 @@ export default function EmployeeStrengthReportPage() {
 
                         {/* Department Filter */}
                         <div className='space-y-2'>
-                            <label className='font-medium text-foreground text-sm'>
+                            <Label htmlFor='department' className='font-medium text-foreground text-sm'>
                                 Department: <span className='text-red-500'>*</span>
-                            </label>
+                            </Label>
                             <Select value={filters.department} onValueChange={(value) => handleFilterChange('department', value)}>
-                                <SelectTrigger>
+                                <SelectTrigger id='department'>
                                     <SelectValue />
                                 </SelectTrigger>
                                 <SelectContent>
@@ -441,11 +442,11 @@ export default function EmployeeStrengthReportPage() {
 
                         {/* Designation Filter */}
                         <div className='space-y-2'>
-                            <label className='font-medium text-foreground text-sm'>
+                            <Label htmlFor='designation' className='font-medium text-foreground text-sm'>
                                 Designation: <span className='text-red-500'>*</span>
-                            </label>
+                            </Label>
                             <Select value={filters.designation} onValueChange={(value) => handleFilterChange('designation', value)}>
-                                <SelectTrigger>
+                                <SelectTrigger id='designation'>
                                     <SelectValue />
                                 </SelectTrigger>
                                 <SelectContent>
@@ -462,33 +463,42 @@ export default function EmployeeStrengthReportPage() {
 
                     {/* Filter Section - Row 2: Employee Categories */}
                     <div className='grid grid-cols-1 gap-4 md:grid-cols-3'>
-                        <label className='flex cursor-pointer items-center gap-2 text-sm'>
+                        <div className='flex items-center gap-2 text-sm'>
                             <Checkbox
+                                id='employeeCategoryAll'
                                 checked={filters.employeeCategories.allEmployee}
                                 onCheckedChange={(checked) => handleCategoryChange('allEmployee', !!checked)}
                             />
-                            All Employee
-                        </label>
-                        <label className='flex cursor-pointer items-center gap-2 text-sm'>
+                            <Label htmlFor='employeeCategoryAll' className='cursor-pointer'>
+                                All Employee
+                            </Label>
+                        </div>
+                        <div className='flex items-center gap-2 text-sm'>
                             <Checkbox
+                                id='employeeCategoryDeptWise'
                                 checked={filters.employeeCategories.departmentWise}
                                 onCheckedChange={(checked) => handleCategoryChange('departmentWise', !!checked)}
                             />
-                            Department wise
-                        </label>
-                        <label className='flex cursor-pointer items-center gap-2 text-sm'>
+                            <Label htmlFor='employeeCategoryDeptWise' className='cursor-pointer'>
+                                Department wise
+                            </Label>
+                        </div>
+                        <div className='flex items-center gap-2 text-sm'>
                             <Checkbox
+                                id='employeeCategoryLeft'
                                 checked={filters.employeeCategories.leftEmployee}
                                 onCheckedChange={(checked) => handleCategoryChange('leftEmployee', !!checked)}
                             />
-                            Left Employee
-                        </label>
+                            <Label htmlFor='employeeCategoryLeft' className='cursor-pointer'>
+                                Left Employee
+                            </Label>
+                        </div>
                     </div>
 
                     {/* Date Range Selection */}
                     <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
                         <div className='space-y-2'>
-                            <label className='font-medium text-foreground text-sm'>From :</label>
+                            <span className='font-medium text-foreground text-sm'>From :</span>
                             <Popover>
                                 <PopoverTrigger asChild>
                                     <Button
@@ -518,7 +528,7 @@ export default function EmployeeStrengthReportPage() {
                         </div>
 
                         <div className='space-y-2'>
-                            <label className='font-medium text-foreground text-sm'>To :</label>
+                            <span className='font-medium text-foreground text-sm'>To :</span>
                             <Popover>
                                 <PopoverTrigger asChild>
                                     <Button

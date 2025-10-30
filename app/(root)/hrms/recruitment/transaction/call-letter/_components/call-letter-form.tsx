@@ -5,9 +5,7 @@ import { RefreshCw, Save, X } from 'lucide-react';
 import { type SubmitHandler, useForm } from 'react-hook-form';
 import type { CallLetter } from './columns';
 
-export type CallLetterFormData = {
-    // TODO: Add form fields based on the entity
-};
+export type CallLetterFormData = Record<string, unknown>;
 
 interface CallLetterFormProps {
     editingCallLetter: CallLetter | null;
@@ -17,14 +15,11 @@ interface CallLetterFormProps {
 
 export function CallLetterForm({ editingCallLetter, onSubmit, onCancel }: CallLetterFormProps) {
     const {
-        register,
         handleSubmit,
-        watch,
-        setValue,
-        formState: { errors, isSubmitting }
+        formState: { isSubmitting }
     } = useForm<CallLetterFormData>({
         mode: 'onChange',
-        defaultValues: editingCallLetter || {}
+        defaultValues: ((editingCallLetter as any) || {}) as CallLetterFormData
     });
 
     const handleFormSubmit: SubmitHandler<CallLetterFormData> = async (data) => {

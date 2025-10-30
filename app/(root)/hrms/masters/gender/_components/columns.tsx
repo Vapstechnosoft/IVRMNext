@@ -39,8 +39,7 @@ function ActionButtonsCell({ rowData }: { rowData: GenderItem }) {
             try {
                 await toggleMutation.mutateAsync({
                     IVRMMG_Id: data.IVRMMG_Id,
-                    IVRMMG_ActiveFlag: newState,
-                    roleId: HRMS_MI_ID
+                    IVRMMG_ActiveFlag: newState
                 });
                 toast.success(`Gender ${newState ? 'activated' : 'deactivated'} successfully`);
             } catch (_error) {

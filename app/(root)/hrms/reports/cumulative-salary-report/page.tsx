@@ -9,23 +9,14 @@ import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { MultiSelect } from '@/components/ui/multi-select';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useCumulativeSalaryReportOnload, useSearchCumulativeSalaryReport } from '@/hooks/hrms/reports/useCumulativeSalaryReport';
-import type {
-    CumulativeSalaryReportSearchRequest,
-    DepartmentDropdown,
-    DesignationDropdown,
-    GroupTypeDropdown,
-    SalaryReportRecord
-} from '@/types/hrms/reports/cumulative-salary-report';
+import type { CumulativeSalaryReportSearchRequest, SalaryReportRecord } from '@/types/hrms/reports/cumulative-salary-report';
 import type { ColumnDef } from '@tanstack/react-table';
 import { Download, Printer, RefreshCw, X } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 
-// Use API types instead of local interfaces
-type GroupType = GroupTypeDropdown;
-type Department = DepartmentDropdown;
-type Designation = DesignationDropdown;
+// Use API types directly
 type CumulativeSalaryRecord = SalaryReportRecord;
 
 // Report filters
@@ -41,7 +32,7 @@ export default function CumulativeSalaryReportPage() {
     const MI_Id = 30; // Default MI_Id
 
     // React Query hooks
-    const { data: onloadData, isLoading: isLoadingOnload } = useCumulativeSalaryReportOnload(MI_Id);
+    const { data: onloadData } = useCumulativeSalaryReportOnload(MI_Id);
     const searchMutation = useSearchCumulativeSalaryReport();
 
     // State
@@ -56,13 +47,7 @@ export default function CumulativeSalaryReportPage() {
     const months = onloadData?.data?.monthdropdown || [];
     const years = onloadData?.data?.leaveyeardropdown || [];
 
-    const {
-        handleSubmit,
-        reset,
-        watch,
-        control,
-        formState: { errors, isSubmitting }
-    } = useForm<ReportFilters>({
+    const { handleSubmit, reset, watch, control } = useForm<ReportFilters>({
         mode: 'onChange',
         defaultValues: {
             groupType: [],
@@ -381,7 +366,7 @@ export default function CumulativeSalaryReportPage() {
         {
             accessorKey: 'signature',
             header: ({ column }) => <DataTableColumnHeader column={column} title='Signature' />,
-            cell: ({ row }) => <div className='text-center text-muted-foreground'>-</div>,
+            cell: () => <div className='text-center text-muted-foreground'>-</div>,
             enableSorting: false,
             enableHiding: true
         }

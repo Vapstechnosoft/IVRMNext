@@ -183,11 +183,11 @@ export default function MasterDriverShiftPage() {
                             className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
                             <form onSubmit={handleSubmit(onSubmit)} className='grid grid-cols-1 gap-6 md:grid-cols-2'>
                                 <div className='space-y-2'>
-                                    <label className='font-medium text-sm'>
+                                    <label className='font-medium text-sm' htmlFor='shift'>
                                         Shift <span className='text-red-500'>*</span>
                                     </label>
                                     <Select onValueChange={(v) => setValue('shift', v)}>
-                                        <SelectTrigger>
+                                        <SelectTrigger id='shift'>
                                             <SelectValue placeholder='Select Shift' />
                                         </SelectTrigger>
                                         <SelectContent>
@@ -199,11 +199,11 @@ export default function MasterDriverShiftPage() {
                                     </Select>
                                 </div>
                                 <div className='space-y-2'>
-                                    <label className='font-medium text-sm'>
+                                    <label className='font-medium text-sm' htmlFor='driver'>
                                         Driver <span className='text-red-500'>*</span>
                                     </label>
                                     <Select onValueChange={(v) => setValue('driver', v)}>
-                                        <SelectTrigger>
+                                        <SelectTrigger id='driver'>
                                             <SelectValue placeholder='Select Driver' />
                                         </SelectTrigger>
                                         <SelectContent>
@@ -214,44 +214,48 @@ export default function MasterDriverShiftPage() {
                                     </Select>
                                 </div>
                                 <div className='space-y-2'>
-                                    <label className='font-medium text-sm'>
+                                    <label className='font-medium text-sm' htmlFor='fromDate'>
                                         From Date <span className='text-red-500'>*</span>
                                     </label>
                                     <InputText
+                                        id='fromDate'
                                         type='date'
                                         {...register('fromDate', { required: 'Required' })}
                                         error={errors.fromDate?.message}
                                     />
                                 </div>
                                 <div className='space-y-2'>
-                                    <label className='font-medium text-sm'>
+                                    <label className='font-medium text-sm' htmlFor='toDate'>
                                         To Date <span className='text-red-500'>*</span>
                                     </label>
                                     <InputText
+                                        id='toDate'
                                         type='date'
                                         {...register('toDate', { required: 'Required' })}
                                         error={errors.toDate?.message}
                                     />
                                 </div>
                                 <div className='space-y-2 md:col-span-2'>
-                                    <label className='font-medium text-sm'>Remarks</label>
-                                    <InputText placeholder='Enter Remarks' {...register('remarks')} />
+                                    <label className='font-medium text-sm' htmlFor='remarks'>
+                                        Remarks
+                                    </label>
+                                    <InputText id='remarks' placeholder='Enter Remarks' {...register('remarks')} />
                                 </div>
                                 <div className='flex items-center gap-8'>
-                                    <label className='flex items-center gap-2 text-sm'>
+                                    <div className='flex items-center gap-2 text-sm'>
                                         <Checkbox
                                             checked={watch('saturdayOff')}
                                             onCheckedChange={(v) => setValue('saturdayOff', Boolean(v))}
-                                        />{' '}
-                                        Saturday Off Flag
-                                    </label>
-                                    <label className='flex items-center gap-2 text-sm'>
+                                        />
+                                        <span>Saturday Off Flag</span>
+                                    </div>
+                                    <div className='flex items-center gap-2 text-sm'>
                                         <Checkbox
                                             checked={watch('sundayWorking')}
                                             onCheckedChange={(v) => setValue('sundayWorking', Boolean(v))}
-                                        />{' '}
-                                        Sunday Working Flag
-                                    </label>
+                                        />
+                                        <span>Sunday Working Flag</span>
+                                    </div>
                                 </div>
 
                                 <div className='flex justify-center gap-4 border-t pt-6 md:col-span-2'>

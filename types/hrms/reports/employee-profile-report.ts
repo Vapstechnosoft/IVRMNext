@@ -1,4 +1,9 @@
-import type { ApiResponse } from '@/types/api';
+// API Response interface
+export interface ApiResponse<T> {
+    success: boolean;
+    message?: string;
+    data?: T;
+}
 
 // Request interfaces
 export interface EmployeeProfileReportOnloadRequest {

@@ -1,13 +1,11 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
-import { RefreshCw, Save, X } from 'lucide-react';
+import { Save, X } from 'lucide-react';
 import { type SubmitHandler, useForm } from 'react-hook-form';
 import type { ApplyLeave } from './columns';
 
-export type ApplyLeaveFormData = {
-    // TODO: Add form fields based on the entity
-};
+export type ApplyLeaveFormData = Record<string, unknown>;
 
 interface ApplyLeaveFormProps {
     editingApplyLeave: ApplyLeave | null;
@@ -16,15 +14,9 @@ interface ApplyLeaveFormProps {
 }
 
 export function ApplyLeaveForm({ editingApplyLeave, onSubmit, onCancel }: ApplyLeaveFormProps) {
-    const {
-        register,
-        handleSubmit,
-        watch,
-        setValue,
-        formState: { errors, isSubmitting }
-    } = useForm<ApplyLeaveFormData>({
+    const { handleSubmit } = useForm<ApplyLeaveFormData>({
         mode: 'onChange',
-        defaultValues: editingApplyLeave || {}
+        defaultValues: (editingApplyLeave as any) || {}
     });
 
     const handleFormSubmit: SubmitHandler<ApplyLeaveFormData> = async (data) => {
@@ -40,18 +32,11 @@ export function ApplyLeaveForm({ editingApplyLeave, onSubmit, onCancel }: ApplyL
                     <X className='mr-2 h-4 w-4' />
                     Cancel
                 </Button>
-                <Button type='submit' disabled={isSubmitting}>
-                    {isSubmitting ? (
-                        <div className='flex items-center'>
-                            <RefreshCw className='mr-2 h-4 w-4 animate-spin' />
-                            Saving...
-                        </div>
-                    ) : (
-                        <div className='flex items-center'>
-                            <Save className='mr-2 h-4 w-4' />
-                            Save
-                        </div>
-                    )}
+                <Button type='submit' disabled={false}>
+                    <div className='flex items-center'>
+                        <Save className='mr-2 h-4 w-4' />
+                        Save
+                    </div>
                 </Button>
             </div>
         </form>

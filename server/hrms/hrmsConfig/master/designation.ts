@@ -244,16 +244,7 @@ export async function saveMasterDesignationOrder(designations: DesignationDetail
         designationlList: [],
         retrunMsg: 'string',
         roleId: 0,
-        DesignationDTO: designations.map((des) => ({
-            HRMDES_Id: des.HRMDES_Id,
-            MI_Id: 30,
-            HRMDES_DesignationName: des.HRMDES_DesignationName,
-            HRMDES_BasicAmount: des.HRMDES_BasicAmount,
-            HRMDES_SanctionedSeats: des.HRMDES_SanctionedSeats,
-            HRMDES_DisplaySanctionedSeatsFlag: des.HRMDES_DisplaySanctionedSeatsFlag,
-            HRMDES_Order: des.HRMDES_Order,
-            HRMDES_ActiveFlag: des.HRMDES_ActiveFlag
-        }))
+        DesignationDTO: designations.map((des) => des.HRMDES_DesignationName)
     };
 
     const axiosResponse = await axios.post<MasterDesignationResponse>(url, requestBody, {

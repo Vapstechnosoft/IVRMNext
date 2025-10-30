@@ -5,9 +5,7 @@ import { RefreshCw, Save, X } from 'lucide-react';
 import { type SubmitHandler, useForm } from 'react-hook-form';
 import type { GPSAttendance } from './columns';
 
-export type GPSAttendanceFormData = {
-    // TODO: Add form fields based on the entity
-};
+export type GPSAttendanceFormData = Record<string, never>;
 
 interface GPSAttendanceFormProps {
     editingGPSAttendance: GPSAttendance | null;
@@ -17,14 +15,11 @@ interface GPSAttendanceFormProps {
 
 export function GPSAttendanceForm({ editingGPSAttendance, onSubmit, onCancel }: GPSAttendanceFormProps) {
     const {
-        register,
         handleSubmit,
-        watch,
-        setValue,
-        formState: { errors, isSubmitting }
+        formState: { isSubmitting }
     } = useForm<GPSAttendanceFormData>({
         mode: 'onChange',
-        defaultValues: editingGPSAttendance || {}
+        defaultValues: (editingGPSAttendance as any) || {}
     });
 
     const handleFormSubmit: SubmitHandler<GPSAttendanceFormData> = async (data) => {

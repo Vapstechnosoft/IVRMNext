@@ -253,10 +253,11 @@ export default function ShiftSettingMasterPage() {
                                             />
 
                                             <div className='space-y-2'>
-                                                <label className='font-medium text-sm'>
+                                                <label className='font-medium text-sm' htmlFor='shiftStartTime'>
                                                     Shift Start Time <span className='text-red-500'>*</span>
                                                 </label>
                                                 <input
+                                                    id='shiftStartTime'
                                                     type='time'
                                                     {...register('shiftStartTime', { required: 'Shift Start Time is required' })}
                                                     className={`w-full rounded-md border px-3 py-2 ${errors.shiftStartTime ? 'border-red-500' : 'border-input'}`}
@@ -265,10 +266,11 @@ export default function ShiftSettingMasterPage() {
                                             </div>
 
                                             <div className='space-y-2'>
-                                                <label className='font-medium text-sm'>
+                                                <label className='font-medium text-sm' htmlFor='totalWorkingHours'>
                                                     Total working hours per shift <span className='text-red-500'>*</span>
                                                 </label>
                                                 <input
+                                                    id='totalWorkingHours'
                                                     type='time'
                                                     {...register('totalWorkingHours', { required: 'Total working hours is required' })}
                                                     className={`w-full rounded-md border px-3 py-2 ${errors.totalWorkingHours ? 'border-red-500' : 'border-input'}`}
@@ -280,10 +282,11 @@ export default function ShiftSettingMasterPage() {
                                         {/* Second Row */}
                                         <div className='grid grid-cols-1 gap-4 lg:grid-cols-3'>
                                             <div className='space-y-2'>
-                                                <label className='font-medium text-sm'>
+                                                <label className='font-medium text-sm' htmlFor='shiftEndTime'>
                                                     Shift End Time <span className='text-red-500'>*</span>
                                                 </label>
                                                 <input
+                                                    id='shiftEndTime'
                                                     type='time'
                                                     {...register('shiftEndTime', { required: 'Shift End Time is required' })}
                                                     className={`w-full rounded-md border px-3 py-2 ${errors.shiftEndTime ? 'border-red-500' : 'border-input'}`}
@@ -292,10 +295,11 @@ export default function ShiftSettingMasterPage() {
                                             </div>
 
                                             <div className='space-y-2'>
-                                                <label className='font-medium text-sm'>
+                                                <label className='font-medium text-sm' htmlFor='halfDayWorkingHours'>
                                                     Half day working hours per shift <span className='text-red-500'>*</span>
                                                 </label>
                                                 <input
+                                                    id='halfDayWorkingHours'
                                                     type='time'
                                                     {...register('halfDayWorkingHours', { required: 'Half day working hours is required' })}
                                                     className={`w-full rounded-md border px-3 py-2 ${errors.halfDayWorkingHours ? 'border-red-500' : 'border-input'}`}
@@ -304,10 +308,11 @@ export default function ShiftSettingMasterPage() {
                                             </div>
 
                                             <div className='space-y-2'>
-                                                <label className='font-medium text-sm'>
+                                                <label className='font-medium text-sm' htmlFor='lunchHours'>
                                                     Lunch Hours <span className='text-red-500'>*</span>
                                                 </label>
                                                 <input
+                                                    id='lunchHours'
                                                     type='time'
                                                     {...register('lunchHours', { required: 'Lunch Hours is required' })}
                                                     className={`w-full rounded-md border px-3 py-2 ${errors.lunchHours ? 'border-red-500' : 'border-input'}`}
@@ -319,10 +324,11 @@ export default function ShiftSettingMasterPage() {
                                         {/* Third Row */}
                                         <div className='grid grid-cols-1 gap-4 lg:grid-cols-3'>
                                             <div className='space-y-2'>
-                                                <label className='font-medium text-sm'>
+                                                <label className='font-medium text-sm' htmlFor='lunchStartTime'>
                                                     Lunch start time <span className='text-red-500'>*</span>
                                                 </label>
                                                 <input
+                                                    id='lunchStartTime'
                                                     type='time'
                                                     {...register('lunchStartTime', { required: 'Lunch start time is required' })}
                                                     className={`w-full rounded-md border px-3 py-2 ${errors.lunchStartTime ? 'border-red-500' : 'border-input'}`}
@@ -331,10 +337,11 @@ export default function ShiftSettingMasterPage() {
                                             </div>
 
                                             <div className='space-y-2'>
-                                                <label className='font-medium text-sm'>
+                                                <label className='font-medium text-sm' htmlFor='delayPerShift'>
                                                     Delay per shift <span className='text-red-500'>*</span>
                                                 </label>
                                                 <input
+                                                    id='delayPerShift'
                                                     type='time'
                                                     {...register('delayPerShift', { required: 'Delay per shift is required' })}
                                                     className={`w-full rounded-md border px-3 py-2 ${errors.delayPerShift ? 'border-red-500' : 'border-input'}`}
@@ -343,10 +350,11 @@ export default function ShiftSettingMasterPage() {
                                             </div>
 
                                             <div className='space-y-2'>
-                                                <label className='font-medium text-sm'>
+                                                <label className='font-medium text-sm' htmlFor='earlyPerShift'>
                                                     Early per shift <span className='text-red-500'>*</span>
                                                 </label>
                                                 <input
+                                                    id='earlyPerShift'
                                                     type='time'
                                                     {...register('earlyPerShift', { required: 'Early per shift is required' })}
                                                     className={`w-full rounded-md border px-3 py-2 ${errors.earlyPerShift ? 'border-red-500' : 'border-input'}`}
@@ -358,10 +366,11 @@ export default function ShiftSettingMasterPage() {
                                         {/* Fourth Row */}
                                         <div className='grid grid-cols-1 gap-4 lg:grid-cols-3'>
                                             <div className='space-y-2'>
-                                                <label className='font-medium text-sm'>
+                                                <label className='font-medium text-sm' htmlFor='lunchEndTime'>
                                                     Lunch End time <span className='text-red-500'>*</span>
                                                 </label>
                                                 <input
+                                                    id='lunchEndTime'
                                                     type='time'
                                                     {...register('lunchEndTime', { required: 'Lunch End time is required' })}
                                                     className={`w-full rounded-md border px-3 py-2 ${errors.lunchEndTime ? 'border-red-500' : 'border-input'}`}

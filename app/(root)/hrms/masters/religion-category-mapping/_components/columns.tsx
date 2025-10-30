@@ -90,4 +90,3 @@ function ActionButtonsCell({ rowData }: { rowData: ReligionCategoryMappingDetail
         />
     );
 }
-

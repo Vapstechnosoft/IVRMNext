@@ -110,7 +110,7 @@ export default function ApprovalTable({ employees, searchCriteria }: ApprovalTab
                                     checked={isAllSelected}
                                     onCheckedChange={handleSelectAll}
                                     aria-label='Select all'
-                                    ref={(el) => {
+                                    ref={(el: any) => {
                                         if (el) {
                                             el.indeterminate = isPartiallySelected;
                                         }
@@ -146,7 +146,7 @@ export default function ApprovalTable({ employees, searchCriteria }: ApprovalTab
                                 </TableCell>
                             </TableRow>
                         ) : (
-                            employees.map((employee, index) => {
+                            employees.map((employee: any, index) => {
                                 const fullName = [
                                     employee.HRME_EmployeeFirstName,
                                     employee.HRME_EmployeeMiddleName,
@@ -171,19 +171,41 @@ export default function ApprovalTable({ employees, searchCriteria }: ApprovalTab
                                         <TableCell className='whitespace-nowrap'>{fullName || '-'}</TableCell>
                                         <TableCell className='text-right'>{employee.HRES_WorkingDays || 0}</TableCell>
                                         <TableCell className='text-right'>{employee.Lopdays || 0}</TableCell>
-                                        <TableCell className='text-right'>{employee.empGrossSal ? `₹${employee.empGrossSal.toFixed(2)}` : '₹0.00'}</TableCell>
-                                        <TableCell className='text-right'>{employee.basicamount ? `₹${employee.basicamount.toFixed(2)}` : '₹0.00'}</TableCell>
+                                        <TableCell className='text-right'>
+                                            {employee.empGrossSal ? `₹${employee.empGrossSal.toFixed(2)}` : '₹0.00'}
+                                        </TableCell>
+                                        <TableCell className='text-right'>
+                                            {employee.basicamount ? `₹${employee.basicamount.toFixed(2)}` : '₹0.00'}
+                                        </TableCell>
                                         <TableCell className='text-right'>{employee.da ? `₹${employee.da.toFixed(2)}` : '₹0.00'}</TableCell>
-                                        <TableCell className='text-right'>{employee.hra ? `₹${employee.hra.toFixed(2)}` : '₹0.00'}</TableCell>
-                                        <TableCell className='text-right'>{employee.conveyance ? `₹${employee.conveyance.toFixed(2)}` : '₹0.00'}</TableCell>
-                                        <TableCell className='text-right'>{employee.medical ? `₹${employee.medical.toFixed(2)}` : '₹0.00'}</TableCell>
-                                        <TableCell className='text-right'>{employee.splAllowance ? `₹${employee.splAllowance.toFixed(2)}` : '₹0.00'}</TableCell>
-                                        <TableCell className='text-right font-semibold'>{employee.TotalEarning ? `₹${employee.TotalEarning.toFixed(2)}` : '₹0.00'}</TableCell>
-                                        <TableCell className='text-right'>{employee.HRES_EPF ? `₹${employee.HRES_EPF.toFixed(2)}` : '₹0.00'}</TableCell>
-                                        <TableCell className='text-right'>{employee.esi ? `₹${employee.esi.toFixed(2)}` : '₹0.00'}</TableCell>
-                                        <TableCell className='text-right'>{employee.HRESD_Amount ? `₹${employee.HRESD_Amount.toFixed(2)}` : '₹0.00'}</TableCell>
+                                        <TableCell className='text-right'>
+                                            {employee.hra ? `₹${employee.hra.toFixed(2)}` : '₹0.00'}
+                                        </TableCell>
+                                        <TableCell className='text-right'>
+                                            {employee.conveyance ? `₹${employee.conveyance.toFixed(2)}` : '₹0.00'}
+                                        </TableCell>
+                                        <TableCell className='text-right'>
+                                            {employee.medical ? `₹${employee.medical.toFixed(2)}` : '₹0.00'}
+                                        </TableCell>
+                                        <TableCell className='text-right'>
+                                            {employee.splAllowance ? `₹${employee.splAllowance.toFixed(2)}` : '₹0.00'}
+                                        </TableCell>
+                                        <TableCell className='text-right font-semibold'>
+                                            {employee.TotalEarning ? `₹${employee.TotalEarning.toFixed(2)}` : '₹0.00'}
+                                        </TableCell>
+                                        <TableCell className='text-right'>
+                                            {employee.HRES_EPF ? `₹${employee.HRES_EPF.toFixed(2)}` : '₹0.00'}
+                                        </TableCell>
+                                        <TableCell className='text-right'>
+                                            {employee.esi ? `₹${employee.esi.toFixed(2)}` : '₹0.00'}
+                                        </TableCell>
+                                        <TableCell className='text-right'>
+                                            {employee.HRESD_Amount ? `₹${employee.HRESD_Amount.toFixed(2)}` : '₹0.00'}
+                                        </TableCell>
                                         <TableCell className='text-right'>{employee.pt ? `₹${employee.pt.toFixed(2)}` : '₹0.00'}</TableCell>
-                                        <TableCell className='text-right font-semibold'>{employee.TotalDeduction ? `₹${employee.TotalDeduction.toFixed(2)}` : '₹0.00'}</TableCell>
+                                        <TableCell className='text-right font-semibold'>
+                                            {employee.TotalDeduction ? `₹${employee.TotalDeduction.toFixed(2)}` : '₹0.00'}
+                                        </TableCell>
                                         <TableCell className='text-right'>
                                             <Badge variant='default' className='font-semibold'>
                                                 {employee.NetSalary ? `₹${employee.NetSalary.toFixed(2)}` : '₹0.00'}

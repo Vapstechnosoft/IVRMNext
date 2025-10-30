@@ -2,11 +2,11 @@
 
 import { clientEnv } from '@/env';
 import type { ApiResponse } from '@/lib/apiService';
-import type { MassUpdationInput, MassUpdationOnloadRequest, MassUpdationResponse } from '@/types/hrms/mass-updation';
+import type { MassUpdationOnloadRequest, MassUpdationOnloadResponse, MassUpdationSaveRequest, MassUpdationSaveResponse, MassUpdationSearchRequest } from '@/types/hrms/mass-updation';
 import axios from 'axios';
 
 // Helper function to create a complete nested object structure matching API requirements
-function createCompleteRequestBody(baseFields: Partial<MassUpdationOnloadRequest>): MassUpdationOnloadRequest {
+function createCompleteRequestBody(baseFields: any): any {
     const now = new Date().toISOString();
 
     return {
@@ -52,7 +52,7 @@ function createCompleteRequestBody(baseFields: Partial<MassUpdationOnloadRequest
  * Get onload details for mass updation
  * POST /api/massUpdationFacade/onloadgetdetails
  */
-export async function getMassUpdationOnload(payload: MassUpdationOnloadRequest): Promise<ApiResponse<MassUpdationResponse>> {
+export async function getMassUpdationOnload(payload: MassUpdationOnloadRequest): Promise<ApiResponse<MassUpdationOnloadResponse>> {
     try {
         const baseURL = clientEnv.NEXT_PUBLIC_API_BASE_URL;
         const apiPath = '/api/massUpdationFacade/onloadgetdetails';
@@ -63,7 +63,7 @@ export async function getMassUpdationOnload(payload: MassUpdationOnloadRequest):
             roleId: payload.roleId
         });
 
-        const axiosResponse = await axios.post<MassUpdationResponse>(url, requestBody, {
+        const axiosResponse = await axios.post<MassUpdationOnloadResponse>(url, requestBody as any, {
             headers: {
                 'Content-Type': 'application/json',
                 Accept: 'application/json'
@@ -74,7 +74,7 @@ export async function getMassUpdationOnload(payload: MassUpdationOnloadRequest):
             }
         });
 
-        const response: ApiResponse<MassUpdationResponse> = {
+        const response: ApiResponse<MassUpdationOnloadResponse> = {
             success: axiosResponse.status >= 200 && axiosResponse.status < 300,
             message:
                 axiosResponse.data.retrunMsg ||
@@ -90,7 +90,7 @@ export async function getMassUpdationOnload(payload: MassUpdationOnloadRequest):
         console.error('Error:', error);
 
         if (axios.isAxiosError(error)) {
-            const errorResponse: ApiResponse<MassUpdationResponse> = {
+            const errorResponse: ApiResponse<MassUpdationOnloadResponse> = {
                 success: false,
                 message:
                     error.response?.data?.retrunMsg || error.response?.data?.message || error.message || 'Failed to load mass updation data',
@@ -107,36 +107,37 @@ export async function getMassUpdationOnload(payload: MassUpdationOnloadRequest):
  * Save/Update mass updation (Facade)
  * POST /api/massUpdationFacade
  */
-export async function saveMassUpdation(data: MassUpdationInput): Promise<ApiResponse<MassUpdationResponse>> {
+export async function saveMassUpdation(data: MassUpdationSaveRequest): Promise<ApiResponse<MassUpdationOnloadResponse>> {
     try {
         const baseURL = clientEnv.NEXT_PUBLIC_API_BASE_URL;
         const apiPath = '/api/massUpdationFacade';
         const url = `${baseURL}${apiPath}`;
 
         const requestBody = createCompleteRequestBody({
+            ...(data as any),
             MI_Id: data.MI_Id || 30,
             roleId: data.roleId,
-            Type: data.Type || 'string',
-            HRME_Id: data.HRME_Id || 0,
-            groupTypeselected: data.groupTypeselected || [0],
-            departmentselected: data.departmentselected || [0],
-            designationselected: data.designationselected || [0],
-            employeeselected: data.employeeselected || [0],
-            EarningDeduction: data.EarningDeduction || 'string',
-            AmountPercentage: data.AmountPercentage || 'string',
-            HREED_Amount: data.HREED_Amount || 0,
-            HREED_Percentage: data.HREED_Percentage || 'string',
-            HRMED_Id: data.HRMED_Id || 0,
-            AddRemove: data.AddRemove || 'string',
+            Type: (data as any).Type || 'string',
+            HRME_Id: (data as any).HRME_Id || 0,
+            groupTypeselected: (data as any).groupTypeselected || [0],
+            departmentselected: (data as any).departmentselected || [0],
+            designationselected: (data as any).designationselected || [0],
+            employeeselected: (data as any).employeeselected || [0],
+            EarningDeduction: (data as any).EarningDeduction || 'string',
+            AmountPercentage: (data as any).AmountPercentage || 'string',
+            HREED_Amount: (data as any).HREED_Amount || 0,
+            HREED_Percentage: (data as any).HREED_Percentage || 'string',
+            HRMED_Id: (data as any).HRMED_Id || 0,
+            AddRemove: (data as any).AddRemove || 'string',
             LogInUserId: data.LogInUserId || 0,
-            hrmgT_IdList: data.hrmgT_IdList || [0],
-            employeeTypeIdList: data.employeeTypeIdList || [0],
+            hrmgT_IdList: (data as any).hrmgT_IdList || data.groupTypeIdList || [0],
+            employeeTypeIdList: (data as any).employeeTypeIdList || [0],
             hrmD_IdList: data.hrmD_IdList || [0],
             hrmdeS_IdList: data.hrmdeS_IdList || [0],
             groupTypeIdList: data.groupTypeIdList || [0]
         });
 
-        const axiosResponse = await axios.post<MassUpdationResponse>(url, requestBody, {
+        const axiosResponse = await axios.post<MassUpdationOnloadResponse>(url, requestBody as any, {
             headers: {
                 'Content-Type': 'application/json',
                 Accept: 'application/json'
@@ -152,7 +153,7 @@ export async function saveMassUpdation(data: MassUpdationInput): Promise<ApiResp
             axiosResponse.status < 300 &&
             (!axiosResponse.data.retrunMsg || !axiosResponse.data.retrunMsg.toLowerCase().includes('error'));
 
-        const response: ApiResponse<MassUpdationResponse> = {
+        const response: ApiResponse<MassUpdationOnloadResponse> = {
             success: isSuccess,
             message: axiosResponse.data.retrunMsg || (isSuccess ? 'Mass updation saved successfully' : `HTTP ${axiosResponse.status}`),
             data: axiosResponse.data
@@ -164,7 +165,7 @@ export async function saveMassUpdation(data: MassUpdationInput): Promise<ApiResp
         console.error('Error:', error);
 
         if (axios.isAxiosError(error)) {
-            const errorResponse: ApiResponse<MassUpdationResponse> = {
+            const errorResponse: ApiResponse<MassUpdationOnloadResponse> = {
                 success: false,
                 message:
                     error.response?.data?.retrunMsg || error.response?.data?.message || error.message || 'Failed to save mass updation',
@@ -181,36 +182,37 @@ export async function saveMassUpdation(data: MassUpdationInput): Promise<ApiResp
  * Search employees by selection criteria
  * POST /api/massUpdationFacade/FilterEmployeeData
  */
-export async function searchMassUpdationEmployees(data: MassUpdationInput): Promise<ApiResponse<MassUpdationResponse>> {
+export async function searchMassUpdationEmployees(data: MassUpdationSearchRequest): Promise<ApiResponse<MassUpdationOnloadResponse>> {
     try {
         const baseURL = clientEnv.NEXT_PUBLIC_API_BASE_URL;
         const apiPath = '/api/massUpdationFacade/FilterEmployeeData';
         const url = `${baseURL}${apiPath}`;
 
         const requestBody = createCompleteRequestBody({
+            ...(data as any),
             MI_Id: data.MI_Id || 30,
             roleId: data.roleId,
-            Type: data.Type || 'string',
-            HRME_Id: data.HRME_Id || 0,
-            groupTypeselected: data.groupTypeselected || [0],
-            departmentselected: data.departmentselected || [0],
-            designationselected: data.designationselected || [0],
-            employeeselected: data.employeeselected || [0],
-            EarningDeduction: data.EarningDeduction || 'string',
-            AmountPercentage: data.AmountPercentage || 'string',
-            HREED_Amount: data.HREED_Amount || 0,
-            HREED_Percentage: data.HREED_Percentage || 'string',
-            HRMED_Id: data.HRMED_Id || 0,
-            AddRemove: data.AddRemove || 'string',
+            Type: (data as any).Type || 'string',
+            HRME_Id: (data as any).HRME_Id || 0,
+            groupTypeselected: (data as any).groupTypeselected || [0],
+            departmentselected: (data as any).departmentselected || [0],
+            designationselected: (data as any).designationselected || [0],
+            employeeselected: (data as any).employeeselected || [0],
+            EarningDeduction: (data as any).EarningDeduction || 'string',
+            AmountPercentage: (data as any).AmountPercentage || 'string',
+            HREED_Amount: (data as any).HREED_Amount || 0,
+            HREED_Percentage: (data as any).HREED_Percentage || 'string',
+            HRMED_Id: (data as any).HRMED_Id || 0,
+            AddRemove: (data as any).AddRemove || 'string',
             LogInUserId: data.LogInUserId || 0,
-            hrmgT_IdList: data.hrmgT_IdList || [0],
-            employeeTypeIdList: data.employeeTypeIdList || [0],
+            hrmgT_IdList: (data as any).hrmgT_IdList || data.groupTypeIdList || [0],
+            employeeTypeIdList: (data as any).employeeTypeIdList || [0],
             hrmD_IdList: data.hrmD_IdList || [0],
             hrmdeS_IdList: data.hrmdeS_IdList || [0],
             groupTypeIdList: data.groupTypeIdList || [0]
         });
 
-        const axiosResponse = await axios.post<MassUpdationResponse>(url, requestBody, {
+        const axiosResponse = await axios.post<MassUpdationOnloadResponse>(url, requestBody as any, {
             headers: {
                 'Content-Type': 'application/json',
                 Accept: 'application/json'
@@ -226,7 +228,7 @@ export async function searchMassUpdationEmployees(data: MassUpdationInput): Prom
             axiosResponse.status < 300 &&
             (!axiosResponse.data.retrunMsg || !axiosResponse.data.retrunMsg.toLowerCase().includes('error'));
 
-        const response: ApiResponse<MassUpdationResponse> = {
+        const response: ApiResponse<MassUpdationOnloadResponse> = {
             success: isSuccess,
             message: axiosResponse.data.retrunMsg || (isSuccess ? 'Employee search completed successfully' : `HTTP ${axiosResponse.status}`),
             data: axiosResponse.data
@@ -238,7 +240,7 @@ export async function searchMassUpdationEmployees(data: MassUpdationInput): Prom
         console.error('Error:', error);
 
         if (axios.isAxiosError(error)) {
-            const errorResponse: ApiResponse<MassUpdationResponse> = {
+            const errorResponse: ApiResponse<MassUpdationOnloadResponse> = {
                 success: false,
                 message: error.response?.data?.retrunMsg || error.response?.data?.message || error.message || 'Failed to search employees',
                 data: null
@@ -254,36 +256,37 @@ export async function searchMassUpdationEmployees(data: MassUpdationInput): Prom
  * Get employee details by selection criteria (for save operation)
  * POST /api/massUpdationFacade/getEmployeedetailsBySelection
  */
-export async function getEmployeeDetailsBySelection(data: MassUpdationInput): Promise<ApiResponse<MassUpdationResponse>> {
+export async function getEmployeeDetailsBySelection(data: MassUpdationSearchRequest): Promise<ApiResponse<MassUpdationOnloadResponse>> {
     try {
         const baseURL = clientEnv.NEXT_PUBLIC_API_BASE_URL;
         const apiPath = '/api/massUpdationFacade/getEmployeedetailsBySelection';
         const url = `${baseURL}${apiPath}`;
 
         const requestBody = createCompleteRequestBody({
+            ...(data as any),
             MI_Id: data.MI_Id || 30,
             roleId: data.roleId,
-            Type: data.Type || 'string',
-            HRME_Id: data.HRME_Id || 0,
-            groupTypeselected: data.groupTypeselected || [0],
-            departmentselected: data.departmentselected || [0],
-            designationselected: data.designationselected || [0],
-            employeeselected: data.employeeselected || [0],
-            EarningDeduction: data.EarningDeduction || 'string',
-            AmountPercentage: data.AmountPercentage || 'string',
-            HREED_Amount: data.HREED_Amount || 0,
-            HREED_Percentage: data.HREED_Percentage || 'string',
-            HRMED_Id: data.HRMED_Id || 0,
-            AddRemove: data.AddRemove || 'string',
+            Type: (data as any).Type || 'string',
+            HRME_Id: (data as any).HRME_Id || 0,
+            groupTypeselected: (data as any).groupTypeselected || [0],
+            departmentselected: (data as any).departmentselected || [0],
+            designationselected: (data as any).designationselected || [0],
+            employeeselected: (data as any).employeeselected || [0],
+            EarningDeduction: (data as any).EarningDeduction || 'string',
+            AmountPercentage: (data as any).AmountPercentage || 'string',
+            HREED_Amount: (data as any).HREED_Amount || 0,
+            HREED_Percentage: (data as any).HREED_Percentage || 'string',
+            HRMED_Id: (data as any).HRMED_Id || 0,
+            AddRemove: (data as any).AddRemove || 'string',
             LogInUserId: data.LogInUserId || 0,
-            hrmgT_IdList: data.hrmgT_IdList || [0],
-            employeeTypeIdList: data.employeeTypeIdList || [0],
+            hrmgT_IdList: (data as any).hrmgT_IdList || data.groupTypeIdList || [0],
+            employeeTypeIdList: (data as any).employeeTypeIdList || [0],
             hrmD_IdList: data.hrmD_IdList || [0],
             hrmdeS_IdList: data.hrmdeS_IdList || [0],
             groupTypeIdList: data.groupTypeIdList || [0]
         });
 
-        const axiosResponse = await axios.post<MassUpdationResponse>(url, requestBody, {
+        const axiosResponse = await axios.post<MassUpdationOnloadResponse>(url, requestBody as any, {
             headers: {
                 'Content-Type': 'application/json',
                 Accept: 'application/json'
@@ -299,7 +302,7 @@ export async function getEmployeeDetailsBySelection(data: MassUpdationInput): Pr
             axiosResponse.status < 300 &&
             (!axiosResponse.data.retrunMsg || !axiosResponse.data.retrunMsg.toLowerCase().includes('error'));
 
-        const response: ApiResponse<MassUpdationResponse> = {
+        const response: ApiResponse<MassUpdationOnloadResponse> = {
             success: isSuccess,
             message: axiosResponse.data.retrunMsg || (isSuccess ? 'Employee details retrieved successfully' : `HTTP ${axiosResponse.status}`),
             data: axiosResponse.data
@@ -311,7 +314,7 @@ export async function getEmployeeDetailsBySelection(data: MassUpdationInput): Pr
         console.error('Error:', error);
 
         if (axios.isAxiosError(error)) {
-            const errorResponse: ApiResponse<MassUpdationResponse> = {
+            const errorResponse: ApiResponse<MassUpdationOnloadResponse> = {
                 success: false,
                 message:
                     error.response?.data?.retrunMsg || error.response?.data?.message || error.message || 'Failed to get employee details',

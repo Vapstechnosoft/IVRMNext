@@ -13,7 +13,7 @@ export async function getMasterSpecializationList(roleId: number): Promise<ApiRe
         const apiPath = '/api/masterSpecialisationFacade/loaddata';
         const url = `${baseURL}${apiPath}`;
 
-        const requestBody: OnloadGetDetailsRequest = {
+        const requestBody = {
             HRMSPL_Id: 0,
             MI_Id: 30,
             UserId: roleId,
@@ -39,7 +39,7 @@ export async function getMasterSpecializationList(roleId: number): Promise<ApiRe
         return {
             success: axiosResponse.status >= 200 && axiosResponse.status < 300,
             message:
-                axiosResponse.data.msg ||
+                (axiosResponse.data as any).msg ||
                 (axiosResponse.status >= 200 && axiosResponse.status < 300
                     ? 'Specializations loaded successfully'
                     : `HTTP ${axiosResponse.status}`),
@@ -94,11 +94,11 @@ export async function saveMasterSpecialization(data: MasterSpecializationInput):
         const isSuccess =
             axiosResponse.status >= 200 &&
             axiosResponse.status < 300 &&
-            (!axiosResponse.data.msg || !axiosResponse.data.msg.toLowerCase().includes('error'));
+            (!((axiosResponse.data as any).msg || '').toLowerCase().includes('error'));
 
         const response: ApiResponse<MasterSpecializationResponse> = {
             success: isSuccess,
-            message: axiosResponse.data.msg || 'Operation completed',
+            message: (axiosResponse.data as any).msg || 'Operation completed',
             data: axiosResponse.data
         };
 
@@ -130,7 +130,7 @@ export async function getMasterSpecializationDetails(id: number): Promise<ApiRes
 
         const response: ApiResponse<MasterSpecializationResponse> = {
             success: axiosResponse.status >= 200 && axiosResponse.status < 300,
-            message: axiosResponse.data.msg || 'Specialization details fetched successfully',
+            message: (axiosResponse.data as any).msg || 'Specialization details fetched successfully',
             data: axiosResponse.data
         };
 
@@ -184,11 +184,13 @@ export async function activateDeactivateMasterSpecialization(data: {
         const isSuccess =
             axiosResponse.status >= 200 &&
             axiosResponse.status < 300 &&
-            (!axiosResponse.data.msg || !axiosResponse.data.msg.toLowerCase().includes('error'));
+            (!((axiosResponse.data as any).msg || '').toLowerCase().includes('error'));
 
         const response: ApiResponse<MasterSpecializationResponse> = {
             success: isSuccess,
-            message: axiosResponse.data.msg || (isSuccess ? 'Specialization status updated successfully' : `HTTP ${axiosResponse.status}`),
+            message:
+                (axiosResponse.data as any).msg ||
+                (isSuccess ? 'Specialization status updated successfully' : `HTTP ${axiosResponse.status}`),
             data: axiosResponse.data
         };
 

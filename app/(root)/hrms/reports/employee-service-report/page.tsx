@@ -487,9 +487,9 @@ export default function EmployeeServiceReportPage() {
                         <div className='space-y-4'>
                             {/* Type Selection */}
                             <div className='space-y-2'>
-                                <label className='font-medium text-foreground text-sm'>
+                                <span className='font-medium text-foreground text-sm'>
                                     Type: <span className='text-red-500'>*</span>
-                                </label>
+                                </span>
                                 <Select value={filters.type} onValueChange={(value) => handleFilterChange('type', value)}>
                                     <SelectTrigger>
                                         <SelectValue placeholder='Select' />
@@ -506,9 +506,9 @@ export default function EmployeeServiceReportPage() {
 
                             {/* Department Selection */}
                             <div className='space-y-2'>
-                                <label className='font-medium text-foreground text-sm'>
+                                <span className='font-medium text-foreground text-sm'>
                                     Department: <span className='text-red-500'>*</span>
-                                </label>
+                                </span>
                                 <Select value={filters.department} onValueChange={(value) => handleFilterChange('department', value)}>
                                     <SelectTrigger>
                                         <SelectValue placeholder='Select' />
@@ -525,9 +525,9 @@ export default function EmployeeServiceReportPage() {
 
                             {/* Designation Selection */}
                             <div className='space-y-2'>
-                                <label className='font-medium text-foreground text-sm'>
+                                <span className='font-medium text-foreground text-sm'>
                                     Designation: <span className='text-red-500'>*</span>
-                                </label>
+                                </span>
                                 <Select value={filters.designation} onValueChange={(value) => handleFilterChange('designation', value)}>
                                     <SelectTrigger>
                                         <SelectValue placeholder='Select' />
@@ -544,9 +544,9 @@ export default function EmployeeServiceReportPage() {
 
                             {/* Employee Selection */}
                             <div className='space-y-2'>
-                                <label className='font-medium text-foreground text-sm'>
+                                <span className='font-medium text-foreground text-sm'>
                                     Employee: <span className='text-red-500'>*</span>
-                                </label>
+                                </span>
                                 <Select
                                     value={filters.selectedEmployee}
                                     onValueChange={(value) => handleFilterChange('selectedEmployee', value)}>
@@ -568,9 +568,9 @@ export default function EmployeeServiceReportPage() {
                         <div className='space-y-4'>
                             {/* Current Date */}
                             <div className='space-y-2'>
-                                <label className='font-medium text-foreground text-sm'>
+                                <span className='font-medium text-foreground text-sm'>
                                     Current Date: <span className='text-red-500'>*</span>
-                                </label>
+                                </span>
                                 <Popover>
                                     <PopoverTrigger asChild>
                                         <Button
@@ -596,7 +596,7 @@ export default function EmployeeServiceReportPage() {
 
                             {/* Report Type */}
                             <div className='space-y-3'>
-                                <label className='font-medium text-foreground text-sm'>Report Type:</label>
+                                <span className='font-medium text-foreground text-sm'>Report Type:</span>
                                 <div className='flex items-center gap-2'>
                                     <label className='flex cursor-pointer items-center gap-2 text-sm'>
                                         <input
