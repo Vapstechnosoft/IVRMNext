@@ -203,7 +203,7 @@ export default function SigninForm() {
                     </div>
 
                     {/* Version aligned to end */}
-                    <p className='ml-auto pr-2 text-white text-xs'>v1.2</p>
+                    <p className='ml-auto pr-2 text-white text-xs'>v1.3</p>
                 </div>
             </div>
         </div>

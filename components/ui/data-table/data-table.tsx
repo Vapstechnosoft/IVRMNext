@@ -17,7 +17,7 @@ import {
 } from '@tanstack/react-table';
 import { ChevronLeftIcon, ChevronRightIcon } from 'lucide-react';
 import { parseAsInteger, parseAsString, parseAsStringLiteral, useQueryState } from 'nuqs';
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { forwardRef, useImperativeHandle } from 'react';
 import { toast } from 'sonner';
 import { DataTableSkeleton } from './data-table-skeleton';
@@ -66,7 +66,6 @@ export const DataTable = forwardRef<DataTableRef, DataTableProps<any, any>>(func
         tableSearchVariables.page_size,
         parseAsInteger.withOptions({ shallow: false, history: 'push' }).withDefault(10)
     );
-    const [rowSelection, setRowSelection] = useState({});
 
     // Sorting and filtering
     const [sortBy] = useQueryState(tableSearchVariables.sort_column, parseAsString.withOptions({ shallow: false }).withDefault(''));
@@ -77,6 +76,18 @@ export const DataTable = forwardRef<DataTableRef, DataTableProps<any, any>>(func
             .withDefault('asc')
     );
     const [searchQuery] = useQueryState(tableSearchVariables.search, parseAsString.withOptions({ shallow: false }).withDefault(''));
+
+    // Generate a unique key for this table instance based on current page/filters
+    const tableStateKey = `table_selection_${currentPage}_${pageSize}_${sortBy}_${order}_${searchQuery}`;
+
+    // Initialize from ref to preserve across re-renders
+    const rowSelectionRef = useRef<Record<string, boolean>>({});
+    const [rowSelection, setRowSelection] = useState<Record<string, boolean>>(() => rowSelectionRef.current);
+
+    // Update ref whenever selection changes
+    useEffect(() => {
+        rowSelectionRef.current = rowSelection;
+    }, [rowSelection]);
 
     const paginationState = { pageIndex: currentPage - 1, pageSize };
     const pageCount = Math.ceil(totalItems / pageSize);
@@ -99,7 +110,7 @@ export const DataTable = forwardRef<DataTableRef, DataTableProps<any, any>>(func
         },
         onPaginationChange: handlePaginationChange,
 
-        // ✅ Properly handles row selection + passes to parent
+        // ✅ UPDATE THIS HANDLER
         onRowSelectionChange: (newSelection) => {
             const selectionObj = typeof newSelection === 'function' ? newSelection(rowSelection) : newSelection;
             const selectedCount = Object.keys(selectionObj).length;
@@ -109,7 +120,9 @@ export const DataTable = forwardRef<DataTableRef, DataTableProps<any, any>>(func
                 return;
             }
 
+            // Update both state and ref
             setRowSelection(selectionObj);
+            rowSelectionRef.current = selectionObj;
 
             const selectedRows = table
                 .getFilteredRowModel()
@@ -136,6 +149,8 @@ export const DataTable = forwardRef<DataTableRef, DataTableProps<any, any>>(func
     useImperativeHandle(ref, () => ({
         resetSelection: () => {
             setRowSelection({});
+            // ✅ ADD THIS LINE
+            rowSelectionRef.current = {};
             if (typeof onRowSelectionChange === 'function') {
                 onRowSelectionChange([]);
             }

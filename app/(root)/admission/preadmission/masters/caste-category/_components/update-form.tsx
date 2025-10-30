@@ -94,7 +94,7 @@ export default function UpdateMasterCasteCategoryForm({ onSuccess, className = '
                     <div className='grid grid-cols-1 gap-4 md:grid-cols-4'>
                         <div className='group flex flex-col gap-1.5'>
                             <Label aria-label='Category' htmlFor='imcC_CategoryCode'>
-                                Category <span className='ml-1 text-red-500'>*</span>
+                                Category Code <span className='ml-1 text-red-500'>*</span>
                             </Label>
                             <Controller
                                 name='imcC_CategoryCode'
@@ -174,7 +174,7 @@ export default function UpdateMasterCasteCategoryForm({ onSuccess, className = '
                         loadingText='Saving...'>
                         <div className='flex items-center'>
                             <Save className='mr-2 h-4 w-4' />
-                            Save Master Class
+                            Save Master Caste Category
                         </div>
                     </Button>
                 </div>

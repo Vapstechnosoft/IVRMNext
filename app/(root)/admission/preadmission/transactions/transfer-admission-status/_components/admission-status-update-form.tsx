@@ -41,17 +41,28 @@ export function AdmissionStatusUpdateDialog({
     // Initialize status updates when dialog opens
     useEffect(() => {
         if (isOpen && selectedStudents.length > 0) {
-            const initialUpdates: Record<number, AdmissionStatusUpdate> = {};
-            selectedStudents.forEach((student) => {
-                initialUpdates[student.pasr_id] = {
-                    pasr_id: student.pasr_id,
-                    status_id: 0,
-                    remarks: '',
-                    student_name: student.student_name,
-                    current_status: student.current_status
-                };
+            setAdmissionStatusUpdates((prev) => {
+                const newUpdates = { ...prev };
+
+                // Add new students that aren't already in the updates
+                selectedStudents.forEach((student) => {
+                    if (!newUpdates[student.pasr_id]) {
+                        newUpdates[student.pasr_id] = {
+                            pasr_id: student.pasr_id,
+                            status_id: 0,
+                            remarks: '',
+                            student_name: student.student_name,
+                            current_status: student.current_status
+                        };
+                    }
+                });
+
+                return newUpdates;
             });
-            setAdmissionStatusUpdates(initialUpdates);
+        } else if (!isOpen) {
+            // Reset when dialog closes
+            setAdmissionStatusUpdates({});
+            setErrors({});
         }
     }, [isOpen, selectedStudents]);
 

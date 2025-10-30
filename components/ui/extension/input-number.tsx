@@ -77,7 +77,7 @@ function InputNumber({
     inputFieldClassName,
     required,
     optional,
-    step = 0.1,
+    step = 1,
     formatOptions = { minimumFractionDigits: 0, maximumFractionDigits: 1 },
     ...props
 }: NumberFieldProps) {

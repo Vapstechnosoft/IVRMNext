@@ -71,7 +71,7 @@ export function createAlphanumericSchema(field: string, min: number, max: number
 export function createEmailSchema(field: string, min: number, max: number, optional = false) {
     const baseSchema = z
         .string({ message: `${field} is required` })
-        .min(min, { message: `Minimum ${min} characters required for ${field}` })
+        .min(min, { message: `${field} is required` })
         .max(max, { message: `Maximum ${max} characters allowed for ${field}` })
         .email({ message: `${field} must be a valid email address` })
         .refine((value) => value.trim() === value, {

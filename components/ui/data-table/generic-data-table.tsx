@@ -54,7 +54,7 @@ export const GenericDataTable = forwardRef<DataTableRef, GenericDataTableProps<a
         error,
         success = true,
         errorMessage,
-        showViewOptions = true,
+        showViewOptions = false,
         columnPinning,
         maxSelectableRows = 0,
         onRowSelectionChange,
