@@ -68,30 +68,52 @@ export const feetermheadColumns: ColumnDef<IMasterTermFeeHeadList>[] = [
     }
 ];
 
+// function ActionButtonsCell({ rowData }: { rowData: IMasterTermFeeHeadList }) {
+//   const { openEditForm, openToggleForm } =
+//     useFormContext<IMasterTermFeeHeadList>();
+
+//   const handleEdit = useCallback(
+//     (data: IMasterTermFeeHeadList) => {
+//       openEditForm(data);
+//     },
+//     [openEditForm]
+//   );
+
+//   const handleToggle = useCallback(
+//     (data: IMasterTermFeeHeadList) => {
+//       openToggleForm(data);
+//     },
+//     [openToggleForm]
+//   );
+
+//   return (
+//     <div style={{ display: "flex", justifyContent: "center" }}>
+//       <ActionButtons
+//         rowData={rowData}
+//         buttons={{ edit: true, toggle: false, delete: true }}
+//         onEdit={handleEdit}
+//         onToggle={handleToggle}
+//         toggleConditionKey="idforedt"
+//       />
+//     </div>
+//   );
+// }
+
 function ActionButtonsCell({ rowData }: { rowData: IMasterTermFeeHeadList }) {
-    const { openEditForm, openToggleForm } = useFormContext<IMasterTermFeeHeadList>();
+    const { openEditForm, openDeleteForm } = useFormContext<IMasterTermFeeHeadList>();
 
-    const handleEdit = useCallback(
-        (data: IMasterTermFeeHeadList) => {
-            openEditForm(data);
-        },
-        [openEditForm]
-    );
+    const handleEdit = useCallback((data: IMasterTermFeeHeadList) => openEditForm(data), [openEditForm]);
 
-    const handleToggle = useCallback(
-        (data: IMasterTermFeeHeadList) => {
-            openToggleForm(data);
-        },
-        [openToggleForm]
-    );
+    const handleDelete = useCallback((data: IMasterTermFeeHeadList) => openDeleteForm(data), [openDeleteForm]);
 
     return (
-        <ActionButtons
-            rowData={rowData}
-            buttons={{ edit: true, toggle: false, delete: true }}
-            onEdit={handleEdit}
-            onToggle={handleToggle}
-            toggleConditionKey='idforedt'
-        />
+        <div style={{ display: 'flex', justifyContent: 'center' }}>
+            <ActionButtons
+                rowData={rowData}
+                buttons={{ edit: true, toggle: false, delete: true }}
+                onEdit={handleEdit}
+                onDelete={handleDelete}
+            />
+        </div>
     );
 }
