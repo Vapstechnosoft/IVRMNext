@@ -1,78 +1,105 @@
-'use client';
 import { Button } from '@/components/ui/button';
-import { Checkbox } from '@/components/ui/checkbox';
 import { FormError, Label } from '@/components/ui/extension/field';
-import { InputNumber } from '@/components/ui/extension/input-number';
+import { MultiSelect } from '@/components/ui/multi-select';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { useMasterFineSlab } from '@/hooks/fees/useMasters';
-import { fineslabSchema } from '@/schemas/fees/masters';
-import { addOrUpdateFineSlab } from '@/server/fees/masters/fineSlab';
-import type { IFineSlabList } from '@/types/fees/masters/masters';
+import { MASTER_HEADS_DROPDOWN, MASTER_INSTALLMENT_DROPDOWN, TERM_DROPDOWN_DATA, useMasterTermsHead } from '@/hooks/fees/useMasters';
+import { masterTermFeeHeadSchema } from '@/schemas/fees/masters';
+import { addOrUpdateFeeTermHead } from '@/server/fees/masters/fee-term-heads';
+import type { IMasterTermFeeHeadList } from '@/types/fees/masters/masters';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Save } from 'lucide-react';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import type { z } from 'zod';
 
-type FormFields = z.infer<typeof fineslabSchema.addOrUpdate>;
+type FormFields = z.infer<typeof masterTermFeeHeadSchema.addOrUpdate>;
 
-interface UpdateFineSlabFormProps {
+interface UpdateFeeTermHeadFormProps {
     onSuccess?: () => void;
-    fineslab?: string;
-    selectedRow: IFineSlabList;
+    headdata?: string;
+    selectedRow: IMasterTermFeeHeadList; // Selected row for editing
 }
 
-export default function UpdateFineSlabForm({ onSuccess, fineslab = '', selectedRow: row }: UpdateFineSlabFormProps) {
-    const { refetchAll } = useMasterFineSlab();
+export default function UpdateFeeTermHeadForm({ onSuccess, headdata = '', selectedRow: row }: UpdateFeeTermHeadFormProps) {
+    const { refetchAll } = useMasterTermsHead();
+
+    const [selectedHeadsItems, setSelectedHeadsItems] = useState<{ fmH_Id: string }[]>([]);
+    const [selectedInstallmentsItems, setSelectedInstallmentsItems] = useState<{ ftI_ID: string }[]>([]);
+
+    const { data: terms, isLoading: termsLoading, error: termsError, refetchAll: refetchTerms } = TERM_DROPDOWN_DATA();
+    const {
+        data: masterInstallment,
+        isLoading: masterInstallmentLoading,
+        error: masterInstallmentError,
+        refetchAll: refetchMasterInstallment
+    } = MASTER_INSTALLMENT_DROPDOWN();
+    const { data: masterHeads, isLoading: masterHeadsLoading, refetchAll: refetchMasterHeads } = MASTER_HEADS_DROPDOWN();
 
     const {
         control,
-        watch,
         setValue,
-        register,
         handleSubmit,
         reset,
         formState: { errors, isSubmitting }
     } = useForm<FormFields>({
-        resolver: zodResolver(fineslabSchema.addOrUpdate),
+        resolver: zodResolver(masterTermFeeHeadSchema.addOrUpdate),
         mode: 'onChange'
     });
 
-    const fineType = watch('fmfS_FineType');
+    // Reset form and refetch data
+    function OnReset() {
+        reset();
+        setSelectedHeadsItems([]);
+        setSelectedInstallmentsItems([]);
+        refetchAll();
+        refetchTerms();
+        refetchMasterInstallment();
+        refetchMasterHeads();
+    }
 
+    // Set form data when editing (based on selectedRow)
     useEffect(() => {
         if (row) {
-            reset({
-                fmfS_FineType: row.fmfS_FineType as 'Between' | 'GreaterThan' | 'LessThan',
-                fmfS_Id: row.fmfS_Id,
-                fmfS_FromDay: row.fmfS_FromDay,
-                fmfS_ToDay: row.fmfS_ToDay,
-                fmfS_ECSFlag: row.fmfS_ECSFlag,
-                fmfS_ActiveFlag: row.fmfS_ActiveFlag
-            });
-        }
-    }, [row, reset, setValue]);
+            console.log('Selected Row Data:', row); // For debugging purposes
 
+            // Update form values using row data
+            reset({
+                fmT_Id: row.fmT_Id, // Term ID
+                heads: [row.fmH_Id.toString()], // Heads - bind as array of string
+                installments: [row.ftI_Id.toString()] // Installments - bind as array of string
+            });
+
+            // Set selected head and installment values
+            setSelectedHeadsItems([{ fmH_Id: row.fmH_Id.toString() }]);
+            setSelectedInstallmentsItems([{ ftI_ID: row.ftI_Id.toString() }]);
+        }
+    }, [row, reset]);
+
+    // Submit handler to add/update fee term head
     const onSubmit: SubmitHandler<FormFields | any> = async (data: FormFields) => {
         try {
-            const { fmfS_FineType, fmfS_Id, fmfS_FromDay, fmfS_ToDay, fmfS_ECSFlag, fmfS_ActiveFlag } = data;
+            const { fmT_Id } = data;
+
             const payload = {
-                mi_id: 30,
-                fmfS_FineType: fmfS_FineType,
-                fmfS_Id: fmfS_Id,
-                fmfS_FromDay: fmfS_FromDay,
-                fmfS_ToDay: fmfS_ToDay,
-                fmfS_ECSFlag: fmfS_ECSFlag,
-                fmfS_ActiveFlag: fmfS_ActiveFlag
+                FMT_Id: fmT_Id,
+                mI_Id: 30, // Adjust this value based on your business logic
+                feeHeadList: selectedHeadsItems.map((item) => ({
+                    fmH_Id: Number(item.fmH_Id)
+                })),
+                feeInsatallmentList: selectedInstallmentsItems.map((item) => ({
+                    fmI_Id: Number(item.ftI_ID)
+                }))
             };
 
-            const response = await addOrUpdateFineSlab(payload);
+            const js = JSON.stringify(payload);
+            console.log('Payload JSON:', js);
+
+            const response = await addOrUpdateFeeTermHead(payload);
 
             if (response.success) {
                 toast.success(response.message);
-                reset();
-                refetchAll();
+                OnReset();
                 onSuccess?.();
             } else {
                 toast.error(response.message);
@@ -82,131 +109,147 @@ export default function UpdateFineSlabForm({ onSuccess, fineslab = '', selectedR
         }
     };
 
+    // Handle head selection (for MultiSelect)
+    const handleHeadSelection = (selectedValues: string[]) => {
+        setSelectedHeadsItems(selectedValues.map((value) => ({ fmH_Id: value.toString() })));
+    };
+
+    // Handle installment selection (for MultiSelect)
+    const handleInstallmentSelection = (selectedValues: string[]) => {
+        setSelectedInstallmentsItems(selectedValues.map((value) => ({ ftI_ID: value.toString() })));
+    };
+
     const handleReset = () => {
         reset();
     };
 
     return (
-        <div className={`${fineslab}`}>
+        <div className={`${headdata}`}>
             <form onSubmit={handleSubmit(onSubmit)} className='space-y-6'>
                 <div className='space-y-4'>
-                    {/* Fine Type Dropdown */}
-                    <div className='w-full max-w-md'>
-                        <div className='flex flex-col items-center gap-1.5'>
-                            <Label htmlFor='fmfS_FineType' className='text-center'>
-                                Fine Slab Type<span className='ml-1 text-red-500'>*</span>
+                    <div className='grid grid-cols-1 gap-5 md:grid-cols-2'>
+                        {/* Term Selection */}
+                        <div className='group flex flex-col gap-1.5'>
+                            <Label aria-label='Term' htmlFor='fmT_Id'>
+                                Term <span className='ml-1 text-red-500'>*</span>
                             </Label>
                             <Controller
-                                name='fmfS_FineType'
+                                name='fmT_Id'
                                 control={control}
                                 render={({ field }) => (
-                                    <Select onValueChange={field.onChange} value={field.value || undefined}>
-                                        <SelectTrigger className='w-full text-center'>
-                                            <SelectValue placeholder='--Select--' />
+                                    <Select
+                                        onValueChange={(value) => {
+                                            field.onChange(Number(value)); // Update the form value
+                                        }}
+                                        value={field.value?.toString() || ''} // Bind the value to the form field
+                                    >
+                                        <SelectTrigger className='w-full'>
+                                            <SelectValue placeholder='Select Term' />
                                         </SelectTrigger>
-                                        <SelectContent className='text-center'>
-                                            <SelectItem value='Between'>Between</SelectItem>
-                                            <SelectItem value='GreaterThan'>Greater Than</SelectItem>
-                                            <SelectItem value='LessThan'>Less Than</SelectItem>
+                                        <SelectContent>
+                                            {termsLoading ? (
+                                                <SelectItem value='loading' disabled>
+                                                    Loading Terms...
+                                                </SelectItem>
+                                            ) : termsError ? (
+                                                <SelectItem value='error' disabled>
+                                                    Error loading Terms
+                                                </SelectItem>
+                                            ) : (
+                                                terms?.data?.map((item) => (
+                                                    <SelectItem key={item.fmT_Id} value={item.fmT_Id.toString()}>
+                                                        {item.fmT_Name}
+                                                    </SelectItem>
+                                                ))
+                                            )}
                                         </SelectContent>
                                     </Select>
                                 )}
                             />
-                            {errors.fmfS_FineType && <FormError>{errors.fmfS_FineType.message}</FormError>}
+                            {errors.fmT_Id && <FormError>{errors.fmT_Id.message}</FormError>}
                         </div>
-                    </div>
 
-                    {/* From Day */}
-                    {(fineType === 'Between' || fineType === 'GreaterThan' || fineType === 'LessThan') && (
-                        <div className='w-full max-w-md'>
-                            <div className='flex flex-col items-center gap-1.5'>
-                                <Controller
-                                    name='fmfS_FromDay'
-                                    control={control}
-                                    render={({ field }) => (
-                                        <InputNumber
-                                            label='From Day'
-                                            required
-                                            id='fmfS_FromDay'
-                                            value={field.value || 0}
-                                            onChange={field.onChange}
-                                            minValue={0}
-                                        />
-                                    )}
-                                />
-                                {errors.fmfS_FromDay && <FormError>{errors.fmfS_FromDay.message}</FormError>}
-                            </div>
-                        </div>
-                    )}
-
-                    {/* To Day - Only if Between */}
-                    {fineType === 'Between' && (
-                        <div className='w-full max-w-md'>
-                            <div className='flex flex-col items-center gap-1.5'>
-                                <Controller
-                                    name='fmfS_ToDay'
-                                    control={control}
-                                    render={({ field }) => (
-                                        <InputNumber
-                                            label='To Day'
-                                            required
-                                            id='fmfS_ToDay'
-                                            value={field.value || 0}
-                                            onChange={field.onChange}
-                                            minValue={0}
-                                        />
-                                    )}
-                                />
-                                {errors.fmfS_ToDay && <FormError>{errors.fmfS_ToDay.message}</FormError>}
-                            </div>
-                        </div>
-                    )}
-
-                    <div className='group flex flex-col gap-1.5'>
-                        <div className='group flex flex-row gap-6'>
+                        {/* Heads MultiSelect */}
+                        <div className='group flex flex-col gap-1.5'>
+                            <Label aria-label='Heads' htmlFor='fmH_Id'>
+                                Heads <span className='ml-1 text-red-500'>*</span>
+                            </Label>
                             <Controller
-                                name='fmfS_ECSFlag'
+                                name='heads'
                                 control={control}
-                                defaultValue='0' // Set default as "0" (unchecked)
                                 render={({ field }) => (
-                                    <div className='flex items-center space-x-2'>
-                                        <Checkbox
-                                            checked={field.value === '1'}
-                                            onCheckedChange={(checked) => field.onChange(checked ? '1' : '0')}
-                                            id='fmfS_ECSFlag'
-                                        />
-                                        <Label htmlFor='fmfS_ECSFlag'>ECS Flag</Label>
-                                    </div>
+                                    <MultiSelect
+                                        options={
+                                            masterHeads?.data?.map((data) => ({
+                                                label: data.fmH_FeeName || '',
+                                                value: data.fmH_Id.toString()
+                                            })) ?? []
+                                        }
+                                        onValueChange={(selectedValues) => {
+                                            field.onChange(selectedValues);
+                                            handleHeadSelection(selectedValues);
+                                        }}
+                                        value={selectedHeadsItems.map((data) => data.fmH_Id.toString())}
+                                        placeholder='Select Heads'
+                                        variant='inverted'
+                                        disabled={masterHeadsLoading}
+                                    />
+                                )}
+                            />
+                        </div>
+
+                        {/* Installments MultiSelect */}
+                        <div className='group flex flex-col gap-1.5'>
+                            <Label aria-label='Installments' htmlFor='ftI_Id'>
+                                Installments <span className='ml-1 text-red-500'>*</span>
+                            </Label>
+                            <Controller
+                                name='installments'
+                                control={control}
+                                render={({ field }) => (
+                                    <MultiSelect
+                                        options={
+                                            masterInstallment?.data?.map((data) => ({
+                                                label: data.ftI_NAME || '',
+                                                value: data.ftI_ID.toString()
+                                            })) ?? []
+                                        }
+                                        onValueChange={(selectedValues) => {
+                                            field.onChange(selectedValues);
+                                            handleInstallmentSelection(selectedValues);
+                                        }}
+                                        value={selectedInstallmentsItems.map((data) => data.ftI_ID.toString())}
+                                        placeholder='Select Installments'
+                                        variant='inverted'
+                                        disabled={masterInstallmentLoading}
+                                    />
                                 )}
                             />
                         </div>
                     </div>
 
-                    {/* Root Error */}
-                    {errors.root && <FormError>{errors.root.message}</FormError>}
-                </div>
-
-                {/* Action Buttons */}
-                <div className='flex flex-col gap-3 border-t pt-4 sm:flex-row sm:justify-start'>
-                    <Button
-                        type='button'
-                        variant='outline'
-                        onClick={handleReset}
-                        disabled={isSubmitting}
-                        className='order-2 w-fit transition-all duration-200 hover:scale-105 sm:order-1'>
-                        Reset
-                    </Button>
-                    <Button
-                        type='submit'
-                        disabled={isSubmitting}
-                        className='order-1 w-fit transition-all duration-200 hover:scale-105 sm:order-2'
-                        isLoading={isSubmitting}
-                        loadingText='Saving...'>
-                        <div className='flex items-center'>
-                            <Save className='mr-2 h-4 w-4' />
-                            Update
-                        </div>
-                    </Button>
+                    {/* Save Button */}
+                    <div className='flex flex-col gap-3 border-t pt-4 sm:flex-row sm:justify-start'>
+                        <Button
+                            type='button'
+                            variant='outline'
+                            onClick={handleReset}
+                            disabled={isSubmitting}
+                            className='order-2 w-fit transition-all duration-200 hover:scale-105 sm:order-1'>
+                            Reset
+                        </Button>
+                        <Button
+                            type='submit'
+                            disabled={isSubmitting}
+                            className='order-1 w-fit transition-all duration-200 hover:scale-105 sm:order-2'
+                            isLoading={isSubmitting}
+                            loadingText='Saving...'>
+                            <div className='flex items-center'>
+                                <Save className='mr-2 h-4 w-4' />
+                                Update
+                            </div>
+                        </Button>
+                    </div>
                 </div>
             </form>
         </div>

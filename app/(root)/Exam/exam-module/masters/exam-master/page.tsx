@@ -10,8 +10,8 @@ import { use } from 'react';
 
 import { useMasterExam } from '@/hooks/exam/exammodule/usemasters';
 import type { IMasterExam } from '@/types/exam/exam-module/masters';
-import { MasterExamColumns } from './_components/columns';
 import AddMasterExamForm from './_components/add-form';
+import { MasterExamColumns } from './_components/columns';
 import ToggleExamForm from './_components/toggle-form';
 import UpdateMasterExamForm from './_components/update-form';
 

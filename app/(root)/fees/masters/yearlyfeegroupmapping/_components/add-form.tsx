@@ -8,13 +8,15 @@ import { DataTable } from '@/components/ui/data-table/data-table';
 import { Label } from '@/components/ui/extension/field';
 import { ActionButtons } from '@/components/ui/form/action-buttons';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useAcademicYearDropdown, useMasterFeeGroupDropdown } from '@/hooks/fees/useMasters';
+import { useFeeMasterHead, useFeeMasterInstallment } from '@/hooks/fees/useMasters';
 import type { ColumnDef } from '@tanstack/react-table';
 import { useMemo, useState } from 'react';
 
-const academicYears = ['2023-2024', '2024-2025', '2025-2026'];
-const feeGroups = ['ICSE Class I', 'CBSE Class II', 'State Board IX'];
-const feeHeadOptions = ['Transport Fees', 'Exam Fees', 'Library Fees'];
-const installmentOptions = ['I Installment', 'II Installment', 'III Installment'];
+// dropdown data will be loaded from hooks
+// const academicYears = ['2023-2024', '2024-2025', '2025-2026'];
+// const feeGroups = ['ICSE Class I', 'CBSE Class II', 'State Board IX'];
+// fee heads and installments will come from hooks: useFeeMasterHead & useFeeMasterInstallment
 
 interface IHeadInstallment {
     id: number;
@@ -33,6 +35,36 @@ interface IFeeGroupHeadMapping {
 }
 
 export default function YearlyFeeGroupMapping() {
+    const { data: academicYearOptions } = useAcademicYearDropdown();
+    const { data: feeGroupResponse } = useMasterFeeGroupDropdown() as {
+        data?: {
+            success?: boolean;
+            message?: string;
+            data?: { fmG_Id: number; feeGroups: string }[];
+        };
+    };
+
+    const { data: feeHeadResponse } = useFeeMasterHead() as {
+        data?: {
+            success?: boolean;
+            message?: string;
+            data?: { fmH_Id: number; fmH_FeeName: string }[];
+        };
+    };
+
+    const { data: installmentResponse } = useFeeMasterInstallment() as {
+        data?: {
+            success?: boolean;
+            message?: string;
+            data?: { fmI_Id: number; fmI_Name: string }[];
+        };
+    };
+
+    const academicYears = Array.isArray(academicYearOptions?.data) ? academicYearOptions.data : [];
+    const feeGroups = Array.isArray(feeGroupResponse?.data) ? feeGroupResponse.data : [];
+
+    const feeHeads = Array.isArray(feeHeadResponse?.data) ? feeHeadResponse.data : [];
+    const installments = Array.isArray(installmentResponse?.data) ? installmentResponse.data : [];
     const [academicYear, setAcademicYear] = useState<string | null>(null);
     const [feeGroup, setFeeGroup] = useState<string | null>(null);
     const [search, _setSearch] = useState('');
@@ -126,11 +158,15 @@ export default function YearlyFeeGroupMapping() {
                         <SelectValue placeholder='Select Head' />
                     </SelectTrigger>
                     <SelectContent>
-                        {feeHeadOptions.map((f) => (
-                            <SelectItem key={f} value={f}>
-                                {f}
-                            </SelectItem>
-                        ))}
+                        {feeHeads.length ? (
+                            feeHeads.map((h: any) => (
+                                <SelectItem key={h.fmH_Id} value={h.fmH_Id?.toString() || ''}>
+                                    {h.fmH_FeeName}
+                                </SelectItem>
+                            ))
+                        ) : (
+                            <div className='px-2 py-1 text-gray-500 text-sm'>No fee heads available</div>
+                        )}
                     </SelectContent>
                 </Select>
             )
@@ -150,11 +186,15 @@ export default function YearlyFeeGroupMapping() {
                         <SelectValue placeholder='Select Installment' />
                     </SelectTrigger>
                     <SelectContent>
-                        {installmentOptions.map((f) => (
-                            <SelectItem key={f} value={f}>
-                                {f}
-                            </SelectItem>
-                        ))}
+                        {installments.length ? (
+                            installments.map((i: any) => (
+                                <SelectItem key={i.fmI_Id} value={i.fmI_Id?.toString() || ''}>
+                                    {i.fmI_Name}
+                                </SelectItem>
+                            ))
+                        ) : (
+                            <div className='px-2 py-1 text-gray-500 text-sm'>No installments available</div>
+                        )}
                     </SelectContent>
                 </Select>
             )
@@ -310,11 +350,15 @@ export default function YearlyFeeGroupMapping() {
                                 <SelectValue placeholder='Select Year' />
                             </SelectTrigger>
                             <SelectContent>
-                                {academicYears.map((y) => (
-                                    <SelectItem key={y} value={y}>
-                                        {y}
-                                    </SelectItem>
-                                ))}
+                                {academicYears.length ? (
+                                    academicYears.map((y: any) => (
+                                        <SelectItem key={y.asmaY_Id} value={y.asmaY_Id?.toString() || ''}>
+                                            {y.asmaY_Year}
+                                        </SelectItem>
+                                    ))
+                                ) : (
+                                    <div className='px-2 py-1 text-gray-500 text-sm'>No academic years available</div>
+                                )}
                             </SelectContent>
                         </Select>
                     </div>
@@ -325,11 +369,15 @@ export default function YearlyFeeGroupMapping() {
                                 <SelectValue placeholder='Select Group' />
                             </SelectTrigger>
                             <SelectContent>
-                                {feeGroups.map((f) => (
-                                    <SelectItem key={f} value={f}>
-                                        {f}
-                                    </SelectItem>
-                                ))}
+                                {feeGroups.length ? (
+                                    feeGroups.map((f: any) => (
+                                        <SelectItem key={f.fmG_Id} value={f.fmG_Id?.toString() || ''}>
+                                            {f.feeGroups}
+                                        </SelectItem>
+                                    ))
+                                ) : (
+                                    <div className='px-2 py-1 text-gray-500 text-sm'>No fee groups available</div>
+                                )}
                             </SelectContent>
                         </Select>
                     </div>

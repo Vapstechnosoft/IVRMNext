@@ -212,6 +212,21 @@ export async function getUserAccessibleModules() {
                             icon: 'Settings',
                             sub_menu: [
                                 {
+                                    id: 3,
+                                    name: 'Configuration',
+                                    icon: 'Settings',
+                                    pages: [
+                                        {
+                                            id: 25,
+                                            name: 'Fee configuration',
+                                            icon: 'Settings',
+                                            url: '/fees/configuration/masterfeeconfig',
+                                            title: 'Fee configuration',
+                                            description: 'Fee configuration'
+                                        }
+                                    ]
+                                },
+                                {
                                     id: 2,
                                     name: 'Masters',
                                     icon: 'Settings',
@@ -287,7 +302,7 @@ export async function getUserAccessibleModules() {
                                             icon: 'Settings',
                                             url: '/fees/masters/classcategory',
                                             title: 'Class Category',
-                                            description: 'Class Category'
+                                            description: 'Manage Class Category'
                                         },
                                         {
                                             id: 13,
@@ -295,7 +310,7 @@ export async function getUserAccessibleModules() {
                                             icon: 'Settings',
                                             url: '/fees/masters/category',
                                             title: 'Category',
-                                            description: 'Category'
+                                            description: 'Manage Category'
                                         },
                                         {
                                             id: 14,
@@ -303,7 +318,7 @@ export async function getUserAccessibleModules() {
                                             icon: 'Settings',
                                             url: '/fees/masters/feesinstallment',
                                             title: 'Installment',
-                                            description: 'Installment'
+                                            description: ' Manage Installment'
                                         },
                                         {
                                             id: 15,
@@ -319,7 +334,7 @@ export async function getUserAccessibleModules() {
                                             icon: 'Settings',
                                             url: '/fees/masters/groupsgrouping',
                                             title: 'Group Grouping',
-                                            description: 'Group Grouping'
+                                            description: 'Manage Group Grouping'
                                         },
                                         {
                                             id: 17,
@@ -327,7 +342,7 @@ export async function getUserAccessibleModules() {
                                             icon: 'Settings',
                                             url: '/fees/masters/mastergroup',
                                             title: 'Groups',
-                                            description: 'Groups'
+                                            description: 'Manage Groups'
                                         },
                                         {
                                             id: 19,
@@ -335,7 +350,7 @@ export async function getUserAccessibleModules() {
                                             icon: 'Settings',
                                             url: '/fees/masters/yearlygroup',
                                             title: 'Yearly Groups',
-                                            description: 'Yearly Groups'
+                                            description: 'Manage Yearly Groups'
                                         },
                                         {
                                             id: 18,
@@ -343,7 +358,7 @@ export async function getUserAccessibleModules() {
                                             icon: 'Settings',
                                             url: '/fees/masters/yearlyfeegroupmapping',
                                             title: 'Yearly Groups Mapping',
-                                            description: 'Yearly Groups Mapping'
+                                            description: 'Manage Yearly Groups Mapping'
                                         },
                                         {
                                             id: 21,
@@ -351,105 +366,70 @@ export async function getUserAccessibleModules() {
                                             icon: 'Settings',
                                             url: '/fees/masters/groupwiseautoreceipt',
                                             title: 'Yearly Groups Mapping',
-                                            description: 'Yearly Groups Mapping'
+                                            description: 'Manage Yearly Groups Mapping'
+                                        },
+                                        {
+                                            id: 22,
+                                            name: 'Yearly Rebate Settings',
+                                            icon: 'Settings',
+                                            url: '/fees/masters/yearlyrebatesetting',
+                                            title: 'Yearly Rebate Settings',
+                                            description: 'Manage Yeary Rebate Settings'
+                                        },
+                                        {
+                                            id: 24,
+                                            name: 'Fee Privilege',
+                                            icon: 'Settings',
+                                            url: '/fees/masters/feeprevilege',
+                                            title: 'Fee Privilege',
+                                            description: 'Manage Fee Privilege Details'
                                         }
+                                        // {
+                                        //     id: 25,
+                                        //     name: 'Online Payment Head Group Mapping',
+                                        //     icon: 'Settings',
+                                        //     url: '/fees/masters/onlinepaymentheadgroupmapping',
+                                        //     title: 'Fee Privilege',
+                                        //     description: 'Manage Online Payment Head GroupMapping Details'
+                                        // }
                                     ]
                                 },
                                 {
-                                    id: 3,
-                                    name: 'Configuration',
+                                    id: 4,
+                                    name: 'Transactions',
                                     icon: 'Settings',
                                     pages: [
                                         {
-                                            id: 25,
-                                            name: 'Fee configuration',
+                                            id: 26,
+                                            name: 'Fee Amount Entry',
                                             icon: 'Settings',
-                                            url: '/fees/configuration/masterfeeconfig',
-                                            title: 'Fee configuration',
-                                            description: 'Fee configuration'
-                                        }
-                                    ]
-                                }
-                            ]
-                        }
-                    ]
-                },
-                {
-                    id: 3,
-                    name: 'Exam',
-                    icon: 'BookOpen',
-                    menu: [
-                        {
-                            id: 1,
-                            name: 'Exam Module',
-                            icon: 'BookOpen',
-                            sub_menu: [
-                                {
-                                    id: 1,
-                                    name: 'Masters',
-                                    icon: 'Settings',
-                                    pages: [
-                                        {
-                                            id: 1,
-                                            name: 'Master Subject',
-                                            icon: 'BookOpen',
-                                            url: '/Exam/exam-module/masters/master-subject',
-                                            title: 'Master Subject',
-                                            description: 'Manage Master Subject Details'
+                                            url: '/fees/transactions/feeamountentry',
+                                            title: 'amount Entry',
+                                            description: 'amount Entry'
                                         },
                                         {
-                                            id: 2,
-                                            name: 'Master Sub-Subject',
-                                            icon: 'BookOpen',
-                                            url: '/Exam/exam-module/masters/master-sub-subject',
-                                            title: 'Master Sub-Subject',
-                                            description: 'Manage Master Sub-Subject Details'
-                                        },
-                                        {
-                                            id: 3,
-                                            name: 'Master Exam',
-                                            icon: 'BookOpen',
-                                            url: '/Exam/exam-module/masters/exam-master',
-                                            title: 'Master Exam',
-                                            description: 'Manage Master Exam Details'
-                                        },
-                                        {
-                                            id: 4,
-                                            name: 'Master Sub-Exam',
-                                            icon: 'BookOpen',
-                                            url: '/Exam/exam-module/masters/sub-exam-master',
-                                            title: 'Master Sub-Exam',
-                                            description: 'Manage Master Sub-Exam Details'
-                                        },
-                                        {
-                                            id: 5,
-                                            name: 'Master Exam Paper',
-                                            icon: 'BookOpen',
-                                            url: '/Exam/exam-module/masters/exam-paper-master'
-                                        },
-                                        {
-                                            id: 6,
-                                            name: 'Master Grade',
+                                            id: 27,
+                                            name: 'Third Party Transaction',
                                             icon: 'Settings',
-                                            url: '/Exam/exam-module/masters/master-grade'
+                                            url: '/fees/transactions/thirdPartyTransaction',
+                                            title: 'Third Party Transaction',
+                                            description: 'Third Party Transaction'
                                         },
                                         {
-                                            id: 7,
-                                            name: 'Master Subject Group',
-                                            icon: 'BookOpen',
-                                            url: '/Exam/exam-module/masters/master-group'
+                                            id: 28,
+                                            name: 'Fee Opening Balance',
+                                            icon: 'Settings',
+                                            url: '/fees/transactions/feeopeningbalance',
+                                            title: 'Fee Opening Balance',
+                                            description: 'Fee Opening Balance'
                                         },
                                         {
-                                            id: 8,
-                                            name: 'Master Category',
-                                            icon: 'BookOpen',
-                                            url: '/Exam/exam-module/masters/master-category'
-                                        },
-                                        {
-                                            id: 9,
-                                            name: 'Category Class Mapping',
-                                            icon: 'BookOpen',
-                                            url: '/Exam/exam-module/masters/category-class-mapping'
+                                            id: 29,
+                                            name: 'Fee waivedoff',
+                                            icon: 'Settings',
+                                            url: '/fees/transactions/waivedoff',
+                                            title: 'Fee Transactions',
+                                            description: 'Fee Transactions'
                                         }
                                     ]
                                 }

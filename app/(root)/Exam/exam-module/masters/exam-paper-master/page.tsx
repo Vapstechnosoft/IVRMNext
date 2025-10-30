@@ -9,8 +9,8 @@ import { useMasterExamPaper } from '@/hooks/exam/exammodule/usemasters';
 import type { IMasterExamPaper } from '@/types/exam/exam-module/masters';
 import { Plus, X } from 'lucide-react';
 import { use } from 'react';
-import { MasterExamPaperColumns } from './_components/columns';
 import AddMasterExamForm from './_components/add-form';
+import { MasterExamPaperColumns } from './_components/columns';
 import ToggleExamPaperForm from './_components/toggle-form';
 import UpdateMasterExamPaperForm from './_components/update-form';
 

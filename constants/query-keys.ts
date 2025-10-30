@@ -59,6 +59,7 @@ export const FEES_QUERY_KEYS = {
     MASTER_GROUP: 'master_group',
     FEE_INSTALLMENT_DUE_DATE: 'fee_installment_due_date',
     FEE_YEARLY_GROUPS: 'fee_yearly_groups',
+    FEE_GROUP_LIST_DROPDOWN: 'fee_group_list_dropdown',
 
     FEE_MASTER_CONCESSION: 'masterfeeconcession',
     FEE_MASTER_TERMS: 'feemasterterms',
@@ -67,7 +68,23 @@ export const FEES_QUERY_KEYS = {
     MASTER_HEADS_DROP_DOWN: 'masterHeadsDropdown',
     MASTER_INSTALLMENT_DROPDOWN: 'masterInstallmentsDropdown',
     FEE_MASTER_CONCESSION_DETAILS: 'masterfeeconcessiondetails',
-    FEE_PAYMENTGATEWAY_DROPDOWN: 'paymentGatewayDropdown'
+    FEE_PAYMENTGATEWAY_DROPDOWN: 'paymentGatewayDropdown',
+
+    FEE_AMOUNT_ENTRY: 'fee_amount_entry',
+    FEE_CATEGORY_DROPDOWN: 'fee_category_dropdown',
+    FEE_GROUP_DROPDOWN: 'fee_group_dropdown',
+    ACADEMIC_DROPDOWN_FEES: 'academic_dropdown_fees',
+    FEES_PRIVILEGE_LIST: 'fees_privilege_list',
+    FEE_WAVIED_OFF: 'fee_waived_off',
+    FEE_OPENING_BALANCE: 'fee_opening_balance',
+    GROUPS_DROPDOWN: 'groups_dropdown',
+    ROLES_DROPDOWN: 'roles_dropdown',
+    FEE_THIRDPARTY_TRASACTION: 'fee_thirdparty_transaction',
+    FEE_THIRDPARTY_GROUPDROPDOWN: 'fee_thirdparty_groupdropdown',
+    FEE_THIRDPARTY_HEADDROPDOWN: 'fee_thirdparty_headdropdown',
+    FEE_THIRDPARTY_BANKDROPDOWN: 'fee_thirdparty_bankdropdown',
+    FEE_MASTER_HEADS_DROPDOWN: 'fee_master_heads_dropdown',
+    FEE_MASTER_INSTALLMENT_DROPDOWN: 'fee_master_installment_dropdown'
 };
 
 export const EXAM_QUERY_KEYS = {
