@@ -22,6 +22,8 @@ export interface IMasterCategoryList {
     amC_Type: string;
     amC_ActiveFlag: number;
     amC_PAApplicationName: string;
+    amC_Logo: string;
+    amC_FilePath: string;
     createdDate: string;
     updatedDate: string;
 }

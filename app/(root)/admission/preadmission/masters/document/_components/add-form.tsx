@@ -80,7 +80,6 @@ export default function AddDocumentForm({ onSuccess, className = '' }: AddDocume
 
                         <InputTextarea
                             label='Description'
-                            required
                             id='amsmD_Description'
                             placeholder='Enter description'
                             {...register('amsmD_Description')}

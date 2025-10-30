@@ -11,7 +11,10 @@ export const preadmissionRegistrationSchema = {
     add: z.object({
         name: createStringOnlySchema('Name', 1, 50),
         email_id: createEmailSchema('Email Id', 1, 50),
-        mobileno: z.string().min(10, { message: 'Minimum 10 digits' }).max(10, { message: 'Maximum 10 digits' }),
+        mobileno: z
+            .string()
+            .refine((val) => val.length === 10, { message: 'Mobile number must be exactly 10 digits' })
+            .refine((val) => !val.startsWith('0'), { message: 'Mobile number cannot start with 0' }),
         username: createStringSchema('Username', 4, 50),
         password: createStringSchema('Password', 6, 8)
     })
@@ -23,7 +26,10 @@ export const studentApplicationFormSchema = {
         pasR_FirstName: createStringSchema('First Name', 1, 100),
         pasR_MiddleName: createStringSchema('Middle Name', 1, 100),
         pasR_LastName: createStringSchema('Last Name', 1, 100),
-        pasR_MobileNo: z.string().min(10, { message: 'Mobile No is 10 digits required' }).max(10, { message: 'Maximum 10 digits' }),
+        pasR_MobileNo: z
+            .string()
+            .refine((val) => val.length === 10, { message: 'Mobile number must be exactly 10 digits' })
+            .refine((val) => !val.startsWith('0'), { message: 'Mobile number cannot start with 0' }),
         pasR_BirthPlace: createOptionalStringSchema('Student Birth Place', 1, 100),
         religion_Id: z.number().int({ message: 'Religion is required' }),
         caste_Id: z.number().int({ message: 'Caste is required' }),
@@ -35,7 +41,10 @@ export const studentApplicationFormSchema = {
         pasR_MotherTongue: createOptionalStringSchema('Student Mother Tongue', 1, 100),
 
         //Other Details
-        pasR_AadharNo: z.string().max(12, { message: 'Maximum 12 digits' }).optional(),
+        pasR_AadharNo: z
+            .string()
+            .refine((val) => val === '' || val.length === 12, { message: 'Aadhar No must be exactly 12 digits' })
+            .optional(),
         pasR_Languagespeaking: createOptionalStringSchema('Student Language Speaking At Home', 1, 100),
         pasR_LastPlayGrndAttnd: createOptionalStringSchema('Student Last Play Ground Attended', 1, 50),
         pasR_ExtraActivity: createOptionalStringSchema('Student Extra Activity', 1, 50),
@@ -68,7 +77,15 @@ export const studentApplicationFormSchema = {
         pasR_FatherDesignation: createOptionalStringSchema('Father Designation', 1, 100),
         pasR_FatherNationality: z.number().int({ message: 'Nationality is required' }),
         pasR_FatherOfficeAddr: createOptionalStringSchema('Father Office Address', 1, 100),
-        pasR_FatherMobleNo: z.string().max(10, { message: 'Maximum 10 digits' }).optional(),
+        pasR_FatherMobleNo: z
+            .string()
+            .refine((val) => val === '' || val.length === 10, {
+                message: 'Mobile number must be exactly 10 digits'
+            })
+            .refine((val) => val === '' || !val.startsWith('0'), {
+                message: 'Mobile number cannot start with 0'
+            })
+            .optional(),
 
         //Mother Details
         pasR_MotherName: createStringSchema('Mother Name', 1, 100),
@@ -79,12 +96,28 @@ export const studentApplicationFormSchema = {
         pasR_MotherDesignation: createOptionalStringSchema('Mother Designation', 1, 100),
         pasR_MotherNationality: z.number().int({ message: 'Nationality is required' }),
         pasR_MotherOfficeAddr: createOptionalStringSchema('Mother Office Address', 1, 100),
-        pasR_MotherMobleNo: z.string().max(10, { message: 'Maximum 10 digits' }).optional(),
+        pasR_MotherMobleNo: z
+            .string()
+            .refine((val) => val === '' || val.length === 10, {
+                message: 'Mobile number must be exactly 10 digits'
+            })
+            .refine((val) => val === '' || !val.startsWith('0'), {
+                message: 'Mobile number cannot start with 0'
+            })
+            .optional(),
 
         //Yearly Income
         pasR_FatherIncome: z.number().optional(),
         pasR_MotherIncome: z.number().optional(),
-        pasR_AltContactNo: z.string().max(10, { message: 'Maximum 10 digits' }).optional(),
+        pasR_AltContactNo: z
+            .string()
+            .refine((val) => val === '' || val.length === 10, {
+                message: 'Mobile number must be exactly 10 digits'
+            })
+            .refine((val) => val === '' || !val.startsWith('0'), {
+                message: 'Mobile number cannot start with 0'
+            })
+            .optional(),
         pasR_AltContactEmail: createEmailSchema('Alternate Contact Email', 1, 50, true),
 
         //Sibling Details need to be added here

@@ -150,7 +150,7 @@ export default function AddMasterSectionForm({ onSuccess, className = '' }: AddM
                         loadingText='Saving...'>
                         <div className='flex items-center'>
                             <Save className='mr-2 h-4 w-4' />
-                            Save Master Class
+                            Save Master Section
                         </div>
                     </Button>
                 </div>

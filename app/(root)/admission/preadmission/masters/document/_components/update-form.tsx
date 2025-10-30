@@ -95,7 +95,6 @@ export default function UpdateMasterDocumentForm({ onSuccess, className = '', se
                         {/* Description */}
                         <InputTextarea
                             label='Description'
-                            required
                             id='amsmD_Description'
                             placeholder='Enter description'
                             {...register('amsmD_Description')}

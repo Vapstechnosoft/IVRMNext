@@ -14,7 +14,7 @@ interface StatusCardProps {
 
 function StatusCard({ icon, count, label, iconColor, iconBgColor }: StatusCardProps) {
     return (
-        <Card className='card-glow-hover relative overflow-hidden border border-border shadow-xl transition-all duration-300 hover:shadow-lg'>
+        <Card className='card-glow-orange shadow-none'>
             <CardContent className='p-6'>
                 <div className='flex flex-col justify-center gap-2'>
                     {/* Icon Section */}
