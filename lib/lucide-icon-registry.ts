@@ -23,6 +23,7 @@ import {
     ChevronUp,
     Chrome,
     Clipboard,
+    ClipboardList,
     Clock,
     Cloud,
     CloudRain,
@@ -39,6 +40,7 @@ import {
     File,
     FilePlus,
     FileText,
+    FileUp,
     Filter,
     Folder,
     FolderOpen,
@@ -152,6 +154,8 @@ export const lucideIcons: IconOption[] = [
     { name: 'Settings', icon: Settings, category: 'interface' },
     { name: 'CalendarDays', icon: CalendarDays, category: 'interface' },
     { name: 'BookOpen', icon: BookOpen, category: 'interface' },
+    { name: 'BookOpen', icon: BookOpen, category: 'interface' },
+    { name: 'ClipboardList', icon: ClipboardList, category: 'interface' },
     { name: 'Search', icon: Search, category: 'interface' },
     { name: 'Filter', icon: Filter, category: 'interface' },
     { name: 'Plus', icon: Plus, category: 'interface' },
@@ -167,6 +171,7 @@ export const lucideIcons: IconOption[] = [
     { name: 'Bookmark', icon: Bookmark, category: 'interface' },
     { name: 'MapPinHouse', icon: MapPinHouse, category: 'interface' },
     { name: 'ReceiptText', icon: ReceiptText, category: 'interface' },
+    { name: 'FileUp', icon: FileUp, category: 'interface' },
 
     // Communication
     { name: 'Mail', icon: Mail, category: 'communication' },

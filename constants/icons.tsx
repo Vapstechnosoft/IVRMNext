@@ -58,6 +58,7 @@ export const Icons = {
     BookOpen: BookOpen,
     CalenderDays: CalendarDays,
     calendar: CalendarDays,
+    bookOpen: BookOpen,
     billing: CreditCard,
     ellipsis: MoreVertical,
     add: Plus,

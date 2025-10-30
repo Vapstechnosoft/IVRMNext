@@ -63,6 +63,7 @@ function MasterSectionPageContent({
                         columns={masterSectionColumns}
                         isLoading={isLoading}
                         error={error}
+                        showViewOptions={false}
                         columnPinning={{ right: ['actions'] }}
                         loadingMessage='Loading master Sectiones...'
                         noDataTitle='No Master Sections Found'

@@ -16,7 +16,33 @@ export const ADMISSION_QUERY_KEYS = {
     MASTER_CASTE_CATEGORY: 'master_caste_category',
     MASTER_CASTE_CATEGORY_CODE_DROPDOWN: 'master_caste_category_code_dropdown',
     MASTER_CASTE: 'master_caste',
-    MASTER_CASTE_CATEGORY_DROPDOWN: 'master_caste_category_dropdown'
+    MASTER_CASTE_CATEGORY_DROPDOWN: 'master_caste_category_dropdown',
+    MASTER_DOCUMENT: 'master_document',
+    MASTER_REFERENCE: 'master_reference',
+    MASTER_SOURCE: 'master_source',
+    MASTER_RELIGION_CASTE_CATEGORY: 'master_religion_caste_category',
+    UNMAPPED_CASTE_CATEGORY_DROPDOWN: 'unmapped_caste_category_dropdown'
+};
+
+export const PREADMISSION_QUERY_KEYS = {
+    CHECK_PREADMISSION_LIVE: 'check_preadmission_live',
+    RELIGION_DROPDOWN: 'religion_dropdown',
+    CASTE_DROPDOWN: 'caste_dropdown',
+    COUNTRY_DROPDOWN: 'country_dropdown',
+    STATE_DROPDOWN: 'state_dropdown',
+    GENDER_DROPDOWN: 'gender_dropdown',
+    SOURCE_DROPDOWN: 'source_dropdown',
+    REFERENCE_DROPDOWN: 'reference_dropdown',
+    PREADMISSION_DOCUMENTS_DROPDOWN: 'preadmission_documents_dropdown',
+    PREADMISSION_CLASS_DROPDOWN: 'preadmission_class_dropdown',
+    ACTIVE_PREADMISSION_DETAILS: 'active_preadmission_details',
+    APPLICATION_STATUS_DROPDOWN: 'application_status_dropdown',
+    STUDENT_APPLICATION_LIST: 'student_application_list',
+    APPLICATION_STUDENT_LIST: 'application_student_list',
+    PREADMISSION_ADMISSION_STATUS_DROPDOWN: 'preadmission_admission_status_dropdown',
+    PREADMISSION_STUDENT_LIST: 'preadmission_student_list',
+    EXPORT_PREADMISSION_STUDENT_LIST: 'export_preadmission_student_list',
+    PREADMISSION_STATUS_COUNT_REPORT: 'preadmission_status_count_report'
 };
 
 export const FEES_QUERY_KEYS = {
@@ -43,27 +69,22 @@ export const FEES_QUERY_KEYS = {
     MASTER_INSTALLMENT_DROPDOWN: 'masterInstallmentsDropdown',
     FEE_MASTER_CONCESSION_DETAILS: 'masterfeeconcessiondetails',
     FEE_PAYMENTGATEWAY_DROPDOWN: 'paymentGatewayDropdown',
+
+    FEE_AMOUNT_ENTRY: 'fee_amount_entry',
+    FEE_CATEGORY_DROPDOWN: 'fee_category_dropdown',
+    FEE_GROUP_DROPDOWN: 'fee_group_dropdown',
+    ACADEMIC_DROPDOWN_FEES: 'academic_dropdown_fees',
+    FEES_PRIVILEGE_LIST: 'fees_privilege_list',
+    FEE_WAVIED_OFF: 'fee_waived_off',
+    FEE_OPENING_BALANCE: 'fee_opening_balance',
     GROUPS_DROPDOWN: 'groups_dropdown',
     ROLES_DROPDOWN: 'roles_dropdown',
-    FEES_PRIVILEGE_LIST: 'fees_privilege_list'
-};
-
-export const PREADMISSION_QUERY_KEYS = {
-    CHECK_PREADMISSION_LIVE: 'check_preadmission_live',
-    RELIGION_DROPDOWN: 'religion_dropdown',
-    CASTE_DROPDOWN: 'caste_dropdown',
-    COUNTRY_DROPDOWN: 'country_dropdown',
-    STATE_DROPDOWN: 'state_dropdown',
-    GENDER_DROPDOWN: 'gender_dropdown',
-    SOURCE_DROPDOWN: 'source_dropdown',
-    REFERENCE_DROPDOWN: 'reference_dropdown',
-    PREADMISSION_DOCUMENTS_DROPDOWN: 'preadmission_documents_dropdown',
-    PREADMISSION_CLASS_DROPDOWN: 'preadmission_class_dropdown',
-    ACTIVE_PREADMISSION_DETAILS: 'active_preadmission_details',
-    APPLICATION_STATUS_DROPDOWN: 'application_status_dropdown',
-    APPLICATION_STUDENT_LIST: 'application_student_list',
-    PREADMISSION_ADMISSION_STATUS_DROPDOWN: 'preadmission_admission_status_dropdown',
-    PREADMISSION_STUDENT_LIST: 'preadmission_student_list'
+    FEE_THIRDPARTY_TRASACTION: 'fee_thirdparty_transaction',
+    FEE_THIRDPARTY_GROUPDROPDOWN: 'fee_thirdparty_groupdropdown',
+    FEE_THIRDPARTY_HEADDROPDOWN: 'fee_thirdparty_headdropdown',
+    FEE_THIRDPARTY_BANKDROPDOWN: 'fee_thirdparty_bankdropdown',
+    FEE_MASTER_HEADS_DROPDOWN: 'fee_master_heads_dropdown',
+    FEE_MASTER_INSTALLMENT_DROPDOWN: 'fee_master_installment_dropdown'
 };
 
 export const EXAM_QUERY_KEYS = {

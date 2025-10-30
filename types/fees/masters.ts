@@ -73,16 +73,16 @@ export interface IMasterTermsList {
     fmT_ActiveFlag: boolean;
 }
 
-export interface IMasterTermFeeHeadList {
-    fmT_Id: number;
-    fmT_Name: string;
-    fmT_IncludeArrearFeeFlg: boolean;
-    fmT_ActiveFlag: boolean;
-    termname: string;
-    headname: string;
-    installmentname: string;
-    idforedt: number;
-}
+// export interface IMasterTermFeeHeadList {
+//     fmT_Id: number;
+//     fmT_Name: string;
+//     fmT_IncludeArrearFeeFlg: boolean;
+//     fmT_ActiveFlag: boolean;
+//     termname: string;
+//     headname: string;
+//     installmentname: string;
+//     idforedt: number;
+// }
 
 export interface IMasterTermDropdownList {
     fmT_Id: number;

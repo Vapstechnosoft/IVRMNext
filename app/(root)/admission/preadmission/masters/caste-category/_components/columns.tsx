@@ -39,7 +39,7 @@ export const masterCasteCategoryColumns: ColumnDef<IMasterCasteCategoryList>[] =
     },
     {
         accessorKey: 'imcC_CategoryCode',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Category' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Category Code' />,
         cell: ({ row }) => <div>{row.getValue('imcC_CategoryCode')}</div>,
         enableSorting: true,
         enableHiding: true
@@ -61,7 +61,7 @@ export const masterCasteCategoryColumns: ColumnDef<IMasterCasteCategoryList>[] =
                     : row.getValue('imcC_CategoryDesc')}
             </div>
         ),
-        enableSorting: true,
+        enableSorting: false,
         enableHiding: true
     },
     {

@@ -10,8 +10,15 @@ import {
     getMasterClassDropdown,
     getMasterSectionDropdown
 } from '@/server/admission/preadmission/masters/class_category';
+import { getMasterDocument } from '@/server/admission/preadmission/masters/document';
+import { getMasterReference } from '@/server/admission/preadmission/masters/reference';
 import { getMasterReligion } from '@/server/admission/preadmission/masters/religion';
+import {
+    getMasterReligionCasteCategory,
+    getUnmappedCasteCategoryDropdown
+} from '@/server/admission/preadmission/masters/religion_caste_category';
 import { getMasterSection } from '@/server/admission/preadmission/masters/section';
+import { getMasterSource } from '@/server/admission/preadmission/masters/source';
 import type { ApiSearchparams } from '@/types';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 
@@ -231,6 +238,91 @@ export const useMasterCasteCategoryDropdown = () => {
         refetchAll: () => {
             return queryClient.invalidateQueries({
                 queryKey: [ADMISSION_QUERY_KEYS.MASTER_CASTE_CATEGORY_DROPDOWN]
+            });
+        }
+    };
+};
+
+export const useMasterDocument = (searchParams?: ApiSearchparams) => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [ADMISSION_QUERY_KEYS.MASTER_DOCUMENT, searchParams ?? {}],
+            queryFn: async () => getMasterDocument(searchParams),
+            staleTime: 0
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [ADMISSION_QUERY_KEYS.MASTER_DOCUMENT]
+            });
+        }
+    };
+};
+
+export const useMasterReference = (searchParams?: ApiSearchparams) => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [ADMISSION_QUERY_KEYS.MASTER_REFERENCE, searchParams ?? {}],
+            queryFn: async () => getMasterReference(searchParams),
+            staleTime: 0
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [ADMISSION_QUERY_KEYS.MASTER_REFERENCE]
+            });
+        }
+    };
+};
+
+export const useMasterSource = (searchParams?: ApiSearchparams) => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [ADMISSION_QUERY_KEYS.MASTER_SOURCE, searchParams ?? {}],
+            queryFn: async () => getMasterSource(searchParams),
+            staleTime: 0
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [ADMISSION_QUERY_KEYS.MASTER_SOURCE]
+            });
+        }
+    };
+};
+
+export const useMasterReligionCasteCategory = (searchParams?: ApiSearchparams) => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [ADMISSION_QUERY_KEYS.MASTER_RELIGION_CASTE_CATEGORY, searchParams ?? {}],
+            queryFn: async () => getMasterReligionCasteCategory(searchParams),
+            staleTime: 0
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [ADMISSION_QUERY_KEYS.MASTER_RELIGION_CASTE_CATEGORY]
+            });
+        }
+    };
+};
+
+export const useUnmappedCasteCategoryDropdown = () => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [ADMISSION_QUERY_KEYS.UNMAPPED_CASTE_CATEGORY_DROPDOWN],
+            queryFn: async () => getUnmappedCasteCategoryDropdown(),
+            staleTime: 0
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [ADMISSION_QUERY_KEYS.UNMAPPED_CASTE_CATEGORY_DROPDOWN]
             });
         }
     };

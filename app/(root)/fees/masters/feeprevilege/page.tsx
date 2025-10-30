@@ -13,9 +13,11 @@ import UpdateFeePrivilegeForm from './_components/update-form';
 
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 
-export default function FeePrivilegePage(props: { searchParams: SearchParams }) {
+export default function FeePrivilegePage(props: {
+    searchParams: SearchParams;
+}) {
     const searchParams = use(props.searchParams);
-    const { data: response, isLoading, error } = useFeePrevilegeList(searchParams);
+    const { data: response, isLoading, error } = useFeePrevilegeList();
 
     return (
         <FormProvider<IFeePrivilegeList>>

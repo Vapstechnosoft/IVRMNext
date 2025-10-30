@@ -34,16 +34,6 @@ export interface IMasterConcession {
     fmfS_ActiveFlag: boolean;
 }
 
-//Groups Grouping
-export interface IMasterGroupsGrouping {
-    imgg_Id: number;
-    imgg_GroupingName: string;
-    imgg_Group_Code: string;
-    imgg_feeGroupIds?: string | undefined;
-    immgg_feeGroupNames: string;
-    imgg_ActiveFlag: boolean;
-}
-
 //fees masters
 export interface IMasterClassList {
     asmcL_Id: number;
@@ -195,6 +185,10 @@ export interface IMasterTermFeeHeadList {
     headname: string;
     installmentname: string;
     idforedt: number;
+    fmH_Id: number;
+    ftI_Id: number;
+    heads?: { fmH_Id: number }[];
+    installments?: { ftI_ID: number }[];
 }
 
 export interface IMasterTermsList {
@@ -236,6 +230,14 @@ export interface IMasterYearlyRebateSettingsList {
     fyG_PartialRebateAmtOrPercentageValue?: number | string;
     fyg_date: string;
 }
+
+export interface IMasterGroupsGrouping {
+    fmgG_Id: number;
+    fmgG_GroupName: string;
+    fmgG_GroupCode: string;
+    feeGroupName: string;
+    selectedFeeGroupIds: number[];
+}
 //used for fee previlege
 export interface IMasterFeePrevilegeList {
     asmcl_ActiveFlag: boolean;
@@ -259,7 +261,6 @@ export interface IMasterGroupDropdown {
     groupName: string;
 }
 
-// Role dropdown
 export interface IMasterRoleDropdown {
     roleId: number;
     roleName: string;
@@ -276,4 +277,24 @@ export interface IMasterOnlinePaymentHeadgroupList {
     installmentName: string;
     terms: string;
     academicYear: string;
+}
+
+export interface IMasterFeeHeadDropdownList {
+    mI_Id: number;
+    fmH_Id: number;
+    fmH_FeeName: string;
+}
+
+export interface IMasterFeeInstallmentDropdownList {
+    fmI_Id: number;
+    fmI_Name: string;
+}
+export interface IMasterFeeYearlyHeadGroupMapping {
+    mi_Id: number;
+    asmaY_Id: number;
+    fmcC_Id: number;
+    asmcL_Id: number;
+    fyccC_Id: number;
+    fmH_Id: number;
+    fmI_Id: number;
 }

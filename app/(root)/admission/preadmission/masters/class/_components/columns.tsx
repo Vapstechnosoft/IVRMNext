@@ -112,7 +112,7 @@ export const masterClassColumns: ColumnDef<IMasterClassList>[] = [
         accessorKey: 'asmcL_PreadmFlag',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Pre-Admission Flag' />,
         cell: ({ row }) => <div>{getStatusBadge((row.getValue('asmcL_PreadmFlag') as number) === 1 ? 'yes' : 'no')}</div>,
-        enableSorting: true,
+        enableSorting: false,
         enableHiding: true
     },
     {

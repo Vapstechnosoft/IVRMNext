@@ -81,13 +81,12 @@ export function CollapsibleSection({
                     </CardHeader>
                 </CollapsibleTrigger>
 
-                {(keepContentMounted ? hasBeenOpened : isOpen) && (
-                    <CollapsibleContent
-                        className='transition-all duration-200 data-[state=closed]:animate-collapsible-up data-[state=open]:animate-collapsible-down'
-                        style={keepContentMounted && !isOpen ? { display: 'none' } : undefined}>
-                        <CardContent className={`pt-0 ${contentClassName}`}>{children}</CardContent>
-                    </CollapsibleContent>
-                )}
+                <CollapsibleContent
+                    className='transition-all duration-200 data-[state=closed]:animate-collapsible-up data-[state=open]:animate-collapsible-down'
+                    forceMount={true}
+                    style={keepContentMounted && !isOpen ? { display: 'none' } : undefined}>
+                    <CardContent className={`pt-0 ${contentClassName}`}>{children}</CardContent>
+                </CollapsibleContent>
             </Card>
         </Collapsible>
     );

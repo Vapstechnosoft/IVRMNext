@@ -21,7 +21,7 @@ interface ToggleMasterFeeGroupGroupingFormProps {
 
 export default function ToggleMasterFeeGroupGroupingForm({ rowData, onClose }: ToggleMasterFeeGroupGroupingFormProps) {
     const { refetchAll } = useMasterFeeGroupGrouping();
-    const isActive = rowData.imgg_ActiveFlag;
+    const isActive = true;
 
     const {
         handleSubmit,
@@ -39,7 +39,7 @@ export default function ToggleMasterFeeGroupGroupingForm({ rowData, onClose }: T
 
     const onSubmit: SubmitHandler<FormFields> = async () => {
         try {
-            const response = await toggleGroupGrouping(Number(rowData.imgg_Id));
+            const response = await toggleGroupGrouping(Number(rowData.fmgG_Id));
 
             if (response.success) {
                 toast.success(response.message);
@@ -58,7 +58,7 @@ export default function ToggleMasterFeeGroupGroupingForm({ rowData, onClose }: T
             <form onSubmit={handleSubmit(onSubmit)} className='flex flex-col gap-4'>
                 <AdaptiveBody className='flex flex-col gap-5'>
                     <p>
-                        Are you sure you want to {isActive ? 'deactivate' : 'activate'} <strong>{rowData.imgg_GroupingName}</strong>?
+                        Are you sure you want to {isActive ? 'deactivate' : 'activate'} <strong>{rowData.fmgG_GroupName}</strong>?
                     </p>
                     <FormError>{errors.root?.message}</FormError>
                 </AdaptiveBody>

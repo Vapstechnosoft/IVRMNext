@@ -17,7 +17,7 @@ import { useAcademicYearDropdown } from '@/hooks/fees/useMasters';
 import { useGroupsDropdown, useRolesDropdown } from '@/hooks/fees/useMasters';
 import { feePrivilegeSchema } from '@/schemas/fees/masters';
 import { addOrUpdateFeePrivilege } from '@/server/fees/masters/fee_previlege';
-import type { IAcademicYearDropDown, IMasterGroupDropdown, IMasterRoleDropdown } from '@/types/fees/masters/masters';
+import type { IMasterGroupDropdown, IMasterRoleDropdown } from '@/types/fees/masters/masters';
 import type { z } from 'zod';
 
 type FeePrivilegeFormFields = z.infer<typeof feePrivilegeSchema.addOrUpdate> & {
@@ -130,7 +130,7 @@ export default function UpdateFeePrivilegeForm({ onSuccess, className = '', sele
                                                 Loading...
                                             </SelectItem>
                                         ) : (
-                                            academicYears?.data?.map((a: IAcademicYearDropDown) => (
+                                            academicYears?.data?.map((a) => (
                                                 <SelectItem key={a.asmaY_Id} value={a.asmaY_Id.toString()}>
                                                     {a.asmaY_Year}
                                                 </SelectItem>

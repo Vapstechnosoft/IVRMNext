@@ -45,8 +45,7 @@ export default function AddMasterConcessionForm({ onSuccess, concession = '' }: 
                 mi_id: 30,
                 fmcC_ConcessionName: fmcC_ConcessionName,
                 fmcC_ConcessionApplLimit:
-                    fmcC_ConcessionApplLimit !== undefined && fmcC_ConcessionApplLimit !== null ? fmcC_ConcessionApplLimit.toString() : '',
-                fmcC_ConcessionFlag: ''
+                    fmcC_ConcessionApplLimit !== undefined && fmcC_ConcessionApplLimit !== null ? fmcC_ConcessionApplLimit.toString() : ''
             };
 
             const response = await addOrUpdateMasterConcession(payload);

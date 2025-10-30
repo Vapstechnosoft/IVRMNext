@@ -63,13 +63,6 @@ export const masterCategoryColumns: ColumnDef<IMasterCategoryList>[] = [
         enableHiding: true
     },
     {
-        accessorKey: 'amC_PAApplicationName',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Application Name' />,
-        cell: ({ row }) => <div>{row.getValue('amC_PAApplicationName')}</div>,
-        enableSorting: true,
-        enableHiding: true
-    },
-    {
         id: 'actions',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Actions' className='text-center' />,
         accessorFn: (row: any) => row,

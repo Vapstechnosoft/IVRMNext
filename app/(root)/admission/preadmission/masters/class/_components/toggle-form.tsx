@@ -40,7 +40,7 @@ export default function ToggleMasterClassForm({ rowData, onClose }: ToggleMaster
 
     const onSubmit: SubmitHandler<FormFields | any> = async () => {
         try {
-            const response = await toggleMasterClass(30, Number(rowData.asmcL_Id));
+            const response = await toggleMasterClass(Number(rowData.asmcL_Id));
 
             if (response.success) {
                 toast.success(response.message);

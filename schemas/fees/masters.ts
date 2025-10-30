@@ -1,11 +1,9 @@
 import { z } from 'zod';
 import { createStringSchema, deleteIdSchema } from '../validationSchemas';
-
 export const loginSchema = z.object({
     email: z.string({ message: 'Email is required' }),
     password: createStringSchema('Password', 6, 50)
 });
-
 export const masterFeeheadSchema = {
     addOrUpdate: z.object({
         fmH_Id: z.number().optional(),
@@ -24,14 +22,13 @@ export const masterFeeheadSchema = {
 export const masterModeOfPaymentSchema = {
     addOrUpdate: z.object({
         ivrmmoD_Id: z.number().int({ message: 'ivrmmoD_Id is required' }).optional(),
-        ivrmmoD_ModeOfPayment: createStringSchema('ivrmmoD_ModeOfPayment', 1, 100),
-        ivrmmoD_ModeOfPayment_Code: createStringSchema('ivrmmoD_ModeOfPayment_Code', 1, 100)
+        ivrmmoD_ModeOfPayment: createStringSchema('Mode of Payment', 1, 100),
+        ivrmmoD_ModeOfPayment_Code: createStringSchema('Mode of Payment Code', 1, 100)
     }),
     delete: z.object({
         ivrmmoD_Id: deleteIdSchema('ivrmmoD_Id')
     })
 };
-
 export const paymentgatewaydetailsSchema = {
     addOrUpdate: z.object({
         fpgD_MerchantId: z.string().min(1, 'Merchant ID is required'),
@@ -43,7 +40,7 @@ export const paymentgatewaydetailsSchema = {
         impG_Id: z.preprocess((val) => {
             if (typeof val === 'string' && val.trim().length > 0) return Number(val);
             return val;
-        }, z.number().int().optional()),
+        }, z.number().int()),
         fpgD_MobileActiveFlag: z.boolean().optional(),
         submerchantIds: z
             .array(
@@ -58,7 +55,6 @@ export const paymentgatewaydetailsSchema = {
         FPGD_Id: deleteIdSchema('FPGD_Id')
     })
 };
-
 export const fineslabSchema = {
     addOrUpdate: z
         .object({
@@ -73,7 +69,6 @@ export const fineslabSchema = {
         })
         .superRefine((data, ctx) => {
             const { fmfS_FineType, fmfS_FromDay, fmfS_ToDay } = data;
-
             if (fmfS_FineType === 'Between') {
                 if (typeof fmfS_FromDay !== 'number') {
                     ctx.addIssue({
@@ -82,7 +77,6 @@ export const fineslabSchema = {
                         message: 'Enter From Day'
                     });
                 }
-
                 if (typeof fmfS_ToDay !== 'number') {
                     ctx.addIssue({
                         path: ['fmfS_ToDay'],
@@ -97,7 +91,6 @@ export const fineslabSchema = {
                     });
                 }
             }
-
             if (fmfS_FineType === 'GreaterThan' || fmfS_FineType === 'LessThan') {
                 if (typeof fmfS_FromDay !== 'number') {
                     ctx.addIssue({
@@ -108,25 +101,22 @@ export const fineslabSchema = {
                 }
             }
         }),
-
     delete: z.object({
-        fmfS_Id: z.number({ message: 'fmfS_Id is required for deletion' })
+        fmfS_Id: deleteIdSchema('fmfS_Id')
     })
 };
-
 // export const fineslabSchema = {
-//     addOrUpdate: z.object({
-//         fmfS_Id: z.number().optional(),
-//         fmfS_ToDay: z.number().optional(),
-//         fmfS_FromDay: z.number().optional(),
-//         fmfS_FineType:z.string().optional(),
-//         fmfS_ECSFlag: z.string().optional()
-//     }),
-//     delete: z.object({
-//         fmfS_Id: deleteIdSchema('fmfS_Id')
-//     })
+// addOrUpdate: z.object({
+// fmfS_Id: z.number().optional(),
+// fmfS_ToDay: z.number().optional(),
+// fmfS_FromDay: z.number().optional(),
+// fmfS_FineType:z.string().optional(),
+// fmfS_ECSFlag: z.string().optional()
+// }),
+// delete: z.object({
+// fmfS_Id: deleteIdSchema('fmfS_Id')
+// })
 // };
-
 export const masterClassCategorySchema = {
     addOrUpdate: z.object({
         fmcC_Id: z.number().optional(),
@@ -144,32 +134,24 @@ export const masterClassSchema = {
         asmcl_id: z.number().optional(),
         asmcl_classcode: z.string().min(1, { message: 'Class Category Code is required' }),
         asmcl_classname: z.string().min(1, { message: 'Class Category Name is required' }),
-
         academicYearId: z.string().min(1, { message: 'Academic Year is required' }),
         categoryId: z.string().min(1, { message: 'Category is required' })
     }),
-
     delete: z.object({
         asmS_Id: deleteIdSchema('asmS_Id')
     })
 };
-
 export const masterGroupsGroupingSchema = {
     addOrUpdate: z.object({
-        imgg_Id: z.number().optional(),
-        imgg_GroupingName: z.string().min(1, { message: 'Grouping Name is required' }),
-        imgg_Code: z.string().min(1, { message: 'Code is required' }),
-        imgg_feeGroupIds: z.string().min(1, { message: 'Fee Group IDs are required' }),
-        immgg_feeGroupNames: z.string().min(1, { message: 'Fee Group Names are required' }),
-        imgg_ActiveFlag: z.boolean()
+        fmgG_GroupName: z.string().min(1, { message: 'Grouping Name is required' }),
+        fmgG_GroupCode: z.string().min(1, { message: 'Group Code is required' }),
+        selectedFeeGroupIds: z.array(z.number()).min(1, { message: 'Please select at least one fee group' })
     }),
     delete: z.object({
-        imgg_Id: z.number({ message: 'ID is required for deletion' })
+        fmgG_Id: z.number({ message: 'ID is required for deletion' })
     })
 };
-
 //installment fees
-
 export const masterInstallmentSchema = {
     addOrUpdate: z.object({
         fmI_Name: z.string().min(1, { message: 'Master Installment Name is required' }),
@@ -188,18 +170,19 @@ export const masterInstallmentSchema = {
         mI_ID: z.number().optional()
     })
 };
-
 export const masterGroupSchema = {
     addOrUpdate: z.object({
         fmG_Id: z.number().int().optional(),
         fmG_GroupName: z.string().min(1, { message: 'Fee Group is required' }).max(200),
         fmG_Remarks: z.string().min(1, { message: 'Remarks is required' }).max(500),
-        transportHostelType: z.enum(['transport', 'hostel'], {
-            required_error: 'Please select either Transport or Hostel'
-        }),
-        studentType: z.enum(['regular', 'newstudent'], {
-            required_error: 'Please select student type'
-        }),
+        transportHostelType: z.preprocess((val) => {
+            if (typeof val === 'string' && val.trim() === '') return undefined;
+            return val;
+        }, z.enum(['transport', 'hostel']).optional()),
+        studentType: z.preprocess((val) => {
+            if (typeof val === 'string' && val.trim() === '') return undefined;
+            return val;
+        }, z.enum(['regular', 'newstudent']).optional()),
         fmG_CompulsoryFlag: z.boolean().default(false)
     }),
     toggle: z.object({
@@ -217,7 +200,6 @@ export const masterGroupSchema = {
             })
     })
 };
-
 export const masterInstallmentDueDateSchema = z.object({
     fmI_Name: z.string().min(1, { message: 'Academic Year is required' }),
     fmI_Installment_Type: z.string().min(1, { message: 'Installment type is required' }),
@@ -236,7 +218,6 @@ export const masterInstallmentDueDateSchema = z.object({
         .min(1, { message: 'At least one installment is required' })
         .optional()
 });
-
 export const YearlyGroupSchema = {
     addOrUpdate: z
         .object({
@@ -252,7 +233,6 @@ export const YearlyGroupSchema = {
                             if (trimmed === '' || trimmed === null || trimmed === undefined) {
                                 return undefined;
                             }
-
                             if (!/^\d*\.?\d*$/.test(trimmed)) {
                                 throw new Error('Only numbers and a single decimal point are allowed');
                             }
@@ -301,13 +281,11 @@ export const YearlyGroupSchema = {
                 }
             }
         }),
-
     delete: z.object({
         fyG_Id: deleteIdSchema('fyG_Id')
     })
 };
 //term,concession,ter fee head
-
 export const masterConcessionSchema = {
     addOrUpdate: z.object({
         fmcC_Id: z.number().int().optional(),
@@ -322,7 +300,6 @@ export const masterConcessionSchema = {
         fmcC_Id: deleteIdSchema('fmcC_Id')
     })
 };
-
 export const masterTermsSchema = {
     addOrUpdate: z.object({
         fmT_Id: z.number().int().optional(),
@@ -334,20 +311,18 @@ export const masterTermsSchema = {
         fmT_Id: deleteIdSchema('fmT_Id')
     })
 };
-
 export const masterTermFeeHeadSchema = {
     addOrUpdate: z.object({
         heads: z.array(z.string()).nonempty('Please select at least one Head'),
-        //    terms: z.array(z.string()).nonempty('Please select Term'),
+        //terms: z.array(z.string()).nonempty('Please select Term'),
         installments: z.array(z.string()).nonempty('Please select at least one Term'),
-        fmT_Id: z.number({ message: 'Term is required' }),
-        ftI_Id: z.number({ message: 'Installment is required' })
+        fmT_Id: z.number({ message: 'Term is required' })
+        // ftI_Id: z.number({ message: 'Installment is required' })
     }),
     delete: z.object({
         // FPGD_Id: deleteIdSchema('FPGD_Id')
     })
 };
-
 export const masterConcessionDetailsSchema = {
     addOrUpdate: z.object({
         fmcC_Id: z.number().int().optional(),
@@ -435,11 +410,11 @@ export const masterClassYearlyGroupMappingSchema = {
         prefixValue: z.string().optional(),
         suffixValue: z.string().optional(),
         // startingNumber: z
-        //   .string()
-        //   .min(1, { message: 'Starting Number is required' })
-        //   .refine((value) => !isNaN(Number(value)) && Number(value) >= 0, {
-        //     message: 'Starting Number must be a valid non-negative number'
-        //   }),
+        //.string()
+        //.min(1, { message: 'Starting Number is required' })
+        //.refine((value) => !isNaN(Number(value)) && Number(value) >= 0, {
+        //message: 'Starting Number must be a valid non-negative number'
+        //}),
         groups: z.array(z.string()).min(1, { message: 'At least one group must be selected' }),
         autoGroupName: z.string().min(1, { message: 'Auto Group Name is required' }),
         address: z.string().optional(),

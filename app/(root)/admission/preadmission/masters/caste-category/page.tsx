@@ -62,6 +62,7 @@ function MasterCasteCategoryPageContent({
                         columns={masterCasteCategoryColumns}
                         isLoading={isLoading}
                         error={error}
+                        showViewOptions={false}
                         columnPinning={{ right: ['actions'] }}
                         loadingMessage='Loading master caste categories...'
                         noDataTitle='No Master Caste Categories Found'

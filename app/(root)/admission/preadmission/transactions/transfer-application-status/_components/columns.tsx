@@ -1,6 +1,5 @@
 'use client';
 
-import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
 import type { IPreadmissionApplicationList } from '@/types/admission/preadmission/transactions';
@@ -67,21 +66,7 @@ export const transferApplicationColumns: ColumnDef<IPreadmissionApplicationList>
         accessorKey: 'current_status',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Current Status' />,
         cell: ({ row }) => <div>{row.getValue('current_status')}</div>,
-        enableSorting: true,
-        enableHiding: true
-    },
-    {
-        id: 'actions',
-        header: 'Actions',
-        cell: ({ row }) => {
-            const isSelected = row.getIsSelected();
-            return (
-                <Button variant={isSelected ? 'destructive' : 'outline'} size='sm' onClick={() => row.toggleSelected(!isSelected)}>
-                    {isSelected ? 'Deselect' : 'Select'}
-                </Button>
-            );
-        },
         enableSorting: false,
-        enableHiding: false
+        enableHiding: true
     }
 ];
