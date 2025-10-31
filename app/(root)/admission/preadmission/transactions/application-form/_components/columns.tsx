@@ -39,7 +39,7 @@ export const studentApplicationColumns: ColumnDef<IPreadmissionStudentApplicatio
     },
     {
         accessorKey: 'pasR_RegistrationNo',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Registration No' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Application No' />,
         cell: ({ row }) => <div>{row.getValue('pasR_RegistrationNo') ?? 'N.A'}</div>,
         enableSorting: true,
         enableHiding: true
@@ -67,15 +67,22 @@ export const studentApplicationColumns: ColumnDef<IPreadmissionStudentApplicatio
     },
     {
         accessorKey: 'application_status',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Application Status' />,
+        header: ({ column }) => <DataTableColumnHeader className='text-nowrap' column={column} title='Application Status' />,
         cell: ({ row }) => <div>{row.getValue('application_status')}</div>,
         enableSorting: false,
         enableHiding: true
     },
     {
         accessorKey: 'admission_status',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Admission Status' />,
+        header: ({ column }) => <DataTableColumnHeader className='text-nowrap' column={column} title='Admission Status' />,
         cell: ({ row }) => <div>{row.getValue('admission_status')}</div>,
+        enableSorting: false,
+        enableHiding: true
+    },
+    {
+        accessorKey: 'applied_by',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='User Name' />,
+        cell: ({ row }) => <div>{row.getValue('applied_by')}</div>,
         enableSorting: false,
         enableHiding: true
     },

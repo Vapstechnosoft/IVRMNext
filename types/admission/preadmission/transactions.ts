@@ -58,6 +58,7 @@ export interface IPreadmissionApplicationList {
     pasR_Sex: string;
     applied_class_name: string;
     current_status: string;
+    applied_by: string;
 }
 export interface IPreadmissionAdmissionStatusDropdown {
     pamsT_Id: number;
@@ -75,6 +76,7 @@ export interface IPreadmissionStudentApplicationList {
     payment_status: number;
     application_status: string;
     admission_status: string;
+    applied_by: string;
 }
 export interface IInitiatePaymentResponse {
     payment_url: string;
