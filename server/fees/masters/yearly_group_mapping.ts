@@ -7,11 +7,20 @@ import type { IMasterFeeHeadDropdownList, IMasterFeeInstallmentDropdownList } fr
 export async function getMasterfeehead(searchParams?: ApiSearchparams) {
     const urlParams = getSearchParamsUrl(searchParams ?? {});
     const url = `/YearlyFeeGroupMappingFacade/feeheads${urlParams}`;
-    return await api.get<IMasterFeeHeadDropdownList[]>('fees', url);
+    return await api.get<{
+        success: boolean;
+        message: string;
+        data: IMasterFeeHeadDropdownList[];
+    }>('fees', url);
 }
 
 export async function getMasterfeeInstallment(searchParams?: ApiSearchparams) {
     const urlParams = getSearchParamsUrl(searchParams ?? {});
     const url = `/YearlyFeeGroupMappingFacade/feeinstallments${urlParams}`;
-    return await api.get<IMasterFeeInstallmentDropdownList[]>('fees', url);
+
+    return await api.get<{
+        success: boolean;
+        message: string;
+        data: IMasterFeeInstallmentDropdownList[];
+    }>('fees', url);
 }
