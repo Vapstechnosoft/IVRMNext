@@ -81,7 +81,7 @@ export const studentApplicationColumns: ColumnDef<IPreadmissionStudentApplicatio
     },
     {
         accessorKey: 'applied_by',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='User Name' />,
+        header: ({ column }) => <DataTableColumnHeader className='text-nowrap' column={column} title='User Name' />,
         cell: ({ row }) => <div>{row.getValue('applied_by')}</div>,
         enableSorting: false,
         enableHiding: true

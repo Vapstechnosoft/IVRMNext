@@ -749,7 +749,7 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
                                             />
                                             {/* Student Photo Upload - Mandatory */}
                                             <div className='col-span-full w-fit'>
-                                                <div className='rounded-lg border-2 border-blue-200 bg-blue-50 p-6'>
+                                                <div className='rounded-lg border-2 border-blue-200 bg-blue-50 p-2'>
                                                     <div className='mb-4'>
                                                         <Label htmlFor='student_photo' className='text-base'>
                                                             Student Photo <span className='ml-1 text-red-500'>*</span>
@@ -760,15 +760,15 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
                                                         <label
                                                             htmlFor='student_photo'
                                                             className={cn(
-                                                                'flex cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed px-6 py-8 text-center transition-all hover:border-primary hover:bg-white',
+                                                                'flex cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed px-2 py-8 text-center transition-all hover:border-primary hover:bg-white',
                                                                 studentPhoto?.isUploading
                                                                     ? 'border-blue-400 bg-blue-100'
                                                                     : 'border-gray-300 bg-white'
                                                             )}>
                                                             {studentPhoto?.isUploading ? (
-                                                                <div className='flex flex-col items-center gap-3'>
+                                                                <div className='flex flex-col items-center gap-2'>
                                                                     <svg
-                                                                        className='h-12 w-12 animate-spin text-primary'
+                                                                        className='h-8 w-8 animate-spin text-primary'
                                                                         fill='none'
                                                                         stroke='currentColor'
                                                                         viewBox='0 0 24 24'>
@@ -793,7 +793,7 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
                                                             ) : (
                                                                 <>
                                                                     <svg
-                                                                        className='mb-3 h-16 w-16 text-primary'
+                                                                        className='h-12 w-12 text-primary'
                                                                         fill='none'
                                                                         stroke='currentColor'
                                                                         viewBox='0 0 24 24'>
