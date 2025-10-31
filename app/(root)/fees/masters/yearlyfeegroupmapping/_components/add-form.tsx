@@ -13,11 +13,6 @@ import { useFeeMasterHead, useFeeMasterInstallment } from '@/hooks/fees/useMaste
 import type { ColumnDef } from '@tanstack/react-table';
 import { useMemo, useState } from 'react';
 
-// dropdown data will be loaded from hooks
-// const academicYears = ['2023-2024', '2024-2025', '2025-2026'];
-// const feeGroups = ['ICSE Class I', 'CBSE Class II', 'State Board IX'];
-// fee heads and installments will come from hooks: useFeeMasterHead & useFeeMasterInstallment
-
 interface IHeadInstallment {
     id: number;
     feeHead: string;
@@ -44,27 +39,23 @@ export default function YearlyFeeGroupMapping() {
         };
     };
 
-    const { data: feeHeadResponse } = useFeeMasterHead() as {
-        data?: {
-            success?: boolean;
-            message?: string;
-            data?: { fmH_Id: number; fmH_FeeName: string }[];
-        };
-    };
+    const { data: feeHeadResponse, isLoading: isLoadingHeads, error: headError } = useFeeMasterHead();
 
-    const { data: installmentResponse } = useFeeMasterInstallment() as {
-        data?: {
-            success?: boolean;
-            message?: string;
-            data?: { fmI_Id: number; fmI_Name: string }[];
-        };
-    };
+    const { data: installmentResponse, isLoading: isLoadingInstallments, error: installmentError } = useFeeMasterInstallment();
+
+    console.log('Fee Head Response:', feeHeadResponse);
+    console.log('Fee Head Error:', headError);
+    console.log('Installment Response:', installmentResponse);
+    console.log('Installment Error:', installmentError);
 
     const academicYears = Array.isArray(academicYearOptions?.data) ? academicYearOptions.data : [];
     const feeGroups = Array.isArray(feeGroupResponse?.data) ? feeGroupResponse.data : [];
 
-    const feeHeads = Array.isArray(feeHeadResponse?.data) ? feeHeadResponse.data : [];
-    const installments = Array.isArray(installmentResponse?.data) ? installmentResponse.data : [];
+    const feeHeads = feeHeadResponse?.data || [];
+    const installments = installmentResponse?.data || [];
+
+    console.log('Processed Fee Heads:', feeHeads);
+    console.log('Processed Installments:', installments);
     const [academicYear, setAcademicYear] = useState<string | null>(null);
     const [feeGroup, setFeeGroup] = useState<string | null>(null);
     const [search, _setSearch] = useState('');
@@ -158,9 +149,9 @@ export default function YearlyFeeGroupMapping() {
                         <SelectValue placeholder='Select Head' />
                     </SelectTrigger>
                     <SelectContent>
-                        {feeHeads.length ? (
+                        {Array.isArray(feeHeads) && feeHeads.length > 0 ? (
                             feeHeads.map((h: any) => (
-                                <SelectItem key={h.fmH_Id} value={h.fmH_Id?.toString() || ''}>
+                                <SelectItem key={h.fmH_Id} value={String(h.fmH_Id)}>
                                     {h.fmH_FeeName}
                                 </SelectItem>
                             ))
@@ -186,9 +177,9 @@ export default function YearlyFeeGroupMapping() {
                         <SelectValue placeholder='Select Installment' />
                     </SelectTrigger>
                     <SelectContent>
-                        {installments.length ? (
+                        {Array.isArray(installments) && installments.length > 0 ? (
                             installments.map((i: any) => (
-                                <SelectItem key={i.fmI_Id} value={i.fmI_Id?.toString() || ''}>
+                                <SelectItem key={i.fmI_Id} value={String(i.fmI_Id)}>
                                     {i.fmI_Name}
                                 </SelectItem>
                             ))
