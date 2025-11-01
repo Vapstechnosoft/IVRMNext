@@ -3,10 +3,14 @@
 import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
+import { ROLES } from '@/constants';
 import type { IPreadmissionStudentApplicationList } from '@/types/admission/preadmission/transactions';
 import type { ColumnDef } from '@tanstack/react-table';
 import { ReceiptIndianRupee } from 'lucide-react';
+import { useSession } from 'next-auth/react';
+import { useEffect } from 'react';
 import PaymentDialog from './payment-dialog';
+import ToggleStudentApplicationForm from './toggle-form';
 
 export const studentApplicationColumns: ColumnDef<IPreadmissionStudentApplicationList>[] = [
     {
@@ -88,15 +92,23 @@ export const studentApplicationColumns: ColumnDef<IPreadmissionStudentApplicatio
     },
     {
         id: 'actions',
-        header: 'Actions',
+        header: ({ column }) => <DataTableColumnHeader className='text-center' column={column} title='Actions' />,
         accessorFn: (row: any) => {
             return row;
         },
         enableHiding: false,
         enableSorting: false,
         cell: ({ cell }: { cell: any }) => {
+            const session = useSession();
+
+            useEffect(() => {
+                if (session?.data?.role === undefined) {
+                    window.location.reload();
+                }
+            }, [session?.data?.role]);
+
             return (
-                <>
+                <div className='flex justify-between gap-2'>
                     {cell.row.original.is_fee_applicable === 1 ? (
                         cell.row.original.payment_status === 0 ? (
                             <PaymentDialog cell={cell} />
@@ -108,7 +120,8 @@ export const studentApplicationColumns: ColumnDef<IPreadmissionStudentApplicatio
                     ) : (
                         <p className='text-slate-600 text-sm'>No Fee</p>
                     )}
-                </>
+                    {session?.data?.role.toUpperCase() === ROLES.ADMIN && <ToggleStudentApplicationForm cell={cell} />}
+                </div>
             );
         }
     }

@@ -305,27 +305,30 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
                 selectedRefrenceDetails: selectedReferenceItems.map((item) => ({
                     pamR_Id: item.pamR_Id
                 })),
-                siblingsDetails: siblings.map((sibling) => ({
-                    ...sibling,
-                    verrejstatus: '',
-                    pasrS_SchoolName: '',
-                    pasrS_Age: 0,
-                    pasrS_Gender: '',
-                    pasrS_Institution: '',
-                    pasrS_DOB: ''
-                })),
-                previousSchoolList: previousSchool.pasrpS_PrvSchoolName
-                    ? [
-                          {
-                              ...previousSchool,
-                              pasrpS_TcNo: '',
-                              pasrpS_PreviousPer: '',
-                              pasrpS_PreviousGrade: '',
-                              pasrpS_PreviousMarks: '',
-                              pasrpS_ConcOrScholarshipFlg: ''
-                          }
-                      ]
-                    : [],
+                siblingsDetails: siblings
+                    .filter((sibling) => sibling.pasrS_SiblingsName !== '')
+                    .map((sibling) => ({
+                        ...sibling,
+                        verrejstatus: '',
+                        pasrS_SchoolName: '',
+                        pasrS_Age: 0,
+                        pasrS_Gender: '',
+                        pasrS_Institution: '',
+                        pasrS_DOB: ''
+                    })),
+                previousSchoolList:
+                    previousSchool.pasrpS_PrvSchoolName !== ''
+                        ? [
+                              {
+                                  ...previousSchool,
+                                  pasrpS_TcNo: '',
+                                  pasrpS_PreviousPer: '',
+                                  pasrpS_PreviousGrade: '',
+                                  pasrpS_PreviousMarks: '',
+                                  pasrpS_ConcOrScholarshipFlg: ''
+                              }
+                          ]
+                        : [],
                 examSubjectDTO: [],
                 elesubsubject: [],
                 selectedDocuments: uploadedDocuments.map((doc) => ({
@@ -503,6 +506,7 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
                 toast.success(`${documentName} uploaded successfully`);
             } else {
                 console.log('Upload Failed:', response.message);
+                toast.error(`Failed to upload ${documentName}`);
             }
         } catch (error: any) {
             console.error('Upload error:', error);
@@ -750,8 +754,8 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
                                             {/* Student Photo Upload - Mandatory */}
                                             <div className='col-span-full w-fit'>
                                                 <div className='rounded-lg border-2 border-blue-200 bg-blue-50 p-2'>
-                                                    <div className='mb-4'>
-                                                        <Label htmlFor='student_photo' className='text-base'>
+                                                    <div className='mb-1'>
+                                                        <Label htmlFor='student_photo'>
                                                             Student Photo <span className='ml-1 text-red-500'>*</span>
                                                         </Label>
                                                     </div>
@@ -760,7 +764,7 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
                                                         <label
                                                             htmlFor='student_photo'
                                                             className={cn(
-                                                                'flex cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed px-2 py-8 text-center transition-all hover:border-primary hover:bg-white',
+                                                                'flex cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed px-2 py-3 text-center transition-all hover:border-primary hover:bg-white',
                                                                 studentPhoto?.isUploading
                                                                     ? 'border-blue-400 bg-blue-100'
                                                                     : 'border-gray-300 bg-white'
@@ -805,11 +809,10 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
                                                                         />
                                                                     </svg>
                                                                     <span className='font-medium text-gray-700 text-sm'>
-                                                                        Click to upload student photo
+                                                                        Click to upload
                                                                     </span>
                                                                     <span className='mt-1 max-w-[250px] text-gray-600 text-sm'>
-                                                                        Please upload a recent passport-size photo of the student (Max size:
-                                                                        1MB, Format: JPG, PNG)
+                                                                        Upload recent passport-size photo (Max size: 1MB, Format: JPG, PNG)
                                                                     </span>
                                                                 </>
                                                             )}
@@ -834,7 +837,7 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
                                                             />
                                                         </label>
                                                     ) : (
-                                                        <div className='flex w-fit items-center justify-between rounded-lg border border-green-200 bg-green-50 p-4'>
+                                                        <div className='flex w-fit flex-col items-start justify-between gap-2 rounded-lg border border-green-200 bg-green-50 p-4'>
                                                             <div className='flex items-center gap-4'>
                                                                 <img
                                                                     src={studentPhoto.pasR_Student_Pic_Path}
@@ -844,7 +847,7 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
                                                                 <div>
                                                                     <div className='flex items-center gap-2 font-medium text-green-700'>
                                                                         <Check className='h-5 w-5' />
-                                                                        Photo Uploaded Successfully
+                                                                        Uploaded Successfully
                                                                     </div>
                                                                     <p className='mt-1 text-green-600 text-sm'>Student photo is ready</p>
                                                                 </div>
@@ -2208,6 +2211,8 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
                                                                     onChange={(e) =>
                                                                         updateSibling(index, 'pasrS_SiblingsSection', e.target.value)
                                                                     }
+                                                                    minLength={1}
+                                                                    maxLength={10}
                                                                 />
                                                             </div>
                                                         </div>

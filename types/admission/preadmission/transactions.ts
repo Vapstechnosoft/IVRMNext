@@ -77,6 +77,7 @@ export interface IPreadmissionStudentApplicationList {
     application_status: string;
     admission_status: string;
     applied_by: string;
+    pasR_ActiveFlag: number;
 }
 export interface IInitiatePaymentResponse {
     payment_url: string;

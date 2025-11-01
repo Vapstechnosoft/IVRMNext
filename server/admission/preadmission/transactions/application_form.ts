@@ -93,3 +93,8 @@ export async function updateApplicationPaymentStatus(status: string, transaction
         };
     }
 }
+
+export async function toggleStudentApplication(id: number) {
+    const url = `/student_application_form/toggle/${id}`;
+    return await api.put('preadmission', url);
+}
