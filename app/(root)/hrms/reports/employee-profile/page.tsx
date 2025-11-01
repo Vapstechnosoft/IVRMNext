@@ -11,7 +11,7 @@ import {
     useEmployeeProfileReportOnload,
     useFilterEmployeesBySelection,
     useSearchEmployeeProfileDetails
-} from '@/hooks/hrms/reports/useEmployeeProfileReport';
+} from '@/hooks/hrms/useReports';
 import type { EmployeeDropdown } from '@/types/hrms/reports/employee-profile-report';
 import { Printer, Search, User, X } from 'lucide-react';
 import { useCallback, useEffect, useState } from 'react';

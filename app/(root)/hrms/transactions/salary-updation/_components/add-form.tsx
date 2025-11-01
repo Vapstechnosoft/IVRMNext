@@ -8,7 +8,7 @@ import { InputText } from '@/components/ui/extension/input-text';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { HRMS_MI_ID } from '@/constants/hrms-config';
-import { useSaveSalaryUpdation } from '@/hooks/hrms/useSalaryUpdation';
+import { useSaveSalaryUpdation } from '@/hooks/hrms/useTransactions';
 import { cn } from '@/lib/utils';
 import { salaryUpdationSchema } from '@/schemas/hrms/salary-updation-schemas';
 import type { SalaryUpdationOnloadResponse } from '@/types/hrms/salary-updation';

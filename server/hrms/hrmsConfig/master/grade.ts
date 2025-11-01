@@ -1,13 +1,10 @@
-import { clientEnv } from '@/env';
-import type { ApiResponse } from '@/lib/apiService';
+'use server';
+
+import { api } from '@/lib/apiService';
 import type { GradeDetail, MasterGradeInput, MasterGradeResponse, OnchangeGradeDetailsRequest } from '@/types/hrms/master-grade';
-import axios from 'axios';
 
-export async function getMasterGradeList(roleId: number): Promise<ApiResponse<MasterGradeResponse>> {
-    const baseURL = clientEnv.NEXT_PUBLIC_API_BASE_URL;
-    const apiPath = '/api/MasterGradeFacade/onloadgetdetails';
-    const url = `${baseURL}${apiPath}`;
-
+export async function getMasterGradeList(roleId: number) {
+    const url = '/api/MasterGradeFacade/onloadgetdetails';
     const requestBody = {
         CreatedDate: new Date().toISOString(),
         UpdatedDate: new Date().toISOString(),
@@ -26,26 +23,11 @@ export async function getMasterGradeList(roleId: number): Promise<ApiResponse<Ma
         roleId: roleId,
         GradeDTO: []
     };
-
-    const axiosResponse = await axios.post<MasterGradeResponse>(url, requestBody, {
-        headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
-        timeout: 30000,
-        validateStatus: (status) => status < 500
-    });
-
-    return {
-        success: axiosResponse.status >= 200 && axiosResponse.status < 300,
-        message:
-            axiosResponse.data.retrunMsg ||
-            (axiosResponse.status >= 200 && axiosResponse.status < 300 ? 'Grades loaded successfully' : `HTTP ${axiosResponse.status}`),
-        data: axiosResponse.data
-    };
+    return await api.post<MasterGradeResponse>('hrms', url, requestBody);
 }
 
-export async function saveMasterGrade(data: MasterGradeInput): Promise<ApiResponse<MasterGradeResponse>> {
-    const baseURL = clientEnv.NEXT_PUBLIC_API_BASE_URL;
-    const url = `${baseURL}/api/MasterGradeFacade`;
-
+export async function saveMasterGrade(data: MasterGradeInput) {
+    const url = '/api/MasterGradeFacade';
     const requestBody: OnchangeGradeDetailsRequest = {
         CreatedDate: new Date().toISOString(),
         UpdatedDate: new Date().toISOString(),
@@ -64,23 +46,7 @@ export async function saveMasterGrade(data: MasterGradeInput): Promise<ApiRespon
         roleId: data.MI_Id || 0,
         GradeDTO: []
     };
-
-    const axiosResponse = await axios.post<MasterGradeResponse>(url, requestBody, {
-        headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
-        timeout: 30000,
-        validateStatus: (status) => status < 500
-    });
-
-    const isSuccess =
-        axiosResponse.status >= 200 &&
-        axiosResponse.status < 300 &&
-        (!axiosResponse.data.retrunMsg || !axiosResponse.data.retrunMsg.toLowerCase().includes('error'));
-
-    return {
-        success: isSuccess,
-        message: axiosResponse.data.retrunMsg || (isSuccess ? 'Grade saved successfully' : `HTTP ${axiosResponse.status}`),
-        data: axiosResponse.data
-    };
+    return await api.post<MasterGradeResponse>('hrms', url, requestBody);
 }
 
 /**
@@ -91,57 +57,31 @@ export async function activateDeactivateMasterGrade(data: {
     HRMG_Id: number;
     HRMG_ActiveFlag: boolean;
     MI_Id?: number;
-}): Promise<ApiResponse<MasterGradeResponse>> {
-    try {
-        const baseURL = clientEnv.NEXT_PUBLIC_API_BASE_URL;
-        const apiPath = '/api/MasterGradeFacade/deactivateRecordById';
-        const url = `${baseURL}${apiPath}`;
-
-        const requestBody = {
-            CreatedDate: new Date().toISOString(),
-            UpdatedDate: new Date().toISOString(),
-            HRMG_Id: data.HRMG_Id,
-            MI_Id: 30,
-            HRMG_GradeName: 'string',
-            HRMG_GradeDisplayName: 'string',
-            HRMG_PayScaleRange: 'string',
-            HRMG_PayScaleFrom: 0,
-            HRMG_IncrementOf: 0,
-            HRMG_PayScaleTo: 0,
-            HRMG_Order: 0,
-            HRMG_ActiveFlag: data.HRMG_ActiveFlag,
-            gradelList: [],
-            retrunMsg: 'string',
-            roleId: 0,
-            GradeDTO: []
-        };
-
-        const axiosResponse = await axios.post<MasterGradeResponse>(url, requestBody, {
-            headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
-            timeout: 30000,
-            validateStatus: (status) => status < 500
-        });
-
-        const isSuccess =
-            axiosResponse.status >= 200 &&
-            axiosResponse.status < 300 &&
-            (!axiosResponse.data.retrunMsg || !axiosResponse.data.retrunMsg.toLowerCase().includes('error'));
-
-        return {
-            success: isSuccess,
-            message: axiosResponse.data.retrunMsg || (isSuccess ? 'Grade status updated successfully' : `HTTP ${axiosResponse.status}`),
-            data: axiosResponse.data
-        };
-    } catch (error) {
-        console.error('Error activating/deactivating master grade:', error);
-        throw error;
-    }
+}) {
+    const url = '/api/MasterGradeFacade/deactivateRecordById';
+    const requestBody = {
+        CreatedDate: new Date().toISOString(),
+        UpdatedDate: new Date().toISOString(),
+        HRMG_Id: data.HRMG_Id,
+        MI_Id: 30,
+        HRMG_GradeName: 'string',
+        HRMG_GradeDisplayName: 'string',
+        HRMG_PayScaleRange: 'string',
+        HRMG_PayScaleFrom: 0,
+        HRMG_IncrementOf: 0,
+        HRMG_PayScaleTo: 0,
+        HRMG_Order: 0,
+        HRMG_ActiveFlag: data.HRMG_ActiveFlag,
+        gradelList: [],
+        retrunMsg: 'string',
+        roleId: 0,
+        GradeDTO: []
+    };
+    return await api.post<MasterGradeResponse>('hrms', url, requestBody);
 }
 
-export async function saveMasterGradeOrder(grades: GradeDetail[]): Promise<ApiResponse<MasterGradeResponse>> {
-    const baseURL = clientEnv.NEXT_PUBLIC_API_BASE_URL;
-    const url = `${baseURL}/api/MasterGradeFacade`;
-
+export async function saveMasterGradeOrder(grades: GradeDetail[]) {
+    const url = '/api/MasterGradeFacade';
     const requestBody: OnchangeGradeDetailsRequest = {
         CreatedDate: new Date().toISOString(),
         UpdatedDate: new Date().toISOString(),
@@ -171,18 +111,5 @@ export async function saveMasterGradeOrder(grades: GradeDetail[]): Promise<ApiRe
             HRMG_ActiveFlag: grade.HRMG_ActiveFlag
         }))
     };
-
-    const axiosResponse = await axios.post<MasterGradeResponse>(url, requestBody, {
-        headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
-        timeout: 30000,
-        validateStatus: (status) => status < 500
-    });
-
-    return {
-        success: axiosResponse.status >= 200 && axiosResponse.status < 300,
-        message:
-            axiosResponse.data.retrunMsg ||
-            (axiosResponse.status >= 200 && axiosResponse.status < 300 ? 'Order saved successfully' : `HTTP ${axiosResponse.status}`),
-        data: axiosResponse.data
-    };
+    return await api.post<MasterGradeResponse>('hrms', url, requestBody);
 }

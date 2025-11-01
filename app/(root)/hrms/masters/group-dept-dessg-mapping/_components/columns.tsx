@@ -4,7 +4,7 @@ import { Badge } from '@/components/ui/badge';
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
 import { ActionButtons } from '@/components/ui/form/action-buttons';
 import { useFormContext } from '@/components/ui/form/form-provider';
-import { useGroupDeptDessgMappingCRUD } from '@/hooks/hrms/useGroupDeptDessgMapping';
+import { useGroupDeptDessgMappingCRUD } from '@/hooks/hrms/useMasters';
 import type { GroupDeptDessgMappingDetail, GroupDeptDessgMappingResponse } from '@/types/hrms/group-dept-dessg-mapping';
 import type { ColumnDef } from '@tanstack/react-table';
 import { useCallback } from 'react';

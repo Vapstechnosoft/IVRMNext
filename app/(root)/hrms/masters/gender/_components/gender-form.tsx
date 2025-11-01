@@ -2,7 +2,7 @@ import { Button } from '@/components/ui/button';
 import { FormError, Label } from '@/components/ui/extension/field';
 import { InputText } from '@/components/ui/extension/input-text';
 import { HRMS_MI_ID } from '@/constants/hrms-config';
-import { useMasterGender } from '@/hooks/hrms/useMasterGender';
+import { useMasterGender } from '@/hooks/hrms/useMasters';
 import { GENDER_VALIDATION } from '@/lib/validation/hrms-master-validation';
 import type { GenderItem, MasterGenderInput } from '@/types/hrms/master-gender';
 import { useEffect } from 'react';

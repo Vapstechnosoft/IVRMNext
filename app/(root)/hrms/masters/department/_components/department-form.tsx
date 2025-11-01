@@ -5,7 +5,7 @@ import { FormError } from '@/components/ui/extension/field';
 import { InputNumber } from '@/components/ui/extension/input-number';
 import { InputText } from '@/components/ui/extension/input-text';
 import { HRMS_MI_ID } from '@/constants/hrms-config';
-import { useMasterDepartment } from '@/hooks/hrms/useMasterDepartment';
+import { useMasterDepartment } from '@/hooks/hrms/useMasters';
 import { departmentSchema } from '@/schemas/hrms/employee-category-schemas';
 import type { DepartmentDetail } from '@/types/hrms/master-department';
 import { zodResolver } from '@hookform/resolvers/zod';

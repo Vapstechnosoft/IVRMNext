@@ -5,7 +5,7 @@ import { GenericDataTable } from '@/components/ui/data-table/generic-data-table'
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
 import { HRMS_MI_ID } from '@/constants/hrms-config';
-import { useMasterLeaveYear } from '@/hooks/hrms/useMasterLeaveYear';
+import { useMasterLeaveYear } from '@/hooks/hrms/useMasters';
 import type { LeaveYearDetail } from '@/types/hrms/master-leave-year';
 import { ListOrdered, Plus, Save, X } from 'lucide-react';
 import { useState } from 'react';
@@ -39,7 +39,7 @@ function MasterLeaveYearPageContent({
 }) {
     const { openAddForm } = useFormContext<LeaveYearDetail>();
     const { saveOrderMutation } = useMasterLeaveYear(HRMS_MI_ID);
-    const rows: LeaveYearDetail[] = response?.data?.leaveYearList ?? [];
+    const rows: LeaveYearDetail[] = response?.leaveYearList ?? [];
 
     const [isEditOrderMode, setIsEditOrderMode] = useState(false);
     const [editedRows, setEditedRows] = useState<LeaveYearDetail[]>([]);

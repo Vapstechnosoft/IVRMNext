@@ -4,7 +4,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { useApproveSalaries } from '@/hooks/hrms/useSalaryApproval';
+import { useApproveSalaries } from '@/hooks/hrms/useTransactions';
 import type { EmployeeDetail } from '@/types/hrms/salary-approval';
 import { CheckCircle, XCircle } from 'lucide-react';
 import { useState } from 'react';

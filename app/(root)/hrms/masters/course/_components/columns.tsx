@@ -5,7 +5,7 @@ import { ActionButtons } from '@/components/ui/form/action-buttons';
 import { useFormContext } from '@/components/ui/form/form-provider';
 import { Input } from '@/components/ui/input';
 import { HRMS_MI_ID } from '@/constants/hrms-config';
-import { useMasterCourse } from '@/hooks/hrms/useMasterCourse';
+import { useMasterCourse } from '@/hooks/hrms/useMasters';
 import type { CourseDetail, MasterCourseResponse } from '@/types/hrms/master-course';
 import type { ColumnDef } from '@tanstack/react-table';
 import { useCallback } from 'react';

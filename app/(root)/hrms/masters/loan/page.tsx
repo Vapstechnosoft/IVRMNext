@@ -5,7 +5,7 @@ import { GenericDataTable } from '@/components/ui/data-table/generic-data-table'
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
 import { HRMS_MI_ID } from '@/constants/hrms-config';
-import { useMasterLoan } from '@/hooks/hrms/useMasterLoan';
+import { useMasterLoan } from '@/hooks/hrms/useMasters';
 import type { MasterLoanDetail } from '@/types/hrms/master-loan';
 import { Plus, X } from 'lucide-react';
 import { columns } from './_components/columns';
@@ -34,7 +34,7 @@ function MasterLoanPageContent({
     error: any;
 }) {
     const { openAddForm } = useFormContext<MasterLoanDetail>();
-    const rows: MasterLoanDetail[] = response?.data?.gmasterloanList ?? [];
+    const rows: MasterLoanDetail[] = response?.gmasterloanList ?? [];
 
     return (
         <div className='min-h-screen'>

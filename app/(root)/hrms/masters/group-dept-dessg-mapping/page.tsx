@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { GenericDataTable } from '@/components/ui/data-table/generic-data-table';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
-import { useGroupDeptDessgMapping } from '@/hooks/hrms/useGroupDeptDessgMapping';
+import { useGroupDeptDessgMapping } from '@/hooks/hrms/useMasters';
 import type { GroupDeptDessgMappingDetail } from '@/types/hrms/group-dept-dessg-mapping';
 import { Plus, X } from 'lucide-react';
 import { groupDeptDessgMappingColumns } from './_components/columns';

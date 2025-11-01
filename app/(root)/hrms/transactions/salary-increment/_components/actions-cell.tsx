@@ -21,7 +21,7 @@ import {
     DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu';
 import { useFormContext } from '@/components/ui/form/form-provider';
-import { useDeleteSalaryIncrement } from '@/hooks/hrms/useSalaryIncrement';
+import { useDeleteSalaryIncrement } from '@/hooks/hrms/useTransactions';
 import type { SalaryIncrementGridItem } from '@/types/hrms/salary-increment';
 import type { Row } from '@tanstack/react-table';
 import { MoreHorizontal } from 'lucide-react';

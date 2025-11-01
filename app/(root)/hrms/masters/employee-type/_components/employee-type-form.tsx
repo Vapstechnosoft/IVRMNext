@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { FormError } from '@/components/ui/extension/field';
 import { InputText } from '@/components/ui/extension/input-text';
 import { HRMS_MI_ID } from '@/constants/hrms-config';
-import { useMasterEmployeeType } from '@/hooks/hrms/useMasterEmployeeType';
+import { useMasterEmployeeType } from '@/hooks/hrms/useMasters';
 import { employeeTypeSchema } from '@/schemas/hrms/employee-category-schemas';
 import type { EmployeeTypeDetail } from '@/types/hrms/master-employee-type';
 import { zodResolver } from '@hookform/resolvers/zod';

@@ -5,7 +5,7 @@ import { GenericDataTable } from '@/components/ui/data-table/generic-data-table'
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
 import { HRMS_MI_ID } from '@/constants/hrms-config';
-import { useMasterDepartment } from '@/hooks/hrms/useMasterDepartment';
+import { useMasterDepartment } from '@/hooks/hrms/useMasters';
 import type { DepartmentDetail } from '@/types/hrms/master-department';
 import { ListOrdered, Plus, Save, X } from 'lucide-react';
 import { useState } from 'react';
@@ -39,7 +39,7 @@ function MasterDepartmentPageContent({
 }) {
     const { openAddForm } = useFormContext<DepartmentDetail>();
     const { saveOrderMutation } = useMasterDepartment(HRMS_MI_ID);
-    const rows: DepartmentDetail[] = response?.data?.departmentList ?? [];
+    const rows: DepartmentDetail[] = response?.departmentList ?? [];
 
     const [isEditOrderMode, setIsEditOrderMode] = useState(false);
     const [editedRows, setEditedRows] = useState<DepartmentDetail[]>([]);

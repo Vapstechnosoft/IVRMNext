@@ -5,7 +5,7 @@ import { GenericDataTable } from '@/components/ui/data-table/generic-data-table'
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
 import { HRMS_MI_ID } from '@/constants/hrms-config';
-import { useMasterSpecialization } from '@/hooks/hrms/useMasterSpecialization';
+import { useMasterSpecialization } from '@/hooks/hrms/useMasters';
 import type { SpecializationItem } from '@/types/hrms/master-specialization';
 import { Plus, X } from 'lucide-react';
 import { columns } from './_components/columns';
@@ -36,7 +36,7 @@ function MasterSpecializationPageContent({
     error: any;
 }) {
     const { openAddForm } = useFormContext<SpecializationItem>();
-    const rows: SpecializationItem[] = response?.data?.alldata ?? [];
+    const rows: SpecializationItem[] = response?.alldata ?? [];
 
     return (
         <div className='min-h-screen'>

@@ -5,7 +5,7 @@ import { GenericDataTable } from '@/components/ui/data-table/generic-data-table'
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
 import { HRMS_MI_ID } from '@/constants/hrms-config';
-import { useMasterBank } from '@/hooks/hrms/useMasterBank';
+import { useMasterBank } from '@/hooks/hrms/useMasters';
 import type { BankItem } from '@/types/hrms/master-bank';
 import { Plus, X } from 'lucide-react';
 import BankForm from './_components/bank-form';
@@ -33,7 +33,7 @@ function MasterBankPageContent({
     error: any;
 }) {
     const { openAddForm } = useFormContext<BankItem>();
-    const rows: BankItem[] = response?.data?.bankdetailList ?? [];
+    const rows: BankItem[] = response?.bankdetailList ?? [];
 
     return (
         <div className='min-h-screen'>

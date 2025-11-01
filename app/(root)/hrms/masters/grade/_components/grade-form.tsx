@@ -5,7 +5,7 @@ import { FormError } from '@/components/ui/extension/field';
 import { InputText } from '@/components/ui/extension/input-text';
 import { Input } from '@/components/ui/input';
 import { HRMS_MI_ID } from '@/constants/hrms-config';
-import { useMasterGrade } from '@/hooks/hrms/useMasterGrade';
+import { useMasterGrade } from '@/hooks/hrms/useMasters';
 import { gradeSchema } from '@/schemas/hrms/employee-category-schemas';
 import type { GradeDetail } from '@/types/hrms/master-grade';
 import { zodResolver } from '@hookform/resolvers/zod';

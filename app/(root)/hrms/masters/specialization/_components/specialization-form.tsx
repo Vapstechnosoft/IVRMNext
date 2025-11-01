@@ -2,7 +2,7 @@ import { Button } from '@/components/ui/button';
 import { FormError, Label } from '@/components/ui/extension/field';
 import { InputText } from '@/components/ui/extension/input-text';
 import { HRMS_MI_ID } from '@/constants/hrms-config';
-import { useMasterSpecialization } from '@/hooks/hrms/useMasterSpecialization';
+import { useMasterSpecialization } from '@/hooks/hrms/useMasters';
 import { SPECIALIZATION_VALIDATION } from '@/lib/validation/hrms-master-validation';
 import type { MasterSpecializationInput, SpecializationItem } from '@/types/hrms/master-specialization';
 import { useEffect } from 'react';

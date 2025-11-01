@@ -4,7 +4,7 @@ import { DataTableColumnHeader } from '@/components/ui/data-table-column-header'
 import { ActionButtons } from '@/components/ui/form/action-buttons';
 import { useFormContext } from '@/components/ui/form/form-provider';
 import { HRMS_MI_ID } from '@/constants/hrms-config';
-import { useMasterLoan } from '@/hooks/hrms/useMasterLoan';
+import { useMasterLoan } from '@/hooks/hrms/useMasters';
 import type { MasterLoanDetail, MasterLoanResponse } from '@/types/hrms/master-loan';
 import type { ColumnDef } from '@tanstack/react-table';
 import { useCallback } from 'react';

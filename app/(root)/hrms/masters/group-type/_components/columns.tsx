@@ -5,7 +5,7 @@ import { ActionButtons } from '@/components/ui/form/action-buttons';
 import { useFormContext } from '@/components/ui/form/form-provider';
 import { Input } from '@/components/ui/input';
 import { HRMS_MI_ID } from '@/constants/hrms-config';
-import { useMasterGroupType } from '@/hooks/hrms/useMasterGroupType';
+import { useMasterGroupType } from '@/hooks/hrms/useMasters';
 import type { GroupTypeDetail, MasterGroupTypeResponse } from '@/types/hrms/master-group-type';
 import type { ColumnDef } from '@tanstack/react-table';
 import { useCallback } from 'react';

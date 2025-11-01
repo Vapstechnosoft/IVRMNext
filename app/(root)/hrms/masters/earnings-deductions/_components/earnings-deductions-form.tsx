@@ -3,7 +3,7 @@ import { FormError, Label } from '@/components/ui/extension/field';
 import { InputText } from '@/components/ui/extension/input-text';
 import { Input } from '@/components/ui/input';
 import { HRMS_MI_ID } from '@/constants/hrms-config';
-import { useMasterEarningsDeductions } from '@/hooks/hrms/useMasterEarningsDeductions';
+import { useMasterEarningsDeductions } from '@/hooks/hrms/useMasters';
 import { EARNING_DEDUCTION_VALIDATION } from '@/lib/validation/hrms-master-validation';
 import type { EarningsDeductionDetail, MasterEarningsDeductionsInput } from '@/types/hrms/master-earnings-deductions';
 import { useEffect } from 'react';

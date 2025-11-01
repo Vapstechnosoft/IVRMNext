@@ -2,7 +2,7 @@ import { Button } from '@/components/ui/button';
 import { FormError, Label } from '@/components/ui/extension/field';
 import { Input } from '@/components/ui/input';
 import { HRMS_MI_ID } from '@/constants/hrms-config';
-import { useMasterProfessionalTax } from '@/hooks/hrms/useMasterProfessionalTax';
+import { useMasterProfessionalTax } from '@/hooks/hrms/useMasters';
 import { PROFESSIONAL_TAX_VALIDATION } from '@/lib/validation/hrms-master-validation';
 import type { MasterProfessionalTaxInput, ProfessionalTaxDetail } from '@/types/hrms/master-professional-tax';
 import { useEffect } from 'react';

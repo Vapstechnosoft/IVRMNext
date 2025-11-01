@@ -5,7 +5,7 @@ import { ActionButtons } from '@/components/ui/form/action-buttons';
 import { useFormContext } from '@/components/ui/form/form-provider';
 import { Input } from '@/components/ui/input';
 import { HRMS_MI_ID } from '@/constants/hrms-config';
-import { useMasterLeaveYear } from '@/hooks/hrms/useMasterLeaveYear';
+import { useMasterLeaveYear } from '@/hooks/hrms/useMasters';
 import type { LeaveYearDetail, MasterLeaveYearResponse } from '@/types/hrms/master-leave-year';
 import type { ColumnDef } from '@tanstack/react-table';
 import { useCallback } from 'react';

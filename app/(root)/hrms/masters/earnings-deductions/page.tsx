@@ -5,7 +5,7 @@ import { GenericDataTable } from '@/components/ui/data-table/generic-data-table'
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
 import { HRMS_MI_ID } from '@/constants/hrms-config';
-import { useMasterEarningsDeductions } from '@/hooks/hrms/useMasterEarningsDeductions';
+import { useMasterEarningsDeductions } from '@/hooks/hrms/useMasters';
 import type { EarningsDeductionDetail } from '@/types/hrms/master-earnings-deductions';
 import { ListOrdered, Plus, Save, X } from 'lucide-react';
 import { useState } from 'react';
@@ -39,7 +39,7 @@ function MasterEarningsDeductionsPageContent({
 }) {
     const { openAddForm } = useFormContext<EarningsDeductionDetail>();
     const { saveOrderMutation } = useMasterEarningsDeductions(HRMS_MI_ID);
-    const rows: EarningsDeductionDetail[] = response?.data?.earningdetectionList ?? [];
+    const rows: EarningsDeductionDetail[] = response?.earningdetectionList ?? [];
 
     const [isEditOrderMode, setIsEditOrderMode] = useState(false);
     const [editedRows, setEditedRows] = useState<EarningsDeductionDetail[]>([]);

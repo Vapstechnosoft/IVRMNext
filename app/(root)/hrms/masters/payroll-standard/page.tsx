@@ -2,7 +2,7 @@
 
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { HRMS_MI_ID } from '@/constants/hrms-config';
-import { useMasterPayrollStandard } from '@/hooks/hrms/useMasterPayrollStandard';
+import { useMasterPayrollStandard } from '@/hooks/hrms/useMasters';
 import { AlertCircle, Loader2 } from 'lucide-react';
 import PayrollStandardForm from './_components/payroll-standard-form';
 

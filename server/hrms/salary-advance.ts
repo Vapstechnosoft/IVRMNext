@@ -1,9 +1,7 @@
-// Salary Advance API Integration - Complete Implementation
+'use server';
 
-import { clientEnv } from '@/env';
-import type { ApiResponse } from '@/lib/apiService';
-import type { SalaryAdvanceOnloadRequest, SalaryAdvanceOnloadResponse, SalaryAdvanceSaveRequest } from '@/types/hrms/salary-advance';
-import axios from 'axios';
+import { api } from '@/lib/apiService';
+import type { SalaryAdvanceOnloadResponse, SalaryAdvanceSaveRequest } from '@/types/hrms/salary-advance';
 
 // Helper function to create a complete request body matching the exact API structure
 function createSalaryAdvanceRequestBody(baseFields: any): any {
@@ -396,229 +394,63 @@ function createSalaryAdvanceRequestBody(baseFields: any): any {
  * Get salary advance onload details
  * POST /api/HREmpSalaryAdvanceFacade/onloadgetdetails
  */
-export async function getSalaryAdvanceList(roleId: number = 2): Promise<ApiResponse<SalaryAdvanceOnloadResponse>> {
-    try {
-        const baseURL = clientEnv.NEXT_PUBLIC_API_BASE_URL;
-        const apiPath = '/api/HREmpSalaryAdvanceFacade/onloadgetdetails';
-        const url = `${baseURL}${apiPath}`;
-
-        const requestBody = createSalaryAdvanceRequestBody({
-            MI_Id: 30,
-            roleId: roleId
-        });
-
-        const axiosResponse = await axios.post<SalaryAdvanceOnloadResponse>(url, requestBody, {
-            headers: {
-                'Content-Type': 'application/json',
-                Accept: 'application/json'
-            },
-            timeout: 30000,
-            validateStatus: function (status) {
-                return status < 500;
-            }
-        });
-
-        const response: ApiResponse<SalaryAdvanceOnloadResponse> = {
-            success: axiosResponse.status >= 200 && axiosResponse.status < 300,
-            message:
-                axiosResponse.data.retrunMsg ||
-                (axiosResponse.status >= 200 && axiosResponse.status < 300 ? 'Salary advance data loaded successfully' : `HTTP ${axiosResponse.status}`),
-            data: axiosResponse.data
-        };
-
-        return response;
-    } catch (error: any) {
-        console.error('=== Salary Advance Onload API Error ===');
-        console.error('Error:', error);
-
-        if (axios.isAxiosError(error)) {
-            const errorResponse: ApiResponse<SalaryAdvanceOnloadResponse> = {
-                success: false,
-                message:
-                    error.response?.data?.retrunMsg || error.response?.data?.message || error.message || 'Failed to load salary advance data',
-                data: null
-            };
-            return errorResponse;
-        }
-
-        throw error;
-    }
+export async function getSalaryAdvanceList(roleId: number = 2) {
+    const url = '/api/HREmpSalaryAdvanceFacade/onloadgetdetails';
+    const requestBody = createSalaryAdvanceRequestBody({
+        MI_Id: 30,
+        roleId: roleId
+    });
+    return await api.post<SalaryAdvanceOnloadResponse>('hrms', url, requestBody);
 }
 
 /**
  * Save/Update salary advance
  * POST /api/HREmpSalaryAdvanceFacade
  */
-export async function saveSalaryAdvance(data: SalaryAdvanceSaveRequest): Promise<ApiResponse<SalaryAdvanceOnloadResponse>> {
-    try {
-        const baseURL = clientEnv.NEXT_PUBLIC_API_BASE_URL;
-        const apiPath = '/api/HREmpSalaryAdvanceFacade';
-        const url = `${baseURL}${apiPath}`;
-
-        const requestBody = createSalaryAdvanceRequestBody({
-            HRESA_Id: data.HRESA_Id || 0,
-            MI_Id: data.MI_Id || 30,
-            HRME_Id: data.HRME_Id || 0,
-            HRESA_EntryDate: data.HRESA_EntryDate,
-            HRESA_AdvYear: data.HRESA_AdvYear || 0,
-            HRESA_AdvMonth: data.HRESA_AdvMonth || 'string',
-            HRESA_AppliedAmount: data.HRESA_AppliedAmount || 0,
-            HRESA_Remarks: data.HRESA_Remarks || 'string',
-            HRESA_ActiveFlag: data.HRESA_ActiveFlag !== undefined ? data.HRESA_ActiveFlag : true,
-            HRESA_AdvStatus: data.HRESA_AdvStatus || 'string',
-            HRESA_SanctinedAmount: data.HRESA_SanctinedAmount || 0,
-            HRESA_ModeOfPayment: data.HRESA_ModeOfPayment || 'string',
-            HRESA_ReferenceNo: data.HRESA_ReferenceNo || 0,
-            roleId: data.roleId || 0,
-            searchfilter: (data as any).searchfilter || 'string'
-        });
-
-        const axiosResponse = await axios.post<SalaryAdvanceOnloadResponse>(url, requestBody, {
-            headers: {
-                'Content-Type': 'application/json',
-                Accept: 'application/json'
-            },
-            timeout: 30000,
-            validateStatus: function (status) {
-                return status < 500;
-            }
-        });
-
-        const isSuccess =
-            axiosResponse.status >= 200 &&
-            axiosResponse.status < 300 &&
-            (!axiosResponse.data.retrunMsg || !axiosResponse.data.retrunMsg.toLowerCase().includes('error'));
-
-        const response: ApiResponse<SalaryAdvanceOnloadResponse> = {
-            success: isSuccess,
-            message: axiosResponse.data.retrunMsg || (isSuccess ? 'Salary advance saved successfully' : `HTTP ${axiosResponse.status}`),
-            data: axiosResponse.data
-        };
-
-        return response;
-    } catch (error: any) {
-        console.error('=== Save Salary Advance API Error ===');
-        console.error('Error:', error);
-
-        if (axios.isAxiosError(error)) {
-            const errorResponse: ApiResponse<SalaryAdvanceOnloadResponse> = {
-                success: false,
-                message: error.response?.data?.retrunMsg || error.response?.data?.message || error.message || 'Failed to save salary advance',
-                data: null
-            };
-            return errorResponse;
-        }
-
-        throw error;
-    }
+export async function saveSalaryAdvance(data: SalaryAdvanceSaveRequest) {
+    const url = '/api/HREmpSalaryAdvanceFacade';
+    const requestBody = createSalaryAdvanceRequestBody({
+        HRESA_Id: data.HRESA_Id || 0,
+        MI_Id: data.MI_Id || 30,
+        HRME_Id: data.HRME_Id || 0,
+        HRESA_EntryDate: data.HRESA_EntryDate,
+        HRESA_AdvYear: data.HRESA_AdvYear || 0,
+        HRESA_AdvMonth: data.HRESA_AdvMonth || 'string',
+        HRESA_AppliedAmount: data.HRESA_AppliedAmount || 0,
+        HRESA_Remarks: data.HRESA_Remarks || 'string',
+        HRESA_ActiveFlag: data.HRESA_ActiveFlag !== undefined ? data.HRESA_ActiveFlag : true,
+        HRESA_AdvStatus: data.HRESA_AdvStatus || 'string',
+        HRESA_SanctinedAmount: data.HRESA_SanctinedAmount || 0,
+        HRESA_ModeOfPayment: data.HRESA_ModeOfPayment || 'string',
+        HRESA_ReferenceNo: data.HRESA_ReferenceNo || 0,
+        roleId: data.roleId || 0,
+        searchfilter: (data as any).searchfilter || 'string'
+    });
+    return await api.post<SalaryAdvanceOnloadResponse>('hrms', url, requestBody);
 }
 
 /**
  * Delete salary advance
  * POST /api/HREmpSalaryAdvanceFacade/delete
  */
-export async function deleteSalaryAdvance(hresaId: number): Promise<ApiResponse<SalaryAdvanceOnloadResponse>> {
-    try {
-        const baseURL = clientEnv.NEXT_PUBLIC_API_BASE_URL;
-        const apiPath = '/api/HREmpSalaryAdvanceFacade/delete';
-        const url = `${baseURL}${apiPath}`;
-
-        const requestBody = createSalaryAdvanceRequestBody({
-            HRESA_Id: hresaId,
-            MI_Id: 30
-        });
-
-        const axiosResponse = await axios.post<SalaryAdvanceOnloadResponse>(url, requestBody, {
-            headers: {
-                'Content-Type': 'application/json',
-                Accept: 'application/json'
-            },
-            timeout: 30000,
-            validateStatus: function (status) {
-                return status < 500;
-            }
-        });
-
-        const isSuccess =
-            axiosResponse.status >= 200 &&
-            axiosResponse.status < 300 &&
-            (!axiosResponse.data.retrunMsg || !axiosResponse.data.retrunMsg.toLowerCase().includes('error'));
-
-        const response: ApiResponse<SalaryAdvanceOnloadResponse> = {
-            success: isSuccess,
-            message: axiosResponse.data.retrunMsg || (isSuccess ? 'Salary advance deleted successfully' : `HTTP ${axiosResponse.status}`),
-            data: axiosResponse.data
-        };
-
-        return response;
-    } catch (error: any) {
-        console.error('=== Delete Salary Advance API Error ===');
-        console.error('Error:', error);
-
-        if (axios.isAxiosError(error)) {
-            const errorResponse: ApiResponse<SalaryAdvanceOnloadResponse> = {
-                success: false,
-                message: error.response?.data?.retrunMsg || error.response?.data?.message || error.message || 'Failed to delete salary advance',
-                data: null
-            };
-            return errorResponse;
-        }
-
-        throw error;
-    }
+export async function deleteSalaryAdvance(hresaId: number) {
+    const url = '/api/HREmpSalaryAdvanceFacade/delete';
+    const requestBody = createSalaryAdvanceRequestBody({
+        HRESA_Id: hresaId,
+        MI_Id: 30
+    });
+    return await api.post<SalaryAdvanceOnloadResponse>('hrms', url, requestBody);
 }
 
 /**
  * Activate/Deactivate salary advance record by ID
  * POST /api/HREmpSalaryAdvanceFacade/deactivateRecordById
  */
-export async function toggleSalaryAdvanceStatus(hresaId: number): Promise<ApiResponse<SalaryAdvanceOnloadResponse>> {
-    try {
-        const baseURL = clientEnv.NEXT_PUBLIC_API_BASE_URL;
-        const apiPath = '/api/HREmpSalaryAdvanceFacade/deactivateRecordById';
-        const url = `${baseURL}${apiPath}`;
-
-        const requestBody = createSalaryAdvanceRequestBody({
-            HRESA_Id: hresaId,
-            MI_Id: 30
-        });
-
-        const axiosResponse = await axios.post<SalaryAdvanceOnloadResponse>(url, requestBody, {
-            headers: {
-                'Content-Type': 'application/json',
-                Accept: 'application/json'
-            },
-            timeout: 30000,
-            validateStatus: function (status) {
-                return status < 500;
-            }
-        });
-
-        const isSuccess =
-            axiosResponse.status >= 200 &&
-            axiosResponse.status < 300 &&
-            (!axiosResponse.data.retrunMsg || !axiosResponse.data.retrunMsg.toLowerCase().includes('error'));
-
-        const response: ApiResponse<SalaryAdvanceOnloadResponse> = {
-            success: isSuccess,
-            message: axiosResponse.data.retrunMsg || (isSuccess ? 'Status updated successfully' : `HTTP ${axiosResponse.status}`),
-            data: axiosResponse.data
-        };
-
-        return response;
-    } catch (error: any) {
-        console.error('=== Toggle Salary Advance Status API Error ===');
-        console.error('Error:', error);
-
-        if (axios.isAxiosError(error)) {
-            const errorResponse: ApiResponse<SalaryAdvanceOnloadResponse> = {
-                success: false,
-                message: error.response?.data?.retrunMsg || error.response?.data?.message || error.message || 'Failed to update status',
-                data: null
-            };
-            return errorResponse;
-        }
-
-        throw error;
-    }
+export async function toggleSalaryAdvanceStatus(hresaId: number) {
+    const url = '/api/HREmpSalaryAdvanceFacade/deactivateRecordById';
+    const requestBody = createSalaryAdvanceRequestBody({
+        HRESA_Id: hresaId,
+        MI_Id: 30
+    });
+    return await api.post<SalaryAdvanceOnloadResponse>('hrms', url, requestBody);
 }

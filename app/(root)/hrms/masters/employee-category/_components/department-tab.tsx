@@ -5,7 +5,7 @@ import { GenericDataTable } from '@/components/ui/data-table/generic-data-table'
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
 import { HRMS_MI_ID } from '@/constants/hrms-config';
-import { useMasterDepartment } from '@/hooks/hrms/useMasterDepartment';
+import { useMasterDepartment } from '@/hooks/hrms/useMasters';
 import type { DepartmentDetail } from '@/types/hrms/master-department';
 import { Plus, X } from 'lucide-react';
 import { columns } from '../../department/_components/columns';
@@ -32,7 +32,7 @@ function DepartmentTabContent({
     error: any;
 }) {
     const { openAddForm } = useFormContext<DepartmentDetail>();
-    const rows: DepartmentDetail[] = response?.data?.departmentList ?? [];
+    const rows: DepartmentDetail[] = response?.departmentList ?? [];
 
     return (
         <div className='space-y-4'>

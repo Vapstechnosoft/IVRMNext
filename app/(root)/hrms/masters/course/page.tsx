@@ -5,7 +5,7 @@ import { GenericDataTable } from '@/components/ui/data-table/generic-data-table'
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
 import { HRMS_MI_ID } from '@/constants/hrms-config';
-import { useMasterCourse } from '@/hooks/hrms/useMasterCourse';
+import { useMasterCourse } from '@/hooks/hrms/useMasters';
 import type { CourseDetail } from '@/types/hrms/master-course';
 import { ListOrdered, Plus, Save, X } from 'lucide-react';
 import { useState } from 'react';
@@ -39,7 +39,7 @@ function MasterCoursePageContent({
 }) {
     const { openAddForm } = useFormContext<CourseDetail>();
     const { saveOrderMutation } = useMasterCourse(HRMS_MI_ID);
-    const rows: CourseDetail[] = response?.data?.CourseList ?? [];
+    const rows: CourseDetail[] = response?.CourseList ?? [];
 
     const [isEditOrderMode, setIsEditOrderMode] = useState(false);
     const [editedRows, setEditedRows] = useState<CourseDetail[]>([]);

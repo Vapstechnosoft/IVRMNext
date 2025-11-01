@@ -5,7 +5,7 @@ import { GenericDataTable } from '@/components/ui/data-table/generic-data-table'
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
 import { HRMS_MI_ID } from '@/constants/hrms-config';
-import { useMasterGroupType } from '@/hooks/hrms/useMasterGroupType';
+import { useMasterGroupType } from '@/hooks/hrms/useMasters';
 import type { GroupTypeDetail } from '@/types/hrms/master-group-type';
 import { Plus, X } from 'lucide-react';
 import { columns } from '../../group-type/_components/columns';
@@ -32,7 +32,7 @@ function GroupTypeTabContent({
     error: any;
 }) {
     const { openAddForm } = useFormContext<GroupTypeDetail>();
-    const rows: GroupTypeDetail[] = response?.data?.grouptypeList ?? [];
+    const rows: GroupTypeDetail[] = response?.grouptypeList ?? [];
 
     return (
         <div className='space-y-4'>

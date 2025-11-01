@@ -7,7 +7,7 @@ import { InputNumber } from '@/components/ui/extension/input-number';
 import { InputText } from '@/components/ui/extension/input-text';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { HRMS_MI_ID } from '@/constants/hrms-config';
-import { useMasterPayrollStandard } from '@/hooks/hrms/useMasterPayrollStandard';
+import { useMasterPayrollStandard } from '@/hooks/hrms/useMasters';
 import type { PayrollStandardDetail } from '@/types/hrms/master-payroll-standard';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Save } from 'lucide-react';

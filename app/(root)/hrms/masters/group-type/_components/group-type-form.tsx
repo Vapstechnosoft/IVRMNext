@@ -5,7 +5,7 @@ import { FormError } from '@/components/ui/extension/field';
 import { InputText } from '@/components/ui/extension/input-text';
 import { Input } from '@/components/ui/input';
 import { HRMS_MI_ID } from '@/constants/hrms-config';
-import { useMasterGroupType } from '@/hooks/hrms/useMasterGroupType';
+import { useMasterGroupType } from '@/hooks/hrms/useMasters';
 import { groupTypeSchema } from '@/schemas/hrms/employee-category-schemas';
 import type { GroupTypeDetail } from '@/types/hrms/master-group-type';
 import { zodResolver } from '@hookform/resolvers/zod';

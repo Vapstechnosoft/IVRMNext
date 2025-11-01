@@ -3,7 +3,7 @@ import { FormError, Label } from '@/components/ui/extension/field';
 import { InputText } from '@/components/ui/extension/input-text';
 import { Input } from '@/components/ui/input';
 import { HRMS_MI_ID } from '@/constants/hrms-config';
-import { useMasterLoan } from '@/hooks/hrms/useMasterLoan';
+import { useMasterLoan } from '@/hooks/hrms/useMasters';
 import { LOAN_TYPE_VALIDATION } from '@/lib/validation/hrms-master-validation';
 import type { MasterLoanDetail, MasterLoanInput } from '@/types/hrms/master-loan';
 import { useEffect } from 'react';

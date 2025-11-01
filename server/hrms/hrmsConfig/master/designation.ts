@@ -1,5 +1,6 @@
-import { clientEnv } from '@/env';
-import type { ApiResponse } from '@/lib/apiService';
+'use server';
+
+import { api } from '@/lib/apiService';
 import type {
     DesignationDetail,
     MasterDesignationInput,
@@ -7,13 +8,9 @@ import type {
     OnloadGetDesignationDetailsRequest,
     SaveDesignationRequest
 } from '@/types/hrms/master-designation';
-import axios from 'axios';
 
-export async function getMasterDesignationList(roleId: number): Promise<ApiResponse<MasterDesignationResponse>> {
-    const baseURL = clientEnv.NEXT_PUBLIC_API_BASE_URL;
-    const apiPath = '/api/MasterDesignationFacade/onloadgetdetails';
-    const url = `${baseURL}${apiPath}`;
-
+export async function getMasterDesignationList(roleId: number) {
+    const url = '/api/MasterDesignationFacade/onloadgetdetails';
     const requestBody: OnloadGetDesignationDetailsRequest = {
         CreatedDate: new Date().toISOString(),
         UpdatedDate: new Date().toISOString(),
@@ -30,28 +27,11 @@ export async function getMasterDesignationList(roleId: number): Promise<ApiRespo
         roleId: roleId,
         DesignationDTO: []
     };
-
-    const axiosResponse = await axios.post<MasterDesignationResponse>(url, requestBody, {
-        headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
-        timeout: 30000,
-        validateStatus: (status) => status < 500
-    });
-
-    return {
-        success: axiosResponse.status >= 200 && axiosResponse.status < 300,
-        message:
-            axiosResponse.data.retrunMsg ||
-            (axiosResponse.status >= 200 && axiosResponse.status < 300
-                ? 'Designations loaded successfully'
-                : `HTTP ${axiosResponse.status}`),
-        data: axiosResponse.data
-    };
+    return await api.post<MasterDesignationResponse>('hrms', url, requestBody);
 }
 
-export async function saveMasterDesignation(data: MasterDesignationInput): Promise<ApiResponse<MasterDesignationResponse>> {
-    const baseURL = clientEnv.NEXT_PUBLIC_API_BASE_URL;
-    const url = `${baseURL}/api/MasterDesignationFacade`;
-
+export async function saveMasterDesignation(data: MasterDesignationInput) {
+    const url = '/api/MasterDesignationFacade';
     const requestBody: SaveDesignationRequest = {
         CreatedDate: new Date().toISOString(),
         UpdatedDate: new Date().toISOString(),
@@ -68,30 +48,15 @@ export async function saveMasterDesignation(data: MasterDesignationInput): Promi
         roleId: data.MI_Id || 0,
         DesignationDTO: []
     };
-
-    const axiosResponse = await axios.post<MasterDesignationResponse>(url, requestBody, {
-        headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
-        timeout: 10000,
-        validateStatus: (status) => status < 500
-    });
-
-    return {
-        success: axiosResponse.status >= 200 && axiosResponse.status < 300,
-        message:
-            axiosResponse.data.retrunMsg ||
-            (axiosResponse.status >= 200 && axiosResponse.status < 300 ? 'Designation saved successfully' : `HTTP ${axiosResponse.status}`),
-        data: axiosResponse.data
-    };
+    return await api.post<MasterDesignationResponse>('hrms', url, requestBody);
 }
 
 export async function activateDeactivateMasterDesignation(data: {
     HRMDES_Id: number;
     HRMDES_ActiveFlag: boolean;
     roleId?: number;
-}): Promise<ApiResponse<MasterDesignationResponse>> {
-    const baseURL = clientEnv.NEXT_PUBLIC_API_BASE_URL;
-    const url = `${baseURL}/api/MasterDesignationFacade/deactivateRecordById`;
-
+}) {
+    const url = '/api/MasterDesignationFacade/deactivateRecordById';
     const requestBody: SaveDesignationRequest = {
         CreatedDate: new Date().toISOString(),
         UpdatedDate: new Date().toISOString(),
@@ -108,28 +73,11 @@ export async function activateDeactivateMasterDesignation(data: {
         roleId: data.roleId || 0,
         DesignationDTO: []
     };
-
-    const axiosResponse = await axios.post<MasterDesignationResponse>(url, requestBody, {
-        headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
-        timeout: 10000,
-        validateStatus: (status) => status < 500
-    });
-
-    return {
-        success: axiosResponse.status >= 200 && axiosResponse.status < 300,
-        message:
-            axiosResponse.data.retrunMsg ||
-            (axiosResponse.status >= 200 && axiosResponse.status < 300
-                ? 'Designation status updated successfully'
-                : `HTTP ${axiosResponse.status}`),
-        data: axiosResponse.data
-    };
+    return await api.post<MasterDesignationResponse>('hrms', url, requestBody);
 }
 
-export async function getOnloadDesignationDetails(roleId: number): Promise<ApiResponse<MasterDesignationResponse>> {
-    const baseURL = clientEnv.NEXT_PUBLIC_API_BASE_URL;
-    const url = `${baseURL}/api/MasterDesignationFacade/onloadgetdetails`;
-
+export async function getOnloadDesignationDetails(roleId: number) {
+    const url = '/api/MasterDesignationFacade/onloadgetdetails';
     const requestBody: OnloadGetDesignationDetailsRequest = {
         CreatedDate: new Date().toISOString(),
         UpdatedDate: new Date().toISOString(),
@@ -146,52 +94,16 @@ export async function getOnloadDesignationDetails(roleId: number): Promise<ApiRe
         roleId,
         DesignationDTO: []
     };
-
-    const axiosResponse = await axios.post<MasterDesignationResponse>(url, requestBody, {
-        headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
-        timeout: 10000,
-        validateStatus: (status) => status < 500
-    });
-
-    return {
-        success: axiosResponse.status >= 200 && axiosResponse.status < 300,
-        message:
-            axiosResponse.data.retrunMsg ||
-            (axiosResponse.status >= 200 && axiosResponse.status < 300
-                ? 'Designations loaded successfully'
-                : `HTTP ${axiosResponse.status}`),
-        data: axiosResponse.data
-    };
+    return await api.post<MasterDesignationResponse>('hrms', url, requestBody);
 }
 
-export async function getDesignationById(id: number): Promise<ApiResponse<MasterDesignationResponse>> {
-    const baseURL = clientEnv.NEXT_PUBLIC_API_BASE_URL;
-    const url = `${baseURL}/api/MasterDesignationFacade/getRecordById/${id}`;
-
-    const axiosResponse = await axios.get<MasterDesignationResponse>(url, {
-        headers: { Accept: 'application/json' },
-        timeout: 10000,
-        validateStatus: (status) => status < 500
-    });
-
-    return {
-        success: axiosResponse.status >= 200 && axiosResponse.status < 300,
-        message:
-            axiosResponse.data.retrunMsg ||
-            (axiosResponse.status >= 200 && axiosResponse.status < 300
-                ? 'Designation fetched successfully'
-                : `HTTP ${axiosResponse.status}`),
-        data: axiosResponse.data
-    };
+export async function getDesignationById(id: number) {
+    const url = `/api/MasterDesignationFacade/getRecordById/${id}`;
+    return await api.get<MasterDesignationResponse>('hrms', url);
 }
 
-export async function getOnchangeDesignationDetails(
-    designationId: number,
-    roleId: number
-): Promise<ApiResponse<MasterDesignationResponse>> {
-    const baseURL = clientEnv.NEXT_PUBLIC_API_BASE_URL;
-    const url = `${baseURL}/api/MasterDesignationFacade/Onchangedetails`;
-
+export async function getOnchangeDesignationDetails(designationId: number, roleId: number) {
+    const url = '/api/MasterDesignationFacade/Onchangedetails';
     const requestBody: OnloadGetDesignationDetailsRequest = {
         CreatedDate: new Date().toISOString(),
         UpdatedDate: new Date().toISOString(),
@@ -208,28 +120,11 @@ export async function getOnchangeDesignationDetails(
         roleId,
         DesignationDTO: []
     };
-
-    const axiosResponse = await axios.post<MasterDesignationResponse>(url, requestBody, {
-        headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
-        timeout: 10000,
-        validateStatus: (status) => status < 500
-    });
-
-    return {
-        success: axiosResponse.status >= 200 && axiosResponse.status < 300,
-        message:
-            axiosResponse.data.retrunMsg ||
-            (axiosResponse.status >= 200 && axiosResponse.status < 300
-                ? 'Designation details fetched successfully'
-                : `HTTP ${axiosResponse.status}`),
-        data: axiosResponse.data
-    };
+    return await api.post<MasterDesignationResponse>('hrms', url, requestBody);
 }
 
-export async function saveMasterDesignationOrder(designations: DesignationDetail[]): Promise<ApiResponse<MasterDesignationResponse>> {
-    const baseURL = clientEnv.NEXT_PUBLIC_API_BASE_URL;
-    const url = `${baseURL}/api/MasterDesignationFacade`;
-
+export async function saveMasterDesignationOrder(designations: DesignationDetail[]) {
+    const url = '/api/MasterDesignationFacade';
     const requestBody: SaveDesignationRequest = {
         CreatedDate: new Date().toISOString(),
         UpdatedDate: new Date().toISOString(),
@@ -246,18 +141,5 @@ export async function saveMasterDesignationOrder(designations: DesignationDetail
         roleId: 0,
         DesignationDTO: designations.map((des) => des.HRMDES_DesignationName)
     };
-
-    const axiosResponse = await axios.post<MasterDesignationResponse>(url, requestBody, {
-        headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
-        timeout: 30000,
-        validateStatus: (status) => status < 500
-    });
-
-    return {
-        success: axiosResponse.status >= 200 && axiosResponse.status < 300,
-        message:
-            axiosResponse.data.retrunMsg ||
-            (axiosResponse.status >= 200 && axiosResponse.status < 300 ? 'Order saved successfully' : `HTTP ${axiosResponse.status}`),
-        data: axiosResponse.data
-    };
+    return await api.post<MasterDesignationResponse>('hrms', url, requestBody);
 }

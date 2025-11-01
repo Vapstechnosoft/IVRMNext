@@ -25,7 +25,7 @@ import type { ApiSearchparams } from '@/types';
 import axios, { type AxiosInstance, type AxiosRequestConfig } from 'axios';
 
 // Define available API base URLs
-export type ApiBaseUrlKey = 'default' | 'preadmission' | 'admission' | 'fees' | 'exam';
+export type ApiBaseUrlKey = 'default' | 'preadmission' | 'admission' | 'fees' | 'exam' | 'hrms';
 
 class ApiService {
     private instances: Map<string, AxiosInstance>;
@@ -40,7 +40,8 @@ class ApiService {
             preadmission: process.env.NEXT_PUBLIC_PREADMISSION_API_BASE_URL || process.env.NEXT_PUBLIC_API_BASE_URL || '',
             admission: process.env.NEXT_PUBLIC_ADMISSION_API_BASE_URL || process.env.NEXT_PUBLIC_API_BASE_URL || '',
             fees: process.env.NEXT_PUBLIC_FEES_API_BASE_URL || process.env.NEXT_PUBLIC_API_BASE_URL || '',
-            exam: process.env.NEXT_PUBLIC_EXAM_API_BASE_URL || process.env.NEXT_PUBLIC_API_BASE_URL || ''
+            exam: process.env.NEXT_PUBLIC_EXAM_API_BASE_URL || process.env.NEXT_PUBLIC_API_BASE_URL || '',
+            hrms: process.env.NEXT_PUBLIC_HRMS_API_BASE_URL || process.env.NEXT_PUBLIC_API_BASE_URL || ''
         };
 
         // Initialize default instance
@@ -92,7 +93,10 @@ class ApiService {
                 if (error.response?.status === 401) {
                     try {
                         await signOut();
-                        window.location.href = '/sign-in';
+                        // Only redirect in browser environment
+                        if (typeof window !== 'undefined') {
+                            window.location.href = '/sign-in';
+                        }
                     } catch (refreshError) {
                         console.error('Error refreshing session:', refreshError);
                     }

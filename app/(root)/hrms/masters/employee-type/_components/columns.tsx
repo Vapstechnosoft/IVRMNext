@@ -4,7 +4,7 @@ import { DataTableColumnHeader } from '@/components/ui/data-table-column-header'
 import { ActionButtons } from '@/components/ui/form/action-buttons';
 import { useFormContext } from '@/components/ui/form/form-provider';
 import { HRMS_MI_ID } from '@/constants/hrms-config';
-import { useMasterEmployeeType } from '@/hooks/hrms/useMasterEmployeeType';
+import { useMasterEmployeeType } from '@/hooks/hrms/useMasters';
 import type { EmployeeTypeDetail, MasterEmployeeTypeResponse } from '@/types/hrms/master-employee-type';
 import type { ColumnDef } from '@tanstack/react-table';
 import { useCallback } from 'react';

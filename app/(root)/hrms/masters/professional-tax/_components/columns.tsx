@@ -4,7 +4,7 @@ import { DataTableColumnHeader } from '@/components/ui/data-table-column-header'
 import { ActionButtons } from '@/components/ui/form/action-buttons';
 import { useFormContext } from '@/components/ui/form/form-provider';
 import { HRMS_MI_ID } from '@/constants/hrms-config';
-import { useMasterProfessionalTax } from '@/hooks/hrms/useMasterProfessionalTax';
+import { useMasterProfessionalTax } from '@/hooks/hrms/useMasters';
 import type { MasterProfessionalTaxResponse, ProfessionalTaxDetail } from '@/types/hrms/master-professional-tax';
 import type { ColumnDef } from '@tanstack/react-table';
 import { useCallback } from 'react';

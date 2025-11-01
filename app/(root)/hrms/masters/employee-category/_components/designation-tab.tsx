@@ -5,7 +5,7 @@ import { GenericDataTable } from '@/components/ui/data-table/generic-data-table'
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
 import { HRMS_MI_ID } from '@/constants/hrms-config';
-import { useMasterDesignation } from '@/hooks/hrms/useMasterDesignation';
+import { useMasterDesignation } from '@/hooks/hrms/useMasters';
 import type { DesignationDetail } from '@/types/hrms/master-designation';
 import { Plus, X } from 'lucide-react';
 import { columns } from '../../designation/_components/columns';
@@ -32,7 +32,7 @@ function DesignationTabContent({
     error: any;
 }) {
     const { openAddForm } = useFormContext<DesignationDetail>();
-    const rows: DesignationDetail[] = response?.data?.designationlList ?? [];
+    const rows: DesignationDetail[] = response?.designationlList ?? [];
 
     return (
         <div className='space-y-4'>

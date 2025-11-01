@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { GenericDataTable } from '@/components/ui/data-table/generic-data-table';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
-import { useReligionCategoryMapping } from '@/hooks/hrms/useReligionCategoryMapping';
+import { useReligionCategoryMapping } from '@/hooks/hrms/useMasters';
 import type { ReligionCategoryMappingDetail } from '@/types/hrms/religion-category-mapping';
 import { Plus, X } from 'lucide-react';
 import { religionCategoryMappingColumns } from './_components/columns';

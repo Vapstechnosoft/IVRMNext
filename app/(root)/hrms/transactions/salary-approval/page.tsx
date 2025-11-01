@@ -1,7 +1,7 @@
 'use client';
 
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
-import { useSalaryApprovalOnload, useSearchSalaryApproval } from '@/hooks/hrms/useSalaryApproval';
+import { useSalaryApprovalOnload, useSearchSalaryApproval } from '@/hooks/hrms/useTransactions';
 import type { EmployeeDetail } from '@/types/hrms/salary-approval';
 import { useState } from 'react';
 import ApprovalTable from './_components/approval-table';

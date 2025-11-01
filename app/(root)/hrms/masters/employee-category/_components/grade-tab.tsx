@@ -5,7 +5,7 @@ import { GenericDataTable } from '@/components/ui/data-table/generic-data-table'
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
 import { HRMS_MI_ID } from '@/constants/hrms-config';
-import { useMasterGrade } from '@/hooks/hrms/useMasterGrade';
+import { useMasterGrade } from '@/hooks/hrms/useMasters';
 import type { GradeDetail } from '@/types/hrms/master-grade';
 import { Plus, X } from 'lucide-react';
 import { columns } from '../../grade/_components/columns';
@@ -32,7 +32,7 @@ function GradeTabContent({
     error: any;
 }) {
     const { openAddForm } = useFormContext<GradeDetail>();
-    const rows: GradeDetail[] = response?.data?.gradelList ?? [];
+    const rows: GradeDetail[] = response?.gradelList ?? [];
 
     return (
         <div className='space-y-4'>

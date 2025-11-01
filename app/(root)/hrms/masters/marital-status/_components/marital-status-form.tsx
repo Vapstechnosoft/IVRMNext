@@ -2,7 +2,7 @@ import { Button } from '@/components/ui/button';
 import { FormError, Label } from '@/components/ui/extension/field';
 import { InputText } from '@/components/ui/extension/input-text';
 import { HRMS_MI_ID } from '@/constants/hrms-config';
-import { useMasterMaritalStatus } from '@/hooks/hrms/useMasterMaritalStatus';
+import { useMasterMaritalStatus } from '@/hooks/hrms/useMasters';
 import { MARITAL_STATUS_VALIDATION } from '@/lib/validation/hrms-master-validation';
 import type { MaritalStatusDetail, MasterMaritalStatusInput } from '@/types/hrms/master-marital-status';
 import { useEffect } from 'react';

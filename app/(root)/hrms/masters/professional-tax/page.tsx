@@ -5,7 +5,7 @@ import { GenericDataTable } from '@/components/ui/data-table/generic-data-table'
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
 import { HRMS_MI_ID } from '@/constants/hrms-config';
-import { useMasterProfessionalTax } from '@/hooks/hrms/useMasterProfessionalTax';
+import { useMasterProfessionalTax } from '@/hooks/hrms/useMasters';
 import type { ProfessionalTaxDetail } from '@/types/hrms/master-professional-tax';
 import { Plus, X } from 'lucide-react';
 import { columns } from './_components/columns';
@@ -36,7 +36,7 @@ function MasterProfessionalTaxPageContent({
     error: any;
 }) {
     const { openAddForm } = useFormContext<ProfessionalTaxDetail>();
-    const rows: ProfessionalTaxDetail[] = response?.data?.pTaxrList ?? [];
+    const rows: ProfessionalTaxDetail[] = response?.pTaxrList ?? [];
 
     return (
         <div className='min-h-screen'>

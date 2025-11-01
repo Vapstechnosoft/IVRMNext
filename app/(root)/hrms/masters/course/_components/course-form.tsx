@@ -4,7 +4,7 @@ import { FormError } from '@/components/ui/extension/field';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { HRMS_MI_ID } from '@/constants/hrms-config';
-import { useMasterCourse } from '@/hooks/hrms/useMasterCourse';
+import { useMasterCourse } from '@/hooks/hrms/useMasters';
 import { COURSE_VALIDATION } from '@/lib/validation/hrms-master-validation';
 import type { CourseDetail, MasterCourseInput } from '@/types/hrms/master-course';
 import { useEffect } from 'react';

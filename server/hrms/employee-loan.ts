@@ -1,6 +1,6 @@
-// Employee Loan API Integration - Complete Implementation
+'use server';
 
-import { clientEnv } from '@/env';
+import { api } from '@/lib/apiService';
 import type { ApiResponse } from '@/lib/apiService';
 import type {
     EmployeeLoanOnloadRequest,
@@ -9,7 +9,6 @@ import type {
     EmployeeLoanSaveResponse,
     EmployeeLoanDeleteRequest
 } from '@/types/hrms/employee-loan';
-import axios from 'axios';
 
 // Helper function to create a complete nested object structure matching API requirements
 function createCompleteRequestBody(baseFields: any): any {
@@ -464,301 +463,76 @@ function createCompleteRequestBody(baseFields: any): any {
  * Get onload details for employee loan
  * POST /api/HREmpLoanFacade/onloadgetdetails
  */
-export async function getEmployeeLoanList(roleId: number): Promise<ApiResponse<EmployeeLoanOnloadResponse>> {
-    try {
-        const baseURL = clientEnv.NEXT_PUBLIC_API_BASE_URL;
-        const apiPath = '/api/HREmpLoanFacade/onloadgetdetails';
-        const url = `${baseURL}${apiPath}`;
-
-        const requestBody = createCompleteRequestBody({
-            roleId: roleId
-        });
-
-        const axiosResponse = await axios.post<EmployeeLoanOnloadResponse>(url, requestBody, {
-            headers: {
-                'Content-Type': 'application/json',
-                Accept: 'application/json'
-            },
-            timeout: 30000,
-            validateStatus: function (status) {
-                return status < 500;
-            }
-        });
-
-        const response: ApiResponse<EmployeeLoanOnloadResponse> = {
-            success: axiosResponse.status >= 200 && axiosResponse.status < 300,
-            message:
-                axiosResponse.data.retrunMsg ||
-                (axiosResponse.status >= 200 && axiosResponse.status < 300
-                    ? 'Employee loans loaded successfully'
-                    : `HTTP ${axiosResponse.status}`),
-            data: axiosResponse.data
-        };
-
-        return response;
-    } catch (error: any) {
-        console.error('=== Onload Employee Loan Details API Error ===');
-        console.error('Error:', error);
-
-        if (axios.isAxiosError(error)) {
-            const errorResponse: ApiResponse<EmployeeLoanOnloadResponse> = {
-                success: false,
-                message:
-                    error.response?.data?.retrunMsg || error.response?.data?.message || error.message || 'Failed to load employee loans',
-                data: null
-            };
-            return errorResponse;
-        }
-
-        throw error;
-    }
+export async function getEmployeeLoanList(roleId: number) {
+    const url = '/api/HREmpLoanFacade/onloadgetdetails';
+    const requestBody = createCompleteRequestBody({
+        roleId: roleId
+    });
+    return await api.post<EmployeeLoanOnloadResponse>('hrms', url, requestBody);
 }
 
 /**
  * Save/Update employee loan (Facade)
  * POST /api/HREmpLoanFacade
  */
-export async function saveEmployeeLoan(data: EmployeeLoanSaveRequest): Promise<ApiResponse<EmployeeLoanSaveResponse>> {
-    try {
-        const baseURL = clientEnv.NEXT_PUBLIC_API_BASE_URL;
-        const apiPath = '/api/HREmpLoanFacade';
-        const url = `${baseURL}${apiPath}`;
-
-        const requestBody = createCompleteRequestBody({
-            HREL_Id: data.HREL_Id || 0,
-            MI_Id: data.MI_Id || 30,
-            HRME_Id: data.HRME_Id,
-            HREL_AppliedDate: data.HREL_AppliedDate,
-            HRMLN_Id: data.HRMLN_Id,
-            HREL_LoanAmount: data.HREL_LoanAmount,
-            HREL_LoanInsallments: data.HREL_LoanInsallments,
-            HREL_LaonEMI: data.HREL_LaonEMI,
-            HREL_LoanStatus: data.HREL_LoanStatus,
-            HREL_SanctionedAmount: data.HREL_SanctionedAmount || 0,
-            HREL_TotalPrincipalPaid: data.HREL_TotalPrincipalPaid || 0,
-            HREL_TotalInterestPaid: data.HREL_TotalInterestPaid || 0,
-            HREL_TotalPending: data.HREL_TotalPending || 0,
-            HREL_LoanInterest: data.HREL_LoanInterest || 0,
-            HREL_ModeOfPayment: data.HREL_ModeOfPayment || 'string',
-            HREL_ReferenceNo: data.HREL_ReferenceNo || '',
-            HREL_ActiveFlag: data.HREL_ActiveFlag ?? true,
-            HREL_NoofInstallment: data.HREL_NoofInstallment || 0,
-            roleId: data.roleId
-        });
-
-        const axiosResponse = await axios.post<EmployeeLoanSaveResponse>(url, requestBody as any, {
-            headers: {
-                'Content-Type': 'application/json',
-                Accept: 'application/json'
-            },
-            timeout: 30000,
-            validateStatus: function (status) {
-                return status < 500;
-            }
-        });
-
-        // Check if the operation was successful - response extends OnloadResponse which has emploanList
-        const hasValidData =
-            axiosResponse.data && (axiosResponse.data.HREL_Id !== undefined || (axiosResponse.data.emploanList && axiosResponse.data.emploanList.length > 0));
-
-        const isSuccess = axiosResponse.status >= 200 && axiosResponse.status < 300 && hasValidData;
-
-        let message = axiosResponse.data.retrunMsg || '';
-        if (isSuccess && message.toLowerCase().includes('error')) {
-            message = 'Employee loan saved successfully';
-        } else if (!isSuccess && !message) {
-            message = `HTTP ${axiosResponse.status}`;
-        } else if (isSuccess && !message) {
-            message = 'Employee loan saved successfully';
-        }
-
-        const response: ApiResponse<EmployeeLoanOnloadResponse> = {
-            success: isSuccess,
-            message: message,
-            data: axiosResponse.data
-        };
-
-        return response;
-    } catch (error: any) {
-        console.error('=== Save Employee Loan API Error ===');
-        console.error('Error:', error);
-
-        if (axios.isAxiosError(error)) {
-            const errorResponse: ApiResponse<EmployeeLoanOnloadResponse> = {
-                success: false,
-                message:
-                    error.response?.data?.retrunMsg || error.response?.data?.message || error.message || 'Failed to save employee loan',
-                data: null
-            };
-            return errorResponse;
-        }
-
-        throw error;
-    }
+export async function saveEmployeeLoan(data: EmployeeLoanSaveRequest) {
+    const url = '/api/HREmpLoanFacade';
+    const requestBody = createCompleteRequestBody({
+        HREL_Id: data.HREL_Id || 0,
+        MI_Id: data.MI_Id || 30,
+        HRME_Id: data.HRME_Id,
+        HREL_AppliedDate: data.HREL_AppliedDate,
+        HRMLN_Id: data.HRMLN_Id,
+        HREL_LoanAmount: data.HREL_LoanAmount,
+        HREL_LoanInsallments: data.HREL_LoanInsallments,
+        HREL_LaonEMI: data.HREL_LaonEMI,
+        HREL_LoanStatus: data.HREL_LoanStatus,
+        HREL_SanctionedAmount: data.HREL_SanctionedAmount || 0,
+        HREL_TotalPrincipalPaid: data.HREL_TotalPrincipalPaid || 0,
+        HREL_TotalInterestPaid: data.HREL_TotalInterestPaid || 0,
+        HREL_TotalPending: data.HREL_TotalPending || 0,
+        HREL_LoanInterest: data.HREL_LoanInterest || 0,
+        HREL_ModeOfPayment: data.HREL_ModeOfPayment || 'string',
+        HREL_ReferenceNo: data.HREL_ReferenceNo || '',
+        HREL_ActiveFlag: data.HREL_ActiveFlag ?? true,
+        HREL_NoofInstallment: data.HREL_NoofInstallment || 0,
+        roleId: data.roleId
+    });
+    return await api.post<EmployeeLoanSaveResponse>('hrms', url, requestBody);
 }
 
 /**
  * Get employee loan record by ID
  * GET /api/HREmpLoanFacade/getRecordById/{id}
  */
-export async function getEmployeeLoanById(id: number): Promise<ApiResponse<EmployeeLoanOnloadResponse>> {
-    try {
-        const baseURL = clientEnv.NEXT_PUBLIC_API_BASE_URL;
-        const apiPath = `/api/HREmpLoanFacade/getRecordById/${id}`;
-        const url = `${baseURL}${apiPath}`;
-
-        const axiosResponse = await axios.get<EmployeeLoanOnloadResponse>(url, {
-            headers: {
-                'Content-Type': 'application/json',
-                Accept: 'application/json'
-            },
-            timeout: 30000,
-            validateStatus: function (status) {
-                return status < 500;
-            }
-        });
-
-        const response: ApiResponse<EmployeeLoanOnloadResponse> = {
-            success: axiosResponse.status >= 200 && axiosResponse.status < 300,
-            message:
-                axiosResponse.data?.retrunMsg ||
-                (axiosResponse.status >= 200 && axiosResponse.status < 300 ? 'Success' : `HTTP ${axiosResponse.status}`),
-            data: axiosResponse.data
-        };
-
-        return response;
-    } catch (error: any) {
-        console.error('=== Get Employee Loan By ID API Error ===');
-        console.error('Error:', error);
-
-        if (axios.isAxiosError(error)) {
-            const errorResponse: ApiResponse<EmployeeLoanOnloadResponse> = {
-                success: false,
-                message:
-                    error.response?.data?.retrunMsg ||
-                    error.response?.data?.message ||
-                    error.message ||
-                    'Failed to fetch employee loan by ID',
-                data: null
-            };
-            return errorResponse;
-        }
-
-        throw error;
-    }
+export async function getEmployeeLoanById(id: number) {
+    const url = `/api/HREmpLoanFacade/getRecordById/${id}`;
+    return await api.get<EmployeeLoanOnloadResponse>('hrms', url);
 }
 
 /**
  * Activate/Deactivate employee loan
  * POST /api/HREmpLoanFacade/deactivateRecordById
  */
-export async function activateDeactivateEmployeeLoan(data: EmployeeLoanDeleteRequest): Promise<ApiResponse<EmployeeLoanOnloadResponse>> {
-    try {
-        const baseURL = clientEnv.NEXT_PUBLIC_API_BASE_URL;
-        const apiPath = '/api/HREmpLoanFacade/deactivateRecordById';
-        const url = `${baseURL}${apiPath}`;
-
-        const requestBody = createCompleteRequestBody({
-            HREL_Id: (data as any).HREL_Id,
-            HREL_ActiveFlag: data.HREL_ActiveFlag,
-            roleId: data.roleId || 0
-        });
-
-        const axiosResponse = await axios.post<EmployeeLoanOnloadResponse>(url, requestBody as any, {
-            headers: {
-                'Content-Type': 'application/json',
-                Accept: 'application/json'
-            },
-            timeout: 30000,
-            validateStatus: function (status) {
-                return status < 500;
-            }
-        });
-
-        const response: ApiResponse<EmployeeLoanOnloadResponse> = {
-            success: axiosResponse.status >= 200 && axiosResponse.status < 300,
-            message:
-                axiosResponse.data.retrunMsg ||
-                (axiosResponse.status >= 200 && axiosResponse.status < 300
-                    ? `Employee loan ${data.HREL_ActiveFlag ? 'activated' : 'deactivated'} successfully`
-                    : `HTTP ${axiosResponse.status}`),
-            data: axiosResponse.data
-        };
-
-        return response;
-    } catch (error: any) {
-        console.error('=== Activate/Deactivate Employee Loan API Error ===');
-        console.error('Error:', error);
-
-        if (axios.isAxiosError(error)) {
-            const errorResponse: ApiResponse<EmployeeLoanOnloadResponse> = {
-                success: false,
-                message:
-                    error.response?.data?.retrunMsg ||
-                    error.response?.data?.message ||
-                    error.message ||
-                    'Failed to update employee loan status',
-                data: null
-            };
-            return errorResponse;
-        }
-
-        throw error;
-    }
+export async function activateDeactivateEmployeeLoan(data: EmployeeLoanDeleteRequest) {
+    const url = '/api/HREmpLoanFacade/deactivateRecordById';
+    const requestBody = createCompleteRequestBody({
+        HREL_Id: (data as any).HREL_Id,
+        HREL_ActiveFlag: data.HREL_ActiveFlag,
+        roleId: data.roleId || 0
+    });
+    return await api.post<EmployeeLoanOnloadResponse>('hrms', url, requestBody);
 }
 
 /**
  * Get employee loan details by employee
  * POST /api/HREmpLoanFacade/getDetailsByEmployee
  */
-export async function getEmployeeLoanByEmployee(employeeId: number, roleId: number): Promise<ApiResponse<EmployeeLoanOnloadResponse>> {
-    try {
-        const baseURL = clientEnv.NEXT_PUBLIC_API_BASE_URL;
-        const apiPath = '/api/HREmpLoanFacade/getDetailsByEmployee';
-        const url = `${baseURL}${apiPath}`;
-
-        const requestBody = createCompleteRequestBody({
-            HRME_Id: employeeId as any,
-            roleId: roleId
-        });
-
-        const axiosResponse = await axios.post<EmployeeLoanOnloadResponse>(url, requestBody as any, {
-            headers: {
-                'Content-Type': 'application/json',
-                Accept: 'application/json'
-            },
-            timeout: 30000,
-            validateStatus: function (status) {
-                return status < 500;
-            }
-        });
-
-        const response: ApiResponse<EmployeeLoanOnloadResponse> = {
-            success: axiosResponse.status >= 200 && axiosResponse.status < 300,
-            message:
-                axiosResponse.data.retrunMsg ||
-                (axiosResponse.status >= 200 && axiosResponse.status < 300 ? 'Employee loans loaded successfully' : `HTTP ${axiosResponse.status}`),
-            data: axiosResponse.data
-        };
-
-        return response;
-    } catch (error: any) {
-        console.error('=== Get Employee Loan By Employee API Error ===');
-        console.error('Error:', error);
-
-        if (axios.isAxiosError(error)) {
-            const errorResponse: ApiResponse<EmployeeLoanOnloadResponse> = {
-                success: false,
-                message:
-                    error.response?.data?.retrunMsg ||
-                    error.response?.data?.message ||
-                    error.message ||
-                    'Failed to load employee loans by employee',
-                data: null
-            };
-            return errorResponse;
-        }
-
-        throw error;
-    }
+export async function getEmployeeLoanByEmployee(employeeId: number, roleId: number) {
+    const url = '/api/HREmpLoanFacade/getDetailsByEmployee';
+    const requestBody = createCompleteRequestBody({
+        HRME_Id: employeeId as any,
+        roleId: roleId
+    });
+    return await api.post<EmployeeLoanOnloadResponse>('hrms', url, requestBody);
 }

@@ -4,7 +4,7 @@ import { DataTableColumnHeader } from '@/components/ui/data-table-column-header'
 import { ActionButtons } from '@/components/ui/form/action-buttons';
 import { useFormContext } from '@/components/ui/form/form-provider';
 import { HRMS_MI_ID } from '@/constants/hrms-config';
-import { useMasterMaritalStatus } from '@/hooks/hrms/useMasterMaritalStatus';
+import { useMasterMaritalStatus } from '@/hooks/hrms/useMasters';
 import type { MaritalStatusDetail, MasterMaritalStatusResponse } from '@/types/hrms/master-marital-status';
 import type { ColumnDef } from '@tanstack/react-table';
 import { useCallback } from 'react';

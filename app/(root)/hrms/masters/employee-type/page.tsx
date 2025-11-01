@@ -5,7 +5,7 @@ import { GenericDataTable } from '@/components/ui/data-table/generic-data-table'
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
 import { HRMS_MI_ID } from '@/constants/hrms-config';
-import { useMasterEmployeeType } from '@/hooks/hrms/useMasterEmployeeType';
+import { useMasterEmployeeType } from '@/hooks/hrms/useMasters';
 import type { EmployeeTypeDetail } from '@/types/hrms/master-employee-type';
 import { Plus, X } from 'lucide-react';
 import { columns } from './_components/columns';
@@ -36,7 +36,7 @@ function MasterEmployeeTypePageContent({
     error: any;
 }) {
     const { openAddForm } = useFormContext<EmployeeTypeDetail>();
-    const rows: EmployeeTypeDetail[] = response?.data?.employeeTypeList ?? [];
+    const rows: EmployeeTypeDetail[] = response?.employeeTypeList ?? [];
 
     return (
         <div className='min-h-screen'>

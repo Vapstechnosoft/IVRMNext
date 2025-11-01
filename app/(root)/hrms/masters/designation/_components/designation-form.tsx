@@ -6,7 +6,7 @@ import { FormError, Label } from '@/components/ui/extension/field';
 import { InputText } from '@/components/ui/extension/input-text';
 import { Input } from '@/components/ui/input';
 import { HRMS_MI_ID } from '@/constants/hrms-config';
-import { useMasterDesignation } from '@/hooks/hrms/useMasterDesignation';
+import { useMasterDesignation } from '@/hooks/hrms/useMasters';
 import { designationSchema } from '@/schemas/hrms/employee-category-schemas';
 import type { DesignationDetail } from '@/types/hrms/master-designation';
 import { zodResolver } from '@hookform/resolvers/zod';

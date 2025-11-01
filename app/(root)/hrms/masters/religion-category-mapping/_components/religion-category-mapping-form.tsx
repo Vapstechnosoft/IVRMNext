@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { FormError, Label } from '@/components/ui/extension/field';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { HRMS_MI_ID } from '@/constants/hrms-config';
-import { useReligionCategoryMapping, useSaveReligionCategoryMapping } from '@/hooks/hrms/useReligionCategoryMapping';
+import { useReligionCategoryMapping, useSaveReligionCategoryMapping } from '@/hooks/hrms/useMasters';
 import { religionCategoryMappingSchema } from '@/schemas/hrms/religion-category-mapping-schemas';
 import type { ReligionCategoryMappingDetail } from '@/types/hrms/religion-category-mapping';
 import { zodResolver } from '@hookform/resolvers/zod';

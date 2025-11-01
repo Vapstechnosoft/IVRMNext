@@ -5,7 +5,7 @@ import { GenericDataTable } from '@/components/ui/data-table/generic-data-table'
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
 import { HRMS_MI_ID } from '@/constants/hrms-config';
-import { useMasterGender } from '@/hooks/hrms/useMasterGender';
+import { useMasterGender } from '@/hooks/hrms/useMasters';
 import type { GenderItem } from '@/types/hrms/master-gender';
 import { Plus, X } from 'lucide-react';
 import { columns } from './_components/columns';
@@ -36,7 +36,7 @@ function MasterGenderPageContent({
     error: any;
 }) {
     const { openAddForm } = useFormContext<GenderItem>();
-    const rows: GenderItem[] = response?.data?.genderList ?? [];
+    const rows: GenderItem[] = response?.genderList ?? [];
 
     return (
         <div className='min-h-screen'>

@@ -5,7 +5,7 @@ import { GenericDataTable } from '@/components/ui/data-table/generic-data-table'
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
 import { HRMS_MI_ID } from '@/constants/hrms-config';
-import { useMasterGrade } from '@/hooks/hrms/useMasterGrade';
+import { useMasterGrade } from '@/hooks/hrms/useMasters';
 import type { GradeDetail } from '@/types/hrms/master-grade';
 import { ListOrdered, Plus, Save, X } from 'lucide-react';
 import { useState } from 'react';
@@ -39,7 +39,7 @@ function MasterGradePageContent({
 }) {
     const { openAddForm } = useFormContext<GradeDetail>();
     const { saveOrderMutation } = useMasterGrade(HRMS_MI_ID);
-    const rows: GradeDetail[] = response?.data?.gradelList ?? [];
+    const rows: GradeDetail[] = response?.gradelList ?? [];
 
     const [isEditOrderMode, setIsEditOrderMode] = useState(false);
     const [editedRows, setEditedRows] = useState<GradeDetail[]>([]);

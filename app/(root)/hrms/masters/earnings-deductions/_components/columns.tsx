@@ -5,7 +5,7 @@ import { ActionButtons } from '@/components/ui/form/action-buttons';
 import { useFormContext } from '@/components/ui/form/form-provider';
 import { Input } from '@/components/ui/input';
 import { HRMS_MI_ID } from '@/constants/hrms-config';
-import { useMasterEarningsDeductions } from '@/hooks/hrms/useMasterEarningsDeductions';
+import { useMasterEarningsDeductions } from '@/hooks/hrms/useMasters';
 import type { EarningsDeductionDetail, MasterEarningsDeductionsResponse } from '@/types/hrms/master-earnings-deductions';
 import type { ColumnDef } from '@tanstack/react-table';
 import { useCallback } from 'react';

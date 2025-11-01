@@ -8,7 +8,7 @@ import { Label } from '@/components/ui/extension/field';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { MultiSelect } from '@/components/ui/multi-select';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { useCumulativeSalaryReportOnload, useSearchCumulativeSalaryReport } from '@/hooks/hrms/reports/useCumulativeSalaryReport';
+import { useCumulativeSalaryReportOnload, useSearchCumulativeSalaryReport } from '@/hooks/hrms/useReports';
 import type { CumulativeSalaryReportSearchRequest, SalaryReportRecord } from '@/types/hrms/reports/cumulative-salary-report';
 import type { ColumnDef } from '@tanstack/react-table';
 import { Download, Printer, RefreshCw, X } from 'lucide-react';

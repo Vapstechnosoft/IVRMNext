@@ -1,5 +1,6 @@
-import { clientEnv } from '@/env';
-import type { ApiResponse } from '@/lib/apiService';
+'use server';
+
+import { api } from '@/lib/apiService';
 import type {
     DepartmentDetail,
     MasterDepartmentInput,
@@ -7,13 +8,9 @@ import type {
     OnloadGetDepartmentDetailsRequest,
     SaveDepartmentRequest
 } from '@/types/hrms/master-department';
-import axios from 'axios';
 
-export async function getMasterDepartmentList(roleId: number): Promise<ApiResponse<MasterDepartmentResponse>> {
-    const baseURL = clientEnv.NEXT_PUBLIC_API_BASE_URL;
-    const apiPath = '/api/MasterDepartmentFacade/onloadgetdetails';
-    const url = `${baseURL}${apiPath}`;
-
+export async function getMasterDepartmentList(roleId: number) {
+    const url = '/api/MasterDepartmentFacade/onloadgetdetails';
     const requestBody: OnloadGetDepartmentDetailsRequest = {
         CreatedDate: new Date().toISOString(),
         UpdatedDate: new Date().toISOString(),
@@ -29,28 +26,11 @@ export async function getMasterDepartmentList(roleId: number): Promise<ApiRespon
         HRMD_InternalTrainingMinimumHrs: 0,
         DeraptmentDTO: []
     };
-
-    const axiosResponse = await axios.post<MasterDepartmentResponse>(url, requestBody, {
-        headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
-        timeout: 30000,
-        validateStatus: (status) => status < 500
-    });
-
-    return {
-        success: axiosResponse.status >= 200 && axiosResponse.status < 300,
-        message:
-            axiosResponse.data.retrunMsg ||
-            (axiosResponse.status >= 200 && axiosResponse.status < 300
-                ? 'Departments loaded successfully'
-                : `HTTP ${axiosResponse.status}`),
-        data: axiosResponse.data
-    };
+    return await api.post<MasterDepartmentResponse>('hrms', url, requestBody);
 }
 
-export async function saveMasterDepartment(data: MasterDepartmentInput): Promise<ApiResponse<MasterDepartmentResponse>> {
-    const baseURL = clientEnv.NEXT_PUBLIC_API_BASE_URL;
-    const url = `${baseURL}/api/MasterDepartmentFacade`;
-
+export async function saveMasterDepartment(data: MasterDepartmentInput) {
+    const url = '/api/MasterDepartmentFacade';
     const requestBody: SaveDepartmentRequest = {
         CreatedDate: new Date().toISOString(),
         UpdatedDate: new Date().toISOString(),
@@ -66,30 +46,15 @@ export async function saveMasterDepartment(data: MasterDepartmentInput): Promise
         HRMD_InternalTrainingMinimumHrs: data.HRMD_InternalTrainingMinimumHrs,
         DeraptmentDTO: []
     };
-
-    const axiosResponse = await axios.post<MasterDepartmentResponse>(url, requestBody, {
-        headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
-        timeout: 10000,
-        validateStatus: (status) => status < 500
-    });
-
-    return {
-        success: axiosResponse.status >= 200 && axiosResponse.status < 300,
-        message:
-            axiosResponse.data.retrunMsg ||
-            (axiosResponse.status >= 200 && axiosResponse.status < 300 ? 'Department saved successfully' : `HTTP ${axiosResponse.status}`),
-        data: axiosResponse.data
-    };
+    return await api.post<MasterDepartmentResponse>('hrms', url, requestBody);
 }
 
 export async function activateDeactivateMasterDepartment(data: {
     HRMD_Id: number;
     HRMD_ActiveFlag: boolean;
     roleId?: number;
-}): Promise<ApiResponse<MasterDepartmentResponse>> {
-    const baseURL = clientEnv.NEXT_PUBLIC_API_BASE_URL;
-    const url = `${baseURL}/api/MasterDepartmentFacade/deactivateRecordById`;
-
+}) {
+    const url = '/api/MasterDepartmentFacade/deactivateRecordById';
     const requestBody: SaveDepartmentRequest = {
         CreatedDate: new Date().toISOString(),
         UpdatedDate: new Date().toISOString(),
@@ -105,28 +70,11 @@ export async function activateDeactivateMasterDepartment(data: {
         HRMD_InternalTrainingMinimumHrs: 0,
         DeraptmentDTO: []
     };
-
-    const axiosResponse = await axios.post<MasterDepartmentResponse>(url, requestBody, {
-        headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
-        timeout: 10000,
-        validateStatus: (status) => status < 500
-    });
-
-    return {
-        success: axiosResponse.status >= 200 && axiosResponse.status < 300,
-        message:
-            axiosResponse.data.retrunMsg ||
-            (axiosResponse.status >= 200 && axiosResponse.status < 300
-                ? 'Department status updated successfully'
-                : `HTTP ${axiosResponse.status}`),
-        data: axiosResponse.data
-    };
+    return await api.post<MasterDepartmentResponse>('hrms', url, requestBody);
 }
 
-export async function getOnloadDepartmentDetails(roleId: number): Promise<ApiResponse<MasterDepartmentResponse>> {
-    const baseURL = clientEnv.NEXT_PUBLIC_API_BASE_URL;
-    const url = `${baseURL}/api/MasterDepartmentFacade/onloadgetdetails`;
-
+export async function getOnloadDepartmentDetails(roleId: number) {
+    const url = '/api/MasterDepartmentFacade/onloadgetdetails';
     const requestBody: OnloadGetDepartmentDetailsRequest = {
         CreatedDate: new Date().toISOString(),
         UpdatedDate: new Date().toISOString(),
@@ -142,49 +90,16 @@ export async function getOnloadDepartmentDetails(roleId: number): Promise<ApiRes
         HRMD_InternalTrainingMinimumHrs: 0,
         DeraptmentDTO: []
     } as unknown as OnloadGetDepartmentDetailsRequest;
-
-    const axiosResponse = await axios.post<MasterDepartmentResponse>(url, requestBody, {
-        headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
-        timeout: 10000,
-        validateStatus: (status) => status < 500
-    });
-
-    return {
-        success: axiosResponse.status >= 200 && axiosResponse.status < 300,
-        message:
-            axiosResponse.data.retrunMsg ||
-            (axiosResponse.status >= 200 && axiosResponse.status < 300
-                ? 'Departments loaded successfully'
-                : `HTTP ${axiosResponse.status}`),
-        data: axiosResponse.data
-    };
+    return await api.post<MasterDepartmentResponse>('hrms', url, requestBody);
 }
 
-export async function getDepartmentById(id: number): Promise<ApiResponse<MasterDepartmentResponse>> {
-    const baseURL = clientEnv.NEXT_PUBLIC_API_BASE_URL;
-    const url = `${baseURL}/api/MasterDepartmentFacade/getRecordById/${id}`;
-
-    const axiosResponse = await axios.get<MasterDepartmentResponse>(url, {
-        headers: { Accept: 'application/json' },
-        timeout: 10000,
-        validateStatus: (status) => status < 500
-    });
-
-    return {
-        success: axiosResponse.status >= 200 && axiosResponse.status < 300,
-        message:
-            axiosResponse.data.retrunMsg ||
-            (axiosResponse.status >= 200 && axiosResponse.status < 300
-                ? 'Department fetched successfully'
-                : `HTTP ${axiosResponse.status}`),
-        data: axiosResponse.data
-    };
+export async function getDepartmentById(id: number) {
+    const url = `/api/MasterDepartmentFacade/getRecordById/${id}`;
+    return await api.get<MasterDepartmentResponse>('hrms', url);
 }
 
-export async function saveMasterDepartmentOrder(departments: DepartmentDetail[]): Promise<ApiResponse<MasterDepartmentResponse>> {
-    const baseURL = clientEnv.NEXT_PUBLIC_API_BASE_URL;
-    const url = `${baseURL}/api/MasterDepartmentFacade`;
-
+export async function saveMasterDepartmentOrder(departments: DepartmentDetail[]) {
+    const url = '/api/MasterDepartmentFacade';
     const requestBody: SaveDepartmentRequest = {
         CreatedDate: new Date().toISOString(),
         UpdatedDate: new Date().toISOString(),
@@ -200,18 +115,5 @@ export async function saveMasterDepartmentOrder(departments: DepartmentDetail[])
         HRMD_InternalTrainingMinimumHrs: 0,
         DeraptmentDTO: departments.map((dept) => dept.HRMD_DepartmentName)
     };
-
-    const axiosResponse = await axios.post<MasterDepartmentResponse>(url, requestBody, {
-        headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
-        timeout: 30000,
-        validateStatus: (status) => status < 500
-    });
-
-    return {
-        success: axiosResponse.status >= 200 && axiosResponse.status < 300,
-        message:
-            axiosResponse.data.retrunMsg ||
-            (axiosResponse.status >= 200 && axiosResponse.status < 300 ? 'Order saved successfully' : `HTTP ${axiosResponse.status}`),
-        data: axiosResponse.data
-    };
+    return await api.post<MasterDepartmentResponse>('hrms', url, requestBody);
 }

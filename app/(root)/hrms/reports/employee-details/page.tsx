@@ -15,7 +15,7 @@ import {
     useEmployeeDetailsReportOnload,
     useFilterEmployeeDetailsReport,
     useSearchEmployeeDetailsReport
-} from '@/hooks/hrms/reports/useEmployeeDetailsReport';
+} from '@/hooks/hrms/useReports';
 import { type BaseEntity, createLocalCrud } from '@/lib/localdb';
 import { cn } from '@/lib/utils';
 import type { ColumnDef } from '@tanstack/react-table';
