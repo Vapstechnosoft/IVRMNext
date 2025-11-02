@@ -99,7 +99,15 @@ export const EXAM_QUERY_KEYS = {
     MASTER_SUBJECT_GROUP_DETAILS: 'master-subject-group-details',
     MASTER_ALL_SUBJECT_GROUP_DETAILS: 'master-all-subject-group-details',
     MASTER_CATEGORY: 'master-category',
-    MASTER_CATEGORY_CLASS_MAPPING: 'master-category-class-mapping'
+    MASTER_CATEGORY_CLASS_MAPPING: 'master-category-class-mapping',
+    YEARLY_CATEGORY_SUBJECT_MAPPING: 'yearly-category-subject-mapping',
+    EXAM_LOGIN_PRIVILAGES: 'exam-login-privilages',
+    YEARLY_CATEGORY_DATES_MAPPING: 'yearly-category-dates-mapping',
+    EXAM_SUBJECT_GROUP_MAPPING: 'exam-subject-group-mapping',
+    EXAM_SUBJECT_GROUP_MAPPING_DETAILS: 'exam-subject-group-mapping-details',
+    EXAM_TERM_AND_EXAM_MAPPING: 'exam-term-and-exam-mapping',
+    EXAM_TERM_AND_EXAM_MAPPING_DETAILS: 'exam-term-and-exam-mapping-details',
+    EXAM_SUBJECT_WIZARD: 'exam-subject-wizard'
 };
 
 export const HRMS_QUERY_KEYS = {

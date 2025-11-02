@@ -3,10 +3,13 @@ import { Button } from '@/components/ui/button';
 import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/generic-data-table';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
+import { MasterViewDetails } from '@/components/ui/set-order/generic-seto-order';
 import { useMasterSubExam } from '@/hooks/exam/exammodule/usemasters';
+import { UpdatedOrderdSubExams, getMasterSubExamOrderData } from '@/server/exam/exam-module/masters/sub-exam';
 import type { IMasterSubExam } from '@/types/exam/exam-module/masters';
-import { Plus, X } from 'lucide-react';
-import { use } from 'react';
+import { List, Plus, X } from 'lucide-react';
+import { use, useState } from 'react';
+import { toast } from 'sonner';
 import AddSubExamForm from './_components/add-form';
 import { MasterSubExamColumns } from './_components/columns';
 import ToggleSubExamForm from './_components/toggle-form';
@@ -21,11 +24,11 @@ type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
  */
 export default function SubExamPage(props: { searchParams: SearchParams }) {
     const searchParams = use(props.searchParams);
-    const { data: response, isLoading, error } = useMasterSubExam(searchParams);
+    const { data: response, isLoading, error, refetchAll } = useMasterSubExam(searchParams);
 
     return (
         <FormProvider<IMasterSubExam>>
-            <SubExamPageContent response={response} isLoading={isLoading} error={error} />
+            <SubExamPageContent response={response} isLoading={isLoading} error={error} refetchAll={refetchAll} />
         </FormProvider>
     );
 }
@@ -38,20 +41,83 @@ export default function SubExamPage(props: { searchParams: SearchParams }) {
 function SubExamPageContent({
     response,
     isLoading,
-    error
+    error,
+    refetchAll
 }: {
     response: any;
     isLoading: boolean;
     error: any;
+    refetchAll: any;
 }) {
     const { openAddForm } = useFormContext<IMasterSubExam>();
     const tableProps = useDataTableProps(response);
+    const [orderModalOpen, setOrderModalOpen] = useState(false);
+    const [orderData, setOrderData] = useState<(IMasterSubExam & { id: number })[]>([]);
+    const [isOrderSaving, setIsOrderSaving] = useState(false);
+    const handleSetOrder = async () => {
+        try {
+            // Type the API response
+            const data: { data: IMasterSubExam[] } = await getMasterSubExamOrderData();
+
+            // Map each item and add 'id' field for table usage
+            const mappedData: (IMasterSubExam & { id: number })[] = data.data.map((d: IMasterSubExam) => ({
+                ...d,
+                id: d.emsE_Id // for row identification
+            }));
+
+            setOrderData(mappedData); // use mappedData here
+            setOrderModalOpen(true);
+        } catch (error: any) {
+            toast.error(error?.message || 'Error fetching sub-exam list.');
+        }
+    };
+
+    const handleOrderSave = async (updatedData: (IMasterSubExam & { id: number })[]) => {
+        try {
+            setIsOrderSaving(true);
+            // Map updated data with new order
+            const updatedOrderData = updatedData.map((item, index) => ({
+                emsE_Id: item.emsE_Id,
+                emE_ExamOrder: index + 1
+            }));
+
+            const payload = {
+                mI_Id: 30,
+                sub_exam: updatedOrderData // ✅ correct variable name
+            };
+            const response = await UpdatedOrderdSubExams(payload);
+
+            if (response.success) {
+                toast.success(response.message);
+                refetchAll();
+                setIsOrderSaving(false);
+                setOrderModalOpen(false);
+            } else {
+                toast.error(response.message);
+            }
+        } catch (error: any) {
+            toast.error(error?.message || 'Something went wrong.');
+        } finally {
+            setIsOrderSaving(false);
+            setOrderModalOpen(false);
+        }
+    };
 
     return (
         <div className='min-h-screen'>
             <div className='container space-y-4 p-1'>
                 {/* HEADER SECTION */}
-                <div className='flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-self-end'>
+                <div className='flex gap-4 sm:flex-row sm:items-center sm:justify-self-end'>
+                    <Button
+                        type='button'
+                        variant='secondary'
+                        onClick={handleSetOrder}
+                        className='order-2 w-fit transition-all duration-200 hover:scale-105 sm:order-3'>
+                        <div className='flex items-center'>
+                            <List className='mr-2 h-4 w-4' />
+                            Set Order
+                        </div>
+                    </Button>
                     <Button
                         type='button'
                         onClick={openAddForm}
@@ -79,6 +145,24 @@ function SubExamPageContent({
                         errorTitle='Error Loading Sub Exams'
                     />
                 </CollapsibleSection>
+                {/* Set Order Modal */}
+                {orderModalOpen && (
+                    <MasterViewDetails
+                        isOpen={orderModalOpen}
+                        onClose={() => setOrderModalOpen(false)}
+                        data={orderData}
+                        isLoading={isOrderSaving}
+                        columns={[
+                            { key: 'id', label: 'SLNO', className: 'text-center w-12' },
+                            { key: 'emsE_SubExamName', label: 'Sub-Exam Name', className: 'text-left' },
+                            { key: 'emsE_SubExamCode', label: 'Sub-Exam Code', className: 'text-left' },
+                            { key: 'emsE_SubExamOrder', label: 'Sub-Exam Order', className: 'text-left' }
+                        ]}
+                        onSave={handleOrderSave}
+                        tableHeight='500px'
+                        title='Set Sub-Exam Order'
+                    />
+                )}
 
                 {/* FORM SECTIONS */}
                 <FormSections />

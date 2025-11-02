@@ -102,17 +102,32 @@ export const masterSubSubjectSchema = {
     })
 };
 
-const gradeDetailsSchema = z.object({
-    emgD_Id: z.number().default(0),
-    emgR_Id: z.number().default(0),
-    emgD_Name: z.string().nonempty({ message: 'Grade Name is required' }),
-    emgD_From: z.preprocess((val) => (val === '' || val === undefined ? 0 : Number(val)), z.number().min(0).max(100)),
-    emgD_To: z.preprocess((val) => (val === '' || val === undefined ? 0 : Number(val)), z.number().min(0).max(100)),
-    emgD_GradePoints: z.preprocess((val) => (val === '' || val === undefined ? 0 : Number(val)), z.number().min(0).max(100)),
-    emgD_Remarks: z.string().optional(),
-    emgD_ActiveFlag: z.boolean().default(true)
-});
-
+export const gradeDetailsSchema = z
+    .object({
+        emgD_Id: z.number().default(0),
+        emgR_Id: z.number().default(0),
+        emgD_Name: z.string().nonempty({ message: 'Grade Name is required' }),
+        emgD_From: z.preprocess(
+            (val) => (val === '' || val === undefined ? 0 : Number(val)),
+            z.number().min(0, { message: 'From must be at least 0' }).max(100, { message: 'From cannot exceed 100' })
+        ),
+        emgD_To: z.preprocess(
+            (val) => (val === '' || val === undefined ? 0 : Number(val)),
+            z.number().min(0, { message: 'To must be at least 0' }).max(100, { message: 'To cannot exceed 100' })
+        ),
+        emgD_GradePoints: z.preprocess((val) => (val === '' || val === undefined ? 0 : Number(val)), z.number().min(0).max(10)),
+        emgD_Remarks: z.string().optional(),
+        emgD_ActiveFlag: z.boolean().default(true)
+    })
+    // ✅ Add mutual validation between From and To
+    .refine((data) => data.emgD_From <= data.emgD_To, {
+        path: ['emgD_From'],
+        message: "'From' value cannot be greater than 'To' value"
+    })
+    .refine((data) => data.emgD_To >= data.emgD_From, {
+        path: ['emgD_To'],
+        message: "'To' value cannot be less than 'From' value"
+    });
 // Master Grade Schema
 export const masterGradeSchema = {
     addOrUpdate: z.object({
@@ -201,35 +216,18 @@ export const masterCategorySchema = {
 
 export const categoryClassMappingSchema = {
     addOrUpdate: z.object({
-        emcA_Id: z.number().optional().default(0),
+        emcA_Id: z.number().min(1, { message: 'Category is required' }),
         mI_Id: z.number().min(1, { message: 'MI Id is required' }),
-        emcA_CategoryName: z.string().min(1, { message: 'Category Name is required' }),
-        emcA_CCECheckingFlg: z.boolean().default(true),
-        emcA_ActiveFlag: z.boolean().default(true),
         ecaC_Id: z.number().optional().default(0),
         asmaY_Id: z.number().min(1, { message: 'Academic Year is required' }),
         asmcL_Id: z.number().min(1, { message: 'Class is required' }),
-        asmS_Id: z.number().optional().default(0),
-        ecaC_ActiveFlag: z.boolean().default(true),
-        asmaY_Year: z.string().min(1, { message: 'Academic Year is required' }),
-        asmcL_ClassName: z.string().min(1, { message: 'Class Name is required' }),
-        asmC_SectionName: z.string().optional(),
-        asmaY_Order: z.number().optional().default(0),
 
         section_list: z
             .array(
                 z.object({
-                    createdDate: z.string().optional(),
-                    updatedDate: z.string().optional(),
-                    mI_Id: z.number(),
-                    asmS_Id: z.number().min(1, { message: 'Section Id is required' }),
-                    asmC_SectionCode: z.string().min(1, { message: 'Section Code is required' }),
-                    asmC_SectionName: z.string().min(1, { message: 'Section Name is required' }),
-                    asmC_MaxCapacity: z.number().nonnegative(),
-                    asmC_Order: z.number().nonnegative(),
-                    asmC_ActiveFlag: z.number().min(0).max(1)
+                    asmS_Id: z.number().min(1, { message: 'Section is required' })
                 })
             )
-            .min(1, { message: 'At least one section must be provided' })
+            .min(1, { message: 'At least one section must be selected' })
     })
 };

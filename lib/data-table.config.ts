@@ -5,6 +5,7 @@ export const tableSearchVariables = {
     page_size: 'page_size',
     search: 'search_query',
     sort_column: 'sort_column',
+    search_columns: 'search_columns',
     sort_direction: 'sort_direction'
 };
 

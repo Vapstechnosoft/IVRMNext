@@ -12,7 +12,7 @@ import autoTable from 'jspdf-autotable';
 import { DownloadIcon, FileSpreadsheet, FileText, Settings2, X } from 'lucide-react';
 import { parseAsString, useQueryState } from 'nuqs';
 import { useEffect, useRef, useState } from 'react';
-import { DropdownMenu, DropdownMenuCheckboxItem, DropdownMenuContent, DropdownMenuTrigger } from '../dropdown-menu';
+import { DropdownMenu, DropdownMenuCheckboxItem, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '../dropdown-menu';
 
 interface DataTableToolbarProps<TData> {
     table: Table<TData>;
@@ -70,6 +70,11 @@ export function DataTableToolbar<TData>({ table, data, showExportOptions = true,
 
     //find if any column is hiding
     const anyColumnHiding = table.getAllColumns().filter((column) => typeof column.accessorFn !== 'undefined' && column.getCanHide());
+    const allCols = anyColumnHiding.map((c) => c.id).join(',');
+    const [searchColumns, setSearchColumns] = useQueryState(
+        tableSearchVariables.search_columns,
+        parseAsString.withOptions({ shallow: false }).withDefault(allCols)
+    );
     const handleExportToExcel = () => {
         exportToExcel(data);
     };
@@ -113,6 +118,27 @@ export function DataTableToolbar<TData>({ table, data, showExportOptions = true,
     function handleUnselectAll() {
         table.toggleAllPageRowsSelected(false);
     }
+    const allSearchableColumns = anyColumnHiding.map((c) => c.id);
+    const selectedSearchColumns = searchColumns ? searchColumns.split(',') : [];
+
+    const toggleSearchColumn = (colId: string, checked: boolean) => {
+        let updated: string[];
+        if (checked) {
+            updated = [...new Set([...selectedSearchColumns, colId])];
+        } else {
+            updated = selectedSearchColumns.filter((id) => id !== colId);
+        }
+        setSearchColumns(updated.join(','));
+    };
+
+    const toggleSelectAllSearchColumns = () => {
+        if (selectedSearchColumns.length === allSearchableColumns.length) {
+            setSearchColumns('');
+        } else {
+            setSearchColumns(allSearchableColumns.join(','));
+        }
+    };
+    const [isSearchColumnModalOpen, setIsSearchColumnModalOpen] = useState(false);
 
     return (
         <div className='flex w-full items-center justify-between gap-2 overflow-auto p-0.5'>
@@ -161,6 +187,47 @@ export function DataTableToolbar<TData>({ table, data, showExportOptions = true,
                             </PopoverContent>
                         </Popover>
                     </div>
+                )}
+
+                {/* Search Columns */}
+                {isSearchColumnModalOpen && anyColumnHiding.length > 0 && (
+                    <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                            <Button
+                                variant='outline'
+                                size='sm'
+                                prefix={<Settings2 className='h-4 w-4' />}
+                                className='hidden h-8 w-fit sm:flex'>
+                                Search Columns
+                            </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align='end' className='w-[180px]'>
+                            <DropdownMenuItem onClick={toggleSelectAllSearchColumns}>
+                                {selectedSearchColumns.length === allSearchableColumns.length ? 'Deselect All' : 'Select All'}
+                            </DropdownMenuItem>
+                            <div className='my-1 border-t' />
+                            {table
+                                .getAllColumns()
+                                .filter((column) => typeof column.accessorFn !== 'undefined' && column.getCanHide())
+                                .map((column) => {
+                                    const displayName =
+                                        (column.columnDef.meta as any)?.title ||
+                                        column.id
+                                            .split('_')
+                                            .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+                                            .join(' ');
+
+                                    return (
+                                        <DropdownMenuCheckboxItem
+                                            key={column.id}
+                                            checked={selectedSearchColumns.includes(column.id)}
+                                            onCheckedChange={(value) => toggleSearchColumn(column.id, !!value)}>
+                                            {displayName}
+                                        </DropdownMenuCheckboxItem>
+                                    );
+                                })}
+                        </DropdownMenuContent>
+                    </DropdownMenu>
                 )}
 
                 {showViewOptions && anyColumnHiding.length > 0 && (

@@ -65,15 +65,18 @@ export default function AddMasterGradeForm({ onSuccess, className = '' }: { onSu
     const onSubmit: SubmitHandler<FormFields> = async (data) => {
         try {
             const payload = {
-                ...data,
-                grade_list: data.grade_list.map((row) => ({
-                    ...row,
+                emgR_Id: 0,
+                mI_Id: 30,
+                emgR_GradeName: data.emgR_GradeName,
+                emgR_MarksPerFlag: data.emgR_MarksPerFlag,
+                grade_list: data.grade_list.map(({ emgD_Id, ...row }) => ({
+                    emgD_Name: row.emgD_Name,
                     emgD_From: Number(row.emgD_From),
                     emgD_To: Number(row.emgD_To),
-                    emgD_GradePoints: Number(row.emgD_GradePoints)
+                    emgD_GradePoints: Number(row.emgD_GradePoints),
+                    emgD_Remarks: row.emgD_Remarks
                 }))
             };
-            console.log(payload);
 
             const response = await addOrUpdateMasterGrade(payload);
 

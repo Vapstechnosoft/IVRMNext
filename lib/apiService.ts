@@ -69,7 +69,7 @@ class ApiService {
     }
 
     private setupInterceptors(instance: AxiosInstance): void {
-        // Request Interceptor
+        // Request Interceptorr
         instance.interceptors.request.use(
             async (config) => {
                 try {
@@ -245,6 +245,7 @@ export function getSearchParamsUrl(searchParams: ApiSearchparams | undefined, se
     const sort_column = searchParams?.sort_column || '';
     const sort_direction = searchParams?.sort_direction || 'asc';
     const search_query = searchParams?.search_query || '';
+    const search_columns = searchParams?.search_columns || '';
 
     if (!search_query) {
         return `page=${page}&page_size=${page_size}&sort_column=${sort_column}&sort_direction=${sort_direction}`;

@@ -5,14 +5,11 @@ import { FormError, Label } from '@/components/ui/extension/field';
 import { InputNumber } from '@/components/ui/extension/input-number';
 import { InputText } from '@/components/ui/extension/input-text';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { MasterViewDetails } from '@/components/ui/set-order/generic-seto-order';
 import { useMasterSubject } from '@/hooks/exam/exammodule/usemasters';
 import { masterSubjectSchema } from '@/schemas/exam/exam-module/masters';
-import { UpdatedOrderdSubjects, addOrUpdateMasterSubject, getMasterSubjectOrderData } from '@/server/exam/exam-module/masters/subject';
-import type { IMasterSubjectOrder } from '@/types/exam/exam-module/masters';
+import { addOrUpdateMasterSubject } from '@/server/exam/exam-module/masters/subject';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { List, Save } from 'lucide-react';
-import { useState } from 'react';
+import { Save } from 'lucide-react';
 import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import type { z } from 'zod';
@@ -26,10 +23,6 @@ interface AddMasterSubjectFormProps {
 
 export default function AddMasterSubjectForm({ onSuccess, className = '' }: AddMasterSubjectFormProps) {
     const { refetchAll } = useMasterSubject();
-    const [orderModalOpen, setOrderModalOpen] = useState(false);
-    const [orderData, setOrderData] = useState<(IMasterSubjectOrder & { id: number })[]>([]);
-    const [updatedOrderData, setUpdatedOrderData] = useState<IMasterSubjectOrder[]>([]);
-    const [isOrderSaving, setIsOrderSaving] = useState(false);
 
     const {
         control,
@@ -79,57 +72,6 @@ export default function AddMasterSubjectForm({ onSuccess, className = '' }: AddM
     const handleReset = () => reset();
 
     // Fetch and open order modal
-    const handleSetOrder = async () => {
-        try {
-            const response = await getMasterSubjectOrderData(30);
-
-            if (response.success && response.data) {
-                const subjects: IMasterSubjectOrder[] = Array.isArray(response.data) ? response.data : [];
-
-                const mappedData = subjects.map((d) => ({ ...d, id: d.ismS_Id }));
-                setOrderData(mappedData);
-                setOrderModalOpen(true);
-            } else {
-                toast.error(response.message || 'Failed to fetch subjects.');
-            }
-        } catch (error: any) {
-            toast.error(error.message || 'Something went wrong while fetching subjects.');
-        }
-    };
-
-    // Save new order
-    const handleOrderSave = async (updatedData: (IMasterSubjectOrder & { id: number })[]) => {
-        try {
-            setIsOrderSaving(true);
-            const updatedOrderData = updatedData.map((item, index) => ({
-                ismS_Id: item.ismS_Id,
-                mI_Id: item.mI_Id,
-                ismS_OrderFlag: index + 1
-            }));
-
-            const payload = {
-                subject_list_Order: updatedOrderData // ✅ correct variable name
-            };
-
-            const response = await UpdatedOrderdSubjects(payload);
-
-            if (response.success) {
-                toast.success(response.message);
-                reset();
-                refetchAll();
-                setIsOrderSaving(false);
-                setOrderModalOpen(false);
-                onSuccess?.();
-            } else {
-                toast.error(response.message);
-            }
-        } catch (error: any) {
-            toast.error(error.message);
-        } finally {
-            setIsOrderSaving(false);
-            setOrderModalOpen(false);
-        }
-    };
 
     return (
         <div className={`${className}`}>
@@ -271,36 +213,8 @@ export default function AddMasterSubjectForm({ onSuccess, className = '' }: AddM
                             Save Subject
                         </div>
                     </Button>
-                    <Button
-                        type='button'
-                        variant='secondary'
-                        onClick={handleSetOrder}
-                        className='order-2 w-fit transition-all duration-200 hover:scale-105 sm:order-3'>
-                        <div className='flex items-center'>
-                            <List className='mr-2 h-4 w-4' />
-                            Set Order
-                        </div>
-                    </Button>
                 </div>
             </form>
-
-            {/* Set Order Modal */}
-            {orderModalOpen && (
-                <MasterViewDetails
-                    isOpen={orderModalOpen}
-                    onClose={() => setOrderModalOpen(false)}
-                    data={orderData}
-                    isLoading={isOrderSaving}
-                    columns={[
-                        { key: 'id', label: 'SLNO', className: 'text-center w-12' },
-                        { key: 'ismS_SubjectName', label: 'Subject Name', className: 'text-left' },
-                        { key: 'ismS_SubjectCode', label: 'Subject Code', className: 'text-left' },
-                        { key: 'ismS_OrderFlag', label: 'Subject Order', className: 'text-left' }
-                    ]}
-                    onSave={handleOrderSave}
-                    tableHeight='500px'
-                />
-            )}
         </div>
     );
 }
