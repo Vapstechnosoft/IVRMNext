@@ -4,13 +4,23 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
+
 import { useFormContext } from '@/components/ui/form/form-provider';
 import { getStudentApplicationForm } from '@/server/admission/preadmission/transactions/application_form';
 import type { IPreadmissionStudentApplicationList } from '@/types/admission/preadmission/transactions';
 import type { ColumnDef } from '@tanstack/react-table';
 import { ReceiptIndianRupee } from 'lucide-react';
 import { Edit } from 'lucide-react';
+
+import { ROLES } from '@/constants';
+import type { IPreadmissionStudentApplicationList } from '@/types/admission/preadmission/transactions';
+import type { ColumnDef } from '@tanstack/react-table';
+import { ReceiptIndianRupee } from 'lucide-react';
+import { useSession } from 'next-auth/react';
+import { useEffect } from 'react';
+
 import PaymentDialog from './payment-dialog';
+import ToggleStudentApplicationForm from './toggle-form';
 
 export const studentApplicationColumns: ColumnDef<IPreadmissionStudentApplicationList>[] = [
     {
@@ -43,7 +53,7 @@ export const studentApplicationColumns: ColumnDef<IPreadmissionStudentApplicatio
     },
     {
         accessorKey: 'pasR_RegistrationNo',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Registration No' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Application No' />,
         cell: ({ row }) => <div>{row.getValue('pasR_RegistrationNo') ?? 'N.A'}</div>,
         enableSorting: true,
         enableHiding: true
@@ -71,27 +81,35 @@ export const studentApplicationColumns: ColumnDef<IPreadmissionStudentApplicatio
     },
     {
         accessorKey: 'application_status',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Application Status' />,
+        header: ({ column }) => <DataTableColumnHeader className='text-nowrap' column={column} title='Application Status' />,
         cell: ({ row }) => <div>{row.getValue('application_status')}</div>,
         enableSorting: false,
         enableHiding: true
     },
     {
         accessorKey: 'admission_status',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Admission Status' />,
+        header: ({ column }) => <DataTableColumnHeader className='text-nowrap' column={column} title='Admission Status' />,
         cell: ({ row }) => <div>{row.getValue('admission_status')}</div>,
         enableSorting: false,
         enableHiding: true
     },
     {
+        accessorKey: 'applied_by',
+        header: ({ column }) => <DataTableColumnHeader className='text-nowrap' column={column} title='User Name' />,
+        cell: ({ row }) => <div>{row.getValue('applied_by')}</div>,
+        enableSorting: false,
+        enableHiding: true
+    },
+    {
         id: 'actions',
-        header: 'Actions',
+        header: ({ column }) => <DataTableColumnHeader className='text-center' column={column} title='Actions' />,
         accessorFn: (row: any) => {
             return row;
         },
         enableHiding: false,
         enableSorting: false,
         cell: ({ cell }: { cell: any }) => {
+
             const { openEditForm } = useFormContext<IPreadmissionStudentApplicationList>();
 
             return (
@@ -146,6 +164,18 @@ export const studentApplicationColumns: ColumnDef<IPreadmissionStudentApplicatio
                         <Edit className='h-4 w-4' />
                     </Button>
 
+
+            const session = useSession();
+
+            useEffect(() => {
+                if (session?.data?.role === undefined) {
+                    window.location.reload();
+                }
+            }, [session?.data?.role]);
+
+            return (
+                <div className='flex justify-between gap-2'>
+
                     {cell.row.original.is_fee_applicable === 1 ? (
                         cell.row.original.payment_status === 0 ? (
                             <PaymentDialog cell={cell} />
@@ -157,6 +187,10 @@ export const studentApplicationColumns: ColumnDef<IPreadmissionStudentApplicatio
                     ) : (
                         <p className='text-slate-600 text-sm'>No Fee</p>
                     )}
+
+
+                    {session?.data?.role.toUpperCase() === ROLES.ADMIN && <ToggleStudentApplicationForm cell={cell} />}
+
                 </div>
             );
         }

@@ -4,7 +4,8 @@ import {
     createEmailSchema,
     createOptionalStringSchema,
     createStringOnlySchema,
-    createStringSchema
+    createStringSchema,
+    deleteIdSchema
 } from '../../validationSchemas';
 
 export const preadmissionRegistrationSchema = {
@@ -269,5 +270,8 @@ export const studentApplicationFormSchema = {
 
         // Final
         pasR_UndertakingFlag: z.number().int({ message: 'Undertaking Flag is required' })
+    }),
+    delete: z.object({
+        pasr_id: deleteIdSchema('pasr_id')
     })
 };
