@@ -90,30 +90,52 @@ export const feeAmountEntryColumns: ColumnDef<IFeeAmountEntryList>[] = [
     }
 ];
 
+// function ActionButtonsCell({ rowData }: { rowData: IFeeAmountEntryList }) {
+//   const { openEditForm, openToggleForm } =
+//     useFormContext<IFeeAmountEntryList>();
+
+//   const handleEdit = useCallback(
+//     (data: IFeeAmountEntryList) => {
+//       openEditForm(data);
+//     },
+//     [openEditForm]
+//   );
+
+//   const handleToggle = useCallback(
+//     (data: IFeeAmountEntryList) => {
+//       openToggleForm(data);
+//     },
+//     [openToggleForm]
+//   );
+
+//   return (
+//     <div style={{ display: "flex", justifyContent: "center" }}>
+//       <ActionButtons
+//         rowData={rowData}
+//         buttons={{ edit: false, toggle: false, delete: true }}
+//         onEdit={handleEdit}
+//         onToggle={handleToggle}
+//         //toggleConditionKey="fmA_Id"
+//       />
+//     </div>
+//   );
+// }
+
 function ActionButtonsCell({ rowData }: { rowData: IFeeAmountEntryList }) {
-    const { openEditForm, openToggleForm } = useFormContext<IFeeAmountEntryList>();
+    const { openEditForm, openDeleteForm } = useFormContext<IFeeAmountEntryList>();
 
-    const handleEdit = useCallback(
-        (data: IFeeAmountEntryList) => {
-            openEditForm(data);
-        },
-        [openEditForm]
-    );
+    const handleEdit = useCallback((data: IFeeAmountEntryList) => openEditForm(data), [openEditForm]);
 
-    const handleToggle = useCallback(
-        (data: IFeeAmountEntryList) => {
-            openToggleForm(data);
-        },
-        [openToggleForm]
-    );
+    const handleDelete = useCallback((data: IFeeAmountEntryList) => openDeleteForm(data), [openDeleteForm]);
 
     return (
-        <ActionButtons
-            rowData={rowData}
-            buttons={{ edit: true, toggle: true, delete: false }}
-            onEdit={handleEdit}
-            onToggle={handleToggle}
-            toggleConditionKey='fmH_ActiveFlag'
-        />
+        <div style={{ display: 'flex', justifyContent: 'center' }}>
+            <ActionButtons
+                rowData={rowData}
+                buttons={{ edit: false, toggle: false, delete: true }}
+                onEdit={handleEdit}
+                onDelete={handleDelete}
+            />
+        </div>
     );
 }

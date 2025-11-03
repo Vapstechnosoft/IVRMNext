@@ -18,12 +18,10 @@ export async function getFeeTermHeadList(searchParams?: ApiSearchparams) {
 
 export async function addOrUpdateFeeTermHead(data: any) {
     const url = '/FeeMasterTermsFacade/TermHeadInstallmentMaping';
-
-    console.info('addOrUpdateFeeTermHead URL:', url);
     return await api.post<any>('fees', url, data);
 }
 
-export async function toggleFeeTermHead(mi_id: number, id: number) {
+export async function deleteFeeTermHead(mi_id: number, id: number) {
     const url = `/FeeFineSlabFacade/Toggle/${id}`;
     return await api.put('fees', url);
 }

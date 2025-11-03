@@ -11,6 +11,7 @@ import { Plus, X } from 'lucide-react';
 import { use } from 'react';
 import AddFeeTermsHeadFormForm from './_components/add-form';
 import { feetermheadColumns } from './_components/columns';
+import ToggleMasterTermFeeHeadForm from './_components/toggle-form';
 import UpdateFeeTermHeadForm from './_components/update-form';
 
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
@@ -86,6 +87,7 @@ function FormSections() {
         isAddFormOpen,
         isEditFormOpen,
         isToggleFormOpen,
+        isDeleteFormOpen,
         selectedRow,
         closeAddForm,
         closeEditForm,
@@ -146,7 +148,7 @@ function FormSections() {
             )}
 
             {/* Toggle Form */}
-            {/* {isToggleFormOpen && selectedRow && <ToggleFeeTermsForm rowData={selectedRow} onClose={closeToggleForm} />} */}
+            {isDeleteFormOpen && selectedRow && <ToggleMasterTermFeeHeadForm rowData={selectedRow} onClose={closeToggleForm} />}
         </>
     );
 }

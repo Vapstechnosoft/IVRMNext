@@ -11,6 +11,7 @@ import { Plus, X } from 'lucide-react';
 import { use } from 'react';
 import AddAmountEntryForm from './_components/add-form';
 import { feeAmountEntryColumns } from './_components/columns';
+import ToggleMasterAmountEntryForm from './_components/toggle-form';
 
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 
@@ -86,6 +87,7 @@ function FormSections() {
         isEditFormOpen,
         isToggleFormOpen,
         selectedRow,
+        isDeleteFormOpen,
         closeAddForm,
         closeEditForm,
         closeToggleForm,
@@ -119,7 +121,7 @@ function FormSections() {
                 </div>
             )}
 
-            {isEditFormOpen && selectedRow && (
+            {/* {isEditFormOpen && selectedRow && (
                 <div ref={editFormRef}>
                     <CollapsibleSection
                         title='Edit Master Fees Head'
@@ -136,13 +138,13 @@ function FormSections() {
                                 className='-top-[3.5rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
                                 <X className='h-4 w-4 text-destructive' /> Close
                             </Button>
-                            {/* <UpdateMasterFeeheadForm selectedRow={selectedRow} onSuccess={closeEditForm} /> */}
+                            <UpdateMasterFeeheadForm selectedRow={selectedRow} onSuccess={closeEditForm} />
                         </div>
                     </CollapsibleSection>
                 </div>
-            )}
+            )} */}
 
-            {/* {isToggleFormOpen && selectedRow && <ToggleMasterClassForm rowData={selectedRow} onClose={closeToggleForm} />} */}
+            {isDeleteFormOpen && selectedRow && <ToggleMasterAmountEntryForm rowData={selectedRow} onClose={closeToggleForm} />}
         </>
     );
 }

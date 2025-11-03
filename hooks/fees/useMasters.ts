@@ -8,12 +8,12 @@ import { getAcademicYearDropdown } from '@/server/fees/masters/class_yearly_cate
 import { getFeeTermHeadList, getheadsdropdown, getinstallmentsdropdown, gettermsdropdown } from '@/server/fees/masters/fee-term-heads';
 import { getpaymentgateway_dropdown, getpaymentgatewaydetails } from '@/server/fees/masters/fee_payment_gateway_details';
 import { getFeePrevilegeList, getGroupsDropdown, getRolesDropdown } from '@/server/fees/masters/fee_previlege';
-import { getMasterfeeInstallment, getMasterfeehead } from '@/server/fees/masters/fee_yearly_group_mapping';
 import { getfeehead } from '@/server/fees/masters/feehead';
 import { getfeeInstallment } from '@/server/fees/masters/feeinstallment';
 import { getfeeInstallmentDueDate } from '@/server/fees/masters/feeinstallmentduedate';
 import { getMasterConcession } from '@/server/fees/masters/feemasterconcession';
 import { getFeeTermList } from '@/server/fees/masters/feemasterterms';
+import { getMasterfeeInstallment, getMasterfeehead } from '@/server/fees/masters/yearly_group_mapping';
 
 import { getGroupListCategory, getMasterClassYearlyCategory } from '@/server/fees/masters/fees_yearly_group';
 
@@ -511,15 +511,15 @@ export const useFeePrevilegeList = () => {
     };
 };
 
-export const useFeeMasterHead = () => {
+export const useFeeMasterHead = (searchParams?: ApiSearchparams) => {
     const queryClient = useQueryClient();
 
     return {
         ...useQuery({
-            queryKey: [FEES_QUERY_KEYS.FEE_MASTER_HEADS_DROPDOWN],
-            queryFn: async () => getMasterfeehead(),
-
-            staleTime: 0
+            queryKey: [FEES_QUERY_KEYS.FEE_MASTER_HEADS_DROPDOWN, searchParams ?? {}],
+            queryFn: async () => getMasterfeehead(searchParams),
+            staleTime: 0,
+            retry: 1
         }),
         refetchAll: () => {
             return queryClient.invalidateQueries({
@@ -529,15 +529,15 @@ export const useFeeMasterHead = () => {
     };
 };
 
-export const useFeeMasterInstallment = () => {
+export const useFeeMasterInstallment = (searchParams?: ApiSearchparams) => {
     const queryClient = useQueryClient();
 
     return {
         ...useQuery({
-            queryKey: [FEES_QUERY_KEYS.FEE_MASTER_INSTALLMENT_DROPDOWN],
-            queryFn: async () => getMasterfeeInstallment(),
-
-            staleTime: 0
+            queryKey: [FEES_QUERY_KEYS.FEE_MASTER_INSTALLMENT_DROPDOWN, searchParams ?? {}],
+            queryFn: async () => getMasterfeeInstallment(searchParams),
+            staleTime: 0,
+            retry: 1
         }),
         refetchAll: () => {
             return queryClient.invalidateQueries({

@@ -8,7 +8,7 @@ export const amountEntrySchema = {
         categoryId: z.number().int({ message: 'Category is required' })
     }),
     delete: z.object({
-        ivrmmoD_Id: deleteIdSchema('ivrmmoD_Id')
+        fmA_Id: deleteIdSchema('fmA_Id')
     })
 };
 

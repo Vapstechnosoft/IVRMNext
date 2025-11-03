@@ -320,7 +320,7 @@ export const masterTermFeeHeadSchema = {
         // ftI_Id: z.number({ message: 'Installment is required' })
     }),
     delete: z.object({
-        // FPGD_Id: deleteIdSchema('FPGD_Id')
+        idforedt: deleteIdSchema('idforedt')
     })
 };
 export const masterConcessionDetailsSchema = {
@@ -476,5 +476,16 @@ export const masterOnlinePaymentHeadGroupSchema = {
     }),
     delete: z.object({
         fmcC_Id: deleteIdSchema('ivrmmoD_Id')
+    })
+};
+
+export const masterTermFeeHeadDueDateSchema = {
+    addOrUpdate: z.object({
+        asmaY_Id: z.number().int({ message: 'Academic Year is required' }).optional(),
+        fmT_Id: z.number().int({ message: 'Term is required' }),
+        fmH_Id: z.number().int({ message: 'Category is required' })
+    }),
+    delete: z.object({
+        fmA_Id: deleteIdSchema('fmA_Id')
     })
 };

@@ -3,25 +3,25 @@
 import { Button } from '@/components/ui/button';
 import { AdaptiveBody, AdaptiveDialog, AdaptiveFooter } from '@/components/ui/extension/adaptive-dialog';
 import { FormError } from '@/components/ui/extension/field';
-import { useMasterFineSlab } from '@/hooks/fees/useMasters';
-import { fineslabSchema } from '@/schemas/fees/masters';
-import { toggleFineSlab } from '@/server/fees/masters/fineSlab';
-import type { IFineSlabList } from '@/types/fees/masters/masters';
+import { useMasterTermsHead } from '@/hooks/fees/useMasters';
+import { masterTermFeeHeadSchema } from '@/schemas/fees/masters';
+import { deleteFeeTermHead } from '@/server/fees/masters/fee-term-heads';
+import type { IMasterTermFeeHeadList } from '@/types/fees/masters/masters';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { Trash2 } from 'lucide-react';
 import { type SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import type { z } from 'zod';
 
-type FormFields = z.infer<typeof fineslabSchema.delete>;
+type FormFields = z.infer<typeof masterTermFeeHeadSchema.delete>;
 
-interface ToggleMFineSlabFormProps {
-    rowData: IFineSlabList;
+interface ToggleMasterTermFeeHeadFormProps {
+    rowData: IMasterTermFeeHeadList;
     onClose: () => void;
 }
 
-export default function ToggleFineSlabForm({ rowData, onClose }: ToggleMFineSlabFormProps) {
-    const { refetchAll } = useMasterFineSlab();
-    const isActive = rowData.fmfS_ActiveFlag;
+export default function ToggleMasterTermFeeHeadForm({ rowData, onClose }: ToggleMasterTermFeeHeadFormProps) {
+    const { refetchAll } = useMasterTermsHead();
 
     const {
         register,
@@ -29,7 +29,7 @@ export default function ToggleFineSlabForm({ rowData, onClose }: ToggleMFineSlab
         reset,
         formState: { errors, isSubmitting }
     } = useForm<FormFields>({
-        resolver: zodResolver(fineslabSchema.delete),
+        resolver: zodResolver(masterTermFeeHeadSchema.delete),
         mode: 'onChange'
     });
 
@@ -40,37 +40,37 @@ export default function ToggleFineSlabForm({ rowData, onClose }: ToggleMFineSlab
 
     const onSubmit: SubmitHandler<FormFields | any> = async () => {
         try {
-            const response = await toggleFineSlab(30, Number(rowData.fmfS_Id));
-
-            if (response.success) {
-                toast.success(response.message);
+            const response = await deleteFeeTermHead(30, Number(rowData.idforedt));
+            if (response?.success) {
+                toast.success(response.message || 'Deleted successfully');
                 refetchAll();
                 closeDialog();
             } else {
-                toast.error(response.message);
+                toast.error(response?.message || 'Failed to delete');
             }
         } catch (error: any) {
-            toast.error(error.message);
+            toast.error(error.message ?? 'Failed to delete');
         }
     };
 
     return (
-        <AdaptiveDialog title='Toggle Master Fee Head Status' isOpen={true} onClose={closeDialog}>
+        <AdaptiveDialog title='Delete Fee Group Grouping' isOpen={true} onClose={closeDialog}>
             <form onSubmit={handleSubmit(onSubmit)} className='flex flex-col gap-4'>
                 <AdaptiveBody className='flex flex-col gap-5'>
-                    <input type='hidden' {...register('fmfS_Id')} defaultValue={rowData.fmfS_Id} />
+                    <input type='hidden' {...register('idforedt')} defaultValue={rowData.idforedt} />
                     <p>
-                        Are you sure you want to {isActive ? 'deactivate' : 'activate'} <strong>{rowData.fmfS_FineType}</strong>?
+                        Are you sure you want to <strong>permanently delete</strong> the group-<strong>{rowData.idforedt}</strong>?
                     </p>
-                    <FormError>{errors.fmfS_Id?.message}</FormError>
+                    <FormError>{errors.idforedt?.message}</FormError>
                     <FormError>{errors.root?.message}</FormError>
                 </AdaptiveBody>
                 <AdaptiveFooter>
                     <Button variant='secondary' onClick={closeDialog} type='button'>
                         Cancel
                     </Button>
-                    <Button type='submit' isLoading={isSubmitting} variant={isActive ? 'destructive' : 'default'}>
-                        {isActive ? 'Deactivate' : 'Activate'}
+                    <Button type='submit' isLoading={isSubmitting} variant='destructive'>
+                        <Trash2 className='mr-2 h-4 w-4' />
+                        Delete
                     </Button>
                 </AdaptiveFooter>
             </form>

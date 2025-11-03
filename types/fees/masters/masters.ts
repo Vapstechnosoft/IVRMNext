@@ -298,3 +298,10 @@ export interface IMasterFeeYearlyHeadGroupMapping {
     fmH_Id: number;
     fmI_Id: number;
 }
+
+export interface IMasterYearlyRebateList {
+    asmaY_Id: number;
+    fyG_PartialRebateAmtOrPercentageValue?: number | string;
+    fyG_PartialRebateTypeFlg?: string;
+    fyG_PartialRebateApplicableFlg?: boolean;
+}
