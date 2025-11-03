@@ -1,14 +1,24 @@
 'use client';
 
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
+
+import { useFormContext } from '@/components/ui/form/form-provider';
+import { getStudentApplicationForm } from '@/server/admission/preadmission/transactions/application_form';
+import type { IPreadmissionStudentApplicationList } from '@/types/admission/preadmission/transactions';
+import type { ColumnDef } from '@tanstack/react-table';
+import { ReceiptIndianRupee } from 'lucide-react';
+import { Edit } from 'lucide-react';
+
 import { ROLES } from '@/constants';
 import type { IPreadmissionStudentApplicationList } from '@/types/admission/preadmission/transactions';
 import type { ColumnDef } from '@tanstack/react-table';
 import { ReceiptIndianRupee } from 'lucide-react';
 import { useSession } from 'next-auth/react';
 import { useEffect } from 'react';
+
 import PaymentDialog from './payment-dialog';
 import ToggleStudentApplicationForm from './toggle-form';
 
@@ -99,6 +109,62 @@ export const studentApplicationColumns: ColumnDef<IPreadmissionStudentApplicatio
         enableHiding: false,
         enableSorting: false,
         cell: ({ cell }: { cell: any }) => {
+
+            const { openEditForm } = useFormContext<IPreadmissionStudentApplicationList>();
+
+            return (
+                <div className='flex items-center gap-2'>
+                    <Button
+                        type='button'
+                        variant='ghost'
+                        size='sm'
+                        onClick={async () => {
+                            try {
+                                const rowData = cell.row.original;
+                                const response = await getStudentApplicationForm(rowData.pasr_id);
+
+                                // The server returns a wrapper containing multiple related arrays
+                                // (student_details, student_sources, student_refrences, etc.).
+                                // The Update form expects a flat object with properties like
+                                // pasR_* plus helper arrays named selectedSourceDetails,
+                                // selectedRefrenceDetails, siblingsDetails, previousSchoolList,
+                                // selectedDocuments. Transform the response accordingly and
+                                // then open the edit form with the mapped payload.
+                                const resp = response.data;
+                                const student = resp?.student_details || resp || {};
+
+                                const payload = {
+                                    // spread the core student fields (pasR_*, etc.)
+                                    ...student,
+                                    // map sources/references to the shape expected by the form
+                                    selectedSourceDetails: (resp?.student_sources || resp?.studentSource || []).map((s: any) => ({
+                                        pamS_Id: String(s.pamS_Id)
+                                    })),
+                                    selectedRefrenceDetails: (resp?.student_refrences || resp?.studentReference || []).map((r: any) => ({
+                                        pamR_Id: String(r.pamR_Id)
+                                    })),
+                                    // siblings & previous schools kept as-is
+                                    siblingsDetails: resp?.student_siblings || [],
+                                    previousSchoolList: resp?.previous_schools || [],
+                                    // map documents to the expected fields
+                                    selectedDocuments: (resp?.student_documents || []).map((d: any) => ({
+                                        pasrD_Id: d.pasrD_Id,
+                                        pasR_Id: d.pasR_Id,
+                                        amsmD_Id: d.amsmD_Id,
+                                        document_Path: d.document_Path
+                                    }))
+                                };
+
+                                openEditForm(payload);
+                            } catch (error) {
+                                console.error('Error fetching application details:', error);
+                            }
+                        }}
+                        className='p-1'>
+                        <Edit className='h-4 w-4' />
+                    </Button>
+
+
             const session = useSession();
 
             useEffect(() => {
@@ -109,6 +175,7 @@ export const studentApplicationColumns: ColumnDef<IPreadmissionStudentApplicatio
 
             return (
                 <div className='flex justify-between gap-2'>
+
                     {cell.row.original.is_fee_applicable === 1 ? (
                         cell.row.original.payment_status === 0 ? (
                             <PaymentDialog cell={cell} />
@@ -120,7 +187,10 @@ export const studentApplicationColumns: ColumnDef<IPreadmissionStudentApplicatio
                     ) : (
                         <p className='text-slate-600 text-sm'>No Fee</p>
                     )}
+
+
                     {session?.data?.role.toUpperCase() === ROLES.ADMIN && <ToggleStudentApplicationForm cell={cell} />}
+
                 </div>
             );
         }
