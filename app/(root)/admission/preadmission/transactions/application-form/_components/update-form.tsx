@@ -11,6 +11,7 @@ import { MultiSelect } from '@/components/ui/multi-select';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useAcademicYearDropdown } from '@/hooks/admission/preadmission/useMasters';
 import {
     useCasteDropdown,
     useCountryDropdown,
@@ -24,19 +25,19 @@ import {
 } from '@/hooks/admission/preadmission/useTransactions';
 import { getIconByName } from '@/lib/lucide-icon-registry';
 import { calculateAge, cn } from '@/lib/utils';
-import { studentApplicationFormSchema } from '@/schemas/admission/preadmission/transactions';
+import { studentApplicationFormUpdateSchema } from '@/schemas/admission/preadmission/transactions';
 import { addStudentApplicationForm } from '@/server/admission/preadmission/transactions/application_form';
 import { deleteDocument, uploadDocument } from '@/server/document_upload';
 import type { CalculatedAgeDetails } from '@/types';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { format } from 'date-fns';
 import { Calendar, Check, ChevronLeft, ChevronRight, Eye, Save, Trash } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import type { z } from 'zod';
 
-type FormFields = z.infer<typeof studentApplicationFormSchema.update>;
+type FormFields = z.infer<typeof studentApplicationFormUpdateSchema.update>;
 
 interface UpdateStudentApplicationFormProps {
     id?: number;
@@ -98,7 +99,7 @@ export default function UpdateStudentApplicationForm({
         setValue,
         formState: { errors, isSubmitting }
     } = useForm<FormFields>({
-        resolver: zodResolver(studentApplicationFormSchema.update),
+        resolver: zodResolver(studentApplicationFormUpdateSchema.update),
         mode: 'onChange',
         defaultValues: {
             pasR_UndertakingFlag: 0
@@ -156,6 +157,14 @@ export default function UpdateStudentApplicationForm({
                 setUploadedDocuments(rowData.selectedDocuments);
             }
 
+            // Initialize student photo from row data if present
+            if (rowData.pasR_Student_Pic_Path) {
+                setStudentPhoto({
+                    pasR_Student_Pic_Path: rowData.pasR_Student_Pic_Path,
+                    isUploading: false
+                });
+            }
+
             // Calculate age details if DOB exists
             if (rowData.pasR_DOB) {
                 const dob = new Date(rowData.pasR_DOB);
@@ -203,9 +212,24 @@ export default function UpdateStudentApplicationForm({
         }>
     >([]);
 
+    const [studentPhoto, setStudentPhoto] = useState<{
+        pasR_Student_Pic_Path: string;
+        isUploading?: boolean;
+    } | null>(null);
+    const [studentPhotoError, setStudentPhotoError] = useState<string | null>(null);
+
+    // Ref for hidden file input to support edit/replace
+    const studentPhotoInputRef = useRef<HTMLInputElement | null>(null);
+
     const [documentErrors, setDocumentErrors] = useState<Record<number, string>>({});
 
     const { data: religion, isLoading: religionLoading, error: religionError, refetchAll: refetchReligion } = useReligionDropdown();
+    const {
+        data: academicYearOptions,
+        isLoading: academicYearLoading,
+        error: academicYearError,
+        refetchAll: refetchAcademic
+    } = useAcademicYearDropdown();
     const conConuntryId = watch('pasR_ConCountry');
     const perConuntryId = watch('pasR_PerCountry');
     const { data: caste, isLoading: casteLoading, error: casteError, refetchAll: refetchCaste } = useCasteDropdown(watch('religion_Id'));
@@ -248,6 +272,7 @@ export default function UpdateStudentApplicationForm({
         refetchConState();
         refetchPerState();
         refetchPreadmissionDocuments();
+        refetchAcademic();
     };
 
     const nextStep = async () => {
@@ -270,6 +295,10 @@ export default function UpdateStudentApplicationForm({
                 'pasR_MotherTongue',
                 'pasR_TransportReqdFlag'
             ];
+            if (!studentPhoto?.pasR_Student_Pic_Path) {
+                toast.error('Please upload student photo');
+                return;
+            }
         } else if (currentStep === 2) {
             fieldsToValidate = [
                 'pasR_ConStreet',
@@ -359,6 +388,8 @@ export default function UpdateStudentApplicationForm({
                 ...filteredData,
                 pasR_DOB: format(pasR_DOB, 'yyyy-MM-dd'),
                 pasR_Age: calculatedAgeDetails.ageInYears,
+                // Use student photo path from state
+                pasR_Student_Pic_Path: studentPhoto?.pasR_Student_Pic_Path || '',
 
                 // FIXED: Ensure proper type conversions
                 PASR_ConState: pasR_ConState?.toString() ?? '',
@@ -408,12 +439,7 @@ export default function UpdateStudentApplicationForm({
                 PASR_RegistrationNo: ''
             };
 
-            // Log for debugging
-            console.log('Submitting payload:', {
-                type: Array.isArray(payload) ? 'Array' : 'Object',
-                pasR_Id: payload.pasR_Id,
-                payload: JSON.stringify(payload, null, 2)
-            });
+            // Submit the payload
 
             const response = await addStudentApplicationForm(payload);
 
@@ -615,6 +641,51 @@ export default function UpdateStudentApplicationForm({
         }
     };
 
+    const handleStudentPhotoUpload = async (file: File) => {
+        try {
+            setStudentPhoto({ pasR_Student_Pic_Path: '', isUploading: true });
+            setStudentPhotoError(null);
+
+            const formData = new FormData();
+            formData.append('file', file);
+            formData.append('SubContainerName', 'preadmission_student_photo');
+
+            const response = await uploadDocument(formData);
+
+            if (response.success && response.data) {
+                setStudentPhoto({
+                    pasR_Student_Pic_Path: response.data as string,
+                    isUploading: false
+                });
+                toast.success('Student photo uploaded successfully');
+            } else {
+                throw new Error(response.message || 'Upload failed');
+            }
+        } catch (error: any) {
+            console.error('Upload error:', error);
+            const errorMessage = error?.response?.data?.message || error?.message || 'Upload failed';
+            setStudentPhotoError(errorMessage);
+            setStudentPhoto(null);
+            toast.error(`Failed to upload photo: ${errorMessage}`);
+        }
+    };
+
+    const handleStudentPhotoDelete = async () => {
+        if (!studentPhoto?.pasR_Student_Pic_Path) return;
+
+        try {
+            const response = await deleteDocument(studentPhoto.pasR_Student_Pic_Path);
+            if (response.success) {
+                setStudentPhoto(null);
+                toast.success('Student photo deleted successfully');
+            } else {
+                throw new Error(response.message || 'Delete failed');
+            }
+        } catch (_error: any) {
+            toast.error('Failed to delete photo');
+        }
+    };
+
     const isDocumentUploaded = (amsmD_Id: number) => {
         return uploadedDocuments.some((doc) => doc.amsmD_Id === amsmD_Id);
     };
@@ -780,24 +851,33 @@ export default function UpdateStudentApplicationForm({
                                                     Academic Year <span className='ml-1 text-red-500'>*</span>
                                                 </Label>
                                                 <Controller
-                                                    name='asmaY_Id'
+                                                    name={'asmaY_Id' as any}
                                                     control={control}
                                                     defaultValue={rowData?.asmaY_Id}
                                                     render={({ field }) => (
                                                         <Select
                                                             onValueChange={(value) => field.onChange(Number(value))}
-                                                            value={field.value?.toString() || undefined}
-                                                            disabled>
+                                                            value={field.value?.toString() || undefined}>
                                                             <SelectTrigger id='academic_year'>
                                                                 <SelectValue placeholder='Select Academic Year' />
                                                             </SelectTrigger>
                                                             <SelectContent>
-                                                                {rowData ? (
-                                                                    <SelectItem key={rowData.asmaY_Id} value={rowData.asmaY_Id.toString()}>
-                                                                        {rowData.asmaY_Year}
-                                                                    </SelectItem>
-                                                                ) : (
+                                                                {academicYearLoading ? (
                                                                     <SelectItem value='loading' disabled>
+                                                                        Loading...
+                                                                    </SelectItem>
+                                                                ) : academicYearError ? (
+                                                                    <SelectItem value='error' disabled>
+                                                                        Error loading
+                                                                    </SelectItem>
+                                                                ) : academicYearOptions?.data && academicYearOptions.data.length > 0 ? (
+                                                                    academicYearOptions.data.map((item: any) => (
+                                                                        <SelectItem key={item.asmaY_Id} value={item.asmaY_Id.toString()}>
+                                                                            {item.asmaY_Year}
+                                                                        </SelectItem>
+                                                                    ))
+                                                                ) : (
+                                                                    <SelectItem value='none' disabled>
                                                                         No academic year available
                                                                     </SelectItem>
                                                                 )}
@@ -808,52 +888,162 @@ export default function UpdateStudentApplicationForm({
                                             </div>
 
                                             {/* Student Photo Upload */}
-                                            <div className='col-span-full w-80'>
-                                                <div className='rounded-lg border-2 border-blue-200 bg-blue-50 p-4'>
-                                                    <div className='mb-3'>
-                                                        <Label htmlFor='student_photo' className='font-semibold text-lg'>
+                                            <div className='col-span-full w-fit'>
+                                                <div className='rounded-lg border-2 border-blue-200 bg-blue-50 p-2'>
+                                                    {/* Hidden input used for edit/replace of existing photo */}
+                                                    <input
+                                                        ref={studentPhotoInputRef}
+                                                        id='student_photo_hidden'
+                                                        type='file'
+                                                        className='hidden'
+                                                        accept='image/jpeg,image/jpg,image/png'
+                                                        disabled={studentPhoto?.isUploading || isSubmitting}
+                                                        onChange={(e) => {
+                                                            const file = e.target.files?.[0];
+                                                            if (file) {
+                                                                if (file.size > 1 * 1024 * 1024) {
+                                                                    toast.error('File size must be less than 1MB');
+                                                                    e.target.value = '';
+                                                                    return;
+                                                                }
+                                                                handleStudentPhotoUpload(file);
+                                                                e.target.value = '';
+                                                            }
+                                                        }}
+                                                    />
+                                                    <div className='mb-1'>
+                                                        <Label htmlFor='student_photo'>
                                                             Student Photo <span className='ml-1 text-red-500'>*</span>
                                                         </Label>
-                                                        <p className='mt-1 text-gray-500 text-sm'>Upload a recent passport-size photo</p>
                                                     </div>
 
-                                                    {rowData?.pasR_Student_Pic_Path ? (
-                                                        <div className='flex w-full flex-col items-start justify-between gap-3 rounded-lg border border-green-200 bg-green-50 p-4'>
-                                                            <div className='flex items-center gap-4'>
-                                                                <div className='relative'>
-                                                                    <img
-                                                                        src={rowData.pasR_Student_Pic_Path}
-                                                                        alt='Student'
-                                                                        className='h-32 w-32 rounded-lg border-2 border-green-300 object-cover shadow-sm'
-                                                                    />
-                                                                    <div className='absolute right-2 bottom-2 rounded-full bg-green-500 p-1'>
-                                                                        <Check className='h-4 w-4 text-white' />
-                                                                    </div>
+                                                    {!studentPhoto?.pasR_Student_Pic_Path ? (
+                                                        <label
+                                                            htmlFor='student_photo'
+                                                            className={cn(
+                                                                'flex cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed px-2 py-3 text-center transition-all hover:border-primary hover:bg-white',
+                                                                studentPhoto?.isUploading
+                                                                    ? 'border-blue-400 bg-blue-100'
+                                                                    : 'border-gray-300 bg-white'
+                                                            )}>
+                                                            {studentPhoto?.isUploading ? (
+                                                                <div className='flex flex-col items-center gap-2'>
+                                                                    <svg
+                                                                        className='h-8 w-8 animate-spin text-primary'
+                                                                        fill='none'
+                                                                        stroke='currentColor'
+                                                                        viewBox='0 0 24 24'>
+                                                                        <circle
+                                                                            className='opacity-25'
+                                                                            cx='12'
+                                                                            cy='12'
+                                                                            r='10'
+                                                                            strokeWidth='4'
+                                                                            stroke='currentColor'
+                                                                        />
+                                                                        <path
+                                                                            className='opacity-75'
+                                                                            fill='currentColor'
+                                                                            d='M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z'
+                                                                        />
+                                                                    </svg>
+                                                                    <span className='font-medium text-primary text-sm'>
+                                                                        Uploading photo...
+                                                                    </span>
                                                                 </div>
+                                                            ) : (
+                                                                <>
+                                                                    <svg
+                                                                        className='h-12 w-12 text-primary'
+                                                                        fill='none'
+                                                                        stroke='currentColor'
+                                                                        viewBox='0 0 24 24'>
+                                                                        <path
+                                                                            strokeLinecap='round'
+                                                                            strokeLinejoin='round'
+                                                                            strokeWidth={2}
+                                                                            d='M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z'
+                                                                        />
+                                                                    </svg>
+                                                                    <span className='font-medium text-gray-700 text-sm'>
+                                                                        Click to upload
+                                                                    </span>
+                                                                    <span className='mt-1 max-w-[250px] text-gray-600 text-sm'>
+                                                                        Upload recent passport-size photo (Max size: 1MB, Format: JPG, PNG)
+                                                                    </span>
+                                                                </>
+                                                            )}
+                                                            <input
+                                                                id='student_photo'
+                                                                type='file'
+                                                                className='hidden'
+                                                                accept='image/jpeg,image/jpg,image/png'
+                                                                disabled={studentPhoto?.isUploading || isSubmitting}
+                                                                onChange={(e) => {
+                                                                    const file = e.target.files?.[0];
+                                                                    if (file) {
+                                                                        if (file.size > 1 * 1024 * 1024) {
+                                                                            toast.error('File size must be less than 1MB');
+                                                                            e.target.value = '';
+                                                                            return;
+                                                                        }
+                                                                        handleStudentPhotoUpload(file);
+                                                                        e.target.value = '';
+                                                                    }
+                                                                }}
+                                                            />
+                                                        </label>
+                                                    ) : (
+                                                        <div className='flex w-fit flex-col items-start justify-between gap-2 rounded-lg border border-green-200 bg-green-50 p-4'>
+                                                            <div className='flex items-center gap-4'>
+                                                                <img
+                                                                    src={studentPhoto.pasR_Student_Pic_Path}
+                                                                    alt='Student'
+                                                                    className='h-20 w-20 rounded-lg border-2 border-green-300 object-cover'
+                                                                />
                                                                 <div>
-                                                                    <div className='flex items-center gap-2 font-semibold text-green-700'>
-                                                                        Current Photo
+                                                                    <div className='flex items-center gap-2 font-medium text-green-700'>
+                                                                        <Check className='h-5 w-5' />
+                                                                        Uploaded Successfully
                                                                     </div>
-                                                                    <p className='mt-1 text-green-600 text-sm'>
-                                                                        Click preview to view full size
-                                                                    </p>
+                                                                    <p className='mt-1 text-green-600 text-sm'>Student photo is ready</p>
                                                                 </div>
                                                             </div>
-                                                            <div className='flex w-full gap-2 border-green-200 border-t pt-3'>
+                                                            <div className='flex gap-2'>
                                                                 <Button
                                                                     type='button'
                                                                     variant='outline'
                                                                     size='sm'
-                                                                    className='flex-1'
-                                                                    onClick={() => window.open(rowData.pasR_Student_Pic_Path, '_blank')}>
-                                                                    <Eye className='mr-2 h-4 w-4' />
-                                                                    Preview Photo
+                                                                    onClick={() =>
+                                                                        window.open(studentPhoto.pasR_Student_Pic_Path, '_blank')
+                                                                    }>
+                                                                    <Eye className='h-4 w-4' />
+                                                                </Button>
+                                                                {/* <Button
+                                                                    type='button'
+                                                                    variant='outline'
+                                                                    size='sm'
+                                                                    onClick={() => studentPhotoInputRef.current?.click()}>
+                                                                    Edit
+                                                                </Button> */}
+                                                                <Button
+                                                                    type='button'
+                                                                    variant='destructive'
+                                                                    size='sm'
+                                                                    disabled={isSubmitting}
+                                                                    onClick={handleStudentPhotoDelete}>
+                                                                    <Trash className='h-4 w-4' />
                                                                 </Button>
                                                             </div>
                                                         </div>
-                                                    ) : (
-                                                        <div className='rounded-lg border-2 border-gray-300 border-dashed p-4 text-center'>
-                                                            <p className='text-gray-500'>No photo available</p>
+                                                    )}
+
+                                                    {studentPhotoError && (
+                                                        <div className='mt-3 rounded-md border border-red-200 bg-red-50 p-3'>
+                                                            <p className='flex items-start gap-2 font-medium text-red-700 text-sm'>
+                                                                <span className='mt-0.5 text-red-500'>⚠</span>
+                                                                <span>{studentPhotoError}</span>
+                                                            </p>
                                                         </div>
                                                     )}
                                                 </div>

@@ -17,7 +17,9 @@ import ApplicationFormSuccessDialog from './_components/success-dialog';
 
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 
-export default function StudentApplicationPage(props: { searchParams: SearchParams }) {
+export default function StudentApplicationPage(props: {
+    searchParams: SearchParams;
+}) {
     const searchParams = use(props.searchParams);
     const { data: activePreadmission } = useActivePreadmissionDetails();
     const {
@@ -48,6 +50,7 @@ function StudentApplicationPageContent({
     const { openAddForm } = useFormContext();
     const tableProps = useDataTableProps(response);
     const [isSuccessOpen, setSuccessOpen] = useState(false);
+    const [successType, setSuccessType] = useState<'create' | 'update'>('create');
     const session = useSession();
 
     useEffect(() => {
@@ -73,6 +76,8 @@ function StudentApplicationPageContent({
                 {isSuccessOpen && (
                     <ApplicationFormSuccessDialog
                         isOpen={isSuccessOpen}
+                        title={successType === 'update' ? 'Application Updated Successfully' : 'Application Submitted Successfully'}
+                        message={successType === 'update' ? 'Application updated successfully' : 'Successfully submitted application form'}
                         onClose={() => {
                             setSuccessOpen(false);
                             refetch();
@@ -80,7 +85,13 @@ function StudentApplicationPageContent({
                     />
                 )}
                 {/* Forms */}
-                <FormSections setSuccessOpen={() => setSuccessOpen(true)} />
+                <FormSections
+                    setSuccess={(type: 'create' | 'update') => {
+                        setSuccessType(type);
+                        setSuccessOpen(true);
+                    }}
+                    refetch={refetch}
+                />
                 {/* Data Table Section */}
                 <CollapsibleSection
                     defaultOpen={true}
@@ -105,8 +116,16 @@ function StudentApplicationPageContent({
     );
 }
 
-function FormSections({ setSuccessOpen }: { setSuccessOpen: () => void }) {
-    const { isAddFormOpen, closeAddForm, addFormRef } = useFormContext();
+import UpdateStudentApplicationForm from './_components/update-form';
+
+function FormSections({
+    setSuccess,
+    refetch
+}: {
+    setSuccess: (type: 'create' | 'update') => void;
+    refetch: () => void;
+}) {
+    const { isAddFormOpen, closeAddForm, addFormRef, isEditFormOpen, closeEditForm, editFormRef, selectedRow } = useFormContext();
 
     return (
         <>
@@ -132,8 +151,42 @@ function FormSections({ setSuccessOpen }: { setSuccessOpen: () => void }) {
                             <AddStudentApplicationForm
                                 onSuccess={() => {
                                     closeAddForm();
-                                    setSuccessOpen();
+                                    setSuccess('create');
+                                    refetch();
                                 }}
+                            />
+                        </div>
+                    </CollapsibleSection>
+                </div>
+            )}
+
+            {/* Edit Form */}
+            {isEditFormOpen && (
+                <div ref={editFormRef}>
+                    <CollapsibleSection
+                        title='Edit Preadmission Application'
+                        description='Update the details below to edit the preadmission application'
+                        defaultOpen={true}
+                        variant='outline'
+                        size='md'
+                        className='slide-in-from-top-4 animate-in shadow-lg duration-300'>
+                        <div className='relative'>
+                            <Button
+                                type='button'
+                                onClick={closeEditForm}
+                                variant='ghost'
+                                size='sm'
+                                className='-top-[3.5rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
+                                <X className='h-4 w-4 text-destructive' /> Close
+                            </Button>
+                            <UpdateStudentApplicationForm
+                                rowData={selectedRow}
+                                onSuccess={() => {
+                                    closeEditForm();
+                                    setSuccess('update');
+                                    refetch();
+                                }}
+                                onClose={closeEditForm}
                             />
                         </div>
                     </CollapsibleSection>
