@@ -45,16 +45,19 @@ function MasterExamPageContent({
     const [orderModalOpen, setOrderModalOpen] = useState(false);
     const [orderData, setOrderData] = useState<(IMasterExamOrder & { id: number })[]>([]);
     const [isOrderSaving, setIsOrderSaving] = useState(false);
+    const [isOrderloading, setIsOrderloading] = useState(true);
     // Fetch and open order modal
     const handleSetOrder = async () => {
         try {
+            setOrderModalOpen(true);
             const data = await getMasterExamOrderData();
             const examOrders: IMasterExamOrder[] = Array.isArray(data?.data) ? data.data : [];
             const mappedData = examOrders.map((d) => ({ ...d, id: d.emE_Id }));
             setOrderData(mappedData);
-            setOrderModalOpen(true);
+            setIsOrderloading(false);
         } catch (error: any) {
             toast.error(error.message);
+            setIsOrderloading(false);
         }
     };
 
@@ -136,6 +139,7 @@ function MasterExamPageContent({
                         onClose={() => setOrderModalOpen(false)}
                         data={orderData}
                         isLoading={isOrderSaving}
+                        isSaving={isOrderloading}
                         columns={[
                             { key: 'id', label: 'SLNO', className: 'text-center w-12' },
                             { key: 'emE_ExamName', label: 'Exam Name', className: 'text-left' },

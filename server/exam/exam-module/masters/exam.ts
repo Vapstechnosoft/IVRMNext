@@ -29,3 +29,8 @@ export async function UpdatedOrderdExams(data: any) {
     const url = '/exam_master/set_exam_master_order_number';
     return await api.put<any>('exam', url, data);
 }
+
+export async function getExamsByCategoryandAcademicYear(mi_id: number, asmaY_Id: number, emcA_Id: number) {
+    const url = `/exam_master/exam_drop_down_by_year_and_category_list/${mi_id}/${asmaY_Id}/${emcA_Id}`;
+    return await api.get<any>('exam', url);
+}

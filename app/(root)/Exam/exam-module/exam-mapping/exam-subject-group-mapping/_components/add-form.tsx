@@ -150,10 +150,10 @@ export default function AddExamSubjectGroup({ mI_Id = 30, onSuccess }: { mI_Id?:
                 <form onSubmit={handleSubmit(onSubmit)} className='flex flex-col gap-6 rounded-2xl bg-white p-6 shadow-md' noValidate>
                     <Tabs value={esG_ExamPromotionFlag} onValueChange={(val) => setValue('esG_ExamPromotionFlag', val as 'IE' | 'PE')}>
                         <TabsList className='mb-8 grid w-full max-w-md grid-cols-2'>
-                            <TabsTrigger value='IE' className='data-[state=active]:bg-[#c475f5] data-[state=active]:text-white'>
+                            <TabsTrigger value='IE' className='data-[state=active]:bg-[#a937f0] data-[state=active]:text-white'>
                                 Individual Exam
                             </TabsTrigger>
-                            <TabsTrigger value='PE' className='data-[state=active]:bg-[#c475f5] data-[state=active]:text-white'>
+                            <TabsTrigger value='PE' className='data-[state=active]:bg-[#ae44f0] data-[state=active]:text-white'>
                                 Promotional Exam
                             </TabsTrigger>
                         </TabsList>

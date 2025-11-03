@@ -230,7 +230,7 @@ export const ExamTermAndExamMappingSchema = {
             ecT_Id: z.preprocess(toNumber, z.number().int().nonnegative().optional().nullable()),
 
             asmaY_Id: z.preprocess(toNumber, z.number().int().positive({ message: 'Select Academic Year' })),
-            emcA_Id: z.preprocess(toNumber, z.number().int().positive({ message: 'Select Category' })),
+            eyc_Id: z.preprocess(toNumber, z.number().int().positive({ message: 'Select Category' }).optional()),
             emgR_Id: z.preprocess(toNumber, z.number().int().positive({ message: 'Select Grade' })),
             ecT_TermName: z
                 .string()
@@ -309,190 +309,116 @@ export const ExamTermAndExamMappingSchema = {
     })
 };
 
+const isoDateString = z.string().refine(
+    (s) => {
+        // allow empty? no — require proper ISO-like string
+        const d = new Date(s);
+        return !Number.isNaN(d.getTime());
+    },
+    { message: 'Invalid date format (expected ISO date string)' }
+);
+
+const ExamItemSchema = z.object({
+    EME_Id: z.number().int().nonnegative(), // exam id
+    EME_ExamName: z.string().optional(),
+    EME_ExamCode: z.string().optional(),
+    EME_ExamOrder: z.number().int().nonnegative().optional(),
+    EME_FinalExamFlag: z.boolean().optional(),
+    EME_ActiveFlag: z.boolean().optional()
+});
+
+const YearlyCategoryExamSubjectSchema = z.object({
+    EYCES_Id: z.number().int().nonnegative().optional(),
+    EYCE_Id: z.number().int().nonnegative().optional(),
+    ISMS_Id: z.number().int().positive({ message: 'ISMS_Id required' }),
+    EMGR_Id: z.number().int().positive({ message: 'EMGR_Id required' }),
+    EYCES_MaxMarks: z.number().min(0).optional(),
+    EYCES_MinMarks: z.number().min(0).optional(),
+    EYCES_MarksEntryMax: z.number().min(0).optional(),
+    EYCES_SubExamFlg: z.boolean().optional(),
+    EYCES_SubSubjectFlg: z.boolean().optional(),
+    EYCES_ActiveFlg: z.boolean().optional(),
+    EYCES_SubjectOrder: z.number().int().nonnegative().optional(),
+    Exam_Subject_PT_GradeList: z.array(z.any()).optional()
+});
+
+export const SubSubjectSubExamSchema = z.object({
+    EYCESSS_Id: z.number().int().nonnegative().optional(),
+    EYCES_Id: z.number().int().nonnegative().optional(),
+    EMSS_Id: z.number().int().positive({ message: 'EMSS_Id required' }),
+    EMSE_Id: z.number().int().positive({ message: 'EMSE_Id required' }),
+    EMGR_Id: z.number().int().positive({ message: 'EMGR_Id required' }),
+    EYCESSS_MaxMarks: z.number().min(0).optional(),
+    EYCESSS_MinMarks: z.number().min(0).optional(),
+    EYCESSS_ExemptedFlg: z.boolean().optional(),
+    EYCESSS_ExemptedPer: z.number().min(0).max(100).optional(),
+    EYCESSS_ActiveFlg: z.boolean().optional(),
+    EYCESSS_SubSubjectOrder: z.number().int().nonnegative().optional()
+});
+
+const ExmSubjectSubsubjectsSubexamWrapperSchema = z.object({
+    ISMS_Id: z.number().int().positive({ message: 'ISMS_Id required' }),
+    sub_subject_sub_exam_list: z.array(SubSubjectSubExamSchema).optional()
+});
+
+/**
+ * MAIN updated schema to match your payload plus validations
+ */
 export const ExamSubjectWizardSchema = {
     addOrUpdate: z
         .object({
-            AMCO_Id: z.string().min(1, { message: 'Please Select Course' }),
-            AMB_Id: z.string().min(1, { message: 'Please Select Branch' }),
-            AMSE_Id: z.string().min(1, { message: 'Please Select Semester' }),
-            ACSS_Id: z.string().min(1, { message: 'Please Select Subject Scheme' }),
-            ACST_Id: z.string().min(1, { message: 'Please Select Scheme Type' }),
-            EMG_Id: z.string().min(1, { message: 'Please Select Subject Group' }),
+            // top level ids & flags (matching payload keys)
+            EYCE_Id: z.number().int().nonnegative().optional().default(0),
+            EYC_Id: z.number().int().positive({ message: 'EYC_Id required' }),
+            EMGR_Id: z.number().int().positive({ message: 'EMGR_Id required' }),
 
-            ECYSE_AttendanceFromDate: z
-                .string({
-                    required_error: 'Select Date from the Calendar'
-                })
-                .min(1, { message: 'Select Date from the Calendar' }),
+            // flags
+            EYCE_SubExamFlg: z.boolean().optional(),
+            EYCE_SubSubjectFlg: z.boolean().optional(),
+            EYCE_ActiveFlg: z.boolean().optional(),
 
-            ECYSE_AttendanceToDate: z
-                .string({
-                    required_error: 'Select Date from the Calendar'
-                })
-                .min(1, { message: 'Select Date from the Calendar' }),
-            // other properties below
-            EMGR_Id: z.string().min(1, { message: 'Select Grade' }),
-            ECYSE_SubExamFlg: z.boolean().default(false),
-            ECYSE_SubSubjectFlg: z.boolean().default(false),
+            // attendance dates (validate iso and not empty)
+            EYCE_AttendanceFromDate: isoDateString,
+            EYCE_AttendanceToDate: isoDateString,
 
-            exam_list: z
-                .array(
-                    z.object({
-                        emE_Id: z.string(),
-                        checked: z.boolean()
-                    })
-                )
-                .refine((list) => list.some((e) => e.checked), {
-                    message: 'Select Atleast One Exam'
-                }),
+            UserId: z.number().int().nonnegative().optional().default(0),
+            MI_Id: z.number().int().nonnegative().optional().default(0),
+            ASMAY_Id: z.number().int().nonnegative().optional().default(0),
+            ASMAY_Year: z.string().optional().nullable(),
 
-            subject_list: z.array(
-                z.object({
-                    ismS_Id: z.string(),
-                    checkedvalue: z.boolean(),
-                    ECYSES_MaxMarks: z
-                        .string()
-                        .regex(/^[0-9]{0,4}\.?[0-9]{1,2}?$/, {
-                            message: 'Enter valid format [e.g. 100.00]'
-                        })
-                        .optional()
-                        .or(z.literal('')),
-                    ECYSES_MinMarks: z
-                        .string()
-                        .regex(/^[0-9]{0,4}\.?[0-9]{1,2}?$/, {
-                            message: 'Enter valid format [e.g. 100.00]'
-                        })
-                        .optional()
-                        .or(z.literal('')),
-                    ECYSES_MarksEntryMax: z
-                        .string()
-                        .regex(/^[0-9]{0,4}\.?[0-9]{1,2}?$/, {
-                            message: 'Enter valid format [e.g. 100.00]'
-                        })
-                        .optional()
-                        .or(z.literal('')),
-                    ECYSES_MarksGradeEntryFlg: z.enum(['M', 'G'], {
-                        required_error: 'Select Marks/Grade Type'
-                    }),
-                    ECYSES_MarksDisplayFlg: z.boolean(),
-                    ECYSES_GradeDisplayFlg: z.boolean(),
-                    ECYSES_AplResultFlg: z.boolean(),
-                    EMGR_Id: z.string().min(1, { message: 'Select Grade' })
-                })
-            )
+            // BestOf fields
+            EYCE_BestOfApplicableFlg: z.boolean().optional(),
+            EYCE_BestOf: z.number().int().min(0).optional(),
+            exams_list: z.array(ExamItemSchema).optional().default([]),
+            yearly_category_exam_subjects: z
+                .array(YearlyCategoryExamSubjectSchema)
+                .min(1, { message: 'At least one yearly_category_exam_subjects is required' }),
+
+            // lists that may be empty arrays in payload; validating shapes loosely
+            exm_subject_subexams_list: z.array(z.any()).optional(),
+            exm_subject_subsubjects_list: z.array(z.any()).optional(),
+
+            // nested structure for subsubjects->subexam
+            exm_subject_subsubjects_subexam: z.array(ExmSubjectSubsubjectsSubexamWrapperSchema).optional(),
+
+            Temp_Subject_Order: z.array(z.any()).optional().default([])
         })
-        // ✅ FIXED refine — applied at object level
-        .refine((data) => data.ECYSE_AttendanceToDate >= data.ECYSE_AttendanceFromDate, {
-            message: 'Attendance To must be after From Date',
-            path: ['ECYSE_AttendanceToDate'] // attach error to correct field
-        }),
+        // Attendance date ordering
+        .refine(
+            (data) => {
+                try {
+                    const from = new Date(data.EYCE_AttendanceFromDate).getTime();
+                    const to = new Date(data.EYCE_AttendanceToDate).getTime();
+                    return !Number.isNaN(from) && !Number.isNaN(to) && to >= from;
+                } catch {
+                    return false;
+                }
+            },
+            { message: 'Attendance To must be after From Date', path: ['EYCE_AttendanceToDate'] }
+        ),
 
+    // keep delete schema similar to your prior example (rename to match EYCE if needed)
     delete: z.object({
-        ECYSE_Id: z.number({ required_error: 'ECYSE_Id is required' }).positive({ message: 'Invalid ECYSE_Id' })
-    })
-};
-
-export const SubExamSchema = {
-    addOrUpdate: z.object({
-        subexam_list: z
-            .array(
-                z.object({
-                    emsE_Id: z.string(),
-                    checkedvalue: z.boolean(),
-                    ECYSESSS_MaxMarks: z
-                        .string()
-                        .regex(/^\d{1,4}(\.\d{1,2})?$/, {
-                            message: 'Enter valid format [e.g. 100.00]'
-                        })
-                        .optional()
-                        .or(z.literal('')),
-                    ECYSESSS_MinMarks: z
-                        .string()
-                        .regex(/^\d{1,4}(\.\d{1,2})?$/, {
-                            message: 'Enter valid format [e.g. 35.00]'
-                        })
-                        .optional()
-                        .or(z.literal('')),
-                    EMGR_Id: z.string().optional().or(z.literal('')),
-                    ECYSESSS_ExemptedFlg: z.boolean().optional(),
-                    ECYSESSS_ExemptedPer: z
-                        .string()
-                        .regex(/^\d{1,4}(\.\d{1,2})?$/, {
-                            message: 'Enter valid percentage [e.g. 10.00]'
-                        })
-                        .optional()
-                        .or(z.literal(''))
-                })
-            )
-
-            // Ensure at least one sub-exam is selected
-            .refine((list) => list.some((s) => s.checkedvalue), {
-                message: 'Select at least one Sub-Exam'
-            })
-
-            // Ensure marks and grade are provided when a sub-exam is selected
-            .refine((list) => list.every((s) => !s.checkedvalue || (!!s.ECYSESSS_MaxMarks && !!s.ECYSESSS_MinMarks && !!s.EMGR_Id)), {
-                message: 'Please fill Max Marks, Min Marks, and Grade for all selected sub-exams'
-            })
-
-            // Ensure numeric consistency (Min ≤ Max)
-            .refine((list) => list.every((s) => !s.checkedvalue || Number(s.ECYSESSS_MinMarks || 0) <= Number(s.ECYSESSS_MaxMarks || 0)), {
-                message: 'Min Marks cannot be greater than Max Marks'
-            })
-    }),
-
-    delete: z.object({
-        ECYSESSS_Id: z
-            .number({
-                required_error: 'ECYSESSS_Id is required'
-            })
-            .positive({
-                message: 'Invalid ECYSESSS_Id'
-            })
-    })
-};
-
-export const SubSubjectSchema = {
-    addOrUpdate: z.object({
-        subsubject_list: z
-            .array(
-                z.object({
-                    emsS_Id: z.string(),
-                    checkedvalue: z.boolean(),
-                    ECYSESSS_MaxMarks: z
-                        .string()
-                        .regex(/^[0-9]{0,4}\.?[0-9]{1,2}?$/, {
-                            message: 'Enter valid format [e.g. 100.00]'
-                        })
-                        .optional()
-                        .or(z.literal('')),
-                    ECYSESSS_MinMarks: z
-                        .string()
-                        .regex(/^[0-9]{0,4}\.?[0-9]{1,2}?$/, {
-                            message: 'Enter valid format [e.g. 100.00]'
-                        })
-                        .optional()
-                        .or(z.literal('')),
-                    EMGR_Id: z.string().min(1, { message: 'Select Grade' }),
-                    ECYSESSS_ExemptedFlg: z.boolean(),
-                    ECYSESSS_ExemptedPer: z
-                        .string()
-                        .regex(/^[0-9]{0,4}\.?[0-9]{1,2}?$/, {
-                            message: 'Enter valid format [e.g. 100.00]'
-                        })
-                        .optional()
-                        .or(z.literal(''))
-                })
-            )
-            .refine((list) => list.some((s) => s.checkedvalue), {
-                message: 'Select at least one Sub-Subject'
-            })
-            .refine((list) => list.every((s) => !s.checkedvalue || (!!s.ECYSESSS_MaxMarks && !!s.ECYSESSS_MinMarks && !!s.EMGR_Id)), {
-                message: 'Enter marks and grade for selected sub-subjects'
-            })
-    }),
-
-    delete: z.object({
-        ECYSESSS_Id: z.number({ required_error: 'ECYSESSS_Id is required' }).positive({ message: 'Invalid ECYSESSS_Id' })
+        EYCE_Id: z.number({ required_error: 'EYCE_Id is required' }).int().positive({ message: 'Invalid EYCE_Id' })
     })
 };
