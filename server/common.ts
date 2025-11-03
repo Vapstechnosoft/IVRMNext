@@ -203,7 +203,7 @@ export async function getUserAccessibleModules() {
                 },
                 {
                     id: 2,
-                    name: 'Fees Manageent',
+                    name: 'Fees Management',
                     icon: 'Settings',
                     menu: [
                         {

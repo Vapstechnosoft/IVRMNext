@@ -22,11 +22,10 @@ export async function addOrUpdateAmountEntry(data: any) {
     return await api.post<any>('fees', url, data);
 }
 
-// export async function getCategorydrodowndata(searchParams?: ApiSearchparams) {
-//     const urlParams = getSearchParamsUrl(searchParams ?? {});
-//     const url = `/fee_amount_entry/30?${urlParams}`;
-//     return await api.post<IFeeAmountEntryList[]>('fees', url);
-// }
+export async function deleteAmountEntry(mi_id: number, id: number) {
+    const url = `/fee_amount_entry/delete_amount_entry/${id}`;
+    return await api.put('fees', url);
+}
 
 export async function getCategorydrodowndata(academicYear_Id: number) {
     const url = `fee_amount_entry/getclass_categorylist?mi_id=30&asmay_id=${academicYear_Id}`;
@@ -44,11 +43,6 @@ export async function getAcademicYearDropdownData() {
     const url = '/fee_class_category/academicyearlist/30';
     return await api.get<IFeeAcademicyearDropDownList[]>('fees', url);
 }
-// export async function getgroupdrodown(searchParams?: ApiSearchparams) {
-//     const urlParams = getSearchParamsUrl(searchParams ?? {});
-//     const url = `/fee_amount_entry/30?${urlParams}`;
-//     return await api.get<IFeeAmountEntryList[]>('fees', url);
-// }
 
 export async function addOrUpdatepaymentgatewaydetails(data: any) {
     const url = '/FeePaymentGatewayDetailsFacade';
@@ -65,11 +59,6 @@ export async function getpaymentgateway_dropdown(searchParams?: ApiSearchparams)
     const url = `/FeePaymentGatewayDetailsFacade/paymentgatewaylist/30?${urlParams}`;
     return await api.get<IMasterpaymentGatewayDropdownList[]>('fees', url);
 }
-
-// export async function getAcademicYearDropdown() {
-//     const url = '/master_class_category/academic_year_drop_down_list/30';
-//     return await api.get<IAcademicYearDropDown[]>('admission', url);
-// }
 
 export async function getAmountentrydetails(mi_id: number, asmay_id: number, fmcC_id: number, fmG_id: number) {
     const url = `/fee_amount_entry/getgroupmappedheads/${mi_id}/${asmay_id}/${fmcC_id}/${fmG_id}`;

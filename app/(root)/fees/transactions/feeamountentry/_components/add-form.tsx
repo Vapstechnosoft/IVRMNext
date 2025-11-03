@@ -96,11 +96,17 @@ export default function AddAmountEntryForm({ onSuccess, headname = '' }: AddAmou
         const fetchFeeAmountDetails = async () => {
             if (selectedAcademicYear && selectedCategoryId && selectedFeeGroup) {
                 try {
+                    const loadingToast = toast.loading('Fetching fee amount details...');
+
                     const response = await getAmountentrydetails(30, selectedAcademicYear, selectedCategoryId, selectedFeeGroup);
 
                     if (response?.data) {
                         const details = Array.isArray(response.data) ? response.data : [response.data];
                         setFeeGridData(details);
+
+                        toast.success('Fee amount details loaded successfully', {
+                            id: loadingToast
+                        });
                     } else {
                         setFeeGridData([]);
                     }

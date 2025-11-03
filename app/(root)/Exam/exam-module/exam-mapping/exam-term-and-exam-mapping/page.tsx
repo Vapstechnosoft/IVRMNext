@@ -79,7 +79,7 @@ function ExamTermAndExamMappingPageContent({
     );
 }
 
-export function FormSections() {
+function FormSections() {
     const {
         isAddFormOpen,
         isEditFormOpen,

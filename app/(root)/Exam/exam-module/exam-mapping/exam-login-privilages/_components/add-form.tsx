@@ -7,7 +7,7 @@ import { FormProvider } from '@/components/ui/form/form-provider';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { examLoginPrivilegesSchema } from '@/schemas/exam/exam-module/exam-mapping';
 import { addorUpdateExamLoginPrivileges } from '@/server/exam/exam-module/exam-mapping/exam-login-privilages';
-import type { IAcademicYear, IClass, ISection } from '@/types/exam/exam-module/masters';
+import type { IAcademicYear, IClass } from '@/types/exam/exam-module/masters';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useEffect, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
@@ -39,7 +39,7 @@ export default function AddExamLoginPrivileges({ onSuccess }: { onSuccess?: () =
     const [employees, setEmployees] = useState<any[]>([]);
     const [userLogins, setUserLogins] = useState<any[]>([]);
     const [classes, setClasses] = useState<IClass[]>([]);
-    const [sections, setSections] = useState<ISection[]>([]);
+    const [sections, setSections] = useState<{ asmS_Id: number; asmC_SectionName: string }[]>([]);
     const [subjects, setSubjects] = useState<any[]>([]);
     const [subSubjects, setSubSubjects] = useState<any[]>([]);
 
