@@ -3,11 +3,21 @@
 import { AdaptiveBody, AdaptiveDialog } from '@/components/ui/extension/adaptive-dialog';
 import { Bell, CheckCircle2, Clock, FileText } from 'lucide-react';
 
-export default function ApplicationFormSuccessDialog({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
+export default function ApplicationFormSuccessDialog({
+    isOpen,
+    onClose,
+    title = 'Application Submitted Successfully',
+    message = 'Successfully submitted application form'
+}: {
+    isOpen: boolean;
+    onClose: () => void;
+    title?: string;
+    message?: string;
+}) {
     return (
         <div className='flex min-h-screen items-center justify-center bg-gradient-to-br from-slate-50 to-slate-100 p-4'>
             <AdaptiveDialog
-                title='Application Submitted Successfully'
+                title={title}
                 isOpen={isOpen}
                 onClose={onClose}
                 size='md'
@@ -26,8 +36,10 @@ export default function ApplicationFormSuccessDialog({ isOpen, onClose }: { isOp
 
                         {/* Success Message */}
                         <div className='fade-in slide-in-from-bottom-4 animate-in space-y-2 delay-300 duration-500'>
-                            <h2 className='font-bold text-2xl text-slate-900 md:text-3xl'>Application Submitted!</h2>
-                            <p className='max-w-sm text-slate-600 text-sm md:text-base'>Successfully submitted application form</p>
+                            <h2 className='font-bold text-2xl text-slate-900 md:text-3xl'>
+                                {title.replace(/Successfully? (submitted|saved|updated)?/i, '').trim() || title}
+                            </h2>
+                            <p className='max-w-sm text-slate-600 text-sm md:text-base'>{message}</p>
                         </div>
 
                         {/* Info Cards */}
