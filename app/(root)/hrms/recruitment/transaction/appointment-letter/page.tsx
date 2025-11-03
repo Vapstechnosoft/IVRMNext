@@ -10,7 +10,7 @@
 import { Heading } from '@/components/layout/heading';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Calendar } from '@/components/ui/calendar';
+import { DatePickerWithYear } from '@/components/ui/date-picker-year';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
@@ -605,10 +605,10 @@ export default function AppointmentLetterPage() {
                                                                         </Button>
                                                                     </PopoverTrigger>
                                                                     <PopoverContent className='w-auto p-0' align='start'>
-                                                                        <Calendar
+                                                                        <DatePickerWithYear
                                                                             mode='single'
                                                                             selected={field.value}
-                                                                            onSelect={field.onChange}
+                                                                            onDayClick={(day) => field.onChange(day)}
                                                                             initialFocus
                                                                         />
                                                                     </PopoverContent>
@@ -947,10 +947,10 @@ export default function AppointmentLetterPage() {
                                                                         </Button>
                                                                     </PopoverTrigger>
                                                                     <PopoverContent className='w-auto p-0' align='start'>
-                                                                        <Calendar
+                                                                        <DatePickerWithYear
                                                                             mode='single'
                                                                             selected={field.value}
-                                                                            onSelect={field.onChange}
+                                                                            onDayClick={(day) => field.onChange(day)}
                                                                             initialFocus
                                                                         />
                                                                     </PopoverContent>
@@ -987,10 +987,10 @@ export default function AppointmentLetterPage() {
                                                                         </Button>
                                                                     </PopoverTrigger>
                                                                     <PopoverContent className='w-auto p-0' align='start'>
-                                                                        <Calendar
+                                                                        <DatePickerWithYear
                                                                             mode='single'
                                                                             selected={field.value}
-                                                                            onSelect={field.onChange}
+                                                                            onDayClick={(day) => field.onChange(day)}
                                                                             initialFocus
                                                                         />
                                                                     </PopoverContent>

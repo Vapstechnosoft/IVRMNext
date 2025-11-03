@@ -1,6 +1,5 @@
 'use client';
 
-import { Heading } from '@/components/layout/heading';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
@@ -8,7 +7,7 @@ import { DataTable } from '@/components/ui/data-table/data-table';
 import { Label } from '@/components/ui/extension/field';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { getCumulativeSalaryReportOnload } from '@/server/hrms/reports/cumulative-salary-report';
+import { getCumulativeSalaryReportOnload } from '@/server/hrms/hrmsConfig/reports/cumulative-salary-report';
 import type {
     DepartmentDropdown,
     DesignationDropdown,
@@ -230,12 +229,6 @@ export default function SalaryUpdationPage() {
     return (
         <div className='min-h-screen'>
             <div className='container space-y-4 p-1'>
-                <div className='flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between'>
-                    <div className='space-y-1'>
-                        <Heading title='Salary Updation' description='Search and update employee salary records' />
-                    </div>
-                </div>
-
                 <CollapsibleSection
                     title='SALARY UPDATION'
                     description='Search and filter employee salary records'

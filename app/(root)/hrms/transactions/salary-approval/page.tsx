@@ -37,14 +37,6 @@ export default function SalaryApprovalPage() {
     return (
         <div className='min-h-screen'>
             <div className='container space-y-6 p-1'>
-                {/* Page Header */}
-                <div className='flex items-center justify-between'>
-                    <div>
-                        <h1 className='font-bold text-3xl tracking-tight'>Salary Approval</h1>
-                        <p className='text-muted-foreground'>Review and approve employee salaries</p>
-                    </div>
-                </div>
-
                 {/* Search Form */}
                 <CollapsibleSection
                     title='Search Criteria'

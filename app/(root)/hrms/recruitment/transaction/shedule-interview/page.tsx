@@ -10,7 +10,7 @@
 import { Heading } from '@/components/layout/heading';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Calendar } from '@/components/ui/calendar';
+import { DatePickerWithYear } from '@/components/ui/date-picker-year';
 import { Checkbox } from '@/components/ui/checkbox';
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
 import { GenericDataTable } from '@/components/ui/data-table/generic-data-table';
@@ -347,10 +347,10 @@ export default function ScheduleInterviewPage() {
                                                         </Button>
                                                     </PopoverTrigger>
                                                     <PopoverContent className='w-auto p-0' align='start'>
-                                                        <Calendar
+                                                        <DatePickerWithYear
                                                             mode='single'
                                                             selected={field.value}
-                                                            onSelect={field.onChange}
+                                                            onDayClick={(day) => field.onChange(day)}
                                                             disabled={(date) => date < new Date()}
                                                             initialFocus
                                                         />

@@ -417,6 +417,14 @@ export async function getUserAccessibleModules() {
                                     },
                                     {
                                         id: 5,
+                                        name: 'Employee Contribution',
+                                        icon: 'Coins',
+                                        url: '/hrms/reports/employee-contribution',
+                                        title: 'Employee Contribution',
+                                        description: 'Employee Contribution Report'
+                                    },
+                                    {
+                                        id: 6,
                                         name: 'Employee Details',
                                         icon: 'UserCheck',
                                         url: '/hrms/reports/employee-details',
@@ -424,20 +432,140 @@ export async function getUserAccessibleModules() {
                                         description: 'Detailed Employee Information'
                                     },
                                     {
-                                        id: 6,
-                                        name: 'Salary Slip',
-                                        icon: 'Receipt',
-                                        url: '/hrms/reports/salary-slip',
-                                        title: 'Salary Slip',
-                                        description: 'Generate Salary Slips'
+                                        id: 7,
+                                        name: 'Employee Offer Letter',
+                                        icon: 'FileText',
+                                        url: '/hrms/reports/employee-offer-letter',
+                                        title: 'Employee Offer Letter',
+                                        description: 'Generate Offer Letters'
                                     },
                                     {
-                                        id: 7,
+                                        id: 8,
+                                        name: 'Employee Profile',
+                                        icon: 'User',
+                                        url: '/hrms/reports/employee-profile',
+                                        title: 'Employee Profile',
+                                        description: 'Employee Profile Report'
+                                    },
+                                    {
+                                        id: 9,
+                                        name: 'Employee Salary Details',
+                                        icon: 'DollarSign',
+                                        url: '/hrms/reports/employee-salary-details',
+                                        title: 'Employee Salary Details',
+                                        description: 'Detailed Salary Information'
+                                    },
+                                    {
+                                        id: 10,
+                                        name: 'Employee Service Report',
+                                        icon: 'Briefcase',
+                                        url: '/hrms/reports/employee-service-report',
+                                        title: 'Employee Service Report',
+                                        description: 'Employee Service Summary'
+                                    },
+                                    {
+                                        id: 11,
+                                        name: 'Employee Strength',
+                                        icon: 'Users',
+                                        url: '/hrms/reports/employee-strength',
+                                        title: 'Employee Strength',
+                                        description: 'Employee Strength Report'
+                                    },
+                                    {
+                                        id: 12,
+                                        name: 'ESI Report',
+                                        icon: 'Shield',
+                                        url: '/hrms/reports/esi-report',
+                                        title: 'ESI Report',
+                                        description: 'ESI Contribution Report'
+                                    },
+                                    {
+                                        id: 13,
+                                        name: 'Head Wise Report',
+                                        icon: 'List',
+                                        url: '/hrms/reports/head-wise-report',
+                                        title: 'Head Wise Report',
+                                        description: 'Head-wise Analysis Report'
+                                    },
+                                    {
+                                        id: 14,
                                         name: 'HRMS Month End Report',
                                         icon: 'CalendarCheck',
                                         url: '/hrms/reports/hrms-monthend-report',
                                         title: 'HRMS Month End Report',
                                         description: 'Monthly Closure Report'
+                                    },
+                                    {
+                                        id: 15,
+                                        name: 'Loan Report',
+                                        icon: 'CreditCard',
+                                        url: '/hrms/reports/loan-report',
+                                        title: 'Loan Report',
+                                        description: 'Employee Loan Report'
+                                    },
+                                    {
+                                        id: 16,
+                                        name: 'PF Challan',
+                                        icon: 'FileCheck',
+                                        url: '/hrms/reports/pf-challan',
+                                        title: 'PF Challan',
+                                        description: 'Provident Fund Challan'
+                                    },
+                                    {
+                                        id: 17,
+                                        name: 'PF Form 10',
+                                        icon: 'FileType',
+                                        url: '/hrms/reports/pf-form-10',
+                                        title: 'PF Form 10',
+                                        description: 'Provident Fund Form 10'
+                                    },
+                                    {
+                                        id: 18,
+                                        name: 'PF Form 3A',
+                                        icon: 'FileType',
+                                        url: '/hrms/reports/pf-form3a',
+                                        title: 'PF Form 3A',
+                                        description: 'Provident Fund Form 3A'
+                                    },
+                                    {
+                                        id: 19,
+                                        name: 'PF Form 5',
+                                        icon: 'FileType',
+                                        url: '/hrms/reports/pf-form-5',
+                                        title: 'PF Form 5',
+                                        description: 'Provident Fund Form 5'
+                                    },
+                                    {
+                                        id: 20,
+                                        name: 'PF Form 6A',
+                                        icon: 'FileType',
+                                        url: '/hrms/reports/pf-form6a',
+                                        title: 'PF Form 6A',
+                                        description: 'Provident Fund Form 6A'
+                                    },
+                                    {
+                                        id: 21,
+                                        name: 'Retirement Report',
+                                        icon: 'Clock',
+                                        url: '/hrms/reports/retirement-report',
+                                        title: 'Retirement Report',
+                                        description: 'Employee Retirement Report'
+                                    },
+                                    {
+                                        id: 22,
+                                        name: 'Salary Certificate',
+                                        icon: 'Award',
+                                        url: '/hrms/reports/salary-certificate',
+                                        title: 'Salary Certificate',
+                                        description: 'Generate Salary Certificates'
+                                    },
+                                    {
+                                        id: 23,
+                                        name: 'Salary Slip',
+                                        icon: 'Receipt',
+                                        url: '/hrms/reports/salary-slip',
+                                        title: 'Salary Slip',
+                                        description: 'Generate Salary Slips'
                                     }
                                 ]
                             }

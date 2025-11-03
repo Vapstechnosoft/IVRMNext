@@ -6,13 +6,13 @@
  */
 
 import { HRMS_QUERY_KEYS } from '@/constants/query-keys';
-import { getEmployeeLoanList, saveEmployeeLoan } from '@/server/hrms/employee-loan';
-import { getSalaryAdvanceList, saveSalaryAdvance } from '@/server/hrms/salary-advance';
-import { approveSalaries, getSalaryApprovalOnload, searchSalaryApprovalEmployees } from '@/server/hrms/salary-approval';
-import { generateSalaryForSelectedEmployees, getSalaryCalculationOnload } from '@/server/hrms/salary-calculation';
-import { deleteSalaryIncrement, getSalaryIncrementOnload, saveSalaryIncrement } from '@/server/hrms/salary-increment';
-import { deleteSalaryUpdation, getSalaryUpdationList, saveSalaryUpdation } from '@/server/hrms/salary-updation';
-import { getMassUpdationOnload, saveMassUpdation, searchMassUpdationEmployees } from '@/server/hrms/mass-updation';
+import { getEmployeeLoanList, saveEmployeeLoan } from '@/server/hrms/hrmsConfig/transaction/employee-loan';
+import { getSalaryAdvanceList, saveSalaryAdvance } from '@/server/hrms/hrmsConfig/transaction/salary-advance';
+import { approveSalaries, getSalaryApprovalOnload, searchSalaryApprovalEmployees } from '@/server/hrms/hrmsConfig/transaction/salary-approval';
+import { generateSalaryForSelectedEmployees, getSalaryCalculationOnload } from '@/server/hrms/hrmsConfig/transaction/salary-calculation';
+import { deleteSalaryIncrement, getSalaryIncrementOnload, saveSalaryIncrement } from '@/server/hrms/hrmsConfig/transaction/salary-increment';
+import { deleteSalaryUpdation, getSalaryUpdationList, saveSalaryUpdation } from '@/server/hrms/hrmsConfig/transaction/salary-updation';
+import { getMassUpdationOnload, saveMassUpdation, searchMassUpdationEmployees } from '@/server/hrms/hrmsConfig/transaction/mass-updation';
 import type {
     EmployeeLoanDeleteRequest,
     EmployeeLoanOnloadRequest,

@@ -1,9 +1,8 @@
 'use client';
 
-import { Heading } from '@/components/layout/heading';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Calendar } from '@/components/ui/calendar';
+import { DatePickerWithYear } from '@/components/ui/date-picker-year';
 import { Checkbox } from '@/components/ui/checkbox';
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
 import { DataTable } from '@/components/ui/data-table/data-table';
@@ -31,7 +30,7 @@ import {
     saveOtherDetails,
     savePersonalDetails,
     saveQualification
-} from '@/server/hrms/employee-register';
+} from '@/server/hrms/hrmsConfig/employee/register';
 import type {
     EmployeeRegisterOnloadResponse,
     EmployeeRegisterSaveRequest,
@@ -1883,14 +1882,7 @@ export default function EmployeeRegisterPage() {
     return (
         <div className='min-h-screen'>
             <div className='container space-y-4 p-1'>
-                {/* Header */}
-                <div className='flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between'>
-                    <div className='space-y-1'>
-                        <Heading
-                            title='Employee Registration'
-                            description='Register and manage employee information with comprehensive details'
-                        />
-                    </div>
+                <div className='flex justify-end'>
                     <Button
                         type='button'
                         onClick={handleAddClick}
@@ -2276,10 +2268,10 @@ function EmployeeTab({
                                         </Button>
                                     </PopoverTrigger>
                                     <PopoverContent className='w-auto p-0' align='start'>
-                                        <Calendar
+                                        <DatePickerWithYear
                                             mode='single'
                                             selected={field.value ? new Date(field.value) : undefined}
-                                            onSelect={(date) => field.onChange(date ? format(date, 'yyyy-MM-dd') : '')}
+                                            onDayClick={(day) => field.onChange(format(day, 'yyyy-MM-dd'))}
                                             initialFocus
                                         />
                                     </PopoverContent>
@@ -2307,10 +2299,10 @@ function EmployeeTab({
                                         </Button>
                                     </PopoverTrigger>
                                     <PopoverContent className='w-auto p-0' align='start'>
-                                        <Calendar
+                                        <DatePickerWithYear
                                             mode='single'
                                             selected={field.value ? new Date(field.value) : undefined}
-                                            onSelect={(date) => field.onChange(date ? format(date, 'yyyy-MM-dd') : '')}
+                                            onDayClick={(day) => field.onChange(format(day, 'yyyy-MM-dd'))}
                                             initialFocus
                                         />
                                     </PopoverContent>
@@ -2431,10 +2423,10 @@ function EmployeeTab({
                                                 </Button>
                                             </PopoverTrigger>
                                             <PopoverContent className='w-auto p-0' align='start'>
-                                                <Calendar
+                                                <DatePickerWithYear
                                                     mode='single'
                                                     selected={field.value ? new Date(field.value) : undefined}
-                                                    onSelect={(date) => field.onChange(date ? format(date, 'yyyy-MM-dd') : '')}
+                                                    onDayClick={(day) => field.onChange(format(day, 'yyyy-MM-dd'))}
                                                     initialFocus
                                                 />
                                             </PopoverContent>
@@ -2487,10 +2479,10 @@ function EmployeeTab({
                                                 </Button>
                                             </PopoverTrigger>
                                             <PopoverContent className='w-auto p-0' align='start'>
-                                                <Calendar
+                                                <DatePickerWithYear
                                                     mode='single'
                                                     selected={field.value ? new Date(field.value) : undefined}
-                                                    onSelect={(date) => field.onChange(date ? format(date, 'yyyy-MM-dd') : '')}
+                                                    onDayClick={(day) => field.onChange(format(day, 'yyyy-MM-dd'))}
                                                     initialFocus
                                                 />
                                             </PopoverContent>
@@ -2634,10 +2626,10 @@ function EmployeeTab({
                                         </Button>
                                     </PopoverTrigger>
                                     <PopoverContent className='w-auto p-0' align='start'>
-                                        <Calendar
+                                        <DatePickerWithYear
                                             mode='single'
                                             selected={field.value ? new Date(field.value) : undefined}
-                                            onSelect={(date) => field.onChange(date ? format(date, 'yyyy-MM-dd') : '')}
+                                            onDayClick={(day) => field.onChange(format(day, 'yyyy-MM-dd'))}
                                             initialFocus
                                         />
                                     </PopoverContent>
@@ -2665,10 +2657,10 @@ function EmployeeTab({
                                         </Button>
                                     </PopoverTrigger>
                                     <PopoverContent className='w-auto p-0' align='start'>
-                                        <Calendar
+                                        <DatePickerWithYear
                                             mode='single'
                                             selected={field.value ? new Date(field.value) : undefined}
-                                            onSelect={(date) => field.onChange(date ? format(date, 'yyyy-MM-dd') : '')}
+                                            onDayClick={(day) => field.onChange(format(day, 'yyyy-MM-dd'))}
                                             initialFocus
                                         />
                                     </PopoverContent>
@@ -3341,10 +3333,10 @@ function ExperienceTab({ control, register, errors, isSubmitting }: any) {
                                                 </Button>
                                             </PopoverTrigger>
                                             <PopoverContent className='w-auto p-0' align='start'>
-                                                <Calendar
+                                                <DatePickerWithYear
                                                     mode='single'
                                                     selected={field.value ? new Date(field.value) : undefined}
-                                                    onSelect={(date) => field.onChange(date ? format(date, 'yyyy-MM-dd') : '')}
+                                                    onDayClick={(day) => field.onChange(format(day, 'yyyy-MM-dd'))}
                                                     initialFocus
                                                 />
                                             </PopoverContent>
@@ -3367,10 +3359,10 @@ function ExperienceTab({ control, register, errors, isSubmitting }: any) {
                                                 </Button>
                                             </PopoverTrigger>
                                             <PopoverContent className='w-auto p-0' align='start'>
-                                                <Calendar
+                                                <DatePickerWithYear
                                                     mode='single'
                                                     selected={field.value ? new Date(field.value) : undefined}
-                                                    onSelect={(date) => field.onChange(date ? format(date, 'yyyy-MM-dd') : '')}
+                                                    onDayClick={(day) => field.onChange(format(day, 'yyyy-MM-dd'))}
                                                     initialFocus
                                                 />
                                             </PopoverContent>
@@ -3562,10 +3554,10 @@ function OtherDetailsTab({ control, register, errors, isSubmitting }: any) {
                                     </Button>
                                 </PopoverTrigger>
                                 <PopoverContent className='w-auto p-0' align='start'>
-                                    <Calendar
+                                    <DatePickerWithYear
                                         mode='single'
                                         selected={field.value ? new Date(field.value) : undefined}
-                                        onSelect={(date) => field.onChange(date ? format(date, 'yyyy-MM-dd') : '')}
+                                        onDayClick={(day) => field.onChange(format(day, 'yyyy-MM-dd'))}
                                         initialFocus
                                     />
                                 </PopoverContent>
@@ -3828,10 +3820,10 @@ function QualificationTab({ control, register, errors, isSubmitting }: any) {
                                                 </Button>
                                             </PopoverTrigger>
                                             <PopoverContent className='w-auto p-0' align='start'>
-                                                <Calendar
+                                                <DatePickerWithYear
                                                     mode='single'
                                                     selected={field.value ? new Date(field.value) : undefined}
-                                                    onSelect={(date) => field.onChange(date ? format(date, 'yyyy-MM-dd') : '')}
+                                                    onDayClick={(day) => field.onChange(format(day, 'yyyy-MM-dd'))}
                                                     initialFocus
                                                 />
                                             </PopoverContent>
@@ -3880,10 +3872,10 @@ function QualificationTab({ control, register, errors, isSubmitting }: any) {
                                                 </Button>
                                             </PopoverTrigger>
                                             <PopoverContent className='w-auto p-0' align='start'>
-                                                <Calendar
+                                                <DatePickerWithYear
                                                     mode='single'
                                                     selected={field.value ? new Date(field.value) : undefined}
-                                                    onSelect={(date) => field.onChange(date ? format(date, 'yyyy-MM-dd') : '')}
+                                                    onDayClick={(day) => field.onChange(format(day, 'yyyy-MM-dd'))}
                                                     initialFocus
                                                 />
                                             </PopoverContent>

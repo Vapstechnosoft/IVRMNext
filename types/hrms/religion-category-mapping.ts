@@ -42,6 +42,7 @@ export interface ReligionCategoryMappingDetail {
     IVRMMR_Name: string;
     IMCC_CategoryName: string;
     msg: any | null;
+    categoryids?: number[];
 }
 
 export interface ReligionCategoryMappingResponse {
@@ -95,8 +96,14 @@ export interface ReligionCategoryMappingInput {
     MI_Id?: number;
     UserId?: number;
     IVRMMR_Id: number;
-    IMCC_Id: number;
+    IMCC_Id?: number;
+    categoryids?: number[];
     IRCC_ActiveFlg?: boolean;
     IRCC_CreatedBy?: number;
     IRCC_UpdatedBy?: number;
+    IRCC_CreatedDate?: string;
+    IVRMMR_Name?: string;
+    IMCC_CategoryName?: string;
+    IMCC_CategoryCode?: string;
+    IMCC_CategoryDesc?: string;
 }

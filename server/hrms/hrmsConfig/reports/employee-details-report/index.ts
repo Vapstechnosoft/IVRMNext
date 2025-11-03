@@ -1,6 +1,6 @@
 'use server';
 
-import { api } from '@/lib/apiService';
+import { api, type ApiResponse } from '@/lib/apiService';
 import type {
     EmployeeDetailsReportFilterRequest,
     EmployeeDetailsReportFilterResponse,
@@ -10,18 +10,81 @@ import type {
     EmployeeDetailsReportSearchResponse
 } from '@/types/hrms/reports/employee-details-report';
 
-export async function getEmployeeDetailsReportOnload(MI_Id = 30, LogInUserId = 2) {
+export async function getEmployeeDetailsReportOnload(
+    MI_Id = 30,
+    LogInUserId = 2
+): Promise<ApiResponse<EmployeeDetailsReportOnloadResponse>> {
     const requestBody: EmployeeDetailsReportOnloadRequest = {
         MI_Id,
         LogInUserId
     };
-    return await api.post<EmployeeDetailsReportOnloadResponse>('hrms', '/api/EmployeeDetailsReportFacade/onloadgetdetailsNew', requestBody);
+    const response = await api.post<EmployeeDetailsReportOnloadResponse>(
+        'hrms',
+        '/api/EmployeeDetailsReportFacade/onloadgetdetailsNew',
+        requestBody
+    );
+
+    // The backend returns raw data, not wrapped in ApiResponse format
+    // Wrap it to match the expected ApiResponse structure
+    if (response && typeof response === 'object' && 'success' in response && 'data' in response) {
+        // Already wrapped
+        return response as ApiResponse<EmployeeDetailsReportOnloadResponse>;
+    }
+
+    // Wrap raw response data
+    return {
+        success: true,
+        message: 'Data loaded successfully',
+        data: response as unknown as EmployeeDetailsReportOnloadResponse
+    };
 }
 
-export async function filterEmployeeDetailsReport(requestBody: EmployeeDetailsReportFilterRequest) {
-    return await api.post<EmployeeDetailsReportFilterResponse>('hrms', '/api/EmployeeDetailsReportFacade/FilterEmployeeDataNew', requestBody);
+export async function filterEmployeeDetailsReport(
+    requestBody: EmployeeDetailsReportFilterRequest
+): Promise<ApiResponse<EmployeeDetailsReportFilterResponse>> {
+    const response = await api.post<EmployeeDetailsReportFilterResponse>(
+        'hrms',
+        '/api/EmployeeDetailsReportFacade/FilterEmployeeDataNew',
+        requestBody
+    );
+
+    // The backend returns raw data, not wrapped in ApiResponse format
+    // Wrap it to match the expected ApiResponse structure
+    if (response && typeof response === 'object' && 'success' in response && 'data' in response) {
+        // Already wrapped
+        return response as ApiResponse<EmployeeDetailsReportFilterResponse>;
+    }
+
+    // Wrap raw response data
+    const rawResponse = response as unknown as EmployeeDetailsReportFilterResponse;
+    return {
+        success: true,
+        message: rawResponse?.retrunMsg || 'Filter completed successfully',
+        data: rawResponse
+    };
 }
 
-export async function searchEmployeeDetailsReport(requestBody: EmployeeDetailsReportSearchRequest) {
-    return await api.post<EmployeeDetailsReportSearchResponse>('hrms', '/api/EmployeeDetailsReportFacade/getEmployeedetailsBySelectionNew', requestBody);
+export async function searchEmployeeDetailsReport(
+    requestBody: EmployeeDetailsReportSearchRequest
+): Promise<ApiResponse<EmployeeDetailsReportSearchResponse>> {
+    const response = await api.post<EmployeeDetailsReportSearchResponse>(
+        'hrms',
+        '/api/EmployeeDetailsReportFacade/getEmployeedetailsBySelectionNew',
+        requestBody
+    );
+
+    // The backend returns raw data, not wrapped in ApiResponse format
+    // Wrap it to match the expected ApiResponse structure
+    if (response && typeof response === 'object' && 'success' in response && 'data' in response) {
+        // Already wrapped
+        return response as ApiResponse<EmployeeDetailsReportSearchResponse>;
+    }
+
+    // Wrap raw response data
+    const rawResponse = response as unknown as EmployeeDetailsReportSearchResponse;
+    return {
+        success: true,
+        message: rawResponse?.retrunMsg || 'Search completed successfully',
+        data: rawResponse
+    };
 }

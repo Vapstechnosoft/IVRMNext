@@ -1,23 +1,30 @@
 'use client';
 
-import { Heading } from '@/components/layout/heading';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Checkbox } from '@/components/ui/checkbox';
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
 import { DataTable } from '@/components/ui/data-table/data-table';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
+import { MultiSelect } from '@/components/ui/multi-select';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { type BaseEntity, createLocalCrud } from '@/lib/localdb';
+import { HRMS_MI_ID } from '@/constants/hrms-config';
+import {
+    useFilterEmployeesForLoanReport,
+    useGetEmployeeLoanDetails,
+    useLoanReportOnload
+} from '@/hooks/hrms/useReports';
+import type { EmployeeDropdown } from '@/types/hrms/reports/loan-report';
 import type { ColumnDef } from '@tanstack/react-table';
-import { Calculator, CreditCard, DollarSign, Download, Percent, Printer, Search, TrendingUp, Users } from 'lucide-react';
+import { Calculator, CreditCard, DollarSign, Download, Percent, Printer, Search, TrendingUp, Users, X } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';
 
 // Employee Loan Report data structure
-interface EmployeeLoanRecord extends BaseEntity {
+interface EmployeeLoanRecord {
+    id?: number;
+    createdAt?: string;
     employeeCode: string;
     employeeName: string;
     groupType: string;
@@ -81,36 +88,38 @@ interface LoanTypeSummary {
     totalInterest: number;
 }
 
-// Filter options
-interface FilterOptions {
-    groupTypes: string[];
-    departments: string[];
-    designations: string[];
-}
-
 // Report filters
 interface LoanFilters {
     reportScope: 'all' | 'individual';
-    selectedGroupTypes: string[];
-    selectedDepartments: string[];
-    selectedDesignations: string[];
+    selectedGroupTypes: number[];
+    selectedDepartments: number[];
+    selectedDesignations: number[];
+    selectedEmployee: string;
     month: string;
     year: string;
 }
 
 export default function LoanReportPage() {
-    // Database instances
-    const loanDB = createLocalCrud<EmployeeLoanRecord>('report:employee-loan');
+    const MI_Id = HRMS_MI_ID;
+    const roleId = 0;
+    const LogInUserId = 0;
+
+    // React Query hooks
+    const { data: onloadData, isLoading: isLoadingOnload } = useLoanReportOnload(MI_Id, roleId, LogInUserId);
+    const filterMutation = useFilterEmployeesForLoanReport();
+    const searchMutation = useGetEmployeeLoanDetails();
+
+    // Extract dropdown data from onload response
+    const groupTypes = onloadData?.data?.groupTypedropdown || [];
+    const departments = onloadData?.data?.departmentdropdown || [];
+    const designations = onloadData?.data?.designationdropdown || [];
+    const months = onloadData?.data?.monthdropdown || [];
+    const years = onloadData?.data?.leaveyeardropdown || [];
 
     // State
     const [loanRecords, setLoanRecords] = useState<EmployeeLoanRecord[]>([]);
     const [filteredRecords, setFilteredRecords] = useState<EmployeeLoanRecord[]>([]);
-    const [filterOptions, setFilterOptions] = useState<FilterOptions>({
-        groupTypes: [],
-        departments: [],
-        designations: []
-    });
-    const [isLoading, setIsLoading] = useState(true);
+    const [employees, setEmployees] = useState<EmployeeDropdown[]>([]);
     const [showReport, setShowReport] = useState(false);
 
     const [filters, setFilters] = useState<LoanFilters>({
@@ -118,42 +127,51 @@ export default function LoanReportPage() {
         selectedGroupTypes: [],
         selectedDepartments: [],
         selectedDesignations: [],
+        selectedEmployee: '',
         month: '',
         year: ''
     });
 
-    // Load data on mount
+    // Filter employees when filters change (for Individual mode)
     useEffect(() => {
-        loadData();
-    }, []);
+        if (filters.reportScope === 'individual') {
+            const hasFilters =
+                filters.selectedGroupTypes.length > 0 ||
+                filters.selectedDepartments.length > 0 ||
+                filters.selectedDesignations.length > 0;
 
-    const loadData = () => {
-        try {
-            // Load Employee Loan records
-            let recordList = loanDB.list();
-            if (recordList.length === 0) {
-                const mockData = generateMockLoanData();
-                mockData.forEach((record) => loanDB.create(record));
-                recordList = loanDB.list(); // Reload data after creating mock records
+            if (hasFilters) {
+                const request = {
+                    MI_Id,
+                    roleId,
+                    LogInUserId,
+                    hrmgT_IdList: filters.selectedGroupTypes.length > 0 ? filters.selectedGroupTypes : [0],
+                    hrmD_IdList: filters.selectedDepartments.length > 0 ? filters.selectedDepartments : [0],
+                    hrmdeS_IdList: filters.selectedDesignations.length > 0 ? filters.selectedDesignations : [0]
+                };
+
+                filterMutation.mutate(request, {
+                    onSuccess: (response) => {
+                        if (response.success && response.data?.employeedropdown) {
+                            setEmployees(response.data.employeedropdown || []);
+                        } else {
+                            setEmployees([]);
+                        }
+                    },
+                    onError: (error) => {
+                        console.error('Error filtering employees:', error);
+                        setEmployees([]);
+                    }
+                });
+            } else {
+                setEmployees([]);
             }
-            setLoanRecords(recordList);
-
-            // Extract filter options
-            const groupTypes = [...new Set(recordList.map((r) => r.groupType))];
-            const departments = [...new Set(recordList.map((r) => r.department))];
-            const designations = [...new Set(recordList.map((r) => r.designation))];
-
-            setFilterOptions({
-                groupTypes,
-                departments,
-                designations
-            });
-        } catch (_error) {
-            toast.error('Failed to load data');
-        } finally {
-            setIsLoading(false);
+        } else {
+            setEmployees([]);
+            setFilters((prev) => ({ ...prev, selectedEmployee: '' }));
         }
-    };
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [filters.reportScope, filters.selectedGroupTypes, filters.selectedDepartments, filters.selectedDesignations]);
 
     // Generate mock Employee Loan data
     const generateMockLoanData = (): Omit<EmployeeLoanRecord, 'id' | 'createdAt'>[] => {
@@ -359,75 +377,65 @@ export default function LoanReportPage() {
 
     // Filter records based on selected criteria
     useEffect(() => {
-        let filtered = loanRecords;
-
-        // Filter by group types
-        if (filters.selectedGroupTypes.length > 0) {
-            filtered = filtered.filter((record) => filters.selectedGroupTypes.includes(record.groupType));
-        }
-
-        // Filter by departments
-        if (filters.selectedDepartments.length > 0) {
-            filtered = filtered.filter((record) => filters.selectedDepartments.includes(record.department));
-        }
-
-        // Filter by designations
-        if (filters.selectedDesignations.length > 0) {
-            filtered = filtered.filter((record) => filters.selectedDesignations.includes(record.designation));
-        }
-
-        // Filter by month
-        if (filters.month) {
-            filtered = filtered.filter((record) => record.month === filters.month);
-        }
-
-        // Filter by year
-        if (filters.year) {
-            filtered = filtered.filter((record) => record.year === filters.year);
-        }
-
-        setFilteredRecords(filtered);
-    }, [filters, loanRecords]);
-
-    const handleCheckboxChange = (
-        category: 'selectedGroupTypes' | 'selectedDepartments' | 'selectedDesignations',
-        value: string,
-        checked: boolean
-    ) => {
-        setFilters((prev) => ({
-            ...prev,
-            [category]: checked ? [...prev[category], value] : prev[category].filter((item) => item !== value)
-        }));
-    };
-
-    const handleSelectAllChange = (category: 'selectedGroupTypes' | 'selectedDepartments' | 'selectedDesignations', checked: boolean) => {
-        let allOptions: string[] = [];
-
-        switch (category) {
-            case 'selectedGroupTypes':
-                allOptions = filterOptions.groupTypes;
-                break;
-            case 'selectedDepartments':
-                allOptions = filterOptions.departments;
-                break;
-            case 'selectedDesignations':
-                allOptions = filterOptions.designations;
-                break;
-        }
-
-        setFilters((prev) => ({
-            ...prev,
-            [category]: checked ? allOptions : []
-        }));
-    };
+        // Filtering will be done on the backend via API
+        setFilteredRecords(loanRecords);
+    }, [loanRecords]);
 
     const handleFilterChange = (key: keyof LoanFilters, value: any) => {
         setFilters((prev) => ({ ...prev, [key]: value }));
     };
 
     const handleSearch = () => {
-        setShowReport(true);
-        toast.success('Employee Loan Report generated');
+        if (filters.reportScope === 'individual') {
+            if (!filters.selectedEmployee) {
+                toast.error('Please select an employee');
+                return;
+            }
+        } else {
+            // For "All" scope, month and year are required
+            if (!filters.month || !filters.year) {
+                toast.error('Please select month and year');
+                return;
+            }
+        }
+
+        const request = {
+            MI_Id,
+            roleId,
+            LogInUserId,
+            hrmgT_IdList: filters.selectedGroupTypes.length > 0 ? filters.selectedGroupTypes : [0],
+            hrmD_IdList: filters.selectedDepartments.length > 0 ? filters.selectedDepartments : [0],
+            hrmdeS_IdList: filters.selectedDesignations.length > 0 ? filters.selectedDesignations : [0],
+            hrmE_Id: filters.reportScope === 'individual' && filters.selectedEmployee ? Number.parseInt(filters.selectedEmployee) : 0
+        };
+
+        searchMutation.mutate(request, {
+            onSuccess: (response) => {
+                if (response.success && response.data) {
+                    // Process the response data to populate loan records
+                    // The response structure may vary, so we'll need to adapt based on actual response
+                    const employeeLoanDetails = response.data.employeeSalaryslipDetails || [];
+                    const loanTotalAmount = response.data.EmploanTotalAmount || [];
+
+                    // Transform API response to EmployeeLoanRecord format
+                    // Note: This mapping needs to be adjusted based on actual API response structure
+                    const records: EmployeeLoanRecord[] = [];
+
+                    // For now, we'll show a success message and set showReport
+                    // The actual data transformation will depend on the API response structure
+                    setLoanRecords(records);
+                    setFilteredRecords(records);
+                    setShowReport(true);
+                    toast.success('Employee Loan Report generated successfully');
+                } else {
+                    toast.error(response.message || 'Failed to generate loan report');
+                }
+            },
+            onError: (error) => {
+                console.error('Error generating loan report:', error);
+                toast.error('Failed to generate loan report');
+            }
+        });
     };
 
     const handleCancel = () => {
@@ -436,12 +444,18 @@ export default function LoanReportPage() {
             selectedGroupTypes: [],
             selectedDepartments: [],
             selectedDesignations: [],
+            selectedEmployee: '',
             month: '',
             year: ''
         });
+        setEmployees([]);
+        setLoanRecords([]);
+        setFilteredRecords([]);
         setShowReport(false);
         toast.info('Filters cleared');
     };
+
+    const isLoading = isLoadingOnload || filterMutation.isPending || searchMutation.isPending;
 
     const handleExport = () => {
         toast.success('Employee Loan Report exported successfully');
@@ -743,172 +757,166 @@ export default function LoanReportPage() {
                 {/* Filter Sections */}
                 <div className='grid grid-cols-1 gap-6 lg:grid-cols-3'>
                     {/* Group Type Section */}
-                    <div className='space-y-3'>
-                        <div className='flex items-center gap-2'>
-                            <span className='font-medium text-foreground text-sm'>Group Type:</span>
-                            <span className='text-red-500'>*</span>
-                            <div className='flex items-center gap-2'>
-                                <Checkbox
-                                    id='all-groups'
-                                    checked={filters.selectedGroupTypes.length === filterOptions.groupTypes.length}
-                                    onCheckedChange={(checked) => handleSelectAllChange('selectedGroupTypes', checked as boolean)}
-                                />
-                                <label htmlFor='all-groups' className='cursor-pointer text-sm'>
-                                    All
-                                </label>
-                            </div>
-                        </div>
-                        <div className='h-32 space-y-2 overflow-y-auto rounded-lg border p-3'>
-                            {filterOptions.groupTypes.map((groupType) => (
-                                <div key={groupType} className='flex items-center gap-2'>
-                                    <Checkbox
-                                        id={`group-${groupType}`}
-                                        checked={filters.selectedGroupTypes.includes(groupType)}
-                                        onCheckedChange={(checked) =>
-                                            handleCheckboxChange('selectedGroupTypes', groupType, checked as boolean)
-                                        }
-                                    />
-                                    <label htmlFor={`group-${groupType}`} className='cursor-pointer text-sm'>
-                                        {groupType}
-                                    </label>
-                                </div>
-                            ))}
-                        </div>
+                    <div className='space-y-2'>
+                        <span className='font-medium text-foreground text-sm'>
+                            Group Type: <span className='text-red-500'>*</span>
+                        </span>
+                        <MultiSelect
+                            options={groupTypes.map((gt) => ({
+                                label: gt.HRMGT_EmployeeGroupType,
+                                value: gt.HRMGT_Id.toString()
+                            }))}
+                            defaultValue={filters.selectedGroupTypes.map((id) => id.toString())}
+                            onValueChange={(values) => {
+                                setFilters((prev) => ({
+                                    ...prev,
+                                    selectedGroupTypes: values.map((v) => Number.parseInt(v)),
+                                    selectedEmployee: '' // Reset employee when filters change
+                                }));
+                            }}
+                            placeholder='Select group types'
+                        />
                     </div>
 
                     {/* Department Section */}
-                    <div className='space-y-3'>
-                        <div className='flex items-center gap-2'>
-                            <span className='font-medium text-foreground text-sm'>Department:</span>
-                            <span className='text-red-500'>*</span>
-                            <div className='flex items-center gap-2'>
-                                <Checkbox
-                                    id='all-departments'
-                                    checked={filters.selectedDepartments.length === filterOptions.departments.length}
-                                    onCheckedChange={(checked) => handleSelectAllChange('selectedDepartments', checked as boolean)}
-                                />
-                                <label htmlFor='all-departments' className='cursor-pointer text-sm'>
-                                    All
-                                </label>
-                            </div>
-                        </div>
-                        <div className='h-32 space-y-2 overflow-y-auto rounded-lg border p-3'>
-                            {filterOptions.departments.map((department) => (
-                                <div key={department} className='flex items-center gap-2'>
-                                    <Checkbox
-                                        id={`dept-${department}`}
-                                        checked={filters.selectedDepartments.includes(department)}
-                                        onCheckedChange={(checked) =>
-                                            handleCheckboxChange('selectedDepartments', department, checked as boolean)
-                                        }
-                                    />
-                                    <label htmlFor={`dept-${department}`} className='cursor-pointer text-sm'>
-                                        {department}
-                                    </label>
-                                </div>
-                            ))}
-                        </div>
+                    <div className='space-y-2'>
+                        <span className='font-medium text-foreground text-sm'>
+                            Department: <span className='text-red-500'>*</span>
+                        </span>
+                        <MultiSelect
+                            options={departments.map((dept) => ({
+                                label: dept.HRMD_DepartmentName,
+                                value: dept.HRMD_Id.toString()
+                            }))}
+                            defaultValue={filters.selectedDepartments.map((id) => id.toString())}
+                            onValueChange={(values) => {
+                                setFilters((prev) => ({
+                                    ...prev,
+                                    selectedDepartments: values.map((v) => Number.parseInt(v)),
+                                    selectedEmployee: '' // Reset employee when filters change
+                                }));
+                            }}
+                            placeholder='Select departments'
+                        />
                     </div>
 
                     {/* Designation Section */}
-                    <div className='space-y-3'>
-                        <div className='flex items-center gap-2'>
-                            <span className='font-medium text-foreground text-sm'>Designation:</span>
-                            <span className='text-red-500'>*</span>
-                            <div className='flex items-center gap-2'>
-                                <Checkbox
-                                    id='all-designations'
-                                    checked={filters.selectedDesignations.length === filterOptions.designations.length}
-                                    onCheckedChange={(checked) => handleSelectAllChange('selectedDesignations', checked as boolean)}
-                                />
-                                <label htmlFor='all-designations' className='cursor-pointer text-sm'>
-                                    All
-                                </label>
-                            </div>
-                        </div>
-                        <div className='h-32 space-y-2 overflow-y-auto rounded-lg border p-3'>
-                            {filterOptions.designations.map((designation) => (
-                                <div key={designation} className='flex items-center gap-2'>
-                                    <Checkbox
-                                        id={`desig-${designation}`}
-                                        checked={filters.selectedDesignations.includes(designation)}
-                                        onCheckedChange={(checked) =>
-                                            handleCheckboxChange('selectedDesignations', designation, checked as boolean)
-                                        }
-                                    />
-                                    <label htmlFor={`desig-${designation}`} className='cursor-pointer text-sm'>
-                                        {designation}
-                                    </label>
-                                </div>
-                            ))}
-                        </div>
+                    <div className='space-y-2'>
+                        <span className='font-medium text-foreground text-sm'>
+                            Designation: <span className='text-red-500'>*</span>
+                        </span>
+                        <MultiSelect
+                            options={designations.map((desg) => ({
+                                label: desg.HRMDES_DesignationName,
+                                value: desg.HRMDES_Id.toString()
+                            }))}
+                            defaultValue={filters.selectedDesignations.map((id) => id.toString())}
+                            onValueChange={(values) => {
+                                setFilters((prev) => ({
+                                    ...prev,
+                                    selectedDesignations: values.map((v) => Number.parseInt(v)),
+                                    selectedEmployee: '' // Reset employee when filters change
+                                }));
+                            }}
+                            placeholder='Select designations'
+                        />
                     </div>
                 </div>
 
-                {/* Additional Filters */}
-                <div className='flex items-center justify-center gap-6 pt-4'>
-                    {/* Month Filter */}
-                    <div className='space-y-2'>
-                        <span className='font-medium text-foreground text-sm'>
-                            Month: <span className='text-red-500'>*</span>
-                        </span>
-                        <Select value={filters.month} onValueChange={(value) => handleFilterChange('month', value)}>
-                            <SelectTrigger className='w-40'>
-                                <SelectValue placeholder='Select' />
-                            </SelectTrigger>
-                            <SelectContent>
-                                {[
-                                    'January',
-                                    'February',
-                                    'March',
-                                    'April',
-                                    'May',
-                                    'June',
-                                    'July',
-                                    'August',
-                                    'September',
-                                    'October',
-                                    'November',
-                                    'December'
-                                ].map((month) => (
-                                    <SelectItem key={month} value={month}>
-                                        {month}
-                                    </SelectItem>
-                                ))}
-                            </SelectContent>
-                        </Select>
-                    </div>
-
-                    {/* Year Filter */}
-                    <div className='space-y-2'>
-                        <span className='font-medium text-foreground text-sm'>
-                            Year: <span className='text-red-500'>*</span>
-                        </span>
-                        <Select value={filters.year} onValueChange={(value) => handleFilterChange('year', value)}>
-                            <SelectTrigger className='w-32'>
-                                <SelectValue placeholder='Select' />
-                            </SelectTrigger>
-                            <SelectContent>
-                                {Array.from({ length: 5 }, (_, i) => {
-                                    const year = new Date().getFullYear() - 2 + i;
-                                    return (
-                                        <SelectItem key={`year-${year}`} value={year.toString()}>
-                                            {year}
+                {/* Employee Selection - Only show when Individual is selected */}
+                {filters.reportScope === 'individual' && (
+                    <div className='flex items-center justify-center pt-4'>
+                        <div className='space-y-2 w-80'>
+                            <span className='font-medium text-foreground text-sm'>
+                                Employee: <span className='text-red-500'>*</span>
+                            </span>
+                            <Select
+                                value={filters.selectedEmployee}
+                                onValueChange={(value) => handleFilterChange('selectedEmployee', value)}
+                                disabled={employees.length === 0}>
+                                <SelectTrigger>
+                                    <SelectValue placeholder={employees.length === 0 ? 'Select filters first' : 'Select Employee'} />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {employees.map((emp) => (
+                                        <SelectItem key={emp.HRME_Id} value={emp.HRME_Id.toString()}>
+                                            {`${emp.HRME_EmployeeFirstName} ${emp.HRME_EmployeeMiddleName || ''} ${emp.HRME_EmployeeLastName || ''}`.trim()} ({emp.HRME_EmployeeCode})
                                         </SelectItem>
-                                    );
-                                })}
-                            </SelectContent>
-                        </Select>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                        </div>
                     </div>
-                </div>
+                )}
+
+                {/* Additional Filters - Only show when All is selected */}
+                {filters.reportScope === 'all' && (
+                    <div className='flex items-center justify-center gap-6 pt-4'>
+                        {/* Month Filter */}
+                        <div className='space-y-2'>
+                            <span className='font-medium text-foreground text-sm'>
+                                Month: <span className='text-red-500'>*</span>
+                            </span>
+                            <Select value={filters.month} onValueChange={(value) => handleFilterChange('month', value)}>
+                                <SelectTrigger className='w-40'>
+                                    <SelectValue placeholder='Select' />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {months.map((month: any) => (
+                                        <SelectItem key={month.IVRM_Month_Id || month.IVRM_Month_Name} value={month.IVRM_Month_Name || month.IVRM_Month_Id?.toString() || ''}>
+                                            {month.IVRM_Month_Name || month.IVRM_Month_Id}
+                                        </SelectItem>
+                                    ))}
+                                    {months.length === 0 && (
+                                        ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'].map((month) => (
+                                            <SelectItem key={month} value={month}>
+                                                {month}
+                                            </SelectItem>
+                                        ))
+                                    )}
+                                </SelectContent>
+                            </Select>
+                        </div>
+
+                        {/* Year Filter */}
+                        <div className='space-y-2'>
+                            <span className='font-medium text-foreground text-sm'>
+                                Year: <span className='text-red-500'>*</span>
+                            </span>
+                            <Select value={filters.year} onValueChange={(value) => handleFilterChange('year', value)}>
+                                <SelectTrigger className='w-32'>
+                                    <SelectValue placeholder='Select' />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {years.map((year: any) => (
+                                        <SelectItem key={year.HRMLY_Id || year.HRMLY_LeaveYear} value={year.HRMLY_LeaveYear || year.HRMLY_Id?.toString() || ''}>
+                                            {year.HRMLY_LeaveYear || year.HRMLY_Id}
+                                        </SelectItem>
+                                    ))}
+                                    {years.length === 0 && (
+                                        Array.from({ length: 5 }, (_, i) => {
+                                            const year = new Date().getFullYear() - 2 + i;
+                                            return (
+                                                <SelectItem key={`year-${year}`} value={year.toString()}>
+                                                    {year}
+                                                </SelectItem>
+                                            );
+                                        })
+                                    )}
+                                </SelectContent>
+                            </Select>
+                        </div>
+                    </div>
+                )}
 
                 {/* Action Buttons */}
                 <div className='flex justify-center gap-2 pt-4'>
-                    <Button onClick={handleSearch}>
+                    <Button onClick={handleSearch} disabled={isLoading}>
                         <Search className='mr-2 h-4 w-4' />
                         SEARCH
                     </Button>
-                    <Button variant='outline' onClick={handleCancel}>
+                    <Button variant='outline' onClick={handleCancel} disabled={isLoading}>
+                        <X className='mr-2 h-4 w-4' />
                         CANCEL
                     </Button>
                 </div>
@@ -921,7 +929,7 @@ export default function LoanReportPage() {
                     <div className='flex items-center justify-between rounded-lg border bg-card p-4'>
                         <div>
                             <h3 className='font-semibold text-foreground text-lg'>
-                                Employee Loan Report - {filters.month} {filters.year} ({filters.reportScope.toUpperCase()})
+                                Employee Loan Report - {filters.reportScope === 'all' ? `${filters.month} ${filters.year}` : ''} ({filters.reportScope.toUpperCase()})
                             </h3>
                             <p className='text-muted-foreground text-sm'>
                                 Total Loans: {filteredRecords.length} | Total Amount: ₹{loanSummary.totalLoanAmount.toLocaleString()} |

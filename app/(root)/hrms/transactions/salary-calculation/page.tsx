@@ -1,6 +1,5 @@
 'use client';
 
-import { Heading } from '@/components/layout/heading';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -14,7 +13,7 @@ import {
     generateSalaryForSelectedEmployees,
     getSalaryCalculationOnload,
     searchSalaryCalculationBySelection
-} from '@/server/hrms/salary-calculation';
+} from '@/server/hrms/hrmsConfig/transaction/salary-calculation';
 import type {
     DepartmentDropdown,
     DesignationDropdown,
@@ -290,13 +289,6 @@ export default function SalaryCalculationPage() {
     return (
         <div className='min-h-screen'>
             <div className='container space-y-4 p-1'>
-                {/* Header */}
-                <div className='flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between'>
-                    <div className='space-y-1'>
-                        <Heading title='Salary Calculation' description='Search and calculate employee salaries' />
-                    </div>
-                </div>
-
                 {/* Search Form */}
                 <CollapsibleSection
                     title='SALARY CALCULATION'

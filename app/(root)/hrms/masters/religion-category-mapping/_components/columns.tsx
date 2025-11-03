@@ -69,12 +69,12 @@ function ActionButtonsCell({ rowData }: { rowData: ReligionCategoryMappingDetail
         async (data: ReligionCategoryMappingDetail, newState: boolean) => {
             try {
                 await toggleMutation.mutateAsync({
-                    IRCC_Id: data.IRCC_Id,
+                    ...data,
                     IRCC_ActiveFlg: newState
                 });
-                toast.success(`Mapping ${newState ? 'activated' : 'deactivated'} successfully`);
+                // Toast is handled in the mutation's onSuccess/onError
             } catch (_error) {
-                toast.error(`Failed to ${newState ? 'activate' : 'deactivate'} mapping`);
+                // Error toast is handled in the mutation's onError
             }
         },
         [toggleMutation]

@@ -1,8 +1,7 @@
 'use client';
 
-import { Heading } from '@/components/layout/heading';
 import { Button } from '@/components/ui/button';
-import { Calendar } from '@/components/ui/calendar';
+import { CalendarYear } from '@/components/ui/calendar_year';
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
 import { DataTable } from '@/components/ui/data-table/data-table';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
@@ -431,13 +430,6 @@ export default function EmployeeContributionReportPage() {
 
     return (
         <div className='space-y-6'>
-            <div className='flex-between flex-wrap gap-4'>
-                <Heading
-                    title='Employee Contribution Report'
-                    description='Generate employee contribution reports for earnings and deductions'
-                />
-            </div>
-
             {/* Report Configuration Section */}
             <CollapsibleSection
                 title='EMPLOYEE CONTRIBUTION REPORT'
@@ -671,10 +663,10 @@ export default function EmployeeContributionReportPage() {
                                         </Button>
                                     </PopoverTrigger>
                                     <PopoverContent className='w-auto p-0'>
-                                        <Calendar
+                                        <CalendarYear
                                             mode='single'
                                             selected={filters.fromDate || undefined}
-                                            onSelect={(date) => handleFilterChange('fromDate', date)}
+                                            onDayClick={(day) => handleFilterChange('fromDate', day)}
                                             initialFocus
                                         />
                                     </PopoverContent>
@@ -695,10 +687,10 @@ export default function EmployeeContributionReportPage() {
                                         </Button>
                                     </PopoverTrigger>
                                     <PopoverContent className='w-auto p-0'>
-                                        <Calendar
+                                        <CalendarYear
                                             mode='single'
                                             selected={filters.toDate || undefined}
-                                            onSelect={(date) => handleFilterChange('toDate', date)}
+                                            onDayClick={(day) => handleFilterChange('toDate', day)}
                                             initialFocus
                                         />
                                     </PopoverContent>

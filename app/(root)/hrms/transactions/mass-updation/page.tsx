@@ -1,6 +1,5 @@
 'use client';
 
-import { Heading } from '@/components/layout/heading';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
@@ -11,7 +10,7 @@ import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { MultiSelect } from '@/components/ui/multi-select';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { getEmployeeDetailsBySelection, getMassUpdationOnload, searchMassUpdationEmployees } from '@/server/hrms/mass-updation';
+import { getEmployeeDetailsBySelection, getMassUpdationOnload, searchMassUpdationEmployees } from '@/server/hrms/hrmsConfig/transaction/mass-updation';
 import type {
     DepartmentDropdown,
     DesignationDropdown,
@@ -365,12 +364,6 @@ export default function MassUpdationPage() {
     return (
         <div className='min-h-screen'>
             <div className='container space-y-4 p-1'>
-                <div className='flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between'>
-                    <div className='space-y-1'>
-                        <Heading title='Mass Updation' description='Update salary components for multiple employees' />
-                    </div>
-                </div>
-
                 <CollapsibleSection
                     title='Search Criteria'
                     description='Select filters to search for employees'

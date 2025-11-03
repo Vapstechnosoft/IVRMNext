@@ -78,7 +78,7 @@ function ActionButtonsCell({ rowData }: { rowData: GroupDeptDessgMappingDetail }
         async (data: GroupDeptDessgMappingDetail, newState: boolean) => {
             try {
                 await toggleMutation.mutateAsync({
-                    HRGTDDS_Id: data.HRGTDDS_Id,
+                    ...data,
                     HRGTDDS_ActiveFlg: newState
                 });
                 toast.success(`Mapping ${newState ? 'activated' : 'deactivated'} successfully`);

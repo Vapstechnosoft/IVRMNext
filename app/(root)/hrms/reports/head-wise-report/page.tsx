@@ -1,6 +1,5 @@
 'use client';
 
-import { Heading } from '@/components/layout/heading';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -375,10 +374,6 @@ export default function HeadWiseReportPage() {
 
     return (
         <div className='space-y-6'>
-            <div className='flex-between flex-wrap gap-4'>
-                <Heading title='Head Wise Report' description='Generate salary head wise analysis and reports' />
-            </div>
-
             {/* Report Configuration Section */}
             <CollapsibleSection
                 title='HEAD WISE REPORT'

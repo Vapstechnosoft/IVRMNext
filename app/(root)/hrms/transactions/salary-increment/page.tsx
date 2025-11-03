@@ -1,8 +1,7 @@
 'use client';
 
-import { Heading } from '@/components/layout/heading';
 import { Button } from '@/components/ui/button';
-import { Calendar } from '@/components/ui/calendar';
+import { DatePickerWithYear } from '@/components/ui/date-picker-year';
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
 import { DataTable } from '@/components/ui/data-table/data-table';
 import { Label } from '@/components/ui/extension/field';
@@ -11,7 +10,7 @@ import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { cn } from '@/lib/utils';
-import { deleteSalaryIncrement, getSalaryIncrementOnload, saveSalaryIncrement } from '@/server/hrms/salary-increment';
+import { deleteSalaryIncrement, getSalaryIncrementOnload, saveSalaryIncrement } from '@/server/hrms/hrmsConfig/transaction/salary-increment';
 import type { EarningDeductionType, SalaryIncrementDeleteRequest, SalaryIncrementGridItem } from '@/types/hrms/salary-increment';
 import type { ColumnDef } from '@tanstack/react-table';
 import { format } from 'date-fns';
@@ -320,10 +319,7 @@ export default function SalaryIncrementProcessPage() {
     return (
         <div className='min-h-screen'>
             <div className='container space-y-4 p-1'>
-                <div className='flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between'>
-                    <div className='space-y-1'>
-                        <Heading title='Salary Increment Process' description='Process salary increments for employees' />
-                    </div>
+                <div className='flex justify-end'>
                     <Button
                         type='button'
                         onClick={handleIncrementClick}

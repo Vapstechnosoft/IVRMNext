@@ -1,8 +1,7 @@
 'use client';
 
-import { Heading } from '@/components/layout/heading';
 import { Button } from '@/components/ui/button';
-import { Calendar } from '@/components/ui/calendar';
+import { DatePickerWithYear } from '@/components/ui/date-picker-year';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
@@ -385,10 +384,6 @@ export default function EmployeeStrengthReportPage() {
 
     return (
         <div className='space-y-6'>
-            <div className='flex-between flex-wrap gap-4'>
-                <Heading title='Employee Strength Report' description='Analyze employee strength across departments and designations' />
-            </div>
-
             {/* Report Configuration Section */}
             <CollapsibleSection
                 title='EMPLOYEE STRENGTH REPORT'
@@ -512,13 +507,13 @@ export default function EmployeeStrengthReportPage() {
                                     </Button>
                                 </PopoverTrigger>
                                 <PopoverContent className='w-auto p-0'>
-                                    <Calendar
+                                    <DatePickerWithYear
                                         mode='single'
                                         selected={filters.fromDate || undefined}
-                                        onSelect={(date) =>
+                                        onDayClick={(day) =>
                                             setFilters((prev) => ({
                                                 ...prev,
-                                                fromDate: date || null
+                                                fromDate: day
                                             }))
                                         }
                                         initialFocus
@@ -542,10 +537,10 @@ export default function EmployeeStrengthReportPage() {
                                     </Button>
                                 </PopoverTrigger>
                                 <PopoverContent className='w-auto p-0'>
-                                    <Calendar
+                                    <DatePickerWithYear
                                         mode='single'
                                         selected={filters.toDate || undefined}
-                                        onSelect={(date) => setFilters((prev) => ({ ...prev, toDate: date || null }))}
+                                        onDayClick={(day) => setFilters((prev) => ({ ...prev, toDate: day }))}
                                         initialFocus
                                     />
                                 </PopoverContent>

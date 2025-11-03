@@ -118,8 +118,9 @@ import type { MasterProfessionalTaxInput } from '@/types/hrms/master-professiona
 import type { LeaveYearDetail, MasterLeaveYearInput } from '@/types/hrms/master-leave-year';
 import type { EarningsDeductionDetail, MasterEarningsDeductionsInput } from '@/types/hrms/master-earnings-deductions';
 import type { MasterPayrollStandardInput } from '@/types/hrms/master-payroll-standard';
-import type { ReligionCategoryMappingInput } from '@/types/hrms/religion-category-mapping';
-import type { GroupDeptDessgMappingInput } from '@/types/hrms/group-dept-dessg-mapping';
+import type { ReligionCategoryMappingInput, ReligionCategoryMappingDetail, ReligionCategoryMappingResponse } from '@/types/hrms/religion-category-mapping';
+import type { GroupDeptDessgMappingDetail, GroupDeptDessgMappingInput, GroupDeptDessgMappingResponse } from '@/types/hrms/group-dept-dessg-mapping';
+import type { ApiResponse } from '@/lib/apiService';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 
@@ -822,7 +823,7 @@ export function useMasterPayrollStandardDetails(id: number) {
 export function useReligionCategoryMapping() {
     return useQuery({
         queryKey: [HRMS_QUERY_KEYS.RELIGION_CATEGORY_MAPPING],
-        queryFn: () => getReligionCategoryMappingList(0, 2),
+        queryFn: () => getReligionCategoryMappingList(),
         staleTime: 1000 * 60 * 5
     });
 }
@@ -853,7 +854,7 @@ export function useReligionCategoryMappingCRUD() {
 
     const listQuery = useQuery({
         queryKey: [HRMS_QUERY_KEYS.RELIGION_CATEGORY_MAPPING],
-        queryFn: () => getReligionCategoryMappingList(0, 2),
+        queryFn: () => getReligionCategoryMappingList(),
         staleTime: 1000 * 60 * 5
     });
 
@@ -875,19 +876,71 @@ export function useReligionCategoryMappingCRUD() {
     });
 
     const toggleMutation = useMutation({
-        mutationFn: (data: { IRCC_Id: number; IRCC_ActiveFlg: boolean }) => activateDeactivateReligionCategoryMapping(data),
+        mutationFn: (data: ReligionCategoryMappingDetail & { IRCC_ActiveFlg: boolean }) => activateDeactivateReligionCategoryMapping(data),
+        // Optimistic update: immediately update the UI before server response
+        onMutate: async (newData) => {
+            // Cancel any outgoing refetches to avoid overwriting optimistic update
+            await queryClient.cancelQueries({
+                queryKey: [HRMS_QUERY_KEYS.RELIGION_CATEGORY_MAPPING]
+            });
+
+            // Snapshot the previous value
+            const previousData = queryClient.getQueryData<ApiResponse<ReligionCategoryMappingResponse>>([
+                HRMS_QUERY_KEYS.RELIGION_CATEGORY_MAPPING
+            ]);
+
+            // Optimistically update the cache
+            if (previousData?.data?.get_masterlist) {
+                const updatedMasterList = previousData.data.get_masterlist.map((item) =>
+                    item.IRCC_Id === newData.IRCC_Id
+                        ? { ...item, IRCC_ActiveFlg: newData.IRCC_ActiveFlg }
+                        : item
+                );
+
+                queryClient.setQueryData<ApiResponse<ReligionCategoryMappingResponse>>(
+                    [HRMS_QUERY_KEYS.RELIGION_CATEGORY_MAPPING],
+                    {
+                        ...previousData,
+                        data: {
+                            ...previousData.data,
+                            get_masterlist: updatedMasterList
+                        }
+                    }
+                );
+            }
+
+            // Return context with the snapshotted value
+            return { previousData };
+        },
         onSuccess: (response) => {
             if (response.success) {
                 toast.success(response.message || 'Mapping status updated successfully');
+                // Refetch to ensure data is fresh and consistent with server
                 queryClient.invalidateQueries({
-                    queryKey: [HRMS_QUERY_KEYS.RELIGION_CATEGORY_MAPPING]
+                    queryKey: [HRMS_QUERY_KEYS.RELIGION_CATEGORY_MAPPING],
+                    refetchType: 'active'
                 });
             } else {
                 toast.error(response.message || 'Failed to update mapping status');
+                // Refetch to get the actual state if update failed
+                queryClient.invalidateQueries({
+                    queryKey: [HRMS_QUERY_KEYS.RELIGION_CATEGORY_MAPPING]
+                });
             }
         },
-        onError: (error: Error) => {
+        onError: (error: Error, _newData, context) => {
             toast.error(error.message || 'An error occurred while updating mapping status');
+            // Rollback to previous value on error
+            if (context?.previousData) {
+                queryClient.setQueryData(
+                    [HRMS_QUERY_KEYS.RELIGION_CATEGORY_MAPPING],
+                    context.previousData
+                );
+            }
+            // Refetch to get the actual state
+            queryClient.invalidateQueries({
+                queryKey: [HRMS_QUERY_KEYS.RELIGION_CATEGORY_MAPPING]
+            });
         }
     });
 
@@ -912,7 +965,7 @@ export function useActivateDeactivateReligionCategoryMapping() {
 export function useGroupDeptDessgMapping() {
     return useQuery({
         queryKey: [HRMS_QUERY_KEYS.GROUP_DEPT_DESSG_MAPPING],
-        queryFn: () => getGroupDeptDessgMappingList(0),
+        queryFn: () => getGroupDeptDessgMappingList(),
         staleTime: 1000 * 60 * 5
     });
 }
@@ -943,7 +996,7 @@ export function useGroupDeptDessgMappingCRUD() {
 
     const listQuery = useQuery({
         queryKey: [HRMS_QUERY_KEYS.GROUP_DEPT_DESSG_MAPPING],
-        queryFn: () => getGroupDeptDessgMappingList(0),
+        queryFn: () => getGroupDeptDessgMappingList(),
         staleTime: 1000 * 60 * 5
     });
 
@@ -965,19 +1018,71 @@ export function useGroupDeptDessgMappingCRUD() {
     });
 
     const toggleMutation = useMutation({
-        mutationFn: (data: { HRGTDDS_Id: number; HRGTDDS_ActiveFlg: boolean }) => activateDeactivateGroupDeptDessgMapping(data),
+        mutationFn: (data: GroupDeptDessgMappingDetail & { HRGTDDS_ActiveFlg: boolean }) => activateDeactivateGroupDeptDessgMapping(data),
+        // Optimistic update: immediately update the UI before server response
+        onMutate: async (newData) => {
+            // Cancel any outgoing refetches to avoid overwriting optimistic update
+            await queryClient.cancelQueries({
+                queryKey: [HRMS_QUERY_KEYS.GROUP_DEPT_DESSG_MAPPING]
+            });
+
+            // Snapshot the previous value
+            const previousData = queryClient.getQueryData<ApiResponse<GroupDeptDessgMappingResponse>>([
+                HRMS_QUERY_KEYS.GROUP_DEPT_DESSG_MAPPING
+            ]);
+
+            // Optimistically update the cache
+            if (previousData?.data?.gridviewdata) {
+                const updatedGridData = previousData.data.gridviewdata.map((item) =>
+                    item.HRGTDDS_Id === newData.HRGTDDS_Id
+                        ? { ...item, HRGTDDS_ActiveFlg: newData.HRGTDDS_ActiveFlg }
+                        : item
+                );
+
+                queryClient.setQueryData<ApiResponse<GroupDeptDessgMappingResponse>>(
+                    [HRMS_QUERY_KEYS.GROUP_DEPT_DESSG_MAPPING],
+                    {
+                        ...previousData,
+                        data: {
+                            ...previousData.data,
+                            gridviewdata: updatedGridData
+                        }
+                    }
+                );
+            }
+
+            // Return context with the snapshotted value
+            return { previousData };
+        },
         onSuccess: (response) => {
             if (response.success) {
                 toast.success(response.message || 'Mapping status updated successfully');
+                // Refetch to ensure data is fresh and consistent with server
                 queryClient.invalidateQueries({
-                    queryKey: [HRMS_QUERY_KEYS.GROUP_DEPT_DESSG_MAPPING]
+                    queryKey: [HRMS_QUERY_KEYS.GROUP_DEPT_DESSG_MAPPING],
+                    refetchType: 'active'
                 });
             } else {
                 toast.error(response.message || 'Failed to update mapping status');
+                // Refetch to get the actual state if update failed
+                queryClient.invalidateQueries({
+                    queryKey: [HRMS_QUERY_KEYS.GROUP_DEPT_DESSG_MAPPING]
+                });
             }
         },
-        onError: (error: Error) => {
+        onError: (error: Error, _newData, context) => {
             toast.error(error.message || 'An error occurred while updating mapping status');
+            // Rollback to previous value on error
+            if (context?.previousData) {
+                queryClient.setQueryData(
+                    [HRMS_QUERY_KEYS.GROUP_DEPT_DESSG_MAPPING],
+                    context.previousData
+                );
+            }
+            // Refetch to get the actual state
+            queryClient.invalidateQueries({
+                queryKey: [HRMS_QUERY_KEYS.GROUP_DEPT_DESSG_MAPPING]
+            });
         }
     });
 

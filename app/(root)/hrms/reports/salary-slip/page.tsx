@@ -1,6 +1,5 @@
 'use client';
 
-import { Heading } from '@/components/layout/heading';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
@@ -8,68 +7,37 @@ import { DataTable } from '@/components/ui/data-table/data-table';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { MultiSelect } from '@/components/ui/multi-select';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { type BaseEntity, createLocalCrud } from '@/lib/localdb';
+import { HRMS_MI_ID } from '@/constants/hrms-config';
+import {
+    useFilterEmployeesByYearMonth,
+    useGenerateSalarySlip,
+    useSalarySlipOnload
+} from '@/hooks/hrms/useReports';
+import type { EmployeeDropdown } from '@/types/hrms/reports/salary-slip-report';
 import type { ColumnDef } from '@tanstack/react-table';
 import { FileText, X } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';
 
-// Data interfaces from employee-category masters
-interface GroupType extends BaseEntity {
-    groupType: string;
-    groupCode: string;
-    order: number;
-    isActive: boolean;
-}
-
-interface Department extends BaseEntity {
-    departmentName: string;
-    internalTrainingHours: string;
-    order: number;
-    isActive: boolean;
-}
-
-interface Designation extends BaseEntity {
-    designationName: string;
-    basicAmount: string;
-    sanctionedSeats: string;
-    displaySanctionedSeats: boolean;
-    order: number;
-    isActive: boolean;
-}
-
-// Employee salary slip data structure
-interface EmployeeSalarySlip extends BaseEntity {
+// Employee salary slip data structure for display
+interface EmployeeSalarySlipDisplay {
+    id: number;
     employeeCode: string;
     employeeName: string;
     groupTypeId: number;
     departmentId: number;
     designationId: number;
-    departmentName: string;
-    designationName: string;
-    month: string;
-    year: string;
-    basicSalary: number;
-    allowances: number;
-    deductions: number;
-    grossSalary: number;
-    netSalary: number;
-    lopDays: number;
-    leavesTaken: number;
-    panCardNo: string;
-    bankName: string;
-    accountNumber: string;
-    workingDays: number;
-    presentDays: number;
+    HRME_Id: number;
     isSelected: boolean;
 }
 
 // Report filters and options
 interface SalarySlipFilters {
-    groupType: string;
-    department: string;
-    designation: string;
+    groupType: number[];
+    department: number[];
+    designation: number[];
     month: string;
     year: string;
     slipPerPage: string;
@@ -82,25 +50,30 @@ interface SalarySlipFilters {
 }
 
 export default function SalarySlipReportPage() {
-    // Database instances
-    const groupTypeDB = createLocalCrud<GroupType>('master:group-type');
-    const departmentDB = createLocalCrud<Department>('master:department');
-    const designationDB = createLocalCrud<Designation>('master:designation');
-    const salarySlipDB = createLocalCrud<EmployeeSalarySlip>('report:salary-slip');
+    const roleId = HRMS_MI_ID;
+    const LogInUserId = 2;
+
+    // React Query hooks
+    const { data: onloadData, isLoading: isLoadingOnload } = useSalarySlipOnload(roleId, LogInUserId);
+    const filterMutation = useFilterEmployeesByYearMonth();
+    const generateMutation = useGenerateSalarySlip();
+
+    // Extract dropdown data from onload response
+    const groupTypes = onloadData?.data?.groupTypedropdownlist || [];
+    const departments = onloadData?.data?.departmentdropdownlist || [];
+    const designations = onloadData?.data?.designationdropdownlist || [];
+    const months = onloadData?.data?.monthdropdown || [];
+    const years = onloadData?.data?.leaveyeardropdown || [];
 
     // State
-    const [groupTypes, setGroupTypes] = useState<GroupType[]>([]);
-    const [departments, setDepartments] = useState<Department[]>([]);
-    const [designations, setDesignations] = useState<Designation[]>([]);
-    const [salarySlips, setSalarySlips] = useState<EmployeeSalarySlip[]>([]);
-    const [filteredSlips, setFilteredSlips] = useState<EmployeeSalarySlip[]>([]);
-    const [isLoading, setIsLoading] = useState(true);
+    const [employees, setEmployees] = useState<EmployeeSalarySlipDisplay[]>([]);
+    const [filteredEmployees, setFilteredEmployees] = useState<EmployeeSalarySlipDisplay[]>([]);
     const [searchTerm, setSearchTerm] = useState('');
 
     const [filters, setFilters] = useState<SalarySlipFilters>({
-        groupType: 'All',
-        department: 'All',
-        designation: 'All',
+        groupType: [],
+        department: [],
+        designation: [],
         month: '',
         year: '',
         slipPerPage: '',
@@ -112,185 +85,73 @@ export default function SalarySlipReportPage() {
         }
     });
 
-    // Load data on mount
+    // Load employees when year/month changes
     useEffect(() => {
-        loadData();
-    }, []);
+        if (filters.year && filters.month) {
+            const request = {
+                MI_Id: roleId,
+                LogInUserId: 0,
+                HRES_Year: filters.year,
+                HRES_Month: filters.month
+            };
 
-    const loadData = () => {
-        try {
-            setGroupTypes(groupTypeDB.list().filter((g) => g.isActive));
-            setDepartments(departmentDB.list().filter((d) => d.isActive));
-            setDesignations(designationDB.list().filter((d) => d.isActive));
-
-            // Load salary slip data
-            let slipList = salarySlipDB.list();
-            if (slipList.length === 0) {
-                const mockData = generateMockSalarySlips();
-                mockData.forEach((slip) => salarySlipDB.create(slip));
-                slipList = salarySlipDB.list(); // Reload data after creating mock records
-            }
-            setSalarySlips(slipList);
-            setFilteredSlips(slipList);
-        } catch (_error) {
-            toast.error('Failed to load data');
-        } finally {
-            setIsLoading(false);
-        }
-    };
-
-    // Generate mock salary slip data
-    const generateMockSalarySlips = (): Omit<EmployeeSalarySlip, 'id' | 'createdAt'>[] => {
-        const employees = [
-            {
-                code: 'EMP001',
-                name: 'MR SUDIPTA RANJAN BHADURI',
-                groupTypeId: 1,
-                departmentId: 1,
-                designationId: 1,
-                deptName: 'JUNIOR SCHOOL',
-                desigName: 'Assistant Teacher'
-            },
-            {
-                code: 'EMP002',
-                name: 'MS RUPLEKHA CHATTERJEE',
-                groupTypeId: 1,
-                departmentId: 2,
-                designationId: 2,
-                deptName: 'OFFICE STAFF',
-                desigName: 'Principal'
-            },
-            {
-                code: 'EMP003',
-                name: 'MR JOHN SHAH',
-                groupTypeId: 2,
-                departmentId: 1,
-                designationId: 1,
-                deptName: 'JUNIOR SCHOOL',
-                desigName: 'Assistant Teacher'
-            },
-            {
-                code: 'EMP004',
-                name: 'MRS BHASWATI DAS',
-                groupTypeId: 2,
-                departmentId: 2,
-                designationId: 2,
-                deptName: 'SENIOR SCHOOL',
-                desigName: 'Teacher Helper'
-            },
-            {
-                code: 'EMP005',
-                name: 'MR SANTANU MUKHERJEE',
-                groupTypeId: 1,
-                departmentId: 1,
-                designationId: 2,
-                deptName: 'SERVICE STAFF',
-                desigName: 'System Manager'
-            }
-        ];
-
-        const mockSlips: Omit<EmployeeSalarySlip, 'id' | 'createdAt'>[] = [];
-
-        employees.forEach((emp, index) => {
-            const basicSalary = 40000 + index * 5000;
-            const allowances = basicSalary * 0.3;
-            const deductions = basicSalary * 0.15;
-            const grossSalary = basicSalary + allowances;
-            const netSalary = grossSalary - deductions;
-
-            mockSlips.push({
-                employeeCode: emp.code,
-                employeeName: emp.name,
-                groupTypeId: emp.groupTypeId,
-                departmentId: emp.departmentId,
-                designationId: emp.designationId,
-                departmentName: emp.deptName,
-                designationName: emp.desigName,
-                month: 'September',
-                year: '2025',
-                basicSalary: Math.round(basicSalary),
-                allowances: Math.round(allowances),
-                deductions: Math.round(deductions),
-                grossSalary: Math.round(grossSalary),
-                netSalary: Math.round(netSalary),
-                lopDays: Math.floor(Math.random() * 3),
-                leavesTaken: Math.floor(Math.random() * 5),
-                panCardNo: `ABCDE${1234 + index}F`,
-                bankName: ['SBI', 'HDFC', 'ICICI', 'Axis', 'PNB'][index],
-                accountNumber: `${12345678901 + index}`,
-                workingDays: 26,
-                presentDays: 24 + Math.floor(Math.random() * 3),
-                isSelected: false
+            filterMutation.mutate(request, {
+                onSuccess: (response) => {
+                    if (response.success && response.data?.employeedropdown) {
+                        const employeeList: EmployeeSalarySlipDisplay[] = (response.data.employeedropdown || []).map((emp: EmployeeDropdown, index: number) => ({
+                            id: emp.HRME_Id || index + 1, // Use HRME_Id as unique identifier, fallback to index if missing
+                            employeeCode: emp.HRME_EmployeeCode,
+                            employeeName: `${emp.HRME_EmployeeFirstName} ${emp.HRME_EmployeeMiddleName || ''} ${emp.HRME_EmployeeLastName || ''}`.trim(),
+                            groupTypeId: emp.HRMGT_Id,
+                            departmentId: emp.HRMD_Id,
+                            designationId: emp.HRMDES_Id,
+                            HRME_Id: emp.HRME_Id,
+                            isSelected: false
+                        }));
+                        setEmployees(employeeList);
+                        setFilteredEmployees(employeeList);
+                    }
+                },
+                onError: (error) => {
+                    console.error('Error filtering employees:', error);
+                    toast.error('Failed to load employees');
+                }
             });
-        });
+        } else {
+            setEmployees([]);
+            setFilteredEmployees([]);
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [filters.year, filters.month]);
 
-        return mockSlips;
-    };
-
-    // Cascading filter logic
-    const availableDepartments = useMemo(() => {
-        if (filters.groupType === 'All') return departments;
-        // In a real app, departments would be filtered by groupType relationship
-        return departments;
-    }, [filters.groupType, departments]);
-
-    const availableDesignations = useMemo(() => {
-        if (filters.department === 'All') return designations;
-        // In a real app, designations would be filtered by department relationship
-        return designations;
-    }, [filters.department, designations]);
-
-    // Filter salary slips based on selected criteria and search term
+    // Filter employees based on selected criteria and search term
     useEffect(() => {
-        let filtered = salarySlips;
+        let filtered = employees;
 
         // Apply dropdown filters
-        if (filters.groupType !== 'All') {
-            const selectedGroupType = groupTypes.find((g) => g.groupType === filters.groupType);
-            if (selectedGroupType) {
-                filtered = filtered.filter((slip) => slip.groupTypeId === selectedGroupType.id);
-            }
+        if (filters.groupType.length > 0) {
+            filtered = filtered.filter((emp) => filters.groupType.includes(emp.groupTypeId));
         }
 
-        if (filters.department !== 'All') {
-            const selectedDepartment = departments.find((d) => d.departmentName === filters.department);
-            if (selectedDepartment) {
-                filtered = filtered.filter((slip) => slip.departmentId === selectedDepartment.id);
-            }
+        if (filters.department.length > 0) {
+            filtered = filtered.filter((emp) => filters.department.includes(emp.departmentId));
         }
 
-        if (filters.designation !== 'All') {
-            const selectedDesignation = designations.find((d) => d.designationName === filters.designation);
-            if (selectedDesignation) {
-                filtered = filtered.filter((slip) => slip.designationId === selectedDesignation.id);
-            }
+        if (filters.designation.length > 0) {
+            filtered = filtered.filter((emp) => filters.designation.includes(emp.designationId));
         }
 
         // Apply search filter
         if (searchTerm) {
             filtered = filtered.filter(
-                (slip) =>
-                    slip.employeeCode.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                    slip.employeeName.toLowerCase().includes(searchTerm.toLowerCase())
+                (emp) =>
+                    emp.employeeCode.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                    emp.employeeName.toLowerCase().includes(searchTerm.toLowerCase())
             );
         }
 
-        setFilteredSlips(filtered);
-    }, [filters, salarySlips, groupTypes, departments, designations, searchTerm]);
-
-    const handleFilterChange = (key: keyof Omit<SalarySlipFilters, 'options'>, value: string) => {
-        const newFilters = { ...filters, [key]: value };
-
-        // Reset dependent filters when parent changes
-        if (key === 'groupType') {
-            newFilters.department = 'All';
-            newFilters.designation = 'All';
-        } else if (key === 'department') {
-            newFilters.designation = 'All';
-        }
-
-        setFilters(newFilters);
-    };
+        setFilteredEmployees(filtered);
+    }, [filters, employees, searchTerm]);
 
     const handleOptionChange = (option: keyof SalarySlipFilters['options'], checked: boolean) => {
         setFilters((prev) => ({
@@ -303,26 +164,18 @@ export default function SalarySlipReportPage() {
     };
 
     const handleSelectEmployee = (employeeId: number, checked: boolean) => {
-        const updatedSlips = salarySlips.map((slip) => (slip.id === employeeId ? { ...slip, isSelected: checked } : slip));
-        setSalarySlips(updatedSlips);
-
-        // Update in database
-        const slip = updatedSlips.find((s) => s.id === employeeId);
-        if (slip) {
-            salarySlipDB.update(employeeId, slip);
-        }
+        const updatedEmployees = employees.map((emp) => (emp.id === employeeId ? { ...emp, isSelected: checked } : emp));
+        setEmployees(updatedEmployees);
     };
 
     const handleSelectAll = (checked: boolean) => {
-        const updatedSlips = salarySlips.map((slip) => ({ ...slip, isSelected: checked }));
-        setSalarySlips(updatedSlips);
-        // Update in database
-        updatedSlips.forEach((slip) => salarySlipDB.update(slip.id, slip));
+        const updatedEmployees = employees.map((emp) => ({ ...emp, isSelected: checked }));
+        setEmployees(updatedEmployees);
     };
 
     const handleGenerateSlip = () => {
-        const selectedSlips = filteredSlips.filter((slip) => slip.isSelected);
-        if (selectedSlips.length === 0) {
+        const selectedEmployees = filteredEmployees.filter((emp) => emp.isSelected);
+        if (selectedEmployees.length === 0) {
             toast.error('Please select at least one employee');
             return;
         }
@@ -332,14 +185,37 @@ export default function SalarySlipReportPage() {
             return;
         }
 
-        toast.success(`Salary slips generated for ${selectedSlips.length} employee(s)`);
+        const request = {
+            MI_Id: roleId,
+            HRES_Year: filters.year,
+            HRES_Month: filters.month,
+            empid: selectedEmployees.map((emp) => emp.HRME_Id),
+            hrmdeS_IdList: filters.designation.length > 0 ? filters.designation : [0],
+            hrmD_IdList: filters.department.length > 0 ? filters.department : [0],
+            groupTypeIdList: filters.groupType.length > 0 ? filters.groupType : [0]
+        };
+
+        generateMutation.mutate(request, {
+            onSuccess: (response) => {
+                if (response.success) {
+                    toast.success(`Salary slips generated successfully for ${selectedEmployees.length} employee(s)`);
+                    // Here you would typically display the generated slips or open print dialog
+                } else {
+                    toast.error(response.message || 'Failed to generate salary slips');
+                }
+            },
+            onError: (error) => {
+                console.error('Error generating salary slips:', error);
+                toast.error('Failed to generate salary slips');
+            }
+        });
     };
 
     const handleCancel = () => {
         setFilters({
-            groupType: 'All',
-            department: 'All',
-            designation: 'All',
+            groupType: [],
+            department: [],
+            designation: [],
             month: '',
             year: '',
             slipPerPage: '',
@@ -353,17 +229,17 @@ export default function SalarySlipReportPage() {
         setSearchTerm('');
 
         // Clear all selections
-        const updatedSlips = salarySlips.map((slip) => ({ ...slip, isSelected: false }));
-        setSalarySlips(updatedSlips);
-        updatedSlips.forEach((slip) => salarySlipDB.update(slip.id, slip));
+        const updatedEmployees = employees.map((emp) => ({ ...emp, isSelected: false }));
+        setEmployees(updatedEmployees);
 
         toast.info('Filters and selections cleared');
     };
 
-    const selectedCount = filteredSlips.filter((slip) => slip.isSelected).length;
+    const selectedCount = filteredEmployees.filter((emp) => emp.isSelected).length;
+    const isLoading = isLoadingOnload || filterMutation.isPending || generateMutation.isPending;
 
     // Table columns
-    const columns: ColumnDef<EmployeeSalarySlip>[] = [
+    const columns: ColumnDef<EmployeeSalarySlipDisplay>[] = [
         {
             id: 'select',
             header: ({ table }) => (
@@ -419,10 +295,7 @@ export default function SalarySlipReportPage() {
     return (
         <div className='min-h-screen'>
             <div className='container space-y-4 p-1'>
-                <div className='flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between'>
-                    <div className='space-y-1'>
-                        <Heading title='Salary Slip' description='Generate employee salary slips with customizable options' />
-                    </div>
+                <div className='flex justify-end'>
                     <Button
                         type='button'
                         onClick={handleGenerateSlip}
@@ -445,56 +318,44 @@ export default function SalarySlipReportPage() {
                     <div className='grid grid-cols-1 gap-4 md:grid-cols-3'>
                         {/* Group Type Filter */}
                         <div className='space-y-2'>
-                            <Label>Group Type *</Label>
-                            <Select value={filters.groupType} onValueChange={(value) => handleFilterChange('groupType', value)}>
-                                <SelectTrigger>
-                                    <SelectValue />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value='All'>All</SelectItem>
-                                    {groupTypes.map((group) => (
-                                        <SelectItem key={group.id} value={group.groupType}>
-                                            {group.groupType}
-                                        </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
+                            <Label>Group Type</Label>
+                            <MultiSelect
+                                options={groupTypes.map((gt) => ({
+                                    label: gt.HRMGT_EmployeeGroupType,
+                                    value: gt.HRMGT_Id.toString()
+                                }))}
+                                defaultValue={filters.groupType.map((id) => id.toString())}
+                                onValueChange={(values) => setFilters((prev) => ({ ...prev, groupType: values.map((v) => Number.parseInt(v)) }))}
+                                placeholder='Select group types'
+                            />
                         </div>
 
                         {/* Department Filter */}
                         <div className='space-y-2'>
-                            <Label>Department *</Label>
-                            <Select value={filters.department} onValueChange={(value) => handleFilterChange('department', value)}>
-                                <SelectTrigger>
-                                    <SelectValue />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value='All'>All</SelectItem>
-                                    {availableDepartments.map((dept) => (
-                                        <SelectItem key={dept.id} value={dept.departmentName}>
-                                            {dept.departmentName}
-                                        </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
+                            <Label>Department</Label>
+                            <MultiSelect
+                                options={departments.map((dept) => ({
+                                    label: dept.HRMD_DepartmentName,
+                                    value: dept.HRMD_Id.toString()
+                                }))}
+                                defaultValue={filters.department.map((id) => id.toString())}
+                                onValueChange={(values) => setFilters((prev) => ({ ...prev, department: values.map((v) => Number.parseInt(v)) }))}
+                                placeholder='Select departments'
+                            />
                         </div>
 
                         {/* Designation Filter */}
                         <div className='space-y-2'>
-                            <Label>Designation *</Label>
-                            <Select value={filters.designation} onValueChange={(value) => handleFilterChange('designation', value)}>
-                                <SelectTrigger>
-                                    <SelectValue />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value='All'>All</SelectItem>
-                                    {availableDesignations.map((desig) => (
-                                        <SelectItem key={desig.id} value={desig.designationName}>
-                                            {desig.designationName}
-                                        </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
+                            <Label>Designation</Label>
+                            <MultiSelect
+                                options={designations.map((desg) => ({
+                                    label: desg.HRMDES_DesignationName,
+                                    value: desg.HRMDES_Id.toString()
+                                }))}
+                                defaultValue={filters.designation.map((id) => id.toString())}
+                                onValueChange={(values) => setFilters((prev) => ({ ...prev, designation: values.map((v) => Number.parseInt(v)) }))}
+                                placeholder='Select designations'
+                            />
                         </div>
                     </div>
 
@@ -505,29 +366,23 @@ export default function SalarySlipReportPage() {
                             <label htmlFor='month-select' className='font-medium text-foreground text-sm'>
                                 Month
                             </label>
-                            <Select value={filters.month} onValueChange={(value) => handleFilterChange('month', value)}>
+                            <Select value={filters.month} onValueChange={(value) => setFilters((prev) => ({ ...prev, month: value }))}>
                                 <SelectTrigger id='month-select'>
-                                    <SelectValue placeholder='Select' />
+                                    <SelectValue placeholder='Select month' />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    {[
-                                        'January',
-                                        'February',
-                                        'March',
-                                        'April',
-                                        'May',
-                                        'June',
-                                        'July',
-                                        'August',
-                                        'September',
-                                        'October',
-                                        'November',
-                                        'December'
-                                    ].map((month) => (
-                                        <SelectItem key={month} value={month}>
-                                            {month}
+                                    {months.map((month: any, index: number) => (
+                                        <SelectItem key={`month-${index}-${month.monthId || month.monthName || index}`} value={month.monthName || month.monthId?.toString() || ''}>
+                                            {month.monthName || month.monthId}
                                         </SelectItem>
                                     ))}
+                                    {months.length === 0 && (
+                                        ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'].map((month, index) => (
+                                            <SelectItem key={`fallback-month-${index}`} value={month}>
+                                                {month}
+                                            </SelectItem>
+                                        ))
+                                    )}
                                 </SelectContent>
                             </Select>
                         </div>
@@ -537,19 +392,26 @@ export default function SalarySlipReportPage() {
                             <label htmlFor='year-select' className='font-medium text-foreground text-sm'>
                                 Year
                             </label>
-                            <Select value={filters.year} onValueChange={(value) => handleFilterChange('year', value)}>
+                            <Select value={filters.year} onValueChange={(value) => setFilters((prev) => ({ ...prev, year: value }))}>
                                 <SelectTrigger id='year-select'>
-                                    <SelectValue placeholder='Select' />
+                                    <SelectValue placeholder='Select year' />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    {Array.from({ length: 5 }, (_, i) => {
-                                        const year = new Date().getFullYear() - 2 + i;
-                                        return (
-                                            <SelectItem key={year} value={year.toString()}>
-                                                {year}
-                                            </SelectItem>
-                                        );
-                                    })}
+                                    {years.map((year: any, index: number) => (
+                                        <SelectItem key={`year-${index}-${year.yearId || year.yearName || index}`} value={year.yearName || year.yearId?.toString() || ''}>
+                                            {year.yearName || year.yearId}
+                                        </SelectItem>
+                                    ))}
+                                    {years.length === 0 && (
+                                        Array.from({ length: 5 }, (_, i) => {
+                                            const year = new Date().getFullYear() - 2 + i;
+                                            return (
+                                                <SelectItem key={`fallback-year-${year}`} value={year.toString()}>
+                                                    {year}
+                                                </SelectItem>
+                                            );
+                                        })
+                                    )}
                                 </SelectContent>
                             </Select>
                         </div>
@@ -557,15 +419,15 @@ export default function SalarySlipReportPage() {
                         {/* Slip/page Filter */}
                         <div className='space-y-2'>
                             <Label>Slip/page</Label>
-                            <Select value={filters.slipPerPage} onValueChange={(value) => handleFilterChange('slipPerPage', value)}>
+                            <Select value={filters.slipPerPage} onValueChange={(value) => setFilters((prev) => ({ ...prev, slipPerPage: value }))}>
                                 <SelectTrigger>
                                     <SelectValue placeholder='Select' />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    <SelectItem value='1'>1 slip per page</SelectItem>
-                                    <SelectItem value='2'>2 slips per page</SelectItem>
-                                    <SelectItem value='3'>3 slips per page</SelectItem>
-                                    <SelectItem value='4'>4 slips per page</SelectItem>
+                                    <SelectItem key='slip-per-page-1' value='1'>1 slip per page</SelectItem>
+                                    <SelectItem key='slip-per-page-2' value='2'>2 slips per page</SelectItem>
+                                    <SelectItem key='slip-per-page-3' value='3'>3 slips per page</SelectItem>
+                                    <SelectItem key='slip-per-page-4' value='4'>4 slips per page</SelectItem>
                                 </SelectContent>
                             </Select>
                         </div>
@@ -610,7 +472,7 @@ export default function SalarySlipReportPage() {
                     {/* Employee Table with Search */}
                     <div className='space-y-4'>
                         <div className='flex items-center justify-between'>
-                            <div className='font-medium text-foreground text-sm'>Employee List ({filteredSlips.length} employees)</div>
+                            <div className='font-medium text-foreground text-sm'>Employee List ({filteredEmployees.length} employees)</div>
                             <div className='flex items-center gap-4'>
                                 <Input
                                     placeholder='search here...'
@@ -626,8 +488,8 @@ export default function SalarySlipReportPage() {
                         <DataTable
                             isLoading={isLoading}
                             columns={columns}
-                            data={filteredSlips}
-                            totalItems={filteredSlips.length}
+                            data={filteredEmployees}
+                            totalItems={filteredEmployees.length}
                             showViewOptions={true}
                             columnPinning={{ left: ['select', 'id'] }}
                         />

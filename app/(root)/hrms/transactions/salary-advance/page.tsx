@@ -1,8 +1,7 @@
 'use client';
 
-import { Heading } from '@/components/layout/heading';
 import { Button } from '@/components/ui/button';
-import { Calendar } from '@/components/ui/calendar';
+import { DatePickerWithYear } from '@/components/ui/date-picker-year';
 import { Checkbox } from '@/components/ui/checkbox';
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
 import { DataTable } from '@/components/ui/data-table/data-table';
@@ -13,7 +12,7 @@ import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { cn } from '@/lib/utils';
-import { getSalaryAdvanceList, saveSalaryAdvance, toggleSalaryAdvanceStatus } from '@/server/hrms/salary-advance';
+import { getSalaryAdvanceList, saveSalaryAdvance, toggleSalaryAdvanceStatus } from '@/server/hrms/hrmsConfig/transaction/salary-advance';
 import type {
     EmployeeDropdown,
     LeaveYearDropdown,
@@ -381,22 +380,17 @@ export default function SalaryAdvancePage() {
     return (
         <div className='min-h-screen'>
             <div className='container space-y-4 p-1'>
-                <div className='flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between'>
-                    <div className='space-y-1'>
-                        <Heading title='Salary Advance' description='Manage employee salary advance requests' />
-                    </div>
-                    <div className='flex gap-2'>
-                        <Button
-                            onClick={() => {
-                                setShowForm(true);
-                                setEditingId(null);
-                                reset();
-                            }}
-                            className='flex items-center gap-2'>
-                            <Plus className='h-4 w-4' />
-                            Add Salary Advance
-                        </Button>
-                    </div>
+                <div className='flex justify-end'>
+                    <Button
+                        onClick={() => {
+                            setShowForm(true);
+                            setEditingId(null);
+                            reset();
+                        }}
+                        className='flex items-center gap-2'>
+                        <Plus className='h-4 w-4' />
+                        Add Salary Advance
+                    </Button>
                 </div>
 
                 {showForm && (

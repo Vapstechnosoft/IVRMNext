@@ -22,6 +22,6 @@ export async function deleteSalaryUpdation(data: { HRESU_Id: number; roleId: num
     return await api.delete<any>('hrms', url);
 }
 
-export async function testSalaryUpdationAPI(roleId: number = 2) {
+export async function testSalaryUpdationAPI(roleId = 2) {
     return await getSalaryUpdationList(roleId);
 }

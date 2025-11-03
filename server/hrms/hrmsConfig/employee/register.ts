@@ -272,3 +272,4 @@ export async function saveDeductionDetails(deductions: SaveDeductionDetailsReque
     const url = '/api/EmployeeRegistrationNew/SaveDeductionDetails';
     return await api.post<SaveDeductionDetailsResponse>('hrms', url, deductions);
 }
+

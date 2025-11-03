@@ -1,9 +1,8 @@
 'use client';
 
-import { Heading } from '@/components/layout/heading';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Calendar } from '@/components/ui/calendar';
+import { CalendarYear } from '@/components/ui/calendar_year';
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
 import { DataTable } from '@/components/ui/data-table/data-table';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuLabel, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
@@ -14,7 +13,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { cn } from '@/lib/utils';
 import { EMPLOYEE_LOAN_VALIDATION } from '@/lib/validation/hrms-transaction-validation';
-import { activateDeactivateEmployeeLoan, getEmployeeLoanList, saveEmployeeLoan } from '@/server/hrms/employee-loan';
+import { activateDeactivateEmployeeLoan, getEmployeeLoanList, saveEmployeeLoan } from '@/server/hrms/hrmsConfig/transaction/employee-loan';
 import type { EmployeeDropdown, EmployeeLoanItem, EmployeeLoanSaveRequest, MasterLoanDropdown, ModeOfPaymentDropdown } from '@/types/hrms/employee-loan';
 import type { ColumnDef } from '@tanstack/react-table';
 import { format } from 'date-fns';
@@ -239,20 +238,15 @@ export default function EmployeeLoanPage() {
     return (
         <div className='min-h-screen'>
             <div className='container space-y-4 p-1'>
-                <div className='flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between'>
-                    <div className='space-y-1'>
-                        <Heading title='Employee Loan' description='Manage employee loan applications and track loan status' />
-                    </div>
-                    <div className='flex gap-2'>
-                        <Button
-                            type='button'
-                            onClick={handleAddClick}
-                            size='lg'
-                            className='w-fit shadow-md transition-all duration-200 hover:scale-105 hover:shadow-lg'>
-                            <Plus className='h-4 w-4' />
-                            Add Employee Loan
-                        </Button>
-                    </div>
+                <div className='flex justify-end'>
+                    <Button
+                        type='button'
+                        onClick={handleAddClick}
+                        size='lg'
+                        className='w-fit shadow-md transition-all duration-200 hover:scale-105 hover:shadow-lg'>
+                        <Plus className='h-4 w-4' />
+                        Add Employee Loan
+                    </Button>
                 </div>
 
                 <CollapsibleSection
@@ -357,10 +351,10 @@ export default function EmployeeLoanPage() {
                                                             </Button>
                                                         </PopoverTrigger>
                                                         <PopoverContent className='w-auto p-0' align='start'>
-                                                            <Calendar
+                                                            <CalendarYear
                                                                 mode='single'
                                                                 selected={field.value ? new Date(field.value) : undefined}
-                                                                onSelect={(date) => field.onChange(date ? format(date, 'yyyy-MM-dd') : '')}
+                                                                onDayClick={(day) => field.onChange(format(day, 'yyyy-MM-dd'))}
                                                                 initialFocus
                                                             />
                                                         </PopoverContent>

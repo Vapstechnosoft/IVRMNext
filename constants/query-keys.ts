@@ -149,5 +149,11 @@ export const HRMS_QUERY_KEYS = {
     EMPLOYEE_PROFILE_REPORT_SEARCH: 'hrms_employee_profile_report_search',
     EMPLOYEE_DETAILS_REPORT_ONLOAD: 'hrms_employee_details_report_onload',
     EMPLOYEE_DETAILS_REPORT_FILTER: 'hrms_employee_details_report_filter',
-    EMPLOYEE_DETAILS_REPORT_SEARCH: 'hrms_employee_details_report_search'
+    EMPLOYEE_DETAILS_REPORT_SEARCH: 'hrms_employee_details_report_search',
+    SALARY_SLIP_ONLOAD: 'hrms_salary_slip_onload',
+    SALARY_SLIP_FILTER: 'hrms_salary_slip_filter',
+    SALARY_SLIP_GENERATE: 'hrms_salary_slip_generate',
+    LOAN_REPORT_ONLOAD: 'hrms_loan_report_onload',
+    LOAN_REPORT_FILTER: 'hrms_loan_report_filter',
+    LOAN_REPORT_SEARCH: 'hrms_loan_report_search'
 };

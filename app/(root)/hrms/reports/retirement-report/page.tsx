@@ -1,9 +1,8 @@
 'use client';
 
-import { Heading } from '@/components/layout/heading';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Calendar } from '@/components/ui/calendar';
+import { DatePickerWithYear } from '@/components/ui/date-picker-year';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
@@ -563,13 +562,6 @@ export default function RetirementReportPage() {
 
     return (
         <div className='space-y-6'>
-            <div className='flex-between flex-wrap gap-4'>
-                <Heading
-                    title='Employee Retirement Report'
-                    description='Comprehensive report for employee retirement planning and benefits calculation'
-                />
-            </div>
-
             {/* Report Configuration Section */}
             <CollapsibleSection
                 title='EMPLOYEE RETIREMENT REPORT'
@@ -684,10 +676,10 @@ export default function RetirementReportPage() {
                                         </Button>
                                     </PopoverTrigger>
                                     <PopoverContent className='w-auto p-0'>
-                                        <Calendar
+                                        <DatePickerWithYear
                                             mode='single'
                                             selected={filters.fromDate}
-                                            onSelect={(date) => handleDateChange('fromDate', date)}
+                                            onDayClick={(day) => handleDateChange('fromDate', day)}
                                             initialFocus
                                         />
                                     </PopoverContent>
@@ -710,10 +702,10 @@ export default function RetirementReportPage() {
                                         </Button>
                                     </PopoverTrigger>
                                     <PopoverContent className='w-auto p-0'>
-                                        <Calendar
+                                        <DatePickerWithYear
                                             mode='single'
                                             selected={filters.toDate}
-                                            onSelect={(date) => handleDateChange('toDate', date)}
+                                            onDayClick={(day) => handleDateChange('toDate', day)}
                                             initialFocus
                                         />
                                     </PopoverContent>

@@ -1,7 +1,7 @@
 'use client';
 
 import { HRMS_QUERY_KEYS } from '@/constants/query-keys';
-import { deleteEmployee, getEmployeeById, getEmployeeOnload, saveEmployee } from '@/server/hrms/employee';
+import { deleteEmployee, getEmployeeById, getEmployeeOnload, saveEmployee } from '@/server/hrms/hrmsConfig/employee';
 import type { EmployeeSaveRequest } from '@/types/hrms/employee';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';

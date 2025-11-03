@@ -48,3 +48,4 @@ export async function deleteEmployee(id: number) {
     };
     return await api.post<any>('hrms', url, requestBody);
 }
+

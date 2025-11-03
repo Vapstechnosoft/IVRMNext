@@ -1,6 +1,5 @@
 'use client';
 
-import { Heading } from '@/components/layout/heading';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -434,10 +433,6 @@ export default function BankCashReportPage() {
 
     return (
         <div className='space-y-6'>
-            <div className='flex-between flex-wrap gap-4'>
-                <Heading title='Bank/Cash Report' description='Payment mode wise salary distribution report' />
-            </div>
-
             {/* Report Configuration Section */}
             <CollapsibleSection
                 title='BANK/CASH REPORT CONFIGURATION'

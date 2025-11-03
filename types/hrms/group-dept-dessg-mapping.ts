@@ -49,6 +49,7 @@ export interface GroupDeptDessgMappingDetail {
     HRMGT_EmployeeGroupType: string;
     HRMD_DepartmentName: string;
     HRMDES_DesignationName: string;
+    designationids?: number[]; // Optional: array of designation IDs for multi-select support
     returnval: boolean;
     msg: string | null;
 }

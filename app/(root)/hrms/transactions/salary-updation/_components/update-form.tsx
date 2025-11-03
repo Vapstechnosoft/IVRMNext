@@ -1,7 +1,7 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
-import { Calendar } from '@/components/ui/calendar';
+import { DatePickerWithYear } from '@/components/ui/date-picker-year';
 import { FormError, Label } from '@/components/ui/extension/field';
 import { InputNumber } from '@/components/ui/extension/input-number';
 import { InputText } from '@/components/ui/extension/input-text';
@@ -195,7 +195,12 @@ export default function UpdateSalaryUpdationForm({ selectedRow, onloadData, onSu
                                             </Button>
                                         </PopoverTrigger>
                                         <PopoverContent className='w-auto p-0' align='start'>
-                                            <Calendar mode='single' selected={field.value} onSelect={field.onChange} initialFocus />
+                                            <DatePickerWithYear
+                                                mode='single'
+                                                selected={field.value}
+                                                onDayClick={(day) => field.onChange(day)}
+                                                initialFocus
+                                            />
                                         </PopoverContent>
                                     </Popover>
                                 )}

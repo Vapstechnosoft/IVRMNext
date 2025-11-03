@@ -1,6 +1,5 @@
 'use client';
 
-import { Heading } from '@/components/layout/heading';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
@@ -443,10 +442,6 @@ export default function ESIReportPage() {
 
     return (
         <div className='space-y-6'>
-            <div className='flex-between flex-wrap gap-4'>
-                <Heading title='ESI Report' description='Generate Employee State Insurance contribution reports' />
-            </div>
-
             {/* Report Configuration Section */}
             <CollapsibleSection
                 title='ESI REPORT'

@@ -10,16 +10,34 @@ import {
     filterEmployeesBySelection,
     getEmployeeProfileReportOnload,
     searchEmployeeProfileDetails
-} from '@/server/hrms/reports/employee-profile-report';
+} from '@/server/hrms/hrmsConfig/reports/employee-profile-report';
 import {
     filterEmployeeDetailsReport,
     getEmployeeDetailsReportOnload,
     searchEmployeeDetailsReport
-} from '@/server/hrms/reports/employee-details-report';
-import { getCumulativeSalaryReportOnload, searchCumulativeSalaryReport } from '@/server/hrms/reports/cumulative-salary-report';
+} from '@/server/hrms/hrmsConfig/reports/employee-details-report';
+import { getCumulativeSalaryReportOnload, searchCumulativeSalaryReport } from '@/server/hrms/hrmsConfig/reports/cumulative-salary-report';
+import {
+    filterEmployeesByYearMonth,
+    generateSalarySlip,
+    getSalarySlipOnload
+} from '@/server/hrms/hrmsConfig/reports/salary-slip-report';
+import {
+    filterEmployeesForLoanReport,
+    getEmployeeLoanDetails,
+    getLoanReportBasicData
+} from '@/server/hrms/hrmsConfig/reports/loan-report';
 import type { EmployeeProfileReportFilterRequest, EmployeeProfileReportSearchRequest } from '@/types/hrms/reports/employee-profile-report';
 import type { EmployeeDetailsReportFilterRequest, EmployeeDetailsReportSearchRequest } from '@/types/hrms/reports/employee-details-report';
 import type { CumulativeSalaryReportSearchRequest } from '@/types/hrms/reports/cumulative-salary-report';
+import type {
+    SalarySlipFilterRequest,
+    SalarySlipGenerateRequest
+} from '@/types/hrms/reports/salary-slip-report';
+import type {
+    LoanReportFilterRequest,
+    LoanReportSearchRequest
+} from '@/types/hrms/reports/loan-report';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 
@@ -140,6 +158,98 @@ export function useSearchCumulativeSalaryReport() {
         onError: (error: Error) => {
             console.error('Error searching cumulative salary report:', error);
             toast.error(error.message || 'Failed to search salary report');
+        }
+    });
+}
+
+// ============================================================================
+// SALARY SLIP REPORT
+// ============================================================================
+
+export function useSalarySlipOnload(MI_Id = 30, LogInUserId = 2) {
+    return useQuery({
+        queryKey: [HRMS_QUERY_KEYS.SALARY_SLIP_ONLOAD, MI_Id, LogInUserId],
+        queryFn: () => getSalarySlipOnload(MI_Id, LogInUserId),
+        staleTime: 5 * 60 * 1000
+    });
+}
+
+export function useFilterEmployeesByYearMonth() {
+    const _queryClient = useQueryClient();
+
+    return useMutation({
+        mutationFn: (data: SalarySlipFilterRequest) => filterEmployeesByYearMonth(data),
+        onSuccess: (response) => {
+            if (!response.success) {
+                toast.error(response.message || 'Failed to filter employees');
+            }
+        },
+        onError: (error: Error) => {
+            console.error('Error filtering employees by year/month:', error);
+            toast.error(error.message || 'Failed to filter employees');
+        }
+    });
+}
+
+export function useGenerateSalarySlip() {
+    const _queryClient = useQueryClient();
+
+    return useMutation({
+        mutationFn: (data: SalarySlipGenerateRequest) => generateSalarySlip(data),
+        onSuccess: (response) => {
+            if (!response.success) {
+                toast.error(response.message || 'Failed to generate salary slip');
+            }
+        },
+        onError: (error: Error) => {
+            console.error('Error generating salary slip:', error);
+            toast.error(error.message || 'Failed to generate salary slip');
+        }
+    });
+}
+
+// ============================================================================
+// LOAN REPORT
+// ============================================================================
+
+export function useLoanReportOnload(MI_Id = 30, roleId = 0, LogInUserId = 0) {
+    return useQuery({
+        queryKey: [HRMS_QUERY_KEYS.LOAN_REPORT_ONLOAD, MI_Id, roleId, LogInUserId],
+        queryFn: () => getLoanReportBasicData(MI_Id, roleId, LogInUserId),
+        staleTime: 5 * 60 * 1000
+    });
+}
+
+export function useFilterEmployeesForLoanReport() {
+    const _queryClient = useQueryClient();
+
+    return useMutation({
+        mutationFn: (data: LoanReportFilterRequest) => filterEmployeesForLoanReport(data),
+        onSuccess: (response) => {
+            if (!response.success) {
+                toast.error(response.message || 'Failed to filter employees');
+            }
+        },
+        onError: (error: Error) => {
+            console.error('Error filtering employees for loan report:', error);
+            toast.error(error.message || 'Failed to filter employees');
+        }
+    });
+}
+
+export function useGetEmployeeLoanDetails() {
+    const _queryClient = useQueryClient();
+
+    return useMutation({
+        mutationFn: (data: LoanReportSearchRequest) => getEmployeeLoanDetails(data),
+        onSuccess: (response) => {
+            if (!response.success) {
+                toast.error(response.message || 'Failed to get loan details');
+            }
+        },
+        onError: (error: Error) => {
+            console.error('Error getting employee loan details:', error);
+            toast.error(error.message || 'Failed to get loan details');
         }
     });
 }

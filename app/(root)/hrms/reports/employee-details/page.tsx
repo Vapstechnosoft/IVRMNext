@@ -1,8 +1,7 @@
 'use client';
 
-import { Heading } from '@/components/layout/heading';
 import { Button } from '@/components/ui/button';
-import { Calendar } from '@/components/ui/calendar';
+import { CalendarYear } from '@/components/ui/calendar_year';
 import { Checkbox } from '@/components/ui/checkbox';
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
 import { DataTable } from '@/components/ui/data-table/data-table';
@@ -21,7 +20,7 @@ import { cn } from '@/lib/utils';
 import type { ColumnDef } from '@tanstack/react-table';
 import { format } from 'date-fns';
 import { CalendarIcon, Download, Printer, Search, X } from 'lucide-react';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 
@@ -80,6 +79,7 @@ export default function EmployeeDetailsReportPage() {
     const [employees, setEmployees] = useState<Employee[]>([]);
     const [filteredEmployees, setFilteredEmployees] = useState<Employee[]>([]);
     const [showReport, setShowReport] = useState(false);
+    const [employeeDropdownOptions, setEmployeeDropdownOptions] = useState<any[]>([]);
 
     // Extract API Data from onload response
     const _months = onloadData?.data?.monthdropdown || [];
@@ -149,14 +149,106 @@ export default function EmployeeDetailsReportPage() {
         'Experience'
     ];
 
-    // Mock data for Format 1 selections
-    const employeeList = [
-        'MR SUDIPTA RANJAN BHADURI',
-        'MS RUPLEKHA CHATTERJEE',
-        'MR JOHN SHAH',
-        'MRS BHASWATI DAS',
-        'MR SANTANU MUKHERJEE'
-    ];
+    // Call filter API when Type is selected to populate employee dropdown
+    // Note: The onload endpoint returns employeedropdown as null initially,
+    // so we need to call FilterEmployeeDataNew API when a Type is selected
+    useEffect(() => {
+        // Only proceed if we're in Individual report type mode
+        if (filters.reportType !== 'Individual') {
+            return;
+        }
+
+        // Check if onload has employeedropdown (though it's usually null in onload)
+        const onloadEmployees = onloadData?.data?.employeedropdown;
+        const onloadEmployeesArray = onloadEmployees && Array.isArray(onloadEmployees) ? onloadEmployees : [];
+
+        // When Type is selected and we have all required filters
+        if (filters.employeeType === 'Type' && filters.selectedEmployeeType && filters.fromDate && filters.toDate) {
+            const filterRequest = {
+                MI_Id: 30,
+                FormatType: filters.format,
+                DOBJL: filters.dateFilter,
+                FromDate: filters.fromDate.toISOString(),
+                ToDate: filters.toDate.toISOString(),
+                AllOrIndividual: filters.reportType,
+                TypeOrEmployee: filters.employeeType,
+                HRMET_Id: Number.parseInt(filters.selectedEmployeeType),
+                HRME_Id: 0,
+                Left: filters.employeeStatus.includes('Left'),
+                Working: filters.employeeStatus.includes('Working')
+            };
+
+            filterMutation.mutate(filterRequest, {
+                onSuccess: (response) => {
+                    if (response.success && response.data) {
+                        // Use filter API response employeedropdown if available
+                        if (response.data.employeedropdown && Array.isArray(response.data.employeedropdown) && response.data.employeedropdown.length > 0) {
+                            setEmployeeDropdownOptions(response.data.employeedropdown);
+                        } else {
+                            // Fallback to onload data if filter returns empty
+                            setEmployeeDropdownOptions(onloadEmployeesArray);
+                        }
+                    } else {
+                        // Fallback to onload data on unsuccessful response
+                        setEmployeeDropdownOptions(onloadEmployeesArray);
+                    }
+                },
+                onError: (error) => {
+                    console.error('Error filtering employees by type:', error);
+                    // Fallback to onload data on error
+                    setEmployeeDropdownOptions(onloadEmployeesArray);
+                }
+            });
+        } else if (filters.employeeType === 'Employee' && filters.fromDate && filters.toDate) {
+            // When Employee Type is "Employee", call filter API to get all filtered employees
+            const filterRequest = {
+                MI_Id: 30,
+                FormatType: filters.format,
+                DOBJL: filters.dateFilter,
+                FromDate: filters.fromDate.toISOString(),
+                ToDate: filters.toDate.toISOString(),
+                AllOrIndividual: filters.reportType,
+                TypeOrEmployee: filters.employeeType,
+                HRMET_Id: 0,
+                HRME_Id: 0,
+                Left: filters.employeeStatus.includes('Left'),
+                Working: filters.employeeStatus.includes('Working')
+            };
+
+            filterMutation.mutate(filterRequest, {
+                onSuccess: (response) => {
+                    if (response.success && response.data) {
+                        // Use filter API response employeedropdown if available
+                        if (response.data.employeedropdown && Array.isArray(response.data.employeedropdown) && response.data.employeedropdown.length > 0) {
+                            setEmployeeDropdownOptions(response.data.employeedropdown);
+                        } else {
+                            // Fallback to onload data if filter returns empty
+                            setEmployeeDropdownOptions(onloadEmployeesArray);
+                        }
+                    } else {
+                        setEmployeeDropdownOptions(onloadEmployeesArray);
+                    }
+                },
+                onError: (error) => {
+                    console.error('Error filtering employees:', error);
+                    // Fallback to onload data on error
+                    setEmployeeDropdownOptions(onloadEmployeesArray);
+                }
+            });
+        }
+        // Don't update state in else block to prevent infinite loops
+        // Only update state when API calls are made
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [
+        filters.selectedEmployeeType,
+        filters.employeeType,
+        filters.reportType,
+        filters.fromDate,
+        filters.toDate,
+        filters.employeeStatus,
+        filters.dateFilter,
+        filters.format
+    ]);
 
     // Sync form values with filters state
     useEffect(() => {
@@ -655,10 +747,6 @@ export default function EmployeeDetailsReportPage() {
     return (
         <div className='min-h-screen'>
             <div className='container space-y-4 p-1'>
-                <div className='space-y-1'>
-                    <Heading title='Employee Details Report' description='Generate detailed employee reports with customizable fields' />
-                </div>
-
                 {/* Report Configuration Section */}
                 <CollapsibleSection
                     title='EMPLOYEE DETAILS REPORT'
@@ -808,18 +896,16 @@ export default function EmployeeDetailsReportPage() {
                                                 </Button>
                                             </PopoverTrigger>
                                             <PopoverContent className='w-auto p-0'>
-                                                <Calendar
+                                                <CalendarYear
                                                     mode='single'
                                                     selected={filters.fromDate || undefined}
-                                                    onSelect={async (date) => {
+                                                    onDayClick={async (day) => {
                                                         setFilters((prev) => ({
                                                             ...prev,
-                                                            fromDate: date || null
+                                                            fromDate: day
                                                         }));
                                                         // Trigger API call automatically when date changes
-                                                        if (date) {
-                                                            await triggerFilterAPI();
-                                                        }
+                                                        await triggerFilterAPI();
                                                     }}
                                                     initialFocus
                                                 />
@@ -844,18 +930,16 @@ export default function EmployeeDetailsReportPage() {
                                                 </Button>
                                             </PopoverTrigger>
                                             <PopoverContent className='w-auto p-0'>
-                                                <Calendar
+                                                <CalendarYear
                                                     mode='single'
                                                     selected={filters.toDate || undefined}
-                                                    onSelect={async (date) => {
+                                                    onDayClick={async (day) => {
                                                         setFilters((prev) => ({
                                                             ...prev,
-                                                            toDate: date || null
+                                                            toDate: day
                                                         }));
                                                         // Trigger API call automatically when date changes
-                                                        if (date) {
-                                                            await triggerFilterAPI();
-                                                        }
+                                                        await triggerFilterAPI();
                                                     }}
                                                     initialFocus
                                                 />
@@ -942,7 +1026,9 @@ export default function EmployeeDetailsReportPage() {
                                                     onChange={(e) =>
                                                         setFilters((prev) => ({
                                                             ...prev,
-                                                            employeeType: e.target.value as 'Type' | 'Employee'
+                                                            employeeType: e.target.value as 'Type' | 'Employee',
+                                                            selectedEmployee: '', // Reset employee when switching to Type
+                                                            selectedEmployeeType: '' // Reset type selection when switching
                                                         }))
                                                     }
                                                     className='h-4 w-4 border-gray-300 bg-gray-100 text-blue-600 focus:ring-blue-500'
@@ -958,7 +1044,9 @@ export default function EmployeeDetailsReportPage() {
                                                     onChange={(e) =>
                                                         setFilters((prev) => ({
                                                             ...prev,
-                                                            employeeType: e.target.value as 'Type' | 'Employee'
+                                                            employeeType: e.target.value as 'Type' | 'Employee',
+                                                            selectedEmployee: '', // Reset employee when switching
+                                                            selectedEmployeeType: '' // Reset type selection when switching to Employee
                                                         }))
                                                     }
                                                     className='h-4 w-4 border-gray-300 bg-gray-100 text-blue-600 focus:ring-blue-500'
@@ -978,7 +1066,8 @@ export default function EmployeeDetailsReportPage() {
                                             onValueChange={(value) =>
                                                 setFilters((prev) => ({
                                                     ...prev,
-                                                    selectedEmployeeType: value
+                                                    selectedEmployeeType: value,
+                                                    selectedEmployee: '' // Reset employee selection when type changes
                                                 }))
                                             }>
                                             <SelectTrigger>
@@ -1013,15 +1102,71 @@ export default function EmployeeDetailsReportPage() {
                                                 <SelectValue placeholder='Select Employee' />
                                             </SelectTrigger>
                                             <SelectContent>
-                                                {employeeList.map((employee) => (
-                                                    <SelectItem key={employee} value={employee}>
-                                                        {employee}
+                                                {employeeDropdownOptions.length > 0 ? (
+                                                    employeeDropdownOptions.map((emp: any) => {
+                                                        const empId = emp.HRME_Id?.toString() || '';
+                                                        const empName = `${emp.HRME_EmployeeFirstName || ''} ${
+                                                            emp.HRME_EmployeeMiddleName || ''
+                                                        } ${emp.HRME_EmployeeLastName || ''}`.trim();
+                                                        return (
+                                                            <SelectItem key={empId} value={empId}>
+                                                                {empName || emp.HRME_EmployeeCode || 'Unknown'}
+                                                            </SelectItem>
+                                                        );
+                                                    })
+                                                ) : (
+                                                    <SelectItem value='no-data' disabled>
+                                                        No employees found
                                                     </SelectItem>
-                                                ))}
+                                                )}
                                             </SelectContent>
                                         </Select>
                                     </div>
                                 )}
+
+                                {/* Employee Dropdown - Show when Type is selected to display filtered employees */}
+                                {filters.reportType === 'Individual' &&
+                                    filters.employeeType === 'Type' &&
+                                    filters.selectedEmployeeType && (
+                                        <div className='space-y-2'>
+                                            <Label>
+                                                Employee: <span className='text-red-500'>*</span>
+                                            </Label>
+                                            <Select
+                                                value={filters.selectedEmployee}
+                                                onValueChange={(value) =>
+                                                    setFilters((prev) => ({
+                                                        ...prev,
+                                                        selectedEmployee: value
+                                                    }))
+                                                }>
+                                                <SelectTrigger>
+                                                    <SelectValue placeholder='Select Employee' />
+                                                </SelectTrigger>
+                                                <SelectContent>
+                                                    {employeeDropdownOptions.length > 0 ? (
+                                                        employeeDropdownOptions.map((emp: any) => {
+                                                            const empId = emp.HRME_Id?.toString() || '';
+                                                            const empName = `${emp.HRME_EmployeeFirstName || ''} ${
+                                                                emp.HRME_EmployeeMiddleName || ''
+                                                            } ${emp.HRME_EmployeeLastName || ''}`.trim();
+                                                            return (
+                                                                <SelectItem key={empId} value={empId}>
+                                                                    {empName || emp.HRME_EmployeeCode || 'Unknown'}
+                                                                </SelectItem>
+                                                            );
+                                                        })
+                                                    ) : (
+                                                        <SelectItem value='no-data' disabled>
+                                                            {filterMutation.isPending
+                                                                ? 'Loading employees...'
+                                                                : 'No employees found for selected type'}
+                                                        </SelectItem>
+                                                    )}
+                                                </SelectContent>
+                                            </Select>
+                                        </div>
+                                    )}
                             </div>
                         )}
 

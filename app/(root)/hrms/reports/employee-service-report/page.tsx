@@ -1,8 +1,7 @@
 'use client';
 
-import { Heading } from '@/components/layout/heading';
 import { Button } from '@/components/ui/button';
-import { Calendar } from '@/components/ui/calendar';
+import { CalendarYear } from '@/components/ui/calendar_year';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
 import { DataTable } from '@/components/ui/data-table/data-table';
@@ -469,10 +468,6 @@ export default function EmployeeServiceReportPage() {
 
     return (
         <div className='space-y-6'>
-            <div className='flex-between flex-wrap gap-4'>
-                <Heading title='Employee Service Report' description='Generate employee service certificates and experience reports' />
-            </div>
-
             {/* Report Configuration Section */}
             <CollapsibleSection
                 title='EMPLOYEE OFFER AND EXPERIENCE REPORT'
@@ -584,10 +579,10 @@ export default function EmployeeServiceReportPage() {
                                         </Button>
                                     </PopoverTrigger>
                                     <PopoverContent className='w-auto p-0'>
-                                        <Calendar
+                                        <CalendarYear
                                             mode='single'
                                             selected={filters.currentDate}
-                                            onSelect={(date) => handleFilterChange('currentDate', date || new Date())}
+                                            onDayClick={(day) => handleFilterChange('currentDate', day)}
                                             initialFocus
                                         />
                                     </PopoverContent>

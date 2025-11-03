@@ -11,7 +11,7 @@ import { useState } from 'react';
 
 import { Heading } from '@/components/layout/heading';
 import { Button } from '@/components/ui/button';
-import { Calendar } from '@/components/ui/calendar';
+import { DatePickerWithYear } from '@/components/ui/date-picker-year';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/extension/field';
@@ -208,14 +208,12 @@ export default function RelievingLetterPage() {
                                             </Button>
                                         </PopoverTrigger>
                                         <PopoverContent className='w-auto p-0' align='start'>
-                                            <Calendar
+                                            <DatePickerWithYear
                                                 mode='single'
                                                 selected={watchedFromDate}
-                                                onSelect={(date) => {
-                                                    if (date) {
-                                                        setValue('fromDate', date);
-                                                        setFromDateOpen(false);
-                                                    }
+                                                onDayClick={(day) => {
+                                                    setValue('fromDate', day);
+                                                    setFromDateOpen(false);
                                                 }}
                                                 initialFocus
                                             />
@@ -234,14 +232,12 @@ export default function RelievingLetterPage() {
                                             </Button>
                                         </PopoverTrigger>
                                         <PopoverContent className='w-auto p-0' align='start'>
-                                            <Calendar
+                                            <DatePickerWithYear
                                                 mode='single'
                                                 selected={watchedToDate}
-                                                onSelect={(date) => {
-                                                    if (date) {
-                                                        setValue('toDate', date);
-                                                        setToDateOpen(false);
-                                                    }
+                                                onDayClick={(day) => {
+                                                    setValue('toDate', day);
+                                                    setToDateOpen(false);
                                                 }}
                                                 initialFocus
                                             />

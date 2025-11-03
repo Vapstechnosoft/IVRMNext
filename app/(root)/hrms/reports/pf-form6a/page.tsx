@@ -1,8 +1,7 @@
 'use client';
 
-import { Heading } from '@/components/layout/heading';
 import { Button } from '@/components/ui/button';
-import { Calendar } from '@/components/ui/calendar';
+import { CalendarYear } from '@/components/ui/calendar_year';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
 import { DataTable } from '@/components/ui/data-table/data-table';
@@ -373,10 +372,6 @@ export default function PFForm6APage() {
 
     return (
         <div className='space-y-6'>
-            <div className='flex-between flex-wrap gap-4'>
-                <Heading title='PF Form 6A' description='Annual Return of Contributions and other receipts in respect of Provident Fund' />
-            </div>
-
             {/* Report Configuration Section */}
             <CollapsibleSection
                 title='PF FORM 6A'
@@ -403,10 +398,10 @@ export default function PFForm6APage() {
                                 </Button>
                             </PopoverTrigger>
                             <PopoverContent className='w-auto p-0'>
-                                <Calendar
+                                <CalendarYear
                                     mode='single'
                                     selected={filters.fromDate}
-                                    onSelect={(date) => handleDateChange('fromDate', date)}
+                                    onDayClick={(day) => handleDateChange('fromDate', day)}
                                     initialFocus
                                 />
                             </PopoverContent>
@@ -429,10 +424,10 @@ export default function PFForm6APage() {
                                 </Button>
                             </PopoverTrigger>
                             <PopoverContent className='w-auto p-0'>
-                                <Calendar
+                                <CalendarYear
                                     mode='single'
                                     selected={filters.toDate}
-                                    onSelect={(date) => handleDateChange('toDate', date)}
+                                    onDayClick={(day) => handleDateChange('toDate', day)}
                                     initialFocus
                                 />
                             </PopoverContent>

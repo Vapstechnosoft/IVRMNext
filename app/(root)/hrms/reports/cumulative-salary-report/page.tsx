@@ -1,6 +1,5 @@
 'use client';
 
-import { Heading } from '@/components/layout/heading';
 import { Button } from '@/components/ui/button';
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
 import { DataTable } from '@/components/ui/data-table/data-table';
@@ -375,16 +374,6 @@ export default function CumulativeSalaryReportPage() {
     return (
         <div className='min-h-screen'>
             <div className='container space-y-4 p-1'>
-                {/* Header */}
-                <div className='flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between'>
-                    <div className='space-y-1'>
-                        <Heading
-                            title='Cumulative Salary Report'
-                            description='Generate comprehensive salary reports with filtering options'
-                        />
-                    </div>
-                </div>
-
                 {/* Search Form */}
                 <CollapsibleSection
                     title='CUMULATIVE SALARY REPORT'
