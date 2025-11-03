@@ -16,7 +16,7 @@ import {
   useSaveGroupDeptDessgMapping,
 } from "@/hooks/hrms/useMasters";
 import { groupDeptDessgMappingSchema } from "@/schemas/hrms/group-dept-dessg-mapping-schemas";
-import type { GroupDeptDessgMappingDetail } from "@/types/hrms/group-dept-dessg-mapping";
+import type { GroupDeptDessgMappingDetail, GroupDeptDessgMappingInput } from "@/types/hrms/group-dept-dessg-mapping";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Save } from "lucide-react";
 import { useEffect, useMemo } from "react";

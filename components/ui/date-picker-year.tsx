@@ -9,7 +9,9 @@ import * as React from 'react';
 import { DayPicker, type DropdownProps } from 'react-day-picker';
 import { format } from 'date-fns';
 
-export type DatePickerYearProps = React.ComponentProps<typeof DayPicker>;
+export type DatePickerYearProps = React.ComponentProps<typeof DayPicker> & {
+    onSelect?: (date: Date | undefined) => void;
+};
 
 /**
  * Date Picker Component with Direct Year Selection
