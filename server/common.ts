@@ -165,11 +165,11 @@ export async function getUserAccessibleModules() {
                                     pages: [
                                         {
                                             id: 1,
-                                            name: 'Admission Form',
+                                            name: 'Preadmission Form',
                                             icon: 'Settings',
                                             url: '/admission/preadmission/transactions/application-form',
-                                            title: 'Admission Form',
-                                            description: 'Apply for Admission'
+                                            title: 'Preadmission Form',
+                                            description: 'Apply for Preadmission'
                                         },
                                         {
                                             id: 2,
