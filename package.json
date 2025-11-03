@@ -18,6 +18,7 @@
         "build-prod": "cp .env.prod .env.local && next build",
         "build-uat": "cp .env.uat .env.local && next build",
         "build-uat1": "cp .env.uat1 .env.local && next build",
+        "build-uat2": "cp .env.uat2 .env.local && next build",
         "lint-fix": "biome check --fix --unsafe",
         "precommit": "lint-staged",
         "prepare": "husky install",
