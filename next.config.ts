@@ -24,6 +24,11 @@ const nextConfig: NextConfig = {
                 protocol: 'https',
                 hostname: 'app.blob.core.windows.net',
                 pathname: '/trackandtracedev/**' // Allows images under /trackandtracedev
+            },
+            {
+                protocol: 'https',
+                hostname: 'kusumadata.blob.core.windows.net',
+                pathname: '/files/**' // Allows images under /files
             }
         ]
     }

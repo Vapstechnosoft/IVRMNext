@@ -7,11 +7,7 @@ import { Label } from '@/components/ui/extension/field';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useAcademicYearDropdown } from '@/hooks/admission/preadmission/useMasters';
-import {
-    useActivePreadmissionDetails,
-    useApplicationStudentList,
-    usePreadmissionClassDropdown
-} from '@/hooks/admission/preadmission/useTransactions';
+import { useDocumentView, usePreadmissionClassDropdown } from '@/hooks/admission/preadmission/useTransactions';
 import { tableSearchVariables } from '@/lib/data-table.config';
 import type { IPreadmissionDocumentView } from '@/types/admission/preadmission/transactions';
 import { CheckSquare } from 'lucide-react';
@@ -21,17 +17,11 @@ import { DocumentViewColoumn } from './_components/columns';
 
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 
-export default function DocumentView({
-    searchParams
-}: {
-    searchParams: SearchParams;
-}) {
-    const resolvedParams = use(searchParams);
+export default function DocumentView(props: { searchParams: SearchParams }) {
+    const searchParams = use(props.searchParams);
     const tableRef = useRef<DataTableRef>(null);
 
     const [searchQuery] = useQueryState(tableSearchVariables.search, parseAsString.withOptions({ shallow: false }).withDefault(''));
-
-    const { data: activePreadmission, isLoading: activePreadmissionLoading } = useActivePreadmissionDetails();
 
     const { data: classOptions, isLoading: classLoading, isError: classError } = usePreadmissionClassDropdown();
     const { data: academicYearOptions, isLoading: academicYearLoading, isError: academicYearError } = useAcademicYearDropdown();
@@ -48,7 +38,7 @@ export default function DocumentView({
         isLoading: studentsLoading,
         error,
         refetch: refetchStudents
-    } = useApplicationStudentList(activePreadmission?.data?.asmaY_Id ?? 0, classId, academicYearId, resolvedParams);
+    } = useDocumentView(academicYearId ?? 0, classId, searchParams);
 
     const tableProps = useDataTableProps(response);
 
@@ -144,7 +134,7 @@ export default function DocumentView({
                         {...tableProps}
                         ref={tableRef}
                         columns={DocumentViewColoumn}
-                        isLoading={activePreadmissionLoading || studentsLoading}
+                        isLoading={studentsLoading}
                         error={error}
                         showViewOptions={false}
                         searchQuery={searchQuery}

@@ -1,10 +1,15 @@
 'use client';
 
+import { Button } from '@/components/ui/button';
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Spinner } from '@/components/ui/spinner';
+import { useDocumentDownload } from '@/hooks/admission/preadmission/useTransactions';
 import type { IPreadmissionDocumentView } from '@/types/admission/preadmission/transactions';
 import type { ColumnDef } from '@tanstack/react-table';
+import { Download } from 'lucide-react';
 import Image from 'next/image';
-import Link from 'next/link';
+import { useEffect, useState } from 'react';
 
 export const DocumentViewColoumn: ColumnDef<IPreadmissionDocumentView>[] = [
     {
@@ -20,22 +25,30 @@ export const DocumentViewColoumn: ColumnDef<IPreadmissionDocumentView>[] = [
         enableHiding: false
     },
     {
+        id: 'student_photo',
         accessorKey: 'student_photo',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Photo' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Image' />,
         cell: ({ row }) => {
-            const photoUrl = row.getValue('student_photo') as string;
+            const imageUrl: string = row.getValue('student_photo') || '/icons/user.png';
+
             return (
-                <div className='flex justify-center'>
-                    {photoUrl ? (
-                        <Image src={photoUrl} alt='Student' width={40} height={40} className='rounded-full border object-cover' />
-                    ) : (
-                        <div className='h-10 w-10 rounded-full bg-gray-200' />
-                    )}
+                <div className='flex h-[100px] w-[100px] items-center justify-center overflow-hidden rounded-lg border bg-gray-100'>
+                    <Image
+                        src={imageUrl}
+                        alt='Preview'
+                        width={100}
+                        height={100}
+                        className='h-full w-full object-cover'
+                        onError={(e) => {
+                            const target = e.target as HTMLImageElement;
+                            target.style.display = 'none';
+                        }}
+                    />
                 </div>
             );
         },
-        enableSorting: false,
-        enableHiding: true
+        enableSorting: true,
+        enableHiding: false
     },
     {
         accessorKey: 'student_name',
@@ -60,38 +73,196 @@ export const DocumentViewColoumn: ColumnDef<IPreadmissionDocumentView>[] = [
         header: ({ column }) => <DataTableColumnHeader column={column} title='Application Form' />,
         cell: ({ row }) => {
             const appId = row.original.pasr_id;
+            const [showPdfModal, setShowPdfModal] = useState(false);
+            const { data: pdfData, isLoading } = useDocumentDownload(appId, {});
+            const [iframeLoading, setIframeLoading] = useState(false);
+
+            // Normalize pdfData?.data to a string | null | undefined that PdfViewer expects.
+            // If the hook returns an array, use the first item (casted) as a fallback string.
+            const pdfBase64: string | null | undefined =
+                typeof pdfData?.data === 'string'
+                    ? pdfData.data
+                    : Array.isArray(pdfData?.data)
+                      ? ((pdfData.data[0] as unknown as string) ?? null)
+                      : null;
+
+            useEffect(() => {
+                // When modal opens and we already have PDF data, show iframe loader
+                if (showPdfModal && pdfBase64) {
+                    setIframeLoading(true);
+                }
+                // when modal closes, reset iframe loading
+                if (!showPdfModal) setIframeLoading(false);
+            }, [showPdfModal, pdfBase64]);
+
             return (
-                <Link href={`/preadmission/application/${appId}`} className='text-blue-600 hover:underline'>
-                    View Application
-                </Link>
+                <>
+                    <Button variant='link' className='p-0 text-blue-600 hover:underline' onClick={() => setShowPdfModal(true)}>
+                        View Application
+                    </Button>
+
+                    {showPdfModal && (
+                        <Dialog open={showPdfModal} onOpenChange={setShowPdfModal}>
+                            <DialogContent className='flex h-[90vh] max-w-5xl flex-col p-0'>
+                                <DialogHeader className='p-0'>
+                                    <DialogTitle className='pt-3 text-center font-semibold text-lg'>
+                                        Pre Admission Application Form
+                                    </DialogTitle>
+                                </DialogHeader>
+                                <div className='relative min-h-0 flex-1 overflow-hidden'>
+                                    {/* Spinner while loading PDF */}
+                                    {(isLoading || iframeLoading) && (
+                                        <div className='absolute inset-0 z-20 flex items-center justify-center bg-white/60'>
+                                            <Spinner size='lg' />
+                                        </div>
+                                    )}
+                                    {/* PDF Viewer replaces iframe, removes extra padding */}
+                                    <div className='relative h-full min-h-0 w-full'>
+                                        {/* toolbar: download / open */}
+                                        {pdfBase64 ? <div className='absolute top-3 right-3 z-30 flex gap-3'></div> : null}
+
+                                        {/* inline PDF viewer using iframe (falls back to message when no PDF) */}
+                                        {typeof pdfBase64 === 'string' && pdfBase64 ? (
+                                            <iframe
+                                                src={
+                                                    pdfBase64.startsWith('data:') || pdfBase64.startsWith('http')
+                                                        ? pdfBase64
+                                                        : `data:application/pdf;base64,${pdfBase64}`
+                                                }
+                                                title='Pre Admission Application Form'
+                                                className='h-full min-h-0 w-full border-0'
+                                                style={{ display: iframeLoading ? 'none' : 'block' }}
+                                                onLoad={() => setIframeLoading(false)}
+                                            />
+                                        ) : (
+                                            <div className='flex h-full items-center justify-center'>
+                                                <div className='text-gray-500 text-sm'>No document available</div>
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+                            </DialogContent>
+                        </Dialog>
+                    )}
+                </>
             );
         },
         enableSorting: false
     },
     {
-        accessorKey: 'student_photo_view',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='View' />,
+        accessorKey: 'studentt_photo',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Student Photo' />,
+
         cell: ({ row }) => {
-            const studentId = row.original.pasr_id;
+            const downloadUrl = row.getValue('student_photo');
+            const [isDownloadingPhoto, setIsDownloadingPhoto] = useState(false);
+
+            const handleDownload = async (e: React.MouseEvent) => {
+                e.preventDefault();
+                if (!downloadUrl) return;
+                setIsDownloadingPhoto(true);
+                try {
+                    if (typeof downloadUrl === 'string' && downloadUrl.startsWith('data:')) {
+                        const link = document.createElement('a');
+                        link.href = downloadUrl;
+                        link.download = `student-photo-${row.original.pasr_id}.jpg`;
+                        document.body.appendChild(link);
+                        link.click();
+                        document.body.removeChild(link);
+                        return;
+                    }
+
+                    const resp = await fetch(downloadUrl as string);
+                    if (!resp.ok) throw new Error(`Failed to fetch image: ${resp.status}`);
+                    const blob = await resp.blob();
+
+                    let finalBlob: Blob = blob;
+                    if (blob.type?.startsWith('image/') && blob.type !== 'image/jpeg') {
+                        try {
+                            const convertToJpeg = async (input: Blob): Promise<Blob> => {
+                                return await new Promise<Blob>((resolve, reject) => {
+                                    const url = URL.createObjectURL(input);
+                                    const img = new (
+                                        window.Image as {
+                                            new (): HTMLImageElement;
+                                        }
+                                    )();
+                                    img.onload = () => {
+                                        try {
+                                            const canvas = document.createElement('canvas');
+                                            canvas.width = img.naturalWidth || img.width;
+                                            canvas.height = img.naturalHeight || img.height;
+                                            const ctx = canvas.getContext('2d');
+                                            if (!ctx) throw new Error('Canvas not supported');
+                                            ctx.drawImage(img, 0, 0);
+                                            canvas.toBlob(
+                                                (b) => {
+                                                    if (b) resolve(b);
+                                                    else reject(new Error('Conversion to JPEG failed'));
+                                                    URL.revokeObjectURL(url);
+                                                },
+                                                'image/jpeg',
+                                                0.92
+                                            );
+                                        } catch (err) {
+                                            URL.revokeObjectURL(url);
+                                            reject(err);
+                                        }
+                                    };
+                                    img.onerror = () => {
+                                        URL.revokeObjectURL(url);
+                                        reject(new Error('Image load error'));
+                                    };
+                                    // try to avoid tainting canvas
+                                    img.crossOrigin = 'anonymous';
+                                    img.src = url;
+                                });
+                            };
+
+                            finalBlob = await convertToJpeg(blob);
+                        } catch (err) {
+                            console.warn('JPEG conversion failed, using original blob', err);
+                            finalBlob = blob;
+                        }
+                    }
+
+                    const objectUrl = URL.createObjectURL(finalBlob);
+
+                    const link = document.createElement('a');
+                    link.href = objectUrl;
+                    link.download = `student-photo-${row.original.pasr_id}.jpg`;
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                    setTimeout(() => URL.revokeObjectURL(objectUrl), 1000);
+                } catch (err) {
+                    console.error('Download failed', err);
+                } finally {
+                    setIsDownloadingPhoto(false);
+                }
+            };
+
             return (
-                <Link href={`/preadmission/student-photo/${studentId}`} className='text-blue-600 hover:underline'>
-                    Student Photo
-                </Link>
-            );
-        },
-        enableSorting: false
-    },
-    {
-        accessorKey: 'document_download',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Download' />,
-        cell: ({ row }) => {
-            const downloadUrl = row.original.document_download;
-            return downloadUrl ? (
-                <Link href={downloadUrl} target='_blank' className='text-blue-600 hover:underline'>
-                    Download
-                </Link>
-            ) : (
-                <span className='text-gray-400'>N.A</span>
+                <div className='flex justify-center'>
+                    {downloadUrl ? (
+                        // biome-ignore lint/a11y/useButtonType: <explanation>
+                        <button
+                            onClick={handleDownload}
+                            className='text-blue-600 hover:text-blue-800'
+                            title='Download Student Photo'
+                            aria-label={`Download student photo ${row.original.pasr_id}`}
+                        >
+                            {isDownloadingPhoto ? <Spinner size='sm' /> : <Download className='h-5 w-5' />}
+                        </button>
+                    ) : (
+                        <span className='group relative'>
+                            <Download className='h-5 w-5 text-gray-400 opacity-40' />
+                            <span className='-translate-x-1/2 pointer-events-none absolute left-1/2 z-10 mt-1 rounded bg-gray-700 px-2 py-1 text-white text-xs opacity-0 group-hover:opacity-100'>
+                                No Photo Available
+                            </span>
+                        </span>
+                    )}
+                </div>
             );
         },
         enableSorting: false

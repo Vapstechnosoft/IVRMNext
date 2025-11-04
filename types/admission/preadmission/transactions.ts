@@ -62,8 +62,8 @@ export interface IPreadmissionApplicationList {
     document_download: string;
 
     applied_by: string;
-
 }
+
 export interface IPreadmissionAdmissionStatusDropdown {
     pamsT_Id: number;
     pamsT_Status: string;
@@ -129,11 +129,11 @@ export interface IPreadmissionStatusCountReport {
 }
 
 export interface IPreadmissionDocumentView {
+    document_download: any;
+    student_photo: any;
+    asmaY_Id: number;
+    asmcl_id: number;
+    academic_year: string;
+    class_name: string;
     pasr_id: number;
-    pasR_RegistrationNo: string;
-    student_name: string;
-    pasR_Sex: string;
-    applied_class_name: string;
-    current_status: string;
-    document_download: string;
 }

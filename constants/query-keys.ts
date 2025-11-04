@@ -46,9 +46,9 @@ export const PREADMISSION_QUERY_KEYS = {
 
     ACADEMIC_YEAR_MASTER: 'Academic_Year_Master',
     SET_ORDER: 'Set_Order',
-
-    MASTER_CONFIGURATION: 'master_configuration'
-
+    DOCUMENT_VIEW: 'document_view',
+    MASTER_CONFIGURATION: 'master_configuration',
+    DOCUMENT_DOWNLOAD: 'document_download'
 };
 
 export const FEES_QUERY_KEYS = {
