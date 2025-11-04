@@ -38,3 +38,40 @@ export const useMasterConfiguration = (searchParams?: ApiSearchparams) => {
         }
     };
 };
+
+export const usePreAdmissionAcademicYear = (searchParams?: ApiSearchparams) => {
+  const queryClient = useQueryClient();
+
+  return {
+    ...useQuery({
+      queryKey: [
+        PREADMISSION_QUERY_KEYS.ACADEMIC_YEAR_MASTER,
+        searchParams ?? {},
+      ],
+      queryFn: async () => getPreAdmissionYear(searchParams),
+      staleTime: 0,
+    }),
+    refetchAll: () => {
+      return queryClient.invalidateQueries({
+        queryKey: [PREADMISSION_QUERY_KEYS.ACADEMIC_YEAR_MASTER],
+      });
+    },
+  };
+};
+
+export const usePreAdmissionAcademicYearSetOrder = () => {
+  const queryClient = useQueryClient();
+
+  return {
+    ...useQuery({
+      queryKey: [PREADMISSION_QUERY_KEYS.SET_ORDER],
+      queryFn: async () => getPreAdmissionSetOrder(),
+      staleTime: 0,
+    }),
+    refetchAll: () => {
+      return queryClient.invalidateQueries({
+        queryKey: [PREADMISSION_QUERY_KEYS.SET_ORDER],
+      });
+    },
+  };
+};
