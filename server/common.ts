@@ -196,6 +196,29 @@ export async function getUserAccessibleModules() {
                                             description: 'Transfer confirmed preadmission applications to admission'
                                         }
                                     ]
+                                },
+                                {
+                                    id: 3,
+                                    name: 'Configuration',
+                                    icon: 'Settings',
+                                    pages: [
+                                        {
+                                            id: 1,
+                                            name: 'Academic Year Master',
+                                            icon: 'Settings',
+                                            url: '/admission/preadmission/configuration/academic-year',
+                                            title: 'Academic Year Master',
+                                            description: 'Academic Year Master'
+                                        },
+                                        {
+                                            id: 2,
+                                            name: 'Master Configuration',
+                                            icon: 'Settings',
+                                            url: '/admission/preadmission/configuration/master-configuration',
+                                            title: 'Master Configuration',
+                                            description: 'Master Configuration'
+                                        }
+                                    ]
                                 }
                             ]
                         }
