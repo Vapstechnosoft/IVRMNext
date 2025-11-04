@@ -42,7 +42,9 @@ export const PREADMISSION_QUERY_KEYS = {
     PREADMISSION_ADMISSION_STATUS_DROPDOWN: 'preadmission_admission_status_dropdown',
     PREADMISSION_STUDENT_LIST: 'preadmission_student_list',
     EXPORT_PREADMISSION_STUDENT_LIST: 'export_preadmission_student_list',
-    PREADMISSION_STATUS_COUNT_REPORT: 'preadmission_status_count_report'
+    PREADMISSION_STATUS_COUNT_REPORT: 'preadmission_status_count_report',
+    ACADEMIC_YEAR_MASTER: 'Academic_Year_Master',
+    SET_ORDER: 'Set_Order'
 };
 
 export const FEES_QUERY_KEYS = {
