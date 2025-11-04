@@ -77,8 +77,6 @@ export const DocumentViewColoumn: ColumnDef<IPreadmissionDocumentView>[] = [
             const { data: pdfData, isLoading } = useDocumentDownload(appId, {});
             const [iframeLoading, setIframeLoading] = useState(false);
 
-            // Normalize pdfData?.data to a string | null | undefined that PdfViewer expects.
-            // If the hook returns an array, use the first item (casted) as a fallback string.
             const pdfBase64: string | null | undefined =
                 typeof pdfData?.data === 'string'
                     ? pdfData.data
@@ -87,11 +85,9 @@ export const DocumentViewColoumn: ColumnDef<IPreadmissionDocumentView>[] = [
                       : null;
 
             useEffect(() => {
-                // When modal opens and we already have PDF data, show iframe loader
                 if (showPdfModal && pdfBase64) {
                     setIframeLoading(true);
                 }
-                // when modal closes, reset iframe loading
                 if (!showPdfModal) setIframeLoading(false);
             }, [showPdfModal, pdfBase64]);
 
