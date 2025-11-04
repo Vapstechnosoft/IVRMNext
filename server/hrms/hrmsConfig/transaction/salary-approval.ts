@@ -13,11 +13,25 @@ import type {
 
 /**
  * Get salary approval process onload data
- * POST /api/CumulativeSalaryReportFacade/onloadgetdetailsNew
+ * POST /api/CumulativeSalaryReportFacade/onloadgetdetailsNew?mid=30
  */
 export async function getSalaryApprovalOnload(payload: SalaryApprovalOnloadRequest) {
-    const url = `/api/CumulativeSalaryReportFacade/onloadgetdetailsNew?mid=${payload.MI_Id}`;
-    return await api.post<SalaryApprovalOnloadResponse>('hrms', url, {});
+    const url = '/api/CumulativeSalaryReportFacade/onloadgetdetailsNew?mid=30';
+    const response = await api.post<SalaryApprovalOnloadResponse>('hrms', url, {});
+    
+    // The backend returns raw data, not wrapped in ApiResponse format
+    // Wrap it to match the expected ApiResponse structure
+    if (response && typeof response === 'object' && 'success' in response && 'data' in response) {
+        // Already wrapped
+        return response;
+    }
+    
+    // Wrap raw response data
+    return {
+        success: true,
+        message: 'Data loaded successfully',
+        data: response as unknown as SalaryApprovalOnloadResponse
+    };
 }
 
 /**
@@ -26,7 +40,33 @@ export async function getSalaryApprovalOnload(payload: SalaryApprovalOnloadReque
  */
 export async function searchSalaryApprovalEmployees(payload: SalaryApprovalSearchRequest) {
     const url = '/api/CumulativeSalaryReportFacade/GetEmployeedetailsBySelectionNew';
-    return await api.post<SalaryApprovalSearchResponse>('hrms', url, payload);
+    
+    // Prepare request body - ensure arrays are [0] when empty, as API expects
+    const requestBody = {
+        MI_Id: payload.MI_Id || 0,
+        HRES_Year: payload.HRES_Year || 'string',
+        HRES_Month: payload.HRES_Month || 'string',
+        hrmdeS_IdList: payload.hrmdeS_IdList && payload.hrmdeS_IdList.length > 0 ? payload.hrmdeS_IdList : [0],
+        hrmD_IdList: payload.hrmD_IdList && payload.hrmD_IdList.length > 0 ? payload.hrmD_IdList : [0],
+        groupTypeIdList: payload.groupTypeIdList && payload.groupTypeIdList.length > 0 ? payload.groupTypeIdList : [0],
+        LogInUserId: payload.LogInUserId || 0
+    };
+    
+    const response = await api.post<SalaryApprovalSearchResponse>('hrms', url, requestBody);
+    
+    // The backend returns raw data, not wrapped in ApiResponse format
+    // Wrap it to match the expected ApiResponse structure
+    if (response && typeof response === 'object' && 'success' in response && 'data' in response) {
+        // Already wrapped
+        return response;
+    }
+    
+    // Wrap raw response data
+    return {
+        success: true,
+        message: 'Data loaded successfully',
+        data: response as unknown as SalaryApprovalSearchResponse
+    };
 }
 
 /**

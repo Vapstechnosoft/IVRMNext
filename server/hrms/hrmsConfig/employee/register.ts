@@ -48,12 +48,29 @@ import type {
     SaveArrearDetailsRequest,
     SaveArrearDetailsResponse,
     SaveDeductionDetailsRequest,
-    SaveDeductionDetailsResponse
+    SaveDeductionDetailsResponse,
+    SavePersonalDetailsRequest,
+    SavePersonalDetailsResponse
 } from '@/types/hrms/employee-register';
 
 export async function getEmployeeRegisterOnload(payload: EmployeeRegisterOnloadRequest) {
     const url = '/api/EmployeeRegistrationNew/onloadgetdetails';
-    return await api.post<EmployeeRegisterOnloadResponse>('hrms', url, payload);
+    
+    const response = await api.post<EmployeeRegisterOnloadResponse>('hrms', url, payload);
+    
+    // The backend returns raw data, not wrapped in ApiResponse format
+    // Wrap it to match the expected ApiResponse structure
+    if (response && typeof response === 'object' && 'success' in response && 'data' in response) {
+        // Already wrapped
+        return response;
+    }
+    
+    // Wrap raw response data
+    return {
+        success: true,
+        message: 'Data loaded successfully',
+        data: response as unknown as EmployeeRegisterOnloadResponse
+    };
 }
 
 export async function saveEmployeeRegister(payload: EmployeeRegisterSaveRequest) {
@@ -167,16 +184,46 @@ export async function getEmployeeById(id: number) {
  */
 export async function saveQualification(qualifications: SaveQualificationRequest[]) {
     const url = '/api/EmployeeRegistrationNew/SaveQulaification';
-    return await api.post<SaveQualificationResponse>('hrms', url, qualifications);
+    
+    const response = await api.post<SaveQualificationResponse>('hrms', url, qualifications);
+    
+    // The backend returns raw data, not wrapped in ApiResponse format
+    // Wrap it to match the expected ApiResponse structure
+    if (response && typeof response === 'object' && 'success' in response && 'data' in response) {
+        // Already wrapped
+        return response;
+    }
+    
+    // Wrap raw response data
+    return {
+        success: true,
+        message: 'Qualification details saved successfully',
+        data: response as unknown as SaveQualificationResponse
+    };
 }
 
 /**
  * Save Personal Details (combined Employee + Address) on Address tab save
  * POST /api/EmployeeRegistrationNew/SavePersonalDetails
  */
-export async function savePersonalDetails(payload: any) {
+export async function savePersonalDetails(payload: SavePersonalDetailsRequest) {
     const url = '/api/EmployeeRegistrationNew/SavePersonalDetails';
-    return await api.post<any>('hrms', url, payload);
+    
+    const response = await api.post<SavePersonalDetailsResponse>('hrms', url, payload);
+    
+    // The backend returns raw data, not wrapped in ApiResponse format
+    // Wrap it to match the expected ApiResponse structure
+    if (response && typeof response === 'object' && 'success' in response && 'data' in response) {
+        // Already wrapped
+        return response;
+    }
+    
+    // Wrap raw response data
+    return {
+        success: true,
+        message: 'Personal details saved successfully',
+        data: response as unknown as SavePersonalDetailsResponse
+    };
 }
 
 /**
@@ -186,7 +233,22 @@ export async function savePersonalDetails(payload: any) {
  */
 export async function saveExperienceDetails(experiences: SaveExperienceDetailsRequest[]) {
     const url = '/api/EmployeeRegistrationNew/SaveExperienceDetails';
-    return await api.post<SaveExperienceDetailsResponse>('hrms', url, experiences);
+    
+    const response = await api.post<SaveExperienceDetailsResponse>('hrms', url, experiences);
+    
+    // The backend returns raw data, not wrapped in ApiResponse format
+    // Wrap it to match the expected ApiResponse structure
+    if (response && typeof response === 'object' && 'success' in response && 'data' in response) {
+        // Already wrapped
+        return response;
+    }
+    
+    // Wrap raw response data
+    return {
+        success: true,
+        message: 'Experience details saved successfully',
+        data: response as unknown as SaveExperienceDetailsResponse
+    };
 }
 
 /**
@@ -196,7 +258,22 @@ export async function saveExperienceDetails(experiences: SaveExperienceDetailsRe
  */
 export async function saveDocumentDetails(documents: SaveDocumentDetailsRequest[]) {
     const url = '/api/EmployeeRegistrationNew/SaveDocumentDetails';
-    return await api.post<SaveDocumentDetailsResponse>('hrms', url, documents);
+    
+    const response = await api.post<SaveDocumentDetailsResponse>('hrms', url, documents);
+    
+    // The backend returns raw data, not wrapped in ApiResponse format
+    // Wrap it to match the expected ApiResponse structure
+    if (response && typeof response === 'object' && 'success' in response && 'data' in response) {
+        // Already wrapped
+        return response;
+    }
+    
+    // Wrap raw response data
+    return {
+        success: true,
+        message: 'Document details saved successfully',
+        data: response as unknown as SaveDocumentDetailsResponse
+    };
 }
 
 /**
@@ -206,7 +283,22 @@ export async function saveDocumentDetails(documents: SaveDocumentDetailsRequest[
  */
 export async function saveMedicalDetails(payload: SaveMedicalDetailsRequest) {
     const url = '/api/EmployeeRegistrationNew/SaveMedicalDetails';
-    return await api.post<SaveMedicalDetailsResponse>('hrms', url, payload);
+    
+    const response = await api.post<SaveMedicalDetailsResponse>('hrms', url, payload);
+    
+    // The backend returns raw data, not wrapped in ApiResponse format
+    // Wrap it to match the expected ApiResponse structure
+    if (response && typeof response === 'object' && 'success' in response && 'data' in response) {
+        // Already wrapped
+        return response;
+    }
+    
+    // Wrap raw response data
+    return {
+        success: true,
+        message: 'Medical details saved successfully',
+        data: response as unknown as SaveMedicalDetailsResponse
+    };
 }
 
 /**
@@ -216,7 +308,22 @@ export async function saveMedicalDetails(payload: SaveMedicalDetailsRequest) {
  */
 export async function saveOtherDetails(payload: SaveOtherDetailsRequest) {
     const url = '/api/EmployeeRegistrationNew/SaveOtherDetails';
-    return await api.post<SaveOtherDetailsResponse>('hrms', url, payload);
+    
+    const response = await api.post<SaveOtherDetailsResponse>('hrms', url, payload);
+    
+    // The backend returns raw data, not wrapped in ApiResponse format
+    // Wrap it to match the expected ApiResponse structure
+    if (response && typeof response === 'object' && 'success' in response && 'data' in response) {
+        // Already wrapped
+        return response;
+    }
+    
+    // Wrap raw response data
+    return {
+        success: true,
+        message: 'Other details saved successfully',
+        data: response as unknown as SaveOtherDetailsResponse
+    };
 }
 
 /**
@@ -225,7 +332,20 @@ export async function saveOtherDetails(payload: SaveOtherDetailsRequest) {
  */
 export async function getEmployeeSalaryDetails(payload: GetEmployeeSalaryDetailsRequest) {
     const url = '/api/EmployeeRegistrationNew/getEmployeeSalaryDetails';
-    return await api.post<GetEmployeeSalaryDetailsResponse>('hrms', url, payload);
+    
+    const response = await api.post<GetEmployeeSalaryDetailsResponse>('hrms', url, payload);
+    
+    // Check if response is already wrapped
+    if (response && typeof response === 'object' && 'success' in response && 'data' in response) {
+        return response;
+    }
+    
+    // Wrap the array response
+    return {
+        success: true,
+        message: 'Payroll details loaded successfully',
+        data: response as unknown as GetEmployeeSalaryDetailsResponse
+    };
 }
 
 /**
@@ -234,7 +354,20 @@ export async function getEmployeeSalaryDetails(payload: GetEmployeeSalaryDetails
  */
 export async function getEmployeeSalaryDetailsByHead(payload: GetEmployeeSalaryDetailsByHeadRequest) {
     const url = '/api/EmployeeRegistrationNew/getEmployeeSalaryDetailsByHead';
-    return await api.post<GetEmployeeSalaryDetailsByHeadResponse>('hrms', url, payload);
+    
+    const response = await api.post<GetEmployeeSalaryDetailsByHeadResponse>('hrms', url, payload);
+    
+    // Check if response is already wrapped
+    if (response && typeof response === 'object' && 'success' in response && 'data' in response) {
+        return response;
+    }
+    
+    // Wrap the array response
+    return {
+        success: true,
+        message: 'Salary details calculated successfully',
+        data: response as unknown as GetEmployeeSalaryDetailsByHeadResponse
+    };
 }
 
 /**
@@ -252,7 +385,20 @@ export async function saveIncrementDetails(payload: SaveIncrementDetailsRequest)
  */
 export async function saveEarningDetails(earnings: SaveEarningDetailsRequest[]) {
     const url = '/api/EmployeeRegistrationNew/SaveEarningDetails';
-    return await api.post<SaveEarningDetailsResponse>('hrms', url, earnings);
+    
+    const response = await api.post<SaveEarningDetailsResponse>('hrms', url, earnings);
+    
+    // Check if response is already wrapped
+    if (response && typeof response === 'object' && 'success' in response && 'data' in response) {
+        return response;
+    }
+    
+    // Wrap the response
+    return {
+        success: true,
+        message: 'Earning details saved successfully',
+        data: response as unknown as SaveEarningDetailsResponse
+    };
 }
 
 /**
@@ -261,7 +407,20 @@ export async function saveEarningDetails(earnings: SaveEarningDetailsRequest[]) 
  */
 export async function saveArrearDetails(arrears: SaveArrearDetailsRequest[]) {
     const url = '/api/EmployeeRegistrationNew/SaveArrearDetails';
-    return await api.post<SaveArrearDetailsResponse>('hrms', url, arrears);
+    
+    const response = await api.post<SaveArrearDetailsResponse>('hrms', url, arrears);
+    
+    // Check if response is already wrapped
+    if (response && typeof response === 'object' && 'success' in response && 'data' in response) {
+        return response;
+    }
+    
+    // Wrap the response
+    return {
+        success: true,
+        message: 'Arrear details saved successfully',
+        data: response as unknown as SaveArrearDetailsResponse
+    };
 }
 
 /**
@@ -270,6 +429,38 @@ export async function saveArrearDetails(arrears: SaveArrearDetailsRequest[]) {
  */
 export async function saveDeductionDetails(deductions: SaveDeductionDetailsRequest[]) {
     const url = '/api/EmployeeRegistrationNew/SaveDeductionDetails';
-    return await api.post<SaveDeductionDetailsResponse>('hrms', url, deductions);
+    
+    const response = await api.post<SaveDeductionDetailsResponse>('hrms', url, deductions);
+    
+    // Check if response is already wrapped
+    if (response && typeof response === 'object' && 'success' in response && 'data' in response) {
+        return response;
+    }
+    
+    // Wrap the response
+    return {
+        success: true,
+        message: 'Deduction details saved successfully',
+        data: response as unknown as SaveDeductionDetailsResponse
+    };
+}
+
+/**
+ * Activate/Deactivate Employee Registration
+ * POST /api/EmployeeRegistrationNew/deactivateRecordById
+ */
+export async function activateDeactivateEmployee(data: {
+    HRME_Id: number;
+    HRME_ActiveFlag: boolean;
+    MI_Id?: number;
+}) {
+    const url = '/api/EmployeeRegistrationNew/deactivateRecordById';
+    
+    const requestBody = {
+        MI_Id: data.MI_Id ?? 30,
+        HRME_Id: data.HRME_Id
+    };
+    
+    return await api.post<EmployeeRegisterSaveResponse>('hrms', url, requestBody);
 }
 

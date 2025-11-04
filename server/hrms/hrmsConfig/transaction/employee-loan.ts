@@ -465,10 +465,26 @@ function createCompleteRequestBody(baseFields: any): any {
  */
 export async function getEmployeeLoanList(roleId: number) {
     const url = '/api/HREmpLoanFacade/onloadgetdetails';
-    const requestBody = createCompleteRequestBody({
-        roleId: roleId
-    });
-    return await api.post<EmployeeLoanOnloadResponse>('hrms', url, requestBody);
+    // For onload, we only need basic fields
+    const requestBody = {
+        roleId: roleId,
+        MI_Id: 30
+    };
+    const response = await api.post<EmployeeLoanOnloadResponse>('hrms', url, requestBody);
+    
+    // The backend returns raw data, not wrapped in ApiResponse format
+    // Wrap it to match the expected ApiResponse structure
+    if (response && typeof response === 'object' && 'success' in response && 'data' in response) {
+        // Already wrapped
+        return response;
+    }
+    
+    // Wrap raw response data
+    return {
+        success: true,
+        message: 'Data loaded successfully',
+        data: response as unknown as EmployeeLoanOnloadResponse
+    };
 }
 
 /**

@@ -13,12 +13,12 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { cn } from '@/lib/utils';
 import { EMPLOYEE_LOAN_VALIDATION } from '@/lib/validation/hrms-transaction-validation';
-import { activateDeactivateEmployeeLoan, getEmployeeLoanList, saveEmployeeLoan } from '@/server/hrms/hrmsConfig/transaction/employee-loan';
+import { useActivateDeactivateEmployeeLoan, useEmployeeLoanList, useSaveEmployeeLoan } from '@/hooks/hrms/useTransactions';
 import type { EmployeeDropdown, EmployeeLoanItem, EmployeeLoanSaveRequest, MasterLoanDropdown, ModeOfPaymentDropdown } from '@/types/hrms/employee-loan';
 import type { ColumnDef } from '@tanstack/react-table';
 import { format } from 'date-fns';
 import { CalendarIcon, Edit, MoreHorizontal, Plus, Power, X } from 'lucide-react';
-import { useEffect, useRef, useState } from 'react';
+import { useRef, useState } from 'react';
 import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 
@@ -37,12 +37,17 @@ interface EmployeeLoanForm {
 export default function EmployeeLoanPage() {
     const [isFormOpen, setIsFormOpen] = useState(false);
     const [editingId, setEditingId] = useState<number | null>(null);
-    const [loans, setLoans] = useState<EmployeeLoanItem[]>([]);
-    const [employees, setEmployees] = useState<EmployeeDropdown[]>([]);
-    const [loanTypes, setLoanTypes] = useState<MasterLoanDropdown[]>([]);
-    const [paymentModes, setPaymentModes] = useState<ModeOfPaymentDropdown[]>([]);
-    const [isLoading, setIsLoading] = useState(true);
     const formRef = useRef<HTMLDivElement>(null);
+
+    const roleId = 2;
+    const { data: loanData, isLoading, refetch } = useEmployeeLoanList({ roleId });
+    const saveMutation = useSaveEmployeeLoan();
+    const toggleMutation = useActivateDeactivateEmployeeLoan();
+
+    const loans = loanData?.emploanList || [];
+    const employees = loanData?.employeedropdown || [];
+    const loanTypes = loanData?.masterloandropdown || [];
+    const paymentModes = loanData?.modeOfPaymentdropdown || [];
 
     const {
         register,
@@ -66,44 +71,6 @@ export default function EmployeeLoanPage() {
         }
     });
 
-    useEffect(() => {
-        loadData();
-    }, []);
-
-    const loadData = async () => {
-        try {
-            setIsLoading(true);
-            const response = await getEmployeeLoanList(2);
-
-            if (response.success && response.data) {
-                let employeeList = response.data.employeedropdown || [];
-
-                if (employeeList.length === 0 && response.data.emploanList?.length > 0) {
-                    const uniqueEmployees = new Map();
-                    response.data.emploanList.forEach((loan: any) => {
-                        if (loan.MasterEmployee && loan.MasterEmployee.HRME_Id > 0) {
-                            uniqueEmployees.set(loan.MasterEmployee.HRME_Id, loan.MasterEmployee);
-                        }
-                    });
-                    employeeList = Array.from(uniqueEmployees.values());
-                }
-
-                // Employee details are already in employeedropdown array
-
-                setEmployees(employeeList);
-                setLoanTypes(response.data.masterloandropdown || []);
-                setPaymentModes(response.data.modeOfPaymentdropdown || []);
-                setLoans(response.data.emploanList || []);
-            } else {
-                toast.error(response.message || 'Failed to load data');
-            }
-        } catch (error: any) {
-            console.error('Error loading data:', error);
-            toast.error(error.message || 'Failed to load data');
-        } finally {
-            setIsLoading(false);
-        }
-    };
 
     const handleAddClick = () => {
         setIsFormOpen(true);
@@ -134,41 +101,33 @@ export default function EmployeeLoanPage() {
     };
 
     const onSubmit: SubmitHandler<EmployeeLoanForm> = async (data: EmployeeLoanForm) => {
-        try {
-            const loanData: EmployeeLoanSaveRequest = {
-                HREL_Id: editingId || 0,
-                MI_Id: 30,
-                HRME_Id: data.employeeId,
-                roleId: 2,
-                HRMLN_Id: data.loanTypeId,
-                HREL_AppliedDate: data.startDate,
-                HREL_LoanAmount: data.amount,
-                HREL_LoanInsallments: data.installments,
-                HREL_LoanStatus: 'Applied',
-                HREL_SanctionedAmount: 0,
-                HREL_TotalPrincipalPaid: 0,
-                HREL_TotalInterestPaid: 0,
-                HREL_TotalPending: 0,
-                HREL_LoanInterest: data.loanInterest || 0,
-                HREL_LaonEMI: data.loanEMI || 0,
-                HREL_ModeOfPayment: data.modeOfPayment || '',
-                HREL_ReferenceNo: data.referenceNo || '',
-                HREL_ActiveFlag: true,
-                HREL_NoofInstallment: data.installments
-            };
+        const loanData: EmployeeLoanSaveRequest = {
+            HREL_Id: editingId || 0,
+            MI_Id: 30,
+            HRME_Id: data.employeeId,
+            roleId: 2,
+            HRMLN_Id: data.loanTypeId,
+            HREL_AppliedDate: data.startDate,
+            HREL_LoanAmount: data.amount,
+            HREL_LoanInsallments: data.installments,
+            HREL_LoanStatus: 'Applied',
+            HREL_SanctionedAmount: 0,
+            HREL_TotalPrincipalPaid: 0,
+            HREL_TotalInterestPaid: 0,
+            HREL_TotalPending: 0,
+            HREL_LoanInterest: data.loanInterest || 0,
+            HREL_LaonEMI: data.loanEMI || 0,
+            HREL_ModeOfPayment: data.modeOfPayment || '',
+            HREL_ReferenceNo: data.referenceNo || '',
+            HREL_ActiveFlag: true,
+            HREL_NoofInstallment: data.installments
+        };
 
-            const response = await saveEmployeeLoan(loanData);
-
-            if (response.success) {
-                toast.success(editingId ? 'Employee loan updated successfully' : 'Employee loan created successfully');
-                loadData();
+        saveMutation.mutate(loanData, {
+            onSuccess: () => {
                 handleFormClose();
-            } else {
-                toast.error(response.message || 'Operation failed');
             }
-        } catch (error: any) {
-            toast.error(error.message || 'Operation failed');
-        }
+        });
     };
 
     const handleEdit = (item: EmployeeLoanItem) => {
@@ -194,24 +153,18 @@ export default function EmployeeLoanPage() {
     };
 
     const handleToggleActive = async (id: number, currentStatus: boolean) => {
-        try {
-            const response = await activateDeactivateEmployeeLoan({
+        toggleMutation.mutate(
+            {
                 HREL_Id: id,
                 HREL_ActiveFlag: !currentStatus,
                 roleId: 2
-            });
-
-            if (response.success) {
-                toast.success(`Employee loan ${!currentStatus ? 'activated' : 'deactivated'} successfully`);
-                setTimeout(() => {
-                    loadData();
-                }, 500);
-            } else {
-                toast.error(response.message || 'Operation failed');
+            },
+            {
+                onSuccess: () => {
+                    toast.success(`Employee loan ${!currentStatus ? 'activated' : 'deactivated'} successfully`);
+                }
             }
-        } catch (error: any) {
-            toast.error(error.message || 'Operation failed');
-        }
+        );
     };
 
     const getEmployeeName = (employeeId: number) => {
@@ -493,8 +446,8 @@ export default function EmployeeLoanPage() {
                                         <Button type='button' variant='outline' onClick={handleFormClose}>
                                             Cancel
                                         </Button>
-                                        <Button type='submit' disabled={isSubmitting}>
-                                            {isSubmitting ? 'Saving...' : editingId ? 'Update' : 'Save'}
+                                        <Button type='submit' disabled={saveMutation.isPending}>
+                                            {saveMutation.isPending ? 'Saving...' : editingId ? 'Update' : 'Save'}
                                         </Button>
                                     </div>
                                 </form>

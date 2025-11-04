@@ -396,11 +396,101 @@ function createSalaryAdvanceRequestBody(baseFields: any): any {
  */
 export async function getSalaryAdvanceList(roleId: number = 2) {
     const url = '/api/HREmpSalaryAdvanceFacade/onloadgetdetails';
-    const requestBody = createSalaryAdvanceRequestBody({
+    
+    // Prepare request body matching the exact API structure
+    const now = new Date().toISOString();
+    const requestBody = {
+        CreatedDate: now,
+        UpdatedDate: now,
+        HRESA_Id: 0,
         MI_Id: 30,
-        roleId: roleId
-    });
-    return await api.post<SalaryAdvanceOnloadResponse>('hrms', url, requestBody);
+        HRME_Id: 0,
+        HRESA_EntryDate: now,
+        HRESA_AdvYear: 0,
+        HRESA_AdvMonth: '',
+        HRESA_AppliedAmount: 0,
+        HRESA_Remarks: '',
+        HRESA_ActiveFlag: true,
+        HRESA_AdvStatus: '',
+        HRESA_SanctinedAmount: 0,
+        HRESA_ModeOfPayment: '',
+        HRESA_ReferenceNo: 0,
+        empadvaList: [],
+        retrunMsg: '',
+        roleId: roleId || 0,
+        HRME_EmployeeFirstName: '',
+        HRME_EmployeeMiddleName: '',
+        HRME_EmployeeLastName: '',
+        employeedropdown: [],
+        leaveyeardropdown: [],
+        monthdropdown: [],
+        modeOfPaymentdropdown: [],
+        configurationDetails: {
+            HRC_Id: 0,
+            MI_Id: 0,
+            HRC_PFMaxAmt: 0,
+            HRC_FPFPer: 0,
+            HRC_EPFPer: 0,
+            HRC_AsPerEmpFlag: true,
+            HRC_PFAccNoPrefix: '',
+            HRC_AccNo2: 0,
+            HRC_AccNo21: 0,
+            HRC_AccNo22: 0,
+            HRC_RetirementYrs: 0,
+            HRC_ECodePrefix: '',
+            HRC_ESIMax: 0,
+            HRC_ESIEmplrCont: 0,
+            HRC_PayMethodFlg: '',
+            HRC_ArrSalaryFlag: true,
+            HRC_CummArrFlag: true,
+            HRC_SalaryFromDay: 0,
+            HRC_SalaryToDay: 0,
+            HRC_ARTFPFPer: 0,
+            HRC_ARTEPFPer: 0,
+            HRC_ESIMaxAmount: 0,
+            HRC_AC2MinAmount: 0,
+            HRC_AC21MinAmount: 0,
+            HRC_AC22MinAmount: 0,
+            HRC_SalAdvApprovalFlg: true,
+            HRC_LoanApprovalFlg: true,
+            HRC_LeaveApprovalFlg: true,
+            HRC_IncrementApprovalFlg: true,
+            HRC_ProbationApprovalFlg: true,
+            HRC_SalApprovalFlg: true,
+            HRC_EducationCess: 0,
+            roleId: 0,
+            retrunMsg: '',
+            hrStandardList: [],
+            monthdropdown: [],
+            HRC_partAmaxflag: 0,
+            HRC_partBmaxflag: 0,
+            HRC_IncrementMonth: '',
+            HRC_MinimumWorkingPeriod: 0,
+            HRC_FixedIncrmentFlg: true,
+            HRC_NoOfOptionalHolidays: 0,
+            HRC_IncrementOnceInMonths: 0,
+            HRC_AlertDay: 0
+        },
+        empGrossSal: 0,
+        totalAppliedAmount: 0,
+        searchfilter: ''
+    };
+    
+    const response = await api.post<SalaryAdvanceOnloadResponse>('hrms', url, requestBody);
+    
+    // The backend returns raw data, not wrapped in ApiResponse format
+    // Wrap it to match the expected ApiResponse structure
+    if (response && typeof response === 'object' && 'success' in response && 'data' in response) {
+        // Already wrapped
+        return response;
+    }
+    
+    // Wrap raw response data
+    return {
+        success: true,
+        message: 'Data loaded successfully',
+        data: response as unknown as SalaryAdvanceOnloadResponse
+    };
 }
 
 /**
@@ -409,24 +499,225 @@ export async function getSalaryAdvanceList(roleId: number = 2) {
  */
 export async function saveSalaryAdvance(data: SalaryAdvanceSaveRequest) {
     const url = '/api/HREmpSalaryAdvanceFacade';
-    const requestBody = createSalaryAdvanceRequestBody({
+    
+    // Prepare request body matching the exact API structure
+    const now = new Date().toISOString();
+    
+    // Create MasterEmployee object - using HRME_Id from data, with minimal employee info
+    // In a real scenario, you might want to fetch full employee details, but for now using defaults
+    const masterEmployee = {
+        CreatedDate: now,
+        UpdatedDate: now,
+        HRME_Id: data.HRME_Id || 0,
+        MI_Id: data.MI_Id || 30,
+        HRMET_Id: 0,
+        HRMGT_Id: 0,
+        HRMD_Id: 0,
+        HRMDES_Id: 0,
+        HRMG_Id: 0,
+        HRME_EmployeeFirstName: '',
+        HRME_EmployeeMiddleName: '',
+        HRME_EmployeeLastName: '',
+        HRME_EmployeeCode: '',
+        HRME_BiometricCode: '',
+        HRME_RFCardId: '',
+        HRME_PerStreet: '',
+        HRME_PerArea: '',
+        HRME_PerCity: '',
+        HRME_PerAdd4: '',
+        HRME_PerStateId: 0,
+        HRME_PerCountryId: 0,
+        HRME_PerPincode: 0,
+        HRME_LocStreet: '',
+        HRME_LocArea: '',
+        HRME_LocCity: '',
+        HRME_LocAdd4: '',
+        HRME_LocStateId: 0,
+        HRME_LocCountryId: 0,
+        HRME_LocPincode: 0,
+        IVRMMMS_Id: 0,
+        IVRMMG_Id: 0,
+        CasteCategoryId: 0,
+        CasteId: 0,
+        ReligionId: 0,
+        HRME_FatherName: '',
+        HRME_MotherName: '',
+        HRME_SpouseName: '',
+        HRME_SpouseOccupation: '',
+        HRME_SpouseMobileNo: 0,
+        HRME_SpouseEmailId: '',
+        HRME_SpouseAddress: '',
+        HRME_DOB: now,
+        HRME_DOJ: now,
+        HRME_ExpectedRetirementDate: now,
+        HRME_PFDate: now,
+        HRME_ESIDate: now,
+        HRME_MobileNo: 0,
+        HRME_EmailId: '',
+        HRME_BloodGroup: '',
+        HRME_PaymentType: '',
+        HRME_BankAccountNo: '',
+        HRME_PFApplicableFlag: true,
+        HRME_PFMaxFlag: true,
+        HRME_PFFixedFlag: true,
+        HRME_PFAccNo: '',
+        HRME_ESIAccNo: '',
+        HRME_GratuityAccNo: '',
+        HRME_ESIApplicableFlag: true,
+        HRME_Photo: '',
+        HRME_LeftFlag: true,
+        HRME_DOL: now,
+        HRME_LeavingReason: '',
+        HRME_Height: '',
+        HRME_HeightUOM: '',
+        HRME_Weight: 0,
+        HRME_WeightUOM: '',
+        HRME_IdentificationMark: '',
+        HRME_ApprovalNo: '',
+        HRME_PANCardNo: '',
+        HRME_AadharCardNo: 0,
+        HRME_SubstituteFlag: true,
+        HRME_NationalSSN: '',
+        HRME_SalaryType: '',
+        HRME_EmployeeOrder: 0,
+        HRME_ActiveFlag: true,
+        HRME_UINumber: '',
+        HRME_DOC: now,
+        HRME_SubjectsTaught: '',
+        HRME_AppDownloadedDeviceId: '',
+        HRME_PHDResearchGuideFlg: true,
+        HRME_TechNonTeachingFlg: '',
+        HRME_RGRecognitionYear: 0,
+        HRME_AnyHealthIssue: '',
+        HRME_EyeSightIssue: '',
+        HRME_TransfferedTo: 0,
+        HRME_RecordTransferredFlg: true,
+        HRME_MSTeamsUserId: '',
+        HRME_MSTeamsEmailId: '',
+        HRME_MSTeamsPassword: '',
+        HRME_ExcPunch: true,
+        HRME_RetiredFlg: true,
+        HRME_PensionStoppedDate: now,
+        HRME_FPFNotApplicableFlg: true,
+        HRME_EPFNotApplicableFlg: true,
+        HRME_AllowSoftwareAccessFlg: true
+    };
+
+    // Create empadvaList item with actual form data
+    const empadvaItem = {
+        CreatedDate: now,
+        UpdatedDate: now,
         HRESA_Id: data.HRESA_Id || 0,
         MI_Id: data.MI_Id || 30,
         HRME_Id: data.HRME_Id || 0,
-        HRESA_EntryDate: data.HRESA_EntryDate,
+        HRESA_EntryDate: data.HRESA_EntryDate || now,
         HRESA_AdvYear: data.HRESA_AdvYear || 0,
-        HRESA_AdvMonth: data.HRESA_AdvMonth || 'string',
-        HRESA_AppliedAmount: data.HRESA_AppliedAmount || 0,
-        HRESA_Remarks: data.HRESA_Remarks || 'string',
+        HRESA_AdvMonth: data.HRESA_AdvMonth || '',
+        HRESA_Remarks: data.HRESA_Remarks || '',
+        HRESA_AdvStatus: data.HRESA_AdvStatus || '',
         HRESA_ActiveFlag: data.HRESA_ActiveFlag !== undefined ? data.HRESA_ActiveFlag : true,
-        HRESA_AdvStatus: data.HRESA_AdvStatus || 'string',
+        HRESA_AppliedAmount: data.HRESA_AppliedAmount || 0,
         HRESA_SanctinedAmount: data.HRESA_SanctinedAmount || 0,
-        HRESA_ModeOfPayment: data.HRESA_ModeOfPayment || 'string',
+        HRESA_ModeOfPayment: data.HRESA_ModeOfPayment || '',
         HRESA_ReferenceNo: data.HRESA_ReferenceNo || 0,
+        MasterEmployee: masterEmployee
+    };
+
+    // Build configurationDetails structure
+    const configurationDetails = {
+        HRC_Id: 0,
+        MI_Id: 0,
+        HRC_PFMaxAmt: 0,
+        HRC_FPFPer: 0,
+        HRC_EPFPer: 0,
+        HRC_AsPerEmpFlag: true,
+        HRC_PFAccNoPrefix: '',
+        HRC_AccNo2: 0,
+        HRC_AccNo21: 0,
+        HRC_AccNo22: 0,
+        HRC_RetirementYrs: 0,
+        HRC_ECodePrefix: '',
+        HRC_ESIMax: 0,
+        HRC_ESIEmplrCont: 0,
+        HRC_PayMethodFlg: '',
+        HRC_ArrSalaryFlag: true,
+        HRC_CummArrFlag: true,
+        HRC_SalaryFromDay: 0,
+        HRC_SalaryToDay: 0,
+        HRC_ARTFPFPer: 0,
+        HRC_ARTEPFPer: 0,
+        HRC_ESIMaxAmount: 0,
+        HRC_AC2MinAmount: 0,
+        HRC_AC21MinAmount: 0,
+        HRC_AC22MinAmount: 0,
+        HRC_SalAdvApprovalFlg: true,
+        HRC_LoanApprovalFlg: true,
+        HRC_LeaveApprovalFlg: true,
+        HRC_IncrementApprovalFlg: true,
+        HRC_ProbationApprovalFlg: true,
+        HRC_SalApprovalFlg: true,
+        HRC_EducationCess: 0,
         roleId: data.roleId || 0,
-        searchfilter: (data as any).searchfilter || 'string'
-    });
-    return await api.post<SalaryAdvanceOnloadResponse>('hrms', url, requestBody);
+        retrunMsg: '',
+        hrStandardList: [],
+        monthdropdown: [],
+        HRC_partAmaxflag: 0,
+        HRC_partBmaxflag: 0,
+        HRC_IncrementMonth: '',
+        HRC_MinimumWorkingPeriod: 0,
+        HRC_FixedIncrmentFlg: true,
+        HRC_NoOfOptionalHolidays: 0,
+        HRC_IncrementOnceInMonths: 0,
+        HRC_AlertDay: 0
+    };
+
+    const requestBody = {
+        CreatedDate: now,
+        UpdatedDate: now,
+        HRESA_Id: data.HRESA_Id || 0,
+        MI_Id: data.MI_Id || 30,
+        HRME_Id: data.HRME_Id || 0,
+        HRESA_EntryDate: data.HRESA_EntryDate || now,
+        HRESA_AdvYear: data.HRESA_AdvYear || 0,
+        HRESA_AdvMonth: data.HRESA_AdvMonth || '',
+        HRESA_AppliedAmount: data.HRESA_AppliedAmount || 0,
+        HRESA_Remarks: data.HRESA_Remarks || '',
+        HRESA_ActiveFlag: data.HRESA_ActiveFlag !== undefined ? data.HRESA_ActiveFlag : true,
+        HRESA_AdvStatus: data.HRESA_AdvStatus || '',
+        HRESA_SanctinedAmount: data.HRESA_SanctinedAmount || 0,
+        HRESA_ModeOfPayment: data.HRESA_ModeOfPayment || '',
+        HRESA_ReferenceNo: data.HRESA_ReferenceNo || 0,
+        empadvaList: [empadvaItem],
+        retrunMsg: '',
+        roleId: data.roleId || 0,
+        HRME_EmployeeFirstName: '',
+        HRME_EmployeeMiddleName: '',
+        HRME_EmployeeLastName: '',
+        employeedropdown: [],
+        leaveyeardropdown: [],
+        monthdropdown: [],
+        modeOfPaymentdropdown: [],
+        configurationDetails: configurationDetails,
+        empGrossSal: 0,
+        totalAppliedAmount: 0,
+        searchfilter: ''
+    };
+    
+    const response = await api.post<SalaryAdvanceOnloadResponse>('hrms', url, requestBody);
+    
+    // The backend returns raw data, not wrapped in ApiResponse format
+    // Wrap it to match the expected ApiResponse structure
+    if (response && typeof response === 'object' && 'success' in response && 'data' in response) {
+        // Already wrapped
+        return response;
+    }
+    
+    // Wrap raw response data
+    return {
+        success: true,
+        message: 'Salary advance saved successfully',
+        data: response as unknown as SalaryAdvanceOnloadResponse
+    };
 }
 
 /**
@@ -446,11 +737,224 @@ export async function deleteSalaryAdvance(hresaId: number) {
  * Activate/Deactivate salary advance record by ID
  * POST /api/HREmpSalaryAdvanceFacade/deactivateRecordById
  */
-export async function toggleSalaryAdvanceStatus(hresaId: number) {
+export async function toggleSalaryAdvanceStatus(hresaId: number, activeFlag: boolean) {
     const url = '/api/HREmpSalaryAdvanceFacade/deactivateRecordById';
-    const requestBody = createSalaryAdvanceRequestBody({
+    
+    // Prepare request body matching the exact API structure
+    const now = new Date().toISOString();
+    
+    // Create MasterEmployee object - minimal structure required
+    const masterEmployee = {
+        CreatedDate: now,
+        UpdatedDate: now,
+        HRME_Id: 0,
+        MI_Id: 30,
+        HRMET_Id: 0,
+        HRMGT_Id: 0,
+        HRMD_Id: 0,
+        HRMDES_Id: 0,
+        HRMG_Id: 0,
+        HRME_EmployeeFirstName: '',
+        HRME_EmployeeMiddleName: '',
+        HRME_EmployeeLastName: '',
+        HRME_EmployeeCode: '',
+        HRME_BiometricCode: '',
+        HRME_RFCardId: '',
+        HRME_PerStreet: '',
+        HRME_PerArea: '',
+        HRME_PerCity: '',
+        HRME_PerAdd4: '',
+        HRME_PerStateId: 0,
+        HRME_PerCountryId: 0,
+        HRME_PerPincode: 0,
+        HRME_LocStreet: '',
+        HRME_LocArea: '',
+        HRME_LocCity: '',
+        HRME_LocAdd4: '',
+        HRME_LocStateId: 0,
+        HRME_LocCountryId: 0,
+        HRME_LocPincode: 0,
+        IVRMMMS_Id: 0,
+        IVRMMG_Id: 0,
+        CasteCategoryId: 0,
+        CasteId: 0,
+        ReligionId: 0,
+        HRME_FatherName: '',
+        HRME_MotherName: '',
+        HRME_SpouseName: '',
+        HRME_SpouseOccupation: '',
+        HRME_SpouseMobileNo: 0,
+        HRME_SpouseEmailId: '',
+        HRME_SpouseAddress: '',
+        HRME_DOB: now,
+        HRME_DOJ: now,
+        HRME_ExpectedRetirementDate: now,
+        HRME_PFDate: now,
+        HRME_ESIDate: now,
+        HRME_MobileNo: 0,
+        HRME_EmailId: '',
+        HRME_BloodGroup: '',
+        HRME_PaymentType: '',
+        HRME_BankAccountNo: '',
+        HRME_PFApplicableFlag: true,
+        HRME_PFMaxFlag: true,
+        HRME_PFFixedFlag: true,
+        HRME_PFAccNo: '',
+        HRME_ESIAccNo: '',
+        HRME_GratuityAccNo: '',
+        HRME_ESIApplicableFlag: true,
+        HRME_Photo: '',
+        HRME_LeftFlag: true,
+        HRME_DOL: now,
+        HRME_LeavingReason: '',
+        HRME_Height: '',
+        HRME_HeightUOM: '',
+        HRME_Weight: 0,
+        HRME_WeightUOM: '',
+        HRME_IdentificationMark: '',
+        HRME_ApprovalNo: '',
+        HRME_PANCardNo: '',
+        HRME_AadharCardNo: 0,
+        HRME_SubstituteFlag: true,
+        HRME_NationalSSN: '',
+        HRME_SalaryType: '',
+        HRME_EmployeeOrder: 0,
+        HRME_ActiveFlag: true,
+        HRME_UINumber: '',
+        HRME_DOC: now,
+        HRME_SubjectsTaught: '',
+        HRME_AppDownloadedDeviceId: '',
+        HRME_PHDResearchGuideFlg: true,
+        HRME_TechNonTeachingFlg: '',
+        HRME_RGRecognitionYear: 0,
+        HRME_AnyHealthIssue: '',
+        HRME_EyeSightIssue: '',
+        HRME_TransfferedTo: 0,
+        HRME_RecordTransferredFlg: true,
+        HRME_MSTeamsUserId: '',
+        HRME_MSTeamsEmailId: '',
+        HRME_MSTeamsPassword: '',
+        HRME_ExcPunch: true,
+        HRME_RetiredFlg: true,
+        HRME_PensionStoppedDate: now,
+        HRME_FPFNotApplicableFlg: true,
+        HRME_EPFNotApplicableFlg: true,
+        HRME_AllowSoftwareAccessFlg: true
+    };
+
+    // Create empadvaList item
+    const empadvaItem = {
+        CreatedDate: now,
+        UpdatedDate: now,
         HRESA_Id: hresaId,
-        MI_Id: 30
-    });
-    return await api.post<SalaryAdvanceOnloadResponse>('hrms', url, requestBody);
+        MI_Id: 30,
+        HRME_Id: 0,
+        HRESA_EntryDate: now,
+        HRESA_AdvYear: 0,
+        HRESA_AdvMonth: '',
+        HRESA_Remarks: '',
+        HRESA_AdvStatus: '',
+        HRESA_ActiveFlag: activeFlag,
+        HRESA_AppliedAmount: 0,
+        HRESA_SanctinedAmount: 0,
+        HRESA_ModeOfPayment: '',
+        HRESA_ReferenceNo: 0,
+        MasterEmployee: masterEmployee
+    };
+
+    // Build configurationDetails structure
+    const configurationDetails = {
+        HRC_Id: 0,
+        MI_Id: 0,
+        HRC_PFMaxAmt: 0,
+        HRC_FPFPer: 0,
+        HRC_EPFPer: 0,
+        HRC_AsPerEmpFlag: true,
+        HRC_PFAccNoPrefix: '',
+        HRC_AccNo2: 0,
+        HRC_AccNo21: 0,
+        HRC_AccNo22: 0,
+        HRC_RetirementYrs: 0,
+        HRC_ECodePrefix: '',
+        HRC_ESIMax: 0,
+        HRC_ESIEmplrCont: 0,
+        HRC_PayMethodFlg: '',
+        HRC_ArrSalaryFlag: true,
+        HRC_CummArrFlag: true,
+        HRC_SalaryFromDay: 0,
+        HRC_SalaryToDay: 0,
+        HRC_ARTFPFPer: 0,
+        HRC_ARTEPFPer: 0,
+        HRC_ESIMaxAmount: 0,
+        HRC_AC2MinAmount: 0,
+        HRC_AC21MinAmount: 0,
+        HRC_AC22MinAmount: 0,
+        HRC_SalAdvApprovalFlg: true,
+        HRC_LoanApprovalFlg: true,
+        HRC_LeaveApprovalFlg: true,
+        HRC_IncrementApprovalFlg: true,
+        HRC_ProbationApprovalFlg: true,
+        HRC_SalApprovalFlg: true,
+        HRC_EducationCess: 0,
+        roleId: 0,
+        retrunMsg: '',
+        hrStandardList: [],
+        monthdropdown: [],
+        HRC_partAmaxflag: 0,
+        HRC_partBmaxflag: 0,
+        HRC_IncrementMonth: '',
+        HRC_MinimumWorkingPeriod: 0,
+        HRC_FixedIncrmentFlg: true,
+        HRC_NoOfOptionalHolidays: 0,
+        HRC_IncrementOnceInMonths: 0,
+        HRC_AlertDay: 0
+    };
+
+    const requestBody = {
+        CreatedDate: now,
+        UpdatedDate: now,
+        HRESA_Id: hresaId,
+        MI_Id: 30,
+        HRME_Id: 0,
+        HRESA_EntryDate: now,
+        HRESA_AdvYear: 0,
+        HRESA_AdvMonth: '',
+        HRESA_AppliedAmount: 0,
+        HRESA_Remarks: '',
+        HRESA_ActiveFlag: activeFlag,
+        HRESA_AdvStatus: '',
+        HRESA_SanctinedAmount: 0,
+        HRESA_ModeOfPayment: '',
+        HRESA_ReferenceNo: 0,
+        empadvaList: [empadvaItem],
+        retrunMsg: '',
+        roleId: 0,
+        HRME_EmployeeFirstName: '',
+        HRME_EmployeeMiddleName: '',
+        HRME_EmployeeLastName: '',
+        employeedropdown: [],
+        leaveyeardropdown: [],
+        monthdropdown: [],
+        modeOfPaymentdropdown: [],
+        configurationDetails: configurationDetails,
+        empGrossSal: 0,
+        totalAppliedAmount: 0,
+        searchfilter: ''
+    };
+    
+    const response = await api.post<SalaryAdvanceOnloadResponse>('hrms', url, requestBody);
+    
+    // The backend returns raw data, not wrapped in ApiResponse format
+    // Wrap it to match the expected ApiResponse structure
+    if (response && typeof response === 'object' && 'success' in response && 'data' in response) {
+        // Already wrapped
+        return response;
+    }
+    
+    // Wrap raw response data
+    return {
+        success: true,
+        message: 'Salary advance status updated successfully',
+        data: response as unknown as SalaryAdvanceOnloadResponse
+    };
 }

@@ -6,7 +6,7 @@ import { DatePickerWithYear } from '@/components/ui/date-picker-year';
 import { Checkbox } from '@/components/ui/checkbox';
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
 import { DataTable } from '@/components/ui/data-table/data-table';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuLabel, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { ActionButtons } from '@/components/ui/form/action-buttons';
 import { Label } from '@/components/ui/extension/field';
 import { InputText } from '@/components/ui/extension/input-text';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
@@ -16,6 +16,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { type BaseEntity, createLocalCrud } from '@/lib/localdb';
 import { cn } from '@/lib/utils';
 import {
+    activateDeactivateEmployee,
     getEmployeeById,
     getEmployeeRegisterOnload,
     getEmployeeSalaryDetails,
@@ -34,12 +35,14 @@ import {
 import type {
     EmployeeRegisterOnloadResponse,
     EmployeeRegisterSaveRequest,
+    EmployeeSalaryDetailItem,
+    GetEmployeeByIdResponse,
     SalaryDetailItem,
     SaveQualificationRequest
 } from '@/types/hrms/employee-register';
 import type { ColumnDef } from '@tanstack/react-table';
 import { format } from 'date-fns';
-import { CalendarIcon, Edit, MoreHorizontal, Plus, Trash2, Upload, X } from 'lucide-react';
+import { CalendarIcon, Plus, Trash2, Upload, X } from 'lucide-react';
 import React, { useState, useEffect, useRef } from 'react';
 import { Controller, type SubmitHandler, useFieldArray, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
@@ -194,6 +197,9 @@ interface Employee extends BaseEntity {
     punchRelaxation: boolean;
     stopPension: boolean;
     employeeLeft: boolean;
+
+    // Status
+    activeFlag?: boolean;
 
     // Payroll fields - Earning Details
     earnings: string;
@@ -1692,15 +1698,23 @@ export default function EmployeeRegisterPage() {
 
     const handleEdit = async (item: Employee) => {
         try {
-            // Fetch employee data from API
-            const response = await getEmployeeById(item.id);
+            // Fetch employee data from API using HRME_Id
+            const employeeId = item.id; // HRME_Id from the employee record
+            const response = await getEmployeeById(employeeId);
 
-            if (!response.success || !response.data) {
-                toast.error(response.message || 'Failed to load employee data');
-                return;
+            // Handle both wrapped and unwrapped responses
+            let employeeData: GetEmployeeByIdResponse;
+            if (response && typeof response === 'object' && 'success' in response && 'data' in response) {
+                // Wrapped response
+                if (!response.success || !response.data) {
+                    toast.error(response.message || 'Failed to load employee data');
+                    return;
+                }
+                employeeData = response.data as GetEmployeeByIdResponse;
+            } else {
+                // Direct response
+                employeeData = response as GetEmployeeByIdResponse;
             }
-
-            const employeeData = response.data;
 
             // Get the main employee details (usually first item in employeedetailList)
             const empDetails = employeeData.employeedetailList?.[0] || {};
@@ -1847,10 +1861,65 @@ export default function EmployeeRegisterPage() {
             }
 
             // Experience Details (if available)
-            if (employeeData.employeeEarningsDeductionsDetails && Array.isArray(employeeData.employeeEarningsDeductionsDetails)) {
-                // This is actually payroll data, not experience data
-                // Experience might be in a different field or not in this response
+            if (employeeData.experienceDetails && Array.isArray(employeeData.experienceDetails)) {
+                const expDetails = employeeData.experienceDetails.map((exp: any) => ({
+                    organisationName: exp.HRMEE_OrganisationName || '',
+                    organisationAddress: exp.HRMEE_OrganisationAddress || '',
+                    experienceDepartment: exp.HRMEE_Department || '',
+                    experienceDesignation: exp.HRMEE_Designation || '',
+                    dateOfJoiningExp: exp.HRMEE_JoinDate ? format(new Date(exp.HRMEE_JoinDate), 'yyyy-MM-dd') : '',
+                    dateOfLeaving: exp.HRMEE_ExitDate ? format(new Date(exp.HRMEE_ExitDate), 'yyyy-MM-dd') : '',
+                    noOfYears: exp.HRMEE_NoOfYears?.toString() || '',
+                    noOfMonths: exp.HRMEE_NoOfMonths?.toString() || '',
+                    lastDrawnSalary: exp.HRMEE_AnnualSalary?.toString() || '',
+                    reasonForLeavingExp: exp.HRMEE_ReasonForLeaving || ''
+                }));
+                setValue('experienceDetails', expDetails);
+            } else {
                 setValue('experienceDetails', []);
+            }
+
+            // Mobile Details
+            if (employeeData.selectedmobile_list_dto && Array.isArray(employeeData.selectedmobile_list_dto)) {
+                const mobileDetails = employeeData.selectedmobile_list_dto.map((mob: any) => ({
+                    mobileNo: mob.HRMEMNO_MobileNo?.toString() || '',
+                    type: mob.HRMEMNO_DeFaultFlag === 'default' ? 'default' : ''
+                }));
+                setValue('mobileDetails', mobileDetails);
+                // Set default mobile if available
+                const defaultMobile = employeeData.selectedmobile_list_dto.find((m: any) => m.HRMEMNO_DeFaultFlag === 'default');
+                if (defaultMobile) {
+                    setValue('mobileNo', defaultMobile.HRMEMNO_MobileNo?.toString() || '');
+                }
+            }
+
+            // Email Details
+            if (employeeData.selectedemail_list_dto && Array.isArray(employeeData.selectedemail_list_dto)) {
+                const emailDetails = employeeData.selectedemail_list_dto.map((email: any) => ({
+                    emailId: email.HRMEM_EmailId || '',
+                    type: email.HRMEM_DeFaultFlag === 'default' ? 'default' : ''
+                }));
+                setValue('emailDetails', emailDetails);
+                // Set default email if available
+                const defaultEmail = employeeData.selectedemail_list_dto.find((e: any) => e.HRMEM_DeFaultFlag === 'default');
+                if (defaultEmail) {
+                    setValue('emailId', defaultEmail.HRMEM_EmailId || '');
+                }
+            }
+
+            // Bank Details
+            if (employeeData.employeebankDetails && Array.isArray(employeeData.employeebankDetails)) {
+                const bankDetails = employeeData.employeebankDetails.map((bank: any) => ({
+                    employerBankName: bank.HRMBD_Id?.toString() || '',
+                    bankAccountNo: bank.HRMEB_AccountNo || '',
+                    accountType: bank.HRMEB_ActiveFlag === 'default' ? 'default' : ''
+                }));
+                setValue('bankDetails', bankDetails);
+                // Set default bank if available
+                const defaultBank = employeeData.employeebankDetails.find((b: any) => b.HRMEB_ActiveFlag === 'default');
+                if (defaultBank) {
+                    setValue('bankAccountNo', defaultBank.HRMEB_AccountNo || '');
+                }
             }
 
             toast.success('Employee data loaded successfully');
@@ -1879,6 +1948,29 @@ export default function EmployeeRegisterPage() {
         }
     };
 
+    const handleToggle = async (employee: Employee, newState: boolean) => {
+        try {
+            const response = await activateDeactivateEmployee({
+                HRME_Id: employee.id,
+                HRME_ActiveFlag: newState,
+                MI_Id: 30 // Default MI_Id, adjust as needed
+            });
+
+            if (response && response.success !== false) {
+                toast.success(`Employee ${newState ? 'activated' : 'deactivated'} successfully`);
+                // Update local state
+                setEmployees((prev) =>
+                    prev.map((emp) => (emp.id === employee.id ? { ...emp, activeFlag: newState } : emp))
+                );
+            } else {
+                toast.error(`Failed to ${newState ? 'activate' : 'deactivate'} employee`);
+            }
+        } catch (error: any) {
+            console.error('Error toggling employee status:', error);
+            toast.error(error.message || `Failed to ${newState ? 'activate' : 'deactivate'} employee`);
+        }
+    };
+
     return (
         <div className='min-h-screen'>
             <div className='container space-y-4 p-1'>
@@ -1902,7 +1994,13 @@ export default function EmployeeRegisterPage() {
                     size='lg'
                     className='shadow-lg transition-shadow duration-300 hover:shadow-xl'
                     headerClassName=''>
-                    <EmployeeTable employees={employees} isLoading={isLoading} onEdit={handleEdit} onDelete={handleDelete} />
+                    <EmployeeTable
+                        employees={employees}
+                        isLoading={isLoading}
+                        onEdit={handleEdit}
+                        onDelete={handleDelete}
+                        onToggle={handleToggle}
+                    />
                 </CollapsibleSection>
 
                 {/* Employee Registration Form - Conditionally Rendered */}
@@ -2031,6 +2129,7 @@ export default function EmployeeRegisterPage() {
                                                 setArrearsList={setArrearsList}
                                                 isLoadingPayroll={isLoadingPayroll}
                                                 setIsLoadingPayroll={setIsLoadingPayroll}
+                                                activeTab={activeTab}
                                             />
                                         </TabsContent>
                                     </Tabs>
@@ -4010,6 +4109,7 @@ interface PayrollTabProps {
     setArrearsList: React.Dispatch<React.SetStateAction<SalaryDetailItem[]>>;
     isLoadingPayroll: boolean;
     setIsLoadingPayroll: React.Dispatch<React.SetStateAction<boolean>>;
+    activeTab?: string;
 }
 
 function PayrollTab({
@@ -4025,10 +4125,12 @@ function PayrollTab({
     arrearsList,
     setArrearsList,
     isLoadingPayroll,
-    setIsLoadingPayroll
+    setIsLoadingPayroll,
+    activeTab
 }: PayrollTabProps) {
-    // Track if data has been loaded
+    // Track if data has been loaded for this employee
     const [hasLoadedOnce, setHasLoadedOnce] = React.useState(false);
+    const [lastEmployeeId, setLastEmployeeId] = React.useState<number | null>(null);
 
     // Function to load payroll data
     const loadPayrollData = async () => {
@@ -4047,12 +4149,93 @@ function PayrollTab({
 
             const response = await getEmployeeSalaryDetails(payload);
 
+            console.log('📊 Payroll API Response:', response);
+            console.log('📊 Response Data:', response.data);
+
             if (response.success && response.data) {
-                setEarningsList(response.data.earningList || []);
-                setDeductionsList(response.data.detectionList || []);
-                setArrearsList(response.data.arrearList || []);
+                // Response is an array, take the first item which contains all the lists
+                const payrollData = (Array.isArray(response.data) && response.data.length > 0 
+                    ? response.data[0] 
+                    : response.data) as EmployeeSalaryDetailItem;
+                
+                console.log('📊 Processed Payroll Data:', payrollData);
+                console.log('📊 Earning List:', payrollData?.earningList);
+                console.log('📊 Detection List:', payrollData?.detectionList);
+                console.log('📊 Arrear List:', payrollData?.arrearList);
+                console.log('📊 Employee Earnings Deductions:', payrollData?.employeeEarningsDeductionsDetails);
+                
+                // Try to get data from different possible locations in the response
+                let earnings: SalaryDetailItem[] = [];
+                let deductions: SalaryDetailItem[] = [];
+                let arrears: SalaryDetailItem[] = [];
+
+                // Method 1: Direct lists (if available)
+                if (payrollData?.earningList && Array.isArray(payrollData.earningList)) {
+                    earnings = payrollData.earningList;
+                }
+                if (payrollData?.detectionList && Array.isArray(payrollData.detectionList)) {
+                    deductions = payrollData.detectionList;
+                }
+                if (payrollData?.arrearList && Array.isArray(payrollData.arrearList)) {
+                    arrears = payrollData.arrearList;
+                }
+
+                // Method 2: Process employeeEarningsDeductionsDetails if direct lists are empty
+                if (earnings.length === 0 && deductions.length === 0 && arrears.length === 0) {
+                    const earningsDeductions = payrollData?.employeeEarningsDeductionsDetails || [];
+                    
+                    earningsDeductions.forEach((item: any) => {
+                        const salaryItem: SalaryDetailItem = {
+                            HREED_Id: item.HREED_Id || 0,
+                            HRME_Id: item.HRME_Id || employeeId || 0,
+                            HRMED_Id: item.HRMED_Id || 0,
+                            HREED_Amount: item.HREED_Amount || 0,
+                            HREED_Percentage: item.HREED_Percentage || '0',
+                            HREED_ActiveFlag: item.HREED_ActiveFlag !== undefined ? item.HREED_ActiveFlag : true,
+                            HRMED_Name: item.HRMED_Name || '',
+                            HRMED_EarnDedFlag: item.HRMED_EarnDedFlag || '',
+                            HRMED_AmountPercentFlag: item.HRMED_AmountPercentFlag || '',
+                            HREED_ApplicableMaxValue: item.HREED_ApplicableMaxValue || 0,
+                            HREED_MaxApplicableFlg: item.HREED_MaxApplicableFlg || false
+                        };
+
+                        if (item.HRMED_EarnDedFlag === 'Earning') {
+                            earnings.push(salaryItem);
+                        } else if (item.HRMED_EarnDedFlag === 'Deduction') {
+                            deductions.push(salaryItem);
+                        } else if (item.HRMED_EarnDedFlag === 'Arrear') {
+                            arrears.push(salaryItem);
+                        }
+                    });
+                }
+
+                // Method 3: Check if the response itself is an array of items
+                if (earnings.length === 0 && deductions.length === 0 && arrears.length === 0 && Array.isArray(response.data)) {
+                    response.data.forEach((item: any) => {
+                        if (item.HRMED_EarnDedFlag === 'Earning') {
+                            earnings.push(item);
+                        } else if (item.HRMED_EarnDedFlag === 'Deduction') {
+                            deductions.push(item);
+                        } else if (item.HRMED_EarnDedFlag === 'Arrear') {
+                            arrears.push(item);
+                        }
+                    });
+                }
+
+                console.log('📊 Final Earnings:', earnings);
+                console.log('📊 Final Deductions:', deductions);
+                console.log('📊 Final Arrears:', arrears);
+
+                setEarningsList(earnings);
+                setDeductionsList(deductions);
+                setArrearsList(arrears);
                 setHasLoadedOnce(true);
-                toast.success('Payroll details loaded successfully');
+                
+                if (earnings.length > 0 || deductions.length > 0 || arrears.length > 0) {
+                    toast.success(`Payroll details loaded: ${earnings.length} earnings, ${deductions.length} deductions, ${arrears.length} arrears`);
+                } else {
+                    toast.warning('No payroll data found for this employee. Check console for details.');
+                }
             } else {
                 toast.error(response.message || 'Failed to load payroll details');
             }
@@ -4064,22 +4247,23 @@ function PayrollTab({
         }
     };
 
-    // Auto-load data when tab is opened (first time only)
+    // Auto-load data when Payroll tab is opened
     React.useEffect(() => {
-        if (employeeId && !hasLoadedOnce && !isLoadingPayroll) {
-            loadPayrollData();
-        } else {
-            if (!employeeId) {
-                return;
-            }
-            if (hasLoadedOnce) {
-                return;
-            }
-            if (isLoadingPayroll) {
-                return;
-            }
+        // Reset hasLoadedOnce if employeeId changes
+        if (employeeId !== lastEmployeeId) {
+            setHasLoadedOnce(false);
+            setLastEmployeeId(employeeId);
         }
-    }, [employeeId]); // Only run when employeeId changes or component mounts
+
+        // Load data when:
+        // 1. Payroll tab is active
+        // 2. Employee ID exists
+        // 3. Not already loaded for this employee
+        // 4. Not currently loading
+        if (activeTab === 'payroll' && employeeId && !hasLoadedOnce && !isLoadingPayroll) {
+            loadPayrollData();
+        }
+    }, [activeTab, employeeId, hasLoadedOnce, isLoadingPayroll, lastEmployeeId]);
 
     // Handle checkbox change - triggers recalculation
     const handleCheckboxChange = async (index: number, type: 'earning' | 'deduction' | 'arrear', checked: boolean) => {
@@ -4147,24 +4331,24 @@ function PayrollTab({
                     designationdropdown: []
                 });
 
-                if (response.success && response.data?.HREED_Amount !== undefined) {
-                    // Update amount based on calculation
-                    const updateWithAmount = (list: SalaryDetailItem[]) => {
-                        const newList = [...list];
-                        newList[index] = {
-                            ...newList[index],
-                            HREED_Amount: response.data!.HREED_Amount!
-                        };
-                        return newList;
-                    };
-
-                    if (type === 'earning') {
-                        setEarningsList(updateWithAmount);
-                    } else if (type === 'deduction') {
-                        setDeductionsList(updateWithAmount);
-                    } else {
-                        setArrearsList(updateWithAmount);
+                if (response.success && response.data) {
+                    // Response is an array, take the first item which contains all the updated lists
+                    const calculatedData = (Array.isArray(response.data) && response.data.length > 0 
+                        ? response.data[0] 
+                        : response.data) as EmployeeSalaryDetailItem;
+                    
+                    // Update the lists with the recalculated data from the API response
+                    if (calculatedData?.earningList) {
+                        setEarningsList(calculatedData.earningList || []);
                     }
+                    if (calculatedData?.detectionList) {
+                        setDeductionsList(calculatedData.detectionList || []);
+                    }
+                    if (calculatedData?.arrearList) {
+                        setArrearsList(calculatedData.arrearList || []);
+                    }
+                    
+                    toast.success('Salary details recalculated successfully');
                 }
             } catch (error) {
                 console.error('Error calculating salary:', error);
@@ -4214,30 +4398,22 @@ function PayrollTab({
 
     return (
         <div className='space-y-6'>
-            <div className='flex items-center justify-between rounded-md bg-primary px-4 py-2 text-primary-foreground'>
+            <div className='rounded-md bg-primary px-4 py-2 text-primary-foreground'>
                 <h3 className='font-semibold'>Salary Details</h3>
-                <Button type='button' variant='secondary' size='sm' onClick={loadPayrollData} disabled={isLoadingPayroll} className='gap-2'>
-                    {isLoadingPayroll ? (
-                        <>
-                            <span className='h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent' />
-                            Loading...
-                        </>
-                    ) : (
-                        <>
-                            <span className='text-lg'>↻</span>
-                            Load Payroll Details
-                        </>
-                    )}
-                </Button>
             </div>
+
+            {isLoadingPayroll && (
+                <div className='rounded-md border border-dashed bg-muted/50 p-8 text-center'>
+                    <div className='mb-3 flex items-center justify-center gap-2 text-muted-foreground'>
+                        <span className='h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent' />
+                        Loading payroll details...
+                    </div>
+                </div>
+            )}
 
             {!hasData && !isLoadingPayroll && (
                 <div className='rounded-md border border-dashed bg-muted/50 p-8 text-center'>
-                    <div className='mb-3 text-muted-foreground'>Click "Load Payroll Details" to fetch salary information</div>
-                    <Button type='button' variant='default' onClick={loadPayrollData} className='gap-2'>
-                        <span className='text-lg'>↻</span>
-                        Load Payroll Details
-                    </Button>
+                    <div className='mb-3 text-muted-foreground'>No payroll data available for this employee</div>
                 </div>
             )}
 
@@ -4268,12 +4444,51 @@ function PayrollTab({
                                 ) : (
                                     earningsList.map((item, index) => (
                                         <div key={index} className='grid min-w-[800px] grid-cols-8 items-center gap-1'>
-                                            <div>{index + 1}</div>
+                                            <div className='text-sm'>{index + 1}</div>
                                             <div className='text-sm'>{item.HRMED_Name || '-'}</div>
-                                            <div className='text-sm'>{item.HREED_Percentage || '0'}</div>
-                                            <div className='text-sm'>{item.HRMED_AmountPercentFlag || '-'}</div>
-                                            <div className='font-medium text-sm'>{item.HREED_Amount?.toFixed(2) || '0.00'}</div>
-                                            <div className='text-sm'>{item.HREED_ApplicableMaxValue?.toFixed(2) || '0.00'}</div>
+                                            <InputText
+                                                type='number'
+                                                step='0.01'
+                                                value={item.HREED_Percentage || '0'}
+                                                onChange={(e) => {
+                                                    const newList = [...earningsList];
+                                                    newList[index] = { ...newList[index], HREED_Percentage: e.target.value };
+                                                    setEarningsList(newList);
+                                                }}
+                                                className='h-8 text-sm'
+                                            />
+                                            <InputText
+                                                type='text'
+                                                value={item.HRMED_AmountPercentFlag || ''}
+                                                onChange={(e) => {
+                                                    const newList = [...earningsList];
+                                                    newList[index] = { ...newList[index], HRMED_AmountPercentFlag: e.target.value };
+                                                    setEarningsList(newList);
+                                                }}
+                                                className='h-8 text-sm'
+                                            />
+                                            <InputText
+                                                type='number'
+                                                step='0.01'
+                                                value={item.HREED_Amount || 0}
+                                                onChange={(e) => {
+                                                    const newList = [...earningsList];
+                                                    newList[index] = { ...newList[index], HREED_Amount: parseFloat(e.target.value) || 0 };
+                                                    setEarningsList(newList);
+                                                }}
+                                                className='h-8 font-medium text-sm'
+                                            />
+                                            <InputText
+                                                type='number'
+                                                step='0.01'
+                                                value={item.HREED_ApplicableMaxValue || 0}
+                                                onChange={(e) => {
+                                                    const newList = [...earningsList];
+                                                    newList[index] = { ...newList[index], HREED_ApplicableMaxValue: parseFloat(e.target.value) || 0 };
+                                                    setEarningsList(newList);
+                                                }}
+                                                className='h-8 text-sm'
+                                            />
                                             <div className='text-sm'>{item.HREED_MaxApplicableFlg ? 'Yes' : 'No'}</div>
                                             <div>
                                                 <Checkbox
@@ -4320,12 +4535,51 @@ function PayrollTab({
                                 ) : (
                                     deductionsList.map((item, index) => (
                                         <div key={index} className='grid min-w-[800px] grid-cols-8 items-center gap-1'>
-                                            <div>{index + 1}</div>
+                                            <div className='text-sm'>{index + 1}</div>
                                             <div className='text-sm'>{item.HRMED_Name || '-'}</div>
-                                            <div className='text-sm'>{item.HREED_Percentage || '0'}</div>
-                                            <div className='text-sm'>{item.HRMED_AmountPercentFlag || '-'}</div>
-                                            <div className='font-medium text-sm'>{item.HREED_Amount?.toFixed(2) || '0.00'}</div>
-                                            <div className='text-sm'>{item.HREED_ApplicableMaxValue?.toFixed(2) || '0.00'}</div>
+                                            <InputText
+                                                type='number'
+                                                step='0.01'
+                                                value={item.HREED_Percentage || '0'}
+                                                onChange={(e) => {
+                                                    const newList = [...deductionsList];
+                                                    newList[index] = { ...newList[index], HREED_Percentage: e.target.value };
+                                                    setDeductionsList(newList);
+                                                }}
+                                                className='h-8 text-sm'
+                                            />
+                                            <InputText
+                                                type='text'
+                                                value={item.HRMED_AmountPercentFlag || ''}
+                                                onChange={(e) => {
+                                                    const newList = [...deductionsList];
+                                                    newList[index] = { ...newList[index], HRMED_AmountPercentFlag: e.target.value };
+                                                    setDeductionsList(newList);
+                                                }}
+                                                className='h-8 text-sm'
+                                            />
+                                            <InputText
+                                                type='number'
+                                                step='0.01'
+                                                value={item.HREED_Amount || 0}
+                                                onChange={(e) => {
+                                                    const newList = [...deductionsList];
+                                                    newList[index] = { ...newList[index], HREED_Amount: parseFloat(e.target.value) || 0 };
+                                                    setDeductionsList(newList);
+                                                }}
+                                                className='h-8 font-medium text-sm'
+                                            />
+                                            <InputText
+                                                type='number'
+                                                step='0.01'
+                                                value={item.HREED_ApplicableMaxValue || 0}
+                                                onChange={(e) => {
+                                                    const newList = [...deductionsList];
+                                                    newList[index] = { ...newList[index], HREED_ApplicableMaxValue: parseFloat(e.target.value) || 0 };
+                                                    setDeductionsList(newList);
+                                                }}
+                                                className='h-8 text-sm'
+                                            />
                                             <div className='text-sm'>{item.HREED_MaxApplicableFlg ? 'Yes' : 'No'}</div>
                                             <div>
                                                 <Checkbox
@@ -4371,11 +4625,40 @@ function PayrollTab({
                                 ) : (
                                     arrearsList.map((item, index) => (
                                         <div key={index} className='grid grid-cols-7 items-center gap-2'>
-                                            <div>{index + 1}</div>
+                                            <div className='text-sm'>{index + 1}</div>
                                             <div className='text-sm'>{item.HRMED_Name || '-'}</div>
-                                            <div className='text-sm'>{item.HREED_Percentage || '0'}</div>
-                                            <div className='text-sm'>{item.HRMED_AmountPercentFlag || '-'}</div>
-                                            <div className='font-medium text-sm'>{item.HREED_Amount?.toFixed(2) || '0.00'}</div>
+                                            <InputText
+                                                type='number'
+                                                step='0.01'
+                                                value={item.HREED_Percentage || '0'}
+                                                onChange={(e) => {
+                                                    const newList = [...arrearsList];
+                                                    newList[index] = { ...newList[index], HREED_Percentage: e.target.value };
+                                                    setArrearsList(newList);
+                                                }}
+                                                className='h-8 text-sm'
+                                            />
+                                            <InputText
+                                                type='text'
+                                                value={item.HRMED_AmountPercentFlag || ''}
+                                                onChange={(e) => {
+                                                    const newList = [...arrearsList];
+                                                    newList[index] = { ...newList[index], HRMED_AmountPercentFlag: e.target.value };
+                                                    setArrearsList(newList);
+                                                }}
+                                                className='h-8 text-sm'
+                                            />
+                                            <InputText
+                                                type='number'
+                                                step='0.01'
+                                                value={item.HREED_Amount || 0}
+                                                onChange={(e) => {
+                                                    const newList = [...arrearsList];
+                                                    newList[index] = { ...newList[index], HREED_Amount: parseFloat(e.target.value) || 0 };
+                                                    setArrearsList(newList);
+                                                }}
+                                                className='h-8 font-medium text-sm'
+                                            />
                                             <div className='text-sm'>{item.HREED_MaxApplicableFlg ? 'Yes' : 'No'}</div>
                                             <div>
                                                 <Checkbox
@@ -4434,9 +4717,10 @@ interface EmployeeTableProps {
     isLoading: boolean;
     onEdit: (employee: Employee) => void;
     onDelete: (id: number) => void;
+    onToggle: (employee: Employee, newState: boolean) => void;
 }
 
-function EmployeeTable({ employees, isLoading, onEdit, onDelete }: EmployeeTableProps) {
+function EmployeeTable({ employees, isLoading, onEdit, onDelete, onToggle }: EmployeeTableProps) {
     const [globalFilter, setGlobalFilter] = useState('');
     const [pagination, setPagination] = useState({
         pageIndex: 0,
@@ -4601,31 +4885,22 @@ function EmployeeTable({ employees, isLoading, onEdit, onDelete }: EmployeeTable
         {
             id: 'actions',
             header: 'Actions',
-            cell: ({ row }) => (
-                <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                        <Button variant='ghost' className='h-8 w-8 p-0'>
-                            <MoreHorizontal className='h-4 w-4' />
-                        </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent>
-                        <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                        <div className='flex-justify-between flex-wrap gap-2'>
-                            <Button variant='ghost' onClick={() => onEdit(row.original)} className='w-full justify-start'>
-                                <Edit className='mr-2 h-4 w-4' />
-                                Edit
-                            </Button>
-                            <Button
-                                variant='ghost'
-                                onClick={() => onDelete(row.original.id)}
-                                className='w-full justify-start text-destructive'>
-                                <Trash2 className='mr-2 h-4 w-4' />
-                                Deactivate
-                            </Button>
-                        </div>
-                    </DropdownMenuContent>
-                </DropdownMenu>
-            ),
+            cell: ({ row }) => {
+                const employee = row.original;
+                return (
+                    <ActionButtons
+                        rowData={{
+                            ...employee,
+                            HRME_ActiveFlag: employee.activeFlag ?? true,
+                            id: employee.id
+                        }}
+                        buttons={{ edit: true, toggle: true, delete: false }}
+                        onEdit={() => onEdit(employee)}
+                        onToggle={(data, newState) => onToggle(employee, newState)}
+                        toggleConditionKey='HRME_ActiveFlag'
+                    />
+                );
+            },
             enableSorting: false,
             enableHiding: false
         }

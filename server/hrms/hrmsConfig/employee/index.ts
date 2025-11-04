@@ -7,13 +7,28 @@ import type { EmployeeDetailResponse, EmployeeOnloadResponse, EmployeeSaveReques
  * Get onload details for employee register (dropdowns, etc.)
  * POST /api/EmployeeRegistrationNew/onloadgetdetails
  */
-export async function getEmployeeOnload() {
+export async function getEmployeeOnload(miId: number = 30, loginUserId: number = 2) {
     const url = '/api/EmployeeRegistrationNew/onloadgetdetails';
     const requestBody = {
-        MI_Id: 30,
-        LogInUserId: 5
+        MI_Id: miId,
+        LogInUserId: loginUserId
     };
-    return await api.post<EmployeeOnloadResponse>('hrms', url, requestBody);
+    
+    const response = await api.post<EmployeeOnloadResponse>('hrms', url, requestBody);
+    
+    // The backend returns raw data, not wrapped in ApiResponse format
+    // Wrap it to match the expected ApiResponse structure
+    if (response && typeof response === 'object' && 'success' in response && 'data' in response) {
+        // Already wrapped
+        return response;
+    }
+    
+    // Wrap raw response data
+    return {
+        success: true,
+        message: 'Data loaded successfully',
+        data: response as unknown as EmployeeOnloadResponse
+    };
 }
 
 /**

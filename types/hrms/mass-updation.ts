@@ -53,9 +53,14 @@ export interface MassUpdationOnloadResponse {
     MI_Id: number;
     roleId: number;
     employeedropdown: EmployeeDropdown[];
-    departmentdropdownlist: DepartmentDropdown[];
-    designationdropdownlist: DesignationDropdown[];
-    groupTypedropdownlist: GroupTypeDropdown[];
+    // API returns these fields without 'list' suffix
+    departmentdropdown?: DepartmentDropdown[];
+    designationdropdown?: DesignationDropdown[];
+    groupTypedropdown?: GroupTypeDropdown[];
+    // Also support fields with 'list' suffix for backward compatibility
+    departmentdropdownlist?: DepartmentDropdown[];
+    designationdropdownlist?: DesignationDropdown[];
+    groupTypedropdownlist?: GroupTypeDropdown[];
     headdropdown: EarningDeductionHead[];
     employeeDetails: EmployeeDetail[];
     retrunMsg?: string;

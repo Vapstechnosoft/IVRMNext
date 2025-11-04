@@ -6,14 +6,14 @@ import { DatePickerWithYear } from '@/components/ui/date-picker-year';
 import { Checkbox } from '@/components/ui/checkbox';
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
 import { DataTable } from '@/components/ui/data-table/data-table';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuLabel, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { ActionButtons } from '@/components/ui/form/action-buttons';
 import { Label } from '@/components/ui/extension/field';
 import { InputText } from '@/components/ui/extension/input-text';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { cn } from '@/lib/utils';
-import { getSalaryAdvanceList, saveSalaryAdvance, toggleSalaryAdvanceStatus } from '@/server/hrms/hrmsConfig/transaction/salary-advance';
+import { useSalaryAdvanceList, useSaveSalaryAdvance, useToggleSalaryAdvanceStatus } from '@/hooks/hrms/useTransactions';
 import type {
     EmployeeDropdown,
     LeaveYearDropdown,
@@ -23,8 +23,8 @@ import type {
 } from '@/types/hrms/salary-advance';
 import type { ColumnDef } from '@tanstack/react-table';
 import { format } from 'date-fns';
-import { CalendarIcon, Edit, MoreHorizontal, Plus, Power, X } from 'lucide-react';
-import { useEffect, useRef, useState } from 'react';
+import { CalendarIcon, Edit, Plus, RefreshCw, Save, X } from 'lucide-react';
+import { useRef, useState } from 'react';
 import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 
@@ -44,18 +44,25 @@ interface SalaryAdvanceForm {
 }
 
 export default function SalaryAdvancePage() {
-    const [_salaryAdvances, setSalaryAdvances] = useState<SalaryAdvance[]>([]);
-    const [filteredAdvances, setFilteredAdvances] = useState<SalaryAdvance[]>([]);
     const [selectedAdvances, setSelectedAdvances] = useState<number[]>([]);
-    const [employees, setEmployees] = useState<EmployeeDropdown[]>([]);
-    const [leaveYears, setLeaveYears] = useState<LeaveYearDropdown[]>([]);
-    const [months, setMonths] = useState<MonthDropdown[]>([]);
-    const [modeOfPayments, setModeOfPayments] = useState<ModeOfPaymentDropdown[]>([]);
-    const [isLoading, setIsLoading] = useState(true);
-    const [isSubmitting, setIsSubmitting] = useState(false);
     const [editingId, setEditingId] = useState<number | null>(null);
     const [showForm, setShowForm] = useState(false);
     const _formRef = useRef<HTMLDivElement>(null);
+
+    const roleId = 2;
+    const { data: advanceData, isLoading } = useSalaryAdvanceList({ roleId });
+    const saveMutation = useSaveSalaryAdvance();
+    const toggleMutation = useToggleSalaryAdvanceStatus();
+
+    const _salaryAdvances: SalaryAdvance[] = (advanceData?.empadvaList || []).map((advance: any) => ({
+        ...advance,
+        selected: false
+    }));
+    const filteredAdvances = _salaryAdvances;
+    const employees = advanceData?.employeedropdown || [];
+    const leaveYears = advanceData?.leaveyeardropdown || [];
+    const months = advanceData?.monthdropdown || [];
+    const modeOfPayments = advanceData?.modeOfPaymentdropdown || [];
 
     const {
         register,
@@ -78,77 +85,32 @@ export default function SalaryAdvancePage() {
         }
     });
 
-    useEffect(() => {
-        loadData();
-    }, []);
-
-    const loadData = async () => {
-        try {
-            setIsLoading(true);
-            const response = await getSalaryAdvanceList(2);
-
-            if (response.success && response.data) {
-                setEmployees(response.data.employeedropdown || []);
-                setLeaveYears(response.data.leaveyeardropdown || []);
-                setMonths(response.data.monthdropdown || []);
-                setModeOfPayments(response.data.modeOfPaymentdropdown || []);
-
-                const mappedAdvances: SalaryAdvance[] = (response.data.empadvaList || []).map((advance: any) => ({
-                    ...advance,
-                    selected: false
-                }));
-
-                setSalaryAdvances(mappedAdvances);
-                setFilteredAdvances(mappedAdvances);
-            } else {
-                toast.error(response.message || 'Failed to load data');
-            }
-        } catch (error: any) {
-            console.error('Error loading salary advance data:', error);
-            toast.error(error.message || 'Failed to load data');
-        } finally {
-            setIsLoading(false);
-        }
-    };
 
     const onSubmit: SubmitHandler<SalaryAdvanceForm> = async (data: SalaryAdvanceForm) => {
-        try {
-            setIsSubmitting(true);
+        const payload = {
+            HRESA_Id: editingId || 0,
+            MI_Id: 30,
+            HRME_Id: Number(data.employeeId),
+            HRESA_EntryDate: data.entryDate,
+            HRESA_AdvYear: Number(data.advanceYear),
+            HRESA_AdvMonth: data.advanceMonth,
+            HRESA_AppliedAmount: data.appliedAmount,
+            HRESA_Remarks: data.remarks,
+            HRESA_ActiveFlag: true,
+            HRESA_AdvStatus: 'Pending',
+            HRESA_SanctinedAmount: 0,
+            HRESA_ModeOfPayment: data.modeOfPayment,
+            HRESA_ReferenceNo: data.referenceNo,
+            roleId: 2
+        };
 
-            const payload = {
-                HRESA_Id: editingId || 0,
-                MI_Id: 30,
-                HRME_Id: Number(data.employeeId),
-                HRESA_EntryDate: data.entryDate,
-                HRESA_AdvYear: Number(data.advanceYear),
-                HRESA_AdvMonth: data.advanceMonth,
-                HRESA_AppliedAmount: data.appliedAmount,
-                HRESA_Remarks: data.remarks,
-                HRESA_ActiveFlag: true,
-                HRESA_AdvStatus: 'Pending',
-                HRESA_SanctinedAmount: 0,
-                HRESA_ModeOfPayment: data.modeOfPayment,
-                HRESA_ReferenceNo: data.referenceNo,
-                roleId: 2
-            };
-
-            const response = await saveSalaryAdvance(payload);
-
-            if (response.success) {
-                toast.success(response.message || 'Salary advance saved successfully');
+        saveMutation.mutate(payload, {
+            onSuccess: () => {
                 reset();
                 setEditingId(null);
                 setShowForm(false);
-                loadData();
-            } else {
-                toast.error(response.message || 'Save failed');
             }
-        } catch (error: any) {
-            console.error('Error saving salary advance:', error);
-            toast.error(error.message || 'Save failed');
-        } finally {
-            setIsSubmitting(false);
-        }
+        });
     };
 
     const handleEdit = (advance: SalaryAdvance) => {
@@ -162,23 +124,27 @@ export default function SalaryAdvancePage() {
         setValue('remarks', advance.HRESA_Remarks);
         setValue('modeOfPayment', advance.HRESA_ModeOfPayment);
         setValue('referenceNo', advance.HRESA_ReferenceNo);
+        setTimeout(() => {
+            _formRef.current?.scrollIntoView({
+                behavior: 'smooth',
+                block: 'end'
+            });
+        }, 100);
     };
 
     const handleToggleActive = async (advanceId: number, currentStatus: boolean) => {
-        try {
-            const newStatus = !currentStatus;
-            const response = await toggleSalaryAdvanceStatus(advanceId);
-
-            if (response.success) {
-                toast.success(`Successfully ${newStatus ? 'activated' : 'deactivated'} the salary advance record`);
-                loadData();
-            } else {
-                toast.error(response.message || 'Failed to toggle status');
+        const newStatus = !currentStatus;
+        toggleMutation.mutate(
+            {
+                hresaId: advanceId,
+                activeFlag: newStatus
+            },
+            {
+                onSuccess: () => {
+                    toast.success(`Successfully ${newStatus ? 'activated' : 'deactivated'} the salary advance record`);
+                }
             }
-        } catch (error: any) {
-            console.error('Toggle status error:', error);
-            toast.error(error.message || 'Failed to toggle status');
-        }
+        );
     };
 
     const handleSelectAll = (selected: boolean) => {
@@ -341,31 +307,26 @@ export default function SalaryAdvancePage() {
                 cell: ({ cell }: { cell: any }) => {
                     const advance = cell.getValue() as SalaryAdvance;
                     return (
-                        <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                                <Button variant='ghost' className='h-8 w-8 p-0'>
-                                    <MoreHorizontal className='h-4 w-4' />
-                                </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent>
-                                <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                                <div className='flex-justify-between flex-wrap gap-2'>
-                                    <Button variant='ghost' onClick={() => onEdit(advance)} className='w-full justify-start'>
-                                        <Edit className='mr-2 h-4 w-4' />
-                                        Edit
-                                    </Button>
-                                    <Button
-                                        variant='ghost'
-                                        onClick={() => onToggleActive(advance.HRESA_Id, advance.HRESA_ActiveFlag)}
-                                        className={`w-full justify-start ${
-                                            advance.HRESA_ActiveFlag ? 'text-orange-600' : 'text-green-600'
-                                        }`}>
-                                        <Power className='mr-2 h-4 w-4' />
-                                        {advance.HRESA_ActiveFlag ? 'Deactivate' : 'Activate'}
-                                    </Button>
-                                </div>
-                            </DropdownMenuContent>
-                        </DropdownMenu>
+                        <ActionButtons
+                            rowData={advance}
+                            buttons={{ edit: true, toggle: true, delete: false }}
+                            onEdit={onEdit}
+                            onToggle={(data: SalaryAdvance, newState: boolean) => {
+                                // newState is the desired state from the toggle switch
+                                toggleMutation.mutate(
+                                    {
+                                        hresaId: data.HRESA_Id,
+                                        activeFlag: newState
+                                    },
+                                    {
+                                        onSuccess: () => {
+                                            toast.success(`Successfully ${newState ? 'activated' : 'deactivated'} the salary advance record`);
+                                        }
+                                    }
+                                );
+                            }}
+                            toggleConditionKey='HRESA_ActiveFlag'
+                        />
                     );
                 }
             }
@@ -383,209 +344,24 @@ export default function SalaryAdvancePage() {
             <div className='container space-y-4 p-1'>
                 <div className='flex justify-end'>
                     <Button
+                        type='button'
                         onClick={() => {
                             setShowForm(true);
                             setEditingId(null);
                             reset();
+                            setTimeout(() => {
+                                _formRef.current?.scrollIntoView({
+                                    behavior: 'smooth',
+                                    block: 'end'
+                                });
+                            }, 100);
                         }}
-                        className='flex items-center gap-2'>
+                        size='lg'
+                        className='w-fit shadow-md transition-all duration-200 hover:scale-105 hover:shadow-lg'>
                         <Plus className='h-4 w-4' />
                         Add Salary Advance
                     </Button>
                 </div>
-
-                {showForm && (
-                    <CollapsibleSection
-                        title={editingId ? 'Edit Salary Advance' : 'Add New Salary Advance'}
-                        description='Enter salary advance details'
-                        defaultOpen={true}
-                        variant='default'
-                        size='lg'
-                        className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
-                        <form onSubmit={handleSubmit(onSubmit)} className='space-y-6'>
-                            <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
-                                <div className='space-y-2'>
-                                    <Label>Employee *</Label>
-                                    <Controller
-                                        name='employeeId'
-                                        control={control}
-                                        rules={{ required: 'Please select an employee' }}
-                                        render={({ field }) => (
-                                            <Select value={field.value} onValueChange={field.onChange}>
-                                                <SelectTrigger>
-                                                    <SelectValue placeholder='Select Employee' />
-                                                </SelectTrigger>
-                                                <SelectContent>
-                                                    {employees.map((emp) => (
-                                                        <SelectItem key={emp.HRME_Id} value={emp.HRME_Id.toString()}>
-                                                            {emp.HRME_EmployeeCode} - {getEmployeeName(emp)}
-                                                        </SelectItem>
-                                                    ))}
-                                                </SelectContent>
-                                            </Select>
-                                        )}
-                                    />
-                                    {errors.employeeId && <p className='text-red-500 text-sm'>{errors.employeeId.message}</p>}
-                                </div>
-
-                                <div className='space-y-2'>
-                                    <Label>Entry Date *</Label>
-                                    <Controller
-                                        name='entryDate'
-                                        control={control}
-                                        rules={{ required: 'Please select entry date' }}
-                                        render={({ field }) => (
-                                            <Popover>
-                                                <PopoverTrigger asChild>
-                                                    <Button
-                                                        variant='outline'
-                                                        className={cn(
-                                                            'w-full justify-start text-left font-normal',
-                                                            !field.value && 'text-muted-foreground'
-                                                        )}>
-                                                        <CalendarIcon className='mr-2 h-4 w-4' />
-                                                        {field.value ? format(new Date(field.value), 'dd/MM/yyyy') : 'Select date'}
-                                                    </Button>
-                                                </PopoverTrigger>
-                                                <PopoverContent className='w-auto p-0'>
-                                                    <Calendar
-                                                        mode='single'
-                                                        selected={field.value ? new Date(field.value) : undefined}
-                                                        onSelect={(date: Date | undefined) => field.onChange(date ? format(date, 'yyyy-MM-dd') : '')}
-                                                        initialFocus
-                                                    />
-                                                </PopoverContent>
-                                            </Popover>
-                                        )}
-                                    />
-                                    {errors.entryDate && <p className='text-red-500 text-sm'>{errors.entryDate.message}</p>}
-                                </div>
-
-                                <div className='space-y-2'>
-                                    <Label>Advance Year *</Label>
-                                    <Controller
-                                        name='advanceYear'
-                                        control={control}
-                                        rules={{ required: 'Please select advance year' }}
-                                        render={({ field }) => (
-                                            <Select value={field.value} onValueChange={field.onChange}>
-                                                <SelectTrigger>
-                                                    <SelectValue placeholder='Select Year' />
-                                                </SelectTrigger>
-                                                <SelectContent>
-                                                    {leaveYears.map((year) => (
-                                                        <SelectItem key={year.HRMLY_Id} value={year.HRMLY_Id.toString()}>
-                                                            {year.HRMLY_LeaveYear}
-                                                        </SelectItem>
-                                                    ))}
-                                                </SelectContent>
-                                            </Select>
-                                        )}
-                                    />
-                                    {errors.advanceYear && <p className='text-red-500 text-sm'>{errors.advanceYear.message}</p>}
-                                </div>
-
-                                <div className='space-y-2'>
-                                    <Label>Advance Month *</Label>
-                                    <Controller
-                                        name='advanceMonth'
-                                        control={control}
-                                        rules={{ required: 'Please select advance month' }}
-                                        render={({ field }) => (
-                                            <Select value={field.value} onValueChange={field.onChange}>
-                                                <SelectTrigger>
-                                                    <SelectValue placeholder='Select Month' />
-                                                </SelectTrigger>
-                                                <SelectContent>
-                                                    {months.map((month) => (
-                                                        <SelectItem key={month.IVRM_Month_Id} value={month.IVRM_Month_Id.toString()}>
-                                                            {month.IVRM_Month_Name}
-                                                        </SelectItem>
-                                                    ))}
-                                                </SelectContent>
-                                            </Select>
-                                        )}
-                                    />
-                                    {errors.advanceMonth && <p className='text-red-500 text-sm'>{errors.advanceMonth.message}</p>}
-                                </div>
-
-                                <div className='space-y-2'>
-                                    <Label>Applied Amount *</Label>
-                                    <InputText
-                                        type='number'
-                                        step='any'
-                                        placeholder='Enter amount'
-                                        {...register('appliedAmount', {
-                                            required: 'Please enter applied amount',
-                                            min: {
-                                                value: 1,
-                                                message: 'Amount must be greater than 0'
-                                            }
-                                        })}
-                                    />
-                                    {errors.appliedAmount && <p className='text-red-500 text-sm'>{errors.appliedAmount.message}</p>}
-                                </div>
-
-                                <div className='space-y-2'>
-                                    <Label>Mode of Payment *</Label>
-                                    <Controller
-                                        name='modeOfPayment'
-                                        control={control}
-                                        rules={{ required: 'Please select mode of payment' }}
-                                        render={({ field }) => (
-                                            <Select value={field.value} onValueChange={field.onChange}>
-                                                <SelectTrigger>
-                                                    <SelectValue placeholder='Select Payment Mode' />
-                                                </SelectTrigger>
-                                                <SelectContent>
-                                                    {modeOfPayments.map((mode) => (
-                                                        <SelectItem key={mode.IVRMMOD_Id} value={mode.IVRMMOD_Id.toString()}>
-                                                            {mode.IVRMMOD_ModeOfPayment}
-                                                        </SelectItem>
-                                                    ))}
-                                                </SelectContent>
-                                            </Select>
-                                        )}
-                                    />
-                                    {errors.modeOfPayment && <p className='text-red-500 text-sm'>{errors.modeOfPayment.message}</p>}
-                                </div>
-
-                                <div className='space-y-2'>
-                                    <Label>Reference No</Label>
-                                    <InputText
-                                        type='number'
-                                        placeholder='Enter reference number'
-                                        {...register('referenceNo', { valueAsNumber: true })}
-                                    />
-                                </div>
-                            </div>
-
-                            <div className='space-y-2'>
-                                <Label>Remarks</Label>
-                                <InputText placeholder='Enter remarks' {...register('remarks')} />
-                            </div>
-
-                            <div className='flex gap-4'>
-                                <Button type='submit' disabled={isSubmitting || formIsSubmitting} className='flex items-center gap-2'>
-                                    <Plus className='h-4 w-4' />
-                                    {isSubmitting || formIsSubmitting ? 'Saving...' : editingId ? 'Update' : 'Save'}
-                                </Button>
-                                <Button
-                                    type='button'
-                                    variant='outline'
-                                    onClick={() => {
-                                        reset();
-                                        setEditingId(null);
-                                        setShowForm(false);
-                                    }}
-                                    className='flex items-center gap-2'>
-                                    <X className='h-4 w-4' />
-                                    Cancel
-                                </Button>
-                            </div>
-                        </form>
-                    </CollapsibleSection>
-                )}
 
                 <CollapsibleSection
                     title='Salary Advance Records'
@@ -623,6 +399,227 @@ export default function SalaryAdvancePage() {
                         />
                     </div>
                 </CollapsibleSection>
+
+                {showForm && (
+                    <div ref={_formRef} className='slide-in-from-top-4 animate-in duration-300'>
+                        <CollapsibleSection
+                            title={editingId ? 'Edit Salary Advance' : 'Add New Salary Advance'}
+                            description='Enter salary advance details'
+                            defaultOpen={true}
+                            variant='outline'
+                            size='lg'
+                            className='shadow-lg'>
+                            <div className='relative'>
+                                <Button
+                                    onClick={() => {
+                                        reset();
+                                        setEditingId(null);
+                                        setShowForm(false);
+                                    }}
+                                    variant='ghost'
+                                    size='sm'
+                                    className='absolute -top-[4rem] right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
+                                    <X className='h-4 w-4 text-destructive' /> Close
+                                </Button>
+
+                                <form onSubmit={handleSubmit(onSubmit)} className='space-y-6'>
+                                    <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
+                                        <div className='space-y-2'>
+                                            <Label>Employee *</Label>
+                                            <Controller
+                                                name='employeeId'
+                                                control={control}
+                                                rules={{ required: 'Please select an employee' }}
+                                                render={({ field }) => (
+                                                    <Select value={field.value} onValueChange={field.onChange}>
+                                                        <SelectTrigger>
+                                                            <SelectValue placeholder='Select Employee' />
+                                                        </SelectTrigger>
+                                                        <SelectContent>
+                                                            {employees.map((emp) => (
+                                                                <SelectItem key={emp.HRME_Id} value={emp.HRME_Id.toString()}>
+                                                                    {emp.HRME_EmployeeCode} - {getEmployeeName(emp)}
+                                                                </SelectItem>
+                                                            ))}
+                                                        </SelectContent>
+                                                    </Select>
+                                                )}
+                                            />
+                                            {errors.employeeId && <p className='text-red-500 text-sm'>{errors.employeeId.message}</p>}
+                                        </div>
+
+                                        <div className='space-y-2'>
+                                            <Label>Entry Date *</Label>
+                                            <Controller
+                                                name='entryDate'
+                                                control={control}
+                                                rules={{ required: 'Please select entry date' }}
+                                                render={({ field }) => (
+                                                    <Popover>
+                                                        <PopoverTrigger asChild>
+                                                            <Button
+                                                                variant='outline'
+                                                                className={cn(
+                                                                    'w-full justify-start text-left font-normal',
+                                                                    !field.value && 'text-muted-foreground'
+                                                                )}>
+                                                                <CalendarIcon className='mr-2 h-4 w-4' />
+                                                                {field.value ? format(new Date(field.value), 'dd/MM/yyyy') : 'Select date'}
+                                                            </Button>
+                                                        </PopoverTrigger>
+                                                        <PopoverContent className='w-auto p-0'>
+                                                            <Calendar
+                                                                mode='single'
+                                                                selected={field.value ? new Date(field.value) : undefined}
+                                                                onSelect={(date: Date | undefined) => field.onChange(date ? format(date, 'yyyy-MM-dd') : '')}
+                                                                initialFocus
+                                                            />
+                                                        </PopoverContent>
+                                                    </Popover>
+                                                )}
+                                            />
+                                            {errors.entryDate && <p className='text-red-500 text-sm'>{errors.entryDate.message}</p>}
+                                        </div>
+
+                                        <div className='space-y-2'>
+                                            <Label>Advance Year *</Label>
+                                            <Controller
+                                                name='advanceYear'
+                                                control={control}
+                                                rules={{ required: 'Please select advance year' }}
+                                                render={({ field }) => (
+                                                    <Select value={field.value} onValueChange={field.onChange}>
+                                                        <SelectTrigger>
+                                                            <SelectValue placeholder='Select Year' />
+                                                        </SelectTrigger>
+                                                        <SelectContent>
+                                                            {leaveYears.map((year) => (
+                                                                <SelectItem key={year.HRMLY_Id} value={year.HRMLY_Id.toString()}>
+                                                                    {year.HRMLY_LeaveYear}
+                                                                </SelectItem>
+                                                            ))}
+                                                        </SelectContent>
+                                                    </Select>
+                                                )}
+                                            />
+                                            {errors.advanceYear && <p className='text-red-500 text-sm'>{errors.advanceYear.message}</p>}
+                                        </div>
+
+                                        <div className='space-y-2'>
+                                            <Label>Advance Month *</Label>
+                                            <Controller
+                                                name='advanceMonth'
+                                                control={control}
+                                                rules={{ required: 'Please select advance month' }}
+                                                render={({ field }) => (
+                                                    <Select value={field.value} onValueChange={field.onChange}>
+                                                        <SelectTrigger>
+                                                            <SelectValue placeholder='Select Month' />
+                                                        </SelectTrigger>
+                                                        <SelectContent>
+                                                            {months.map((month) => (
+                                                                <SelectItem key={month.IVRM_Month_Id} value={month.IVRM_Month_Id.toString()}>
+                                                                    {month.IVRM_Month_Name}
+                                                                </SelectItem>
+                                                            ))}
+                                                        </SelectContent>
+                                                    </Select>
+                                                )}
+                                            />
+                                            {errors.advanceMonth && <p className='text-red-500 text-sm'>{errors.advanceMonth.message}</p>}
+                                        </div>
+
+                                        <div className='space-y-2'>
+                                            <Label>Applied Amount *</Label>
+                                            <InputText
+                                                type='number'
+                                                step='any'
+                                                placeholder='Enter amount'
+                                                {...register('appliedAmount', {
+                                                    required: 'Please enter applied amount',
+                                                    min: {
+                                                        value: 1,
+                                                        message: 'Amount must be greater than 0'
+                                                    }
+                                                })}
+                                            />
+                                            {errors.appliedAmount && <p className='text-red-500 text-sm'>{errors.appliedAmount.message}</p>}
+                                        </div>
+
+                                        <div className='space-y-2'>
+                                            <Label>Mode of Payment *</Label>
+                                            <Controller
+                                                name='modeOfPayment'
+                                                control={control}
+                                                rules={{ required: 'Please select mode of payment' }}
+                                                render={({ field }) => (
+                                                    <Select value={field.value} onValueChange={field.onChange}>
+                                                        <SelectTrigger>
+                                                            <SelectValue placeholder='Select Payment Mode' />
+                                                        </SelectTrigger>
+                                                        <SelectContent>
+                                                            {modeOfPayments.map((mode) => (
+                                                                <SelectItem key={mode.IVRMMOD_Id} value={mode.IVRMMOD_Id.toString()}>
+                                                                    {mode.IVRMMOD_ModeOfPayment}
+                                                                </SelectItem>
+                                                            ))}
+                                                        </SelectContent>
+                                                    </Select>
+                                                )}
+                                            />
+                                            {errors.modeOfPayment && <p className='text-red-500 text-sm'>{errors.modeOfPayment.message}</p>}
+                                        </div>
+
+                                        <div className='space-y-2'>
+                                            <Label>Reference No</Label>
+                                            <InputText
+                                                type='number'
+                                                placeholder='Enter reference number'
+                                                {...register('referenceNo', { valueAsNumber: true })}
+                                            />
+                                        </div>
+                                    </div>
+
+                                    <div className='space-y-2'>
+                                        <Label>Remarks</Label>
+                                        <InputText placeholder='Enter remarks' {...register('remarks')} />
+                                    </div>
+
+                                    <div className='flex flex-col gap-3 border-t pt-4 sm:flex-row sm:justify-start'>
+                                        <Button
+                                            type='button'
+                                            variant='outline'
+                                            onClick={() => {
+                                                reset();
+                                                setEditingId(null);
+                                                setShowForm(false);
+                                            }}
+                                            disabled={saveMutation.isPending || formIsSubmitting}
+                                            className='order-2 w-fit transition-all duration-200 hover:scale-105 sm:order-1'>
+                                            Cancel
+                                        </Button>
+                                        <Button
+                                            type='submit'
+                                            disabled={saveMutation.isPending || formIsSubmitting}
+                                            className='order-1 w-fit transition-all duration-200 hover:scale-105 sm:order-2'>
+                                            {saveMutation.isPending || formIsSubmitting ? (
+                                                <div className='flex items-center'>
+                                                    <RefreshCw className='mr-2 h-4 w-4 animate-spin' />
+                                                    Saving...
+                                                </div>
+                                            ) : (
+                                                <div className='flex items-center'>
+                                                    <Save className='mr-2 h-4 w-4' />
+                                                    {editingId ? 'Update Salary Advance' : 'Save Salary Advance'}
+                                                </div>
+                                            )}
+                                        </Button>
+                                    </div>
+                                </form>
+                            </div>
+                        </CollapsibleSection>
+                    </div>
+                )}
             </div>
         </div>
     );

@@ -10,7 +10,7 @@ import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { MultiSelect } from '@/components/ui/multi-select';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { getEmployeeDetailsBySelection, getMassUpdationOnload, searchMassUpdationEmployees } from '@/server/hrms/hrmsConfig/transaction/mass-updation';
+import { useGetEmployeeDetailsBySelection, useMassUpdationOnload, useSearchMassUpdationEmployees } from '@/hooks/hrms/useTransactions';
 import type {
     DepartmentDropdown,
     DesignationDropdown,
@@ -44,12 +44,6 @@ export default function MassUpdationPage() {
     const [employees, setEmployees] = useState<Employee[]>([]);
     const [filteredEmployees, setFilteredEmployees] = useState<Employee[]>([]);
     const [selectedEmployees, setSelectedEmployees] = useState<number[]>([]);
-    const [groupTypes, setGroupTypes] = useState<GroupTypeDropdown[]>([]);
-    const [departments, setDepartments] = useState<DepartmentDropdown[]>([]);
-    const [designations, setDesignations] = useState<DesignationDropdown[]>([]);
-    const [heads, setHeads] = useState<EarningDeductionHead[]>([]);
-    const [_earningDeductionTypes, setEarningDeductionTypes] = useState<any[]>([]);
-    const [isLoading, setIsLoading] = useState(true);
     const [hasSearched, setHasSearched] = useState(false);
     const _formRef = useRef<HTMLDivElement>(null);
 
@@ -74,6 +68,51 @@ export default function MassUpdationPage() {
     const watchedEarningDeduction = watch('earningDeduction');
     const watchedUpdateType = watch('updateType');
 
+    const { data: onloadData, isLoading } = useMassUpdationOnload({
+        MI_Id: 30,
+        roleId: 2
+    });
+    const searchMutation = useSearchMassUpdationEmployees();
+    const saveMutation = useGetEmployeeDetailsBySelection();
+
+    // Debug logging
+    React.useEffect(() => {
+        console.log('=== Mass Updation Onload Debug ===');
+        console.log('Is Loading:', isLoading);
+        console.log('Onload Data:', onloadData);
+        if (onloadData) {
+            console.log('groupTypedropdownlist:', onloadData.groupTypedropdownlist?.length || 0);
+            console.log('groupTypedropdown:', onloadData.groupTypedropdown?.length || 0);
+            console.log('departmentdropdownlist:', onloadData.departmentdropdownlist?.length || 0);
+            console.log('departmentdropdown:', onloadData.departmentdropdown?.length || 0);
+            console.log('designationdropdownlist:', onloadData.designationdropdownlist?.length || 0);
+            console.log('designationdropdown:', onloadData.designationdropdown?.length || 0);
+            console.log('All keys in onloadData:', Object.keys(onloadData));
+        }
+    }, [onloadData, isLoading]);
+
+    // Handle both field name variants (with and without 'list' suffix)
+    // Check length to properly fallback (empty array [] is truthy, so || won't work)
+    const groupTypes = (onloadData?.groupTypedropdownlist && onloadData.groupTypedropdownlist.length > 0) 
+        ? onloadData.groupTypedropdownlist 
+        : (onloadData?.groupTypedropdown || []);
+    const departments = (onloadData?.departmentdropdownlist && onloadData.departmentdropdownlist.length > 0)
+        ? onloadData.departmentdropdownlist
+        : (onloadData?.departmentdropdown || []);
+    const designations = (onloadData?.designationdropdownlist && onloadData.designationdropdownlist.length > 0)
+        ? onloadData.designationdropdownlist
+        : (onloadData?.designationdropdown || []);
+    const heads = onloadData?.headdropdown || [];
+
+    // Debug log the final values
+    React.useEffect(() => {
+        console.log('=== Final Dropdown Values ===');
+        console.log('Group Types:', groupTypes.length);
+        console.log('Departments:', departments.length);
+        console.log('Designations:', designations.length);
+        console.log('Heads:', heads.length);
+    }, [groupTypes, departments, designations, heads]);
+
     const filteredHeads = React.useMemo(() => {
         if (!heads || heads.length === 0) return [];
 
@@ -85,10 +124,6 @@ export default function MassUpdationPage() {
 
         return filtered;
     }, [heads, watchedEarningDeduction, watchedUpdateType]);
-
-    useEffect(() => {
-        loadData();
-    }, []);
 
     useEffect(() => {
         if (hasSearched) {
@@ -108,35 +143,6 @@ export default function MassUpdationPage() {
             }
         }
     }, [filteredHeads, getValues, reset]);
-
-    const loadData = async () => {
-        try {
-            setIsLoading(true);
-            const response = await getMassUpdationOnload({
-                MI_Id: 30,
-                roleId: 2
-            });
-
-            if (response.success && response.data) {
-                setGroupTypes(response.data.groupTypedropdownlist || []);
-                setDepartments(response.data.departmentdropdownlist || []);
-                setDesignations(response.data.designationdropdownlist || []);
-                setHeads(response.data.headdropdown || []);
-                // Note: eardettypelist may not be in response
-                setEarningDeductionTypes([]);
-
-                setEmployees([]);
-                setFilteredEmployees([]);
-            } else {
-                toast.error(response.message || 'Failed to load data');
-            }
-        } catch (error: any) {
-            console.error('Error loading mass updation data:', error);
-            toast.error(error.message || 'Failed to load data');
-        } finally {
-            setIsLoading(false);
-        }
-    };
 
     const filterEmployees = () => {
         let filtered = employees;
@@ -160,37 +166,35 @@ export default function MassUpdationPage() {
     };
 
     const onSubmit: SubmitHandler<MassUpdateForm> = async (data: MassUpdateForm) => {
-        try {
-            const searchPayload = {
-                MI_Id: 30,
-                roleId: 2,
-                Type: 'string',
-                HRME_Id: 0,
-                groupTypeselected: data.groupType.map((v) => Number(v)),
-                departmentselected: data.department.map((v) => Number(v)),
-                designationselected: data.designation.map((v) => Number(v)),
-                employeeselected: [0],
-                EarningDeduction: 'string',
-                AmountPercentage: 'string',
-                HREED_Amount: 0,
-                HREED_Percentage: 'string',
-                HRMED_Id: 0,
-                AddRemove: 'string',
-                LogInUserId: 0,
-                hrmgT_IdList: data.groupType.map((v) => Number(v)),
-                employeeTypeIdList: [0],
-                hrmD_IdList: data.department.map((v) => Number(v)),
-                hrmdeS_IdList: data.designation.map((v) => Number(v)),
-                groupTypeIdList: data.groupType.map((v) => Number(v))
-            };
+        const searchPayload = {
+            MI_Id: 30,
+            roleId: 2,
+            Type: 'string',
+            HRME_Id: 0,
+            groupTypeselected: data.groupType.map((v) => Number(v)),
+            departmentselected: data.department.map((v) => Number(v)),
+            designationselected: data.designation.map((v) => Number(v)),
+            employeeselected: [0],
+            EarningDeduction: 'string',
+            AmountPercentage: 'string',
+            HREED_Amount: 0,
+            HREED_Percentage: 'string',
+            HRMED_Id: 0,
+            AddRemove: 'string',
+            LogInUserId: 0,
+            hrmgT_IdList: data.groupType.map((v) => Number(v)),
+            employeeTypeIdList: [0],
+            hrmD_IdList: data.department.map((v) => Number(v)),
+            hrmdeS_IdList: data.designation.map((v) => Number(v)),
+            groupTypeIdList: data.groupType.map((v) => Number(v))
+        };
 
-            const response = await searchMassUpdationEmployees(searchPayload);
-
-            if (response.success && response.data) {
-                const hasEmployeeData = response.data.employeedropdown && response.data.employeedropdown.length > 0;
+        searchMutation.mutate(searchPayload, {
+            onSuccess: (responseData) => {
+                const hasEmployeeData = responseData.employeedropdown && responseData.employeedropdown.length > 0;
 
                 if (hasEmployeeData) {
-                    const mappedEmployees: Employee[] = response.data.employeedropdown.map((emp: any) => ({
+                    const mappedEmployees: Employee[] = responseData.employeedropdown.map((emp: any) => ({
                         ...emp,
                         selected: false
                     }));
@@ -204,20 +208,15 @@ export default function MassUpdationPage() {
                     setFilteredEmployees([]);
                     setHasSearched(true);
 
-                    const errorMsg = response.data.retrunMsg || 'No employees found matching the criteria';
+                    const errorMsg = responseData.retrunMsg || 'No employees found matching the criteria';
                     if (errorMsg.toLowerCase().includes('error') || errorMsg.toLowerCase().includes('no data')) {
                         toast.warning(errorMsg);
                     } else {
                         toast.info(errorMsg);
                     }
                 }
-            } else {
-                toast.error(response.message || 'Search failed');
             }
-        } catch (error: any) {
-            console.error('Error searching employees:', error);
-            toast.error(error.message || 'Search failed');
-        }
+        });
     };
 
     const handleSelectAll = (selected: boolean) => {
@@ -256,48 +255,41 @@ export default function MassUpdationPage() {
             return;
         }
 
-        try {
-            const payload = {
-                MI_Id: 30,
-                roleId: 2,
-                Type: 'string',
-                HRME_Id: 0,
-                employeeselected: selectedEmployees,
-                EarningDeduction: values.earningDeduction,
-                AmountPercentage: values.updateType,
-                HREED_Amount: values.updateType === 'Amount' ? Number(values.updateValue) : 0,
-                HREED_Percentage: values.updateType === 'Percentage' ? String(values.updateValue) : '0',
-                HRMED_Id: Number(values.selectedHead),
-                AddRemove: values.addRemove,
-                LogInUserId: 0,
-                groupTypeselected: values.groupType.map((v) => Number(v)),
-                departmentselected: values.department.map((v) => Number(v)),
-                designationselected: values.designation.map((v) => Number(v)),
-                hrmgT_IdList: values.groupType.map((v) => Number(v)),
-                hrmD_IdList: values.department.map((v) => Number(v)),
-                hrmdeS_IdList: values.designation.map((v) => Number(v)),
-                groupTypeIdList: values.groupType.map((v) => Number(v))
-            } as const;
+        const payload = {
+            MI_Id: 30,
+            roleId: 2,
+            Type: 'string',
+            HRME_Id: 0,
+            employeeselected: selectedEmployees,
+            EarningDeduction: values.earningDeduction,
+            AmountPercentage: values.updateType,
+            HREED_Amount: values.updateType === 'Amount' ? Number(values.updateValue) : 0,
+            HREED_Percentage: values.updateType === 'Percentage' ? String(values.updateValue) : '0',
+            HRMED_Id: Number(values.selectedHead),
+            AddRemove: values.addRemove,
+            LogInUserId: 0,
+            groupTypeselected: values.groupType.map((v) => Number(v)),
+            departmentselected: values.department.map((v) => Number(v)),
+            designationselected: values.designation.map((v) => Number(v)),
+            hrmgT_IdList: values.groupType.map((v) => Number(v)),
+            hrmD_IdList: values.department.map((v) => Number(v)),
+            hrmdeS_IdList: values.designation.map((v) => Number(v)),
+            groupTypeIdList: values.groupType.map((v) => Number(v))
+        } as any;
 
-            const resp = await getEmployeeDetailsBySelection(payload as any);
-
-            if (resp.success) {
-                toast.success(resp.message || 'Mass update applied successfully');
-                if (resp.data?.employeedropdown) {
-                    const updatedEmployees: Employee[] = resp.data.employeedropdown.map((emp: any) => ({
+        saveMutation.mutate(payload, {
+            onSuccess: (responseData) => {
+                toast.success('Mass update applied successfully');
+                if (responseData?.employeedropdown) {
+                    const updatedEmployees: Employee[] = responseData.employeedropdown.map((emp: any) => ({
                         ...emp,
                         selected: false
                     }));
                     setEmployees(updatedEmployees);
                     setFilteredEmployees(updatedEmployees);
                 }
-            } else {
-                toast.error(resp.message || 'Save failed');
             }
-        } catch (error: any) {
-            console.error('Error in mass update:', error);
-            toast.error(error.message || 'Save failed');
-        }
+        });
     };
 
     const EmployeeTable = ({
@@ -435,7 +427,7 @@ export default function MassUpdationPage() {
                         </div>
 
                         <div className='flex gap-4'>
-                            <Button type='submit' disabled={false} className='flex items-center gap-2'>
+                            <Button type='submit' disabled={searchMutation.isPending} className='flex items-center gap-2'>
                                 <Search className='h-4 w-4' />
                                 Search
                             </Button>
@@ -602,16 +594,16 @@ export default function MassUpdationPage() {
                             {selectedEmployees.length > 0 && (
                                 <div className='flex items-center gap-4 rounded-lg bg-blue-50 p-4'>
                                     <span className='font-medium text-sm'>{selectedEmployees.length} employee(s) selected</span>
-                                    <Button onClick={handleMassUpdate} className='flex items-center gap-2'>
+                                    <Button onClick={handleMassUpdate} disabled={saveMutation.isPending} className='flex items-center gap-2'>
                                         <Users className='h-4 w-4' />
-                                        Save
+                                        {saveMutation.isPending ? 'Saving...' : 'Save'}
                                     </Button>
                                 </div>
                             )}
 
                             <EmployeeTable
                                 employees={filteredEmployees}
-                                isLoading={isLoading}
+                                isLoading={isLoading || searchMutation.isPending}
                                 onSelectAll={handleSelectAll}
                                 onEmployeeSelect={handleEmployeeSelect}
                             />

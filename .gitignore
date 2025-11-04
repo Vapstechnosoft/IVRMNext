@@ -41,3 +41,5 @@ next-env.d.ts
 certificates
 sw.js
 workbox*.js
+*.zip
+IVRMNext.zip

@@ -9,11 +9,7 @@ import { Label } from '@/components/ui/extension/field';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { MultiSelect } from '@/components/ui/multi-select';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import {
-    generateSalaryForSelectedEmployees,
-    getSalaryCalculationOnload,
-    searchSalaryCalculationBySelection
-} from '@/server/hrms/hrmsConfig/transaction/salary-calculation';
+import { useGenerateSalary, useSalaryCalculationOnload, useSearchSalaryCalculation } from '@/hooks/hrms/useTransactions';
 import type {
     DepartmentDropdown,
     DesignationDropdown,
@@ -51,13 +47,7 @@ export default function SalaryCalculationPage() {
     const [employees, setEmployees] = useState<Employee[]>([]);
     const [filteredEmployees, setFilteredEmployees] = useState<Employee[]>([]);
     const [selectedEmployees, setSelectedEmployees] = useState<number[]>([]);
-    const [isLoading, setIsLoading] = useState(true);
     const [hasSearched, setHasSearched] = useState(false);
-    const [monthOptions, setMonthOptions] = useState<MonthDropdown[]>([]);
-    const [leaveYearOptions, setLeaveYearOptions] = useState<LeaveYearDropdown[]>([]);
-    const [departmentOptions, setDepartmentOptions] = useState<DepartmentDropdown[]>([]);
-    const [designationOptions, setDesignationOptions] = useState<DesignationDropdown[]>([]);
-    const [groupTypeOptions, setGroupTypeOptions] = useState<GroupTypeDropdown[]>([]);
     const [fromDate, setFromDate] = useState<string>('');
     const [toDate, setToDate] = useState<string>('');
     const [currentSearchData, setCurrentSearchData] = useState<SearchForm | null>(null);
@@ -77,60 +67,24 @@ export default function SalaryCalculationPage() {
     const watchedDepartment = watch('department');
     const watchedDesignation = watch('designation');
 
-    useEffect(() => {
-        loadData();
-    }, []);
+    const { data: onloadData, isLoading } = useSalaryCalculationOnload({
+        MI_Id: 30,
+        LogInUserId: 0
+    });
+    const searchMutation = useSearchSalaryCalculation();
+    const generateMutation = useGenerateSalary();
+
+    const monthOptions = onloadData?.monthdropdown || [];
+    const leaveYearOptions = onloadData?.leaveyeardropdown || [];
+    const departmentOptions = onloadData?.departmentdropdown || [];
+    const designationOptions = onloadData?.designationdropdown || [];
+    const groupTypeOptions = onloadData?.groupTypedropdown || [];
 
     useEffect(() => {
         if (hasSearched) {
             filterEmployees();
         }
     }, [watchedGroupType, watchedDepartment, watchedDesignation, employees, hasSearched]);
-
-    const loadData = async () => {
-        try {
-            setIsLoading(true);
-            const payload = {
-                MI_Id: 30,
-                LogInUserId: 0
-            };
-
-            const response = await getSalaryCalculationOnload(payload);
-
-            if (response.success && response.data) {
-                setMonthOptions(response.data.monthdropdown || []);
-                setLeaveYearOptions(response.data.leaveyeardropdown || []);
-                setDepartmentOptions(response.data.departmentdropdown || []);
-                setDesignationOptions(response.data.designationdropdown || []);
-                setGroupTypeOptions(response.data.groupTypedropdown || []);
-
-                const employeeList = response.data.employeedropdown || [];
-                const designations = response.data.designationdropdown || [];
-
-                const employeesWithStatus: Employee[] = employeeList.map((emp) => {
-                    const designation = designations.find((d: DesignationDropdown) => d.HRMDES_Id === emp.HRMDES_Id);
-                    const basicSalary = designation?.HRMDES_BasicAmount || 0;
-
-                    return {
-                        ...emp,
-                        calculationStatus: 'Not Calculated' as const,
-                        basicSalary,
-                        allowances: 0,
-                        deductions: 0,
-                        netSalary: basicSalary
-                    };
-                });
-                setEmployees(employeesWithStatus);
-            } else {
-                toast.error('Failed to load salary calculation data');
-            }
-        } catch (error: any) {
-            console.error('Error loading salary calculation data:', error);
-            toast.error(error.message || 'Failed to load data');
-        } finally {
-            setIsLoading(false);
-        }
-    };
 
     const filterEmployees = () => {
         let filtered = employees;
@@ -154,25 +108,22 @@ export default function SalaryCalculationPage() {
     };
 
     const onSubmit: SubmitHandler<SearchForm> = async (data: SearchForm) => {
-        try {
-            const payload: SalaryCalculationSearchRequest = {
-                MI_Id: 30,
-                HRES_Year: data.salaryYear || '',
-                HRES_Month: data.salaryMonth || '',
-                groupTypeIdList: (data.groupType || []).map((v) => Number(v)),
-                hrmD_IdList: (data.department || []).map((v) => Number(v)),
-                hrmdeS_IdList: (data.designation || []).map((v) => Number(v)),
-                LogInUserId: 0
-            };
+        const payload: SalaryCalculationSearchRequest = {
+            MI_Id: 30,
+            HRES_Year: data.salaryYear || '',
+            HRES_Month: data.salaryMonth || '',
+            groupTypeIdList: (data.groupType || []).map((v) => Number(v)),
+            hrmD_IdList: (data.department || []).map((v) => Number(v)),
+            hrmdeS_IdList: (data.designation || []).map((v) => Number(v)),
+            LogInUserId: 0
+        };
 
-            const response = await searchSalaryCalculationBySelection(payload);
-
-            if (response.success && response.data) {
-                const employeeList = response.data.employeedropdown || [];
-                const designations = designationOptions;
+        searchMutation.mutate(payload, {
+            onSuccess: (responseData) => {
+                const employeeList = responseData.employeedropdown || [];
 
                 const employeesWithStatus: Employee[] = employeeList.map((emp) => {
-                    const designation = designations.find((d: DesignationDropdown) => d.HRMDES_Id === emp.HRMDES_Id);
+                    const designation = designationOptions.find((d: DesignationDropdown) => d.HRMDES_Id === emp.HRMDES_Id);
                     const basicSalary = designation?.HRMDES_BasicAmount || 0;
 
                     return {
@@ -208,16 +159,13 @@ export default function SalaryCalculationPage() {
                 }
 
                 toast.success(`Search completed successfully. Found ${employeesWithStatus.length} employees`);
-            } else {
+            },
+            onError: () => {
                 setEmployees([]);
                 setFilteredEmployees([]);
                 setHasSearched(true);
-                toast.error(response.message || 'No employees found for the selected criteria');
             }
-        } catch (error: any) {
-            console.error('Error performing search:', error);
-            toast.error(error.message || 'Search failed');
-        }
+        });
     };
 
     const handleEmployeeSelect = (employeeId: number, selected: boolean) => {
@@ -247,22 +195,16 @@ export default function SalaryCalculationPage() {
             return;
         }
 
-        try {
-            setIsLoading(true);
+        const payload: SalaryCalculationGenerateRequest = {
+            MI_Id: 30,
+            HRES_Year: currentSearchData.salaryYear,
+            HRES_Month: currentSearchData.salaryMonth,
+            employeeIdList: selectedEmployees,
+            LogInUserId: 0
+        };
 
-            const payload: SalaryCalculationGenerateRequest = {
-                MI_Id: 30,
-                HRES_Year: currentSearchData.salaryYear,
-                HRES_Month: currentSearchData.salaryMonth,
-                employeeIdList: selectedEmployees,
-                LogInUserId: 0
-            };
-
-            const response = await generateSalaryForSelectedEmployees(payload);
-
-            if (response.success) {
-                toast.success('Salary generation completed successfully!');
-
+        generateMutation.mutate(payload, {
+            onSuccess: () => {
                 setEmployees((prevEmployees) =>
                     prevEmployees.map((emp) =>
                         selectedEmployees.includes(emp.HRME_Id) ? { ...emp, calculationStatus: 'Calculated' as const } : emp
@@ -275,15 +217,8 @@ export default function SalaryCalculationPage() {
                 );
 
                 setSelectedEmployees([]);
-            } else {
-                toast.error(response.message || 'Failed to generate salary');
             }
-        } catch (error: any) {
-            console.error('Error generating salary:', error);
-            toast.error(error.message || 'Failed to generate salary');
-        } finally {
-            setIsLoading(false);
-        }
+        });
     };
 
     return (
@@ -449,7 +384,7 @@ export default function SalaryCalculationPage() {
                         headerClassName=''>
                         <SalaryCalculationTable
                             employees={filteredEmployees}
-                            isLoading={isLoading}
+                            isLoading={isLoading || searchMutation.isPending || generateMutation.isPending}
                             selectedEmployees={selectedEmployees}
                             onEmployeeSelect={handleEmployeeSelect}
                             onSelectAll={handleSelectAll}

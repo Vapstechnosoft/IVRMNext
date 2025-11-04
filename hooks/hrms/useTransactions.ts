@@ -6,13 +6,13 @@
  */
 
 import { HRMS_QUERY_KEYS } from '@/constants/query-keys';
-import { getEmployeeLoanList, saveEmployeeLoan } from '@/server/hrms/hrmsConfig/transaction/employee-loan';
-import { getSalaryAdvanceList, saveSalaryAdvance } from '@/server/hrms/hrmsConfig/transaction/salary-advance';
+import { activateDeactivateEmployeeLoan, getEmployeeLoanList, saveEmployeeLoan } from '@/server/hrms/hrmsConfig/transaction/employee-loan';
+import { getSalaryAdvanceList, saveSalaryAdvance, toggleSalaryAdvanceStatus } from '@/server/hrms/hrmsConfig/transaction/salary-advance';
 import { approveSalaries, getSalaryApprovalOnload, searchSalaryApprovalEmployees } from '@/server/hrms/hrmsConfig/transaction/salary-approval';
-import { generateSalaryForSelectedEmployees, getSalaryCalculationOnload } from '@/server/hrms/hrmsConfig/transaction/salary-calculation';
+import { generateSalaryForSelectedEmployees, getSalaryCalculationOnload, searchSalaryCalculationBySelection } from '@/server/hrms/hrmsConfig/transaction/salary-calculation';
 import { deleteSalaryIncrement, getSalaryIncrementOnload, saveSalaryIncrement } from '@/server/hrms/hrmsConfig/transaction/salary-increment';
 import { deleteSalaryUpdation, getSalaryUpdationList, saveSalaryUpdation } from '@/server/hrms/hrmsConfig/transaction/salary-updation';
-import { getMassUpdationOnload, saveMassUpdation, searchMassUpdationEmployees } from '@/server/hrms/hrmsConfig/transaction/mass-updation';
+import { getEmployeeDetailsBySelection, getMassUpdationOnload, saveMassUpdation, searchMassUpdationEmployees } from '@/server/hrms/hrmsConfig/transaction/mass-updation';
 import type {
     EmployeeLoanDeleteRequest,
     EmployeeLoanOnloadRequest,
@@ -39,7 +39,8 @@ import type {
     SalaryCalculationGenerateRequest,
     SalaryCalculationGenerateResponse,
     SalaryCalculationOnloadRequest,
-    SalaryCalculationOnloadResponse
+    SalaryCalculationOnloadResponse,
+    SalaryCalculationSearchRequest
 } from '@/types/hrms/salary-calculation';
 import type {
     SalaryIncrementDeleteRequest,
@@ -132,6 +133,28 @@ export function useDeleteEmployeeLoan() {
     });
 }
 
+export function useActivateDeactivateEmployeeLoan() {
+    const queryClient = useQueryClient();
+
+    return useMutation<any, Error, EmployeeLoanDeleteRequest>({
+        mutationFn: (data: EmployeeLoanDeleteRequest) =>
+            activateDeactivateEmployeeLoan(data).then((res) => {
+                if (!res.success) {
+                    throw new Error(res.message);
+                }
+                return res.data!;
+            }),
+        onSuccess: () => {
+            queryClient.invalidateQueries({
+                queryKey: [HRMS_QUERY_KEYS.EMPLOYEE_LOAN_LIST]
+            });
+        },
+        onError: (error) => {
+            toast.error(error.message || 'Failed to update employee loan status.');
+        }
+    });
+}
+
 // ============================================================================
 // SALARY ADVANCE
 // ============================================================================
@@ -154,7 +177,7 @@ export function useSalaryAdvanceList(payload: SalaryAdvanceOnloadRequest) {
 export function useSaveSalaryAdvance() {
     const queryClient = useQueryClient();
 
-    return useMutation<SalaryAdvanceSaveResponse, Error, SalaryAdvanceSaveRequest>({
+    return useMutation<SalaryAdvanceSaveResponse | SalaryAdvanceOnloadResponse, Error, SalaryAdvanceSaveRequest>({
         mutationFn: (data: SalaryAdvanceSaveRequest) =>
             saveSalaryAdvance(data).then((res) => {
                 if (!res.success) {
@@ -163,17 +186,16 @@ export function useSaveSalaryAdvance() {
                 return res.data!;
             }),
         onSuccess: (data, variables) => {
-            if (data.HRESA_Id) {
-                toast.success(
-                    data.retrunMsg ||
-                        (variables.HRESA_Id === 0 ? 'Salary advance created successfully!' : 'Salary advance updated successfully!')
-                );
-                queryClient.invalidateQueries({
-                    queryKey: [HRMS_QUERY_KEYS.SALARY_ADVANCE_LIST]
-                });
-            } else {
-                toast.error(data.retrunMsg || 'Failed to save salary advance.');
-            }
+            // Always invalidate the cache to refresh the list
+            queryClient.invalidateQueries({
+                queryKey: [HRMS_QUERY_KEYS.SALARY_ADVANCE_LIST]
+            });
+            
+            // Show success message
+            const successMessage = 
+                (data as SalaryAdvanceSaveResponse).retrunMsg ||
+                (variables.HRESA_Id === 0 ? 'Salary advance created successfully!' : 'Salary advance updated successfully!');
+            toast.success(successMessage);
         },
         onError: (error) => {
             toast.error(error.message || 'Failed to save salary advance.');
@@ -194,6 +216,28 @@ export function useDeleteSalaryAdvance() {
         },
         onError: (error) => {
             toast.error(error.message || 'Failed to delete salary advance.');
+        }
+    });
+}
+
+export function useToggleSalaryAdvanceStatus() {
+    const queryClient = useQueryClient();
+
+    return useMutation<any, Error, { hresaId: number; activeFlag: boolean }>({
+        mutationFn: ({ hresaId, activeFlag }) =>
+            toggleSalaryAdvanceStatus(hresaId, activeFlag).then((res) => {
+                if (!res.success) {
+                    throw new Error(res.message);
+                }
+                return res.data!;
+            }),
+        onSuccess: () => {
+            queryClient.invalidateQueries({
+                queryKey: [HRMS_QUERY_KEYS.SALARY_ADVANCE_LIST]
+            });
+        },
+        onError: (error) => {
+            toast.error(error.message || 'Failed to update salary advance status.');
         }
     });
 }
@@ -277,7 +321,22 @@ export function useSalaryCalculationOnload(payload: SalaryCalculationOnloadReque
                 return res.data!;
             }),
         staleTime: 1000 * 60 * 5,
-        enabled: !!payload.MI_Id && !!payload.LogInUserId
+        enabled: !!payload.MI_Id
+    });
+}
+
+export function useSearchSalaryCalculation() {
+    return useMutation<SalaryCalculationOnloadResponse, Error, SalaryCalculationSearchRequest>({
+        mutationFn: (data: SalaryCalculationSearchRequest) =>
+            searchSalaryCalculationBySelection(data).then((res) => {
+                if (!res.success) {
+                    throw new Error(res.message);
+                }
+                return res.data!;
+            }),
+        onError: (error) => {
+            toast.error(error.message || 'Failed to search employees for salary calculation.');
+        }
     });
 }
 
@@ -501,6 +560,28 @@ export function useSearchMassUpdationEmployees() {
         },
         onError: (error) => {
             toast.error(error.message || 'Failed to search employees.');
+        }
+    });
+}
+
+export function useGetEmployeeDetailsBySelection() {
+    const queryClient = useQueryClient();
+
+    return useMutation<MassUpdationOnloadResponse, Error, MassUpdationSearchRequest>({
+        mutationFn: (data: MassUpdationSearchRequest) =>
+            getEmployeeDetailsBySelection(data).then((res) => {
+                if (!res.success) {
+                    throw new Error(res.message);
+                }
+                return res.data!;
+            }),
+        onSuccess: () => {
+            queryClient.invalidateQueries({
+                queryKey: [HRMS_QUERY_KEYS.MASS_UPDATION_ONLOAD]
+            });
+        },
+        onError: (error) => {
+            toast.error(error.message || 'Failed to update employee details.');
         }
     });
 }

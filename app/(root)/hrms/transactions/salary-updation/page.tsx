@@ -7,7 +7,7 @@ import { DataTable } from '@/components/ui/data-table/data-table';
 import { Label } from '@/components/ui/extension/field';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { getCumulativeSalaryReportOnload } from '@/server/hrms/hrmsConfig/reports/cumulative-salary-report';
+import { useCumulativeSalaryReportOnload } from '@/hooks/hrms/useReports';
 import type {
     DepartmentDropdown,
     DesignationDropdown,
@@ -54,15 +54,10 @@ export default function SalaryUpdationPage() {
     const [employees, setEmployees] = useState<Employee[]>([]);
     const [filteredEmployees, setFilteredEmployees] = useState<Employee[]>([]);
     const [selectedEmployees, setSelectedEmployees] = useState<number[]>([]);
-    const [isLoading, setIsLoading] = useState(true);
     const [hasSearched, setHasSearched] = useState(false);
-    const [groupTypes, setGroupTypes] = useState<GroupTypeDropdown[]>([]);
-    const [departments, setDepartments] = useState<DepartmentDropdown[]>([]);
-    const [designations, setDesignations] = useState<DesignationDropdown[]>([]);
-    const [availableHeads, setAvailableHeads] = useState<EarningDeductionDetail[]>([]);
     const [selectedHeads, setSelectedHeads] = useState<string[]>([]);
-    const [monthOptions, setMonthOptions] = useState<MonthDropdown[]>([]);
-    const [leaveYearOptions, setLeaveYearOptions] = useState<LeaveYearDropdown[]>([]);
+
+    const { data: onloadData, isLoading } = useCumulativeSalaryReportOnload(30);
 
     const { register, handleSubmit, reset, watch, control } = useForm<SearchForm>({
         mode: 'onChange',
@@ -83,9 +78,64 @@ export default function SalaryUpdationPage() {
     const watchedDesignation = watch('designation');
     const watchedHeads = watch('heads');
 
+    const groupTypes = onloadData?.data?.groupTypedropdownlist || [];
+    const departments = onloadData?.data?.departmentdropdownlist || [];
+    const designations = onloadData?.data?.designationdropdownlist || [];
+    const monthOptions = onloadData?.data?.monthdropdown || [];
+    const leaveYearOptions = onloadData?.data?.leaveyeardropdown || [];
+    const availableHeads = (onloadData?.data as any)?.earningdeductiondetails || [];
+
     useEffect(() => {
-        loadData();
-    }, []);
+        if (onloadData && onloadData.data) {
+            const data = onloadData.data;
+
+            const salaryFields: Record<string, number> = {};
+            (availableHeads || []).forEach((head: EarningDeductionDetail) => {
+                salaryFields[head.hrmeD_Name] = 0;
+            });
+
+            if ((data as any).employeedropdown && (data as any).employeedropdown.length > 0) {
+                const apiEmployees: Employee[] = ((data as any).employeedropdown as any[]).map((emp: any) => ({
+                    hrmE_Id: emp.hrmE_Id,
+                    hrmE_EmployeeCode: emp.hrmE_EmployeeCode,
+                    hrmE_EmployeeFirstName: emp.hrmE_EmployeeFirstName,
+                    hrmE_EmployeeMiddleName: emp.hrmE_EmployeeMiddleName,
+                    hrmE_EmployeeLastName: emp.hrmE_EmployeeLastName,
+                    hrmgT_Id: emp.hrmgT_Id,
+                    hrmD_Id: emp.hrmD_Id,
+                    hrmdeS_Id: emp.hrmdeS_Id,
+                    hrmD_DepartmentName: emp.hrmD_DepartmentName,
+                    hrmdeS_DesignationName: emp.hrmdeS_DesignationName,
+                    hrmgT_EmployeeGroupType: emp.hrmgT_EmployeeGroupType,
+                    ...salaryFields,
+                    ...Object.keys(emp).reduce((acc: Record<string, any>, key: string) => {
+                        if (
+                            ![
+                                'hrmE_Id',
+                                'hrmE_EmployeeCode',
+                                'hrmE_EmployeeFirstName',
+                                'hrmE_EmployeeMiddleName',
+                                'hrmE_EmployeeLastName',
+                                'hrmgT_Id',
+                                'hrmD_Id',
+                                'hrmdeS_Id',
+                                'hrmD_DepartmentName',
+                                'hrmdeS_DesignationName',
+                                'hrmgT_EmployeeGroupType'
+                            ].includes(key)
+                        ) {
+                            acc[key] = emp[key] ?? 0;
+                        }
+                        return acc;
+                    }, {})
+                }));
+                setEmployees(apiEmployees);
+            }
+
+            const headNames = (availableHeads || []).map((head: EarningDeductionDetail) => head.hrmeD_Name);
+            setSelectedHeads(headNames);
+        }
+    }, [onloadData, availableHeads]);
 
     useEffect(() => {
         if (hasSearched) {
@@ -95,82 +145,12 @@ export default function SalaryUpdationPage() {
 
     useEffect(() => {
         if (watchedHeads === 'All') {
-            const allHeadNames = availableHeads.map((head) => head.hrmeD_Name);
+            const allHeadNames = availableHeads.map((head: EarningDeductionDetail) => head.hrmeD_Name);
             setSelectedHeads(allHeadNames);
         } else if (watchedHeads && watchedHeads !== 'All') {
             setSelectedHeads([watchedHeads]);
         }
     }, [watchedHeads, availableHeads]);
-
-    const loadData = async () => {
-        try {
-            setIsLoading(true);
-            const response = await getCumulativeSalaryReportOnload(30);
-
-            if (response.success && response.data) {
-                const data = response.data;
-
-                setMonthOptions(data.monthdropdown || []);
-                setLeaveYearOptions(data.leaveyeardropdown || []);
-                setGroupTypes(data.groupTypedropdownlist || []);
-                setDepartments(data.departmentdropdownlist || []);
-                setDesignations(data.designationdropdownlist || []);
-                setAvailableHeads((data as any).earningdeductiondetails || []);
-
-                const salaryFields: Record<string, number> = {};
-                ((data as any).earningdeductiondetails || []).forEach((head: EarningDeductionDetail) => {
-                    salaryFields[head.hrmeD_Name] = 0;
-                });
-
-                if ((data as any).employeedropdown && (data as any).employeedropdown.length > 0) {
-                    const apiEmployees: Employee[] = ((data as any).employeedropdown as any[]).map((emp: any) => ({
-                        hrmE_Id: emp.hrmE_Id,
-                        hrmE_EmployeeCode: emp.hrmE_EmployeeCode,
-                        hrmE_EmployeeFirstName: emp.hrmE_EmployeeFirstName,
-                        hrmE_EmployeeMiddleName: emp.hrmE_EmployeeMiddleName,
-                        hrmE_EmployeeLastName: emp.hrmE_EmployeeLastName,
-                        hrmgT_Id: emp.hrmgT_Id,
-                        hrmD_Id: emp.hrmD_Id,
-                        hrmdeS_Id: emp.hrmdeS_Id,
-                        hrmD_DepartmentName: emp.hrmD_DepartmentName,
-                        hrmdeS_DesignationName: emp.hrmdeS_DesignationName,
-                        hrmgT_EmployeeGroupType: emp.hrmgT_EmployeeGroupType,
-                        ...salaryFields,
-                        ...Object.keys(emp).reduce((acc: Record<string, any>, key: string) => {
-                            if (
-                                ![
-                                    'hrmE_Id',
-                                    'hrmE_EmployeeCode',
-                                    'hrmE_EmployeeFirstName',
-                                    'hrmE_EmployeeMiddleName',
-                                    'hrmE_EmployeeLastName',
-                                    'hrmgT_Id',
-                                    'hrmD_Id',
-                                    'hrmdeS_Id',
-                                    'hrmD_DepartmentName',
-                                    'hrmdeS_DesignationName',
-                                    'hrmgT_EmployeeGroupType'
-                                ].includes(key)
-                            ) {
-                                acc[key] = emp[key] ?? 0;
-                            }
-                            return acc;
-                        }, {})
-                    }));
-                    setEmployees(apiEmployees);
-                }
-
-                const headNames = ((data as any).earningdeductiondetails || []).map((head: EarningDeductionDetail) => head.hrmeD_Name);
-                setSelectedHeads(headNames);
-            } else {
-                toast.error(response.message || 'Failed to load data');
-            }
-        } catch (error: any) {
-            toast.error(error.message || 'Failed to load data');
-        } finally {
-            setIsLoading(false);
-        }
-    };
 
     const filterEmployees = () => {
         let filtered = employees;
@@ -370,7 +350,7 @@ export default function SalaryUpdationPage() {
                                             </SelectTrigger>
                                             <SelectContent>
                                                 <SelectItem value='All'>All Heads</SelectItem>
-                                                {availableHeads.map((head) => (
+                                                {availableHeads.map((head: EarningDeductionDetail) => (
                                                     <SelectItem key={head.hrmeD_Id} value={head.hrmeD_Name}>
                                                         {head.hrmeD_Name}
                                                     </SelectItem>

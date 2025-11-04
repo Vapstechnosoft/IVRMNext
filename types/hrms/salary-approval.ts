@@ -61,6 +61,11 @@ export interface LeaveYearDropdown {
     UpdatedDate: string;
 }
 
+export interface MonthDropdown {
+    monthId: number;
+    monthName: string;
+}
+
 // Onload Response
 export interface SalaryApprovalOnloadResponse {
     MI_Id: number;

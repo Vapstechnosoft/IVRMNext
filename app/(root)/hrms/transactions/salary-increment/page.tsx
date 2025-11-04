@@ -11,7 +11,7 @@ import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { cn } from '@/lib/utils';
-import { deleteSalaryIncrement, getSalaryIncrementOnload, saveSalaryIncrement } from '@/server/hrms/hrmsConfig/transaction/salary-increment';
+import { useDeleteSalaryIncrement, useSalaryIncrementOnload, useSaveSalaryIncrement } from '@/hooks/hrms/useTransactions';
 import type { EarningDeductionType, SalaryIncrementDeleteRequest, SalaryIncrementGridItem } from '@/types/hrms/salary-increment';
 import type { ColumnDef } from '@tanstack/react-table';
 import { format } from 'date-fns';
@@ -59,10 +59,6 @@ export default function SalaryIncrementProcessPage() {
     const [employees, setEmployees] = useState<Employee[]>([]);
     const [filteredEmployees, setFilteredEmployees] = useState<Employee[]>([]);
     const [selectedEmployees, setSelectedEmployees] = useState<number[]>([]);
-    const [isLoading, setIsLoading] = useState(true);
-    const [employeeOptions, setEmployeeOptions] = useState<Employee[]>([]);
-    const [earningHeads, setEarningHeads] = useState<EarningDeductionType[]>([]);
-    const [gridData, setGridData] = useState<SalaryIncrementGridItem[]>([]);
     const formRef = useRef<HTMLDivElement>(null);
 
     const {
@@ -71,7 +67,7 @@ export default function SalaryIncrementProcessPage() {
         reset,
         watch,
         control,
-        formState: { errors, isSubmitting }
+        formState: { errors }
     } = useForm<IncrementForm>({
         mode: 'onChange',
         defaultValues: {
@@ -86,40 +82,41 @@ export default function SalaryIncrementProcessPage() {
 
     const watchedIncrementType = watch('incrementType');
 
-    useEffect(() => {
-        loadData();
-    }, []);
+    const { data: onloadData, isLoading } = useSalaryIncrementOnload({
+        MI_Id: 30,
+        roleId: 0
+    });
+    const saveMutation = useSaveSalaryIncrement();
+    const deleteMutation = useDeleteSalaryIncrement();
+
+    const earningHeads = onloadData?.earningdeductiontype || [];
+    const gridData = onloadData?.griddata || [];
 
     useEffect(() => {
-        filterEmployees();
-    }, [employees]);
+        console.log('=== Salary Increment Onload Response ===');
+        console.log('Success:', onloadData ? 'Data received' : 'No data');
+        console.log('Full Response Data:', onloadData);
+        if (onloadData) {
+            const employeeList = onloadData.employeelist || [];
+            const gridDataList = onloadData.griddata || [];
+            
+            console.log('Employee list length:', employeeList.length);
+            console.log('Grid data length:', gridDataList.length);
+            console.log('Sample employees:', employeeList.slice(0, 3));
+            console.log('Sample grid data:', gridDataList.slice(0, 3));
 
-    const loadData = async () => {
-        try {
-            setIsLoading(true);
+            let mappedEmployees: Employee[] = [];
 
-            const payload = {
-                MI_Id: 30,
-                roleId: 0
-            };
-
-            const response = await getSalaryIncrementOnload(payload);
-
-            if (response.success && response.data) {
-                setEarningHeads(response.data.earningdeductiontype || []);
-                setGridData(response.data.griddata || []);
-
-                const employeeList = response.data.employeelist || [];
-                const gridData = response.data.griddata || [];
-
+            if (employeeList.length > 0) {
+                // If we have employee list, map it with grid data
                 const incrementMap = new Map<string, SalaryIncrementGridItem>();
-                gridData.forEach((record: SalaryIncrementGridItem) => {
+                gridDataList.forEach((record: SalaryIncrementGridItem) => {
                     if (record.EmployeeName) {
                         incrementMap.set(record.EmployeeName, record);
                     }
                 });
 
-                const mappedEmployees: Employee[] = employeeList.map((emp: any) => {
+                mappedEmployees = employeeList.map((emp: any) => {
                     const fullName = `${emp.HRME_EmployeeFirstName} ${emp.HRME_EmployeeMiddleName || ''} ${
                         emp.HRME_EmployeeLastName || ''
                     }`.trim();
@@ -131,10 +128,10 @@ export default function SalaryIncrementProcessPage() {
                         HRME_EmployeeFirstName: emp.HRME_EmployeeFirstName,
                         HRME_EmployeeMiddleName: emp.HRME_EmployeeMiddleName,
                         HRME_EmployeeLastName: emp.HRME_EmployeeLastName,
-                        HRMGT_Id: emp.HRMGT_Id,
-                        HRMD_Id: emp.HRMD_Id,
-                        HRMDES_Id: emp.HRMDES_Id,
-                        HRMD_DepartmentName: incrementRecord?.HRMD_DepartmentName,
+                        HRMGT_Id: emp.HRMGT_Id || 0,
+                        HRMD_Id: emp.HRMD_Id || 0,
+                        HRMDES_Id: emp.HRMDES_Id || 0,
+                        HRMD_DepartmentName: incrementRecord?.HRMD_DepartmentName || emp.HRMD_DepartmentName,
                         currentSalary: 0,
                         incrementAmount: incrementRecord?.Amount || 0,
                         newSalary: 0,
@@ -147,20 +144,54 @@ export default function SalaryIncrementProcessPage() {
                         HREIC_Id: incrementRecord?.HREIC_Id || 0
                     };
                 });
+            } else if (gridDataList.length > 0) {
+                // If employee list is empty but grid data exists, create employees from grid data
+                mappedEmployees = gridDataList.map((record: SalaryIncrementGridItem) => {
+                    // Parse employee name if it contains first, middle, last name
+                    const nameParts = (record.EmployeeName || '').split(' ').filter(Boolean);
+                    const firstName = nameParts[0] || '';
+                    const middleName = nameParts.length > 2 ? nameParts.slice(1, -1).join(' ') : '';
+                    const lastName = nameParts.length > 1 ? nameParts[nameParts.length - 1] : '';
 
-                setEmployees(mappedEmployees);
-                setEmployeeOptions(mappedEmployees);
-                setFilteredEmployees(mappedEmployees);
-            } else {
-                toast.error('Failed to load salary increment data');
+                    return {
+                        HRME_Id: record.HRME_Id || 0,
+                        HRME_EmployeeCode: '',
+                        HRME_EmployeeFirstName: firstName,
+                        HRME_EmployeeMiddleName: middleName || undefined,
+                        HRME_EmployeeLastName: lastName || undefined,
+                        HRMGT_Id: 0,
+                        HRMD_Id: 0,
+                        HRMDES_Id: 0,
+                        HRMD_DepartmentName: record.HRMD_DepartmentName,
+                        currentSalary: 0,
+                        incrementAmount: record.Amount || 0,
+                        newSalary: 0,
+                        incrementPercentage: 0,
+                        incrementStatus: 'Processed' as const,
+                        effectiveDate: new Date().toISOString(),
+                        earningHead: record.HRMED_Name,
+                        previousAmount: 0,
+                        flag: record.Flag as 'Percentage' | 'Amount' | undefined,
+                        HREIC_Id: record.HREIC_Id || 0
+                    };
+                });
             }
-        } catch (error: any) {
-            console.error('Error loading salary increment data:', error);
-            toast.error(error.message || 'Failed to load data');
-        } finally {
-            setIsLoading(false);
+
+            console.log('Mapped employees:', mappedEmployees.length);
+            console.log('Sample mapped employees:', mappedEmployees.slice(0, 3));
+            
+            setEmployees(mappedEmployees);
+            setFilteredEmployees(mappedEmployees);
+        } else {
+            console.log('No onload data available');
+            setEmployees([]);
+            setFilteredEmployees([]);
         }
-    };
+    }, [onloadData]);
+
+    useEffect(() => {
+        filterEmployees();
+    }, [employees]);
 
     const filterEmployees = () => {
         setFilteredEmployees(employees);
@@ -181,91 +212,76 @@ export default function SalaryIncrementProcessPage() {
     };
 
     const onSubmit: SubmitHandler<IncrementForm> = async (data: IncrementForm) => {
-        try {
-            if (data.employeeId === 'All') {
-                toast.error('Please select a specific employee for increment');
-                return;
-            }
-
-            const selectedEmployee = employees.find((emp) => emp.HRME_Id.toString() === data.employeeId);
-            if (!selectedEmployee) {
-                toast.error('Selected employee not found');
-                return;
-            }
-
-            const earningHead = earningHeads.find((head) => head.HRMED_Name === data.earningHead);
-            if (!earningHead) {
-                toast.error('Selected earning head not found');
-                return;
-            }
-
-            let incrementAmount = 0;
-            let incrementPercentage = 0;
-
-            if (data.incrementType === 'Percentage') {
-                incrementAmount = (selectedEmployee.currentSalary * data.incrementValue) / 100;
-                incrementPercentage = data.incrementValue;
-            } else {
-                incrementAmount = data.incrementValue;
-                incrementPercentage = (data.incrementValue / selectedEmployee.currentSalary) * 100;
-            }
-
-            const payload: any = {
-                MI_Id: 30,
-                roleId: 0,
-                HREIC_Id: selectedEmployee.HREIC_Id || 0,
-                HRME_Id: selectedEmployee.HRME_Id,
-                HREIC_LastIncrementDate: new Date().toISOString(),
-                HREIC_IncrementDueDate: new Date().toISOString(),
-                HREIC_IncrementDate: data.incrementDate,
-                Fromdate: data.incrementDate,
-                Todate: data.incrementDate,
-                HREIC_ArrearApplicableFlg: false,
-                HREIC_ArrearGivenFlg: false,
-                HREIC_ArrearMonths: 0,
-                UserId: 0,
-                HREIC_ActiveFlag: true,
-                HREICED_Id: false,
-                HRMED_Id: earningHead.HRMED_Id,
-                HREICED_Amount: data.incrementType === 'Amount' ? data.incrementValue : incrementAmount,
-                HREICED_Percentage: data.incrementType === 'Percentage' ? data.incrementValue.toString() : incrementPercentage.toString(),
-                HREICED_ActiveFlag: true,
-                retrunMsg: 'string',
-                Status: 'string',
-                monthdropdown: [],
-                griddata: gridData || [],
-                Reportdata: [],
-                employeelist: [],
-                earningdeductiontype: earningHeads || [],
-                getempsdetails: [],
-                leaveyeardropdown: [],
-                Type: 'string',
-                Option: 'string',
-                Month: 0,
-                Year: 0,
-                selected_hrmeID: selectedEmployee.HRME_Id,
-                employee: []
-            };
-
-            const response = await saveSalaryIncrement(payload);
-
-            if (response.success) {
-                toast.success(
-                    response.message ||
-                        `Successfully processed increment for ${selectedEmployee.HRME_EmployeeFirstName} ${
-                            selectedEmployee.HRME_EmployeeLastName || ''
-                        }`
-                );
-
-                await loadData();
-                handleFormClose();
-            } else {
-                toast.error(response.message || 'Failed to save salary increment');
-            }
-        } catch (error: any) {
-            console.error('Error submitting salary increment:', error);
-            toast.error(error.message || 'Increment process failed');
+        if (data.employeeId === 'All') {
+            toast.error('Please select a specific employee for increment');
+            return;
         }
+
+        const selectedEmployee = employees.find((emp) => emp.HRME_Id.toString() === data.employeeId);
+        if (!selectedEmployee) {
+            toast.error('Selected employee not found');
+            return;
+        }
+
+        const earningHead = earningHeads.find((head) => head.HRMED_Name === data.earningHead);
+        if (!earningHead) {
+            toast.error('Selected earning head not found');
+            return;
+        }
+
+        let incrementAmount = 0;
+        let incrementPercentage = 0;
+
+        if (data.incrementType === 'Percentage') {
+            incrementAmount = (selectedEmployee.currentSalary * data.incrementValue) / 100;
+            incrementPercentage = data.incrementValue;
+        } else {
+            incrementAmount = data.incrementValue;
+            incrementPercentage = (data.incrementValue / selectedEmployee.currentSalary) * 100;
+        }
+
+        const payload: any = {
+            MI_Id: 30,
+            roleId: 0,
+            HREIC_Id: selectedEmployee.HREIC_Id || 0,
+            HRME_Id: selectedEmployee.HRME_Id,
+            HREIC_LastIncrementDate: new Date().toISOString(),
+            HREIC_IncrementDueDate: new Date().toISOString(),
+            HREIC_IncrementDate: data.incrementDate,
+            Fromdate: data.incrementDate,
+            Todate: data.incrementDate,
+            HREIC_ArrearApplicableFlg: false,
+            HREIC_ArrearGivenFlg: false,
+            HREIC_ArrearMonths: 0,
+            UserId: 0,
+            HREIC_ActiveFlag: true,
+            HREICED_Id: false,
+            HRMED_Id: earningHead.HRMED_Id,
+            HREICED_Amount: data.incrementType === 'Amount' ? data.incrementValue : incrementAmount,
+            HREICED_Percentage: data.incrementType === 'Percentage' ? data.incrementValue.toString() : incrementPercentage.toString(),
+            HREICED_ActiveFlag: true,
+            retrunMsg: 'string',
+            Status: 'string',
+            monthdropdown: [],
+            griddata: gridData || [],
+            Reportdata: [],
+            employeelist: [],
+            earningdeductiontype: earningHeads || [],
+            getempsdetails: [],
+            leaveyeardropdown: [],
+            Type: 'string',
+            Option: 'string',
+            Month: 0,
+            Year: 0,
+            selected_hrmeID: selectedEmployee.HRME_Id,
+            employee: []
+        };
+
+        saveMutation.mutate(payload, {
+            onSuccess: () => {
+                handleFormClose();
+            }
+        });
     };
 
     const handleEmployeeSelect = (employeeId: number, selected: boolean) => {
@@ -286,35 +302,23 @@ export default function SalaryIncrementProcessPage() {
     };
 
     const handleDelete = async (employee: Employee) => {
-        try {
-            if (!employee.HREIC_Id || employee.HREIC_Id === 0) {
-                toast.error('No increment record found for this employee. Only employees with existing increment records can be deleted.');
-                return;
-            }
-
-            if (!employee.effectiveDate || !employee.earningHead) {
-                toast.error("This employee doesn't have a processed increment record to delete.");
-                return;
-            }
-
-            const payload: SalaryIncrementDeleteRequest = {
-                HREIC_Id: employee.HREIC_Id,
-                MI_Id: 30,
-                roleId: 2
-            };
-
-            const response = await deleteSalaryIncrement(payload);
-
-            if (response.success) {
-                toast.success(response.message || 'Salary increment record deleted successfully');
-                await loadData();
-            } else {
-                toast.error(response.message || 'Failed to delete salary increment');
-            }
-        } catch (error: any) {
-            console.error('Error deleting salary increment:', error);
-            toast.error(error.message || 'Delete operation failed');
+        if (!employee.HREIC_Id || employee.HREIC_Id === 0) {
+            toast.error('No increment record found for this employee. Only employees with existing increment records can be deleted.');
+            return;
         }
+
+        if (!employee.effectiveDate || !employee.earningHead) {
+            toast.error("This employee doesn't have a processed increment record to delete.");
+            return;
+        }
+
+        const payload: SalaryIncrementDeleteRequest = {
+            HREIC_Id: employee.HREIC_Id,
+            MI_Id: 30,
+            roleId: 2
+        };
+
+        deleteMutation.mutate(payload);
     };
 
     return (
@@ -340,7 +344,7 @@ export default function SalaryIncrementProcessPage() {
                     className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
                     <SalaryIncrementTable
                         employees={filteredEmployees}
-                        isLoading={isLoading}
+                        isLoading={isLoading || deleteMutation.isPending}
                         selectedEmployees={selectedEmployees}
                         onEmployeeSelect={handleEmployeeSelect}
                         onSelectAll={handleSelectAll}
@@ -383,9 +387,9 @@ export default function SalaryIncrementProcessPage() {
                                                             <SelectTrigger>
                                                                 <SelectValue placeholder='Select Employee' />
                                                             </SelectTrigger>
-                                                            <SelectContent>
-                                                                <SelectItem value='All'>All</SelectItem>
-                                                                {employeeOptions.map((employee) => (
+                                                    <SelectContent>
+                                                        <SelectItem value='All'>All</SelectItem>
+                                                        {employees.map((employee) => (
                                                                     <SelectItem key={employee.HRME_Id} value={employee.HRME_Id.toString()}>
                                                                         {`${employee.HRME_EmployeeFirstName} ${employee.HRME_EmployeeMiddleName || ''} ${
                                                                             employee.HRME_EmployeeLastName || ''
@@ -518,9 +522,9 @@ export default function SalaryIncrementProcessPage() {
                                         </Button>
                                         <Button
                                             type='submit'
-                                            disabled={isSubmitting}
+                                            disabled={saveMutation.isPending}
                                             className='w-fit transition-all duration-200 hover:scale-105'>
-                                            {isSubmitting ? (
+                                            {saveMutation.isPending ? (
                                                 <div className='flex items-center'>
                                                     <RefreshCw className='mr-2 h-4 w-4 animate-spin' />
                                                     Processing...
@@ -549,7 +553,7 @@ interface SalaryIncrementTableProps {
     onDelete: (employee: Employee) => void;
 }
 
-function SalaryIncrementTable({ employees, isLoading }: SalaryIncrementTableProps) {
+function SalaryIncrementTable({ employees, isLoading, onDelete }: SalaryIncrementTableProps) {
     const columns: ColumnDef<Employee>[] = [
         {
             accessorKey: 'slNo',
@@ -634,7 +638,7 @@ function SalaryIncrementTable({ employees, isLoading }: SalaryIncrementTableProp
                         variant='ghost'
                         size='sm'
                         onClick={() => {
-                            /* noop: hook up delete if needed */
+                            onDelete(employee);
                         }}
                         disabled={!hasIncrementRecord || !hasValidData}
                         className={`h-8 w-8 p-0 ${

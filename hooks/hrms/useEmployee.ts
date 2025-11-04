@@ -12,7 +12,13 @@ import { toast } from 'sonner';
 export function useEmployeeOnload() {
     return useQuery({
         queryKey: [HRMS_QUERY_KEYS.EMPLOYEE_ONLOAD],
-        queryFn: () => getEmployeeOnload(),
+        queryFn: () =>
+            getEmployeeOnload().then((res: any) => {
+                if (!res.success) {
+                    throw new Error(res.message);
+                }
+                return res.data!;
+            }),
         staleTime: 1000 * 60 * 5 // 5 minutes
     });
 }
