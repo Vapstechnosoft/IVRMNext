@@ -194,6 +194,14 @@ export async function getUserAccessibleModules() {
                                             url: '/admission/preadmission/transactions/export-preadmission-to-admission',
                                             title: 'Transfer to Admission',
                                             description: 'Transfer confirmed preadmission applications to admission'
+                                        },
+                                        {
+                                            id: 5,
+                                            name: 'Document View',
+                                            icon: 'Settings',
+                                            url: '/admission/preadmission/transactions/document-view',
+                                            title: 'Document View',
+                                            description: ' Document View'
                                         }
                                     ]
                                 },
@@ -384,7 +392,7 @@ export async function getUserAccessibleModules() {
                                     icon: 'Settings',
                                     pages: [
                                         {
-                                            id: 25,
+                                            id: 1,
                                             name: 'Fee configuration',
                                             icon: 'Settings',
                                             url: '/fees/configuration/masterfeeconfig',
