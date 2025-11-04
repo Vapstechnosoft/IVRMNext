@@ -124,8 +124,8 @@ function MasterAcademicYearPageContent({
                         error={error}
                         showViewOptions={false}
                         columnPinning={{ right: ['actions'] }}
-                        loadingMessage='Loading master caste categories...'
-                        noDataTitle='No Master Caste Categories Found'
+                        loadingMessage='Loading master Academic Year...'
+                        noDataTitle='No Master Academic Year Found'
                         noDataDescription='Get started by creating your first Academic Year Master'
                         errorTitle='Error Loading Academic Year Master'
                     />
