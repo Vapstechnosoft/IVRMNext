@@ -1,14 +1,22 @@
 'use client';
 
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
-import { ROLES } from '@/constants';
+
+import { useFormContext } from '@/components/ui/form/form-provider';
+import { getStudentApplicationForm } from '@/server/admission/preadmission/transactions/application_form';
 import type { IPreadmissionStudentApplicationList } from '@/types/admission/preadmission/transactions';
 import type { ColumnDef } from '@tanstack/react-table';
 import { ReceiptIndianRupee } from 'lucide-react';
+import { Edit } from 'lucide-react';
+
+import { ROLES } from '@/constants';
+
 import { useSession } from 'next-auth/react';
-import { useEffect } from 'react';
+import React, { useEffect } from 'react';
+
 import PaymentDialog from './payment-dialog';
 import ToggleStudentApplicationForm from './toggle-form';
 
@@ -99,8 +107,9 @@ export const studentApplicationColumns: ColumnDef<IPreadmissionStudentApplicatio
         enableHiding: false,
         enableSorting: false,
         cell: ({ cell }: { cell: any }) => {
+            const { openEditForm } = useFormContext<IPreadmissionStudentApplicationList>();
             const session = useSession();
-
+            const [loading, setLoading] = React.useState(false);
             useEffect(() => {
                 if (session?.data?.role === undefined) {
                     window.location.reload();
@@ -108,19 +117,64 @@ export const studentApplicationColumns: ColumnDef<IPreadmissionStudentApplicatio
             }, [session?.data?.role]);
 
             return (
-                <div className='flex justify-between gap-2'>
-                    {cell.row.original.is_fee_applicable === 1 ? (
-                        cell.row.original.payment_status === 0 ? (
-                            <PaymentDialog cell={cell} />
+                <div className='flex items-center gap-2'>
+                    <Button
+                        type='button'
+                        variant='ghost'
+                        size='sm'
+                        disabled={loading}
+                        onClick={async () => {
+                            setLoading(true);
+                            try {
+                                const rowData = cell.row.original;
+                                const response = await getStudentApplicationForm(rowData.pasr_id);
+                                const resp = response.data;
+                                const student = resp?.student_details || resp || {};
+                                const payload = {
+                                    ...student,
+                                    selectedSourceDetails: (resp?.student_sources || resp?.studentSource || []).map((s: any) => ({
+                                        pamS_Id: String(s.pamS_Id)
+                                    })),
+                                    selectedRefrenceDetails: (resp?.student_refrences || resp?.studentReference || []).map((r: any) => ({
+                                        pamR_Id: String(r.pamR_Id)
+                                    })),
+                                    siblingsDetails: resp?.student_siblings || [],
+                                    previousSchoolList: resp?.previous_schools || [],
+                                    selectedDocuments: (resp?.student_documents || []).map((d: any) => ({
+                                        pasrD_Id: d.pasrD_Id,
+                                        pasR_Id: d.pasR_Id,
+                                        amsmD_Id: d.amsmD_Id,
+                                        document_Path: d.document_Path
+                                    }))
+                                };
+                                openEditForm(payload);
+                            } catch (error) {
+                                console.error('Error fetching application details:', error);
+                            } finally {
+                                setLoading(false);
+                            }
+                        }}
+                        className='p-1'>
+                        {loading ? (
+                            <span className='inline-block h-4 w-4 animate-spin rounded-full border-2 border-gray-400 border-t-transparent' />
                         ) : (
-                            <Badge className='cursor-not-allowed bg-green-500 p-3 font-extrabold text-black hover:bg-green-600'>
-                                <ReceiptIndianRupee className='h-4 w-4' /> Paid
-                            </Badge>
-                        )
-                    ) : (
-                        <p className='text-slate-600 text-sm'>No Fee</p>
-                    )}
-                    {session?.data?.role.toUpperCase() === ROLES.ADMIN && <ToggleStudentApplicationForm cell={cell} />}
+                            <Edit className='h-4 w-4' />
+                        )}
+                    </Button>
+                    <div className='flex w-full justify-between gap-2'>
+                        {cell.row.original.is_fee_applicable === 1 ? (
+                            cell.row.original.payment_status === 0 ? (
+                                <PaymentDialog cell={cell} />
+                            ) : (
+                                <Badge className='cursor-not-allowed bg-green-500 p-3 font-extrabold text-black hover:bg-green-600'>
+                                    <ReceiptIndianRupee className='h-4 w-4' /> Paid
+                                </Badge>
+                            )
+                        ) : (
+                            <p className='text-slate-600 text-sm'>No Fee</p>
+                        )}
+                        {session?.data?.role?.toUpperCase() === ROLES.ADMIN && <ToggleStudentApplicationForm cell={cell} />}
+                    </div>
                 </div>
             );
         }
