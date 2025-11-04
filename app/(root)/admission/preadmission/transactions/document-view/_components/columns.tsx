@@ -119,7 +119,7 @@ export const DocumentViewColoumn: ColumnDef<IPreadmissionDocumentView>[] = [
                                     {/* PDF Viewer replaces iframe, removes extra padding */}
                                     <div className='relative h-full min-h-0 w-full'>
                                         {/* toolbar: download / open */}
-                                        {pdfBase64 ? <div className='absolute top-3 right-3 z-30 flex gap-3'></div> : null}
+                                        {pdfBase64 ? <div className='absolute top-3 right-3 z-30 flex gap-3' /> : null}
 
                                         {/* inline PDF viewer using iframe (falls back to message when no PDF) */}
                                         {typeof pdfBase64 === 'string' && pdfBase64 ? (
