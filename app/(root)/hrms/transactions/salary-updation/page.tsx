@@ -7,7 +7,7 @@ import { DataTable } from '@/components/ui/data-table/data-table';
 import { Label } from '@/components/ui/extension/field';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { useCumulativeSalaryReportOnload } from '@/hooks/hrms/useReports';
+import { getCumulativeSalaryReportOnload } from '@/server/hrms/hrmsConfig/reports/cumulative-salary-report';
 import type {
     DepartmentDropdown,
     DesignationDropdown,
@@ -17,7 +17,7 @@ import type {
 } from '@/types/hrms/reports/cumulative-salary-report';
 import type { ColumnDef } from '@tanstack/react-table';
 import { RefreshCw, X } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 
@@ -54,10 +54,46 @@ export default function SalaryUpdationPage() {
     const [employees, setEmployees] = useState<Employee[]>([]);
     const [filteredEmployees, setFilteredEmployees] = useState<Employee[]>([]);
     const [selectedEmployees, setSelectedEmployees] = useState<number[]>([]);
+    const [isLoading, setIsLoading] = useState(true);
     const [hasSearched, setHasSearched] = useState(false);
+    const [groupTypes, setGroupTypes] = useState<GroupTypeDropdown[]>([]);
+    const [departments, setDepartments] = useState<DepartmentDropdown[]>([]);
+    const [designations, setDesignations] = useState<DesignationDropdown[]>([]);
+    const [availableHeads, setAvailableHeads] = useState<EarningDeductionDetail[]>([]);
     const [selectedHeads, setSelectedHeads] = useState<string[]>([]);
+    const [monthOptions, setMonthOptions] = useState<MonthDropdown[]>([]);
+    const [leaveYearOptions, setLeaveYearOptions] = useState<LeaveYearDropdown[]>([]);
 
-    const { data: onloadData, isLoading } = useCumulativeSalaryReportOnload(30);
+    // Handle service worker errors specifically for this HRMS module
+    useEffect(() => {
+        if (typeof window === 'undefined') return;
+
+        const handleUnhandledRejection = (event: PromiseRejectionEvent) => {
+            const error = event.reason;
+            const errorMessage = error?.message || String(error || '');
+            const errorStack = error?.stack || '';
+
+            // Check if this is the _ref error from service worker
+            if (
+                errorMessage.includes('_ref is not defined') ||
+                errorMessage.includes('ReferenceError: _ref') ||
+                errorStack.includes('sw.js') ||
+                errorStack.includes('cacheWillUpdate')
+            ) {
+                // Prevent the error from crashing the HRMS module
+                event.preventDefault();
+                // Silently handle - don't show error to user as it's a service worker issue
+                return true;
+            }
+            return false;
+        };
+
+        window.addEventListener('unhandledrejection', handleUnhandledRejection);
+
+        return () => {
+            window.removeEventListener('unhandledrejection', handleUnhandledRejection);
+        };
+    }, []);
 
     const { register, handleSubmit, reset, watch, control } = useForm<SearchForm>({
         mode: 'onChange',
@@ -78,64 +114,9 @@ export default function SalaryUpdationPage() {
     const watchedDesignation = watch('designation');
     const watchedHeads = watch('heads');
 
-    const groupTypes = onloadData?.data?.groupTypedropdownlist || [];
-    const departments = onloadData?.data?.departmentdropdownlist || [];
-    const designations = onloadData?.data?.designationdropdownlist || [];
-    const monthOptions = onloadData?.data?.monthdropdown || [];
-    const leaveYearOptions = onloadData?.data?.leaveyeardropdown || [];
-    const availableHeads = (onloadData?.data as any)?.earningdeductiondetails || [];
-
     useEffect(() => {
-        if (onloadData && onloadData.data) {
-            const data = onloadData.data;
-
-            const salaryFields: Record<string, number> = {};
-            (availableHeads || []).forEach((head: EarningDeductionDetail) => {
-                salaryFields[head.hrmeD_Name] = 0;
-            });
-
-            if ((data as any).employeedropdown && (data as any).employeedropdown.length > 0) {
-                const apiEmployees: Employee[] = ((data as any).employeedropdown as any[]).map((emp: any) => ({
-                    hrmE_Id: emp.hrmE_Id,
-                    hrmE_EmployeeCode: emp.hrmE_EmployeeCode,
-                    hrmE_EmployeeFirstName: emp.hrmE_EmployeeFirstName,
-                    hrmE_EmployeeMiddleName: emp.hrmE_EmployeeMiddleName,
-                    hrmE_EmployeeLastName: emp.hrmE_EmployeeLastName,
-                    hrmgT_Id: emp.hrmgT_Id,
-                    hrmD_Id: emp.hrmD_Id,
-                    hrmdeS_Id: emp.hrmdeS_Id,
-                    hrmD_DepartmentName: emp.hrmD_DepartmentName,
-                    hrmdeS_DesignationName: emp.hrmdeS_DesignationName,
-                    hrmgT_EmployeeGroupType: emp.hrmgT_EmployeeGroupType,
-                    ...salaryFields,
-                    ...Object.keys(emp).reduce((acc: Record<string, any>, key: string) => {
-                        if (
-                            ![
-                                'hrmE_Id',
-                                'hrmE_EmployeeCode',
-                                'hrmE_EmployeeFirstName',
-                                'hrmE_EmployeeMiddleName',
-                                'hrmE_EmployeeLastName',
-                                'hrmgT_Id',
-                                'hrmD_Id',
-                                'hrmdeS_Id',
-                                'hrmD_DepartmentName',
-                                'hrmdeS_DesignationName',
-                                'hrmgT_EmployeeGroupType'
-                            ].includes(key)
-                        ) {
-                            acc[key] = emp[key] ?? 0;
-                        }
-                        return acc;
-                    }, {})
-                }));
-                setEmployees(apiEmployees);
-            }
-
-            const headNames = (availableHeads || []).map((head: EarningDeductionDetail) => head.hrmeD_Name);
-            setSelectedHeads(headNames);
-        }
-    }, [onloadData, availableHeads]);
+        loadData();
+    }, []);
 
     useEffect(() => {
         if (hasSearched) {
@@ -145,12 +126,96 @@ export default function SalaryUpdationPage() {
 
     useEffect(() => {
         if (watchedHeads === 'All') {
-            const allHeadNames = availableHeads.map((head: EarningDeductionDetail) => head.hrmeD_Name);
-            setSelectedHeads(allHeadNames);
+            const allHeadNames = availableHeads.map((head) => head.hrmeD_Name);
+            setSelectedHeads((prev) => {
+                const newHeads = allHeadNames.sort();
+                const prevHeads = prev.sort();
+                // Only update if actually different to prevent infinite loops
+                if (JSON.stringify(newHeads) !== JSON.stringify(prevHeads)) {
+                    return newHeads;
+                }
+                return prev;
+            });
         } else if (watchedHeads && watchedHeads !== 'All') {
-            setSelectedHeads([watchedHeads]);
+            setSelectedHeads((prev) => {
+                // Only update if actually different to prevent infinite loops
+                if (prev.length === 1 && prev[0] === watchedHeads) {
+                    return prev;
+                }
+                return [watchedHeads];
+            });
         }
     }, [watchedHeads, availableHeads]);
+
+    const loadData = async () => {
+        try {
+            setIsLoading(true);
+            const response = await getCumulativeSalaryReportOnload(30);
+
+            if (response.success && response.data) {
+                const data = response.data;
+
+                setMonthOptions(data.monthdropdown || []);
+                setLeaveYearOptions(data.leaveyeardropdown || []);
+                setGroupTypes(data.groupTypedropdownlist || []);
+                setDepartments(data.departmentdropdownlist || []);
+                setDesignations(data.designationdropdownlist || []);
+                setAvailableHeads((data as any).earningdeductiondetails || []);
+
+                const salaryFields: Record<string, number> = {};
+                ((data as any).earningdeductiondetails || []).forEach((head: EarningDeductionDetail) => {
+                    salaryFields[head.hrmeD_Name] = 0;
+                });
+
+                if ((data as any).employeedropdown && (data as any).employeedropdown.length > 0) {
+                    const apiEmployees: Employee[] = ((data as any).employeedropdown as any[]).map((emp: any) => ({
+                        hrmE_Id: emp.hrmE_Id,
+                        hrmE_EmployeeCode: emp.hrmE_EmployeeCode,
+                        hrmE_EmployeeFirstName: emp.hrmE_EmployeeFirstName,
+                        hrmE_EmployeeMiddleName: emp.hrmE_EmployeeMiddleName,
+                        hrmE_EmployeeLastName: emp.hrmE_EmployeeLastName,
+                        hrmgT_Id: emp.hrmgT_Id,
+                        hrmD_Id: emp.hrmD_Id,
+                        hrmdeS_Id: emp.hrmdeS_Id,
+                        hrmD_DepartmentName: emp.hrmD_DepartmentName,
+                        hrmdeS_DesignationName: emp.hrmdeS_DesignationName,
+                        hrmgT_EmployeeGroupType: emp.hrmgT_EmployeeGroupType,
+                        ...salaryFields,
+                        ...Object.keys(emp).reduce((acc: Record<string, any>, key: string) => {
+                            if (
+                                ![
+                                    'hrmE_Id',
+                                    'hrmE_EmployeeCode',
+                                    'hrmE_EmployeeFirstName',
+                                    'hrmE_EmployeeMiddleName',
+                                    'hrmE_EmployeeLastName',
+                                    'hrmgT_Id',
+                                    'hrmD_Id',
+                                    'hrmdeS_Id',
+                                    'hrmD_DepartmentName',
+                                    'hrmdeS_DesignationName',
+                                    'hrmgT_EmployeeGroupType'
+                                ].includes(key)
+                            ) {
+                                acc[key] = emp[key] ?? 0;
+                            }
+                            return acc;
+                        }, {})
+                    }));
+                    setEmployees(apiEmployees);
+                }
+
+                const headNames = ((data as any).earningdeductiondetails || []).map((head: EarningDeductionDetail) => head.hrmeD_Name);
+                setSelectedHeads(headNames);
+            } else {
+                toast.error(response.message || 'Failed to load data');
+            }
+        } catch (error: any) {
+            toast.error(error.message || 'Failed to load data');
+        } finally {
+            setIsLoading(false);
+        }
+    };
 
     const filterEmployees = () => {
         let filtered = employees;
@@ -350,7 +415,7 @@ export default function SalaryUpdationPage() {
                                             </SelectTrigger>
                                             <SelectContent>
                                                 <SelectItem value='All'>All Heads</SelectItem>
-                                                {availableHeads.map((head: EarningDeductionDetail) => (
+                                                {availableHeads.map((head) => (
                                                     <SelectItem key={head.hrmeD_Id} value={head.hrmeD_Name}>
                                                         {head.hrmeD_Name}
                                                     </SelectItem>
@@ -509,91 +574,98 @@ function SalaryUpdationTable({
     onSelectAll,
     selectedHeads
 }: SalaryUpdationTableProps) {
-    const sanitizedEmployees = employees.map((emp) => {
-        const sanitized = { ...emp };
-        selectedHeads.forEach((headName) => {
-            if (sanitized[headName] == null) {
-                sanitized[headName] = 0;
-            }
+    // Use useMemo to prevent infinite re-renders
+    const sanitizedEmployees = useMemo(() => {
+        return employees.map((emp) => {
+            const sanitized = { ...emp };
+            selectedHeads.forEach((headName) => {
+                if (sanitized[headName] == null) {
+                    sanitized[headName] = 0;
+                }
+            });
+            return sanitized;
         });
-        return sanitized;
-    });
+    }, [employees, selectedHeads]);
 
-    const columns: ColumnDef<Employee>[] = [
-        {
-            id: 'select',
-            header: () => (
-                <Checkbox
-                    checked={sanitizedEmployees.length > 0 && selectedEmployees.length === sanitizedEmployees.length}
-                    onCheckedChange={(value: boolean) => onSelectAll(!!value)}
-                    aria-label='Select all'
-                />
-            ),
-            cell: ({ row }: { row: any }) => (
-                <Checkbox
-                    checked={selectedEmployees.includes(row.original.hrmE_Id)}
-                    onCheckedChange={(value: boolean) => onEmployeeSelect(row.original.hrmE_Id, !!value)}
-                    aria-label='Select row'
-                />
-            ),
-            enableSorting: false,
-            enableHiding: false
-        },
-        {
-            accessorKey: 'slNo',
-            header: ({ column }: { column: any }) => <DataTableColumnHeader column={column} title='Sl.No' />,
-            cell: ({ row, table }: { row: any; table: any }) => {
-                const index = table.getSortedRowModel().rows.findIndex((r: any) => r.id === row.id);
-                return <div>{index + 1}</div>;
+    // Use useMemo to prevent column recreation on every render
+    const columns: ColumnDef<Employee>[] = useMemo(
+        () => [
+            {
+                id: 'select',
+                header: () => (
+                    <Checkbox
+                        checked={sanitizedEmployees.length > 0 && selectedEmployees.length === sanitizedEmployees.length}
+                        onCheckedChange={(value: boolean) => onSelectAll(!!value)}
+                        aria-label='Select all'
+                    />
+                ),
+                cell: ({ row }: { row: any }) => (
+                    <Checkbox
+                        checked={selectedEmployees.includes(row.original.hrmE_Id)}
+                        onCheckedChange={(value: boolean) => onEmployeeSelect(row.original.hrmE_Id, !!value)}
+                        aria-label='Select row'
+                    />
+                ),
+                enableSorting: false,
+                enableHiding: false
             },
-            enableSorting: false,
-            enableHiding: false
-        },
-        {
-            accessorKey: 'hrmE_EmployeeCode',
-            header: ({ column }: { column: any }) => <DataTableColumnHeader column={column} title='Employee Code' />,
-            cell: ({ row }: { row: any }) => <div>{row.getValue('hrmE_EmployeeCode')}</div>,
-            enableSorting: true,
-            enableHiding: true
-        },
-        {
-            accessorKey: 'hrmE_EmployeeName',
-            header: ({ column }: { column: any }) => <DataTableColumnHeader column={column} title='Employee Name' />,
-            cell: ({ row }: { row: any }) => {
-                const employee = row.original;
-                const fullName = `${employee.hrmE_EmployeeFirstName} ${employee.hrmE_EmployeeLastName || ''}`.trim();
-                return <div>{fullName}</div>;
+            {
+                accessorKey: 'slNo',
+                header: ({ column }: { column: any }) => <DataTableColumnHeader column={column} title='Sl.No' />,
+                cell: ({ row, table }: { row: any; table: any }) => {
+                    const index = table.getSortedRowModel().rows.findIndex((r: any) => r.id === row.id);
+                    return <div>{index + 1}</div>;
+                },
+                enableSorting: false,
+                enableHiding: false
             },
-            enableSorting: true,
-            enableHiding: true
-        },
-        ...selectedHeads.map((headName) => ({
-            id: headName,
-            accessorFn: (row: Employee) => {
-                const value = row[headName];
-                return value == null ? 0 : Number(value);
+            {
+                accessorKey: 'hrmE_EmployeeCode',
+                header: ({ column }: { column: any }) => <DataTableColumnHeader column={column} title='Employee Code' />,
+                cell: ({ row }: { row: any }) => <div>{row.getValue('hrmE_EmployeeCode')}</div>,
+                enableSorting: true,
+                enableHiding: true
             },
-            header: ({ column }: { column: any }) => <DataTableColumnHeader column={column} title={headName} />,
-            cell: ({ row }: { row: any }) => {
-                const currentValue = row.original[headName] ?? 0;
-                return (
-                    <div className='w-20'>
-                        <input
-                            type='number'
-                            defaultValue={currentValue}
-                            className='w-full rounded border px-2 py-1 text-sm'
-                            onChange={(e) => {
-                                const newValue = Number.parseFloat(e.target.value) || 0;
-                                row.original[headName] = newValue;
-                            }}
-                        />
-                    </div>
-                );
+            {
+                accessorKey: 'hrmE_EmployeeName',
+                header: ({ column }: { column: any }) => <DataTableColumnHeader column={column} title='Employee Name' />,
+                cell: ({ row }: { row: any }) => {
+                    const employee = row.original;
+                    const fullName = `${employee.hrmE_EmployeeFirstName} ${employee.hrmE_EmployeeLastName || ''}`.trim();
+                    return <div>{fullName}</div>;
+                },
+                enableSorting: true,
+                enableHiding: true
             },
-            enableSorting: true,
-            enableHiding: true
-        }))
-    ];
+            ...selectedHeads.map((headName) => ({
+                id: headName,
+                accessorFn: (row: Employee) => {
+                    const value = row[headName];
+                    return value == null ? 0 : Number(value);
+                },
+                header: ({ column }: { column: any }) => <DataTableColumnHeader column={column} title={headName} />,
+                cell: ({ row }: { row: any }) => {
+                    const currentValue = row.original[headName] ?? 0;
+                    return (
+                        <div className='w-20'>
+                            <input
+                                type='number'
+                                defaultValue={currentValue}
+                                className='w-full rounded border px-2 py-1 text-sm'
+                                onChange={(e) => {
+                                    const newValue = Number.parseFloat(e.target.value) || 0;
+                                    row.original[headName] = newValue;
+                                }}
+                            />
+                        </div>
+                    );
+                },
+                enableSorting: true,
+                enableHiding: true
+            }))
+        ],
+        [sanitizedEmployees, selectedEmployees, onEmployeeSelect, onSelectAll, selectedHeads]
+    );
 
     return (
         <div className='space-y-4'>
