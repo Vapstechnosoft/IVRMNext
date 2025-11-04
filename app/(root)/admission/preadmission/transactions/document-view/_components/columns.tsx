@@ -108,8 +108,13 @@ export const DocumentViewColoumn: ColumnDef<IPreadmissionDocumentView>[] = [
                                 <div className='relative min-h-0 flex-1 overflow-hidden'>
                                     {/* Spinner while loading PDF */}
                                     {(isLoading || iframeLoading) && (
-                                        <div className='absolute inset-0 z-20 flex items-center justify-center bg-white/60'>
-                                            <Spinner size='lg' />
+                                        <div className='absolute inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm'>
+                                            <div className=' transition-all'>
+                                                <div className='flex flex-col items-center'>
+                                                    <Spinner size='lg' className='text-primary' />
+                                                    <p className='mt-3 font-medium text-gray-700 text-sm'>Loading document...</p>
+                                                </div>
+                                            </div>
                                         </div>
                                     )}
                                     {/* PDF Viewer replaces iframe, removes extra padding */}
