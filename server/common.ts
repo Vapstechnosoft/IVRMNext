@@ -228,19 +228,19 @@ export async function getUserAccessibleModules() {
                                         },
                                         {
                                             id: 3,
-                                            name: 'Registration',
+                                            name: 'Registration Numbering',
                                             icon: 'Settings',
                                             url: '/admission/preadmission/configuration/registration',
-                                            title: 'Master Registration',
-                                            description: 'Master Registration'
+                                            title: 'Registration Numbering',
+                                            description: 'Registration Numbering'
                                         },
                                         {
                                             id: 4,
-                                            name: 'PreRegistration',
+                                            name: 'Pre-Registration Numbering',
                                             icon: 'Settings',
                                             url: '/admission/preadmission/configuration/preadmissionregistration',
-                                            title: 'Master PreRegistration',
-                                            description: 'Master PreRegistration'
+                                            title: 'Pre-Registration Numbering',
+                                            description: 'Pre-Registration Numbering'
                                         }
                                     ]
                                 }
