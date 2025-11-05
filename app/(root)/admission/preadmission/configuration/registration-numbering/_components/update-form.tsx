@@ -317,12 +317,12 @@ export default function UpdateRegistrationNumberingForm({
             </div>
 
             {/* === ACTION BUTTONS === */}
-            <div className='flex justify-end gap-3 border-t pt-6'>
-                <Button type='button' variant='outline' onClick={handleReset} disabled={isSubmitting}>
+            <div className='flex justify-start gap-3 border-t pt-6'>
+                <Button type='button' className='w-fit' variant='outline' onClick={handleReset} disabled={isSubmitting}>
                     <RotateCcw className='mr-2 h-4 w-4' />
                     Reset
                 </Button>
-                <Button type='submit' disabled={isSubmitting}>
+                <Button type='submit' className='w-fit' disabled={isSubmitting}>
                     <Save className='mr-2 h-4 w-4' />
                     {isSubmitting ? 'Saving...' : 'Save Configuration'}
                 </Button>

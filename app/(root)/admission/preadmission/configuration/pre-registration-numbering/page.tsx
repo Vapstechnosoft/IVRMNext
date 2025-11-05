@@ -88,7 +88,7 @@ function FormSections() {
             {isAddFormOpen && (
                 <div ref={addFormRef}>
                     <CollapsibleSection
-                        title='Add New Registration Numbering'
+                        title='Add New Pre-Registration Numbering'
                         description='Fill in the details below to create a new registration Numbering'
                         defaultOpen={true}
                         variant='outline'
@@ -113,7 +113,7 @@ function FormSections() {
             {isEditFormOpen && selectedRow && (
                 <div ref={editFormRef}>
                     <CollapsibleSection
-                        title='Edit Registration Numbering'
+                        title='Edit Pre-Registration Numbering'
                         defaultOpen={true}
                         variant='outline'
                         size='md'

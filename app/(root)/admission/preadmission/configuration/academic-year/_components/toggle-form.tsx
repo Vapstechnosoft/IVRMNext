@@ -56,7 +56,7 @@ export default function TogglePreAdmissionAcademicYearForm({ rowData, onClose }:
     };
 
     return (
-        <AdaptiveDialog title='Toggle PreAdmission Academice Year' isOpen={true} onClose={closeDialog}>
+        <AdaptiveDialog title='Toggle Master Academic Year' isOpen={true} onClose={closeDialog}>
             <form onSubmit={handleSubmit(onSubmit)} className='flex flex-col gap-4'>
                 <AdaptiveBody className='flex flex-col gap-5'>
                     <input type='hidden' {...register('asmaY_Id')} defaultValue={rowData.asmaY_Id} />
