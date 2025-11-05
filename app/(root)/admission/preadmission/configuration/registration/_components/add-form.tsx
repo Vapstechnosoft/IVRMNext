@@ -14,12 +14,12 @@ import type { z } from 'zod';
 
 type FormFields = z.infer<typeof numberingSchema>;
 
-interface NumberingConfigFormProps {
+interface AddRegistrationNumberingFormProps {
     onSuccess?: () => void;
     className?: string;
 }
 
-export default function NumberingConfigForm({ onSuccess, className = '' }: NumberingConfigFormProps) {
+export default function AddRegistrationNumberingForm({ onSuccess, className = '' }: AddRegistrationNumberingFormProps) {
     const {
         control,
         handleSubmit,

@@ -1,6 +1,4 @@
 'use client';
-
-import { Checkbox } from '@/components/ui/checkbox';
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
 import { ActionButtons } from '@/components/ui/form/action-buttons';
 import { useFormContext } from '@/components/ui/form/form-provider';
@@ -9,22 +7,6 @@ import type { ColumnDef } from '@tanstack/react-table';
 import { useCallback } from 'react';
 
 export const masterRegistrationColumns: ColumnDef<IMasterRegistrationList>[] = [
-    {
-        id: 'select',
-        header: ({ table }) => (
-            <Checkbox
-                checked={table.getIsAllPageRowsSelected() || (table.getIsSomePageRowsSelected() && 'indeterminate')}
-                onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
-                aria-label='Select all'
-            />
-        ),
-        cell: ({ row }) => (
-            <Checkbox checked={row.getIsSelected()} onCheckedChange={(value) => row.toggleSelected(!!value)} aria-label='Select row' />
-        ),
-        enableSorting: false,
-        enableHiding: false,
-        size: 24
-    },
     {
         accessorKey: 'imN_Id',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Sl.No' />,
@@ -93,7 +75,7 @@ export const masterRegistrationColumns: ColumnDef<IMasterRegistrationList>[] = [
 ];
 
 function ActionButtonsCell({ rowData }: { rowData: IMasterRegistrationList }) {
-    const { openEditForm, openToggleForm } = useFormContext<IMasterRegistrationList>();
+    const { openEditForm } = useFormContext<IMasterRegistrationList>();
 
     const handleEdit = useCallback(
         (data: IMasterRegistrationList) => {
@@ -102,20 +84,5 @@ function ActionButtonsCell({ rowData }: { rowData: IMasterRegistrationList }) {
         [openEditForm]
     );
 
-    const handleToggle = useCallback(
-        (data: IMasterRegistrationList) => {
-            openToggleForm(data);
-        },
-        [openToggleForm]
-    );
-
-    return (
-        <ActionButtons
-            rowData={rowData}
-            buttons={{ edit: true, toggle: true, delete: false }}
-            onEdit={handleEdit}
-            onToggle={handleToggle}
-            toggleConditionKey='amC_ActiveFlag'
-        />
-    );
+    return <ActionButtons rowData={rowData} buttons={{ edit: true, toggle: false, delete: false }} onEdit={handleEdit} />;
 }

@@ -1,16 +1,16 @@
 'use server';
 
 import { api } from '@/lib/apiService';
-import type { IMasterAcademicYearMasterList, IMasterRegistrationList } from '@/types/admission/preadmission/configaration';
+import type { IMasterRegistrationList } from '@/types/admission/preadmission/configaration';
 
 export async function getRegistration() {
     const url = '/transaction_numbering/Registration';
-    return await api.get<IMasterAcademicYearMasterList[]>('preadmission', url);
+    return await api.get<IMasterRegistrationList[]>('preadmission', url);
 }
 
 export async function getRegistration1() {
     try {
-        const url = '/transaction_numbering/PreRegistration';
+        const url = '/transaction_numbering/Registration';
         const response = await api.get<IMasterRegistrationList[]>('preadmission', url);
         console.log('API Response:', response);
         return response;

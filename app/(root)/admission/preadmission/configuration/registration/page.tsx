@@ -6,41 +6,31 @@ import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
 import { useRegistration } from '@/hooks/admission/preadmission/useConfigurations';
 import type { IMasterRegistrationList } from '@/types/admission/preadmission/configaration';
-import { X } from 'lucide-react';
-import { useState } from 'react';
-import AddMasterCategoryForm from './_components/add-form';
+import { Plus, X } from 'lucide-react';
+import AddRegistrationNumberingForm from './_components/add-form';
 import { masterRegistrationColumns } from './_components/columns';
-import UpdateMasterCategoryForm from './_components/update-form';
+import UpdateRegistrationNumberingForm from './_components/update-form';
 
-export default function MasterRegistrationPage() {
+export default function RegistrationNumberingPage() {
     const { data: response, isLoading, error } = useRegistration();
-    const [showAddForm, setShowAddForm] = useState(false);
+
+    console.log('response', response);
 
     return (
         <FormProvider<IMasterRegistrationList>>
-            <MasterRegistrationPageContent
-                response={response}
-                isLoading={isLoading}
-                error={error}
-                showAddForm={showAddForm}
-                setShowAddForm={setShowAddForm}
-            />
+            <RegistrationNumberingPageContent response={response} isLoading={isLoading} error={error} />
         </FormProvider>
     );
 }
 
-function MasterRegistrationPageContent({
+function RegistrationNumberingPageContent({
     response,
     isLoading,
-    error,
-    showAddForm,
-    setShowAddForm
+    error
 }: {
     response: any;
     isLoading: boolean;
     error: any;
-    showAddForm: boolean;
-    setShowAddForm: (show: boolean) => void;
 }) {
     const { openAddForm } = useFormContext<IMasterRegistrationList>();
     const tableProps = useDataTableProps(response);
@@ -49,66 +39,50 @@ function MasterRegistrationPageContent({
         <div className='min-h-screen'>
             <div className='container space-y-4 p-1'>
                 {/* Header */}
-                <div className='flex items-center justify-between'>
-                    {/* <Button
-            type="button"
-            onClick={() => setShowAddForm(!showAddForm)}
-            className="w-fit shadow-md transition-all duration-200 hover:scale-105 hover:shadow-lg"
-          >
-            {showAddForm ? (
-              <>
-                <X className="h-4 w-4 mr-2" />
-                Back to List
-              </>
-            ) : (
-              <>
-                <Plus className="h-4 w-4 mr-2" />
-                Add Master Registration
-              </>
-            )}
-          </Button> */}
-                </div>
+                {response && response.data.length === 0 && (
+                    <div className='flex justify-end'>
+                        <Button
+                            type='button'
+                            onClick={openAddForm}
+                            className='w-fit shadow-md transition-all duration-200 hover:scale-105 hover:shadow-lg'>
+                            <Plus className='h-4 w-4' />
+                            Add Transaction Numbering
+                        </Button>
+                    </div>
+                )}
 
-                {/* Content Section */}
+                {/* Data Table Section */}
                 <CollapsibleSection
                     defaultOpen={true}
                     variant='default'
                     size='lg'
                     className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
-                    {showAddForm ? (
-                        <GenericDataTable<IMasterRegistrationList>
-                            {...tableProps}
-                            columns={masterRegistrationColumns}
-                            isLoading={isLoading}
-                            error={error}
-                            showViewOptions={false}
-                            columnPinning={{ right: ['actions'] }}
-                            loadingMessage='Loading master Registration...'
-                            noDataTitle='No Master Registration Found'
-                            noDataDescription='Get started by creating your first master Registration'
-                            errorTitle='Error Loading Registration'
-                        />
-                    ) : (
-                        <AddMasterCategoryForm onSuccess={() => setShowAddForm(false)} className='p-4' />
-                    )}
+                    <GenericDataTable<IMasterRegistrationList>
+                        {...tableProps}
+                        columns={masterRegistrationColumns}
+                        isLoading={isLoading}
+                        error={error}
+                        isSearchRequired={false}
+                        isPaginationRequired={false}
+                        showViewOptions={false}
+                        columnPinning={{ right: ['actions'] }}
+                        loadingMessage='Loading registration Numberings...'
+                        noDataTitle='No Registration Numberings Found'
+                        noDataDescription='Get started by creating your first master class'
+                        errorTitle='Error Loading Religions'
+                    />
                 </CollapsibleSection>
+
+                {/* Forms */}
+                <FormSections />
             </div>
         </div>
     );
 }
 
 function FormSections() {
-    const {
-        isAddFormOpen,
-        isEditFormOpen,
-        isToggleFormOpen,
-        selectedRow,
-        closeAddForm,
-        closeEditForm,
-        closeToggleForm,
-        addFormRef,
-        editFormRef
-    } = useFormContext<IMasterRegistrationList>();
+    const { isAddFormOpen, isEditFormOpen, selectedRow, closeAddForm, closeEditForm, addFormRef, editFormRef } =
+        useFormContext<IMasterRegistrationList>();
 
     return (
         <>
@@ -116,8 +90,8 @@ function FormSections() {
             {isAddFormOpen && (
                 <div ref={addFormRef}>
                     <CollapsibleSection
-                        title='Add New Master Category'
-                        description='Fill in the details below to create a new master category'
+                        title='Add New Registration Numbering'
+                        description='Fill in the details below to create a new registration Numbering'
                         defaultOpen={true}
                         variant='outline'
                         size='md'
@@ -131,7 +105,7 @@ function FormSections() {
                                 className='-top-[3.5rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
                                 <X className='h-4 w-4 text-destructive' /> Close
                             </Button>
-                            <AddMasterCategoryForm onSuccess={closeAddForm} />
+                            <AddRegistrationNumberingForm onSuccess={closeAddForm} />
                         </div>
                     </CollapsibleSection>
                 </div>
@@ -141,7 +115,7 @@ function FormSections() {
             {isEditFormOpen && selectedRow && (
                 <div ref={editFormRef}>
                     <CollapsibleSection
-                        title='Edit Master Category'
+                        title='Edit Registration Numbering'
                         defaultOpen={true}
                         variant='outline'
                         size='md'
@@ -155,7 +129,7 @@ function FormSections() {
                                 className='-top-[3.5rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
                                 <X className='h-4 w-4 text-destructive' /> Close
                             </Button>
-                            <UpdateMasterCategoryForm selectedRow={selectedRow} onSuccess={closeEditForm} />
+                            <UpdateRegistrationNumberingForm selectedRow={selectedRow} onSuccess={closeEditForm} />
                         </div>
                     </CollapsibleSection>
                 </div>

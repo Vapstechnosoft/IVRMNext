@@ -21,7 +21,7 @@ interface NumberingConfigUpdateFormProps {
     initialData?: Partial<FormFields>;
 }
 
-export default function RegistrationUpdateForm({ onSuccess, className = '', initialData }: NumberingConfigUpdateFormProps) {
+export default function UpdateRegistrationNumberingForm({ onSuccess, className = '', initialData }: NumberingConfigUpdateFormProps) {
     const {
         control,
         handleSubmit,
