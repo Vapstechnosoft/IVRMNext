@@ -15,6 +15,6 @@ export async function toggleMasterfeeInstallmentDueDate(_mi_id: 30, id: number) 
 
 export async function getfeeInstallmentDueDate(searchParams?: ApiSearchparams) {
     const urlParams = getSearchParamsUrl(searchParams ?? {});
-    const url = `/FeeheadFacade/30?${urlParams}`;
+    const url = `/fee_installment/GetUsedInstallmentList/30?mi_id=30?${urlParams}`;
     return await api.get<IMasterFeesInstallmentDueDateList[]>('fees', url);
 }

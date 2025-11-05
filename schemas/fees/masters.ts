@@ -129,6 +129,7 @@ export const masterClassCategorySchema = {
         fmcC_Id: deleteIdSchema('fmcC_Id')
     })
 };
+
 export const masterClassSchema = {
     addOrUpdate: z.object({
         academicYear: z.string().min(1, { message: 'Academic Year is required' }),
@@ -137,9 +138,10 @@ export const masterClassSchema = {
     }),
 
     delete: z.object({
-        asmS_Id: z.number().min(1, { message: 'Valid ASMCL ID is required for deletion' }) // Or use `deleteIdSchema
+        fycC_Id: z.number().min(1, { message: 'Valid Class Yearly Category ID is required for deletion' })
     })
 };
+
 export const masterGroupsGroupingSchema = {
     addOrUpdate: z.object({
         fmgG_GroupName: z.string().min(1, { message: 'Grouping Name is required' }),
