@@ -123,7 +123,7 @@ export default function UpdateMasterSubSubjectForm({ onSuccess, className = '', 
                         loadingText='Saving...'>
                         <div className='flex items-center'>
                             <Save className='mr-2 h-4 w-4' />
-                            Save Master Sub Subject
+                            Update Sub Subject
                         </div>
                     </Button>
                 </div>

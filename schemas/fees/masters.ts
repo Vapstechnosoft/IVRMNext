@@ -7,9 +7,11 @@ export const loginSchema = z.object({
 export const masterFeeheadSchema = {
     addOrUpdate: z.object({
         fmH_Id: z.number().optional(),
-        fmH_FeeName: createStringSchema('fmH_FeeName', 1, 100),
+        fmH_FeeName: createStringSchema('Fee Head Name', 1, 100),
         fmH_Order: z.number().int({ message: 'fmH_Order is required' }),
-        fmH_Flag: createStringSchema('fmH_Flag', 1, 100),
+        //fmH_Flag: createStringSchema('fmH_Flag', 1, 100),
+
+        fmH_Flag: z.string().nonempty('Fee Head Type is required'),
         fmH_RefundFlag: z.boolean().optional(),
         fmH_PDAFlag: z.boolean().optional(),
         fmH_SpecialFeeFlag: z.boolean().optional()
@@ -34,7 +36,7 @@ export const paymentgatewaydetailsSchema = {
         fpgD_MerchantId: z.string().min(1, 'Merchant ID is required'),
         fpgD_SaltKey: z.string().min(1, 'Salt Key is required'),
         fpgD_Image: z.string().min(1, 'Image is required'),
-        fpgD_URL: z.string().optional(),
+        fpgD_URL: z.string().min(1, 'URL is required'),
         fpgD_AccNo: z.string().min(1, 'Account Number is required'),
         fpgD_MerchantKey: z.string().min(1, 'Merchant Key is required'),
         impG_Id: z.preprocess((val) => {
@@ -42,14 +44,23 @@ export const paymentgatewaydetailsSchema = {
             return val;
         }, z.number().int()),
         fpgD_MobileActiveFlag: z.boolean().optional(),
+        // submerchantIds: z
+        //     .array(
+        //         z.object({
+        //             id: z.string().min(1, 'Sub Merchant Id is required')
+        //         })
+        //     )
+        //     .optional()
+        //     .default([])
+
         submerchantIds: z
             .array(
                 z.object({
                     id: z.string().min(1, 'Sub Merchant Id is required')
+                    // .regex(/^[0-9a-zA-Z]+$/, "Only letters and numbers allowed"),
                 })
             )
-            .optional()
-            .default([])
+            .min(1, 'At least one Sub Merchant Id is required')
     }),
     delete: z.object({
         FPGD_Id: deleteIdSchema('FPGD_Id')
@@ -290,10 +301,11 @@ export const YearlyGroupSchema = {
 export const masterConcessionSchema = {
     addOrUpdate: z.object({
         fmcC_Id: z.number().int().optional(),
-        fmcC_ConcessionName: z.string({ message: 'ConcessionName is required' }),
+        fmcC_ConcessionName: z.string().min(1, { message: 'ConcessionName is required' }),
         fmcC_ConcessionApplLimit: z.number({
-            message: 'ConcessionApplLimit is required'
+            message: 'Concession Limit is required'
         }),
+        //   fmcC_ConcessionApplLimit: z.number().min(0, { message: 'ConcessionApplLimit must be at morethan 0' }).optional(),
         fmcC_ConcessionFlag: z.string().optional(),
         fmcC_ActiveFlag: z.boolean().optional()
     }),
@@ -304,7 +316,7 @@ export const masterConcessionSchema = {
 export const masterTermsSchema = {
     addOrUpdate: z.object({
         fmT_Id: z.number().int().optional(),
-        fmT_Name: z.string({ message: 'Term Name is required' }),
+        fmT_Name: z.string().min(1, { message: 'Term Name is required' }),
         fmT_IncludeArrearFeeFlg: z.boolean().optional(),
         fmT_ActiveFlag: z.boolean().optional()
     }),
@@ -316,7 +328,10 @@ export const masterTermFeeHeadSchema = {
     addOrUpdate: z.object({
         heads: z.array(z.string()).nonempty('Please select at least one Head'),
         //terms: z.array(z.string()).nonempty('Please select Term'),
-        installments: z.array(z.string()).nonempty('Please select at least one Term'),
+        //installments: z.array(z.string()).nonempty('Please select at least one Term'),
+        //  installments:z.string().nonempty('Please select at least one Installment'),
+        installments: z.array(z.string()).nonempty('Please select at least one Installment'),
+
         fmT_Id: z.number({ message: 'Term is required' })
         // ftI_Id: z.number({ message: 'Installment is required' })
     }),

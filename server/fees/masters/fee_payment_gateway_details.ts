@@ -5,7 +5,10 @@ import type { ApiSearchparams } from '@/types';
 import type { IMasterPaymentGatewayList, IMasterpaymentGatewayDropdownList } from '@/types/fees/masters/masters';
 
 export async function getpaymentgatewaydetails(searchParams?: ApiSearchparams) {
-    const urlParams = getSearchParamsUrl(searchParams ?? {});
+    const urlParams = getSearchParamsUrl(
+        searchParams ?? {},
+        'fpgD_MerchantId,fpgD_SaltKey,fpgD_AuthorisationKey,impG_PGName,fpgD_AccNo,fpgD_SubMerchantId'
+    );
     const url = `/FeePaymentGatewayDetailsFacade/getpagedetails/30?${urlParams}`;
     return await api.get<IMasterPaymentGatewayList[]>('fees', url);
 }

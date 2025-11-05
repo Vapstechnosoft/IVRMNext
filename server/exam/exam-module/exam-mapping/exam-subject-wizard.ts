@@ -16,12 +16,32 @@ export async function getExamSubjectWizard(searchParams?: ApiSearchparams) {
 // --------------------------------------------
 // Get Exam Subject Wizard Details By ID
 // --------------------------------------------
-export async function getExamSubjectWizardDetails(orgId: number, ecysE_Id: number) {
-    if (!ecysE_Id) throw new Error('Exam Subject Wizard ID is required');
-    const url = `exam_subject_wizard/details_view_by_id/${orgId}/${ecysE_Id}`;
+
+export async function getExamSubjectWizardDetails(orgId: number, ecycE_Id: number) {
+    if (!ecycE_Id) throw new Error('Exam Subject Wizard ID is required');
+    const url = `exam_subject_mapping/grade_and_exam_subject_mapping_list/${orgId}/${ecycE_Id}`;
     return await api.get<IExamSubjectWizard>('exam', url);
 }
 
+// --------------------------------------------
+// Toggle Exam Subject Wizard Active / Inactive
+// --------------------------------------------
+export async function toggleExamSubjectWizard(ecysE_Id: number) {
+    if (!ecysE_Id) throw new Error('Exam Subject Wizard ID is required');
+    const url = `exam_subject_mapping/toggle_exam_yearly_category/${ecysE_Id}`;
+    return await api.put('exam', url);
+}
+
+export async function toggleExamSubjectWizardDetails(eycE_Id: number) {
+    if (!eycE_Id) throw new Error('Exam Subject Wizard ID is required');
+    const url = `exam_subject_mapping/toggle_exam_subject/${eycE_Id}`;
+    return await api.put('exam', url);
+}
+
+export async function UpdateOrderedSubjectDetails(data: any) {
+    const url = '/exam_subject_mapping/set_subject_order_number';
+    return await api.put<any>('exam', url, data);
+}
 // --------------------------------------------
 // Add or Update Exam Subject Wizard Record
 // --------------------------------------------
@@ -40,19 +60,10 @@ export async function deleteExamSubjectWizard(orgId: number, ecysE_Id: number) {
 }
 
 // --------------------------------------------
-// Toggle Exam Subject Wizard Active / Inactive
-// --------------------------------------------
-export async function toggleExamSubjectWizard(orgId: number, ecysE_Id: number) {
-    if (!ecysE_Id) throw new Error('Exam Subject Wizard ID is required');
-    const url = `exam_subject_wizard/toggle/${orgId}/${ecysE_Id}`;
-    return await api.put('exam', url);
-}
-
-// --------------------------------------------
 // Get Sub Exam List by Subject
 // --------------------------------------------
 export async function getSubExamList(orgId: number, ismS_Id: number) {
-    const url = `exam_subject_wizard/sub_exam_list/${orgId}/${ismS_Id}`;
+    const url = `master_sub_exam/${orgId}`;
     return await api.get<any>('exam', url);
 }
 
@@ -60,7 +71,7 @@ export async function getSubExamList(orgId: number, ismS_Id: number) {
 // Get Sub Subject List by Subject
 // --------------------------------------------
 export async function getSubSubjectList(orgId: number, ismS_Id: number) {
-    const url = `exam_subject_wizard/sub_subject_list/${orgId}/${ismS_Id}`;
+    const url = `master_sub_subject/${orgId}`;
     return await api.get<any>('exam', url);
 }
 
@@ -81,25 +92,9 @@ export async function saveSubSubjectMapping(data: any) {
 }
 
 // --------------------------------------------
-// Get Categories By Academic Year
-// --------------------------------------------
-export async function getCategoriesByAcademicYear(academicYearId: string) {
-    const url = `exam_subject_wizard/categories/${academicYearId}`;
-    return await api.get('exam', url);
-}
-
-// --------------------------------------------
-// Get Exams By Category
-// --------------------------------------------
-export async function getExamsByCategory(categoryId: string) {
-    const url = `exam_subject_wizard/exams/${categoryId}`;
-    return await api.get('exam', url);
-}
-
-// --------------------------------------------
 // Get Subjects By Group
 // --------------------------------------------
-export async function getSubjectsByGroup(groupId: string) {
-    const url = `exam_subject_wizard/subjects/${groupId}`;
+export async function getSubjectsByCategory(mI_Id: number, emCA_Id: number) {
+    const url = `exam_subject_mapping/subjects_by_yearly_exam_category_list/${mI_Id}/${emCA_Id}`;
     return await api.get('exam', url);
 }

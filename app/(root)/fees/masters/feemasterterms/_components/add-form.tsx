@@ -71,7 +71,7 @@ export default function AddAddFeeTermsForm({ onSuccess, feeterms = '' }: AddFeeT
             <form onSubmit={handleSubmit(onSubmit)} className='flex w-full flex-col items-center justify-center space-y-6'>
                 <div className='flex items-center space-x-2'>
                     <InputText
-                        label='Fee Terms'
+                        label='Term Name'
                         required
                         id='fmT_Name'
                         {...register('fmT_Name')}
@@ -92,7 +92,7 @@ export default function AddAddFeeTermsForm({ onSuccess, feeterms = '' }: AddFeeT
                                 }}
                                 id='fmT_IncludeArrearFeeFlg'
                             />
-                            <Label htmlFor='fmT_IncludeArrearFeeFlg'>Include Arrear Fee</Label>
+                            <Label htmlFor='fmT_IncludeArrearFeeFlg'>Arrear Flag</Label>
                         </div>
                     )}
                 />

@@ -15,7 +15,9 @@ export const CategoryClassMappingDetalisColumns: ColumnDef<ICategoryClassMapping
             const pageIndex = table.getState().pagination.pageIndex;
             const pageSize = table.getState().pagination.pageSize;
             return <div>{pageIndex * pageSize + row.index + 1}</div>;
-        }
+        },
+        enableSorting: false,
+        enableHiding: true
     },
     {
         accessorKey: 'asmcL_ClassName',
@@ -25,14 +27,17 @@ export const CategoryClassMappingDetalisColumns: ColumnDef<ICategoryClassMapping
     {
         accessorKey: 'asmC_SectionName',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Section Name' />,
-        cell: ({ row }) => <div>{row.getValue('asmC_SectionName')}</div>
+        cell: ({ row }) => <div>{row.getValue('asmC_SectionName')}</div>,
+        enableHiding: true,
+        enableSorting: false
     },
     {
         id: 'actions',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Active Status' className='text-center' />,
         accessorFn: (row) => row,
         enableSorting: false,
-        cell: ({ row }) => <ActionButtonsCell rowData={row.original} />
+        cell: ({ row }) => <ActionButtonsCell rowData={row.original} />,
+        enableHiding: true
     }
 ];
 

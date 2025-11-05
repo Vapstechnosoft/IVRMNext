@@ -5,7 +5,8 @@ import type { ApiSearchparams } from '@/types';
 import type { IFeeHeadsList } from '@/types/fees/masters';
 
 export async function getfeehead(searchParams?: ApiSearchparams) {
-    const urlParams = getSearchParamsUrl(searchParams ?? {});
+    console.info('Fetching fee heads with search params:', searchParams);
+    const urlParams = getSearchParamsUrl(searchParams ?? {}, 'fmH_FeeName,fmH_SpecialFeeFlag');
     const url = `/fee_head/30?${urlParams}`;
     return await api.get<IFeeHeadsList[]>('fees', url);
 }

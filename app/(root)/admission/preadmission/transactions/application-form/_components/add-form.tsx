@@ -12,6 +12,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import {
+    useActivePreadmissionDetails,
     useCasteDropdown,
     useCountryDropdown,
     useGenderDropdown,
@@ -133,7 +134,15 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
         }>
     >([]);
 
+    const [studentPhoto, setStudentPhoto] = useState<{
+        pasR_Student_Pic_Path: string;
+        isUploading?: boolean;
+    } | null>(null);
+    const [studentPhotoError, setStudentPhotoError] = useState<string | null>(null);
+
     const [documentErrors, setDocumentErrors] = useState<Record<number, string>>({});
+
+    const { data: activePreadmission } = useActivePreadmissionDetails();
 
     const { data: religion, isLoading: religionLoading, error: religionError, refetchAll: refetchReligion } = useReligionDropdown();
     const conConuntryId = watch('pasR_ConCountry');
@@ -200,6 +209,11 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
                 'pasR_MotherTongue',
                 'pasR_TransportReqdFlag'
             ];
+
+            if (!studentPhoto?.pasR_Student_Pic_Path) {
+                toast.error('Please upload student photo');
+                return;
+            }
         } else if (currentStep === 2) {
             fieldsToValidate = [
                 'pasR_ConStreet',
@@ -277,6 +291,7 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
                 ...filteredData,
                 pasR_DOB: format(pasR_DOB, 'yyyy-MM-dd'),
                 pasR_Age: calculatedAgeDetails.ageInYears,
+                pasR_Student_Pic_Path: studentPhoto?.pasR_Student_Pic_Path || '',
                 PASR_PerState: pasR_PerState?.toString() ?? '',
                 PASR_ConCountry: pasR_ConCountry?.toString() ?? '',
                 PASR_PerCountry: pasR_PerCountry?.toString() ?? '',
@@ -290,27 +305,30 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
                 selectedRefrenceDetails: selectedReferenceItems.map((item) => ({
                     pamR_Id: item.pamR_Id
                 })),
-                siblingsDetails: siblings.map((sibling) => ({
-                    ...sibling,
-                    verrejstatus: '',
-                    pasrS_SchoolName: '',
-                    pasrS_Age: 0,
-                    pasrS_Gender: '',
-                    pasrS_Institution: '',
-                    pasrS_DOB: ''
-                })),
-                previousSchoolList: previousSchool.pasrpS_PrvSchoolName
-                    ? [
-                          {
-                              ...previousSchool,
-                              pasrpS_TcNo: '',
-                              pasrpS_PreviousPer: '',
-                              pasrpS_PreviousGrade: '',
-                              pasrpS_PreviousMarks: '',
-                              pasrpS_ConcOrScholarshipFlg: ''
-                          }
-                      ]
-                    : [],
+                siblingsDetails: siblings
+                    .filter((sibling) => sibling.pasrS_SiblingsName !== '')
+                    .map((sibling) => ({
+                        ...sibling,
+                        verrejstatus: '',
+                        pasrS_SchoolName: '',
+                        pasrS_Age: 0,
+                        pasrS_Gender: '',
+                        pasrS_Institution: '',
+                        pasrS_DOB: ''
+                    })),
+                previousSchoolList:
+                    previousSchool.pasrpS_PrvSchoolName !== ''
+                        ? [
+                              {
+                                  ...previousSchool,
+                                  pasrpS_TcNo: '',
+                                  pasrpS_PreviousPer: '',
+                                  pasrpS_PreviousGrade: '',
+                                  pasrpS_PreviousMarks: '',
+                                  pasrpS_ConcOrScholarshipFlg: ''
+                              }
+                          ]
+                        : [],
                 examSubjectDTO: [],
                 elesubsubject: [],
                 selectedDocuments: uploadedDocuments.map((doc) => ({
@@ -358,6 +376,8 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
         });
         setAgeEligibilityError(null);
         setUploadedDocuments([]);
+        setStudentPhoto(null);
+        setStudentPhotoError(null);
         setDocumentErrors({});
     };
 
@@ -485,7 +505,7 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
 
                 toast.success(`${documentName} uploaded successfully`);
             } else {
-                console.log('Upload Failed:', response.message);
+                toast.error(`Failed to upload ${documentName}`);
             }
         } catch (error: any) {
             console.error('Upload error:', error);
@@ -514,6 +534,51 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
             }
         } catch (_error: any) {
             toast.error(`Failed to delete ${documentName}`);
+        }
+    };
+
+    const handleStudentPhotoUpload = async (file: File) => {
+        try {
+            setStudentPhoto({ pasR_Student_Pic_Path: '', isUploading: true });
+            setStudentPhotoError(null);
+
+            const formData = new FormData();
+            formData.append('file', file);
+            formData.append('SubContainerName', 'preadmission_student_photo');
+
+            const response = await uploadDocument(formData);
+
+            if (response.success && response.data) {
+                setStudentPhoto({
+                    pasR_Student_Pic_Path: response.data as string,
+                    isUploading: false
+                });
+                toast.success('Student photo uploaded successfully');
+            } else {
+                throw new Error(response.message || 'Upload failed');
+            }
+        } catch (error: any) {
+            console.error('Upload error:', error);
+            const errorMessage = error?.response?.data?.message || error?.message || 'Upload failed';
+            setStudentPhotoError(errorMessage);
+            setStudentPhoto(null);
+            toast.error(`Failed to upload photo: ${errorMessage}`);
+        }
+    };
+
+    const handleStudentPhotoDelete = async () => {
+        if (!studentPhoto?.pasR_Student_Pic_Path) return;
+
+        try {
+            const response = await deleteDocument(studentPhoto.pasR_Student_Pic_Path);
+            if (response.success) {
+                setStudentPhoto(null);
+                toast.success('Student photo deleted successfully');
+            } else {
+                throw new Error(response.message || 'Delete failed');
+            }
+        } catch (_error: any) {
+            toast.error('Failed to delete photo');
         }
     };
 
@@ -566,45 +631,50 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
                         {/* Mobile: Horizontal Stepper */}
                         <div className='block overflow-x-auto lg:hidden'>
                             <div className='flex min-w-max items-center justify-between px-4'>
-                                {steps.map((step, index) => (
-                                    <div key={step.id} className='flex flex-1 items-center'>
-                                        <div className='flex flex-col items-center'>
-                                            <Button
-                                                type='button'
-                                                // onClick={() => goToStep(step.id)}
-                                                disabled={isSubmitting}
-                                                className={cn(
-                                                    'flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full border-2 font-semibold transition-all duration-300 hover:scale-110 disabled:cursor-not-allowed disabled:opacity-50',
-                                                    currentStep === step.id
-                                                        ? 'border-blue-600 bg-blue-600 text-white shadow-blue-200 shadow-lg'
-                                                        : currentStep > step.id
-                                                          ? 'border-green-500 bg-green-500 text-white'
-                                                          : 'border-gray-300 bg-white text-gray-400'
-                                                )}>
-                                                {currentStep > step.id ? (
-                                                    <Check className='h-5 w-5' />
-                                                ) : (
-                                                    <span className='text-sm'>{step.id}</span>
-                                                )}
-                                            </Button>
-                                            <p
-                                                className={cn(
-                                                    'mt-1 text-nowrap text-center font-medium text-xs transition-colors',
-                                                    currentStep === step.id ? 'text-blue-600' : 'text-gray-500'
-                                                )}>
-                                                {step.name}
-                                            </p>
+                                {steps.map((step, index) => {
+                                    const IconComponent = getIconByName(step.icon);
+                                    return (
+                                        <div key={step.id} className='flex flex-1 items-center'>
+                                            <div className='flex flex-col items-center'>
+                                                <Button
+                                                    type='button'
+                                                    // onClick={() => goToStep(step.id)}
+                                                    disabled={isSubmitting}
+                                                    className={cn(
+                                                        'flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full border-2 font-semibold transition-all duration-300 hover:scale-110 disabled:cursor-not-allowed disabled:opacity-50',
+                                                        currentStep === step.id
+                                                            ? 'border-blue-600 bg-blue-600 text-white shadow-blue-200 shadow-lg'
+                                                            : currentStep > step.id
+                                                              ? 'border-green-500 bg-green-500 text-white'
+                                                              : 'border-gray-300 bg-white text-gray-400'
+                                                    )}>
+                                                    {currentStep > step.id ? (
+                                                        <Check className='h-5 w-5' />
+                                                    ) : (
+                                                        <span className='text-lg'>
+                                                            {IconComponent && <IconComponent className='h-5 w-5' />}
+                                                        </span>
+                                                    )}
+                                                </Button>
+                                                <p
+                                                    className={cn(
+                                                        'mt-1 text-nowrap text-center font-medium text-xs transition-colors',
+                                                        currentStep === step.id ? 'text-blue-600' : 'text-gray-500'
+                                                    )}>
+                                                    {step.name}
+                                                </p>
+                                            </div>
+                                            {index < steps.length - 1 && (
+                                                <div
+                                                    className={cn(
+                                                        'mx-2 h-0.5 flex-1 transition-all duration-300',
+                                                        currentStep > step.id ? 'bg-green-500' : 'bg-gray-300'
+                                                    )}
+                                                />
+                                            )}
                                         </div>
-                                        {index < steps.length - 1 && (
-                                            <div
-                                                className={cn(
-                                                    'mx-2 h-0.5 flex-1 transition-all duration-300',
-                                                    currentStep > step.id ? 'bg-green-500' : 'bg-gray-300'
-                                                )}
-                                            />
-                                        )}
-                                    </div>
-                                ))}
+                                    );
+                                })}
                             </div>
                         </div>
 
@@ -618,7 +688,7 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
                                             <div className='flex flex-col items-center'>
                                                 <button
                                                     type='button'
-                                                    // onClick={() => goToStep(step.id)}
+                                                    onClick={() => goToStep(step.id)}
                                                     disabled={isSubmitting}
                                                     className={cn(
                                                         'flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full border-2 font-semibold transition-all duration-300 hover:scale-110 disabled:cursor-not-allowed disabled:opacity-50',
@@ -675,7 +745,150 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
                                                 Please provide the student&apos;s basic information
                                             </p>
                                         </div>
+                                        <div className='flex justify-between'>
+                                            <InputText
+                                                label='Academic Year'
+                                                required
+                                                id='academic_year'
+                                                placeholder='Enter first name'
+                                                defaultValue={activePreadmission?.data?.asmaY_Year}
+                                                className='w-fit font-semibold'
+                                                disabled
+                                            />
+                                            {/* Student Photo Upload - Mandatory */}
+                                            <div className='col-span-full w-fit'>
+                                                <div className='rounded-lg border-2 border-blue-200 bg-blue-50 p-2'>
+                                                    <div className='mb-1'>
+                                                        <Label htmlFor='student_photo'>
+                                                            Student Photo <span className='ml-1 text-red-500'>*</span>
+                                                        </Label>
+                                                    </div>
 
+                                                    {!studentPhoto?.pasR_Student_Pic_Path ? (
+                                                        <label
+                                                            htmlFor='student_photo'
+                                                            className={cn(
+                                                                'flex cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed px-2 py-3 text-center transition-all hover:border-primary hover:bg-white',
+                                                                studentPhoto?.isUploading
+                                                                    ? 'border-blue-400 bg-blue-100'
+                                                                    : 'border-gray-300 bg-white'
+                                                            )}>
+                                                            {studentPhoto?.isUploading ? (
+                                                                <div className='flex flex-col items-center gap-2'>
+                                                                    <svg
+                                                                        className='h-8 w-8 animate-spin text-primary'
+                                                                        fill='none'
+                                                                        stroke='currentColor'
+                                                                        viewBox='0 0 24 24'>
+                                                                        <circle
+                                                                            className='opacity-25'
+                                                                            cx='12'
+                                                                            cy='12'
+                                                                            r='10'
+                                                                            strokeWidth='4'
+                                                                            stroke='currentColor'
+                                                                        />
+                                                                        <path
+                                                                            className='opacity-75'
+                                                                            fill='currentColor'
+                                                                            d='M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z'
+                                                                        />
+                                                                    </svg>
+                                                                    <span className='font-medium text-primary text-sm'>
+                                                                        Uploading photo...
+                                                                    </span>
+                                                                </div>
+                                                            ) : (
+                                                                <>
+                                                                    <svg
+                                                                        className='h-12 w-12 text-primary'
+                                                                        fill='none'
+                                                                        stroke='currentColor'
+                                                                        viewBox='0 0 24 24'>
+                                                                        <path
+                                                                            strokeLinecap='round'
+                                                                            strokeLinejoin='round'
+                                                                            strokeWidth={2}
+                                                                            d='M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z'
+                                                                        />
+                                                                    </svg>
+                                                                    <span className='font-medium text-gray-700 text-sm'>
+                                                                        Click to upload
+                                                                    </span>
+                                                                    <span className='mt-1 max-w-[250px] text-gray-600 text-sm'>
+                                                                        Upload recent passport-size photo (Max size: 1MB, Format: JPG, PNG)
+                                                                    </span>
+                                                                </>
+                                                            )}
+                                                            <input
+                                                                id='student_photo'
+                                                                type='file'
+                                                                className='hidden'
+                                                                accept='image/jpeg,image/jpg,image/png'
+                                                                disabled={studentPhoto?.isUploading || isSubmitting}
+                                                                onChange={(e) => {
+                                                                    const file = e.target.files?.[0];
+                                                                    if (file) {
+                                                                        if (file.size > 1 * 1024 * 1024) {
+                                                                            toast.error('File size must be less than 1MB');
+                                                                            e.target.value = '';
+                                                                            return;
+                                                                        }
+                                                                        handleStudentPhotoUpload(file);
+                                                                        e.target.value = '';
+                                                                    }
+                                                                }}
+                                                            />
+                                                        </label>
+                                                    ) : (
+                                                        <div className='flex w-fit flex-col items-start justify-between gap-2 rounded-lg border border-green-200 bg-green-50 p-4'>
+                                                            <div className='flex items-center gap-4'>
+                                                                <img
+                                                                    src={studentPhoto.pasR_Student_Pic_Path}
+                                                                    alt='Student'
+                                                                    className='h-20 w-20 rounded-lg border-2 border-green-300 object-cover'
+                                                                />
+                                                                <div>
+                                                                    <div className='flex items-center gap-2 font-medium text-green-700'>
+                                                                        <Check className='h-5 w-5' />
+                                                                        Uploaded Successfully
+                                                                    </div>
+                                                                    <p className='mt-1 text-green-600 text-sm'>Student photo is ready</p>
+                                                                </div>
+                                                            </div>
+                                                            <div className='flex gap-2'>
+                                                                <Button
+                                                                    type='button'
+                                                                    variant='outline'
+                                                                    size='sm'
+                                                                    onClick={() =>
+                                                                        window.open(studentPhoto.pasR_Student_Pic_Path, '_blank')
+                                                                    }>
+                                                                    <Eye className='h-4 w-4' />
+                                                                </Button>
+                                                                <Button
+                                                                    type='button'
+                                                                    variant='destructive'
+                                                                    size='sm'
+                                                                    disabled={isSubmitting}
+                                                                    onClick={handleStudentPhotoDelete}>
+                                                                    <Trash className='h-4 w-4' />
+                                                                </Button>
+                                                            </div>
+                                                        </div>
+                                                    )}
+
+                                                    {studentPhotoError && (
+                                                        <div className='mt-3 rounded-md border border-red-200 bg-red-50 p-3'>
+                                                            <p className='flex items-start gap-2 font-medium text-red-700 text-sm'>
+                                                                <span className='mt-0.5 text-red-500'>⚠</span>
+                                                                <span>{studentPhotoError}</span>
+                                                            </p>
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        </div>
                                         <div className='grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3'>
                                             <InputText
                                                 label='First Name'
@@ -718,7 +931,11 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
                                                                         'w-full font-normal',
                                                                         !field.value && 'text-muted-foreground'
                                                                     )}>
-                                                                    {field.value ? format(field.value, 'PPP') : <span>Pick a date</span>}
+                                                                    {field.value ? (
+                                                                        format(field.value, 'dd-MM-yyyy')
+                                                                    ) : (
+                                                                        <span>Pick a date</span>
+                                                                    )}
                                                                     <Calendar className='ml-auto h-4 w-4 opacity-50' />
                                                                 </Button>
                                                             </PopoverTrigger>
@@ -779,8 +996,9 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
                                                     control={control}
                                                     render={({ field }) => (
                                                         <Select
+                                                            key={field.value || 'empty'}
                                                             onValueChange={(value) => field.onChange(Number(value))}
-                                                            value={field.value?.toString() || undefined}>
+                                                            value={field.value?.toString() || ''}>
                                                             <SelectTrigger>
                                                                 <SelectValue placeholder='Select religion' />
                                                             </SelectTrigger>
@@ -815,8 +1033,9 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
                                                     control={control}
                                                     render={({ field }) => (
                                                         <Select
+                                                            key={field.value || 'empty'}
                                                             onValueChange={(value) => field.onChange(Number(value))}
-                                                            value={field.value?.toString() || undefined}
+                                                            value={field.value?.toString() || ''}
                                                             disabled={!watch('religion_Id')}>
                                                             <SelectTrigger>
                                                                 <SelectValue placeholder='Select caste' />
@@ -852,8 +1071,9 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
                                                     control={control}
                                                     render={({ field }) => (
                                                         <Select
+                                                            key={field.value || 'empty'}
                                                             onValueChange={(value) => field.onChange(value)}
-                                                            value={field.value?.toString() || undefined}>
+                                                            value={field.value?.toString() || ''}>
                                                             <SelectTrigger>
                                                                 <SelectValue placeholder='Select gender' />
                                                             </SelectTrigger>
@@ -888,11 +1108,12 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
                                                     control={control}
                                                     render={({ field }) => (
                                                         <Select
+                                                            key={field.value || 'empty'}
                                                             onValueChange={(value) => {
                                                                 field.onChange(Number(value));
                                                                 validateAgeEligibility(calculatedAgeDetails, Number(value));
                                                             }}
-                                                            value={field.value?.toString() || undefined}>
+                                                            value={field.value?.toString() || ''}>
                                                             <SelectTrigger>
                                                                 <SelectValue placeholder='Select class' />
                                                             </SelectTrigger>
@@ -943,8 +1164,9 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
                                                     control={control}
                                                     render={({ field }) => (
                                                         <Select
+                                                            key={field.value || 'empty'}
                                                             onValueChange={(value) => field.onChange(value)}
-                                                            value={field.value?.toString() || undefined}>
+                                                            value={field.value?.toString() || ''}>
                                                             <SelectTrigger>
                                                                 <SelectValue placeholder='Select nationality' />
                                                             </SelectTrigger>
@@ -1078,8 +1300,9 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
                                                     control={control}
                                                     render={({ field }) => (
                                                         <Select
+                                                            key={field.value || 'empty'}
                                                             onValueChange={(value) => field.onChange(Number(value))}
-                                                            value={field.value?.toString() || undefined}>
+                                                            value={field.value?.toString() || ''}>
                                                             <SelectTrigger>
                                                                 <SelectValue placeholder='Select option' />
                                                             </SelectTrigger>
@@ -1133,8 +1356,9 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
                                                             control={control}
                                                             render={({ field }) => (
                                                                 <Select
+                                                                    key={field.value || 'empty'}
                                                                     onValueChange={(value) => field.onChange(value)}
-                                                                    value={field.value?.toString() || undefined}>
+                                                                    value={field.value?.toString() || ''}>
                                                                     <SelectTrigger>
                                                                         <SelectValue placeholder='Select country' />
                                                                     </SelectTrigger>
@@ -1169,8 +1393,9 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
                                                             control={control}
                                                             render={({ field }) => (
                                                                 <Select
+                                                                    key={field.value || 'empty'}
                                                                     onValueChange={(value) => field.onChange(Number(value))}
-                                                                    value={field.value?.toString() || undefined}>
+                                                                    value={field.value?.toString() || ''}>
                                                                     <SelectTrigger>
                                                                         <SelectValue placeholder='Select state' />
                                                                     </SelectTrigger>
@@ -1263,8 +1488,9 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
                                                             control={control}
                                                             render={({ field }) => (
                                                                 <Select
+                                                                    key={field.value || 'empty'}
                                                                     onValueChange={(value) => field.onChange(value)}
-                                                                    value={field.value?.toString() || undefined}
+                                                                    value={field.value?.toString() || ''}
                                                                     disabled={sameAsResidential}>
                                                                     <SelectTrigger>
                                                                         <SelectValue placeholder='Select country' />
@@ -1300,8 +1526,9 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
                                                             control={control}
                                                             render={({ field }) => (
                                                                 <Select
+                                                                    key={field.value || 'empty'}
                                                                     onValueChange={(value) => field.onChange(Number(value))}
-                                                                    value={field.value?.toString() || undefined}
+                                                                    value={field.value?.toString() || ''}
                                                                     disabled={sameAsResidential}>
                                                                     <SelectTrigger>
                                                                         <SelectValue placeholder='Select state' />
@@ -1419,8 +1646,9 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
                                                             control={control}
                                                             render={({ field }) => (
                                                                 <Select
+                                                                    key={field.value || 'empty'}
                                                                     onValueChange={(value) => field.onChange(Number(value))}
-                                                                    value={field.value?.toString() || undefined}>
+                                                                    value={field.value?.toString() || ''}>
                                                                     <SelectTrigger>
                                                                         <SelectValue placeholder='Select nationality' />
                                                                     </SelectTrigger>
@@ -1545,8 +1773,9 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
                                                             control={control}
                                                             render={({ field }) => (
                                                                 <Select
+                                                                    key={field.value || 'empty'}
                                                                     onValueChange={(value) => field.onChange(Number(value))}
-                                                                    value={field.value?.toString() || undefined}>
+                                                                    value={field.value?.toString() || ''}>
                                                                     <SelectTrigger>
                                                                         <SelectValue placeholder='Select nationality' />
                                                                     </SelectTrigger>
@@ -2002,6 +2231,8 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
                                                                     onChange={(e) =>
                                                                         updateSibling(index, 'pasrS_SiblingsSection', e.target.value)
                                                                     }
+                                                                    minLength={1}
+                                                                    maxLength={10}
                                                                 />
                                                             </div>
                                                         </div>

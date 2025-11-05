@@ -13,6 +13,7 @@ import { Save } from 'lucide-react';
 import { useEffect } from 'react';
 import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
+
 import type { z } from 'zod';
 
 type FormFields = z.infer<typeof masterConcessionSchema.addOrUpdate>;
@@ -54,13 +55,15 @@ export default function UpdateMasterConcessionForm({ onSuccess, fineslab = '', s
         try {
             const { fmcC_ConcessionName, fmcC_ConcessionApplLimit } = data;
             const payload = {
-                mi_id: 30,
-                // fmcC_Id: row.fmcC_Id,
+                mI_Id: 30,
+                fmcC_Id: row.fmcC_Id,
                 fmcC_ConcessionName: fmcC_ConcessionName,
                 fmcC_ConcessionApplLimit: fmcC_ConcessionApplLimit.toString()
                 // fmcC_ConcessionFlag: '',
                 // fmcC_ActiveFlag: row.fmcC_ActiveFlag
             };
+
+            const payloaddata = console.log(JSON.stringify(payload));
 
             const response = await addOrUpdateMasterConcession(payload);
 
@@ -83,12 +86,12 @@ export default function UpdateMasterConcessionForm({ onSuccess, fineslab = '', s
 
     return (
         <div className={`${fineslab}`}>
-            <form onSubmit={handleSubmit(onSubmit)} className='space-y-6'>
+            <form onSubmit={handleSubmit(onSubmit)} className='flex w-full flex-col items-center justify-center space-y-6'>
                 <div className='space-y-4'>
                     <div className='space-y-4'>
                         <div className='grid grid-cols-1 gap-4 md:grid-cols-4'>
                             <InputText
-                                label='Concession'
+                                label='Concession Name'
                                 required
                                 id='fmcC_ConcessionName'
                                 {...register('fmcC_ConcessionName')}
@@ -100,28 +103,30 @@ export default function UpdateMasterConcessionForm({ onSuccess, fineslab = '', s
                                 control={control}
                                 rules={{ required: 'Concession Limit is required' }}
                                 render={({ field, fieldState }) => (
-                                    <InputNumber
-                                        label='Concession Limit'
-                                        required
-                                        id='fmcC_ConcessionApplLimit'
-                                        value={field.value ?? 0}
-                                        onChange={(value: number) => {
-                                            field.onChange(value); // send number to RHF
-                                        }}
-                                        className='transition-colors focus:ring-2 focus:ring-primary/20'
-                                    />
+                                    <div>
+                                        <InputNumber
+                                            label='Concession Limit'
+                                            required
+                                            id='fmcC_ConcessionApplLimit'
+                                            value={field.value ?? 0}
+                                            onChange={(value: number) => {
+                                                field.onChange(value); // send number to RHF
+                                            }}
+                                            className='transition-colors focus:ring-2 focus:ring-primary/20'
+                                        />
+                                        {errors.fmcC_ConcessionApplLimit && (
+                                            <FormError>{errors.fmcC_ConcessionApplLimit.message}</FormError>
+                                        )}
+                                    </div>
                                 )}
                             />
-                            {errors.fmcC_ConcessionApplLimit && <FormError>{errors.fmcC_ConcessionApplLimit.message}</FormError>}
                         </div>
-
-                        {errors.root && <FormError>{errors.root.message}</FormError>}
                     </div>
 
                     {errors.root && <FormError>{errors.root.message}</FormError>}
                 </div>
 
-                <div className='flex flex-col gap-3 border-t pt-4 sm:flex-row sm:justify-start'>
+                <div className='flex flex-col gap-3 pt-4 sm:flex-row sm:justify-start'>
                     <Button
                         type='button'
                         variant='outline'

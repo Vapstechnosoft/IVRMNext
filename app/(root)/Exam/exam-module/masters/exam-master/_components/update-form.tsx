@@ -175,7 +175,7 @@ export default function UpdateMasterExamForm({ onSuccess, className = '', select
                         loadingText='Saving...'>
                         <div className='flex items-center'>
                             <Save className='mr-2 h-4 w-4' />
-                            Save Master Sub Subject
+                            Update exam
                         </div>
                     </Button>
                 </div>

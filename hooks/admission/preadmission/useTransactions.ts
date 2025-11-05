@@ -11,6 +11,7 @@ import {
     getStateDropdown,
     getStudentApplicationList
 } from '@/server/admission/preadmission/transactions/application_form';
+import { getDocumentView, getDocumentpdf } from '@/server/admission/preadmission/transactions/document-view';
 import { getExportPreadmissionStudentList } from '@/server/admission/preadmission/transactions/export_preadmission';
 import { getPreadmissionStatusCountReport } from '@/server/admission/preadmission/transactions/preadmission_reports';
 import {
@@ -315,6 +316,42 @@ export const usePreadmissionStatusCountReport = () => {
         refetchAll: () => {
             return queryClient.invalidateQueries({
                 queryKey: [PREADMISSION_QUERY_KEYS.PREADMISSION_STATUS_COUNT_REPORT]
+            });
+        }
+    };
+};
+
+export const useDocumentView = (asmay_id: number, asmcl_id: number, searchParams?: ApiSearchparams) => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [PREADMISSION_QUERY_KEYS.DOCUMENT_VIEW, asmay_id, asmcl_id, searchParams ?? {}],
+            queryFn: async () => getDocumentView(asmay_id, asmcl_id, searchParams),
+            staleTime: 0,
+            enabled: !!asmay_id && asmcl_id !== undefined
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [PREADMISSION_QUERY_KEYS.DOCUMENT_VIEW]
+            });
+        }
+    };
+};
+
+export const useDocumentDownload = (pasr_id: number, searchParams?: ApiSearchparams) => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [PREADMISSION_QUERY_KEYS.DOCUMENT_DOWNLOAD, pasr_id, searchParams ?? {}],
+            queryFn: async () => getDocumentpdf(pasr_id, searchParams),
+            staleTime: 0,
+            enabled: !!pasr_id
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [PREADMISSION_QUERY_KEYS.DOCUMENT_DOWNLOAD]
             });
         }
     };

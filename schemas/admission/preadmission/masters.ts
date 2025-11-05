@@ -84,7 +84,7 @@ export const masterSectionSchema = {
             .min(1, { message: 'Minimum Capacity should be 1' })
             .max(100, { message: 'Maximum Capacity is 100' })
             .int({ message: 'Max Capacity is required' }),
-        asmc_order: z.number().int({ message: 'Section Order is required' })
+        asmc_order: z.number().min(1, { message: 'Minimum Order should be 1' }).int({ message: 'Section Order is required' })
     }),
     delete: z.object({
         asmS_Id: deleteIdSchema('asmS_Id')
@@ -142,7 +142,7 @@ export const masterDocumentSchema = {
         amsmD_Id: z.number().int({ message: 'AMSMD_ID is required' }).optional(),
         amsmD_DocumentName: createStringSchema('Document Name', 1, 100),
         amsmD_Description: createOptionalStringSchema('Description', 1, 1000),
-        amsmD_FLAG: z.number().int({ message: 'Mandatory Flag is required' })
+        amsmD_ActiveFlag: z.number().int({ message: 'Mandatory Flag is required' })
     }),
     delete: z.object({
         amsmD_Id: deleteIdSchema('amsmD_Id')
@@ -180,4 +180,83 @@ export const masterReligionCasteCategorySchema = {
     delete: z.object({
         ircC_Id: deleteIdSchema('ircC_Id')
     })
+};
+
+//
+
+// Master Configuration Schema (Add / Update)
+export const masterConfigurationSchema = {
+    add: z
+        .object({
+            asmaY_Id: z.number().int().positive('Academic Year is required'),
+            amC_Id: z.number().int().positive('Category is required'),
+
+            ispaC_EnquiryApplFlag: z.union([z.literal(0), z.literal(1)]).default(0),
+            ispaC_ApplIssueFlag: z.union([z.literal(0), z.literal(1)]).default(0),
+            ispaC_EnqSMSFlag: z.union([z.literal(0), z.literal(1)]).default(0),
+            ispaC_EnqMailFlag: z.union([z.literal(0), z.literal(1)]).default(0),
+            ispaC_EnqMailBackground: z.union([z.literal(0), z.literal(1)]).default(0),
+            ispaC_ApplFeeFlag: z.union([z.literal(0), z.literal(1)]).default(0),
+            ispaC_ApplnDownladFlag: z.union([z.literal(0), z.literal(1)]).default(0),
+            ispaC_ApplSMSFlag: z.union([z.literal(0), z.literal(1)]).default(0),
+            ispaC_ApplMailFlag: z.union([z.literal(0), z.literal(1)]).default(0),
+            ispaC_ApplMailBackground: z.union([z.literal(0), z.literal(1)]).default(0),
+            ispaC_DOBMaxAgeFlag: z.union([z.literal(0), z.literal(1)]).default(0),
+            ispaC_DOBMinAgeFlag: z.union([z.literal(0), z.literal(1)]).default(0),
+            ispaC_ApplCutOffDateFlag: z.union([z.literal(0), z.literal(1)]).default(0),
+            ispaC_ApplNoGenFlag: z.union([z.literal(0), z.literal(1)]).default(0),
+            ispaC_DefaultStatusFlag: z.union([z.literal(0), z.literal(1)]).default(0),
+            ispaC_EnquiryNoGenFlag: z.union([z.literal(0), z.literal(1)]).default(0),
+            ispaC_RgNoGenFlag: z.union([z.literal(0), z.literal(1)]).default(0),
+            ispaC_RegSMSFlag: z.union([z.literal(0), z.literal(1)]).default(0),
+            ispaC_RegMailFlag: z.union([z.literal(0), z.literal(1)]).default(0),
+            ispaC_RegMailBackground: z.union([z.literal(0), z.literal(1)]).default(0),
+            ispaC_AdmCategoryFlag: z.union([z.literal(0), z.literal(1)]).default(0),
+            ispaC_WrittenTestApplFlag: z.union([z.literal(0), z.literal(1)]).default(0),
+            ispaC_OralTestApplFlag: z.union([z.literal(0), z.literal(1)]).default(0),
+            ispaC_SeatBlockFlag: z.union([z.literal(0), z.literal(1)]).default(0),
+            ispaC_FatherAliveFlag: z.union([z.literal(0), z.literal(1)]).default(0),
+            ispaC_MotherAliveFlag: z.union([z.literal(0), z.literal(1)]).default(0),
+            ispaC_MaritalStatusFlag: z.union([z.literal(0), z.literal(1)]).default(0),
+            ispaC_FeePaymentFlag: z.union([z.literal(0), z.literal(1)]).default(0),
+            ispaC_AdmissionTransfer: z.union([z.literal(0), z.literal(1)]).default(0),
+            ispaC_EnableSiblingsLink: z.union([z.literal(0), z.literal(1)]).default(0),
+            ispaC_SibblingConcessionFlag: z.union([z.literal(0), z.literal(1)]).default(0),
+            ispaC_ParentConcessionFlag: z.union([z.literal(0), z.literal(1)]).default(0),
+            ispaC_ECSFlag: z.union([z.literal(0), z.literal(1)]).default(0),
+            ispaC_HostelFlag: z.union([z.literal(0), z.literal(1)]).default(0),
+            ispaC_TransaportFlag: z.union([z.literal(0), z.literal(1)]).default(0),
+            ispaC_GymFlag: z.union([z.literal(0), z.literal(1)]).default(0),
+            ispaC_EnquiryNo_ApplNo_RegNo: z.union([z.literal(0), z.literal(1)]).default(0),
+            ispaC_ProspectusFlag: z.union([z.literal(0), z.literal(1)]).default(0),
+            ispaC_Transfer_Settings_Flag: z.union([z.literal(0), z.literal(1)]).default(0),
+            ispaC_Transfer_Settings_after_payment_Flag: z.union([z.literal(0), z.literal(1)]).default(0),
+            ispaC_ProsptFeeApp: z.union([z.literal(0), z.literal(1)]).default(0),
+            ispaC_OralTestSchApplFlag: z.union([z.literal(0), z.literal(1)]).default(0),
+            ispaC_OralMarksFlag: z.union([z.literal(0), z.literal(1)]).default(0),
+            ispaC_RegFeeFlag: z.union([z.literal(0), z.literal(1)]).default(0),
+            ispaC_WrittenTestSchApplFlag: z.union([z.literal(0), z.literal(1)]).default(0),
+            ispaC_CommonScheduleFlag: z.union([z.literal(0), z.literal(1)]).default(0),
+            ispaC_Healthapp: z.union([z.literal(0), z.literal(1)]).default(0),
+            ispaC_FullPaymentCompFlg: z.union([z.literal(0), z.literal(1)]).default(0),
+            ispaC_OfflineFee_Flag: z.union([z.literal(0), z.literal(1)]).default(0),
+
+            ispaC_ApplNoIncrementFlg: z.boolean().default(false),
+
+            ispaC_MarksEntry: z.number().int().min(0).default(0),
+            ispaC_OralTestBy: z.number().int().min(0).max(4).optional(),
+            ispaC_OralByMax_Marks: z.number().int().min(0).optional(),
+            ispaC_OralByMin_Marks: z.number().int().min(0).optional(),
+            ispaC_NoofApplications: z.number().int().min(0).default(0),
+            ispaC_ApplNoIncrementBy: z.number().int().min(0).default(0)
+        })
+        .superRefine((data, ctx) => {
+            if (data.ispaC_OralTestApplFlag === 1 && (data.ispaC_OralTestBy === undefined || data.ispaC_OralTestBy === null)) {
+                ctx.addIssue({
+                    code: z.ZodIssueCode.custom,
+                    message: 'Oral test by is required when Oral Test is applicable',
+                    path: ['ispaC_OralTestBy']
+                });
+            }
+        })
 };

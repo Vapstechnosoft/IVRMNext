@@ -5,12 +5,13 @@ import { DateField } from '@/components/ui/dateField';
 import { FormError, Label } from '@/components/ui/extension/field';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useYearlyCategoryDateMapping } from '@/hooks/exam/exammodule/exam-mapping';
+import { useAcademicYearDropdown } from '@/hooks/fees/useMasters';
 import { yearlyCategoryDatesMappingSchema } from '@/schemas/exam/exam-module/exam-mapping';
 import {
     addOrUpdateYearlyCategoryDatesMapping,
     getCategoryDropDownByAcademicYearlist
 } from '@/server/exam/exam-module/exam-mapping/yearly-category-dates-mapping';
-import { getAcademicYears } from '@/server/exam/exam-module/masters/category-class-mapping';
+import type { IAcademicYearDropDown } from '@/types/admission/preadmission/masters';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useEffect, useState } from 'react';
 import { Controller, FormProvider, useForm, useWatch } from 'react-hook-form';
@@ -43,20 +44,25 @@ export default function AddYearlyCategoryDatesMapping({ onSuccess }: { onSuccess
 
     const [academicYears, setAcademicYears] = useState<{ asmaY_Id: number; asmaY_Year: string }[]>([]);
     const [categories, setCategories] = useState<{ emcA_Id: number; emcA_CategoryName: string }[]>([]);
+    const { data: academicData, isLoading: loadingAcademic, error: academicError } = useAcademicYearDropdown();
 
     // Fetch academic years on mount
     useEffect(() => {
-        async function fetchYears() {
-            try {
-                const years = await getAcademicYears();
-                setAcademicYears(Array.isArray(years) ? years : []);
-            } catch (err: any) {
-                toast.error(err?.message ?? 'Failed to load academic years');
-            }
+        // Academic Years
+        if (academicError) {
+            toast.error(academicError.message || 'Error fetching academic years');
+            setAcademicYears([]);
+        } else if (academicData?.data && Array.isArray(academicData.data)) {
+            const formattedYears: IAcademicYearDropDown[] = academicData.data.map((item: any) => ({
+                asmaY_Id: item.asmaY_Id?.toString() ?? '',
+                asmaY_Year: item.asmaY_Year ?? '',
+                asmaY_Order: item.asmaY_Order ?? 0
+            }));
+            setAcademicYears(formattedYears);
+        } else {
+            setAcademicYears([]);
         }
-        fetchYears();
-    }, []);
-
+    }, [academicData, academicError]);
     // Watch selected Academic Year
     const selectedYearId = useWatch({
         control,
@@ -111,7 +117,10 @@ export default function AddYearlyCategoryDatesMapping({ onSuccess }: { onSuccess
                                         <Label>
                                             Academic Year <span className='text-red-500'>*</span>
                                         </Label>
-                                        <Select onValueChange={(val) => field.onChange(Number(val))}>
+                                        <Select
+                                            key={field.value || 'empty'}
+                                            onValueChange={(val) => field.onChange(Number(val))}
+                                            value={field.value?.toString() || ''}>
                                             <SelectTrigger>
                                                 <SelectValue placeholder='Select Academic Year' />
                                             </SelectTrigger>
@@ -137,6 +146,7 @@ export default function AddYearlyCategoryDatesMapping({ onSuccess }: { onSuccess
                                         fieldState={fieldState}
                                         label='Exam Start Date'
                                         placeholder='Select Exam Start Date'
+                                        fromDate={new Date()}
                                     />
                                 )}
                             />
@@ -150,6 +160,11 @@ export default function AddYearlyCategoryDatesMapping({ onSuccess }: { onSuccess
                                         fieldState={fieldState}
                                         label='Marks Entry Last Date'
                                         placeholder='Select Marks Entry Last Date'
+                                        fromDate={
+                                            methods.watch('eyC_ExamEndDate') === ''
+                                                ? new Date()
+                                                : new Date(methods.watch('eyC_ExamEndDate'))
+                                        }
                                     />
                                 )}
                             />
@@ -163,6 +178,11 @@ export default function AddYearlyCategoryDatesMapping({ onSuccess }: { onSuccess
                                         fieldState={fieldState}
                                         label='Marks Publish Date'
                                         placeholder='Select Marks Publish Date'
+                                        fromDate={
+                                            methods.watch('eyC_MarksProcessLastDate') === ''
+                                                ? new Date()
+                                                : new Date(methods.watch('eyC_MarksProcessLastDate'))
+                                        }
                                     />
                                 )}
                             />
@@ -203,6 +223,11 @@ export default function AddYearlyCategoryDatesMapping({ onSuccess }: { onSuccess
                                         fieldState={fieldState}
                                         label='Exam End Date'
                                         placeholder='Select Exam End Date'
+                                        fromDate={
+                                            methods.watch('eyC_ExamStartDate') === ''
+                                                ? new Date()
+                                                : new Date(methods.watch('eyC_ExamStartDate'))
+                                        }
                                     />
                                 )}
                             />
@@ -216,6 +241,11 @@ export default function AddYearlyCategoryDatesMapping({ onSuccess }: { onSuccess
                                         fieldState={fieldState}
                                         label='Marks Process Last Date'
                                         placeholder='Select Marks Process Last Date'
+                                        fromDate={
+                                            methods.watch('eyC_MarksEntryLastDate') === ''
+                                                ? new Date()
+                                                : new Date(methods.watch('eyC_MarksEntryLastDate'))
+                                        }
                                     />
                                 )}
                             />

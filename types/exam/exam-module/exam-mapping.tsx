@@ -238,3 +238,35 @@ export interface IExamSubjectWizard {
         exemptedPer?: string;
     }[];
 }
+
+export interface IExamSubjectOrder {
+    eyceS_Id: number;
+    eycE_Id: number;
+    ismS_Id: number;
+    ismS_SubjectName: string;
+    ismS_SubjectCode: string;
+    eyceS_SubjectOrder: number;
+}
+
+export interface IExamSubjectWizardDetails {
+    eyceS_Id: number;
+    eycE_Id: number;
+    ismS_Id: number;
+    emcA_CategoryName: string;
+    emE_ExamName: string;
+    emgR_GradeName: string;
+    ismS_SubjectName: string;
+    ismS_SubjectCode: string;
+    eyceS_MaxMarks: number;
+    eyceS_MinMarks: number;
+    eyceS_MarksEntryMax: number;
+    eyceS_SubExamFlg: boolean;
+    eyceS_SubSubjectFlg: boolean;
+    eyceS_MarksGradeEntryFlg: string;
+    eyceS_MarksDisplayFlg: boolean;
+    eyceS_GradeDisplayFlg: boolean;
+    eyceS_AplResultFlg: boolean;
+    eyceS_SubjectOrder: number;
+    eyceS_ActiveFlg: boolean;
+    pT_Count: number;
+}

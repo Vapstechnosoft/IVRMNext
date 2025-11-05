@@ -10,6 +10,7 @@ import { Plus, X } from 'lucide-react';
 import { use } from 'react';
 import AddDocumentForm from './_components/add-form';
 import { masterClassColumns } from './_components/columns';
+import DeleteMasterDocumentForm from './_components/delete-form';
 import ToggleMasterDocumentForm from './_components/toggle-form';
 import UpdateMasterDocumentForm from './_components/update-form';
 
@@ -86,10 +87,12 @@ function FormSections() {
         isAddFormOpen,
         isEditFormOpen,
         isToggleFormOpen,
+        isDeleteFormOpen,
         selectedRow,
         closeAddForm,
         closeEditForm,
         closeToggleForm,
+        closeDeleteForm,
         addFormRef,
         editFormRef
     } = useFormContext<IMasterDocumentList>();
@@ -147,6 +150,9 @@ function FormSections() {
 
             {/* Toggle Form */}
             {isToggleFormOpen && selectedRow && <ToggleMasterDocumentForm rowData={selectedRow} onClose={closeToggleForm} />}
+
+            {/* Delete Form */}
+            {isDeleteFormOpen && selectedRow && <DeleteMasterDocumentForm rowData={selectedRow} onClose={closeDeleteForm} />}
         </>
     );
 }

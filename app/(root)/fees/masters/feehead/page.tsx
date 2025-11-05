@@ -1,6 +1,4 @@
 'use client';
-
-import { Heading } from '@/components/layout/heading';
 import { Button } from '@/components/ui/button';
 import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/generic-data-table';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
@@ -44,9 +42,7 @@ function MasterFeeheadPageContent({
             <div className='container space-y-4 p-1'>
                 {/* Header */}
                 <div className='flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between'>
-                    <div className='space-y-1'>
-                        <Heading title='Fees Heads' description='' />
-                    </div>
+                    <div className='space-y-1'>{/* <Heading title='Fee Head' description='' /> */}</div>
                     <Button
                         type='button'
                         onClick={openAddForm}
@@ -122,7 +118,7 @@ function FormSections() {
             {isEditFormOpen && selectedRow && (
                 <div ref={editFormRef}>
                     <CollapsibleSection
-                        title='Edit Master Fees Head'
+                        title='Edit Master Fee Head'
                         defaultOpen={true}
                         variant='outline'
                         size='md'
