@@ -96,6 +96,12 @@ export const DataTable = forwardRef<DataTableRef, DataTableProps<any, any>>(func
         const pagination = typeof updaterOrValue === 'function' ? updaterOrValue(paginationState) : updaterOrValue;
         setCurrentPage(pagination.pageIndex + 1);
         setPageSize(pagination.pageSize);
+
+        setRowSelection({});
+        rowSelectionRef.current = {};
+        if (typeof onRowSelectionChange === 'function') {
+            onRowSelectionChange([]);
+        }
     };
 
     const table = useReactTable({
