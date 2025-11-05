@@ -4,20 +4,18 @@ import { Button } from '@/components/ui/button';
 import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/generic-data-table';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
-import { useRegistration } from '@/hooks/admission/preadmission/useConfigurations';
-import type { IMasterRegistrationList } from '@/types/admission/preadmission/configaration';
+import { useRegistrationNumbering } from '@/hooks/admission/preadmission/useConfigurations';
+import type { IMasterTransactionNumberingList } from '@/types/admission/preadmission/configaration';
 import { Plus, X } from 'lucide-react';
 import AddRegistrationNumberingForm from './_components/add-form';
-import { masterRegistrationColumns } from './_components/columns';
+import { registrationNumberingColumns } from './_components/columns';
 import UpdateRegistrationNumberingForm from './_components/update-form';
 
 export default function RegistrationNumberingPage() {
-    const { data: response, isLoading, error } = useRegistration();
-
-    console.log('response', response);
+    const { data: response, isLoading, error } = useRegistrationNumbering();
 
     return (
-        <FormProvider<IMasterRegistrationList>>
+        <FormProvider<IMasterTransactionNumberingList>>
             <RegistrationNumberingPageContent response={response} isLoading={isLoading} error={error} />
         </FormProvider>
     );
@@ -32,7 +30,7 @@ function RegistrationNumberingPageContent({
     isLoading: boolean;
     error: any;
 }) {
-    const { openAddForm } = useFormContext<IMasterRegistrationList>();
+    const { openAddForm } = useFormContext<IMasterTransactionNumberingList>();
     const tableProps = useDataTableProps(response);
 
     return (
@@ -57,9 +55,9 @@ function RegistrationNumberingPageContent({
                     variant='default'
                     size='lg'
                     className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
-                    <GenericDataTable<IMasterRegistrationList>
+                    <GenericDataTable<IMasterTransactionNumberingList>
                         {...tableProps}
-                        columns={masterRegistrationColumns}
+                        columns={registrationNumberingColumns}
                         isLoading={isLoading}
                         error={error}
                         isSearchRequired={false}
@@ -82,7 +80,7 @@ function RegistrationNumberingPageContent({
 
 function FormSections() {
     const { isAddFormOpen, isEditFormOpen, selectedRow, closeAddForm, closeEditForm, addFormRef, editFormRef } =
-        useFormContext<IMasterRegistrationList>();
+        useFormContext<IMasterTransactionNumberingList>();
 
     return (
         <>

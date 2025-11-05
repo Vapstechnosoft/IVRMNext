@@ -993,8 +993,9 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
                                                     control={control}
                                                     render={({ field }) => (
                                                         <Select
+                                                            key={field.value || 'empty'}
                                                             onValueChange={(value) => field.onChange(Number(value))}
-                                                            value={field.value?.toString() || undefined}>
+                                                            value={field.value?.toString() || ''}>
                                                             <SelectTrigger>
                                                                 <SelectValue placeholder='Select religion' />
                                                             </SelectTrigger>
@@ -1029,8 +1030,9 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
                                                     control={control}
                                                     render={({ field }) => (
                                                         <Select
+                                                            key={field.value || 'empty'}
                                                             onValueChange={(value) => field.onChange(Number(value))}
-                                                            value={field.value?.toString() || undefined}
+                                                            value={field.value?.toString() || ''}
                                                             disabled={!watch('religion_Id')}>
                                                             <SelectTrigger>
                                                                 <SelectValue placeholder='Select caste' />
@@ -1066,8 +1068,9 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
                                                     control={control}
                                                     render={({ field }) => (
                                                         <Select
+                                                            key={field.value || 'empty'}
                                                             onValueChange={(value) => field.onChange(value)}
-                                                            value={field.value?.toString() || undefined}>
+                                                            value={field.value?.toString() || ''}>
                                                             <SelectTrigger>
                                                                 <SelectValue placeholder='Select gender' />
                                                             </SelectTrigger>
@@ -1102,11 +1105,12 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
                                                     control={control}
                                                     render={({ field }) => (
                                                         <Select
+                                                            key={field.value || 'empty'}
                                                             onValueChange={(value) => {
                                                                 field.onChange(Number(value));
                                                                 validateAgeEligibility(calculatedAgeDetails, Number(value));
                                                             }}
-                                                            value={field.value?.toString() || undefined}>
+                                                            value={field.value?.toString() || ''}>
                                                             <SelectTrigger>
                                                                 <SelectValue placeholder='Select class' />
                                                             </SelectTrigger>
@@ -1157,8 +1161,9 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
                                                     control={control}
                                                     render={({ field }) => (
                                                         <Select
+                                                            key={field.value || 'empty'}
                                                             onValueChange={(value) => field.onChange(value)}
-                                                            value={field.value?.toString() || undefined}>
+                                                            value={field.value?.toString() || ''}>
                                                             <SelectTrigger>
                                                                 <SelectValue placeholder='Select nationality' />
                                                             </SelectTrigger>
@@ -1292,8 +1297,9 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
                                                     control={control}
                                                     render={({ field }) => (
                                                         <Select
+                                                            key={field.value || 'empty'}
                                                             onValueChange={(value) => field.onChange(Number(value))}
-                                                            value={field.value?.toString() || undefined}>
+                                                            value={field.value?.toString() || ''}>
                                                             <SelectTrigger>
                                                                 <SelectValue placeholder='Select option' />
                                                             </SelectTrigger>
@@ -1347,8 +1353,9 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
                                                             control={control}
                                                             render={({ field }) => (
                                                                 <Select
+                                                                    key={field.value || 'empty'}
                                                                     onValueChange={(value) => field.onChange(value)}
-                                                                    value={field.value?.toString() || undefined}>
+                                                                    value={field.value?.toString() || ''}>
                                                                     <SelectTrigger>
                                                                         <SelectValue placeholder='Select country' />
                                                                     </SelectTrigger>
@@ -1383,8 +1390,9 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
                                                             control={control}
                                                             render={({ field }) => (
                                                                 <Select
+                                                                    key={field.value || 'empty'}
                                                                     onValueChange={(value) => field.onChange(Number(value))}
-                                                                    value={field.value?.toString() || undefined}>
+                                                                    value={field.value?.toString() || ''}>
                                                                     <SelectTrigger>
                                                                         <SelectValue placeholder='Select state' />
                                                                     </SelectTrigger>
@@ -1477,8 +1485,9 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
                                                             control={control}
                                                             render={({ field }) => (
                                                                 <Select
+                                                                    key={field.value || 'empty'}
                                                                     onValueChange={(value) => field.onChange(value)}
-                                                                    value={field.value?.toString() || undefined}
+                                                                    value={field.value?.toString() || ''}
                                                                     disabled={sameAsResidential}>
                                                                     <SelectTrigger>
                                                                         <SelectValue placeholder='Select country' />
@@ -1514,8 +1523,9 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
                                                             control={control}
                                                             render={({ field }) => (
                                                                 <Select
+                                                                    key={field.value || 'empty'}
                                                                     onValueChange={(value) => field.onChange(Number(value))}
-                                                                    value={field.value?.toString() || undefined}
+                                                                    value={field.value?.toString() || ''}
                                                                     disabled={sameAsResidential}>
                                                                     <SelectTrigger>
                                                                         <SelectValue placeholder='Select state' />
@@ -1633,8 +1643,9 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
                                                             control={control}
                                                             render={({ field }) => (
                                                                 <Select
+                                                                    key={field.value || 'empty'}
                                                                     onValueChange={(value) => field.onChange(Number(value))}
-                                                                    value={field.value?.toString() || undefined}>
+                                                                    value={field.value?.toString() || ''}>
                                                                     <SelectTrigger>
                                                                         <SelectValue placeholder='Select nationality' />
                                                                     </SelectTrigger>
@@ -1759,8 +1770,9 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
                                                             control={control}
                                                             render={({ field }) => (
                                                                 <Select
+                                                                    key={field.value || 'empty'}
                                                                     onValueChange={(value) => field.onChange(Number(value))}
-                                                                    value={field.value?.toString() || undefined}>
+                                                                    value={field.value?.toString() || ''}>
                                                                     <SelectTrigger>
                                                                         <SelectValue placeholder='Select nationality' />
                                                                     </SelectTrigger>

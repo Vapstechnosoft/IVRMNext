@@ -218,7 +218,10 @@ export default function AddMasterConfiguration({ onSuccess, className = '' }: Ad
                                 name='asmaY_Id'
                                 control={control}
                                 render={({ field }) => (
-                                    <Select onValueChange={(v) => field.onChange(Number(v))} value={field.value?.toString()}>
+                                    <Select
+                                        key={field.value || 'empty'}
+                                        onValueChange={(v) => field.onChange(Number(v))}
+                                        value={field.value?.toString() || ''}>
                                         <SelectTrigger className='w-full'>
                                             <SelectValue placeholder='Select Academic Year' />
                                         </SelectTrigger>
@@ -250,7 +253,10 @@ export default function AddMasterConfiguration({ onSuccess, className = '' }: Ad
                                 name='amC_Id'
                                 control={control}
                                 render={({ field }) => (
-                                    <Select onValueChange={(v) => field.onChange(Number(v))} value={field.value?.toString()}>
+                                    <Select
+                                        key={field.value || 'empty'}
+                                        onValueChange={(v) => field.onChange(Number(v))}
+                                        value={field.value?.toString() || ''}>
                                         <SelectTrigger className='w-full'>
                                             <SelectValue placeholder='Select Category' />
                                         </SelectTrigger>
