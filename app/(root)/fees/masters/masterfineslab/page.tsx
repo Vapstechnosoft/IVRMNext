@@ -1,6 +1,4 @@
 'use client';
-
-import { Heading } from '@/components/layout/heading';
 import { Button } from '@/components/ui/button';
 import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/generic-data-table';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
@@ -43,15 +41,13 @@ function MasterFineSlabPageContent({
         <div className='min-h-screen'>
             <div className='container space-y-4 p-1'>
                 <div className='flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between'>
-                    <div className='space-y-1'>
-                        <Heading title='Fees Fine Slab' description='' />
-                    </div>
+                    <div className='space-y-1'>{/* <Heading title='Fees Fine Slab' description='' /> */}</div>
                     <Button
                         type='button'
                         onClick={openAddForm}
                         className='w-fit shadow-md transition-all duration-200 hover:scale-105 hover:shadow-lg'>
                         <Plus className='h-4 w-4' />
-                        Add Fee Fine Slab
+                        Add Master Fine Slab
                     </Button>
                 </div>
 

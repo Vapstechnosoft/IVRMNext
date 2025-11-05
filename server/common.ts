@@ -404,8 +404,8 @@ export async function getUserAccessibleModules() {
                                             name: 'Fee Amount Entry',
                                             icon: 'Settings',
                                             url: '/fees/transactions/feeamountentry',
-                                            title: 'amount Entry',
-                                            description: 'amount Entry'
+                                            title: 'Fee Amount Entry',
+                                            description: 'Manage Fee Amount Entry Details'
                                         },
                                         {
                                             id: 27,

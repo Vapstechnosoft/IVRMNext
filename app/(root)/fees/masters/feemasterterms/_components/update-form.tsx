@@ -84,7 +84,7 @@ export default function UpdateFeeTermForm({ onSuccess, fineslab = '', selectedRo
                 <div className='flex flex-col items-center space-y-4'>
                     <div className='flex w-full max-w-lg items-center space-x-2'>
                         <InputText
-                            label='Fee Terms'
+                            label='Term Name'
                             required
                             id='fmT_Name'
                             {...register('fmT_Name')}
@@ -106,7 +106,7 @@ export default function UpdateFeeTermForm({ onSuccess, fineslab = '', selectedRo
                                     }}
                                     id='fmT_IncludeArrearFeeFlg'
                                 />
-                                <Label htmlFor='fmT_IncludeArrearFeeFlg'>Include Arrear Fee</Label>
+                                <Label htmlFor='fmT_IncludeArrearFeeFlg'>Arrear Flag</Label>
                             </div>
                         )}
                     />

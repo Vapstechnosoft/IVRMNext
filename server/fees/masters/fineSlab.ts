@@ -5,7 +5,7 @@ import type { ApiSearchparams } from '@/types';
 import type { IFineSlabList } from '@/types/fees/masters/masters';
 
 export async function getFineSlab(searchParams?: ApiSearchparams) {
-    const urlParams = getSearchParamsUrl(searchParams ?? {});
+    const urlParams = getSearchParamsUrl(searchParams ?? {}, 'fs_FineSlabName,fs_FineType,fs_FromDay,fs_ToDay,fs_Amount');
     const url = `/FeeFineSlab/MasterFineSlabList/30?${urlParams}`;
     return await api.get<IFineSlabList[]>('fees', url);
 }
