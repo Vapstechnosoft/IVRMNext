@@ -16,7 +16,7 @@ interface ProfessionalTaxFormProps {
 
 export default function ProfessionalTaxForm({ selectedRow, onSuccess }: ProfessionalTaxFormProps) {
     const roleId = HRMS_MI_ID;
-    const { saveMutation } = useMasterProfessionalTax(roleId);
+    const { saveMutation, refetchAll } = useMasterProfessionalTax(roleId);
     const isEditMode = !!selectedRow;
 
     const {
@@ -36,6 +36,7 @@ export default function ProfessionalTaxForm({ selectedRow, onSuccess }: Professi
 
     useEffect(() => {
         if (selectedRow) {
+            console.log('📝 [PROFESSIONAL TAX FORM] Edit mode - Loading selectedRow:', JSON.stringify(selectedRow, null, 2));
             reset({
                 HRMPT_Id: selectedRow.HRMPT_Id,
                 MI_Id: selectedRow.MI_Id,
@@ -44,19 +45,67 @@ export default function ProfessionalTaxForm({ selectedRow, onSuccess }: Professi
                 HRMPT_PTax: selectedRow.HRMPT_PTax,
                 HRMPT_ActiveFlag: selectedRow.HRMPT_ActiveFlag
             });
+            console.log('📝 [PROFESSIONAL TAX FORM] Form reset with edit data');
+        } else {
+            console.log('📝 [PROFESSIONAL TAX FORM] Add mode - No selectedRow');
         }
     }, [selectedRow, reset]);
 
     const onSubmit = async (data: MasterProfessionalTaxInput) => {
+        console.log('🔵 ========== PROFESSIONAL TAX FORM SUBMIT ==========');
+        console.log('🔵 Form Data:', JSON.stringify(data, null, 2));
+        console.log('🔵 Is Edit Mode:', isEditMode);
+        console.log('🔵 HRMPT_Id in data:', data.HRMPT_Id);
+        console.log('🔵 Role ID:', roleId);
+        console.log('🔵 Form Errors:', errors);
+        
         try {
+            console.log('🟡 Calling saveMutation.mutateAsync...');
             const res = await saveMutation.mutateAsync(data);
+            
+            console.log('🟢 ========== API RESPONSE ==========');
+            console.log('🟢 Response:', JSON.stringify(res, null, 2));
+            console.log('🟢 Response success:', res?.success);
+            console.log('🟢 Response message:', res?.message);
+            console.log('🟢 ====================================');
+            
             if (res?.success) {
-                toast.success(isEditMode ? 'Professional tax updated successfully' : 'Professional tax added successfully');
-                if (onSuccess) onSuccess();
+                console.log('✅ Success! Showing toast:', res?.message);
+                const successMsg = res?.message || (isEditMode ? 'Professional tax updated successfully' : 'Professional tax added successfully');
+                toast.success(successMsg);
+                
+                if (!isEditMode) {
+                    console.log('✅ Resetting form (add mode)');
+                    reset();
+                }
+                
+                console.log('✅ Calling refetchAll');
+                refetchAll();
+                
+                if (onSuccess) {
+                    console.log('✅ Calling onSuccess callback');
+                    onSuccess();
+                } else {
+                    console.log('⚠️ No onSuccess callback provided');
+                }
+            } else {
+                console.log('❌ API returned success=false. Message:', res?.message);
+                const errorMsg = res?.message || (isEditMode ? 'Failed to update professional tax' : 'Failed to add professional tax');
+                toast.error(errorMsg);
             }
-        } catch (_error) {
-            toast.error(isEditMode ? 'Failed to update professional tax' : 'Failed to add professional tax');
+        } catch (error: any) {
+            console.log('🔴 ========== ERROR ==========');
+            console.error('🔴 Error caught in form onSubmit:', error);
+            console.error('🔴 Error message:', error?.message);
+            console.error('🔴 Error response:', error?.response);
+            console.error('🔴 Error response data:', error?.response?.data);
+            console.log('🔴 ============================');
+            
+            const errorMsg = error?.message || (isEditMode ? 'Failed to update professional tax' : 'Failed to add professional tax');
+            toast.error(errorMsg);
         }
+        
+        console.log('🔵 ========== FORM SUBMIT END ==========');
     };
 
     return (

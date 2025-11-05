@@ -7,8 +7,10 @@ import { FormProvider, useFormContext } from '@/components/ui/form/form-provider
 import { HRMS_MI_ID } from '@/constants/hrms-config';
 import { useMasterDesignation } from '@/hooks/hrms/useMasters';
 import type { DesignationDetail } from '@/types/hrms/master-designation';
-import { Plus, X } from 'lucide-react';
-import { columns } from '../../designation/_components/columns';
+import { ListOrdered, Plus, Save, X } from 'lucide-react';
+import { useState } from 'react';
+import { toast } from 'sonner';
+import { columns, getEditableColumns } from '../../designation/_components/columns';
 import DesignationForm from '../../designation/_components/designation-form';
 
 export default function DesignationTab() {
@@ -32,7 +34,40 @@ function DesignationTabContent({
     error: any;
 }) {
     const { openAddForm } = useFormContext<DesignationDetail>();
+    const { saveOrderMutation } = useMasterDesignation(HRMS_MI_ID);
     const rows: DesignationDetail[] = response?.designationlList ?? [];
+
+    const [isEditOrderMode, setIsEditOrderMode] = useState(false);
+    const [editedRows, setEditedRows] = useState<DesignationDetail[]>([]);
+
+    const handleSetOrder = () => {
+        setIsEditOrderMode(true);
+        setEditedRows([...rows]);
+    };
+
+    const handleCancelOrder = () => {
+        setIsEditOrderMode(false);
+        setEditedRows([]);
+    };
+
+    const handleSaveOrder = async () => {
+        console.log('🔵 [ORDER] Saving designation orders:', editedRows.length);
+        try {
+            await saveOrderMutation.mutateAsync(editedRows);
+            toast.success('Order saved successfully');
+            setIsEditOrderMode(false);
+            setEditedRows([]);
+        } catch (_error) {
+            toast.error('Failed to save order');
+        }
+    };
+
+    const handleOrderChange = (rowId: number, newOrder: number) => {
+        setEditedRows((prev) => prev.map((row) => (row.HRMDES_Id === rowId ? { ...row, HRMDES_Order: newOrder } : row)));
+    };
+
+    const displayColumns = isEditOrderMode ? getEditableColumns(handleOrderChange) : columns;
+    const displayData = isEditOrderMode ? editedRows : rows;
 
     return (
         <div className='space-y-4'>
@@ -41,13 +76,46 @@ function DesignationTabContent({
                     <h3 className='font-semibold text-lg'>Designation Data</h3>
                     <p className='text-muted-foreground text-sm'>View, search, and manage all designations in the system</p>
                 </div>
-                <Button
-                    type='button'
-                    onClick={openAddForm}
-                    className='shadow-md transition-all duration-200 hover:scale-105 hover:shadow-lg'>
-                    <Plus className='h-4 w-4' />
-                    Add Designation
-                </Button>
+                <div className='flex gap-2'>
+                    {isEditOrderMode ? (
+                        <>
+                            <Button
+                                type='button'
+                                onClick={handleCancelOrder}
+                                variant='outline'
+                                className='w-fit shadow-md transition-all duration-200 hover:scale-105 hover:shadow-lg'>
+                                <X className='h-4 w-4' />
+                                Cancel
+                            </Button>
+                            <Button
+                                type='button'
+                                onClick={handleSaveOrder}
+                                disabled={saveOrderMutation.isPending}
+                                className='w-fit shadow-md transition-all duration-200 hover:scale-105 hover:shadow-lg'>
+                                <Save className='h-4 w-4' />
+                                {saveOrderMutation.isPending ? 'Saving...' : 'Save Order'}
+                            </Button>
+                        </>
+                    ) : (
+                        <>
+                            <Button
+                                type='button'
+                                onClick={handleSetOrder}
+                                variant='outline'
+                                className='w-fit shadow-md transition-all duration-200 hover:scale-105 hover:shadow-lg'>
+                                <ListOrdered className='h-4 w-4' />
+                                Set Order
+                            </Button>
+                            <Button
+                                type='button'
+                                onClick={openAddForm}
+                                className='w-fit shadow-md transition-all duration-200 hover:scale-105 hover:shadow-lg'>
+                                <Plus className='h-4 w-4' />
+                                Add Designation
+                            </Button>
+                        </>
+                    )}
+                </div>
             </div>
 
             <CollapsibleSection
@@ -56,9 +124,9 @@ function DesignationTabContent({
                 size='lg'
                 className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
                 <GenericDataTable<DesignationDetail>
-                    data={rows}
-                    totalItems={rows.length}
-                    columns={columns}
+                    data={displayData}
+                    totalItems={displayData.length}
+                    columns={displayColumns}
                     isLoading={isLoading}
                     error={error}
                     columnPinning={{ right: ['actions'] }}

@@ -2,8 +2,8 @@
 
 import { Button } from '@/components/ui/button';
 import { FormError } from '@/components/ui/extension/field';
+import { InputNumber } from '@/components/ui/extension/input-number';
 import { InputText } from '@/components/ui/extension/input-text';
-import { Input } from '@/components/ui/input';
 import { HRMS_MI_ID } from '@/constants/hrms-config';
 import { useMasterGrade } from '@/hooks/hrms/useMasters';
 import { gradeSchema } from '@/schemas/hrms/employee-category-schemas';
@@ -11,7 +11,7 @@ import type { GradeDetail } from '@/types/hrms/master-grade';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Save } from 'lucide-react';
 import { useEffect } from 'react';
-import { type SubmitHandler, useForm } from 'react-hook-form';
+import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import type { z } from 'zod';
 
@@ -32,11 +32,14 @@ export default function GradeForm({ selectedRow, onSuccess, className = '' }: Gr
         register,
         handleSubmit,
         reset,
-        formState: { errors, isSubmitting }
+        control,
+        watch,
+        formState: { errors, isSubmitting, isDirty }
     } = useForm<FormFields>({
         resolver: zodResolver(gradeSchema.addOrUpdate),
         mode: 'onChange',
         defaultValues: {
+            HRMG_Id: 0,
             MI_Id: roleId,
             HRMG_GradeName: '',
             HRMG_GradeDisplayName: '',
@@ -47,9 +50,17 @@ export default function GradeForm({ selectedRow, onSuccess, className = '' }: Gr
             HRMG_ActiveFlag: true
         }
     });
+    
+    // Debug form state
+    const formValues = watch();
+    console.log('📝 [GRADE FORM] Current form values:', formValues);
+    console.log('📝 [GRADE FORM] Form errors:', errors);
+    console.log('📝 [GRADE FORM] isDirty:', isDirty);
+    console.log('📝 [GRADE FORM] isSubmitting:', isSubmitting);
 
     useEffect(() => {
         if (selectedRow) {
+            console.log('📝 [GRADE FORM] Edit mode - Loading selectedRow:', JSON.stringify(selectedRow, null, 2));
             reset({
                 HRMG_Id: selectedRow.HRMG_Id,
                 MI_Id: selectedRow.MI_Id,
@@ -61,12 +72,31 @@ export default function GradeForm({ selectedRow, onSuccess, className = '' }: Gr
                 HRMG_Order: selectedRow.HRMG_Order,
                 HRMG_ActiveFlag: selectedRow.HRMG_ActiveFlag
             });
+            console.log('📝 [GRADE FORM] Form reset with edit data');
+        } else {
+            console.log('📝 [GRADE FORM] Add mode - No selectedRow');
         }
     }, [selectedRow, reset]);
 
+    const handleFormSubmit = (e?: React.FormEvent) => {
+        console.log('🔵 [GRADE FORM] handleFormSubmit triggered!', e?.type);
+        console.log('🔵 [GRADE FORM] Current form errors:', errors);
+        console.log('🔵 [GRADE FORM] HRMG_Id error details:', errors.HRMG_Id);
+        console.log('🔵 [GRADE FORM] HRMG_Id error message:', errors.HRMG_Id?.message);
+        console.log('🔵 [GRADE FORM] HRMG_Id error type:', errors.HRMG_Id?.type);
+        console.log('🔵 [GRADE FORM] Current form values:', watch());
+        console.log('🔵 [GRADE FORM] HRMG_Id value:', watch('HRMG_Id'));
+    };
+
     const onSubmit: SubmitHandler<FormFields> = async (data) => {
+        console.log('🔵 ========== GRADE FORM SUBMIT ==========');
+        console.log('🔵 [FORM] onSubmit handler CALLED! This means validation passed!');
+        console.log('🔵 [FORM] Grade submit - Data:', JSON.stringify(data, null, 2));
+        console.log('🔵 [FORM] Is Edit Mode:', isEditMode);
+        
         try {
             const response = await saveMutation.mutateAsync(data);
+            console.log('🟢 [FORM] Grade response:', JSON.stringify(response, null, 2));
 
             if (response?.success) {
                 toast.success(response.message || (isEditMode ? 'Grade updated successfully' : 'Grade saved successfully'));
@@ -74,11 +104,15 @@ export default function GradeForm({ selectedRow, onSuccess, className = '' }: Gr
                 refetchAll();
                 onSuccess?.();
             } else {
+                console.log('❌ [FORM] Grade failed:', response?.message);
                 toast.error(response?.message || (isEditMode ? 'Failed to update grade' : 'Failed to save grade'));
             }
         } catch (error: any) {
+            console.log('🔴 [FORM] Grade error:', error);
             toast.error(error.message || 'An error occurred');
         }
+        
+        console.log('🔵 ========== GRADE FORM SUBMIT END ==========');
     };
 
     const handleReset = () => {
@@ -87,7 +121,14 @@ export default function GradeForm({ selectedRow, onSuccess, className = '' }: Gr
 
     return (
         <div className={className}>
-            <form onSubmit={handleSubmit(onSubmit)} className='space-y-6'>
+            <form 
+                onSubmit={(e) => {
+                    handleFormSubmit(e);
+                    handleSubmit(onSubmit)(e);
+                }} 
+                className='space-y-6'>
+                <input type='hidden' {...register('HRMG_Id')} />
+                <input type='hidden' {...register('MI_Id')} />
                 <div className='space-y-4'>
                     <div className='grid grid-cols-1 gap-4 md:grid-cols-3'>
                         <InputText
@@ -108,29 +149,61 @@ export default function GradeForm({ selectedRow, onSuccess, className = '' }: Gr
                             error={errors.HRMG_GradeDisplayName?.message}
                             className='transition-colors focus:ring-2 focus:ring-primary/20'
                         />
-                        <Input
-                            type='number'
-                            id='HRMG_PayScaleFrom'
-                            {...register('HRMG_PayScaleFrom', { valueAsNumber: true })}
-                            className='transition-colors focus:ring-2 focus:ring-primary/20'
+                        <Controller
+                            name='HRMG_PayScaleFrom'
+                            control={control}
+                            render={({ field }) => (
+                                <InputNumber
+                                    label='Pay Scale From'
+                                    id='HRMG_PayScaleFrom'
+                                    value={field.value}
+                                    onChange={field.onChange}
+                                    error={errors.HRMG_PayScaleFrom?.message}
+                                    className='transition-colors focus:ring-2 focus:ring-primary/20'
+                                />
+                            )}
                         />
-                        <Input
-                            type='number'
-                            id='HRMG_IncrementOf'
-                            {...register('HRMG_IncrementOf', { valueAsNumber: true })}
-                            className='transition-colors focus:ring-2 focus:ring-primary/20'
+                        <Controller
+                            name='HRMG_IncrementOf'
+                            control={control}
+                            render={({ field }) => (
+                                <InputNumber
+                                    label='Increment Of'
+                                    id='HRMG_IncrementOf'
+                                    value={field.value}
+                                    onChange={field.onChange}
+                                    error={errors.HRMG_IncrementOf?.message}
+                                    className='transition-colors focus:ring-2 focus:ring-primary/20'
+                                />
+                            )}
                         />
-                        <Input
-                            type='number'
-                            id='HRMG_PayScaleTo'
-                            {...register('HRMG_PayScaleTo', { valueAsNumber: true })}
-                            className='transition-colors focus:ring-2 focus:ring-primary/20'
+                        <Controller
+                            name='HRMG_PayScaleTo'
+                            control={control}
+                            render={({ field }) => (
+                                <InputNumber
+                                    label='Pay Scale To'
+                                    id='HRMG_PayScaleTo'
+                                    value={field.value}
+                                    onChange={field.onChange}
+                                    error={errors.HRMG_PayScaleTo?.message}
+                                    className='transition-colors focus:ring-2 focus:ring-primary/20'
+                                />
+                            )}
                         />
-                        <Input
-                            type='number'
-                            id='HRMG_Order'
-                            {...register('HRMG_Order', { valueAsNumber: true })}
-                            className='transition-colors focus:ring-2 focus:ring-primary/20'
+                        <Controller
+                            name='HRMG_Order'
+                            control={control}
+                            render={({ field }) => (
+                                <InputNumber
+                                    label='Order'
+                                    id='HRMG_Order'
+                                    value={field.value}
+                                    onChange={field.onChange}
+                                    error={errors.HRMG_Order?.message}
+                                    className='transition-colors focus:ring-2 focus:ring-primary/20'
+                                />
+                            )}
                         />
                     </div>
 
@@ -148,7 +221,14 @@ export default function GradeForm({ selectedRow, onSuccess, className = '' }: Gr
                     </Button>
                     <Button
                         type='submit'
-                        disabled={isSubmitting}
+                        disabled={isSubmitting || (isEditMode && !isDirty)}
+                        onClick={() => {
+                            console.log('🔵 [GRADE FORM] Save button clicked!');
+                            console.log('🔵 [GRADE FORM] Button disabled:', isSubmitting || (isEditMode && !isDirty));
+                            console.log('🔵 [GRADE FORM] isSubmitting:', isSubmitting);
+                            console.log('🔵 [GRADE FORM] isEditMode:', isEditMode);
+                            console.log('🔵 [GRADE FORM] isDirty:', isDirty);
+                        }}
                         className='order-1 w-fit transition-all duration-200 hover:scale-105 sm:order-2'
                         isLoading={isSubmitting}
                         loadingText={isEditMode ? 'Updating...' : 'Saving...'}>

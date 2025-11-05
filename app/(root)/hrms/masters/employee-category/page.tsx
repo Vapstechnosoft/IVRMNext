@@ -62,14 +62,6 @@ export default function EmployeeCategoryManagementPage() {
     return (
         <div className='min-h-screen bg-gradient-to-br from-background via-background to-muted/20'>
             <div className='container space-y-6 p-6'>
-                {/* Header Section */}
-                <div className='space-y-2'>
-                    <h1 className='bg-gradient-to-r from-primary to-primary/60 bg-clip-text font-bold text-3xl text-transparent tracking-tight'>
-                        Employee Category Management
-                    </h1>
-                    <p className='text-muted-foreground'>Manage different types of employee categories and classifications</p>
-                </div>
-
                 {/* Tab Navigation */}
                 <div className='rounded-t-lg border-border/40 border-b bg-card/50 backdrop-blur-sm'>
                     <div className='flex space-x-1 overflow-x-auto p-2'>

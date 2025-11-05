@@ -75,10 +75,19 @@ export interface SaveDepartmentRequest {
     HRMD_DepartmentName: string;
     HRMD_Order: number;
     HRMD_ActiveFlag: boolean;
-    departmentList: string[];
+    departmentList: Array<{
+        CreatedDate: string;
+        UpdatedDate: string;
+        HRMD_Id: number;
+        MI_Id: number;
+        HRMD_DepartmentName: string;
+        HRMD_Order: number;
+        HRMD_ActiveFlag: boolean;
+        HRMD_InternalTrainingMinimumHrs: number;
+    }>;
     retrunMsg: string;
     HRMDC_ID: number;
     roleId: number;
     HRMD_InternalTrainingMinimumHrs: number;
-    DeraptmentDTO: string[];
+    DeraptmentDTO: any[];
 }

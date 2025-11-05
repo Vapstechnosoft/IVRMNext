@@ -12,6 +12,13 @@ import { toast } from 'sonner';
 
 export const columns: ColumnDef<ProfessionalTaxDetail>[] = [
     {
+        id: 'slNo',
+        header: () => <div className='text-center font-medium'>Sl No</div>,
+        cell: ({ row }) => <div className='text-center'>{row.index + 1}</div>,
+        enableSorting: false,
+        size: 60
+    },
+    {
         accessorKey: 'HRMPT_SalaryFrom',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Salary From' />
     },

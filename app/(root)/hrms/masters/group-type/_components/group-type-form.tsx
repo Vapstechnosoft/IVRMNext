@@ -2,8 +2,8 @@
 
 import { Button } from '@/components/ui/button';
 import { FormError } from '@/components/ui/extension/field';
+import { InputNumber } from '@/components/ui/extension/input-number';
 import { InputText } from '@/components/ui/extension/input-text';
-import { Input } from '@/components/ui/input';
 import { HRMS_MI_ID } from '@/constants/hrms-config';
 import { useMasterGroupType } from '@/hooks/hrms/useMasters';
 import { groupTypeSchema } from '@/schemas/hrms/employee-category-schemas';
@@ -11,7 +11,7 @@ import type { GroupTypeDetail } from '@/types/hrms/master-group-type';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Save } from 'lucide-react';
 import { useEffect } from 'react';
-import { type SubmitHandler, useForm } from 'react-hook-form';
+import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import type { z } from 'zod';
 
@@ -30,7 +30,7 @@ export default function GroupTypeForm({ selectedRow, onSuccess, className = '' }
 
     const {
         register,
-        // control,
+        control,
         handleSubmit,
         reset,
         formState: { errors, isSubmitting }
@@ -48,6 +48,8 @@ export default function GroupTypeForm({ selectedRow, onSuccess, className = '' }
 
     useEffect(() => {
         if (selectedRow) {
+            console.log('📝 [GROUP TYPE FORM] Edit mode - Loading selectedRow:', JSON.stringify(selectedRow, null, 2));
+            console.log('📝 [GROUP TYPE FORM] Order value from selectedRow:', selectedRow.HRMGT_Order);
             reset({
                 HRMGT_Id: selectedRow.HRMGT_Id,
                 MI_Id: selectedRow.MI_Id,
@@ -56,22 +58,43 @@ export default function GroupTypeForm({ selectedRow, onSuccess, className = '' }
                 HRMGT_Order: selectedRow.HRMGT_Order,
                 HRMGT_ActiveFlag: selectedRow.HRMGT_ActiveFlag
             });
+            console.log('📝 [GROUP TYPE FORM] Form reset with edit data, order:', selectedRow.HRMGT_Order);
+        } else {
+            console.log('📝 [GROUP TYPE FORM] Add mode - No selectedRow');
         }
     }, [selectedRow, reset]);
 
     const onSubmit: SubmitHandler<FormFields> = async (data) => {
+        console.log('🔵 [FORM] Group Type submit - Data:', data);
+        console.log('🔵 [FORM] Order value in data:', data.HRMGT_Order);
         try {
             const response = await saveMutation.mutateAsync(data);
+            console.log('🟢 [FORM] Group Type response:', response);
 
             if (response?.success) {
                 toast.success(response.message || (isEditMode ? 'Group type updated successfully' : 'Group type saved successfully'));
-                if (!isEditMode) reset();
+                if (!isEditMode) {
+                    console.log('✅ [FORM] Resetting form (add mode)');
+                    reset();
+                }
+                
+                console.log('✅ [FORM] Calling refetchAll...');
                 refetchAll();
-                onSuccess?.();
+                
+                // Small delay to ensure refetch completes before closing form
+                if (onSuccess) {
+                    console.log('✅ [FORM] Waiting for refetch, then calling onSuccess...');
+                    setTimeout(() => {
+                        console.log('✅ [FORM] Calling onSuccess callback');
+                        onSuccess();
+                    }, 300);
+                }
             } else {
+                console.log('❌ [FORM] Group Type failed:', response?.message);
                 toast.error(response?.message || (isEditMode ? 'Failed to update group type' : 'Failed to save group type'));
             }
         } catch (error: any) {
+            console.log('🔴 [FORM] Group Type error:', error);
             toast.error(error.message || 'An error occurred');
         }
     };
@@ -102,11 +125,22 @@ export default function GroupTypeForm({ selectedRow, onSuccess, className = '' }
                             error={errors.HRMGT_Code?.message}
                             className='transition-colors focus:ring-2 focus:ring-primary/20'
                         />
-                        <Input
-                            type='number'
-                            id='HRMGT_Order'
-                            {...register('HRMGT_Order', { valueAsNumber: true })}
-                            className='transition-colors focus:ring-2 focus:ring-primary/20'
+                        <Controller
+                            name='HRMGT_Order'
+                            control={control}
+                            render={({ field }) => (
+                                <InputNumber
+                                    label='Order'
+                                    id='HRMGT_Order'
+                                    value={field.value}
+                                    onChange={(value) => {
+                                        console.log('📝 [GROUP TYPE FORM] Order field changed to:', value);
+                                        field.onChange(value);
+                                    }}
+                                    error={errors.HRMGT_Order?.message}
+                                    className='transition-colors focus:ring-2 focus:ring-primary/20'
+                                />
+                            )}
                         />
                     </div>
 

@@ -196,7 +196,10 @@ interface Employee extends BaseEntity {
     msTeamsPassword: string;
     punchRelaxation: boolean;
     stopPension: boolean;
+    dateOfStopPension: string;
     employeeLeft: boolean;
+    lastWorkingDay: string;
+    reasonForLeaving: string;
 
     // Status
     activeFlag?: boolean;
@@ -269,6 +272,14 @@ export default function EmployeeRegisterPage() {
     const [selectedPhoto, setSelectedPhoto] = useState<string | null>(null);
     const [_photoFile, setPhotoFile] = useState<File | null>(null);
     const formRef = useRef<HTMLDivElement>(null);
+    
+    // Use a ref to track editingId for immediate access (not affected by React's async state updates)
+    const editingIdRef = useRef<number | null>(null);
+    
+    // Sync ref with state
+    React.useEffect(() => {
+        editingIdRef.current = editingId;
+    }, [editingId]);
 
     // Onload dropdown states
     const [_onload, setOnload] = useState<EmployeeRegisterOnloadResponse | null>(null);
@@ -598,7 +609,10 @@ export default function EmployeeRegisterPage() {
                         msTeamsPassword: '',
                         punchRelaxation: emp.HRME_ExcPunch || false,
                         stopPension: !!emp.HRME_PensionStoppedDate,
+                        dateOfStopPension: emp.HRME_PensionStoppedDate ? new Date(emp.HRME_PensionStoppedDate).toISOString().split('T')[0] : '',
                         employeeLeft: emp.HRME_LeftFlag || false,
+                        lastWorkingDay: emp.HRME_DOL ? new Date(emp.HRME_DOL).toISOString().split('T')[0] : '',
+                        reasonForLeaving: emp.HRME_LeavingReason || '',
 
                         // Payroll fields
                         earnings: '',
@@ -692,6 +706,7 @@ export default function EmployeeRegisterPage() {
     const handleAddClick = () => {
         setIsFormOpen(true);
         setEditingId(null);
+        editingIdRef.current = null;
         setActiveTab('employee');
         reset();
         // Scroll to form after state update
@@ -706,6 +721,7 @@ export default function EmployeeRegisterPage() {
     const handleFormClose = () => {
         setIsFormOpen(false);
         setEditingId(null);
+        editingIdRef.current = null;
         setSelectedPhoto(null);
         setPhotoFile(null);
         reset();
@@ -886,13 +902,14 @@ export default function EmployeeRegisterPage() {
 
     // Handle Address tab submission
     const handleAddressTabSubmit = async (data: EmployeeForm) => {
-        const firstName = data.firstName || '';
-        const middleName = data.middleName || '';
-        const lastName = data.lastName || '';
+        try {
+            const firstName = data.firstName || '';
+            const middleName = data.middleName || '';
+            const lastName = data.lastName || '';
 
-        // Build flat payload for SavePersonalDetails
-        const now = new Date().toISOString();
-        const payload: any = {
+            // Build flat payload for SavePersonalDetails
+            const now = new Date().toISOString();
+            const payload: any = {
             CreatedDate: now,
             UpdatedDate: now,
             HRME_Id: editingId || 0,
@@ -992,12 +1009,366 @@ export default function EmployeeRegisterPage() {
 
         const response = await savePersonalDetails(payload);
 
+        // Debug logging
+        console.log('=== Address Tab Save Response Debug ===');
+        console.log('Full response:', JSON.stringify(response, null, 2));
+        console.log('Response success:', response.success);
+        console.log('Response.data:', response.data);
+        console.log('Response.data?.HRME_Id:', response.data?.HRME_Id);
+        console.log('Direct response.HRME_Id:', (response as any).HRME_Id);
+        console.log('Current editingId:', editingId);
+        console.log('Payload HRME_Id:', payload.HRME_Id);
+        console.log('========================================');
+
+        // Check if response.data is a string (error message like "Duplicate" or "Add")
+        // This can happen with both success: true and success: false
+        if (typeof response.data === 'string') {
+            console.warn('API returned string response:', response.data);
+            const dataStr = response.data as string;
+            
+            // Handle "Duplicate" case - try to find existing employee
+            if (dataStr.toLowerCase().includes('duplicate')) {
+                toast.warning('Employee already exists. Searching for existing employee...');
+                
+                // Reload employees to get the updated list
+                await loadOnloadDropdowns();
+                
+                // Search for employee by employee code (employees state should be updated by loadOnloadDropdowns)
+                if (data.employeeCode && employees.length > 0) {
+                    const existingEmployee = employees.find(
+                        (emp) => emp.employeeCode === data.employeeCode
+                    );
+                    if (existingEmployee && existingEmployee.id) {
+                        console.log('Found existing employee with ID:', existingEmployee.id);
+                        setEditingId(existingEmployee.id);
+                        editingIdRef.current = existingEmployee.id;
+                        toast.success(`Found existing employee. Using ID: ${existingEmployee.id}. You can now edit other details.`);
+                        return;
+                    }
+                }
+                
+                // If employee code not found, try searching by name
+                if (data.firstName && data.lastName && employees.length > 0) {
+                    const existingEmployee = employees.find(
+                        (emp) => 
+                            emp.firstName?.toLowerCase() === data.firstName?.toLowerCase() &&
+                            emp.lastName?.toLowerCase() === data.lastName?.toLowerCase()
+                    );
+                    if (existingEmployee && existingEmployee.id) {
+                        console.log('Found existing employee by name with ID:', existingEmployee.id);
+                        setEditingId(existingEmployee.id);
+                        editingIdRef.current = existingEmployee.id;
+                        toast.success(`Found existing employee by name. Using ID: ${existingEmployee.id}. You can now edit other details.`);
+                        return;
+                    }
+                }
+                
+                toast.error('Duplicate employee found but could not retrieve ID. Please edit the existing employee from the list instead.');
+                return;
+            }
+            
+            // Handle "Add" case - employee was added, need to find the new HRME_Id
+            if (dataStr.toLowerCase().includes('add')) {
+                console.log('Employee was added successfully. Searching for new employee...');
+                toast.info('Employee added successfully. Retrieving employee ID...');
+                
+                // Reload employees to get the updated list with the new employee
+                const reloadResponse = await getEmployeeRegisterOnload({
+                    MI_Id: 30,
+                    LogInUserId: 2
+                });
+                
+                // Extract employee list directly from response (not from state)
+                let employeeList: Employee[] = [];
+                if (reloadResponse.success && reloadResponse.data) {
+                    const onloadData = reloadResponse.data as any;
+                    const apiEmployeeList = Array.isArray(onloadData.employeedetailList) ? onloadData.employeedetailList : [];
+                    
+                    if (apiEmployeeList.length > 0) {
+                        // Map API employees to local Employee interface (same as loadOnloadDropdowns)
+                        employeeList = apiEmployeeList.map((emp: any, index: number) => ({
+                            id: emp.HRME_Id || index + 1,
+                            createdAt: new Date().toISOString(),
+                            nameOfEmployee: [emp.HRME_EmployeeFirstName, emp.HRME_EmployeeMiddleName, emp.HRME_EmployeeLastName].filter(Boolean).join(' ') || '',
+                            firstName: emp.HRME_EmployeeFirstName || '',
+                            middleName: emp.HRME_EmployeeMiddleName || '',
+                            lastName: emp.HRME_EmployeeLastName || '',
+                            employeeCode: emp.HRME_EmployeeCode || '',
+                            fatherName: emp.HRME_FatherName || '',
+                            motherName: emp.HRME_MotherName || '',
+                            typeOfEmployment: emp.HRMET_Id?.toString() || '',
+                            employeeGroup: emp.HRMGT_Id?.toString() || '',
+                            school: emp.MI_Id?.toString() || '',
+                            designation: emp.HRMDES_Id?.toString() || '',
+                            subjectTaught: emp.HRME_SubjectsTaught || '',
+                            grade: emp.HRMG_Id?.toString() || '',
+                            dateOfJoining: emp.HRME_DOJ ? new Date(emp.HRME_DOJ).toISOString().split('T')[0] : '',
+                            dateOfConfirmation: emp.HRME_DOC ? new Date(emp.HRME_DOC).toISOString().split('T')[0] : '',
+                            epf: emp.HRME_EPFNotApplicableFlg === false,
+                            ppf: emp.HRME_FPFNotApplicableFlg === false,
+                            phdResearchGuide: emp.HRME_PHDResearchGuideFlg === 'on' || emp.HRME_PHDResearchGuideFlg === true,
+                            teachingNonTeaching: emp.HRME_TechNonTeachingFlg ? 'Teaching' : 'Non-Teaching',
+                            pfApplicable: emp.HRME_PFApplicableFlag === 'on' || emp.HRME_PFApplicableFlag === true,
+                            pfMaxAmount: emp.HRME_PFMaxFlag === 'on' || emp.HRME_PFMaxFlag === true,
+                            pfFixedAmount: emp.HRME_PFFixedFlag === 'on' || emp.HRME_PFFixedFlag === true,
+                            pfAccNo: emp.HRME_PFAccNo || '',
+                            uanNumber: emp.HRME_UINumber || '',
+                            pfDate: emp.HRME_PFDate ? new Date(emp.HRME_PFDate).toISOString().split('T')[0] : '',
+                            esiApplicable: emp.HRME_ESIApplicableFlag === 'on' || emp.HRME_ESIApplicableFlag === true,
+                            nationalSSN: emp.HRME_NationalSSN || '',
+                            religion: emp.ReligionId?.toString() || '',
+                            casteCategory: emp.CasteCategoryId?.toString() || '',
+                            caste: emp.CasteId?.toString() || '',
+                            dateOfBirth: emp.HRME_DOB ? new Date(emp.HRME_DOB).toISOString().split('T')[0] : '',
+                            dateOfRetirement: emp.HRME_ExpectedRetirementDate ? new Date(emp.HRME_ExpectedRetirementDate).toISOString().split('T')[0] : '',
+                            gender: emp.IVRMMG_Id?.toString() || '',
+                            maritalStatus: emp.IVRMMMS_Id?.toString() || '',
+                            mobileNo: emp.HRME_MobileNo?.toString() || '',
+                            emailId: emp.HRME_EmailId || '',
+                            aadharNo: emp.HRME_AadharCardNo?.toString() || '',
+                            panCardNo: emp.HRME_PANCardNo || '',
+                            bloodGroup: emp.HRME_BloodGroup || '',
+                            salaryType: emp.HRME_SalaryType || '',
+                            modeOfPayment: emp.HRME_PaymentType || '',
+                            employeePhoto: emp.HRME_Photo || '',
+                            employerBankName: '',
+                            bankAccountNo: emp.HRME_BankAccountNo || '',
+                            contactAddress: emp.HRME_LocStreet || '',
+                            contactArea: emp.HRME_LocArea || '',
+                            contactCountry: emp.HRME_LocCountryId?.toString() || '',
+                            contactState: emp.HRME_LocStateId?.toString() || '',
+                            contactCity: emp.HRME_LocCity || '',
+                            contactPincode: emp.HRME_LocPincode?.toString() || '',
+                            permanentAddress: emp.HRME_PerStreet || '',
+                            permanentArea: emp.HRME_PerArea || '',
+                            permanentCountry: emp.HRME_PerCountryId?.toString() || '',
+                            permanentState: emp.HRME_PerStateId?.toString() || '',
+                            permanentCity: emp.HRME_PerCity || '',
+                            permanentPincode: emp.HRME_PerPincode?.toString() || '',
+                            sameAsCommunicationAddress: false,
+                            qualificationSerialNo: '',
+                            qualification: '',
+                            course: '',
+                            college: '',
+                            university: '',
+                            yearOfPassing: '',
+                            qualificationCountry: '',
+                            qualificationState: '',
+                            registrationNo: '',
+                            result: '',
+                            cgpaOrPercentage: '',
+                            cgpa: '',
+                            percentage: '',
+                            areaOfSpecialization: '',
+                            phd: false,
+                            phdDetails: '',
+                            medicalCouncil: '',
+                            thesisTitle: '',
+                            registrationYear: '',
+                            guideName: '',
+                            specialization: '',
+                            qualifiedDate: '',
+                            qualificationDetails: [],
+                            experienceDetails: [],
+                            documentList: [],
+                            mobileDetails: [],
+                            emailDetails: [],
+                            bankDetails: [],
+                            employeeHavingExperience: false,
+                            experienceSerialNo: '',
+                            organisationName: '',
+                            organisationAddress: '',
+                            experienceDepartment: '',
+                            experienceDesignation: '',
+                            dateOfJoiningExp: '',
+                            dateOfLeaving: '',
+                            noOfYears: '',
+                            noOfMonths: '',
+                            lastDrawnSalary: '',
+                            reasonForLeavingExp: '',
+                            documentSerialNo: '',
+                            nameOfDocument: '',
+                            documentDescription: '',
+                            document: '',
+                            employeeHeight: '',
+                            employeeHeightUnit: '',
+                            employeeWeight: '',
+                            employeeWeightUnit: '',
+                            eyeSightIssue: '',
+                            anyHealthIssue: '',
+                            identificationMark: '',
+                            biometricCode: '',
+                            rfCardId: '',
+                            msTeamsUserName: '',
+                            msTeamsPassword: '',
+                            punchRelaxation: false,
+                            stopPension: false,
+                            employeeLeft: false,
+                            activeFlag: true,
+                            earnings: '',
+                            earningsActualPercent: '',
+                            earningsApplicablePercent: '',
+                            earningsAmount: '',
+                            earningsMaxAmount: '',
+                            earningsDetails: '',
+                            earningsAction: false,
+                            deductions: '',
+                            deductionsActualPercent: '',
+                            deductionsApplicablePercent: '',
+                            deductionsAmount: '',
+                            deductionsMaxAmount: '',
+                            deductionsDetails: '',
+                            deductionsAction: false,
+                            arrearHead: '',
+                            arrearActualPercent: '',
+                            arrearApplicablePercent: '',
+                            arrearAmount: '',
+                            arrearDetails: '',
+                            arrearAction: false
+                        }));
+                    }
+                }
+                
+                // Also update the state using loadOnloadDropdowns for UI consistency
+                await loadOnloadDropdowns();
+                
+                // Search for the newly added employee by employee code using the fresh list
+                if (data.employeeCode && employeeList.length > 0) {
+                    const newEmployee = employeeList.find(
+                        (emp) => emp.employeeCode === data.employeeCode
+                    );
+                    if (newEmployee && newEmployee.id) {
+                        console.log('Found newly added employee with ID:', newEmployee.id);
+                        // Set editingId synchronously and update employees state
+                        setEditingId(newEmployee.id);
+                        editingIdRef.current = newEmployee.id; // Update ref immediately
+                        setEmployees(employeeList); // Update state with fresh list
+                        console.log('Set editingId to:', newEmployee.id);
+                        console.log('Set editingIdRef.current to:', editingIdRef.current);
+                        
+                        // Force a small delay to ensure state updates propagate
+                        await new Promise(resolve => setTimeout(resolve, 100));
+                        
+                        toast.success(`Employee added successfully! Using ID: ${newEmployee.id}. You can now proceed to other tabs.`);
+                        
+                        // Move to next tab
+                        if (activeTab === 'address') {
+                            setActiveTab('qualification');
+                        }
+                        return;
+                    }
+                }
+                
+                // If employee code not found, try searching by name
+                if (data.firstName && data.lastName && employeeList.length > 0) {
+                    const newEmployee = employeeList.find(
+                        (emp) => 
+                            emp.firstName?.toLowerCase() === data.firstName?.toLowerCase() &&
+                            emp.lastName?.toLowerCase() === data.lastName?.toLowerCase()
+                    );
+                    if (newEmployee && newEmployee.id) {
+                        console.log('Found newly added employee by name with ID:', newEmployee.id);
+                        // Set editingId synchronously and update employees state
+                        setEditingId(newEmployee.id);
+                        editingIdRef.current = newEmployee.id; // Update ref immediately
+                        setEmployees(employeeList); // Update state with fresh list
+                        console.log('Set editingId to:', newEmployee.id);
+                        console.log('Set editingIdRef.current to:', editingIdRef.current);
+                        
+                        // Force a small delay to ensure state updates propagate
+                        await new Promise(resolve => setTimeout(resolve, 100));
+                        
+                        toast.success(`Employee added successfully! Using ID: ${newEmployee.id}. You can now proceed to other tabs.`);
+                        
+                        // Move to next tab
+                        if (activeTab === 'address') {
+                            setActiveTab('qualification');
+                        }
+                        return;
+                    }
+                }
+                
+                toast.warning('Employee added but could not retrieve ID immediately. Please refresh the page or edit the employee from the list.');
+                return;
+            }
+            
+            // Handle "Update" case - employee was updated successfully
+            // We should already have editingId set from before
+            if (dataStr.toLowerCase().includes('update')) {
+                console.log('Employee was updated successfully. Using existing editingId:', editingId);
+                
+                if (editingId && editingId !== 0) {
+                    toast.success('Employee details updated successfully!');
+                    
+                    // Reload employees to get updated data
+                    await loadOnloadDropdowns();
+                    
+                    // Move to next tab if we're on address tab
+                    if (activeTab === 'address') {
+                        setActiveTab('qualification');
+                        toast.info('Please proceed to Qualification tab.');
+                    }
+                    return;
+                } else {
+                    // If we don't have editingId, try to find the employee
+                    console.warn('Update successful but no editingId found. Searching for employee...');
+                    toast.info('Employee updated. Retrieving employee ID...');
+                    
+                    await loadOnloadDropdowns();
+                    await new Promise(resolve => setTimeout(resolve, 500));
+                    
+                    if (data.employeeCode) {
+                        const updatedEmployee = employees.find(
+                            (emp) => emp.employeeCode === data.employeeCode
+                        );
+                        if (updatedEmployee && updatedEmployee.id) {
+                            console.log('Found updated employee with ID:', updatedEmployee.id);
+                            setEditingId(updatedEmployee.id);
+                            editingIdRef.current = updatedEmployee.id;
+                            toast.success(`Employee updated successfully! Using ID: ${updatedEmployee.id}.`);
+                            
+                            if (activeTab === 'address') {
+                                setActiveTab('qualification');
+                            }
+                            return;
+                        }
+                    }
+                    
+                    toast.success('Employee updated successfully!');
+                    return;
+                }
+            }
+            
+            // Other string error messages
+            toast.error(`API returned error: ${response.data}`);
+            return;
+        }
+
         if (response.success) {
             toast.success(response.message || 'Personal details saved successfully');
 
             // Store the HRME_Id for subsequent tab saves
-            if (response.data?.HRME_Id) {
-                setEditingId(response.data.HRME_Id);
+            // Handle both response.data.HRME_Id and direct HRME_Id in response
+            const hrmeId = response.data?.HRME_Id || (response as any).HRME_Id || editingId;
+            console.log('Extracted hrmeId:', hrmeId);
+            
+            if (hrmeId && hrmeId !== 0) {
+                console.log('Setting editingId to:', hrmeId);
+                setEditingId(hrmeId);
+                editingIdRef.current = hrmeId;
+            } else if (!editingId || editingId === 0) {
+                // If we don't have HRME_Id yet, show error
+                console.error('ERROR: Failed to extract HRME_Id from response');
+                console.error('Response structure:', {
+                    hasData: !!response.data,
+                    dataType: typeof response.data,
+                    dataKeys: response.data && typeof response.data === 'object' ? Object.keys(response.data) : 'N/A',
+                    directHRMEId: (response as any).HRME_Id,
+                    currentEditingId: editingId,
+                    fullResponse: response
+                });
+                toast.error('Failed to get employee ID. Please check console for details.');
+                return;
             }
 
             // Move to next tab or reload
@@ -1008,12 +1379,35 @@ export default function EmployeeRegisterPage() {
                 await loadOnloadDropdowns();
             }
         } else {
-            toast.error(response.message || 'Failed to save address details');
+            console.error('Response was not successful:', response);
+            // If we haven't handled it already (duplicate case), show error
+            const responseDataStr = typeof response.data === 'string' ? response.data : '';
+            if (typeof response.data !== 'string' || !responseDataStr.toLowerCase().includes('duplicate')) {
+                toast.error(response.message || 'Failed to save address details');
+            }
+        }
+        } catch (error: any) {
+            console.error('=== Client: handleAddressTabSubmit ERROR ===');
+            console.error('Error type:', error?.constructor?.name);
+            console.error('Error message:', error?.message);
+            console.error('Error stack:', error?.stack);
+            console.error('Error response:', error?.response);
+            console.error('Error response data:', error?.response?.data);
+            console.error('Full error:', JSON.stringify(error, null, 2));
+            console.error('============================================');
+            toast.error(error?.message || 'Failed to save address details. Please check console for details.');
         }
     };
 
     // Handle Qualification tab submission
     const handleQualificationTabSubmit = async (data: EmployeeForm) => {
+        // Validate that Employee and Address have been saved first
+        if (!editingId || editingId === 0) {
+            toast.error('Please save Employee and Address details first before saving qualification details');
+            setActiveTab('address');
+            return;
+        }
+
         // Map qualification details from form data
         const qualificationDetails = data.qualificationDetails || [];
 
@@ -1083,6 +1477,13 @@ export default function EmployeeRegisterPage() {
 
     // Handle Experience tab submission
     const handleExperienceTabSubmit = async (data: EmployeeForm) => {
+        // Validate that Employee and Address have been saved first
+        if (!editingId || editingId === 0) {
+            toast.error('Please save Employee and Address details first before saving experience details');
+            setActiveTab('address');
+            return;
+        }
+
         // Map experience details from form data
         const experienceDetails = data.experienceDetails || [];
 
@@ -1131,6 +1532,13 @@ export default function EmployeeRegisterPage() {
 
     // Handle Document tab submission
     const handleDocumentTabSubmit = async (data: EmployeeForm) => {
+        // Validate that Employee and Address have been saved first
+        if (!editingId || editingId === 0) {
+            toast.error('Please save Employee and Address details first before saving document details');
+            setActiveTab('address');
+            return;
+        }
+
         // Map document details from form data
         const documentDetails = data.documentList || [];
 
@@ -1183,6 +1591,13 @@ export default function EmployeeRegisterPage() {
 
     // Handle Medical tab submission
     const handleMedicalTabSubmit = async (data: EmployeeForm) => {
+        // Validate that Employee and Address have been saved first
+        if (!editingId || editingId === 0) {
+            toast.error('Please save Employee and Address details first before saving medical details');
+            setActiveTab('address');
+            return;
+        }
+
         const firstName = data.firstName || '';
         const middleName = data.middleName || '';
         const lastName = data.lastName || '';
@@ -1296,6 +1711,7 @@ export default function EmployeeRegisterPage() {
             // Store the HRME_Id for subsequent tab saves
             if (response.data?.HRME_Id) {
                 setEditingId(response.data.HRME_Id);
+                editingIdRef.current = response.data.HRME_Id;
             }
 
             // Move to next tab or reload
@@ -1314,6 +1730,13 @@ export default function EmployeeRegisterPage() {
 
     // Handle Other Details tab submission
     const handleOtherTabSubmit = async (data: EmployeeForm) => {
+        // Validate that Employee and Address have been saved first
+        if (!editingId || editingId === 0) {
+            toast.error('Please save Employee and Address details first before saving other details');
+            setActiveTab('address');
+            return;
+        }
+
         const firstName = data.firstName || '';
         const middleName = data.middleName || '';
         const lastName = data.lastName || '';
@@ -1381,8 +1804,8 @@ export default function EmployeeRegisterPage() {
             HRME_ESIApplicableFlag: !!(data.esiApplicable || (data.esiApplicable as any) === 'on'),
             HRME_Photo: data.employeePhoto || selectedPhoto || 'string',
             HRME_LeftFlag: !!(data.employeeLeft || (data.employeeLeft as any) === 'on'),
-            HRME_DOL: data.dateOfLeaving || now,
-            HRME_LeavingReason: data.reasonForLeavingExp || 'string',
+            HRME_DOL: data.lastWorkingDay || data.dateOfLeaving || now,
+            HRME_LeavingReason: data.reasonForLeaving || data.reasonForLeavingExp || 'string',
             HRME_Height: data.employeeHeight || 'string',
             HRME_HeightUOM: data.employeeHeightUnit || 'string',
             HRME_Weight: data.employeeWeight ? Number.parseFloat(data.employeeWeight) : 0,
@@ -1413,7 +1836,7 @@ export default function EmployeeRegisterPage() {
             HRME_MSTeamsPassword: data.msTeamsPassword || 'string',
             HRME_ExcPunch: !!(data.punchRelaxation || (data.punchRelaxation as any) === 'on'),
             HRME_RetiredFlg: !!(data.stopPension || (data.stopPension as any) === 'on'),
-            HRME_PensionStoppedDate: data.stopPension ? now : now,
+            HRME_PensionStoppedDate: data.dateOfStopPension || (data.stopPension ? now : now),
             HRME_FPFNotApplicableFlg: !!(data.ppf || (data.ppf as any) === 'on'),
             HRME_EPFNotApplicableFlg: !!(data.epf || (data.epf as any) === 'on'),
             HRME_AllowSoftwareAccessFlg: false
@@ -1427,6 +1850,7 @@ export default function EmployeeRegisterPage() {
             // Store the HRME_Id for subsequent tab saves
             if (response.data?.HRME_Id) {
                 setEditingId(response.data.HRME_Id);
+                editingIdRef.current = response.data.HRME_Id;
             }
 
             // Move to next tab or reload
@@ -1445,8 +1869,10 @@ export default function EmployeeRegisterPage() {
 
     // Handle Payroll tab submission - Using state data
     const handlePayrollTabSubmit = async (_data: EmployeeForm) => {
-        if (!editingId) {
-            toast.error('Please save employee basic details first');
+        // Validate that Employee and Address have been saved first
+        if (!editingId || editingId === 0) {
+            toast.error('Please save Employee and Address details first before adding payroll details');
+            setActiveTab('address');
             return;
         }
 
@@ -1720,6 +2146,7 @@ export default function EmployeeRegisterPage() {
             const empDetails = employeeData.employeedetailList?.[0] || {};
 
             setEditingId(item.id);
+            editingIdRef.current = item.id;
 
             // Reset form first
             reset();
@@ -1816,6 +2243,9 @@ export default function EmployeeRegisterPage() {
             // Other Details
             setValue('msTeamsUserName', empDetails.HRME_MSTeamsUserId || '');
             setValue('msTeamsPassword', empDetails.HRME_MSTeamsPassword || '');
+            setValue('dateOfStopPension', empDetails.HRME_PensionStoppedDate ? format(new Date(empDetails.HRME_PensionStoppedDate), 'yyyy-MM-dd') : '');
+            setValue('lastWorkingDay', empDetails.HRME_DOL ? format(new Date(empDetails.HRME_DOL), 'yyyy-MM-dd') : '');
+            setValue('reasonForLeaving', empDetails.HRME_LeavingReason || '');
             setValue('dateOfLeaving', empDetails.HRME_DOL ? format(new Date(empDetails.HRME_DOL), 'yyyy-MM-dd') : '');
             setValue('reasonForLeavingExp', empDetails.HRME_LeavingReason || '');
 
@@ -2110,7 +2540,7 @@ export default function EmployeeRegisterPage() {
 
                                         {/* Other Details Tab */}
                                         <TabsContent value='other-details' className='space-y-4'>
-                                            <OtherDetailsTab control={control} register={register} errors={errors} />
+                                            <OtherDetailsTab control={control} register={register} errors={errors} watch={watch} />
                                         </TabsContent>
 
                                         {/* Payroll Tab */}
@@ -2119,7 +2549,7 @@ export default function EmployeeRegisterPage() {
                                                 control={control}
                                                 register={register}
                                                 errors={errors}
-                                                employeeId={editingId}
+                                                employeeId={editingId ?? editingIdRef.current ?? null}
                                                 employeeCode={watch('employeeCode')}
                                                 earningsList={earningsList}
                                                 setEarningsList={setEarningsList}
@@ -3244,6 +3674,8 @@ function AddressTab({ control, register, errors, isSubmitting, watch, setValue }
                                 )}
                             />
                         </div>
+                    </div>
+                    <div className='flex flex-col gap-4 lg:flex-row lg:gap-4'>
                         <div className='flex-1 space-y-2'>
                             <InputText label='City' id='contactCity' {...register('contactCity')} error={errors.contactCity?.message} />
                         </div>
@@ -3334,6 +3766,8 @@ function AddressTab({ control, register, errors, isSubmitting, watch, setValue }
                                 )}
                             />
                         </div>
+                    </div>
+                    <div className='flex flex-col gap-4 lg:flex-row lg:gap-4'>
                         <div className='flex-1 space-y-2'>
                             <InputText
                                 label='City'
@@ -3592,7 +4026,10 @@ function MedicalRecordTab({ control, register, errors, isSubmitting }: any) {
 }
 
 // Other Details Tab Component
-function OtherDetailsTab({ control, register, errors, isSubmitting }: any) {
+function OtherDetailsTab({ control, register, errors, isSubmitting, watch }: any) {
+    const stopPension = watch('stopPension');
+    const employeeLeft = watch('employeeLeft');
+
     return (
         <div className='space-y-4'>
             <div className='rounded-md bg-primary px-4 py-2 text-primary-foreground'>
@@ -3608,23 +4045,70 @@ function OtherDetailsTab({ control, register, errors, isSubmitting }: any) {
                     error={errors.biometricCode?.message}
                 />
 
-                <div className='flex items-center gap-4 space-y-2'>
-                    <div className='flex items-center space-x-2'>
-                        <Checkbox id='punchRelaxation' {...register('punchRelaxation')} />
-                        <Label htmlFor='punchRelaxation'>Punch Relaxation ?</Label>
-                    </div>
-                    <div className='flex items-center space-x-2'>
-                        <Checkbox id='stopPension' {...register('stopPension')} />
-                        <Label htmlFor='stopPension'>Stop Pension ?</Label>
+                <div className='space-y-2'>
+                    <Label className='mb-2 block'>Options</Label>
+                    <div className='space-y-3'>
+                        <Controller
+                            name='punchRelaxation'
+                            control={control}
+                            render={({ field }) => (
+                                <div className='flex items-center space-x-2'>
+                                    <Checkbox id='punchRelaxation' checked={!!field.value} onCheckedChange={(v) => field.onChange(!!v)} />
+                                    <Label htmlFor='punchRelaxation' className='cursor-pointer leading-none'>
+                                        Punch Relaxation ?
+                                    </Label>
+                                </div>
+                            )}
+                        />
+                        <Controller
+                            name='stopPension'
+                            control={control}
+                            render={({ field }) => (
+                                <div className='flex items-center space-x-2'>
+                                    <Checkbox id='stopPension' checked={!!field.value} onCheckedChange={(v) => field.onChange(!!v)} />
+                                    <Label htmlFor='stopPension' className='cursor-pointer leading-none'>
+                                        Stop Pension ?
+                                    </Label>
+                                </div>
+                            )}
+                        />
                     </div>
                 </div>
 
                 <InputText label='RF card ID' id='rfCardId' {...register('rfCardId')} error={errors.rfCardId?.message} />
 
-                <div className='flex items-center space-x-2'>
-                    <Checkbox id='employeeLeft' {...register('employeeLeft')} />
-                    <Label htmlFor='employeeLeft'>Employee Left ?</Label>
-                </div>
+                {stopPension && (
+                    <div className='space-y-2'>
+                        <Label>Date of Stop Pension</Label>
+                        <Controller
+                            name='dateOfStopPension'
+                            control={control}
+                            render={({ field }) => (
+                                <Popover>
+                                    <PopoverTrigger asChild>
+                                        <Button
+                                            variant='outline'
+                                            className={cn(
+                                                'w-full justify-start text-left font-normal',
+                                                !field.value && 'text-muted-foreground'
+                                            )}>
+                                            <CalendarIcon className='mr-2 h-4 w-4' />
+                                            {field.value ? format(new Date(field.value), 'PPP') : 'Select date'}
+                                        </Button>
+                                    </PopoverTrigger>
+                                    <PopoverContent className='w-auto p-0' align='start'>
+                                        <DatePickerWithYear
+                                            mode='single'
+                                            selected={field.value ? new Date(field.value) : undefined}
+                                            onDayClick={(day) => field.onChange(format(day, 'yyyy-MM-dd'))}
+                                            initialFocus
+                                        />
+                                    </PopoverContent>
+                                </Popover>
+                            )}
+                        />
+                    </div>
+                )}
 
                 <InputText
                     label='MS Teams UserName'
@@ -3634,36 +4118,18 @@ function OtherDetailsTab({ control, register, errors, isSubmitting }: any) {
                     error={errors.msTeamsUserName?.message}
                 />
 
-                <div className='space-y-2'>
-                    <Label>Last Working day</Label>
-                    <Controller
-                        name='lastWorkingDay'
-                        control={control}
-                        render={({ field }) => (
-                            <Popover>
-                                <PopoverTrigger asChild>
-                                    <Button
-                                        variant='outline'
-                                        className={cn(
-                                            'w-full justify-start text-left font-normal',
-                                            !field.value && 'text-muted-foreground'
-                                        )}>
-                                        <CalendarIcon className='mr-2 h-4 w-4' />
-                                        {field.value ? format(new Date(field.value), 'PPP') : 'Select date'}
-                                    </Button>
-                                </PopoverTrigger>
-                                <PopoverContent className='w-auto p-0' align='start'>
-                                    <DatePickerWithYear
-                                        mode='single'
-                                        selected={field.value ? new Date(field.value) : undefined}
-                                        onDayClick={(day) => field.onChange(format(day, 'yyyy-MM-dd'))}
-                                        initialFocus
-                                    />
-                                </PopoverContent>
-                            </Popover>
-                        )}
-                    />
-                </div>
+                <Controller
+                    name='employeeLeft'
+                    control={control}
+                    render={({ field }) => (
+                        <div className='flex items-center space-x-2'>
+                            <Checkbox id='employeeLeft' checked={!!field.value} onCheckedChange={(v) => field.onChange(!!v)} />
+                            <Label htmlFor='employeeLeft' className='cursor-pointer leading-none'>
+                                Employee Left ?
+                            </Label>
+                        </div>
+                    )}
+                />
 
                 <InputText
                     label='MS Teams Password'
@@ -3674,6 +4140,56 @@ function OtherDetailsTab({ control, register, errors, isSubmitting }: any) {
                     error={errors.msTeamsPassword?.message}
                 />
             </div>
+
+            {employeeLeft && (
+                <div className='rounded-lg border bg-muted/50 p-4'>
+                    <div className='grid grid-cols-1 gap-4 lg:grid-cols-2'>
+                        <div className='space-y-2'>
+                            <Label>
+                                Last Working day <span className='text-red-500'>*</span>
+                            </Label>
+                            <Controller
+                                name='lastWorkingDay'
+                                control={control}
+                                render={({ field }) => (
+                                    <Popover>
+                                        <PopoverTrigger asChild>
+                                            <Button
+                                                variant='outline'
+                                                className={cn(
+                                                    'w-full justify-start text-left font-normal',
+                                                    !field.value && 'text-muted-foreground'
+                                                )}>
+                                                <CalendarIcon className='mr-2 h-4 w-4' />
+                                                {field.value ? format(new Date(field.value), 'PPP') : 'Select date'}
+                                            </Button>
+                                        </PopoverTrigger>
+                                        <PopoverContent className='w-auto p-0' align='start'>
+                                            <DatePickerWithYear
+                                                mode='single'
+                                                selected={field.value ? new Date(field.value) : undefined}
+                                                onDayClick={(day) => field.onChange(format(day, 'yyyy-MM-dd'))}
+                                                initialFocus
+                                            />
+                                        </PopoverContent>
+                                    </Popover>
+                                )}
+                            />
+                        </div>
+
+                        <div className='space-y-2 lg:col-span-2'>
+                            <Label>Reason for Leaving</Label>
+                            <textarea
+                                id='reasonForLeaving'
+                                {...register('reasonForLeaving')}
+                                className='min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50'
+                                placeholder='Enter reason for leaving...'
+                            />
+                        </div>
+                    </div>
+                </div>
+            )}
+
             <StandardTabActions errors={errors} isSubmitting={isSubmitting} />
         </div>
     );
@@ -4131,6 +4647,13 @@ function PayrollTab({
     // Track if data has been loaded for this employee
     const [hasLoadedOnce, setHasLoadedOnce] = React.useState(false);
     const [lastEmployeeId, setLastEmployeeId] = React.useState<number | null>(null);
+    
+    // Debug: Track employeeId changes
+    React.useEffect(() => {
+        console.log('PayrollTab - employeeId changed:', employeeId);
+        console.log('PayrollTab - employeeId type:', typeof employeeId);
+        console.log('PayrollTab - activeTab:', activeTab);
+    }, [employeeId, activeTab]);
 
     // Function to load payroll data
     const loadPayrollData = async () => {
@@ -4365,7 +4888,23 @@ function PayrollTab({
 
     const netSalary = totalEarnings + totalArrears - totalDeductions;
 
-    if (!employeeId) {
+    // Debug logging to check employeeId
+    console.log('PayrollTab - employeeId prop:', employeeId);
+    console.log('PayrollTab - employeeId type:', typeof employeeId);
+    console.log('PayrollTab - employeeId truthy check:', !!employeeId);
+    console.log('PayrollTab - activeTab:', activeTab);
+
+    // Use a state variable that syncs with the prop to force re-render
+    const [currentEmployeeId, setCurrentEmployeeId] = React.useState<number | null>(employeeId);
+    
+    React.useEffect(() => {
+        if (employeeId !== currentEmployeeId) {
+            console.log('PayrollTab - employeeId prop changed, updating state:', employeeId);
+            setCurrentEmployeeId(employeeId);
+        }
+    }, [employeeId, currentEmployeeId]);
+
+    if (!currentEmployeeId || currentEmployeeId === 0) {
         return (
             <div className='rounded-md border border-dashed p-8 text-center'>
                 <div className='mb-4'>
@@ -4389,6 +4928,9 @@ function PayrollTab({
                         <li>2. Or click "Edit" (⋮) on an employee from the table above</li>
                         <li>3. Then navigate to the Payroll tab</li>
                     </ol>
+                </div>
+                <div className='mt-4 text-muted-foreground text-xs'>
+                    Debug: employeeId = {String(employeeId)} (type: {typeof employeeId})
                 </div>
             </div>
         );

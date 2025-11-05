@@ -41,6 +41,9 @@ function MasterLeaveYearPageContent({
     const { saveOrderMutation } = useMasterLeaveYear(HRMS_MI_ID);
     const rows: LeaveYearDetail[] = response?.leaveYearList ?? [];
 
+    // Minimal logging - only when data changes
+    // console.log('📊 [LEAVE YEAR PAGE] rows count:', rows.length);
+
     const [isEditOrderMode, setIsEditOrderMode] = useState(false);
     const [editedRows, setEditedRows] = useState<LeaveYearDetail[]>([]);
 
@@ -55,18 +58,34 @@ function MasterLeaveYearPageContent({
     };
 
     const handleSaveOrder = async () => {
+        console.log('🔵 [ORDER] ========== SAVE ORDER ==========');
+        console.log('🔵 [ORDER] Edited rows to save:', JSON.stringify(editedRows, null, 2));
+        console.log('🔵 [ORDER] Number of rows:', editedRows.length);
+        
         try {
-            await saveOrderMutation.mutateAsync(editedRows);
+            console.log('🟡 [ORDER] Calling saveOrderMutation.mutateAsync...');
+            const result = await saveOrderMutation.mutateAsync(editedRows);
+            console.log('🟢 [ORDER] Save order result:', result);
             toast.success('Order saved successfully');
             setIsEditOrderMode(false);
             setEditedRows([]);
-        } catch (_error) {
+            console.log('🟢 [ORDER] Order saved successfully');
+        } catch (error) {
+            console.log('🔴 [ORDER] Error saving order:', error);
             toast.error('Failed to save order');
         }
+        console.log('🔵 [ORDER] ========== SAVE ORDER END ==========');
     };
 
     const handleOrderChange = (rowId: number, newOrder: number) => {
-        setEditedRows((prev) => prev.map((row) => (row.HRMLY_Id === rowId ? { ...row, HRMLY_LeaveYearOrder: newOrder } : row)));
+        setEditedRows((prev) => {
+            return prev.map((row) => {
+                if (row.HRMLY_Id === rowId) {
+                    return { ...row, HRMLY_LeaveYearOrder: newOrder };
+                }
+                return row;
+            });
+        });
     };
 
     const displayColumns = isEditOrderMode ? getEditableColumns(handleOrderChange) : columns;
@@ -75,7 +94,7 @@ function MasterLeaveYearPageContent({
 
     return (
         <div className='min-h-screen'>
-            <div className='container space-y-4 p-1'>
+            <div className='container mx-auto space-y-6 px-4 py-6 md:px-6 lg:px-8'>
                 <div className='flex justify-end gap-2'>
                     {isEditOrderMode ? (
                         <>
@@ -146,6 +165,10 @@ function FormSections() {
     const { isAddFormOpen, isEditFormOpen, selectedRow, closeAddForm, closeEditForm, addFormRef, editFormRef } =
         useFormContext<LeaveYearDetail>();
 
+    const handleCloseAddForm = () => {
+        closeAddForm();
+    };
+
     return (
         <>
             {isAddFormOpen && (
@@ -160,13 +183,13 @@ function FormSections() {
                         <div className='relative'>
                             <Button
                                 type='button'
-                                onClick={closeAddForm}
+                                onClick={handleCloseAddForm}
                                 variant='ghost'
                                 size='sm'
                                 className='-top-[3.5rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
                                 <X className='h-4 w-4 text-destructive' /> Close
                             </Button>
-                            <LeaveYearForm onSuccess={closeAddForm} />
+                            <LeaveYearForm onSuccess={handleCloseAddForm} />
                         </div>
                     </CollapsibleSection>
                 </div>

@@ -27,26 +27,100 @@ export async function getMasterGradeList(roleId: number) {
 }
 
 export async function saveMasterGrade(data: MasterGradeInput) {
+    const isEdit = data.HRMG_Id && data.HRMG_Id > 0;
     const url = '/api/MasterGradeFacade';
+    
+    console.log('🟠 [API] saveMasterGrade called');
+    console.log('🟠 [API] Input data:', JSON.stringify(data, null, 2));
+    console.log('🟠 [API] Is Edit Mode:', isEdit);
+    
+    const now = new Date().toISOString();
     const requestBody: OnchangeGradeDetailsRequest = {
-        CreatedDate: new Date().toISOString(),
-        UpdatedDate: new Date().toISOString(),
+        CreatedDate: now,
+        UpdatedDate: now,
         HRMG_Id: data.HRMG_Id || 0,
-        MI_Id: 30,
+        MI_Id: data.MI_Id || 30,
         HRMG_GradeName: data.HRMG_GradeName,
         HRMG_GradeDisplayName: data.HRMG_GradeDisplayName,
         HRMG_PayScaleRange: `${data.HRMG_PayScaleFrom}-${data.HRMG_IncrementOf}-${data.HRMG_PayScaleTo}`,
-        HRMG_PayScaleFrom: data.HRMG_PayScaleFrom,
-        HRMG_IncrementOf: data.HRMG_IncrementOf,
-        HRMG_PayScaleTo: data.HRMG_PayScaleTo,
-        HRMG_Order: data.HRMG_Order || 0,
+        HRMG_PayScaleFrom: data.HRMG_PayScaleFrom ?? 0,
+        HRMG_IncrementOf: data.HRMG_IncrementOf ?? 0,
+        HRMG_PayScaleTo: data.HRMG_PayScaleTo ?? 0,
+        HRMG_Order: data.HRMG_Order ?? 0,
         HRMG_ActiveFlag: data.HRMG_ActiveFlag,
-        gradelList: [],
+        gradelList: [
+            {
+                CreatedDate: now,
+                UpdatedDate: now,
+                HRMG_Id: data.HRMG_Id || 0,
+                MI_Id: data.MI_Id || 30,
+                HRMG_GradeName: data.HRMG_GradeName,
+                HRMG_GradeDisplayName: data.HRMG_GradeDisplayName,
+                HRMG_PayScaleRange: `${data.HRMG_PayScaleFrom ?? 0}-${data.HRMG_IncrementOf ?? 0}-${data.HRMG_PayScaleTo ?? 0}`,
+                HRMG_PayScaleFrom: data.HRMG_PayScaleFrom ?? 0,
+                HRMG_IncrementOf: data.HRMG_IncrementOf ?? 0,
+                HRMG_PayScaleTo: data.HRMG_PayScaleTo ?? 0,
+                HRMG_Order: data.HRMG_Order ?? 0,
+                HRMG_ActiveFlag: data.HRMG_ActiveFlag
+            }
+        ],
         retrunMsg: 'string',
-        roleId: data.MI_Id || 0,
+        roleId: data.MI_Id || 30,
         GradeDTO: []
     };
-    return await api.post<MasterGradeResponse>('hrms', url, requestBody);
+    
+    console.log('🟠 ========== GRADE API REQUEST ==========');
+    console.log('🟠 [API] Request URL:', url);
+    console.log('🟠 [API] Request Body:', JSON.stringify(requestBody, null, 2));
+    console.log('🟠 [API] gradelList count:', requestBody.gradelList.length);
+    console.log('🟠 [API] gradelList[0]:', JSON.stringify(requestBody.gradelList[0], null, 2));
+    console.log('🟠 [API] Calling api.post...');
+    
+    try {
+        const response = await api.post<MasterGradeResponse>('hrms', url, requestBody);
+        
+        console.log('🟢 ========== GRADE API RESPONSE ==========');
+        console.log('🟢 [API] Raw response received:', JSON.stringify(response, null, 2));
+        
+        const responseData = response as any;
+        const retrunMsg = responseData?.retrunMsg || '';
+        const savedId = responseData?.HRMG_Id || 0;
+        const hasGradeList = !!(responseData?.gradelList?.length > 0);
+        
+        console.log('🟢 [API] Response.HRMG_Id:', savedId);
+        console.log('🟢 [API] Response.retrunMsg:', retrunMsg);
+        console.log('🟢 [API] Response.gradelList exists:', !!responseData?.gradelList);
+        console.log('🟢 [API] Response.gradelList.length:', responseData?.gradelList?.length || 0);
+        if (responseData?.gradelList?.[0]) {
+            console.log('🟢 [API] Response.gradelList[0].HRMG_Id:', responseData.gradelList[0].HRMG_Id);
+        }
+        
+        const isUpdateSuccess = retrunMsg === 'Update' || retrunMsg === 'Saved' || retrunMsg === 'Add' || retrunMsg === 'Order';
+        const isDuplicateError = retrunMsg === 'Duplicate';
+        const isSuccess = (savedId > 0 || isUpdateSuccess || hasGradeList) && !isDuplicateError;
+        
+        console.log('🟢 [API] Parsed - savedId:', savedId, 'retrunMsg:', retrunMsg, 'hasGradeList:', hasGradeList);
+        console.log('🟢 [API] isSuccess:', isSuccess, 'isDuplicate:', isDuplicateError);
+        
+        const formattedResponse = {
+            success: isSuccess,
+            message: isDuplicateError 
+                ? 'Grade already exists'
+                : isSuccess 
+                    ? (isEdit ? 'Grade updated successfully' : 'Grade added successfully')
+                    : (retrunMsg || 'Failed to save grade'),
+            data: responseData
+        };
+        
+        console.log('🟢 [API] Formatted response:', JSON.stringify(formattedResponse, null, 2));
+        console.log('🟢 ========== GRADE API END ==========');
+        
+        return formattedResponse as any;
+    } catch (error: any) {
+        console.log('🔴 [API] Error occurred');
+        console.error('🔴 [API] Error:', error);
+        throw error;
+    }
 }
 
 /**
@@ -59,6 +133,10 @@ export async function activateDeactivateMasterGrade(data: {
     MI_Id?: number;
 }) {
     const url = '/api/MasterGradeFacade/deactivateRecordById';
+    
+    console.log('🟠 [API] activateDeactivateMasterGrade called');
+    console.log('🟠 [API] Input data:', JSON.stringify(data, null, 2));
+    
     const requestBody = {
         CreatedDate: new Date().toISOString(),
         UpdatedDate: new Date().toISOString(),
@@ -74,17 +152,46 @@ export async function activateDeactivateMasterGrade(data: {
         HRMG_ActiveFlag: data.HRMG_ActiveFlag,
         gradelList: [],
         retrunMsg: 'string',
-        roleId: 0,
+        roleId: 30,
         GradeDTO: []
     };
-    return await api.post<MasterGradeResponse>('hrms', url, requestBody);
+    
+    console.log('🟠 [API] Request URL:', url);
+    console.log('🟠 [API] Request Body:', JSON.stringify(requestBody, null, 2));
+    
+    try {
+        const response = await api.post<MasterGradeResponse>('hrms', url, requestBody);
+        
+        console.log('🟢 [API] Toggle response:', JSON.stringify(response, null, 2));
+        
+        const responseData = response as any;
+        const retrunMsg = responseData?.retrunMsg || '';
+        
+        console.log('🟢 [API] Response.retrunMsg:', retrunMsg);
+        
+        if (retrunMsg === 'Mapped') {
+            console.log('⚠️ [API] Grade is mapped/in use - cannot deactivate');
+        }
+        
+        // Return the response with retrunMsg for UI to check
+        return responseData;
+    } catch (error: any) {
+        console.log('🔴 [API] Toggle error:', error);
+        throw error;
+    }
 }
 
 export async function saveMasterGradeOrder(grades: GradeDetail[]) {
+    console.log('🟠 [API] saveMasterGradeOrder called');
+    console.log('🟠 [API] Number of grades to update:', grades.length);
+    
     const url = '/api/MasterGradeFacade';
+    const now = new Date().toISOString();
+    
+    // Use gradelList array (same as save endpoint)
     const requestBody: OnchangeGradeDetailsRequest = {
-        CreatedDate: new Date().toISOString(),
-        UpdatedDate: new Date().toISOString(),
+        CreatedDate: now,
+        UpdatedDate: now,
         HRMG_Id: 0,
         MI_Id: 30,
         HRMG_GradeName: 'string',
@@ -95,21 +202,34 @@ export async function saveMasterGradeOrder(grades: GradeDetail[]) {
         HRMG_PayScaleTo: 0,
         HRMG_Order: 0,
         HRMG_ActiveFlag: true,
-        gradelList: [],
-        retrunMsg: 'string',
-        roleId: 0,
-        GradeDTO: grades.map((grade) => ({
+        gradelList: grades.map((grade) => ({
+            CreatedDate: grade.CreatedDate || now,
+            UpdatedDate: now,
             HRMG_Id: grade.HRMG_Id,
-            MI_Id: 30,
+            MI_Id: grade.MI_Id || 30,
             HRMG_GradeName: grade.HRMG_GradeName,
             HRMG_GradeDisplayName: grade.HRMG_GradeDisplayName,
             HRMG_PayScaleRange: grade.HRMG_PayScaleRange,
             HRMG_PayScaleFrom: grade.HRMG_PayScaleFrom,
             HRMG_IncrementOf: grade.HRMG_IncrementOf,
             HRMG_PayScaleTo: grade.HRMG_PayScaleTo,
-            HRMG_Order: grade.HRMG_Order,
+            HRMG_Order: grade.HRMG_Order ?? 0,
             HRMG_ActiveFlag: grade.HRMG_ActiveFlag
-        }))
+        })),
+        retrunMsg: 'string',
+        roleId: 30,
+        GradeDTO: []
     };
-    return await api.post<MasterGradeResponse>('hrms', url, requestBody);
+    
+    console.log('🟠 [API] Request URL:', url);
+    console.log('🟠 [API] gradelList count:', requestBody.gradelList.length);
+    
+    try {
+        const response = await api.post<MasterGradeResponse>('hrms', url, requestBody);
+        console.log('🟢 [API] saveMasterGradeOrder success');
+        return response;
+    } catch (error: any) {
+        console.log('🔴 [API] saveMasterGradeOrder error:', error);
+        throw error;
+    }
 }

@@ -38,13 +38,13 @@ function EmployeeTypeTabContent({
         <div className='space-y-4'>
             <div className='flex items-center justify-between'>
                 <div>
-                    <h3 className='font-semibold text-lg'>Employee Categories Data</h3>
-                    <p className='text-muted-foreground text-sm'>View, search, and manage all employee categories in the system</p>
+                    <h3 className='font-semibold text-lg'>Employee Type Data</h3>
+                    <p className='text-muted-foreground text-sm'>View, search, and manage all employee types in the system</p>
                 </div>
                 <Button
                     type='button'
                     onClick={openAddForm}
-                    className='shadow-md transition-all duration-200 hover:scale-105 hover:shadow-lg'>
+                    className='w-fit shadow-md transition-all duration-200 hover:scale-105 hover:shadow-lg'>
                     <Plus className='h-4 w-4' />
                     Add Employee Type
                 </Button>

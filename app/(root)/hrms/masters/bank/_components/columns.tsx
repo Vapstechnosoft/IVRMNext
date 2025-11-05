@@ -12,31 +12,38 @@ import { toast } from 'sonner';
 
 export const columns: ColumnDef<BankItem>[] = [
     {
+        id: 'slNo',
+        header: () => <div className='text-center font-medium'>Sl No</div>,
+        cell: ({ row }) => <div className='text-center'>{row.index + 1}</div>,
+        enableSorting: false,
+        size: 60
+    },
+    {
         accessorKey: 'HRMBD_BankName',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Bank Name' />
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Bank Name' className='whitespace-nowrap' />
     },
     {
         accessorKey: 'HRMBD_BranchName',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Branch Name' />
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Branch Name' className='whitespace-nowrap' />
     },
     {
         accessorKey: 'HRMBD_BankAccountNo',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Account No' />
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Account No' className='whitespace-nowrap' />
     },
     {
         accessorKey: 'HRMBD_IFSCCode',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='IFSC Code' />
+        header: ({ column }) => <DataTableColumnHeader column={column} title='IFSC Code' className='whitespace-nowrap' />
     },
     {
         accessorKey: 'HRMBD_BankAddress',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Address' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Address' className='whitespace-nowrap' />,
         cell: ({ row }) => (
             <div className='max-w-[200px] overflow-hidden truncate text-ellipsis'>{row.getValue('HRMBD_BankAddress') || 'N/A'}</div>
         )
     },
     {
         id: 'actions',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Actions' className='text-start' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Actions' className='whitespace-nowrap text-start' />,
         cell: ({ row }) => <ActionButtonsCell rowData={row.original} />,
         enableSorting: false
     }
@@ -55,15 +62,43 @@ function ActionButtonsCell({ rowData }: { rowData: BankItem }) {
 
     const handleToggle = useCallback(
         async (data: BankItem, newState: boolean) => {
+            console.log('🔵 [BANK TOGGLE] handleToggle called');
+            console.log('🔵 [BANK TOGGLE] Record ID:', data.HRMBD_Id);
+            console.log('🔵 [BANK TOGGLE] Bank Name:', data.HRMBD_BankName);
+            console.log('🔵 [BANK TOGGLE] Current State:', data.HRMBD_ActiveFlag);
+            console.log('🔵 [BANK TOGGLE] New State:', newState);
+            console.log('🔵 [BANK TOGGLE] MI_Id:', HRMS_MI_ID);
+            
             try {
-                await toggleMutation.mutateAsync({
+                console.log('🟡 [BANK TOGGLE] Calling toggleMutation.mutateAsync...');
+                const result = await toggleMutation.mutateAsync({
                     HRMBD_Id: data.HRMBD_Id,
                     HRMBD_ActiveFlag: newState,
                     MI_Id: HRMS_MI_ID
                 });
-                toast.success(`Bank ${newState ? 'activated' : 'deactivated'} successfully`);
-            } catch (_error) {
-                toast.error(`Failed to ${newState ? 'activate' : 'deactivate'} bank`);
+                
+                console.log('🟢 [BANK TOGGLE] Toggle result:', result);
+                
+                if (result?.success) {
+                    const successMsg = result?.message || `Bank ${newState ? 'activated' : 'deactivated'} successfully`;
+                    console.log('✅ [BANK TOGGLE] Success! Message:', successMsg);
+                    toast.success(successMsg);
+                } else {
+                    const errorMsg = result?.message || `Failed to ${newState ? 'activate' : 'deactivate'} bank`;
+                    console.log('❌ [BANK TOGGLE] Failed. Message:', errorMsg);
+                    toast.error(errorMsg);
+                }
+            } catch (error: any) {
+                console.log('🔴 [BANK TOGGLE] Error caught');
+                console.error('🔴 [BANK TOGGLE] Error:', error);
+                console.error('🔴 [BANK TOGGLE] Error message:', error?.message);
+                
+                const errorMsg = error?.response?.data?.message 
+                    || error?.message 
+                    || `Failed to ${newState ? 'activate' : 'deactivate'} bank`;
+                
+                console.log('🔴 [BANK TOGGLE] Showing error toast:', errorMsg);
+                toast.error(errorMsg);
             }
         },
         [toggleMutation]

@@ -13,6 +13,13 @@ import ReligionCategoryMappingForm from './_components/religion-category-mapping
 export default function ReligionCategoryMappingPage() {
     const { data: response, isLoading, error } = useReligionCategoryMapping();
 
+    console.log('📊 [RELIGION-CATEGORY PAGE] Component render');
+    console.log('📊 [PAGE] isLoading:', isLoading);
+    console.log('📊 [PAGE] error:', error);
+    console.log('📊 [PAGE] response:', response);
+    console.log('📊 [PAGE] response?.data:', response?.data);
+    console.log('📊 [PAGE] response?.data?.get_masterlist:', response?.data?.get_masterlist);
+
     return (
         <FormProvider<ReligionCategoryMappingDetail>>
             <ReligionCategoryMappingPageContent response={response} isLoading={isLoading} error={error} />
@@ -30,10 +37,16 @@ function ReligionCategoryMappingPageContent({
     error: any;
 }) {
     const { openAddForm } = useFormContext<ReligionCategoryMappingDetail>();
+    
+    const tableData = response?.data?.get_masterlist ?? [];
+    console.log('📊 [PAGE CONTENT] Table data extraction');
+    console.log('📊 [PAGE] response?.data?.get_masterlist:', tableData);
+    console.log('📊 [PAGE] Table data length:', tableData.length);
+    console.log('📊 [PAGE] Table data (first 3 items):', JSON.stringify(tableData.slice(0, 3), null, 2));
 
     return (
         <div className='min-h-screen'>
-            <div className='container space-y-4 p-1'>
+            <div className='container mx-auto space-y-6 px-4 py-6 md:px-6 lg:px-8'>
                 {/* Header */}
                 <div className='flex justify-end'>
                     <Button
@@ -52,7 +65,7 @@ function ReligionCategoryMappingPageContent({
                     size='lg'
                     className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
                     <GenericDataTable<ReligionCategoryMappingDetail>
-                        data={response?.data?.get_masterlist ?? []}
+                        data={tableData}
                         columns={religionCategoryMappingColumns}
                         isLoading={isLoading}
                         error={error}

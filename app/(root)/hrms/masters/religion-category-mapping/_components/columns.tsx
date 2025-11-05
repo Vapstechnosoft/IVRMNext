@@ -12,6 +12,13 @@ import { toast } from 'sonner';
 
 export const religionCategoryMappingColumns: ColumnDef<ReligionCategoryMappingDetail>[] = [
     {
+        id: 'slNo',
+        header: () => <div className='text-center font-medium'>Sl No</div>,
+        cell: ({ row }) => <div className='text-center'>{row.index + 1}</div>,
+        enableSorting: false,
+        size: 60
+    },
+    {
         accessorKey: 'IVRMMR_Name',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Religion' />,
         cell: ({ row }) => {

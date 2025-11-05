@@ -16,6 +16,12 @@ export async function getReligionCategoryMappingList(
     }
 ) {
     const url = '/api/ReligionCategory_MappingFacade/loaddata';
+    
+    console.log('🟠 ========== RELIGION-CATEGORY ONLOAD API ==========');
+    console.log('🟠 [API] getReligionCategoryMappingList called');
+    console.log('🟠 [API] Params:', JSON.stringify(params, null, 2));
+    
+    const now = new Date().toISOString();
     const requestBody: ReligionCategoryMappingRequest = {
         IRCC_Id: params?.IRCC_Id ?? 0,
         MI_Id: 30,
@@ -25,34 +31,83 @@ export async function getReligionCategoryMappingList(
         IRCC_ActiveFlg: true,
         IRCC_CreatedBy: 0,
         IRCC_UpdatedBy: 0,
-        IRCC_CreatedDate: new Date().toISOString(),
-        IRCC_UpdatedDate: new Date().toISOString(),
-        religion_list: [],
+        IRCC_CreatedDate: now,
+        IRCC_UpdatedDate: now,
+        religion_list: [
+            {
+                CreatedDate: now,
+                UpdatedDate: now,
+                IVRMMR_Id: 0,
+                IVRMMR_Name: 'string',
+                Is_Active: true
+            }
+        ],
         get_masterlist: [],
-        caste_list: [],
+        caste_list: [
+            {
+                CreatedDate: now,
+                UpdatedDate: now,
+                IMCC_Id: 0,
+                IMCC_CategoryName: 'string',
+                IMCC_CategoryCode: 'string',
+                IMCC_CategoryDesc: 'string'
+            }
+        ],
         editlist: [],
-        returnval: false,
+        returnval: true,
         castid: [],
-        duplicate: false,
-        IVRMMR_Name: '',
-        IMCC_CategoryName: '',
-        msg: ''
+        duplicate: true,
+        IVRMMR_Name: 'string',
+        IMCC_CategoryName: 'string',
+        msg: 'string'
     };
-    const response = await api.post<ReligionCategoryMappingResponse>('hrms', url, requestBody);
     
-    // Handle case where backend returns data directly (not wrapped in ApiResponse)
-    // The backend API might return the data directly, but api.post expects ApiResponse format
-    if (response && typeof response === 'object' && 'success' in response && 'data' in response) {
-        // Already wrapped in ApiResponse format
-        return response as ApiResponse<ReligionCategoryMappingResponse>;
+    console.log('🟠 [API] Request URL:', url);
+    console.log('🟠 [API] Request Body:', JSON.stringify(requestBody, null, 2));
+    console.log('🟠 [API] Calling api.post...');
+    
+    try {
+        const response = await api.post<ReligionCategoryMappingResponse>('hrms', url, requestBody);
+        
+        console.log('🟢 ========== RELIGION-CATEGORY ONLOAD RESPONSE ==========');
+        console.log('🟢 [API] Raw response received:', JSON.stringify(response, null, 2));
+        console.log('🟢 [API] Response type:', typeof response);
+        console.log('🟢 [API] Response has "success" key:', 'success' in (response || {}));
+        console.log('🟢 [API] Response has "data" key:', 'data' in (response || {}));
+        
+        // Handle case where backend returns data directly (not wrapped in ApiResponse)
+        // The backend API might return the data directly, but api.post expects ApiResponse format
+        if (response && typeof response === 'object' && 'success' in response && 'data' in response) {
+            console.log('🟢 [API] Response is already in ApiResponse format');
+            console.log('🟢 [API] response.data:', response.data);
+            console.log('🟢 [API] response.data.get_masterlist:', (response.data as any)?.get_masterlist);
+            console.log('🟢 [API] response.data.get_masterlist length:', (response.data as any)?.get_masterlist?.length || 0);
+            // Already wrapped in ApiResponse format
+            return response as ApiResponse<ReligionCategoryMappingResponse>;
+        }
+        
+        console.log('🟢 [API] Response is raw data - wrapping in ApiResponse format');
+        console.log('🟢 [API] response.get_masterlist:', (response as any)?.get_masterlist);
+        console.log('🟢 [API] response.get_masterlist length:', (response as any)?.get_masterlist?.length || 0);
+        console.log('🟢 [API] response.religion_list:', (response as any)?.religion_list);
+        console.log('🟢 [API] response.caste_list:', (response as any)?.caste_list);
+        
+        // Wrap raw response data if backend returns it directly
+        const wrappedResponse = {
+            success: true,
+            message: 'Data loaded successfully',
+            data: response as unknown as ReligionCategoryMappingResponse
+        } as ApiResponse<ReligionCategoryMappingResponse>;
+        
+        console.log('🟢 [API] Wrapped response:', JSON.stringify(wrappedResponse, null, 2));
+        console.log('🟢 ========== RELIGION-CATEGORY ONLOAD END ==========');
+        
+        return wrappedResponse;
+    } catch (error: any) {
+        console.log('🔴 [API] Error occurred');
+        console.error('🔴 [API] Error:', error);
+        throw error;
     }
-    
-    // Wrap raw response data if backend returns it directly
-    return {
-        success: true,
-        message: 'Data loaded successfully',
-        data: response as unknown as ReligionCategoryMappingResponse
-    } as ApiResponse<ReligionCategoryMappingResponse>;
 }
 
 /**

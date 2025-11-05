@@ -1,9 +1,10 @@
 export interface MasterBankResponse {
-    success: boolean;
-    message: string;
-    data: {
+    success?: boolean;
+    message?: string;
+    data?: {
         bankdetailList: BankItem[];
     };
+    bankdetailList?: BankItem[];
     retrunMsg?: string;
 }
 

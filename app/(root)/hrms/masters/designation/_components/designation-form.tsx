@@ -3,8 +3,8 @@
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { FormError, Label } from '@/components/ui/extension/field';
+import { InputNumber } from '@/components/ui/extension/input-number';
 import { InputText } from '@/components/ui/extension/input-text';
-import { Input } from '@/components/ui/input';
 import { HRMS_MI_ID } from '@/constants/hrms-config';
 import { useMasterDesignation } from '@/hooks/hrms/useMasters';
 import { designationSchema } from '@/schemas/hrms/employee-category-schemas';
@@ -51,6 +51,8 @@ export default function DesignationForm({ selectedRow, onSuccess, className = ''
 
     useEffect(() => {
         if (selectedRow) {
+            console.log('📝 [DESIGNATION FORM] Edit mode - Loading selectedRow:', JSON.stringify(selectedRow, null, 2));
+            console.log('📝 [DESIGNATION FORM] Order value from selectedRow:', selectedRow.HRMDES_Order);
             reset({
                 HRMDES_Id: selectedRow.HRMDES_Id,
                 MI_Id: selectedRow.MI_Id,
@@ -61,12 +63,22 @@ export default function DesignationForm({ selectedRow, onSuccess, className = ''
                 HRMDES_Order: selectedRow.HRMDES_Order,
                 HRMDES_ActiveFlag: selectedRow.HRMDES_ActiveFlag
             });
+            console.log('📝 [DESIGNATION FORM] Form reset with edit data, order:', selectedRow.HRMDES_Order);
+        } else {
+            console.log('📝 [DESIGNATION FORM] Add mode - No selectedRow');
         }
     }, [selectedRow, reset]);
 
     const onSubmit: SubmitHandler<FormFields> = async (data) => {
+        console.log('🔵 ========== DESIGNATION FORM SUBMIT ==========');
+        console.log('🔵 [FORM] Designation submit - Data:', JSON.stringify(data, null, 2));
+        console.log('🔵 [FORM] Is Edit Mode:', isEditMode);
+        console.log('🔵 [FORM] Order value in data:', data.HRMDES_Order);
+        console.log('🔵 [FORM] HRMDES_Id:', data.HRMDES_Id);
+        
         try {
             const response = await saveMutation.mutateAsync(data);
+            console.log('🟢 [FORM] Designation response:', JSON.stringify(response, null, 2));
 
             if (response?.success) {
                 toast.success(response.message || (isEditMode ? 'Designation updated successfully' : 'Designation saved successfully'));
@@ -74,11 +86,15 @@ export default function DesignationForm({ selectedRow, onSuccess, className = ''
                 refetchAll();
                 onSuccess?.();
             } else {
+                console.log('❌ [FORM] Designation failed:', response?.message);
                 toast.error(response?.message || (isEditMode ? 'Failed to update designation' : 'Failed to save designation'));
             }
         } catch (error: any) {
+            console.log('🔴 [FORM] Designation error:', error);
             toast.error(error.message || 'An error occurred');
         }
+        
+        console.log('🔵 ========== DESIGNATION FORM SUBMIT END ==========');
     };
 
     const handleReset = () => {
@@ -99,25 +115,50 @@ export default function DesignationForm({ selectedRow, onSuccess, className = ''
                             error={errors.HRMDES_DesignationName?.message}
                             className='transition-colors focus:ring-2 focus:ring-primary/20'
                         />
-                        <Input
-                            type='number'
-                            id='HRMDES_BasicAmount'
-                            {...register('HRMDES_BasicAmount', { valueAsNumber: true })}
-                            className='transition-colors focus:ring-2 focus:ring-primary/20'
+                        <Controller
+                            name='HRMDES_BasicAmount'
+                            control={control}
+                            render={({ field }) => (
+                                <InputNumber
+                                    label='Basic Amount'
+                                    id='HRMDES_BasicAmount'
+                                    value={field.value}
+                                    onChange={field.onChange}
+                                    error={errors.HRMDES_BasicAmount?.message}
+                                    className='transition-colors focus:ring-2 focus:ring-primary/20'
+                                />
+                            )}
                         />
-                        <Input
-                            type='number'
-                            id='HRMDES_SanctionedSeats'
-                            placeholder='Enter sanctioned seats'
-                            {...register('HRMDES_SanctionedSeats', { valueAsNumber: true })}
-                            className='transition-colors focus:ring-2 focus:ring-primary/20'
+                        <Controller
+                            name='HRMDES_SanctionedSeats'
+                            control={control}
+                            render={({ field }) => (
+                                <InputNumber
+                                    label='Sanctioned Seats'
+                                    id='HRMDES_SanctionedSeats'
+                                    value={field.value}
+                                    onChange={field.onChange}
+                                    error={errors.HRMDES_SanctionedSeats?.message}
+                                    className='transition-colors focus:ring-2 focus:ring-primary/20'
+                                />
+                            )}
                         />
-                        <Input
-                            type='number'
-                            id='HRMDES_Order'
-                            placeholder='Enter order'
-                            {...register('HRMDES_Order', { valueAsNumber: true })}
-                            className='transition-colors focus:ring-2 focus:ring-primary/20'
+                        <Controller
+                            name='HRMDES_Order'
+                            control={control}
+                            render={({ field }) => (
+                                <InputNumber
+                                    label='Order'
+                                    id='HRMDES_Order'
+                                    value={field.value}
+                                    onChange={(value) => {
+                                        console.log('📝 [DESIGNATION FORM] Order field changed to:', value);
+                                        field.onChange(value);
+                                    }}
+                                    error={errors.HRMDES_Order?.message}
+                                    className='transition-colors focus:ring-2 focus:ring-primary/20'
+                                />
+                            )}
                         />
                         <div className='flex items-center space-x-2'>
                             <Controller

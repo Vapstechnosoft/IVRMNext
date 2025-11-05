@@ -13,26 +13,37 @@ import { toast } from 'sonner';
 
 export const columns: ColumnDef<LeaveYearDetail>[] = [
     {
+        id: 'slNo',
+        header: () => <div className='text-center font-medium'>Sl No</div>,
+        cell: ({ row }) => <div className='text-center'>{row.index + 1}</div>,
+        enableSorting: false,
+        size: 60
+    },
+    {
         accessorKey: 'HRMLY_LeaveYear',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Leave Year' />
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Leave Year' className='whitespace-nowrap' />
     },
     {
         accessorKey: 'HRMLY_FromDate',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='From Date' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='From Date' className='whitespace-nowrap' />,
         cell: ({ row }) => new Date(row.getValue('HRMLY_FromDate')).toLocaleDateString()
     },
     {
         accessorKey: 'HRMLY_ToDate',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='To Date' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='To Date' className='whitespace-nowrap' />,
         cell: ({ row }) => new Date(row.getValue('HRMLY_ToDate')).toLocaleDateString()
     },
     {
         accessorKey: 'HRMLY_LeaveYearOrder',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Order' />
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Order' className='whitespace-nowrap' />,
+        cell: ({ row }) => {
+            const orderValue = row.original.HRMLY_LeaveYearOrder;
+            return <div>{orderValue ?? '-'}</div>;
+        }
     },
     {
         id: 'actions',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Actions' className='text-start' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Actions' className='whitespace-nowrap text-start' />,
         cell: ({ row }) => <ActionButtonsCell rowData={row.original} />,
         enableSorting: false
     }
@@ -78,27 +89,37 @@ function ActionButtonsCell({ rowData }: { rowData: LeaveYearDetail }) {
 export function getEditableColumns(onOrderChange: (rowId: number, newOrder: number) => void): ColumnDef<LeaveYearDetail>[] {
     return [
         {
+            id: 'slNo',
+            header: () => <div className='text-center font-medium'>Sl No</div>,
+            cell: ({ row }) => <div className='text-center'>{row.index + 1}</div>,
+            enableSorting: false,
+            size: 60
+        },
+        {
             accessorKey: 'HRMLY_LeaveYear',
-            header: ({ column }) => <DataTableColumnHeader column={column} title='Leave Year' />
+            header: ({ column }) => <DataTableColumnHeader column={column} title='Leave Year' className='whitespace-nowrap' />
         },
         {
             accessorKey: 'HRMLY_FromDate',
-            header: ({ column }) => <DataTableColumnHeader column={column} title='From Date' />,
+            header: ({ column }) => <DataTableColumnHeader column={column} title='From Date' className='whitespace-nowrap' />,
             cell: ({ row }) => new Date(row.getValue('HRMLY_FromDate')).toLocaleDateString()
         },
         {
             accessorKey: 'HRMLY_ToDate',
-            header: ({ column }) => <DataTableColumnHeader column={column} title='To Date' />,
+            header: ({ column }) => <DataTableColumnHeader column={column} title='To Date' className='whitespace-nowrap' />,
             cell: ({ row }) => new Date(row.getValue('HRMLY_ToDate')).toLocaleDateString()
         },
         {
             accessorKey: 'HRMLY_LeaveYearOrder',
-            header: ({ column }) => <DataTableColumnHeader column={column} title='Order' />,
+            header: ({ column }) => <DataTableColumnHeader column={column} title='Order' className='whitespace-nowrap' />,
             cell: ({ row }) => (
                 <Input
                     type='number'
-                    value={row.original.HRMLY_LeaveYearOrder}
-                    onChange={(e) => onOrderChange(row.original.HRMLY_Id, Number.parseInt(e.target.value) || 0)}
+                    value={row.original.HRMLY_LeaveYearOrder ?? 0}
+                    onChange={(e) => {
+                        const newValue = Number.parseInt(e.target.value) || 0;
+                        onOrderChange(row.original.HRMLY_Id, newValue);
+                    }}
                     className='w-20'
                     min='0'
                 />

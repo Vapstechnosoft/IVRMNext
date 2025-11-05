@@ -33,7 +33,7 @@ export default function DepartmentForm({ selectedRow, onSuccess, className = '' 
         handleSubmit,
         reset,
         control,
-        formState: { errors, isSubmitting }
+        formState: { errors, isSubmitting, isDirty }
     } = useForm<FormFields>({
         resolver: zodResolver(departmentSchema.addOrUpdate),
         mode: 'onChange',
@@ -48,6 +48,7 @@ export default function DepartmentForm({ selectedRow, onSuccess, className = '' 
 
     useEffect(() => {
         if (selectedRow) {
+            console.log('📝 [DEPARTMENT FORM] Edit mode - Loading selectedRow:', selectedRow);
             reset({
                 HRMD_Id: selectedRow.HRMD_Id,
                 MI_Id: selectedRow.MI_Id,
@@ -55,16 +56,25 @@ export default function DepartmentForm({ selectedRow, onSuccess, className = '' 
                 HRMD_Order: selectedRow.HRMD_Order,
                 HRMD_InternalTrainingMinimumHrs: selectedRow.HRMD_InternalTrainingMinimumHrs,
                 HRMD_ActiveFlag: selectedRow.HRMD_ActiveFlag
-            });
+            }, { keepDefaultValues: false });  // Reset default values to mark form as clean
+            console.log('📝 [DEPARTMENT FORM] Form reset complete');
         }
     }, [selectedRow, reset]);
 
+    console.log('📝 [DEPARTMENT FORM] Render - isDirty:', isDirty, 'isEditMode:', isEditMode, 'isSubmitting:', isSubmitting);
+    if (isEditMode) {
+        console.log('📝 [DEPARTMENT FORM] Update button disabled?', isSubmitting || (isEditMode && !isDirty));
+    }
+
     const onSubmit: SubmitHandler<FormFields> = async (data) => {
+        console.log('🔵 [FORM] Department submit - Data:', data);
+        console.log('🔵 [FORM] isDirty at submit:', isDirty);
         try {
             const response = await saveMutation.mutateAsync({
                 ...data,
                 HRMD_InternalTrainingMinimumHrs: data.HRMD_InternalTrainingMinimumHrs ?? 0
             });
+            console.log('🟢 [FORM] Department response:', response);
 
             if (response?.success) {
                 toast.success(response.message || (isEditMode ? 'Department updated successfully' : 'Department saved successfully'));
@@ -72,9 +82,11 @@ export default function DepartmentForm({ selectedRow, onSuccess, className = '' 
                 refetchAll();
                 onSuccess?.();
             } else {
+                console.log('❌ [FORM] Department failed:', response?.message);
                 toast.error(response?.message || (isEditMode ? 'Failed to update department' : 'Failed to save department'));
             }
         } catch (error: any) {
+            console.log('🔴 [FORM] Department error:', error);
             toast.error(error.message || 'An error occurred');
         }
     };
@@ -105,7 +117,10 @@ export default function DepartmentForm({ selectedRow, onSuccess, className = '' 
                                     label='Order'
                                     id='HRMD_Order'
                                     value={field.value}
-                                    onChange={field.onChange}
+                                    onChange={(value) => {
+                                        console.log('📝 [DEPARTMENT FORM] Order field changed to:', value);
+                                        field.onChange(value);
+                                    }}
                                     error={errors.HRMD_Order?.message}
                                     className='transition-colors focus:ring-2 focus:ring-primary/20'
                                 />
@@ -119,7 +134,10 @@ export default function DepartmentForm({ selectedRow, onSuccess, className = '' 
                                     label='Internal Training Min. Hours'
                                     id='HRMD_InternalTrainingMinimumHrs'
                                     value={field.value}
-                                    onChange={field.onChange}
+                                    onChange={(value) => {
+                                        console.log('📝 [DEPARTMENT FORM] Training hours field changed to:', value);
+                                        field.onChange(value);
+                                    }}
                                     error={errors.HRMD_InternalTrainingMinimumHrs?.message}
                                     className='transition-colors focus:ring-2 focus:ring-primary/20'
                                 />
@@ -141,7 +159,7 @@ export default function DepartmentForm({ selectedRow, onSuccess, className = '' 
                     </Button>
                     <Button
                         type='submit'
-                        disabled={isSubmitting}
+                        disabled={isSubmitting || (isEditMode && !isDirty)}
                         className='order-1 w-fit transition-all duration-200 hover:scale-105 sm:order-2'
                         isLoading={isSubmitting}
                         loadingText={isEditMode ? 'Updating...' : 'Saving...'}>
@@ -150,6 +168,11 @@ export default function DepartmentForm({ selectedRow, onSuccess, className = '' 
                             {isEditMode ? 'Update Department' : 'Save Department'}
                         </div>
                     </Button>
+                    {isEditMode && !isDirty && (
+                        <span className='order-3 flex items-center text-sm text-muted-foreground sm:order-3'>
+                            No changes made
+                        </span>
+                    )}
                 </div>
             </form>
         </div>

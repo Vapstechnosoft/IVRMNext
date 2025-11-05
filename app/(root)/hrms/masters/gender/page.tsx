@@ -40,7 +40,7 @@ function MasterGenderPageContent({
 
     return (
         <div className='min-h-screen'>
-            <div className='container space-y-4 p-1'>
+            <div className='container mx-auto space-y-6 px-4 py-6 md:px-6 lg:px-8'>
                 <div className='flex justify-end'>
                     <Button
                         type='button'

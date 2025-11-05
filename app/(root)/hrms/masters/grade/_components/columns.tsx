@@ -13,24 +13,43 @@ import { toast } from 'sonner';
 
 export const columns: ColumnDef<GradeDetail>[] = [
     {
+        id: 'slNo',
+        header: () => <div className='text-center font-medium'>Sl No</div>,
+        cell: ({ row }) => <div className='text-center'>{row.index + 1}</div>,
+        enableSorting: false,
+        size: 60
+    },
+    {
         accessorKey: 'HRMG_GradeName',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Grade Name' />
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Grade Name' className='whitespace-nowrap' />
     },
     {
         accessorKey: 'HRMG_GradeDisplayName',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Display Name' />
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Grade Display Name' className='whitespace-nowrap' />
+    },
+    {
+        accessorKey: 'HRMG_PayScaleFrom',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Pay Scale From' className='whitespace-nowrap' />
+    },
+    {
+        accessorKey: 'HRMG_IncrementOf',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Increment Of' className='whitespace-nowrap' />
+    },
+    {
+        accessorKey: 'HRMG_PayScaleTo',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Pay Scale To' className='whitespace-nowrap' />
     },
     {
         accessorKey: 'HRMG_PayScaleRange',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Pay Scale Range' />
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Pay Scale Range' className='whitespace-nowrap' />
     },
     {
         accessorKey: 'HRMG_Order',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Order' />
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Order' className='whitespace-nowrap' />
     },
     {
         id: 'actions',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Actions' className='text-start' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Actions' className='text-start whitespace-nowrap' />,
         cell: ({ row }) => <ActionButtonsCell rowData={row.original} />,
         enableSorting: false
     }
@@ -49,13 +68,35 @@ function ActionButtonsCell({ rowData }: { rowData: GradeDetail }) {
 
     const handleToggle = useCallback(
         async (data: GradeDetail, newState: boolean) => {
+            console.log('🔵 [GRADE COLUMNS] handleToggle called:', { 
+                HRMG_Id: data.HRMG_Id, 
+                currentState: data.HRMG_ActiveFlag, 
+                newState 
+            });
+            
             try {
-                await toggleMutation.mutateAsync({
+                const result = await toggleMutation.mutateAsync({
                     HRMG_Id: data.HRMG_Id,
                     HRMG_ActiveFlag: newState
                 });
+                
+                console.log('🟢 [GRADE COLUMNS] Toggle result:', result);
+                
+                // Check if grade is mapped/in use
+                if (result && typeof result === 'object' && 'retrunMsg' in result) {
+                    const retrunMsg = (result as any).retrunMsg;
+                    console.log('📝 [GRADE COLUMNS] retrunMsg:', retrunMsg);
+                    
+                    if (retrunMsg === 'Mapped') {
+                        console.log('⚠️ [GRADE COLUMNS] Grade is mapped/in use');
+                        toast.error('Cannot deactivate - Grade is currently assigned/in use');
+                        return;
+                    }
+                }
+                
                 toast.success(`Grade ${newState ? 'activated' : 'deactivated'} successfully`);
-            } catch (_error) {
+            } catch (error: any) {
+                console.log('🔴 [GRADE COLUMNS] Toggle error:', error);
                 toast.error(`Failed to ${newState ? 'activate' : 'deactivate'} grade`);
             }
         },
@@ -76,20 +117,39 @@ function ActionButtonsCell({ rowData }: { rowData: GradeDetail }) {
 export function getEditableColumns(onOrderChange: (rowId: number, newOrder: number) => void): ColumnDef<GradeDetail>[] {
     return [
         {
+            id: 'slNo',
+            header: () => <div className='text-center font-medium'>Sl No</div>,
+            cell: ({ row }) => <div className='text-center'>{row.index + 1}</div>,
+            enableSorting: false,
+            size: 60
+        },
+        {
             accessorKey: 'HRMG_GradeName',
-            header: ({ column }) => <DataTableColumnHeader column={column} title='Grade Name' />
+            header: ({ column }) => <DataTableColumnHeader column={column} title='Grade Name' className='whitespace-nowrap' />
         },
         {
             accessorKey: 'HRMG_GradeDisplayName',
-            header: ({ column }) => <DataTableColumnHeader column={column} title='Display Name' />
+            header: ({ column }) => <DataTableColumnHeader column={column} title='Grade Display Name' className='whitespace-nowrap' />
+        },
+        {
+            accessorKey: 'HRMG_PayScaleFrom',
+            header: ({ column }) => <DataTableColumnHeader column={column} title='Pay Scale From' className='whitespace-nowrap' />
+        },
+        {
+            accessorKey: 'HRMG_IncrementOf',
+            header: ({ column }) => <DataTableColumnHeader column={column} title='Increment Of' className='whitespace-nowrap' />
+        },
+        {
+            accessorKey: 'HRMG_PayScaleTo',
+            header: ({ column }) => <DataTableColumnHeader column={column} title='Pay Scale To' className='whitespace-nowrap' />
         },
         {
             accessorKey: 'HRMG_PayScaleRange',
-            header: ({ column }) => <DataTableColumnHeader column={column} title='Pay Scale Range' />
+            header: ({ column }) => <DataTableColumnHeader column={column} title='Pay Scale Range' className='whitespace-nowrap' />
         },
         {
             accessorKey: 'HRMG_Order',
-            header: ({ column }) => <DataTableColumnHeader column={column} title='Order' />,
+            header: ({ column }) => <DataTableColumnHeader column={column} title='Order' className='whitespace-nowrap' />,
             cell: ({ row }) => (
                 <Input
                     type='number'

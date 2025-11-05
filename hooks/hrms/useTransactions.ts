@@ -441,7 +441,9 @@ export function useDeleteSalaryIncrement() {
 // ============================================================================
 
 export function useSalaryUpdationList(payload: SalaryUpdationOnloadRequest) {
-    return useQuery<SalaryUpdationOnloadResponse, Error>({
+    const queryClient = useQueryClient();
+
+    const listQuery = useQuery<SalaryUpdationOnloadResponse, Error>({
         queryKey: [HRMS_QUERY_KEYS.SALARY_UPDATION_ONLOAD, payload],
         queryFn: () =>
             getSalaryUpdationList(payload.roleId).then((res) => {
@@ -453,11 +455,58 @@ export function useSalaryUpdationList(payload: SalaryUpdationOnloadRequest) {
         staleTime: 1000 * 60 * 5,
         enabled: !!payload.roleId
     });
+
+    const saveMutation = useMutation<SalaryUpdationSaveResponse, Error, SalaryUpdationSaveRequest>({
+        mutationFn: (data: SalaryUpdationSaveRequest) =>
+            saveSalaryUpdation(data).then((res) => {
+                if (!res.success) {
+                    throw new Error(res.message);
+                }
+                return res.data!;
+            }),
+        onSuccess: (data, variables) => {
+            toast.success(
+                data.retrunMsg ||
+                    (variables.HRESU_Id === 0 ? 'Salary updation created successfully!' : 'Salary updation updated successfully!')
+            );
+            queryClient.invalidateQueries({
+                queryKey: [HRMS_QUERY_KEYS.SALARY_UPDATION_ONLOAD]
+            });
+        },
+        onError: (error) => {
+            toast.error(error.message || 'Failed to save salary updation.');
+        }
+    });
+
+    const deleteMutation = useMutation<any, Error, SalaryUpdationDeleteRequest>({
+        mutationFn: (data: SalaryUpdationDeleteRequest) =>
+            deleteSalaryUpdation(data).then((res) => {
+                if (!res.success) {
+                    throw new Error(res.message);
+                }
+                return res.data;
+            }),
+        onSuccess: () => {
+            toast.success('Salary updation deleted successfully!');
+            queryClient.invalidateQueries({
+                queryKey: [HRMS_QUERY_KEYS.SALARY_UPDATION_ONLOAD]
+            });
+        },
+        onError: (error) => {
+            toast.error(error.message || 'Failed to delete salary updation.');
+        }
+    });
+
+    return {
+        listQuery,
+        saveMutation,
+        deleteMutation
+    };
 }
 
+// Legacy exports for backwards compatibility
 export function useSaveSalaryUpdation() {
     const queryClient = useQueryClient();
-
     return useMutation<SalaryUpdationSaveResponse, Error, SalaryUpdationSaveRequest>({
         mutationFn: (data: SalaryUpdationSaveRequest) =>
             saveSalaryUpdation(data).then((res) => {
@@ -483,7 +532,6 @@ export function useSaveSalaryUpdation() {
 
 export function useDeleteSalaryUpdation() {
     const queryClient = useQueryClient();
-
     return useMutation<any, Error, SalaryUpdationDeleteRequest>({
         mutationFn: (data: SalaryUpdationDeleteRequest) =>
             deleteSalaryUpdation(data).then((res) => {

@@ -7,13 +7,19 @@ import { FormProvider, useFormContext } from '@/components/ui/form/form-provider
 import { HRMS_MI_ID } from '@/constants/hrms-config';
 import { useMasterGroupType } from '@/hooks/hrms/useMasters';
 import type { GroupTypeDetail } from '@/types/hrms/master-group-type';
-import { Plus, X } from 'lucide-react';
-import { columns } from '../../group-type/_components/columns';
+import { ListOrdered, Plus, Save, X } from 'lucide-react';
+import { useState } from 'react';
+import { toast } from 'sonner';
+import { columns, getEditableColumns } from '../../group-type/_components/columns';
 import GroupTypeForm from '../../group-type/_components/group-type-form';
 
 export default function GroupTypeTab() {
     const roleId = HRMS_MI_ID;
     const { listQuery } = useMasterGroupType(roleId);
+
+    console.log('📊 [GROUP TYPE TAB] Main component - isLoading:', listQuery.isLoading);
+    console.log('📊 [GROUP TYPE TAB] Main component - isFetching:', listQuery.isFetching);
+    console.log('📊 [GROUP TYPE TAB] Main component - dataUpdatedAt:', listQuery.dataUpdatedAt);
 
     return (
         <FormProvider<GroupTypeDetail>>
@@ -32,7 +38,58 @@ function GroupTypeTabContent({
     error: any;
 }) {
     const { openAddForm } = useFormContext<GroupTypeDetail>();
+    const { saveOrderMutation } = useMasterGroupType(HRMS_MI_ID);
     const rows: GroupTypeDetail[] = response?.grouptypeList ?? [];
+
+    console.log('📊 [GROUP TYPE TAB] Component render - rows count:', rows.length);
+    console.log('📊 [GROUP TYPE TAB] Sample row orders:', rows.slice(0, 3).map(r => `ID=${r.HRMGT_Id}, Order=${r.HRMGT_Order}`));
+
+    const [isEditOrderMode, setIsEditOrderMode] = useState(false);
+    const [editedRows, setEditedRows] = useState<GroupTypeDetail[]>([]);
+
+    const handleSetOrder = () => {
+        console.log('🔵 [ORDER] Set Order button clicked');
+        console.log('🔵 [ORDER] Current rows count:', rows.length);
+        setIsEditOrderMode(true);
+        setEditedRows([...rows]);
+    };
+
+    const handleCancelOrder = () => {
+        console.log('🔵 [ORDER] Cancel Order clicked');
+        setIsEditOrderMode(false);
+        setEditedRows([]);
+    };
+
+    const handleSaveOrder = async () => {
+        console.log('🔵 [ORDER] ========== SAVE ORDER ==========');
+        console.log('🔵 [ORDER] Edited rows to save:', JSON.stringify(editedRows, null, 2));
+        console.log('🔵 [ORDER] Number of rows:', editedRows.length);
+        
+        try {
+            console.log('🟡 [ORDER] Calling saveOrderMutation.mutateAsync...');
+            await saveOrderMutation.mutateAsync(editedRows);
+            console.log('🟢 [ORDER] Save order successful');
+            toast.success('Order saved successfully');
+            setIsEditOrderMode(false);
+            setEditedRows([]);
+        } catch (error) {
+            console.log('🔴 [ORDER] Error saving order:', error);
+            toast.error('Failed to save order');
+        }
+        console.log('🔵 [ORDER] ========== SAVE ORDER END ==========');
+    };
+
+    const handleOrderChange = (rowId: number, newOrder: number) => {
+        console.log('🔵 [ORDER] Order changed - Row ID:', rowId, 'New Order:', newOrder);
+        setEditedRows((prev) => {
+            const updated = prev.map((row) => (row.HRMGT_Id === rowId ? { ...row, HRMGT_Order: newOrder } : row));
+            console.log('🔵 [ORDER] Updated row:', updated.find(r => r.HRMGT_Id === rowId));
+            return updated;
+        });
+    };
+
+    const displayColumns = isEditOrderMode ? getEditableColumns(handleOrderChange) : columns;
+    const displayData = isEditOrderMode ? editedRows : rows;
 
     return (
         <div className='space-y-4'>
@@ -41,13 +98,46 @@ function GroupTypeTabContent({
                     <h3 className='font-semibold text-lg'>Group Type Data</h3>
                     <p className='text-muted-foreground text-sm'>View, search, and manage all group types in the system</p>
                 </div>
-                <Button
-                    type='button'
-                    onClick={openAddForm}
-                    className='shadow-md transition-all duration-200 hover:scale-105 hover:shadow-lg'>
-                    <Plus className='h-4 w-4' />
-                    Add Group Type
-                </Button>
+                <div className='flex gap-2'>
+                    {isEditOrderMode ? (
+                        <>
+                            <Button
+                                type='button'
+                                onClick={handleCancelOrder}
+                                variant='outline'
+                                className='w-fit shadow-md transition-all duration-200 hover:scale-105 hover:shadow-lg'>
+                                <X className='h-4 w-4' />
+                                Cancel
+                            </Button>
+                            <Button
+                                type='button'
+                                onClick={handleSaveOrder}
+                                disabled={saveOrderMutation.isPending}
+                                className='w-fit shadow-md transition-all duration-200 hover:scale-105 hover:shadow-lg'>
+                                <Save className='h-4 w-4' />
+                                {saveOrderMutation.isPending ? 'Saving...' : 'Save Order'}
+                            </Button>
+                        </>
+                    ) : (
+                        <>
+                            <Button
+                                type='button'
+                                onClick={handleSetOrder}
+                                variant='outline'
+                                className='w-fit shadow-md transition-all duration-200 hover:scale-105 hover:shadow-lg'>
+                                <ListOrdered className='h-4 w-4' />
+                                Set Order
+                            </Button>
+                            <Button
+                                type='button'
+                                onClick={openAddForm}
+                                className='w-fit shadow-md transition-all duration-200 hover:scale-105 hover:shadow-lg'>
+                                <Plus className='h-4 w-4' />
+                                Add Group Type
+                            </Button>
+                        </>
+                    )}
+                </div>
             </div>
 
             <CollapsibleSection
@@ -56,9 +146,9 @@ function GroupTypeTabContent({
                 size='lg'
                 className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
                 <GenericDataTable<GroupTypeDetail>
-                    data={rows}
-                    totalItems={rows.length}
-                    columns={columns}
+                    data={displayData}
+                    totalItems={displayData.length}
+                    columns={displayColumns}
                     isLoading={isLoading}
                     error={error}
                     columnPinning={{ right: ['actions'] }}

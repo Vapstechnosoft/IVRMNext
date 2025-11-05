@@ -1,102 +1,58 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
-import { Checkbox } from '@/components/ui/checkbox';
-import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
-import { DataTable } from '@/components/ui/data-table/data-table';
-import { Label } from '@/components/ui/extension/field';
+import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/generic-data-table';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
+import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
+import { Label } from '@/components/ui/extension/field';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { getCumulativeSalaryReportOnload } from '@/server/hrms/hrmsConfig/reports/cumulative-salary-report';
-import type {
-    DepartmentDropdown,
-    DesignationDropdown,
-    GroupTypeDropdown,
-    LeaveYearDropdown,
-    MonthDropdown
-} from '@/types/hrms/reports/cumulative-salary-report';
-import type { ColumnDef } from '@tanstack/react-table';
+import { HRMS_MI_ID } from '@/constants/hrms-config';
+import { useSalaryUpdationList } from '@/hooks/hrms/useTransactions';
+import type { SalaryUpdationItem } from '@/types/hrms/salary-updation';
 import { RefreshCw, X } from 'lucide-react';
-import { useEffect, useMemo, useState } from 'react';
-import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
+import { useEffect, useState } from 'react';
+import { Controller, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
+import { salaryUpdationColumns } from './_components/columns';
 
-// Minimal type for earning/deduction heads from onload API
-type EarningDeductionDetail = { hrmeD_Name: string; [key: string]: any };
+type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 
-interface Employee {
-    hrmE_Id: number;
-    hrmE_EmployeeCode: string;
-    hrmE_EmployeeFirstName: string;
-    hrmE_EmployeeMiddleName?: string;
-    hrmE_EmployeeLastName?: string;
-    hrmgT_Id: number;
-    hrmD_Id: number;
-    hrmdeS_Id: number;
-    hrmD_DepartmentName?: string;
-    hrmdeS_DesignationName?: string;
-    hrmgT_EmployeeGroupType?: string;
-    [key: string]: any;
+export default function SalaryUpdationPage(_props: { searchParams: SearchParams }) {
+    const { listQuery } = useSalaryUpdationList({ roleId: HRMS_MI_ID });
+
+    return (
+        <FormProvider<SalaryUpdationItem>>
+            <SalaryUpdationPageContent 
+                response={listQuery.data} 
+                isLoading={listQuery.isLoading} 
+                error={listQuery.error} 
+            />
+        </FormProvider>
+    );
 }
 
-interface SearchForm {
-    groupType: string;
-    department: string;
-    designation: string;
-    year?: string;
-    month?: string;
-    earningDeduction: string;
-    amountType: string;
-    heads: string;
-}
-
-export default function SalaryUpdationPage() {
-    const [employees, setEmployees] = useState<Employee[]>([]);
-    const [filteredEmployees, setFilteredEmployees] = useState<Employee[]>([]);
-    const [selectedEmployees, setSelectedEmployees] = useState<number[]>([]);
-    const [isLoading, setIsLoading] = useState(true);
+function SalaryUpdationPageContent({
+    response,
+    isLoading,
+    error
+}: {
+    response: any;
+    isLoading: boolean;
+    error: any;
+}) {
     const [hasSearched, setHasSearched] = useState(false);
-    const [groupTypes, setGroupTypes] = useState<GroupTypeDropdown[]>([]);
-    const [departments, setDepartments] = useState<DepartmentDropdown[]>([]);
-    const [designations, setDesignations] = useState<DesignationDropdown[]>([]);
-    const [availableHeads, setAvailableHeads] = useState<EarningDeductionDetail[]>([]);
-    const [selectedHeads, setSelectedHeads] = useState<string[]>([]);
-    const [monthOptions, setMonthOptions] = useState<MonthDropdown[]>([]);
-    const [leaveYearOptions, setLeaveYearOptions] = useState<LeaveYearDropdown[]>([]);
+    const [filteredEmployees, setFilteredEmployees] = useState<SalaryUpdationItem[]>([]);
+    const [selectedEmployees, setSelectedEmployees] = useState<number[]>([]);
+    
+    const groupTypes = response?.groupTypedropdownlist || [];
+    const departments = response?.departmentdropdownlist || [];
+    const designations = response?.designationdropdownlist || [];
+    const employees = response?.employeedropdown || [];
+    const earningHeads = response?.earningdeductiondetails || [];
+    const monthOptions = response?.monthdropdown || [];
+    const leaveYearOptions = response?.leaveyeardropdown || [];
 
-    // Handle service worker errors specifically for this HRMS module
-    useEffect(() => {
-        if (typeof window === 'undefined') return;
-
-        const handleUnhandledRejection = (event: PromiseRejectionEvent) => {
-            const error = event.reason;
-            const errorMessage = error?.message || String(error || '');
-            const errorStack = error?.stack || '';
-
-            // Check if this is the _ref error from service worker
-            if (
-                errorMessage.includes('_ref is not defined') ||
-                errorMessage.includes('ReferenceError: _ref') ||
-                errorStack.includes('sw.js') ||
-                errorStack.includes('cacheWillUpdate')
-            ) {
-                // Prevent the error from crashing the HRMS module
-                event.preventDefault();
-                // Silently handle - don't show error to user as it's a service worker issue
-                return true;
-            }
-            return false;
-        };
-
-        window.addEventListener('unhandledrejection', handleUnhandledRejection);
-
-        return () => {
-            window.removeEventListener('unhandledrejection', handleUnhandledRejection);
-        };
-    }, []);
-
-    const { register, handleSubmit, reset, watch, control } = useForm<SearchForm>({
-        mode: 'onChange',
+    const { control, handleSubmit, reset, watch } = useForm({
         defaultValues: {
             groupType: 'All',
             department: 'All',
@@ -112,11 +68,6 @@ export default function SalaryUpdationPage() {
     const watchedGroupType = watch('groupType');
     const watchedDepartment = watch('department');
     const watchedDesignation = watch('designation');
-    const watchedHeads = watch('heads');
-
-    useEffect(() => {
-        loadData();
-    }, []);
 
     useEffect(() => {
         if (hasSearched) {
@@ -124,151 +75,49 @@ export default function SalaryUpdationPage() {
         }
     }, [watchedGroupType, watchedDepartment, watchedDesignation, employees, hasSearched]);
 
-    useEffect(() => {
-        if (watchedHeads === 'All') {
-            const allHeadNames = availableHeads.map((head) => head.hrmeD_Name);
-            setSelectedHeads((prev) => {
-                const newHeads = allHeadNames.sort();
-                const prevHeads = prev.sort();
-                // Only update if actually different to prevent infinite loops
-                if (JSON.stringify(newHeads) !== JSON.stringify(prevHeads)) {
-                    return newHeads;
-                }
-                return prev;
-            });
-        } else if (watchedHeads && watchedHeads !== 'All') {
-            setSelectedHeads((prev) => {
-                // Only update if actually different to prevent infinite loops
-                if (prev.length === 1 && prev[0] === watchedHeads) {
-                    return prev;
-                }
-                return [watchedHeads];
-            });
-        }
-    }, [watchedHeads, availableHeads]);
-
-    const loadData = async () => {
-        try {
-            setIsLoading(true);
-            const response = await getCumulativeSalaryReportOnload(30);
-
-            if (response.success && response.data) {
-                const data = response.data;
-
-                setMonthOptions(data.monthdropdown || []);
-                setLeaveYearOptions(data.leaveyeardropdown || []);
-                setGroupTypes(data.groupTypedropdownlist || []);
-                setDepartments(data.departmentdropdownlist || []);
-                setDesignations(data.designationdropdownlist || []);
-                setAvailableHeads((data as any).earningdeductiondetails || []);
-
-                const salaryFields: Record<string, number> = {};
-                ((data as any).earningdeductiondetails || []).forEach((head: EarningDeductionDetail) => {
-                    salaryFields[head.hrmeD_Name] = 0;
-                });
-
-                if ((data as any).employeedropdown && (data as any).employeedropdown.length > 0) {
-                    const apiEmployees: Employee[] = ((data as any).employeedropdown as any[]).map((emp: any) => ({
-                        hrmE_Id: emp.hrmE_Id,
-                        hrmE_EmployeeCode: emp.hrmE_EmployeeCode,
-                        hrmE_EmployeeFirstName: emp.hrmE_EmployeeFirstName,
-                        hrmE_EmployeeMiddleName: emp.hrmE_EmployeeMiddleName,
-                        hrmE_EmployeeLastName: emp.hrmE_EmployeeLastName,
-                        hrmgT_Id: emp.hrmgT_Id,
-                        hrmD_Id: emp.hrmD_Id,
-                        hrmdeS_Id: emp.hrmdeS_Id,
-                        hrmD_DepartmentName: emp.hrmD_DepartmentName,
-                        hrmdeS_DesignationName: emp.hrmdeS_DesignationName,
-                        hrmgT_EmployeeGroupType: emp.hrmgT_EmployeeGroupType,
-                        ...salaryFields,
-                        ...Object.keys(emp).reduce((acc: Record<string, any>, key: string) => {
-                            if (
-                                ![
-                                    'hrmE_Id',
-                                    'hrmE_EmployeeCode',
-                                    'hrmE_EmployeeFirstName',
-                                    'hrmE_EmployeeMiddleName',
-                                    'hrmE_EmployeeLastName',
-                                    'hrmgT_Id',
-                                    'hrmD_Id',
-                                    'hrmdeS_Id',
-                                    'hrmD_DepartmentName',
-                                    'hrmdeS_DesignationName',
-                                    'hrmgT_EmployeeGroupType'
-                                ].includes(key)
-                            ) {
-                                acc[key] = emp[key] ?? 0;
-                            }
-                            return acc;
-                        }, {})
-                    }));
-                    setEmployees(apiEmployees);
-                }
-
-                const headNames = ((data as any).earningdeductiondetails || []).map((head: EarningDeductionDetail) => head.hrmeD_Name);
-                setSelectedHeads(headNames);
-            } else {
-                toast.error(response.message || 'Failed to load data');
-            }
-        } catch (error: any) {
-            toast.error(error.message || 'Failed to load data');
-        } finally {
-            setIsLoading(false);
-        }
-    };
-
     const filterEmployees = () => {
         let filtered = employees;
 
         if (watchedGroupType && watchedGroupType !== 'All') {
-            const groupType = groupTypes.find((g) => g.HRMGT_EmployeeGroupType === watchedGroupType);
+            const groupType = groupTypes.find((g: any) => g.HRMGT_EmployeeGroupType === watchedGroupType);
             if (groupType) {
-                filtered = filtered.filter((emp) => emp.hrmgT_Id === (groupType as any).HRMGT_Id);
+                filtered = filtered.filter((emp: any) => emp.hrmgT_Id === groupType.HRMGT_Id);
             }
         }
 
         if (watchedDepartment && watchedDepartment !== 'All') {
-            const department = departments.find((d) => d.HRMD_DepartmentName === watchedDepartment);
+            const department = departments.find((d: any) => d.HRMD_DepartmentName === watchedDepartment);
             if (department) {
-                filtered = filtered.filter((emp) => emp.hrmD_Id === (department as any).HRMD_Id);
+                filtered = filtered.filter((emp: any) => emp.hrmD_Id === department.HRMD_Id);
             }
         }
 
         if (watchedDesignation && watchedDesignation !== 'All') {
-            const designation = designations.find((d) => d.HRMDES_DesignationName === watchedDesignation);
+            const designation = designations.find((d: any) => d.HRMDES_DesignationName === watchedDesignation);
             if (designation) {
-                filtered = filtered.filter((emp) => emp.hrmdeS_Id === (designation as any).HRMDES_Id);
+                filtered = filtered.filter((emp: any) => emp.hrmdeS_Id === designation.HRMDES_Id);
             }
         }
 
         setFilteredEmployees(filtered);
     };
 
-    const onSubmit: SubmitHandler<SearchForm> = async (_data: SearchForm) => {
+    const onSubmit = async (data: any) => {
         try {
             filterEmployees();
             setHasSearched(true);
             toast.success('Search completed successfully');
         } catch (error: any) {
-            console.error('Error performing search:', error);
             toast.error(error.message || 'Search failed');
         }
     };
 
-    const handleEmployeeSelect = (employeeId: number, selected: boolean) => {
-        if (selected) {
-            setSelectedEmployees([...selectedEmployees, employeeId]);
-        } else {
-            setSelectedEmployees(selectedEmployees.filter((id) => id !== employeeId));
+    const handleUpdate = () => {
+        if (selectedEmployees.length === 0) {
+            toast.error('Please select at least one employee');
+            return;
         }
-    };
-
-    const handleSelectAll = (selected: boolean) => {
-        if (selected) {
-            setSelectedEmployees(filteredEmployees.map((emp) => emp.hrmE_Id));
-        } else {
-            setSelectedEmployees([]);
-        }
+        toast.info('Update functionality to be implemented');
     };
 
     return (
@@ -280,8 +129,7 @@ export default function SalaryUpdationPage() {
                     defaultOpen={true}
                     variant='outline'
                     size='lg'
-                    className='shadow-lg'
-                    headerClassName=''>
+                    className='shadow-lg'>
                     <form onSubmit={handleSubmit(onSubmit)} className='space-y-6'>
                         <div className='grid grid-cols-1 gap-6 lg:grid-cols-6'>
                             <div className='space-y-3'>
@@ -296,11 +144,9 @@ export default function SalaryUpdationPage() {
                                             </SelectTrigger>
                                             <SelectContent>
                                                 <SelectItem value='All'>All Group Types</SelectItem>
-                                                {groupTypes.map((groupType) => (
-                                                    <SelectItem
-                                                        key={(groupType as any).HRMGT_Id}
-                                                        value={(groupType as any).HRMGT_EmployeeGroupType}>
-                                                        {(groupType as any).HRMGT_EmployeeGroupType}
+                                                {groupTypes.map((groupType: any) => (
+                                                    <SelectItem key={groupType.HRMGT_Id} value={groupType.HRMGT_EmployeeGroupType}>
+                                                        {groupType.HRMGT_EmployeeGroupType}
                                                     </SelectItem>
                                                 ))}
                                             </SelectContent>
@@ -321,11 +167,9 @@ export default function SalaryUpdationPage() {
                                             </SelectTrigger>
                                             <SelectContent>
                                                 <SelectItem value='All'>All Departments</SelectItem>
-                                                {departments.map((department) => (
-                                                    <SelectItem
-                                                        key={(department as any).HRMD_Id}
-                                                        value={(department as any).HRMD_DepartmentName}>
-                                                        {(department as any).HRMD_DepartmentName}
+                                                {departments.map((department: any) => (
+                                                    <SelectItem key={department.HRMD_Id} value={department.HRMD_DepartmentName}>
+                                                        {department.HRMD_DepartmentName}
                                                     </SelectItem>
                                                 ))}
                                             </SelectContent>
@@ -346,11 +190,9 @@ export default function SalaryUpdationPage() {
                                             </SelectTrigger>
                                             <SelectContent>
                                                 <SelectItem value='All'>All Designations</SelectItem>
-                                                {designations.map((designation) => (
-                                                    <SelectItem
-                                                        key={(designation as any).HRMDES_Id}
-                                                        value={(designation as any).HRMDES_DesignationName}>
-                                                        {(designation as any).HRMDES_DesignationName}
+                                                {designations.map((designation: any) => (
+                                                    <SelectItem key={designation.HRMDES_Id} value={designation.HRMDES_DesignationName}>
+                                                        {designation.HRMDES_DesignationName}
                                                     </SelectItem>
                                                 ))}
                                             </SelectContent>
@@ -370,7 +212,7 @@ export default function SalaryUpdationPage() {
                                                 <SelectValue placeholder='Select Month' />
                                             </SelectTrigger>
                                             <SelectContent>
-                                                {monthOptions.map((month) => (
+                                                {monthOptions.map((month: any) => (
                                                     <SelectItem key={month.IVRM_Month_Id} value={month.IVRM_Month_Id.toString()}>
                                                         {month.IVRM_Month_Name}
                                                     </SelectItem>
@@ -392,7 +234,7 @@ export default function SalaryUpdationPage() {
                                                 <SelectValue placeholder='Select Year' />
                                             </SelectTrigger>
                                             <SelectContent>
-                                                {leaveYearOptions.map((year) => (
+                                                {leaveYearOptions.map((year: any) => (
                                                     <SelectItem key={year.HRMLY_Id} value={year.HRMLY_Id.toString()}>
                                                         {year.HRMLY_LeaveYear}
                                                     </SelectItem>
@@ -415,7 +257,7 @@ export default function SalaryUpdationPage() {
                                             </SelectTrigger>
                                             <SelectContent>
                                                 <SelectItem value='All'>All Heads</SelectItem>
-                                                {availableHeads.map((head) => (
+                                                {earningHeads.map((head: any) => (
                                                     <SelectItem key={head.hrmeD_Id} value={head.hrmeD_Name}>
                                                         {head.hrmeD_Name}
                                                     </SelectItem>
@@ -424,80 +266,6 @@ export default function SalaryUpdationPage() {
                                         </Select>
                                     )}
                                 />
-                            </div>
-                        </div>
-
-                        <div className='grid grid-cols-1 gap-4 lg:grid-cols-2'>
-                            <div className='space-y-3'>
-                                <Label className='font-semibold'>Earning/Deduction</Label>
-                                <div className='flex space-x-4'>
-                                    <div className='flex items-center space-x-2'>
-                                        <input
-                                            type='radio'
-                                            id='all-earning'
-                                            value='All Earning & Deduction'
-                                            {...register('earningDeduction')}
-                                            className='text-primary'
-                                        />
-                                        <Label htmlFor='all-earning'>All Earning & Deduction</Label>
-                                    </div>
-                                    <div className='flex items-center space-x-2'>
-                                        <input
-                                            type='radio'
-                                            id='earning'
-                                            value='Earning'
-                                            {...register('earningDeduction')}
-                                            className='text-primary'
-                                        />
-                                        <Label htmlFor='earning'>Earning</Label>
-                                    </div>
-                                    <div className='flex items-center space-x-2'>
-                                        <input
-                                            type='radio'
-                                            id='deduction'
-                                            value='Deduction'
-                                            {...register('earningDeduction')}
-                                            className='text-primary'
-                                        />
-                                        <Label htmlFor='deduction'>Deduction</Label>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div className='space-y-3'>
-                                <Label className='font-semibold'>Amount Type</Label>
-                                <div className='flex space-x-4'>
-                                    <div className='flex items-center space-x-2'>
-                                        <input
-                                            type='radio'
-                                            id='all-amount'
-                                            value='All'
-                                            {...register('amountType')}
-                                            className='text-primary'
-                                        />
-                                        <Label htmlFor='all-amount'>All</Label>
-                                    </div>
-                                    <div className='flex items-center space-x-2'>
-                                        <input
-                                            type='radio'
-                                            id='amount'
-                                            value='Amount'
-                                            {...register('amountType')}
-                                            className='text-primary'
-                                        />
-                                        <Label htmlFor='amount'>Amount</Label>
-                                    </div>
-                                    <div className='flex items-center space-x-2'>
-                                        <input
-                                            type='radio'
-                                            id='percentage'
-                                            value='Percentage'
-                                            {...register('amountType')}
-                                            className='text-primary'
-                                        />
-                                        <Label htmlFor='percentage'>Percentage</Label>
-                                    </div>
-                                </div>
                             </div>
                         </div>
 
@@ -529,16 +297,42 @@ export default function SalaryUpdationPage() {
                         defaultOpen={true}
                         variant='default'
                         size='lg'
-                        className='shadow-lg transition-shadow duration-300 hover:shadow-xl'
-                        headerClassName=''>
-                        <SalaryUpdationTable
-                            employees={filteredEmployees}
-                            isLoading={isLoading}
-                            selectedEmployees={selectedEmployees}
-                            onEmployeeSelect={handleEmployeeSelect}
-                            onSelectAll={handleSelectAll}
-                            selectedHeads={selectedHeads}
-                        />
+                        className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
+                        <div className='space-y-4'>
+                            <GenericDataTable<SalaryUpdationItem>
+                                data={filteredEmployees}
+                                totalItems={filteredEmployees.length}
+                                columns={salaryUpdationColumns}
+                                isLoading={isLoading}
+                                error={error}
+                                showViewOptions={true}
+                                columnPinning={{ right: ['actions'] }}
+                                loadingMessage='Loading salary records...'
+                                noDataTitle='No Records Found'
+                                noDataDescription='No salary records match your search criteria'
+                                errorTitle='Error Loading Records'
+                            />
+
+                            <div className='flex justify-end gap-2'>
+                                <Button 
+                                    onClick={handleUpdate}
+                                    className='w-fit transition-all duration-200 hover:scale-105'>
+                                    <RefreshCw className='mr-2 h-4 w-4' />
+                                    UPDATE
+                                </Button>
+                                <Button 
+                                    variant='outline' 
+                                    className='w-fit transition-all duration-200 hover:scale-105'
+                                    onClick={() => {
+                                        reset();
+                                        setHasSearched(false);
+                                        setSelectedEmployees([]);
+                                    }}>
+                                    <X className='mr-2 h-4 w-4' />
+                                    CANCEL
+                                </Button>
+                            </div>
+                        </div>
                     </CollapsibleSection>
                 )}
 
@@ -552,143 +346,6 @@ export default function SalaryUpdationPage() {
                         </div>
                     </div>
                 )}
-            </div>
-        </div>
-    );
-}
-
-interface SalaryUpdationTableProps {
-    employees: Employee[];
-    isLoading: boolean;
-    selectedEmployees: number[];
-    onEmployeeSelect: (employeeId: number, selected: boolean) => void;
-    onSelectAll: (selected: boolean) => void;
-    selectedHeads: string[];
-}
-
-function SalaryUpdationTable({
-    employees,
-    isLoading,
-    selectedEmployees,
-    onEmployeeSelect,
-    onSelectAll,
-    selectedHeads
-}: SalaryUpdationTableProps) {
-    // Use useMemo to prevent infinite re-renders
-    const sanitizedEmployees = useMemo(() => {
-        return employees.map((emp) => {
-            const sanitized = { ...emp };
-            selectedHeads.forEach((headName) => {
-                if (sanitized[headName] == null) {
-                    sanitized[headName] = 0;
-                }
-            });
-            return sanitized;
-        });
-    }, [employees, selectedHeads]);
-
-    // Use useMemo to prevent column recreation on every render
-    const columns: ColumnDef<Employee>[] = useMemo(
-        () => [
-            {
-                id: 'select',
-                header: () => (
-                    <Checkbox
-                        checked={sanitizedEmployees.length > 0 && selectedEmployees.length === sanitizedEmployees.length}
-                        onCheckedChange={(value: boolean) => onSelectAll(!!value)}
-                        aria-label='Select all'
-                    />
-                ),
-                cell: ({ row }: { row: any }) => (
-                    <Checkbox
-                        checked={selectedEmployees.includes(row.original.hrmE_Id)}
-                        onCheckedChange={(value: boolean) => onEmployeeSelect(row.original.hrmE_Id, !!value)}
-                        aria-label='Select row'
-                    />
-                ),
-                enableSorting: false,
-                enableHiding: false
-            },
-            {
-                accessorKey: 'slNo',
-                header: ({ column }: { column: any }) => <DataTableColumnHeader column={column} title='Sl.No' />,
-                cell: ({ row, table }: { row: any; table: any }) => {
-                    const index = table.getSortedRowModel().rows.findIndex((r: any) => r.id === row.id);
-                    return <div>{index + 1}</div>;
-                },
-                enableSorting: false,
-                enableHiding: false
-            },
-            {
-                accessorKey: 'hrmE_EmployeeCode',
-                header: ({ column }: { column: any }) => <DataTableColumnHeader column={column} title='Employee Code' />,
-                cell: ({ row }: { row: any }) => <div>{row.getValue('hrmE_EmployeeCode')}</div>,
-                enableSorting: true,
-                enableHiding: true
-            },
-            {
-                accessorKey: 'hrmE_EmployeeName',
-                header: ({ column }: { column: any }) => <DataTableColumnHeader column={column} title='Employee Name' />,
-                cell: ({ row }: { row: any }) => {
-                    const employee = row.original;
-                    const fullName = `${employee.hrmE_EmployeeFirstName} ${employee.hrmE_EmployeeLastName || ''}`.trim();
-                    return <div>{fullName}</div>;
-                },
-                enableSorting: true,
-                enableHiding: true
-            },
-            ...selectedHeads.map((headName) => ({
-                id: headName,
-                accessorFn: (row: Employee) => {
-                    const value = row[headName];
-                    return value == null ? 0 : Number(value);
-                },
-                header: ({ column }: { column: any }) => <DataTableColumnHeader column={column} title={headName} />,
-                cell: ({ row }: { row: any }) => {
-                    const currentValue = row.original[headName] ?? 0;
-                    return (
-                        <div className='w-20'>
-                            <input
-                                type='number'
-                                defaultValue={currentValue}
-                                className='w-full rounded border px-2 py-1 text-sm'
-                                onChange={(e) => {
-                                    const newValue = Number.parseFloat(e.target.value) || 0;
-                                    row.original[headName] = newValue;
-                                }}
-                            />
-                        </div>
-                    );
-                },
-                enableSorting: true,
-                enableHiding: true
-            }))
-        ],
-        [sanitizedEmployees, selectedEmployees, onEmployeeSelect, onSelectAll, selectedHeads]
-    );
-
-    return (
-        <div className='space-y-4'>
-            <div className='overflow-hidden rounded-lg bg-card'>
-                <DataTable
-                    isLoading={isLoading}
-                    columns={columns}
-                    data={sanitizedEmployees}
-                    totalItems={sanitizedEmployees.length}
-                    showViewOptions={true}
-                    columnPinning={{ left: ['select'] }}
-                />
-            </div>
-
-            <div className='flex justify-end gap-2'>
-                <Button className='w-fit transition-all duration-200 hover:scale-105'>
-                    <RefreshCw className='mr-2 h-4 w-4' />
-                    UPDATE
-                </Button>
-                <Button variant='outline' className='w-fit transition-all duration-200 hover:scale-105'>
-                    <X className='mr-2 h-4 w-4' />
-                    CANCEL
-                </Button>
             </div>
         </div>
     );

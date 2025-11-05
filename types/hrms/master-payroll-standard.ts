@@ -1,7 +1,11 @@
 export interface MasterPayrollStandardResponse {
     retrunMsg: string;
-    hrStandardList: PayrollStandardDetail[];
-    monthdropdown: any[];
+    hrStandardList?: PayrollStandardDetail[];
+    monthdropdown?: any[];
+    HRC_Id?: number;
+    HRC_IncrementMonth?: string;
+    HRC_SalaryFromDay?: number;
+    HRC_SalaryToDay?: number;
 }
 
 export interface PayrollStandardDetail {

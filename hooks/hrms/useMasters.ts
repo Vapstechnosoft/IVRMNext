@@ -152,22 +152,48 @@ export const useMasterDepartment = (roleId: number, _searchParams?: ApiSearchpar
         });
 
     const saveMutation = useMutation({
-        mutationFn: (payload: MasterDepartmentInput) => saveMasterDepartment(payload),
-        onSuccess: () => queryClient.invalidateQueries({ queryKey: [HRMS_QUERY_KEYS.MASTER_DEPARTMENT] })
+        mutationFn: (payload: MasterDepartmentInput) => {
+            console.log('🟣 [HOOK] Department saveMutation.mutationFn called');
+            return saveMasterDepartment(payload);
+        },
+        onSuccess: (response) => {
+            console.log('🟣 [HOOK] Department saveMutation.onSuccess - Response:', response);
+            queryClient.invalidateQueries({ queryKey: [HRMS_QUERY_KEYS.MASTER_DEPARTMENT] });
+        },
+        onError: (error: any) => {
+            console.log('🔴 [HOOK] Department saveMutation.onError:', error);
+        }
     });
 
     const toggleMutation = useMutation({
-        mutationFn: (payload: { HRMD_Id: number; HRMD_ActiveFlag: boolean; roleId?: number }) =>
-            activateDeactivateMasterDepartment(payload),
-        onSuccess: () => queryClient.invalidateQueries({ queryKey: [HRMS_QUERY_KEYS.MASTER_DEPARTMENT] })
+        mutationFn: (payload: { HRMD_Id: number; HRMD_ActiveFlag: boolean; roleId?: number }) => {
+            console.log('🟣 [HOOK] Department toggleMutation.mutationFn called with data:', payload);
+            return activateDeactivateMasterDepartment(payload);
+        },
+        onSuccess: (response) => {
+            console.log('🟣 [HOOK] Department toggleMutation.onSuccess - Response:', response);
+            queryClient.invalidateQueries({ queryKey: [HRMS_QUERY_KEYS.MASTER_DEPARTMENT] });
+        },
+        onError: (error: any) => {
+            console.log('🔴 [HOOK] Department toggleMutation.onError:', error);
+        }
     });
 
     const saveOrderMutation = useMutation({
-        mutationFn: (departments: DepartmentDetail[]) => saveMasterDepartmentOrder(departments),
-        onSuccess: () => queryClient.invalidateQueries({ queryKey: [HRMS_QUERY_KEYS.MASTER_DEPARTMENT] })
+        mutationFn: (departments: DepartmentDetail[]) => {
+            console.log('🟣 [HOOK] Department saveOrderMutation called');
+            return saveMasterDepartmentOrder(departments);
+        },
+        onSuccess: () => {
+            console.log('🟣 [HOOK] Department saveOrderMutation success');
+            queryClient.invalidateQueries({ queryKey: [HRMS_QUERY_KEYS.MASTER_DEPARTMENT] });
+        }
     });
 
-    const refetchAll = () => queryClient.invalidateQueries({ queryKey: [HRMS_QUERY_KEYS.MASTER_DEPARTMENT] });
+    const refetchAll = () => {
+        console.log('🔄 [HOOK] Department refetchAll called');
+        queryClient.invalidateQueries({ queryKey: [HRMS_QUERY_KEYS.MASTER_DEPARTMENT] });
+    };
 
     return { listQuery, onloadQuery, getById, saveMutation, toggleMutation, saveOrderMutation, refetchAll };
 };
@@ -205,22 +231,48 @@ export const useMasterDesignation = (roleId: number, _searchParams?: ApiSearchpa
     });
 
     const saveMutation = useMutation({
-        mutationFn: (payload: MasterDesignationInput) => saveMasterDesignation(payload),
-        onSuccess: () => queryClient.invalidateQueries({ queryKey: [HRMS_QUERY_KEYS.MASTER_DESIGNATION] })
+        mutationFn: (payload: MasterDesignationInput) => {
+            console.log('🟣 [HOOK] Designation saveMutation.mutationFn called');
+            return saveMasterDesignation(payload);
+        },
+        onSuccess: (response) => {
+            console.log('🟣 [HOOK] Designation saveMutation.onSuccess - Response:', response);
+            queryClient.invalidateQueries({ queryKey: [HRMS_QUERY_KEYS.MASTER_DESIGNATION] });
+        },
+        onError: (error: any) => {
+            console.log('🔴 [HOOK] Designation saveMutation.onError:', error);
+        }
     });
 
     const toggleMutation = useMutation({
-        mutationFn: (payload: { HRMDES_Id: number; HRMDES_ActiveFlag: boolean; roleId?: number }) =>
-            activateDeactivateMasterDesignation(payload),
-        onSuccess: () => queryClient.invalidateQueries({ queryKey: [HRMS_QUERY_KEYS.MASTER_DESIGNATION] })
+        mutationFn: (payload: { HRMDES_Id: number; HRMDES_ActiveFlag: boolean; roleId?: number }) => {
+            console.log('🟣 [HOOK] Designation toggleMutation.mutationFn called with data:', payload);
+            return activateDeactivateMasterDesignation(payload);
+        },
+        onSuccess: (response) => {
+            console.log('🟣 [HOOK] Designation toggleMutation.onSuccess - Response:', response);
+            queryClient.invalidateQueries({ queryKey: [HRMS_QUERY_KEYS.MASTER_DESIGNATION] });
+        },
+        onError: (error: any) => {
+            console.log('🔴 [HOOK] Designation toggleMutation.onError:', error);
+        }
     });
 
     const saveOrderMutation = useMutation({
-        mutationFn: (designations: DesignationDetail[]) => saveMasterDesignationOrder(designations),
-        onSuccess: () => queryClient.invalidateQueries({ queryKey: [HRMS_QUERY_KEYS.MASTER_DESIGNATION] })
+        mutationFn: (designations: DesignationDetail[]) => {
+            console.log('🟣 [HOOK] Designation saveOrderMutation called');
+            return saveMasterDesignationOrder(designations);
+        },
+        onSuccess: () => {
+            console.log('🟣 [HOOK] Designation saveOrderMutation success');
+            queryClient.invalidateQueries({ queryKey: [HRMS_QUERY_KEYS.MASTER_DESIGNATION] });
+        }
     });
 
-    const refetchAll = () => queryClient.invalidateQueries({ queryKey: [HRMS_QUERY_KEYS.MASTER_DESIGNATION] });
+    const refetchAll = () => {
+        console.log('🔄 [HOOK] Designation refetchAll called');
+        queryClient.invalidateQueries({ queryKey: [HRMS_QUERY_KEYS.MASTER_DESIGNATION] });
+    };
 
     return { listQuery, onloadQuery, getById, onchangeMutation, saveMutation, toggleMutation, saveOrderMutation, refetchAll };
 };
@@ -239,21 +291,52 @@ export const useMasterGrade = (roleId: number, _searchParams?: ApiSearchparams) 
     });
 
     const saveMutation = useMutation({
-        mutationFn: (payload: MasterGradeInput) => saveMasterGrade(payload),
-        onSuccess: () => queryClient.invalidateQueries({ queryKey: [HRMS_QUERY_KEYS.MASTER_GRADE] })
+        mutationFn: (payload: MasterGradeInput) => {
+            console.log('🟣 [HOOK] Grade saveMutation.mutationFn called');
+            console.log('🟣 [HOOK] Payload:', JSON.stringify(payload, null, 2));
+            return saveMasterGrade(payload);
+        },
+        onSuccess: (response) => {
+            console.log('🟣 [HOOK] Grade saveMutation.onSuccess - Response:', JSON.stringify(response, null, 2));
+            console.log('🟣 [HOOK] Invalidating grade queries...');
+            queryClient.invalidateQueries({ queryKey: [HRMS_QUERY_KEYS.MASTER_GRADE] });
+            console.log('🟣 [HOOK] Grade queries invalidated - table should refresh');
+        },
+        onError: (error: any) => {
+            console.log('🔴 [HOOK] Grade saveMutation.onError:', error);
+            console.log('🔴 [HOOK] Error message:', error?.message);
+        }
     });
 
     const toggleMutation = useMutation({
-        mutationFn: (payload: { HRMG_Id: number; HRMG_ActiveFlag: boolean; roleId?: number }) => activateDeactivateMasterGrade(payload),
-        onSuccess: () => queryClient.invalidateQueries({ queryKey: [HRMS_QUERY_KEYS.MASTER_GRADE] })
+        mutationFn: (payload: { HRMG_Id: number; HRMG_ActiveFlag: boolean; roleId?: number }) => {
+            console.log('🟣 [HOOK] Grade toggleMutation called:', JSON.stringify(payload, null, 2));
+            return activateDeactivateMasterGrade(payload);
+        },
+        onSuccess: (response) => {
+            console.log('🟣 [HOOK] Grade toggleMutation.onSuccess - Response:', JSON.stringify(response, null, 2));
+            queryClient.invalidateQueries({ queryKey: [HRMS_QUERY_KEYS.MASTER_GRADE] });
+        },
+        onError: (error: any) => {
+            console.log('🔴 [HOOK] Grade toggleMutation.onError - Error:', error);
+        }
     });
 
     const saveOrderMutation = useMutation({
-        mutationFn: (grades: GradeDetail[]) => saveMasterGradeOrder(grades),
-        onSuccess: () => queryClient.invalidateQueries({ queryKey: [HRMS_QUERY_KEYS.MASTER_GRADE] })
+        mutationFn: (grades: GradeDetail[]) => {
+            console.log('🟣 [HOOK] Grade saveOrderMutation called');
+            return saveMasterGradeOrder(grades);
+        },
+        onSuccess: () => {
+            console.log('🟣 [HOOK] Grade saveOrderMutation success');
+            queryClient.invalidateQueries({ queryKey: [HRMS_QUERY_KEYS.MASTER_GRADE] });
+        }
     });
 
-    const refetchAll = () => queryClient.invalidateQueries({ queryKey: [HRMS_QUERY_KEYS.MASTER_GRADE] });
+    const refetchAll = () => {
+        console.log('🔄 [HOOK] Grade refetchAll called');
+        queryClient.invalidateQueries({ queryKey: [HRMS_QUERY_KEYS.MASTER_GRADE] });
+    };
 
     return { listQuery, saveMutation, toggleMutation, saveOrderMutation, refetchAll };
 };
@@ -272,11 +355,22 @@ export function useMasterBank(roleId: number) {
     });
 
     const saveMutation = useMutation({
-        mutationFn: (data: MasterBankInput) => saveMasterBank(data),
-        onSuccess: () => {
+        mutationFn: (data: MasterBankInput) => {
+            console.log('🟣 [HOOK] Bank saveMutation.mutationFn called with data:', JSON.stringify(data, null, 2));
+            return saveMasterBank(data, roleId);
+        },
+        onSuccess: (response) => {
+            console.log('🟣 [HOOK] Bank saveMutation.onSuccess - Response:', JSON.stringify(response, null, 2));
+            console.log('🟣 [HOOK] Invalidating bank queries...');
             queryClient.invalidateQueries({
                 queryKey: [HRMS_QUERY_KEYS.MASTER_BANK]
             });
+            console.log('🟣 [HOOK] Bank queries invalidated - table should refresh');
+        },
+        onError: (error: any) => {
+            console.log('🔴 [HOOK] Bank saveMutation.onError - Error:', error);
+            console.log('🔴 [HOOK] Error message:', error?.message);
+            console.log('🔴 [HOOK] Error response:', error?.response);
         }
     });
 
@@ -285,18 +379,37 @@ export function useMasterBank(roleId: number) {
             HRMBD_Id: number;
             HRMBD_ActiveFlag: boolean;
             MI_Id?: number;
-        }) => activateDeactivateMasterBank(data),
-        onSuccess: () => {
+        }) => {
+            console.log('🟣 [HOOK] Bank toggleMutation.mutationFn called with data:', JSON.stringify(data, null, 2));
+            return activateDeactivateMasterBank(data);
+        },
+        onSuccess: (response) => {
+            console.log('🟣 [HOOK] Bank toggleMutation.onSuccess - Response:', JSON.stringify(response, null, 2));
+            console.log('🟣 [HOOK] Invalidating bank queries...');
             queryClient.invalidateQueries({
                 queryKey: [HRMS_QUERY_KEYS.MASTER_BANK]
             });
+            console.log('🟣 [HOOK] Bank queries invalidated');
+        },
+        onError: (error: any) => {
+            console.log('🔴 [HOOK] Bank toggleMutation.onError - Error:', error);
+            console.log('🔴 [HOOK] Error message:', error?.message);
+            console.log('🔴 [HOOK] Error response:', error?.response);
         }
     });
+
+    const refetchAll = () => {
+        console.log('🔄 [HOOK] Bank refetchAll called - Invalidating queries');
+        queryClient.invalidateQueries({
+            queryKey: [HRMS_QUERY_KEYS.MASTER_BANK]
+        });
+    };
 
     return {
         listQuery,
         saveMutation,
-        toggleMutation
+        toggleMutation,
+        refetchAll
     };
 }
 
@@ -323,20 +436,38 @@ export function useMasterCourse(roleId: number) {
     });
 
     const saveMutation = useMutation({
-        mutationFn: (data: MasterCourseInput) => saveMasterCourse(data),
-        onSuccess: () => {
+        mutationFn: (data: MasterCourseInput) => {
+            console.log('🟣 [HOOK] Course saveMutation.mutationFn called with data:', JSON.stringify(data, null, 2));
+            return saveMasterCourse(data);
+        },
+        onSuccess: (response) => {
+            console.log('🟣 [HOOK] Course saveMutation.onSuccess - Response:', JSON.stringify(response, null, 2));
+            console.log('🟣 [HOOK] Invalidating course queries...');
             queryClient.invalidateQueries({
                 queryKey: [HRMS_QUERY_KEYS.MASTER_COURSE]
             });
+            console.log('🟣 [HOOK] Course queries invalidated - table should refresh');
+        },
+        onError: (error: any) => {
+            console.log('🔴 [HOOK] Course saveMutation.onError - Error:', error);
+            console.log('🔴 [HOOK] Error message:', error?.message);
+            console.log('🔴 [HOOK] Error response:', error?.response);
         }
     });
 
     const toggleMutation = useMutation({
-        mutationFn: (data: { HRMC_Id: number; HRMC_ActiveFlag: boolean; MI_Id?: number }) => activateDeactivateMasterCourse(data),
-        onSuccess: () => {
+        mutationFn: (data: { HRMC_Id: number; HRMC_ActiveFlag: boolean; MI_Id?: number }) => {
+            console.log('🟣 [HOOK] Course toggleMutation.mutationFn called with data:', JSON.stringify(data, null, 2));
+            return activateDeactivateMasterCourse(data);
+        },
+        onSuccess: (response) => {
+            console.log('🟣 [HOOK] Course toggleMutation.onSuccess - Response:', JSON.stringify(response, null, 2));
             queryClient.invalidateQueries({
                 queryKey: [HRMS_QUERY_KEYS.MASTER_COURSE]
             });
+        },
+        onError: (error: any) => {
+            console.log('🔴 [HOOK] Course toggleMutation.onError - Error:', error);
         }
     });
 
@@ -349,11 +480,19 @@ export function useMasterCourse(roleId: number) {
         }
     });
 
+    const refetchAll = () => {
+        console.log('🔄 [HOOK] Course refetchAll called - Invalidating queries');
+        queryClient.invalidateQueries({
+            queryKey: [HRMS_QUERY_KEYS.MASTER_COURSE]
+        });
+    };
+
     return {
         listQuery,
         saveMutation,
         toggleMutation,
-        saveOrderMutation
+        saveOrderMutation,
+        refetchAll
     };
 }
 
@@ -379,8 +518,17 @@ export const useMasterEmployeeType = (roleId: number, _searchParams?: ApiSearchp
     });
 
     const saveMutation = useMutation({
-        mutationFn: (payload: MasterEmployeeTypeInput) => saveMasterEmployeeType(payload),
-        onSuccess: () => queryClient.invalidateQueries({ queryKey: [HRMS_QUERY_KEYS.MASTER_EMPLOYEE_TYPE] })
+        mutationFn: (payload: MasterEmployeeTypeInput) => {
+            console.log('🟣 [HOOK] Employee Type saveMutation.mutationFn called');
+            return saveMasterEmployeeType(payload);
+        },
+        onSuccess: (response) => {
+            console.log('🟣 [HOOK] Employee Type saveMutation.onSuccess - Response:', response);
+            queryClient.invalidateQueries({ queryKey: [HRMS_QUERY_KEYS.MASTER_EMPLOYEE_TYPE] });
+        },
+        onError: (error: any) => {
+            console.log('🔴 [HOOK] Employee Type saveMutation.onError:', error);
+        }
     });
 
     const toggleMutation = useMutation({
@@ -389,7 +537,10 @@ export const useMasterEmployeeType = (roleId: number, _searchParams?: ApiSearchp
         onSuccess: () => queryClient.invalidateQueries({ queryKey: [HRMS_QUERY_KEYS.MASTER_EMPLOYEE_TYPE] })
     });
 
-    const refetchAll = () => queryClient.invalidateQueries({ queryKey: [HRMS_QUERY_KEYS.MASTER_EMPLOYEE_TYPE] });
+    const refetchAll = () => {
+        console.log('🔄 [HOOK] Employee Type refetchAll called');
+        queryClient.invalidateQueries({ queryKey: [HRMS_QUERY_KEYS.MASTER_EMPLOYEE_TYPE] });
+    };
 
     return { listQuery, saveMutation, toggleMutation, refetchAll };
 };
@@ -408,17 +559,41 @@ export const useMasterGender = (roleId: number, _searchParams?: ApiSearchparams)
     });
 
     const saveMutation = useMutation({
-        mutationFn: (payload: MasterGenderInput) => saveMasterGender(payload),
-        onSuccess: () => queryClient.invalidateQueries({ queryKey: [HRMS_QUERY_KEYS.MASTER_GENDER] })
+        mutationFn: (payload: MasterGenderInput) => {
+            console.log('🟣 [HOOK] Gender saveMutation.mutationFn called with data:', JSON.stringify(payload, null, 2));
+            return saveMasterGender(payload);
+        },
+        onSuccess: (response) => {
+            console.log('🟣 [HOOK] Gender saveMutation.onSuccess - Response:', JSON.stringify(response, null, 2));
+            console.log('🟣 [HOOK] Invalidating gender queries...');
+            queryClient.invalidateQueries({ queryKey: [HRMS_QUERY_KEYS.MASTER_GENDER] });
+            console.log('🟣 [HOOK] Gender queries invalidated - table should refresh');
+        },
+        onError: (error: any) => {
+            console.log('🔴 [HOOK] Gender saveMutation.onError - Error:', error);
+            console.log('🔴 [HOOK] Error message:', error?.message);
+            console.log('🔴 [HOOK] Error response:', error?.response);
+        }
     });
 
     const toggleMutation = useMutation({
-        mutationFn: (payload: { IVRMMG_Id: number; IVRMMG_ActiveFlag: boolean; MI_Id?: number }) =>
-            activateDeactivateMasterGender(payload),
-        onSuccess: () => queryClient.invalidateQueries({ queryKey: [HRMS_QUERY_KEYS.MASTER_GENDER] })
+        mutationFn: (payload: { IVRMMG_Id: number; IVRMMG_ActiveFlag: boolean; MI_Id?: number }) => {
+            console.log('🟣 [HOOK] Gender toggleMutation.mutationFn called with data:', JSON.stringify(payload, null, 2));
+            return activateDeactivateMasterGender(payload);
+        },
+        onSuccess: (response) => {
+            console.log('🟣 [HOOK] Gender toggleMutation.onSuccess - Response:', JSON.stringify(response, null, 2));
+            queryClient.invalidateQueries({ queryKey: [HRMS_QUERY_KEYS.MASTER_GENDER] });
+        },
+        onError: (error: any) => {
+            console.log('🔴 [HOOK] Gender toggleMutation.onError - Error:', error);
+        }
     });
 
-    const refetchAll = () => queryClient.invalidateQueries({ queryKey: [HRMS_QUERY_KEYS.MASTER_GENDER] });
+    const refetchAll = () => {
+        console.log('🔄 [HOOK] Gender refetchAll called - Invalidating queries');
+        queryClient.invalidateQueries({ queryKey: [HRMS_QUERY_KEYS.MASTER_GENDER] });
+    };
 
     return { listQuery, saveMutation, toggleMutation, refetchAll };
 };
@@ -437,28 +612,51 @@ export function useMasterLoan(roleId: number) {
     });
 
     const saveMutation = useMutation({
-        mutationFn: (data: MasterLoanInput) => saveMasterLoan(data),
-        onSuccess: () => {
+        mutationFn: (data: MasterLoanInput) => {
+            console.log('🟣 [HOOK] Loan saveMutation.mutationFn called');
+            console.log('🟣 [HOOK] Payload:', JSON.stringify(data, null, 2));
+            return saveMasterLoan(data);
+        },
+        onSuccess: (response) => {
+            console.log('🟣 [HOOK] Loan saveMutation.onSuccess - Response:', JSON.stringify(response, null, 2));
+            console.log('🟣 [HOOK] Invalidating loan queries...');
             queryClient.invalidateQueries({
                 queryKey: [HRMS_QUERY_KEYS.MASTER_LOAN]
             });
+            console.log('🟣 [HOOK] Loan queries invalidated - table should refresh');
+        },
+        onError: (error: any) => {
+            console.log('🔴 [HOOK] Loan saveMutation.onError:', error);
+            console.log('🔴 [HOOK] Error message:', error?.message);
         }
     });
 
     const toggleMutation = useMutation({
-        mutationFn: (payload: { HRMLN_Id: number; HRMLN_ActiveFlag: boolean; MI_Id?: number }) =>
-            activateDeactivateMasterLoan(payload),
-        onSuccess: () => {
+        mutationFn: (payload: { HRMLN_Id: number; HRMLN_ActiveFlag: boolean; MI_Id?: number }) => {
+            console.log('🟣 [HOOK] Loan toggleMutation called:', JSON.stringify(payload, null, 2));
+            return activateDeactivateMasterLoan(payload);
+        },
+        onSuccess: (response) => {
+            console.log('🟣 [HOOK] Loan toggleMutation.onSuccess - Response:', JSON.stringify(response, null, 2));
             queryClient.invalidateQueries({
                 queryKey: [HRMS_QUERY_KEYS.MASTER_LOAN]
             });
+        },
+        onError: (error: any) => {
+            console.log('🔴 [HOOK] Loan toggleMutation.onError - Error:', error);
         }
     });
+
+    const refetchAll = () => {
+        console.log('🔄 [HOOK] Loan refetchAll called - Invalidating queries');
+        queryClient.invalidateQueries({ queryKey: [HRMS_QUERY_KEYS.MASTER_LOAN] });
+    };
 
     return {
         listQuery,
         saveMutation,
-        toggleMutation
+        toggleMutation,
+        refetchAll
     };
 }
 
@@ -484,8 +682,20 @@ export const useMasterMaritalStatus = (roleId: number, _searchParams?: ApiSearch
     });
 
     const saveMutation = useMutation({
-        mutationFn: (payload: MasterMaritalStatusInput) => saveMasterMaritalStatus(payload),
-        onSuccess: () => queryClient.invalidateQueries({ queryKey: [HRMS_QUERY_KEYS.MASTER_MARITAL_STATUS] })
+        mutationFn: (payload: MasterMaritalStatusInput) => {
+            console.log('🟣 [HOOK] Marital Status saveMutation.mutationFn called with data:', JSON.stringify(payload, null, 2));
+            return saveMasterMaritalStatus(payload);
+        },
+        onSuccess: (response) => {
+            console.log('🟣 [HOOK] Marital Status saveMutation.onSuccess - Response:', JSON.stringify(response, null, 2));
+            console.log('🟣 [HOOK] Invalidating marital status queries...');
+            queryClient.invalidateQueries({ queryKey: [HRMS_QUERY_KEYS.MASTER_MARITAL_STATUS] });
+            console.log('🟣 [HOOK] Marital status queries invalidated - table should refresh');
+        },
+        onError: (error: any) => {
+            console.log('🔴 [HOOK] Marital Status saveMutation.onError - Error:', error);
+            console.log('🔴 [HOOK] Error message:', error?.message);
+        }
     });
 
     const toggleMutation = useMutation({
@@ -494,7 +704,10 @@ export const useMasterMaritalStatus = (roleId: number, _searchParams?: ApiSearch
         onSuccess: () => queryClient.invalidateQueries({ queryKey: [HRMS_QUERY_KEYS.MASTER_MARITAL_STATUS] })
     });
 
-    const refetchAll = () => queryClient.invalidateQueries({ queryKey: [HRMS_QUERY_KEYS.MASTER_MARITAL_STATUS] });
+    const refetchAll = () => {
+        console.log('🔄 [HOOK] Marital Status refetchAll called - Invalidating queries');
+        queryClient.invalidateQueries({ queryKey: [HRMS_QUERY_KEYS.MASTER_MARITAL_STATUS] });
+    };
 
     return { listQuery, saveMutation, toggleMutation, refetchAll };
 };
@@ -560,11 +773,18 @@ export function useMasterGroupType(roleId: number) {
     });
 
     const saveMutation = useMutation({
-        mutationFn: (data: MasterGroupTypeInput) => saveMasterGroupType(data),
-        onSuccess: () => {
+        mutationFn: (data: MasterGroupTypeInput) => {
+            console.log('🟣 [HOOK] Group Type saveMutation.mutationFn called');
+            return saveMasterGroupType(data);
+        },
+        onSuccess: (response) => {
+            console.log('🟣 [HOOK] Group Type saveMutation.onSuccess - Response:', response);
             queryClient.invalidateQueries({
                 queryKey: [HRMS_QUERY_KEYS.MASTER_GROUP_TYPE]
             });
+        },
+        onError: (error: any) => {
+            console.log('🔴 [HOOK] Group Type saveMutation.onError:', error);
         }
     });
 
@@ -573,17 +793,28 @@ export function useMasterGroupType(roleId: number) {
             HRMGT_Id: number;
             HRMGT_ActiveFlag: boolean;
             MI_Id?: number;
-        }) => activateDeactivateMasterGroupType(data),
-        onSuccess: () => {
+        }) => {
+            console.log('🟣 [HOOK] Group Type toggleMutation.mutationFn called with data:', data);
+            return activateDeactivateMasterGroupType(data);
+        },
+        onSuccess: (response) => {
+            console.log('🟣 [HOOK] Group Type toggleMutation.onSuccess - Response:', response);
             queryClient.invalidateQueries({
                 queryKey: [HRMS_QUERY_KEYS.MASTER_GROUP_TYPE]
             });
+        },
+        onError: (error: any) => {
+            console.log('🔴 [HOOK] Group Type toggleMutation.onError:', error);
         }
     });
 
     const saveOrderMutation = useMutation({
-        mutationFn: (groupTypes: GroupTypeDetail[]) => saveMasterGroupTypeOrder(groupTypes),
+        mutationFn: (groupTypes: GroupTypeDetail[]) => {
+            console.log('🟣 [HOOK] Group Type saveOrderMutation called');
+            return saveMasterGroupTypeOrder(groupTypes);
+        },
         onSuccess: () => {
+            console.log('🟣 [HOOK] Group Type saveOrderMutation success');
             queryClient.invalidateQueries({
                 queryKey: [HRMS_QUERY_KEYS.MASTER_GROUP_TYPE]
             });
@@ -591,6 +822,7 @@ export function useMasterGroupType(roleId: number) {
     });
 
     const refetchAll = () => {
+        console.log('🔄 [HOOK] Group Type refetchAll called');
         queryClient.invalidateQueries({
             queryKey: [HRMS_QUERY_KEYS.MASTER_GROUP_TYPE]
         });
@@ -627,11 +859,21 @@ export function useMasterProfessionalTax(roleId: number) {
     });
 
     const saveMutation = useMutation({
-        mutationFn: (data: MasterProfessionalTaxInput) => saveMasterProfessionalTax(data),
-        onSuccess: () => {
+        mutationFn: (data: MasterProfessionalTaxInput) => {
+            console.log('🟣 [HOOK] Professional Tax saveMutation.mutationFn called with data:', JSON.stringify(data, null, 2));
+            return saveMasterProfessionalTax(data);
+        },
+        onSuccess: (response) => {
+            console.log('🟣 [HOOK] Professional Tax saveMutation.onSuccess - Response:', JSON.stringify(response, null, 2));
+            console.log('🟣 [HOOK] Invalidating professional tax queries...');
             queryClient.invalidateQueries({
                 queryKey: [HRMS_QUERY_KEYS.MASTER_PROFESSIONAL_TAX]
             });
+            console.log('🟣 [HOOK] Professional tax queries invalidated - table should refresh');
+        },
+        onError: (error: any) => {
+            console.log('🔴 [HOOK] Professional Tax saveMutation.onError - Error:', error);
+            console.log('🔴 [HOOK] Error message:', error?.message);
         }
     });
 
@@ -645,10 +887,18 @@ export function useMasterProfessionalTax(roleId: number) {
         }
     });
 
+    const refetchAll = () => {
+        console.log('🔄 [HOOK] Professional Tax refetchAll called - Invalidating queries');
+        queryClient.invalidateQueries({
+            queryKey: [HRMS_QUERY_KEYS.MASTER_PROFESSIONAL_TAX]
+        });
+    };
+
     return {
         listQuery,
         saveMutation,
-        toggleMutation
+        toggleMutation,
+        refetchAll
     };
 }
 
@@ -674,11 +924,22 @@ export function useMasterLeaveYear(roleId: number) {
     });
 
     const saveMutation = useMutation({
-        mutationFn: (data: MasterLeaveYearInput) => saveMasterLeaveYear(data),
-        onSuccess: () => {
+        mutationFn: (data: MasterLeaveYearInput) => {
+            console.log('🟣 [HOOK] Leave Year saveMutation.mutationFn called with data:', JSON.stringify(data, null, 2));
+            return saveMasterLeaveYear(data);
+        },
+        onSuccess: (response) => {
+            console.log('🟣 [HOOK] Leave Year saveMutation.onSuccess - Response:', JSON.stringify(response, null, 2));
+            console.log('🟣 [HOOK] Invalidating leave year queries...');
             queryClient.invalidateQueries({
                 queryKey: [HRMS_QUERY_KEYS.MASTER_LEAVE_YEAR]
             });
+            console.log('🟣 [HOOK] Leave year queries invalidated - table should refresh');
+        },
+        onError: (error: any) => {
+            console.log('🔴 [HOOK] Leave Year saveMutation.onError - Error:', error);
+            console.log('🔴 [HOOK] Error message:', error?.message);
+            console.log('🔴 [HOOK] Error response:', error?.response);
         }
     });
 
@@ -687,28 +948,58 @@ export function useMasterLeaveYear(roleId: number) {
             HRMLY_Id: number;
             HRMLY_ActiveFlag: boolean;
             MI_Id?: number;
-        }) => activateDeactivateMasterLeaveYear(data),
-        onSuccess: () => {
+        }) => {
+            console.log('🟣 [HOOK] Leave Year toggleMutation.mutationFn called with data:', JSON.stringify(data, null, 2));
+            return activateDeactivateMasterLeaveYear(data);
+        },
+        onSuccess: (response) => {
+            console.log('🟣 [HOOK] Leave Year toggleMutation.onSuccess - Response:', JSON.stringify(response, null, 2));
             queryClient.invalidateQueries({
                 queryKey: [HRMS_QUERY_KEYS.MASTER_LEAVE_YEAR]
             });
+        },
+        onError: (error: any) => {
+            console.log('🔴 [HOOK] Leave Year toggleMutation.onError - Error:', error);
         }
     });
 
     const saveOrderMutation = useMutation({
-        mutationFn: (leaveYears: LeaveYearDetail[]) => saveMasterLeaveYearOrder(leaveYears),
-        onSuccess: () => {
+        mutationFn: (leaveYears: LeaveYearDetail[]) => {
+            console.log('🟣 [HOOK] Leave Year saveOrderMutation.mutationFn called');
+            console.log('🟣 [HOOK] Number of leave years to update:', leaveYears.length);
+            console.log('🟣 [HOOK] Leave years data:', JSON.stringify(leaveYears, null, 2));
+            leaveYears.forEach((ly, index) => {
+                console.log(`🟣 [HOOK] Leave Year ${index + 1}: ID=${ly.HRMLY_Id}, Order=${ly.HRMLY_LeaveYearOrder}, Year=${ly.HRMLY_LeaveYear}`);
+            });
+            return saveMasterLeaveYearOrder(leaveYears);
+        },
+        onSuccess: (response) => {
+            console.log('🟣 [HOOK] Leave Year saveOrderMutation.onSuccess');
+            console.log('🟣 [HOOK] Response:', JSON.stringify(response, null, 2));
             queryClient.invalidateQueries({
                 queryKey: [HRMS_QUERY_KEYS.MASTER_LEAVE_YEAR]
             });
+            console.log('🟣 [HOOK] Leave year queries invalidated after order save');
+        },
+        onError: (error: any) => {
+            console.log('🔴 [HOOK] Leave Year saveOrderMutation.onError');
+            console.log('🔴 [HOOK] Error:', error);
         }
     });
+
+    const refetchAll = () => {
+        console.log('🔄 [HOOK] Leave Year refetchAll called - Invalidating queries');
+        queryClient.invalidateQueries({
+            queryKey: [HRMS_QUERY_KEYS.MASTER_LEAVE_YEAR]
+        });
+    };
 
     return {
         listQuery,
         saveMutation,
         toggleMutation,
-        saveOrderMutation
+        saveOrderMutation,
+        refetchAll
     };
 }
 
@@ -734,11 +1025,22 @@ export function useMasterEarningsDeductions(roleId: number) {
     });
 
     const saveMutation = useMutation({
-        mutationFn: (data: MasterEarningsDeductionsInput) => saveMasterEarningsDeductions(data),
-        onSuccess: () => {
+        mutationFn: (data: MasterEarningsDeductionsInput) => {
+            console.log('🟣 [HOOK] saveMutation.mutationFn called with data:', JSON.stringify(data, null, 2));
+            return saveMasterEarningsDeductions(data);
+        },
+        onSuccess: (response) => {
+            console.log('🟣 [HOOK] saveMutation.onSuccess - Response:', JSON.stringify(response, null, 2));
+            console.log('🟣 [HOOK] Invalidating earnings/deductions queries...');
             queryClient.invalidateQueries({
                 queryKey: [HRMS_QUERY_KEYS.MASTER_EARNINGS_DEDUCTIONS]
             });
+            console.log('🟣 [HOOK] Earnings/deductions queries invalidated - table should refresh');
+        },
+        onError: (error: any) => {
+            console.log('🔴 [HOOK] saveMutation.onError - Error:', error);
+            console.log('🔴 [HOOK] Error message:', error?.message);
+            console.log('🔴 [HOOK] Error response:', error?.response);
         }
     });
 
@@ -747,11 +1049,20 @@ export function useMasterEarningsDeductions(roleId: number) {
             HRMED_Id: number;
             HRMED_ActiveFlag: boolean;
             MI_Id?: number;
-        }) => activateDeactivateMasterEarningsDeductions(data),
-        onSuccess: () => {
+        }) => {
+            console.log('🟣 [HOOK] toggleMutation.mutationFn called with data:', JSON.stringify(data, null, 2));
+            return activateDeactivateMasterEarningsDeductions(data);
+        },
+        onSuccess: (response) => {
+            console.log('🟣 [HOOK] toggleMutation.onSuccess - Response:', JSON.stringify(response, null, 2));
             queryClient.invalidateQueries({
                 queryKey: [HRMS_QUERY_KEYS.MASTER_EARNINGS_DEDUCTIONS]
             });
+        },
+        onError: (error: any) => {
+            console.log('🔴 [HOOK] toggleMutation.onError - Error:', error);
+            console.log('🔴 [HOOK] Error message:', error?.message);
+            console.log('🔴 [HOOK] Error response:', error?.response);
         }
     });
 
@@ -764,11 +1075,18 @@ export function useMasterEarningsDeductions(roleId: number) {
         }
     });
 
+    const refetchAll = () => {
+        queryClient.invalidateQueries({
+            queryKey: [HRMS_QUERY_KEYS.MASTER_EARNINGS_DEDUCTIONS]
+        });
+    };
+
     return {
         listQuery,
         saveMutation,
         toggleMutation,
-        saveOrderMutation
+        saveOrderMutation,
+        refetchAll
     };
 }
 
@@ -789,16 +1107,37 @@ export function useMasterPayrollStandard(roleId: number) {
 
     const listQuery = useQuery({
         queryKey: [HRMS_QUERY_KEYS.MASTER_PAYROLL_STANDARD, roleId],
-        queryFn: async () => getMasterPayrollStandardList(roleId),
+        queryFn: async () => {
+            console.log('🟣 [HOOK] useMasterPayrollStandard queryFn called');
+            console.log('🟣 [HOOK] roleId:', roleId);
+            const result = await getMasterPayrollStandardList(roleId);
+            console.log('🟣 [HOOK] getMasterPayrollStandardList result:', result);
+            console.log('🟣 [HOOK] result.hrStandardList:', result?.hrStandardList);
+            const hrStandardList = (result?.hrStandardList || []) as any[];
+            console.log('🟣 [HOOK] result.hrStandardList length:', hrStandardList.length || 0);
+            console.log('🟣 [HOOK] First record:', hrStandardList[0]);
+            return result;
+        },
         staleTime: 5 * 60 * 1000
     });
 
     const saveMutation = useMutation({
-        mutationFn: (data: MasterPayrollStandardInput) => saveMasterPayrollStandard(data),
-        onSuccess: () => {
+        mutationFn: (data: MasterPayrollStandardInput) => {
+            console.log('🟣 [HOOK] Payroll Standard saveMutation.mutationFn called');
+            console.log('🟣 [HOOK] Payload:', JSON.stringify(data, null, 2));
+            return saveMasterPayrollStandard(data);
+        },
+        onSuccess: (response) => {
+            console.log('🟣 [HOOK] Payroll Standard saveMutation.onSuccess - Response:', JSON.stringify(response, null, 2));
+            console.log('🟣 [HOOK] Invalidating payroll standard queries...');
             queryClient.invalidateQueries({
                 queryKey: [HRMS_QUERY_KEYS.MASTER_PAYROLL_STANDARD]
             });
+            console.log('🟣 [HOOK] Payroll standard queries invalidated');
+        },
+        onError: (error: any) => {
+            console.log('🔴 [HOOK] Payroll Standard saveMutation.onError:', error);
+            console.log('🔴 [HOOK] Error message:', error?.message);
         }
     });
 
@@ -823,7 +1162,15 @@ export function useMasterPayrollStandardDetails(id: number) {
 export function useReligionCategoryMapping() {
     return useQuery({
         queryKey: [HRMS_QUERY_KEYS.RELIGION_CATEGORY_MAPPING],
-        queryFn: () => getReligionCategoryMappingList(),
+        queryFn: async () => {
+            console.log('🟣 [HOOK] useReligionCategoryMapping queryFn called');
+            const result = await getReligionCategoryMappingList();
+            console.log('🟣 [HOOK] getReligionCategoryMappingList result:', result);
+            console.log('🟣 [HOOK] result.data:', result?.data);
+            console.log('🟣 [HOOK] result.data.get_masterlist:', result?.data?.get_masterlist);
+            console.log('🟣 [HOOK] result.data.get_masterlist length:', result?.data?.get_masterlist?.length || 0);
+            return result;
+        },
         staleTime: 1000 * 60 * 5
     });
 }
@@ -974,19 +1321,29 @@ export function useSaveGroupDeptDessgMapping() {
     const queryClient = useQueryClient();
 
     return useMutation({
-        mutationFn: (data: GroupDeptDessgMappingInput) => saveGroupDeptDessgMapping(data),
+        mutationFn: (data: GroupDeptDessgMappingInput) => {
+            console.log('🟣 [HOOK] useSaveGroupDeptDessgMapping mutationFn called');
+            console.log('🟣 [HOOK] Data:', JSON.stringify(data, null, 2));
+            return saveGroupDeptDessgMapping(data);
+        },
         onSuccess: (response) => {
-            if (response.success) {
-                toast.success(response.message || 'Mapping saved successfully');
-                queryClient.invalidateQueries({
-                    queryKey: [HRMS_QUERY_KEYS.GROUP_DEPT_DESSG_MAPPING]
-                });
-            } else {
-                toast.error(response.message || 'Failed to save mapping');
-            }
+            console.log('🟣 [HOOK] useSaveGroupDeptDessgMapping onSuccess called');
+            console.log('🟣 [HOOK] Response:', JSON.stringify(response, null, 2));
+            
+            // Always invalidate queries to refresh the table, regardless of success
+            console.log('🟣 [HOOK] Invalidating queries...');
+            queryClient.invalidateQueries({
+                queryKey: [HRMS_QUERY_KEYS.GROUP_DEPT_DESSG_MAPPING]
+            });
+            console.log('🟣 [HOOK] Queries invalidated - table should refresh');
+            
+            // Don't show toast here - let the form handle it to avoid duplicates
+            // The form has more context about the operation
         },
         onError: (error: Error) => {
-            toast.error(error.message || 'An error occurred while saving mapping');
+            console.log('🔴 [HOOK] useSaveGroupDeptDessgMapping onError called');
+            console.log('🔴 [HOOK] Error:', error);
+            // Don't show toast here - let the form handle it
         }
     });
 }

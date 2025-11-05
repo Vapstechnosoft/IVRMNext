@@ -14,8 +14,17 @@ export default function MasterPayrollStandardPage(_props: {
     const roleId = HRMS_MI_ID;
     const { listQuery } = useMasterPayrollStandard(roleId);
 
+    console.log('📊 [PAYROLL STANDARD PAGE] Component render');
+    console.log('📊 [PAGE] listQuery.data:', listQuery.data);
+    console.log('📊 [PAGE] listQuery.data?.data:', listQuery.data?.data);
+    console.log('📊 [PAGE] listQuery.data?.hrStandardList:', listQuery.data?.hrStandardList);
+    const hrStandardList = (listQuery.data?.hrStandardList || []) as any[];
+    console.log('📊 [PAGE] listQuery.data?.hrStandardList length:', hrStandardList.length || 0);
+
     // Get the first (and only) payroll standard record
-    const existingData = listQuery.data?.data?.hrStandardList?.[0];
+    const existingData = hrStandardList[0];
+    console.log('📊 [PAGE] existingData (first record):', JSON.stringify(existingData, null, 2));
+    
     const isLoading = listQuery.isLoading;
     const error = listQuery.error;
 

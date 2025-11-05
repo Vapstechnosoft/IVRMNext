@@ -63,6 +63,8 @@ export default function MappingForm({
 
   useEffect(() => {
     if (selectedRow) {
+      console.log('📝 [GROUP-DEPT-DESSG FORM] Edit mode - selectedRow received:', JSON.stringify(selectedRow, null, 2));
+      
       // In edit mode, use the single HRMDES_Id as an array for multi-select
       // The API response has single HRMDES_Id per row, so we convert it to array
       // Also check if designationids exists in the response (for multi-select support)
@@ -79,7 +81,9 @@ export default function MappingForm({
           ? [selectedRow.HRMDES_Id]
           : [];
 
-      reset({
+      console.log('📝 [FORM] Computed designationids:', designationids);
+      
+      const formData = {
         hrgtddS_Id: selectedRow.HRGTDDS_Id,
         mI_Id: HRMS_MI_ID,
         hrmgT_Id: selectedRow.HRMGT_Id,
@@ -89,8 +93,13 @@ export default function MappingForm({
         hrgtddS_ActiveFlg: selectedRow.HRGTDDS_ActiveFlg,
         hrgtddS_CreatedBy: 5,
         logInUserId: 5,
-      });
+      };
+      
+      console.log('📝 [FORM] Resetting form with data:', JSON.stringify(formData, null, 2));
+      reset(formData);
+      console.log('📝 [FORM] Form reset complete');
     } else {
+      console.log('📝 [GROUP-DEPT-DESSG FORM] Add mode - No selectedRow');
       // Reset form when selectedRow is cleared (add mode)
       reset({
         mI_Id: HRMS_MI_ID,
@@ -106,9 +115,17 @@ export default function MappingForm({
   }, [selectedRow, reset]);
 
   const onSubmit: SubmitHandler<FormFields> = async (data) => {
+    console.log('🔵 ========== GROUP-DEPT-DESSG FORM SUBMIT ==========');
+    console.log('🔵 [FORM] onSubmit called');
+    console.log('🔵 [FORM] Is Edit Mode:', isEditMode);
+    console.log('🔵 [FORM] Form data received:', JSON.stringify(data, null, 2));
+    
     try {
       // In edit mode, check if data has actually changed
       if (isEditMode && selectedRow) {
+        console.log('📝 [FORM] Edit mode - checking for changes');
+        console.log('📝 [FORM] Original selectedRow:', JSON.stringify(selectedRow, null, 2));
+        
         // Get designation IDs for comparison - convert single HRMDES_Id to array if needed
         const originalDesignationIds =
           selectedRow.designationids &&
@@ -123,6 +140,9 @@ export default function MappingForm({
           (a, b) => a - b
         );
 
+        console.log('📝 [FORM] Original designation IDs:', originalDesignationIds);
+        console.log('📝 [FORM] Current designation IDs:', currentDesignationIds);
+
         // Compare all relevant fields
         const hasChanges =
           selectedRow.HRMGT_Id !== data.hrmgT_Id ||
@@ -133,8 +153,18 @@ export default function MappingForm({
             (id, index) => id === currentDesignationIds[index]
           );
 
+        console.log('📝 [FORM] Has changes:', hasChanges);
+        console.log('📝 [FORM] Change details:', {
+          groupChanged: selectedRow.HRMGT_Id !== data.hrmgT_Id,
+          deptChanged: selectedRow.HRMD_Id !== data.hrmD_Id,
+          activeChanged: selectedRow.HRGTDDS_ActiveFlg !== data.hrgtddS_ActiveFlg,
+          designationsChanged: originalDesignationIds.length !== currentDesignationIds.length ||
+            !originalDesignationIds.every((id, index) => id === currentDesignationIds[index])
+        });
+
         // If no changes, show info message and return early
         if (!hasChanges) {
+          console.log('⚠️ [FORM] No changes detected');
           toast.info("No changes detected. Nothing to update.");
           onSuccess?.();
           return;
@@ -162,24 +192,40 @@ export default function MappingForm({
             }
           : {}),
       };
+      
+      console.log('🟠 [FORM] Prepared submitData:', JSON.stringify(submitData, null, 2));
+      console.log('🟠 [FORM] Calling saveMapping mutation...');
 
       saveMapping(submitData, {
         onSuccess: (response) => {
+          console.log('🟢 [FORM] saveMapping onSuccess called');
+          console.log('🟢 [FORM] Response:', JSON.stringify(response, null, 2));
+          
           if (response.success) {
+            console.log('✅ [FORM] Save successful');
             toast.success(
               response.message ||
                 (isEditMode
                   ? "Mapping updated successfully"
                   : "Mapping saved successfully")
             );
-            if (!isEditMode) reset();
+            if (!isEditMode) {
+              console.log('📝 [FORM] Add mode - resetting form');
+              reset();
+            }
+            console.log('📝 [FORM] Calling onSuccess callback');
             onSuccess?.();
           } else {
+            console.log('❌ [FORM] Save failed - response.success is false');
             // Check if it's a duplicate error
             const errorMessage = response.message || "";
             const isDuplicateError = errorMessage.toLowerCase().includes("duplicate");
             
+            console.log('📝 [FORM] Error message:', errorMessage);
+            console.log('📝 [FORM] Is duplicate error:', isDuplicateError);
+            
             if (isDuplicateError && isEditMode) {
+              console.log('⚠️ [FORM] Duplicate detected in edit mode');
               toast.error(
                 `Duplicate entry detected. The combination of Group Type, Department, and Designation(s) already exists. If you're updating this record, ensure HRGTDDS_Id (${submitData.hrgtddS_Id || 0}) is being properly sent to the backend.`
               );
@@ -194,10 +240,17 @@ export default function MappingForm({
           }
         },
         onError: (error: any) => {
+          console.log('🔴 [FORM] saveMapping onError called');
+          console.log('🔴 [FORM] Error:', error);
+          
           const errorMessage = error.message || "";
           const isDuplicateError = errorMessage.toLowerCase().includes("duplicate");
           
+          console.log('📝 [FORM] Error message:', errorMessage);
+          console.log('📝 [FORM] Is duplicate error:', isDuplicateError);
+          
           if (isDuplicateError && isEditMode) {
+            console.log('⚠️ [FORM] Duplicate error in edit mode');
             toast.error(
               `Duplicate entry: The combination already exists. Please check that you're not creating a duplicate record.`
             );
@@ -206,7 +259,10 @@ export default function MappingForm({
           }
         },
       });
+      
+      console.log('🔵 ========== GROUP-DEPT-DESSG FORM SUBMIT END ==========');
     } catch (error: any) {
+      console.log('🔴 [FORM] Caught exception in onSubmit:', error);
       toast.error(error.message || "An error occurred");
     }
   };

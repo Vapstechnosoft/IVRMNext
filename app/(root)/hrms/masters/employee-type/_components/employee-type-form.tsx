@@ -31,7 +31,7 @@ export default function EmployeeTypeForm({ selectedRow, onSuccess, className = '
         register,
         handleSubmit,
         reset,
-        formState: { errors, isSubmitting }
+        formState: { errors, isSubmitting, isDirty }
     } = useForm<FormFields>({
         resolver: zodResolver(employeeTypeSchema.addOrUpdate),
         mode: 'onChange',
@@ -54,8 +54,10 @@ export default function EmployeeTypeForm({ selectedRow, onSuccess, className = '
     }, [selectedRow, reset]);
 
     const onSubmit: SubmitHandler<FormFields> = async (data) => {
+        console.log('🔵 [FORM] Employee Type submit - Data:', data);
         try {
             const response = await saveMutation.mutateAsync(data);
+            console.log('🟢 [FORM] Employee Type response:', response);
 
             if (response?.success) {
                 toast.success(response.message || (isEditMode ? 'Employee type updated successfully' : 'Employee type saved successfully'));
@@ -63,9 +65,11 @@ export default function EmployeeTypeForm({ selectedRow, onSuccess, className = '
                 refetchAll();
                 onSuccess?.();
             } else {
+                console.log('❌ [FORM] Employee Type failed:', response?.message);
                 toast.error(response?.message || (isEditMode ? 'Failed to update employee type' : 'Failed to save employee type'));
             }
         } catch (error: any) {
+            console.log('🔴 [FORM] Employee Type error:', error);
             toast.error(error.message || 'An error occurred');
         }
     };
@@ -104,7 +108,7 @@ export default function EmployeeTypeForm({ selectedRow, onSuccess, className = '
                     </Button>
                     <Button
                         type='submit'
-                        disabled={isSubmitting}
+                        disabled={isSubmitting || (isEditMode && !isDirty)}
                         className='order-1 w-fit transition-all duration-200 hover:scale-105 sm:order-2'
                         isLoading={isSubmitting}
                         loadingText={isEditMode ? 'Updating...' : 'Saving...'}>
@@ -113,6 +117,11 @@ export default function EmployeeTypeForm({ selectedRow, onSuccess, className = '
                             {isEditMode ? 'Update Employee Type' : 'Save Employee Type'}
                         </div>
                     </Button>
+                    {isEditMode && !isDirty && (
+                        <span className='order-3 flex items-center text-sm text-muted-foreground sm:order-3'>
+                            No changes made
+                        </span>
+                    )}
                 </div>
             </form>
         </div>

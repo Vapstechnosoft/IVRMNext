@@ -209,21 +209,98 @@ export async function saveQualification(qualifications: SaveQualificationRequest
 export async function savePersonalDetails(payload: SavePersonalDetailsRequest) {
     const url = '/api/EmployeeRegistrationNew/SavePersonalDetails';
     
-    const response = await api.post<SavePersonalDetailsResponse>('hrms', url, payload);
-    
-    // The backend returns raw data, not wrapped in ApiResponse format
-    // Wrap it to match the expected ApiResponse structure
-    if (response && typeof response === 'object' && 'success' in response && 'data' in response) {
-        // Already wrapped
-        return response;
+    try {
+        console.log('=== Server: savePersonalDetails Request Debug ===');
+        console.log('Payload HRME_Id:', payload.HRME_Id);
+        console.log('URL:', url);
+        console.log('=================================================');
+        
+        const response = await api.post<SavePersonalDetailsResponse>('hrms', url, payload);
+        
+        // Debug logging
+        console.log('=== Server: savePersonalDetails Response Debug ===');
+        console.log('Raw response:', JSON.stringify(response, null, 2));
+        console.log('Response type:', typeof response);
+        console.log('Is response an object?', response && typeof response === 'object');
+        
+        if (response && typeof response === 'object') {
+            console.log('Response keys:', Object.keys(response));
+            console.log('Has success property:', 'success' in response);
+            console.log('Has data property:', 'data' in response);
+            
+            if ('HRME_Id' in response) {
+                console.log('Direct HRME_Id found:', (response as any).HRME_Id);
+            }
+            
+            if ('data' in response && (response as any).data) {
+                const dataObj = (response as any).data;
+                console.log('Response.data type:', typeof dataObj);
+                if (typeof dataObj === 'string') {
+                    console.log('Response.data is a string:', dataObj);
+                } else if (typeof dataObj === 'object') {
+                    console.log('Response.data keys:', Object.keys(dataObj));
+                    if ('HRME_Id' in dataObj) {
+                        console.log('Response.data.HRME_Id:', dataObj.HRME_Id);
+                    }
+                }
+            }
+            
+            // Check if response is an array
+            if (Array.isArray(response)) {
+                console.log('Response is an array, length:', response.length);
+                if (response.length > 0 && 'HRME_Id' in response[0]) {
+                    console.log('HRME_Id in array[0]:', (response[0] as any).HRME_Id);
+                }
+            }
+        }
+        console.log('==================================================');
+        
+        // The backend returns raw data, not wrapped in ApiResponse format
+        // Wrap it to match the expected ApiResponse structure
+        if (response && typeof response === 'object' && 'success' in response && 'data' in response) {
+            // Already wrapped
+            console.log('Response already wrapped, returning as-is');
+            
+            // Check if data is a string (like "Duplicate") - this is an error case
+            if (typeof response.data === 'string') {
+                console.warn('API returned string in data field:', response.data);
+                // Return as-is, let client handle it
+            }
+            return response;
+        }
+        
+        // Check if response is directly a string (like "Duplicate")
+        if (typeof response === 'string') {
+            console.warn('API returned direct string response:', response);
+            return {
+                success: false,
+                message: response,
+                data: response as unknown as SavePersonalDetailsResponse
+            };
+        }
+        
+        // Wrap raw response data
+        const wrappedResponse = {
+            success: true,
+            message: 'Personal details saved successfully',
+            data: response as unknown as SavePersonalDetailsResponse
+        };
+        console.log('Wrapped response:', JSON.stringify(wrappedResponse, null, 2));
+        console.log('Wrapped response.data.HRME_Id:', wrappedResponse.data?.HRME_Id);
+        return wrappedResponse;
+    } catch (error: any) {
+        console.error('=== Server: savePersonalDetails ERROR ===');
+        console.error('Error type:', error?.constructor?.name);
+        console.error('Error message:', error?.message);
+        console.error('Error stack:', error?.stack);
+        console.error('Error response:', error?.response);
+        console.error('Error response data:', error?.response?.data);
+        console.error('Full error:', JSON.stringify(error, null, 2));
+        console.error('==========================================');
+        
+        // Re-throw to let the caller handle it
+        throw error;
     }
-    
-    // Wrap raw response data
-    return {
-        success: true,
-        message: 'Personal details saved successfully',
-        data: response as unknown as SavePersonalDetailsResponse
-    };
 }
 
 /**

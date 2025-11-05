@@ -88,8 +88,19 @@ export interface SaveDesignationRequest {
     HRMDES_DisplaySanctionedSeatsFlag: boolean;
     HRMDES_Order: number;
     HRMDES_ActiveFlag: boolean;
-    designationlList: string[];
+    designationlList: Array<{
+        CreatedDate: string;
+        UpdatedDate: string;
+        HRMDES_Id: number;
+        MI_Id: number;
+        HRMDES_DesignationName: string;
+        HRMDES_BasicAmount: number;
+        HRMDES_SanctionedSeats: number;
+        HRMDES_DisplaySanctionedSeatsFlag: boolean;
+        HRMDES_Order: number;
+        HRMDES_ActiveFlag: boolean;
+    }>;
     retrunMsg: string;
     roleId: number;
-    DesignationDTO: string[];
+    DesignationDTO: any[];
 }

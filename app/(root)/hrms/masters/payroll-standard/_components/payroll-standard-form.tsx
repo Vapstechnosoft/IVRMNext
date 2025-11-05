@@ -22,14 +22,14 @@ const payrollStandardSchema = z.object({
     MI_Id: z.number(),
     // Provident Fund
     HRC_PFAccPrefix: z.string().optional(),
-    HRC_PFMaxAmt: z.number().min(0, 'Cannot be negative'),
-    HRC_FPFPer: z.number().min(0).max(100),
-    HRC_EPFPer: z.number().min(0).max(100),
+    HRC_PFMaxAmt: z.number().min(0, 'Cannot be negative').optional().or(z.literal(undefined)),
+    HRC_FPFPer: z.number().min(0).max(100).optional().or(z.literal(undefined)),
+    HRC_EPFPer: z.number().min(0).max(100).optional().or(z.literal(undefined)),
     HRC_EPFPerAfterRetirement: z.number().min(0).max(100).optional(),
     HRC_EPFPerAfterRetirement2: z.number().min(0).max(100).optional(),
-    HRC_AccNo2Per: z.number().min(0).max(100).optional(),
-    HRC_AccNo21Per: z.number().min(0).max(100).optional(),
-    HRC_AccNo22Per: z.number().min(0).max(100).optional(),
+    HRC_AccNo2Per: z.number().min(0).optional(), // Account number, not percentage
+    HRC_AccNo21Per: z.number().min(0).optional(), // Account number, not percentage
+    HRC_AccNo22Per: z.number().min(0).optional(), // Account number, not percentage
     HRC_AC2MinAmt: z.number().min(0).optional(),
     HRC_AC21MinAmt: z.number().min(0).optional(),
     HRC_AC22MinAmt: z.number().min(0).optional(),
@@ -40,10 +40,11 @@ const payrollStandardSchema = z.object({
     HRC_RetirementYrs: z.number().min(1).max(100),
     // ESI
     HRC_ESIAccPrefix: z.string().optional(),
-    HRC_ESIMax: z.number().min(0),
-    HRC_ESIEmplrCont: z.number().min(0).max(100),
+    HRC_ESIMax: z.number().min(0).optional().or(z.literal(undefined)),
+    HRC_ESIEmplrCont: z.number().min(0).max(100).optional().or(z.literal(undefined)),
     // Arrear Details
     HRC_ArrearSalaryReport: z.enum(['Separate', 'OnlyArrearHead']).optional(),
+    HRC_ArrearRequired: z.enum(['Cumulative', 'Monthwise']).optional(),
     // Approval Process
     HRC_SalaryApproval: z.boolean().optional(),
     HRC_SalaryAdvance: z.boolean().optional(),
@@ -82,34 +83,36 @@ export default function PayrollStandardForm({ existingData, className = '' }: Pa
         register,
         handleSubmit,
         reset,
+        watch,
         formState: { errors, isSubmitting }
     } = useForm<FormFields>({
         resolver: zodResolver(payrollStandardSchema),
-        mode: 'onChange',
+        mode: 'onBlur', // Changed from 'onChange' to prevent validation before data loads
         defaultValues: {
             HRC_Id: existingData?.HRC_Id || 0,
             MI_Id: HRMS_MI_ID,
             HRC_PFAccPrefix: '',
-            HRC_PFMaxAmt: 0,
-            HRC_FPFPer: 0,
-            HRC_EPFPer: 0,
-            HRC_EPFPerAfterRetirement: 0,
-            HRC_EPFPerAfterRetirement2: 0,
-            HRC_AccNo2Per: 0,
-            HRC_AccNo21Per: 0,
-            HRC_AccNo22Per: 0,
-            HRC_AC2MinAmt: 0,
-            HRC_AC21MinAmt: 0,
-            HRC_AC22MinAmt: 0,
-            HRC_EducationCess: 0,
-            HRC_PartAMaxLimit: 0,
-            HRC_PartBMaxLimit: 0,
+            HRC_PFMaxAmt: undefined,
+            HRC_FPFPer: undefined,
+            HRC_EPFPer: undefined,
+            HRC_EPFPerAfterRetirement: undefined,
+            HRC_EPFPerAfterRetirement2: undefined,
+            HRC_AccNo2Per: undefined,
+            HRC_AccNo21Per: undefined,
+            HRC_AccNo22Per: undefined,
+            HRC_AC2MinAmt: undefined,
+            HRC_AC21MinAmt: undefined,
+            HRC_AC22MinAmt: undefined,
+            HRC_EducationCess: undefined,
+            HRC_PartAMaxLimit: undefined,
+            HRC_PartBMaxLimit: undefined,
             HRC_AsPerEmployee: false,
             HRC_RetirementYrs: 60,
             HRC_ESIAccPrefix: '',
-            HRC_ESIMax: 0,
-            HRC_ESIEmplrCont: 0,
+            HRC_ESIMax: undefined,
+            HRC_ESIEmplrCont: undefined,
             HRC_ArrearSalaryReport: 'Separate',
+            HRC_ArrearRequired: 'Monthwise',
             HRC_SalaryApproval: false,
             HRC_SalaryAdvance: false,
             HRC_Loan: false,
@@ -117,48 +120,60 @@ export default function PayrollStandardForm({ existingData, className = '' }: Pa
             HRC_Increment: false,
             HRC_Probation: false,
             HRC_PaymentMethod: 1,
-            HRC_OptionalHolidays: 0,
+            HRC_OptionalHolidays: undefined,
             HRC_ApplicableFlag: false,
-            HRC_MinimumPeriods: 0,
+            HRC_MinimumPeriods: undefined,
             HRC_IncrementMonth: '',
-            HRC_IncrementOnceInMonths: 0,
-            HRC_AlertDays: 0,
-            HRC_SalaryFromDay: 1,
-            HRC_SalaryToDay: 31,
+            HRC_IncrementOnceInMonths: undefined,
+            HRC_AlertDays: undefined,
+            HRC_SalaryFromDay: 1, // Set default to 1 to avoid validation error
+            HRC_SalaryToDay: 31, // Set default to 31 to avoid validation error
             HRC_ActiveFlag: true
         }
     });
 
+    // Watch for Arrear Salary Report changes
+    const arrearSalaryReport = watch('HRC_ArrearSalaryReport');
+
     // Pre-populate form with existing data
     useEffect(() => {
         if (existingData) {
+            console.log('📝 [PAYROLL STANDARD FORM] Loading existing data:', JSON.stringify(existingData, null, 2));
+            console.log('📝 [FORM] HRC_IncrementMonth from API:', existingData.HRC_IncrementMonth);
+            console.log('📝 [FORM] HRC_SalaryFromDay from API:', existingData.HRC_SalaryFromDay);
+            console.log('📝 [FORM] HRC_SalaryToDay from API:', existingData.HRC_SalaryToDay);
+
+            // Helper function to convert 0 to undefined for empty display
+            const clearZero = (value: number | undefined) => (value === 0 ? undefined : value);
+
             reset({
                 HRC_Id: existingData.HRC_Id,
                 MI_Id: existingData.MI_Id,
                 // Provident Fund
                 HRC_PFAccPrefix: existingData.HRC_PFAccNoPrefix || '',
-                HRC_PFMaxAmt: existingData.HRC_PFMaxAmt,
-                HRC_FPFPer: existingData.HRC_FPFPer,
-                HRC_EPFPer: existingData.HRC_EPFPer,
-                HRC_EPFPerAfterRetirement: existingData.HRC_ARTFPFPer || 0,
-                HRC_EPFPerAfterRetirement2: existingData.HRC_ARTEPFPer || 0,
-                HRC_AccNo2Per: existingData.HRC_AccNo2 || 0,
-                HRC_AccNo21Per: existingData.HRC_AccNo21 || 0,
-                HRC_AccNo22Per: existingData.HRC_AccNo22 || 0,
-                HRC_AC2MinAmt: existingData.HRC_AC2MinAmount || 0,
-                HRC_AC21MinAmt: existingData.HRC_AC21MinAmount || 0,
-                HRC_AC22MinAmt: existingData.HRC_AC22MinAmount || 0,
-                HRC_EducationCess: existingData.HRC_EducationCess || 0,
-                HRC_PartAMaxLimit: existingData.HRC_partAmaxflag || 0,
-                HRC_PartBMaxLimit: existingData.HRC_partBmaxflag || 0,
+                HRC_PFMaxAmt: clearZero(existingData.HRC_PFMaxAmt),
+                HRC_FPFPer: clearZero(existingData.HRC_FPFPer),
+                HRC_EPFPer: clearZero(existingData.HRC_EPFPer),
+                HRC_EPFPerAfterRetirement: clearZero(existingData.HRC_ARTFPFPer),
+                HRC_EPFPerAfterRetirement2: clearZero(existingData.HRC_ARTEPFPer),
+                HRC_AccNo2Per: clearZero(existingData.HRC_AccNo2),
+                HRC_AccNo21Per: clearZero(existingData.HRC_AccNo21),
+                HRC_AccNo22Per: clearZero(existingData.HRC_AccNo22),
+                HRC_AC2MinAmt: clearZero(existingData.HRC_AC2MinAmount),
+                HRC_AC21MinAmt: clearZero(existingData.HRC_AC21MinAmount),
+                HRC_AC22MinAmt: clearZero(existingData.HRC_AC22MinAmount),
+                HRC_EducationCess: clearZero(existingData.HRC_EducationCess),
+                HRC_PartAMaxLimit: clearZero(existingData.HRC_partAmaxflag),
+                HRC_PartBMaxLimit: clearZero(existingData.HRC_partBmaxflag),
                 HRC_AsPerEmployee: existingData.HRC_AsPerEmpFlag ?? false,
-                HRC_RetirementYrs: existingData.HRC_RetirementYrs,
+                HRC_RetirementYrs: existingData.HRC_RetirementYrs || 60,
                 // ESI
                 HRC_ESIAccPrefix: existingData.HRC_ECodePrefix || '',
-                HRC_ESIMax: existingData.HRC_ESIMax,
-                HRC_ESIEmplrCont: existingData.HRC_ESIEmplrCont,
+                HRC_ESIMax: clearZero(existingData.HRC_ESIMax),
+                HRC_ESIEmplrCont: clearZero(existingData.HRC_ESIEmplrCont),
                 // Arrear Details
                 HRC_ArrearSalaryReport: existingData.HRC_ArrSalaryFlag ? 'Separate' : 'OnlyArrearHead',
+                HRC_ArrearRequired: existingData.HRC_CummArrFlag ? 'Cumulative' : 'Monthwise',
                 // Approval Process
                 HRC_SalaryApproval: existingData.HRC_SalApprovalFlg ?? false,
                 HRC_SalaryAdvance: existingData.HRC_SalAdvApprovalFlg ?? false,
@@ -169,21 +184,30 @@ export default function PayrollStandardForm({ existingData, className = '' }: Pa
                 // Payment Method
                 HRC_PaymentMethod: Number(existingData.HRC_PayMethodFlg) || 1,
                 // Increment Process
-                HRC_OptionalHolidays: existingData.HRC_NoOfOptionalHolidays || 0,
+                HRC_OptionalHolidays: clearZero(existingData.HRC_NoOfOptionalHolidays),
                 HRC_ApplicableFlag: existingData.HRC_FixedIncrmentFlg ?? false,
-                HRC_MinimumPeriods: existingData.HRC_MinimumWorkingPeriod || 0,
+                HRC_MinimumPeriods: clearZero(existingData.HRC_MinimumWorkingPeriod),
                 HRC_IncrementMonth: existingData.HRC_IncrementMonth || '',
-                HRC_IncrementOnceInMonths: existingData.HRC_IncrementOnceInMonths || 0,
-                HRC_AlertDays: existingData.HRC_AlertDay || 0,
+                HRC_IncrementOnceInMonths: clearZero(existingData.HRC_IncrementOnceInMonths),
+                HRC_AlertDays: clearZero(existingData.HRC_AlertDay),
                 // Salary Days
-                HRC_SalaryFromDay: existingData.HRC_SalaryFromDay,
-                HRC_SalaryToDay: existingData.HRC_SalaryToDay,
+                HRC_SalaryFromDay: existingData.HRC_SalaryFromDay ?? 1,
+                HRC_SalaryToDay: existingData.HRC_SalaryToDay ?? 31,
                 HRC_ActiveFlag: existingData.HRC_ActiveFlag ?? true
             } as any);
+
+            console.log('📝 [PAYROLL STANDARD FORM] Form reset complete');
         }
     }, [existingData, reset]);
 
     const onSubmit: SubmitHandler<FormFields> = async (data) => {
+        console.log('🔵 ========== PAYROLL STANDARD FORM SUBMIT ==========');
+        console.log('🔵 [FORM] onSubmit handler CALLED! This means validation passed!');
+        console.log('🔵 [FORM] Form submit - Data:', JSON.stringify(data, null, 2));
+        console.log('🔵 [FORM] HRC_Id:', data.HRC_Id);
+        console.log('🔵 [FORM] HRC_ArrearSalaryReport:', data.HRC_ArrearSalaryReport);
+        console.log('🔵 [FORM] HRC_ArrearRequired:', data.HRC_ArrearRequired);
+
         // Map form fields to API fields
         const payload = {
             HRC_Id: data.HRC_Id || 0,
@@ -213,7 +237,7 @@ export default function PayrollStandardForm({ existingData, className = '' }: Pa
             HRC_ESIEmplrCont: data.HRC_ESIEmplrCont || 0,
             // Arrear Details
             HRC_ArrSalaryFlag: data.HRC_ArrearSalaryReport === 'Separate',
-            HRC_CummArrFlag: data.HRC_ArrearSalaryReport === 'OnlyArrearHead',
+            HRC_CummArrFlag: data.HRC_ArrearRequired === 'Cumulative',
             // Approval Process
             HRC_SalApprovalFlg: data.HRC_SalaryApproval ?? false,
             HRC_SalAdvApprovalFlg: data.HRC_SalaryAdvance ?? false,
@@ -236,16 +260,28 @@ export default function PayrollStandardForm({ existingData, className = '' }: Pa
             HRC_ActiveFlag: data.HRC_ActiveFlag ?? true
         };
 
+        console.log('🟠 [FORM] Prepared payload:', JSON.stringify(payload, null, 2));
+        console.log('🟠 [FORM] Calling saveMutation...');
+
         saveMutation.mutate(payload, {
             onSuccess: (response) => {
+                console.log('🟢 [FORM] Save mutation onSuccess called');
+                console.log('🟢 [FORM] Response:', JSON.stringify(response, null, 2));
+
                 if (response?.success) {
+                    console.log('✅ [FORM] Save successful');
                     toast.success(response.message || 'Payroll standard saved successfully');
                 } else {
+                    console.log('❌ [FORM] Save failed');
                     toast.error(response?.message || 'Failed to save payroll standard');
                 }
+                console.log('🔵 ========== PAYROLL STANDARD FORM SUBMIT END ==========');
             },
             onError: (error: any) => {
+                console.log('🔴 [FORM] Save mutation onError called');
+                console.log('🔴 [FORM] Error:', error);
                 toast.error(error.message || 'An error occurred');
+                console.log('🔵 ========== PAYROLL STANDARD FORM SUBMIT END ==========');
             }
         });
     };
@@ -285,9 +321,29 @@ export default function PayrollStandardForm({ existingData, className = '' }: Pa
         'December'
     ];
 
+    // Add debug logging for form state changes
+    const formValues = watch();
+    console.log('📝 [PAYROLL STANDARD FORM] Current form values:', formValues);
+    console.log('📝 [PAYROLL STANDARD FORM] Form errors:', errors);
+    if (errors.HRC_SalaryFromDay) {
+        console.log('❌ [FORM] HRC_SalaryFromDay error:', errors.HRC_SalaryFromDay.message);
+    }
+    if (errors.HRC_SalaryToDay) {
+        console.log('❌ [FORM] HRC_SalaryToDay error:', errors.HRC_SalaryToDay.message);
+    }
+    console.log('📝 [PAYROLL STANDARD FORM] isSubmitting:', isSubmitting);
+
+    const handleFormSubmit = (e?: React.FormEvent) => {
+        console.log('🔵 [PAYROLL STANDARD FORM] handleFormSubmit triggered!', e?.type);
+        console.log('🔵 [FORM] Current form errors:', errors);
+        console.log('🔵 [FORM] All error keys:', Object.keys(errors));
+        console.log('🔵 [FORM] Current form values:', watch());
+        return handleSubmit(onSubmit)(e);
+    };
+
     return (
         <div className={className}>
-            <form onSubmit={handleSubmit(onSubmit)} className='space-y-6'>
+            <form onSubmit={handleFormSubmit} className='space-y-6'>
                 {/* Provident Fund Section */}
                 <div className='rounded-lg bg-purple-600 p-4 text-white'>
                     <h3 className='font-semibold text-lg'>Provident Fund</h3>
@@ -665,6 +721,53 @@ export default function PayrollStandardForm({ existingData, className = '' }: Pa
                             </div>
                         </div>
                     </div>
+
+                    {/* Conditional Arrear Required Section - Only shown when "Separate" is selected */}
+                    {arrearSalaryReport === 'Separate' && (
+                        <div className='group flex flex-col gap-1.5 rounded-md border border-purple-200 bg-purple-50 p-4'>
+                            <Label>Arrear Required:</Label>
+                            <div className='flex gap-6'>
+                                <div className='flex items-center space-x-2'>
+                                    <Controller
+                                        name='HRC_ArrearRequired'
+                                        control={control}
+                                        render={({ field }) => (
+                                            <input
+                                                type='radio'
+                                                id='arrear-cumulative'
+                                                value='Cumulative'
+                                                checked={field.value === 'Cumulative'}
+                                                onChange={(e) => field.onChange(e.target.value)}
+                                                className='h-4 w-4'
+                                            />
+                                        )}
+                                    />
+                                    <Label htmlFor='arrear-cumulative' className='cursor-pointer font-normal'>
+                                        Cumulative Arrear
+                                    </Label>
+                                </div>
+                                <div className='flex items-center space-x-2'>
+                                    <Controller
+                                        name='HRC_ArrearRequired'
+                                        control={control}
+                                        render={({ field }) => (
+                                            <input
+                                                type='radio'
+                                                id='arrear-monthwise'
+                                                value='Monthwise'
+                                                checked={field.value === 'Monthwise'}
+                                                onChange={(e) => field.onChange(e.target.value)}
+                                                className='h-4 w-4'
+                                            />
+                                        )}
+                                    />
+                                    <Label htmlFor='arrear-monthwise' className='cursor-pointer font-normal'>
+                                        Month wise Arrear
+                                    </Label>
+                                </div>
+                            </div>
+                        </div>
+                    )}
                 </div>
 
                 {/* Approval Process Section */}
@@ -956,7 +1059,15 @@ export default function PayrollStandardForm({ existingData, className = '' }: Pa
                         disabled={isSubmitting || saveMutation.isPending}
                         className='order-1 w-fit bg-purple-600 transition-all duration-200 hover:scale-105 hover:bg-purple-700'
                         isLoading={isSubmitting || saveMutation.isPending}
-                        loadingText='Saving...'>
+                        loadingText='Saving...'
+                        onClick={() => {
+                            console.log('🔵 [PAYROLL STANDARD FORM] Save button clicked!');
+                            console.log('🔵 [FORM] Button disabled:', isSubmitting || saveMutation.isPending);
+                            console.log('🔵 [FORM] isSubmitting:', isSubmitting);
+                            console.log('🔵 [FORM] saveMutation.isPending:', saveMutation.isPending);
+                            console.log('🔵 [FORM] Current errors:', errors);
+                            console.log('🔵 [FORM] Error count:', Object.keys(errors).length);
+                        }}>
                         <div className='flex items-center'>
                             <Save className='mr-2 h-4 w-4' />
                             SAVE

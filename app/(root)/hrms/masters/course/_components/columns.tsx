@@ -13,6 +13,13 @@ import { toast } from 'sonner';
 
 export const columns: ColumnDef<CourseDetail>[] = [
     {
+        id: 'slNo',
+        header: () => <div className='text-center font-medium'>Sl No</div>,
+        cell: ({ row }) => <div className='text-center'>{row.index + 1}</div>,
+        enableSorting: false,
+        size: 60
+    },
+    {
         accessorKey: 'HRMC_QulaificationName',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Qualification Name' />
     },
@@ -83,6 +90,13 @@ function ActionButtonsCell({ rowData }: { rowData: CourseDetail }) {
 // Editable columns for order editing mode
 export function getEditableColumns(onOrderChange: (rowId: number, newOrder: number) => void): ColumnDef<CourseDetail>[] {
     return [
+        {
+            id: 'slNo',
+            header: () => <div className='text-center font-medium'>Sl No</div>,
+            cell: ({ row }) => <div className='text-center'>{row.index + 1}</div>,
+            enableSorting: false,
+            size: 60
+        },
         {
             accessorKey: 'HRMC_QulaificationName',
             header: ({ column }) => <DataTableColumnHeader column={column} title='Qualification Name' />

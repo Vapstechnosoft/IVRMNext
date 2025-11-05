@@ -18,7 +18,7 @@ interface CourseFormProps {
 
 export default function CourseForm({ selectedRow, onSuccess }: CourseFormProps) {
     const roleId = HRMS_MI_ID;
-    const { saveMutation } = useMasterCourse(roleId);
+    const { saveMutation, refetchAll } = useMasterCourse(roleId);
     const isEditMode = !!selectedRow;
 
     const {
@@ -26,7 +26,7 @@ export default function CourseForm({ selectedRow, onSuccess }: CourseFormProps) 
         handleSubmit,
         control,
         reset,
-        formState: { errors }
+        formState: { errors, isDirty }
     } = useForm<MasterCourseInput>({
         defaultValues: {
             MI_Id: roleId,
@@ -41,6 +41,7 @@ export default function CourseForm({ selectedRow, onSuccess }: CourseFormProps) 
 
     useEffect(() => {
         if (selectedRow) {
+            console.log('📝 [COURSE FORM] Edit mode - Loading selectedRow:', JSON.stringify(selectedRow, null, 2));
             reset({
                 HRMC_Id: selectedRow.HRMC_Id,
                 MI_Id: selectedRow.MI_Id,
@@ -51,23 +52,85 @@ export default function CourseForm({ selectedRow, onSuccess }: CourseFormProps) 
                 HRMC_DefaultQualFag: selectedRow.HRMC_DefaultQualFag,
                 HRMC_SpecialisationFlag: selectedRow.HRMC_SpecialisationFlag
             });
+            console.log('📝 [COURSE FORM] Form reset with edit data');
+        } else {
+            console.log('📝 [COURSE FORM] Add mode - No selectedRow');
         }
     }, [selectedRow, reset]);
 
     const onSubmit = async (data: MasterCourseInput) => {
-        try {
-            const res = await saveMutation.mutateAsync(data);
-            if (res?.success) {
-                toast.success(isEditMode ? 'Course updated successfully' : 'Course added successfully');
-                if (onSuccess) onSuccess();
-            }
-        } catch (_error) {
-            toast.error(isEditMode ? 'Failed to update course' : 'Failed to add course');
+        console.log('🔵 ========== COURSE FORM SUBMIT ==========');
+        console.log('🔵 Form Data:', JSON.stringify(data, null, 2));
+        console.log('🔵 Is Edit Mode:', isEditMode);
+        console.log('🔵 HRMC_Id in data:', data.HRMC_Id);
+        console.log('🔵 Role ID:', roleId);
+        console.log('🔵 Form Errors:', errors);
+        
+        if (isEditMode && !data.HRMC_Id) {
+            console.log('⚠️ WARNING: Edit mode but no HRMC_Id in form data!');
         }
+        
+        try {
+            console.log('🟡 Calling saveMutation.mutateAsync...');
+            const res = await saveMutation.mutateAsync(data);
+            
+            console.log('🟢 ========== API RESPONSE ==========');
+            console.log('🟢 Response:', JSON.stringify(res, null, 2));
+            console.log('🟢 Response success:', res?.success);
+            console.log('🟢 Response message:', res?.message);
+            console.log('🟢 ====================================');
+            
+            if (res?.success) {
+                const successMsg = res?.message || (isEditMode ? 'Course updated successfully' : 'Course added successfully');
+                console.log('✅ Success! Showing toast:', successMsg);
+                toast.success(successMsg);
+                
+                // Reset form if in add mode
+                if (!isEditMode) {
+                    console.log('✅ Resetting form (add mode)');
+                    reset();
+                }
+                
+                // Refetch the list
+                console.log('✅ Refetching list');
+                refetchAll();
+                
+                // Call success callback (closes the form)
+                if (onSuccess) {
+                    console.log('✅ Calling onSuccess callback');
+                    onSuccess();
+                }
+            } else {
+                const errorMsg = res?.message || (isEditMode ? 'Failed to update course' : 'Failed to add course');
+                console.log('❌ API returned success=false. Message:', errorMsg);
+                toast.error(errorMsg);
+            }
+        } catch (error: any) {
+            console.log('🔴 ========== ERROR CAUGHT ==========');
+            console.error('🔴 Error object:', error);
+            console.error('🔴 Error message:', error?.message);
+            console.error('🔴 Error response:', error?.response);
+            console.error('🔴 Error data:', error?.response?.data);
+            console.log('🔴 ====================================');
+            
+            const errorMsg = error?.response?.data?.message 
+                || error?.message 
+                || error?.data?.message
+                || (isEditMode ? 'Failed to update course' : 'Failed to add course');
+            
+            console.log('🔴 Showing error toast:', errorMsg);
+            toast.error(errorMsg);
+        }
+        
+        console.log('🔵 ========== FORM SUBMIT END ==========');
     };
 
     return (
         <form className='grid grid-cols-1 gap-4 md:grid-cols-2' onSubmit={handleSubmit(onSubmit)}>
+            {/* Hidden fields for IDs */}
+            {isEditMode && <input type='hidden' {...register('HRMC_Id', { valueAsNumber: true })} />}
+            <input type='hidden' {...register('MI_Id', { valueAsNumber: true })} />
+            
             <div className='group flex flex-col gap-1.5'>
                 <Label htmlFor='HRMC_QulaificationName'>
                     Qualification Name <span className='text-destructive'>*</span>
@@ -116,10 +179,18 @@ export default function CourseForm({ selectedRow, onSuccess }: CourseFormProps) 
                     <Label htmlFor='has-specialization-checkbox'>Has Specialization</Label>
                 </div>
             </div>
-            <div className='col-span-full'>
-                <Button type='submit' className='mt-2' disabled={saveMutation.isPending}>
+            <div className='col-span-full flex gap-2'>
+                <Button 
+                    type='submit' 
+                    className='mt-2' 
+                    disabled={saveMutation.isPending || (isEditMode && !isDirty)}>
                     {saveMutation.isPending ? (isEditMode ? 'Updating...' : 'Saving...') : isEditMode ? 'Update' : 'Save'}
                 </Button>
+                {isEditMode && !isDirty && (
+                    <span className='mt-2 flex items-center text-sm text-muted-foreground'>
+                        No changes made
+                    </span>
+                )}
             </div>
         </form>
     );

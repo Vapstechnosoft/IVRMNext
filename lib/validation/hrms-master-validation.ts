@@ -284,8 +284,8 @@ export const BANK_VALIDATION = {
     accountNumber: {
         required: VALIDATION_MESSAGES.REQUIRED('Account Number'),
         maxLength: {
-            value: 20,
-            message: VALIDATION_MESSAGES.MAX_LENGTH('Account Number', 20)
+            value: 10,
+            message: VALIDATION_MESSAGES.MAX_LENGTH('Account Number', 10)
         },
         pattern: {
             value: VALIDATION_PATTERNS.ACCOUNT_NUMBER,
@@ -295,8 +295,8 @@ export const BANK_VALIDATION = {
     bankAddress: {
         required: VALIDATION_MESSAGES.REQUIRED('Bank Address'),
         maxLength: {
-            value: 100,
-            message: VALIDATION_MESSAGES.MAX_LENGTH('Bank Address', 100)
+            value: 50,
+            message: VALIDATION_MESSAGES.MAX_LENGTH('Bank Address', 50)
         },
         pattern: {
             value: VALIDATION_PATTERNS.ALPHANUMERIC,
@@ -386,8 +386,8 @@ export const GENDER_VALIDATION = {
     genderName: {
         required: VALIDATION_MESSAGES.REQUIRED('Gender Name'),
         maxLength: {
-            value: 10,
-            message: VALIDATION_MESSAGES.MAX_LENGTH('Gender Name', 10)
+            value: 5,
+            message: VALIDATION_MESSAGES.MAX_LENGTH('Gender Name', 5)
         },
         pattern: {
             value: VALIDATION_PATTERNS.ALPHABET_ONLY,
@@ -414,8 +414,8 @@ export const LOAN_TYPE_VALIDATION = {
     loanType: {
         required: VALIDATION_MESSAGES.REQUIRED('Loan Type'),
         maxLength: {
-            value: 50,
-            message: VALIDATION_MESSAGES.MAX_LENGTH('Loan Type', 50)
+            value: 25,
+            message: VALIDATION_MESSAGES.MAX_LENGTH('Loan Type', 25)
         },
         pattern: {
             value: VALIDATION_PATTERNS.ALPHABET_ONLY,
@@ -433,8 +433,8 @@ export const LOAN_TYPE_VALIDATION = {
             message: VALIDATION_MESSAGES.MIN_VALUE('Max Loan Amount', 0)
         },
         max: {
-            value: 9999999999, // 10 digits including decimals
-            message: VALIDATION_MESSAGES.MAX_VALUE('Max Loan Amount', 9999999999)
+            value: 999999.99, // 6 digits including decimals
+            message: VALIDATION_MESSAGES.MAX_VALUE('Max Loan Amount', 999999.99)
         }
     }
 };
@@ -457,8 +457,8 @@ export const COURSE_VALIDATION = {
     courseName: {
         required: VALIDATION_MESSAGES.REQUIRED('Course Name'),
         maxLength: {
-            value: 50,
-            message: VALIDATION_MESSAGES.MAX_LENGTH('Course Name', 50)
+            value: 10,
+            message: VALIDATION_MESSAGES.MAX_LENGTH('Course Name', 10)
         },
         pattern: {
             value: VALIDATION_PATTERNS.ALPHANUMERIC,
@@ -468,8 +468,8 @@ export const COURSE_VALIDATION = {
     courseDescription: {
         required: VALIDATION_MESSAGES.REQUIRED('Course Description'),
         maxLength: {
-            value: 100,
-            message: VALIDATION_MESSAGES.MAX_LENGTH('Course Description', 100)
+            value: 50,
+            message: VALIDATION_MESSAGES.MAX_LENGTH('Course Description', 50)
         },
         pattern: {
             value: VALIDATION_PATTERNS.ALPHANUMERIC,
@@ -482,8 +482,8 @@ export const SPECIALIZATION_VALIDATION = {
     specializationName: {
         required: VALIDATION_MESSAGES.REQUIRED('Specialization Name'),
         maxLength: {
-            value: 50,
-            message: VALIDATION_MESSAGES.MAX_LENGTH('Specialization Name', 50)
+            value: 10,
+            message: VALIDATION_MESSAGES.MAX_LENGTH('Specialization Name', 10)
         },
         pattern: {
             value: VALIDATION_PATTERNS.ALPHABET_ONLY,
@@ -505,8 +505,8 @@ export const PROFESSIONAL_TAX_VALIDATION = {
             message: VALIDATION_MESSAGES.MIN_VALUE('Salary From', 0)
         },
         max: {
-            value: 9999999999, // 10 digits including decimals
-            message: VALIDATION_MESSAGES.MAX_VALUE('Salary From', 9999999999)
+            value: 999999.99, // 6 digits including decimals
+            message: VALIDATION_MESSAGES.MAX_VALUE('Salary From', 999999.99)
         }
     },
     salaryTo: {
@@ -520,8 +520,8 @@ export const PROFESSIONAL_TAX_VALIDATION = {
             message: VALIDATION_MESSAGES.MIN_VALUE('Salary To', 0)
         },
         max: {
-            value: 9999999999, // 10 digits including decimals
-            message: VALIDATION_MESSAGES.MAX_VALUE('Salary To', 9999999999)
+            value: 999999.99, // 6 digits including decimals
+            message: VALIDATION_MESSAGES.MAX_VALUE('Salary To', 999999.99)
         }
     },
     professionalTaxAmount: {
@@ -535,8 +535,8 @@ export const PROFESSIONAL_TAX_VALIDATION = {
             message: VALIDATION_MESSAGES.MIN_VALUE('Professional Tax Amount', 0)
         },
         max: {
-            value: 999999, // 6 digits including decimals
-            message: VALIDATION_MESSAGES.MAX_VALUE('Professional Tax Amount', 999999)
+            value: 999999.99, // 6 digits including decimals
+            message: VALIDATION_MESSAGES.MAX_VALUE('Professional Tax Amount', 999999.99)
         }
     }
 };
@@ -565,8 +565,8 @@ export const PAYROLL_STANDARD_VALIDATION = {
             message: VALIDATION_MESSAGES.MIN_VALUE('PF Max Amount', 0)
         },
         max: {
-            value: 9999999999, // 10 digits including decimals
-            message: VALIDATION_MESSAGES.MAX_VALUE('PF Max Amount', 9999999999)
+            value: 999999.99, // 6 digits including decimals
+            message: VALIDATION_MESSAGES.MAX_VALUE('PF Max Amount', 999999.99)
         }
     },
     fpfPercent: {
@@ -620,8 +620,8 @@ export const PAYROLL_STANDARD_VALIDATION = {
             message: VALIDATION_MESSAGES.MIN_VALUE('ESI Max Amount', 0)
         },
         max: {
-            value: 9999999999, // 10 digits including decimals
-            message: VALIDATION_MESSAGES.MAX_VALUE('ESI Max Amount', 9999999999)
+            value: 999999.99, // 6 digits including decimals
+            message: VALIDATION_MESSAGES.MAX_VALUE('ESI Max Amount', 999999.99)
         }
     },
     employerContributionPercent: {
@@ -635,8 +635,8 @@ export const PAYROLL_STANDARD_VALIDATION = {
             message: VALIDATION_MESSAGES.MIN_VALUE('Employer Contribution %', 0)
         },
         max: {
-            value: 100,
-            message: VALIDATION_MESSAGES.MAX_VALUE('Employer Contribution %', 100)
+            value: 999999.99, // 6 digits including decimals
+            message: VALIDATION_MESSAGES.MAX_VALUE('Employer Contribution %', 999999.99)
         }
     },
     // Salary Days

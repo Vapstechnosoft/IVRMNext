@@ -40,9 +40,15 @@ function MasterEarningsDeductionsPageContent({
     const { openAddForm } = useFormContext<EarningsDeductionDetail>();
     const { saveOrderMutation } = useMasterEarningsDeductions(HRMS_MI_ID);
     const rows: EarningsDeductionDetail[] = response?.earningdetectionList ?? [];
+    const typeDropdown = response?.eardettypeDropdown ?? [];
 
     const [isEditOrderMode, setIsEditOrderMode] = useState(false);
     const [editedRows, setEditedRows] = useState<EarningsDeductionDetail[]>([]);
+    const [filterCategory, setFilterCategory] = useState<string>('all');
+    
+    console.log('📊 [PAGE] Total rows from API:', rows.length);
+    console.log('📊 [PAGE] Type dropdown items:', typeDropdown.length);
+    console.log('📊 [PAGE] Current filter:', filterCategory);
 
     const handleSetOrder = () => {
         setIsEditOrderMode(true);
@@ -71,50 +77,79 @@ function MasterEarningsDeductionsPageContent({
 
     const displayColumns = isEditOrderMode ? getEditableColumns(handleOrderChange) : columns;
 
-    const displayData = isEditOrderMode ? editedRows : rows;
+    // Filter data based on selected category
+    const filteredRows = filterCategory === 'all' 
+        ? rows 
+        : rows.filter(row => row.HRMED_EarnDedFlag === filterCategory);
+    
+    const displayData = isEditOrderMode ? editedRows : filteredRows;
+    
+    console.log('📊 [PAGE] Filtered rows count:', filteredRows.length);
 
     return (
         <div className='min-h-screen'>
-            <div className='container space-y-4 p-1'>
-                <div className='flex justify-end gap-2'>
-                    {isEditOrderMode ? (
-                        <>
-                            <Button
-                                type='button'
-                                onClick={handleCancelOrder}
-                                variant='outline'
-                                className='w-fit shadow-md transition-all duration-200 hover:scale-105 hover:shadow-lg'>
-                                <X className='h-4 w-4' />
-                                Cancel
-                            </Button>
-                            <Button
-                                type='button'
-                                onClick={handleSaveOrder}
-                                disabled={saveOrderMutation.isPending}
-                                className='w-fit shadow-md transition-all duration-200 hover:scale-105 hover:shadow-lg'>
-                                <Save className='h-4 w-4' />
-                                {saveOrderMutation.isPending ? 'Saving...' : 'Save Order'}
-                            </Button>
-                        </>
-                    ) : (
-                        <>
-                            <Button
-                                type='button'
-                                onClick={handleSetOrder}
-                                variant='outline'
-                                className='w-fit shadow-md transition-all duration-200 hover:scale-105 hover:shadow-lg'>
-                                <ListOrdered className='h-4 w-4' />
-                                Set Order
-                            </Button>
-                            <Button
-                                type='button'
-                                onClick={openAddForm}
-                                className='w-fit shadow-md transition-all duration-200 hover:scale-105 hover:shadow-lg'>
-                                <Plus className='h-4 w-4' />
-                                Add Earning/Deduction
-                            </Button>
-                        </>
-                    )}
+            <div className='container mx-auto space-y-6 px-4 py-6 md:px-6 lg:px-8'>
+                <div className='flex justify-between gap-2'>
+                    {/* Filter Dropdown */}
+                    <div className='flex items-center gap-2'>
+                        <select
+                            value={filterCategory}
+                            onChange={(e) => setFilterCategory(e.target.value)}
+                            className='flex h-10 w-[200px] rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm transition-all duration-200 hover:border-primary focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20'>
+                            <option value='all'>All Items</option>
+                            <option value='Earning'>Earnings</option>
+                            <option value='Deduction'>Deductions</option>
+                            <option value='Arrear'>Arrears</option>
+                            <option value='Gross'>Gross</option>
+                        </select>
+                        {filterCategory !== 'all' && (
+                            <span className='text-sm text-muted-foreground'>
+                                Showing {filteredRows.length} of {rows.length} items
+                            </span>
+                        )}
+                    </div>
+                    
+                    {/* Action Buttons */}
+                    <div className='flex gap-2'>
+                        {isEditOrderMode ? (
+                            <>
+                                <Button
+                                    type='button'
+                                    onClick={handleCancelOrder}
+                                    variant='outline'
+                                    className='w-fit shadow-md transition-all duration-200 hover:scale-105 hover:shadow-lg'>
+                                    <X className='h-4 w-4' />
+                                    Cancel
+                                </Button>
+                                <Button
+                                    type='button'
+                                    onClick={handleSaveOrder}
+                                    disabled={saveOrderMutation.isPending}
+                                    className='w-fit shadow-md transition-all duration-200 hover:scale-105 hover:shadow-lg'>
+                                    <Save className='h-4 w-4' />
+                                    {saveOrderMutation.isPending ? 'Saving...' : 'Save Order'}
+                                </Button>
+                            </>
+                        ) : (
+                            <>
+                                <Button
+                                    type='button'
+                                    onClick={handleSetOrder}
+                                    variant='outline'
+                                    className='w-fit shadow-md transition-all duration-200 hover:scale-105 hover:shadow-lg'>
+                                    <ListOrdered className='h-4 w-4' />
+                                    Set Order
+                                </Button>
+                                <Button
+                                    type='button'
+                                    onClick={openAddForm}
+                                    className='w-fit shadow-md transition-all duration-200 hover:scale-105 hover:shadow-lg'>
+                                    <Plus className='h-4 w-4' />
+                                    Add Earning/Deduction
+                                </Button>
+                            </>
+                        )}
+                    </div>
                 </div>
 
                 <CollapsibleSection
@@ -136,13 +171,13 @@ function MasterEarningsDeductionsPageContent({
                     />
                 </CollapsibleSection>
 
-                <FormSections />
+                <FormSections typeDropdown={typeDropdown} />
             </div>
         </div>
     );
 }
 
-function FormSections() {
+function FormSections({ typeDropdown }: { typeDropdown: any[] }) {
     const { isAddFormOpen, isEditFormOpen, selectedRow, closeAddForm, closeEditForm, addFormRef, editFormRef } =
         useFormContext<EarningsDeductionDetail>();
 
@@ -166,7 +201,7 @@ function FormSections() {
                                 className='-top-[3.5rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
                                 <X className='h-4 w-4 text-destructive' /> Close
                             </Button>
-                            <EarningsDeductionsForm onSuccess={closeAddForm} />
+                            <EarningsDeductionsForm typeDropdown={typeDropdown} onSuccess={closeAddForm} />
                         </div>
                     </CollapsibleSection>
                 </div>
@@ -189,7 +224,7 @@ function FormSections() {
                                 className='-top-[3.5rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
                                 <X className='h-4 w-4 text-destructive' /> Close
                             </Button>
-                            <EarningsDeductionsForm selectedRow={selectedRow} onSuccess={closeEditForm} />
+                            <EarningsDeductionsForm typeDropdown={typeDropdown} selectedRow={selectedRow} onSuccess={closeEditForm} />
                         </div>
                     </CollapsibleSection>
                 </div>

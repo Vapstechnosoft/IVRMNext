@@ -13,34 +13,39 @@ import { toast } from 'sonner';
 interface EarningsDeductionsFormProps {
     selectedRow?: EarningsDeductionDetail;
     onSuccess?: () => void;
+    typeDropdown?: any[];
 }
 
-export default function EarningsDeductionsForm({ selectedRow, onSuccess }: EarningsDeductionsFormProps) {
+export default function EarningsDeductionsForm({ selectedRow, onSuccess, typeDropdown = [] }: EarningsDeductionsFormProps) {
     const roleId = HRMS_MI_ID;
-    const { saveMutation } = useMasterEarningsDeductions(roleId);
+    const { saveMutation, refetchAll } = useMasterEarningsDeductions(roleId);
     const isEditMode = !!selectedRow;
+    
+    console.log('📝 [FORM] Type dropdown count:', typeDropdown.length);
 
     const {
         register,
         handleSubmit,
         reset,
-        formState: { errors }
+        formState: { errors, isDirty }
     } = useForm<MasterEarningsDeductionsInput>({
         defaultValues: {
             MI_Id: roleId,
             HRMED_Name: '',
-            HRMED_EDTypeFlag: 'Regular',
+            HRMED_EDTypeFlag: '',
             HRMED_EarnDedFlag: 'Earning',
             HRMED_AmountPercentFlag: 'Amount',
             HRMED_AmountPercent: '0',
             HRMED_ActiveFlag: true,
-            HRMED_RoundOffFlag: 'No',
-            HRMED_Order: 0
+            HRMED_RoundOffFlag: '',
+            HRMED_Order: 0,
+            HRMED_ReviseFlg: false
         }
     });
 
     useEffect(() => {
         if (selectedRow) {
+            console.log('📝 [FORM] Edit mode - Loading selectedRow:', JSON.stringify(selectedRow, null, 2));
             reset({
                 HRMED_Id: selectedRow.HRMED_Id,
                 MI_Id: selectedRow.MI_Id,
@@ -51,25 +56,88 @@ export default function EarningsDeductionsForm({ selectedRow, onSuccess }: Earni
                 HRMED_AmountPercent: selectedRow.HRMED_AmountPercent,
                 HRMED_ActiveFlag: selectedRow.HRMED_ActiveFlag,
                 HRMED_RoundOffFlag: selectedRow.HRMED_RoundOffFlag,
-                HRMED_Order: selectedRow.HRMED_Order
+                HRMED_Order: selectedRow.HRMED_Order,
+                HRMED_ReviseFlg: selectedRow.HRMED_ReviseFlg
             });
+            console.log('📝 [FORM] Form reset with edit data');
+        } else {
+            console.log('📝 [FORM] Add mode - No selectedRow');
         }
     }, [selectedRow, reset]);
 
     const onSubmit = async (data: MasterEarningsDeductionsInput) => {
-        try {
-            const res = await saveMutation.mutateAsync(data);
-            if (res?.success) {
-                toast.success(isEditMode ? 'Earning/Deduction updated successfully' : 'Earning/Deduction added successfully');
-                if (onSuccess) onSuccess();
-            }
-        } catch (_error) {
-            toast.error(isEditMode ? 'Failed to update earning/deduction' : 'Failed to add earning/deduction');
+        console.log('🔵 ========== EARNINGS/DEDUCTIONS FORM SUBMIT ==========');
+        console.log('🔵 Form Data:', JSON.stringify(data, null, 2));
+        console.log('🔵 Is Edit Mode:', isEditMode);
+        console.log('🔵 HRMED_Id in data:', data.HRMED_Id);
+        console.log('🔵 Role ID:', roleId);
+        console.log('🔵 Form Errors:', errors);
+        
+        if (isEditMode && !data.HRMED_Id) {
+            console.log('⚠️ WARNING: Edit mode but no HRMED_Id in form data!');
         }
+        
+        try {
+            console.log('🟡 Calling saveMutation.mutateAsync...');
+            const res = await saveMutation.mutateAsync(data);
+            
+            console.log('🟢 ========== API RESPONSE ==========');
+            console.log('🟢 Response:', JSON.stringify(res, null, 2));
+            console.log('🟢 Response success:', res?.success);
+            console.log('🟢 Response message:', res?.message);
+            console.log('🟢 ====================================');
+            
+            if (res?.success) {
+                const successMsg = res?.message || (isEditMode ? 'Earning/Deduction updated successfully' : 'Earning/Deduction added successfully');
+                console.log('✅ Success! Showing toast:', successMsg);
+                toast.success(successMsg);
+                
+                // Reset form if in add mode
+                if (!isEditMode) {
+                    console.log('✅ Resetting form (add mode)');
+                    reset();
+                }
+                
+                // Refetch the list
+                console.log('✅ Refetching list');
+                refetchAll();
+                
+                // Call success callback (closes the form)
+                if (onSuccess) {
+                    console.log('✅ Calling onSuccess callback');
+                    onSuccess();
+                }
+            } else {
+                const errorMsg = res?.message || (isEditMode ? 'Failed to update earning/deduction' : 'Failed to add earning/deduction');
+                console.log('❌ API returned success=false. Message:', errorMsg);
+                toast.error(errorMsg);
+            }
+        } catch (error: any) {
+            console.log('🔴 ========== ERROR CAUGHT ==========');
+            console.error('🔴 Error object:', error);
+            console.error('🔴 Error message:', error?.message);
+            console.error('🔴 Error response:', error?.response);
+            console.error('🔴 Error data:', error?.response?.data);
+            console.log('🔴 ====================================');
+            
+            const errorMsg = error?.response?.data?.message 
+                || error?.message 
+                || error?.data?.message
+                || (isEditMode ? 'Failed to update earning/deduction' : 'Failed to add earning/deduction');
+            
+            console.log('🔴 Showing error toast:', errorMsg);
+            toast.error(errorMsg);
+        }
+        
+        console.log('🔵 ========== FORM SUBMIT END ==========');
     };
 
     return (
         <form className='grid grid-cols-1 gap-4 md:grid-cols-2' onSubmit={handleSubmit(onSubmit)}>
+            {/* Hidden fields for IDs */}
+            {isEditMode && <input type='hidden' {...register('HRMED_Id', { valueAsNumber: true })} />}
+            <input type='hidden' {...register('MI_Id', { valueAsNumber: true })} />
+            
             <div className='group flex flex-col gap-1.5'>
                 <Label htmlFor='HRMED_Name'>
                     Name <span className='text-destructive'>*</span>
@@ -81,9 +149,45 @@ export default function EarningsDeductionsForm({ selectedRow, onSuccess }: Earni
                 />
                 {errors.HRMED_Name && <FormError>{errors.HRMED_Name.message}</FormError>}
             </div>
+            
+            <div className='group flex flex-col gap-1.5'>
+                <Label htmlFor='HRMED_EDTypeFlag'>
+                    Type <span className='text-destructive'>*</span>
+                </Label>
+                <select
+                    id='HRMED_EDTypeFlag'
+                    className='flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm'
+                    {...register('HRMED_EDTypeFlag', { required: 'Type is required' })}>
+                    <option value=''>Select Type</option>
+                    {typeDropdown.map((type) => (
+                        <option key={type.HRMEDT_Id} value={type.HRMEDT_EarnDedType}>
+                            {type.HRMEDT_EarnDedType}
+                        </option>
+                    ))}
+                </select>
+                {errors.HRMED_EDTypeFlag && <FormError>{errors.HRMED_EDTypeFlag.message}</FormError>}
+            </div>
+            
+            <div className='group flex flex-col gap-1.5'>
+                <Label htmlFor='HRMED_RoundOffFlag'>
+                    Rounding To <span className='text-destructive'>*</span>
+                </Label>
+                <select
+                    id='HRMED_RoundOffFlag'
+                    className='flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm'
+                    {...register('HRMED_RoundOffFlag', { required: 'Rounding option is required' })}>
+                    <option value=''>Select Rounding</option>
+                    <option value='No'>No</option>
+                    <option value='RoundUp'>Round Up</option>
+                    <option value='RoundDown'>Round Down</option>
+                    <option value='HalfRoundUp'>Half Round Up</option>
+                </select>
+                {errors.HRMED_RoundOffFlag && <FormError>{errors.HRMED_RoundOffFlag.message}</FormError>}
+            </div>
+            
             <div className='group flex flex-col gap-1.5'>
                 <Label htmlFor='HRMED_EarnDedFlag'>
-                    Type <span className='text-destructive'>*</span>
+                    Earning/Deduction <span className='text-destructive'>*</span>
                 </Label>
                 <select
                     id='HRMED_EarnDedFlag'
@@ -91,6 +195,8 @@ export default function EarningsDeductionsForm({ selectedRow, onSuccess }: Earni
                     {...register('HRMED_EarnDedFlag', EARNING_DEDUCTION_VALIDATION.type)}>
                     <option value='Earning'>Earning</option>
                     <option value='Deduction'>Deduction</option>
+                    <option value='Arrear'>Arrear</option>
+                    <option value='Gross'>Gross</option>
                 </select>
                 {errors.HRMED_EarnDedFlag && <FormError>{errors.HRMED_EarnDedFlag.message}</FormError>}
             </div>
@@ -128,10 +234,29 @@ export default function EarningsDeductionsForm({ selectedRow, onSuccess }: Earni
                 />
                 {errors.HRMED_Order && <FormError>{errors.HRMED_Order.message}</FormError>}
             </div>
-            <div className='col-span-full'>
-                <Button type='submit' className='mt-2' disabled={saveMutation.isPending}>
+            <div className='group flex items-center gap-2'>
+                <Input
+                    type='checkbox'
+                    id='HRMED_ReviseFlg'
+                    className='h-4 w-4'
+                    {...register('HRMED_ReviseFlg')}
+                />
+                <Label htmlFor='HRMED_ReviseFlg' className='cursor-pointer'>
+                    Revise
+                </Label>
+            </div>
+            <div className='col-span-full flex gap-2'>
+                <Button 
+                    type='submit' 
+                    className='mt-2' 
+                    disabled={saveMutation.isPending || (isEditMode && !isDirty)}>
                     {saveMutation.isPending ? (isEditMode ? 'Updating...' : 'Saving...') : isEditMode ? 'Update' : 'Save'}
                 </Button>
+                {isEditMode && !isDirty && (
+                    <span className='mt-2 flex items-center text-sm text-muted-foreground'>
+                        No changes made
+                    </span>
+                )}
             </div>
         </form>
     );
