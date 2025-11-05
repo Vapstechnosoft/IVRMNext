@@ -36,7 +36,7 @@ export const transferApplicationColumns: ColumnDef<IPreadmissionApplicationList>
     },
     {
         accessorKey: 'pasR_RegistrationNo',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Registration No' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Application No' />,
         cell: ({ row }) => <div>{row.getValue('pasR_RegistrationNo') ?? 'N.A'}</div>,
         enableSorting: true,
         enableHiding: true
@@ -66,6 +66,13 @@ export const transferApplicationColumns: ColumnDef<IPreadmissionApplicationList>
         accessorKey: 'current_status',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Current Status' />,
         cell: ({ row }) => <div>{row.getValue('current_status')}</div>,
+        enableSorting: false,
+        enableHiding: true
+    },
+    {
+        accessorKey: 'applied_by',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='User Name' />,
+        cell: ({ row }) => <div>{row.getValue('applied_by')}</div>,
         enableSorting: false,
         enableHiding: true
     }

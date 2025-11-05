@@ -165,11 +165,11 @@ export async function getUserAccessibleModules() {
                                     pages: [
                                         {
                                             id: 1,
-                                            name: 'Admission Form',
+                                            name: 'Preadmission Form',
                                             icon: 'Settings',
                                             url: '/admission/preadmission/transactions/application-form',
-                                            title: 'Admission Form',
-                                            description: 'Apply for Admission'
+                                            title: 'Preadmission Form',
+                                            description: 'Apply for Preadmission'
                                         },
                                         {
                                             id: 2,
@@ -194,6 +194,53 @@ export async function getUserAccessibleModules() {
                                             url: '/admission/preadmission/transactions/export-preadmission-to-admission',
                                             title: 'Transfer to Admission',
                                             description: 'Transfer confirmed preadmission applications to admission'
+                                        },
+                                        {
+                                            id: 5,
+                                            name: 'Document View',
+                                            icon: 'Settings',
+                                            url: '/admission/preadmission/transactions/document-view',
+                                            title: 'Document View',
+                                            description: ' Document View'
+                                        }
+                                    ]
+                                },
+                                {
+                                    id: 3,
+                                    name: 'Configuration',
+                                    icon: 'Settings',
+                                    pages: [
+                                        {
+                                            id: 1,
+                                            name: ' Master Academic Year',
+                                            icon: 'Settings',
+                                            url: '/admission/preadmission/configuration/academic-year',
+                                            title: 'Master Academic Year ',
+                                            description: 'Master Academic Year '
+                                        },
+                                        {
+                                            id: 2,
+                                            name: 'Master Configuration',
+                                            icon: 'Settings',
+                                            url: '/admission/preadmission/configuration/master-configuration',
+                                            title: 'Master Configuration',
+                                            description: 'Master Configuration'
+                                        },
+                                        {
+                                            id: 3,
+                                            name: 'Registration Numbering',
+                                            icon: 'Settings',
+                                            url: '/admission/preadmission/configuration/registration-numbering',
+                                            title: 'Registration Numbering',
+                                            description: 'Registration Numbering'
+                                        },
+                                        {
+                                            id: 4,
+                                            name: 'Pre-Registration Numbering',
+                                            icon: 'Settings',
+                                            url: '/admission/preadmission/configuration/pre-registration-numbering',
+                                            title: 'Pre-Registration Numbering',
+                                            description: 'Pre-Registration Numbering'
                                         }
                                     ]
                                 }

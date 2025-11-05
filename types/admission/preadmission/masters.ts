@@ -100,7 +100,7 @@ export interface IMasterDocumentList {
     mI_Id: number;
     amsmD_DocumentName: string;
     amsmD_Description: string;
-    amsmD_FLAG: boolean;
+    amsmD_ActiveFlag: boolean;
 }
 export interface IMasterReferenceList {
     pamR_Id: number;
@@ -122,4 +122,69 @@ export interface IMasterReligionCasteCategoryList {
     imcC_CategoryName: string;
     ircC_ActiveFlg: boolean;
     ircC_CreatedDate: string;
+}
+
+export interface IMasterConfiguration {
+    ispaC_Id: number;
+    asmaY_Id: number;
+    academic_year: string;
+    trust_name: string;
+    institution_name: string;
+    ispaC_EnquiryApplFlag: 0 | 1;
+    ispaC_ApplIssueFlag: 0 | 1;
+    ispaC_EnqSMSFlag: 0 | 1;
+    ispaC_EnqMailFlag: 0 | 1;
+    ispaC_EnqMailBackground: 0 | 1;
+    ispaC_ApplFeeFlag: 0 | 1;
+    ispaC_ApplnDownladFlag: 0 | 1;
+    ispaC_ApplSMSFlag: 0 | 1;
+    ispaC_ApplMailFlag: 0 | 1;
+    ispaC_ApplMailBackground: 0 | 1;
+    ispaC_DOBMaxAgeFlag: 0 | 1;
+    ispaC_DOBMinAgeFlag: 0 | 1;
+    ispaC_ApplCutOffDateFlag: 0 | 1;
+    ispaC_ApplNoGenFlag: 0 | 1;
+    ispaC_DefaultStatusFlag: 0 | 1;
+    ispaC_OralTestBy: 0 | 1;
+    ispaC_EnquiryNoGenFlag: 0 | 1;
+    ispaC_RgNoGenFlag: 0 | 1;
+    ispaC_RegSMSFlag: 0 | 1;
+    ispaC_RegMailFlag: 0 | 1;
+    ispaC_RegMailBackground: 0 | 1;
+    ispaC_AdmCategoryFlag: 0 | 1;
+    ispaC_WrittenTestApplFlag: 0 | 1;
+    ispaC_MarksEntry: 0 | 1;
+    ispaC_OralTestApplFlag: 0 | 1;
+    ispaC_SeatBlockFlag: 0 | 1;
+    ispaC_FatherAliveFlag: 0 | 1;
+    ispaC_MotherAliveFlag: 0 | 1;
+    ispaC_MaritalStatusFlag: 0 | 1;
+    ispaC_FeePaymentFlag: 0 | 1;
+    ispaC_AdmissionTransfer: 0 | 1;
+    ispaC_EnableSiblingsLink: 0 | 1;
+    ispaC_SibblingConcessionFlag: 0 | 1;
+    ispaC_ParentConcessionFlag: 0 | 1;
+    ispaC_ECSFlag: 0 | 1;
+    ispaC_HostelFlag: 0 | 1;
+    ispaC_TransaportFlag: 0 | 1;
+    ispaC_GymFlag: 0 | 1;
+    ispaC_EnquiryNo_ApplNo_RegNo: 0 | 1;
+    ispaC_OralByMax_Marks: number;
+    ispaC_OralByMin_Marks: number;
+    ispaC_ProspectusFlag: 0 | 1;
+    ispaC_Transfer_Settings_Flag: 0 | 1;
+    amC_Id: number;
+    ispaC_Transfer_Settings_after_payment_Flag: 0 | 1;
+    ispaC_ProsptFeeApp: 0 | 1;
+    ispaC_OralTestSchApplFlag: 0 | 1;
+    ispaC_OralMarksFlag: 0 | 1;
+    ispaC_RegFeeFlag: 0 | 1;
+    ispaC_WrittenTestSchApplFlag: 0 | 1;
+    ispaC_CommonScheduleFlag: 0 | 1;
+    ispaC_NoofApplications: number;
+    ispaC_Healthapp: 0 | 1;
+    ispaC_FullPaymentCompFlg: 0 | 1;
+    ispaC_OfflineFee_Flag: 0 | 1;
+    ispaC_ApplNoIncrementFlg: boolean;
+    ispaC_ApplNoIncrementBy: number;
 }

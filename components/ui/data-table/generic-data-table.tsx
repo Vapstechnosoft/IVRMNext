@@ -22,6 +22,9 @@ interface GenericDataTableProps<T> {
     showViewOptions?: boolean;
     columnPinning?: { left?: string[]; right?: string[] };
 
+    isSearchRequired?: boolean;
+    isPaginationRequired?: boolean;
+
     // Row selection
     maxSelectableRows?: number;
     onRowSelectionChange?: (selectedRows: T[]) => void;
@@ -56,6 +59,8 @@ export const GenericDataTable = forwardRef<DataTableRef, GenericDataTableProps<a
         errorMessage,
         showViewOptions = false,
         columnPinning,
+        isSearchRequired = true,
+        isPaginationRequired = true,
         maxSelectableRows = 0,
         onRowSelectionChange,
         loadingMessage = 'Loading data...',
@@ -121,6 +126,8 @@ export const GenericDataTable = forwardRef<DataTableRef, GenericDataTableProps<a
                     data={[]} // Empty array
                     totalItems={0}
                     showViewOptions={showViewOptions}
+                    isSearchRequired={isSearchRequired}
+                    isPaginationRequired={isPaginationRequired}
                     columnPinning={columnPinning}
                     maxSelectableRows={maxSelectableRows}
                     onRowSelectionChange={(selectedRows) => {
@@ -142,6 +149,8 @@ export const GenericDataTable = forwardRef<DataTableRef, GenericDataTableProps<a
                 data={data}
                 totalItems={totalItems}
                 showViewOptions={showViewOptions}
+                isSearchRequired={isSearchRequired}
+                isPaginationRequired={isPaginationRequired}
                 columnPinning={columnPinning}
                 maxSelectableRows={maxSelectableRows}
                 onRowSelectionChange={(selectedRows) => {

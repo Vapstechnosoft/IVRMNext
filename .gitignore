@@ -39,5 +39,5 @@ yarn-error.log*
 next-env.d.ts
 
 certificates
-public/sw.js
-public/workbox-3c9d0171.js
+sw.js
+workbox*.js

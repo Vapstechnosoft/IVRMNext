@@ -32,7 +32,8 @@ interface DataTableProps<TData, TValue> {
     showExportOptions?: boolean;
     showViewOptions?: boolean;
     columnPinning?: ColumnPinningState | undefined;
-
+    isSearchRequired?: boolean;
+    isPaginationRequired?: boolean;
     // ✅ updated
     maxSelectableRows?: number;
     onRowSelectionChange?: (selectedRows: TData[]) => void;
@@ -52,6 +53,8 @@ export const DataTable = forwardRef<DataTableRef, DataTableProps<any, any>>(func
         showExportOptions = false,
         showViewOptions = true,
         columnPinning,
+        isSearchRequired = true,
+        isPaginationRequired = true,
         maxSelectableRows = 0,
         onRowSelectionChange
     }: DataTableProps<TData, TValue>,
@@ -96,6 +99,12 @@ export const DataTable = forwardRef<DataTableRef, DataTableProps<any, any>>(func
         const pagination = typeof updaterOrValue === 'function' ? updaterOrValue(paginationState) : updaterOrValue;
         setCurrentPage(pagination.pageIndex + 1);
         setPageSize(pagination.pageSize);
+
+        setRowSelection({});
+        rowSelectionRef.current = {};
+        if (typeof onRowSelectionChange === 'function') {
+            onRowSelectionChange([]);
+        }
     };
 
     const table = useReactTable({
@@ -160,7 +169,9 @@ export const DataTable = forwardRef<DataTableRef, DataTableProps<any, any>>(func
     return (
         <div className='w-full space-y-2.5 overflow-auto'>
             {/* Toolbar */}
-            <DataTableToolbar table={table} data={data} showExportOptions={showExportOptions} showViewOptions={showViewOptions} />
+            {isSearchRequired && (
+                <DataTableToolbar table={table} data={data} showExportOptions={showExportOptions} showViewOptions={showViewOptions} />
+            )}
 
             {/* Table Content */}
             {isLoading ? (
@@ -220,83 +231,85 @@ export const DataTable = forwardRef<DataTableRef, DataTableProps<any, any>>(func
                     </div>
 
                     {/* Pagination */}
-                    <div className='flex flex-col gap-2.5'>
-                        <div className='flex w-full flex-col-reverse items-center justify-between gap-4 overflow-auto p-1 sm:flex-row sm:gap-8'>
-                            {table.getFilteredSelectedRowModel().rows.length > 0 ? (
-                                <div className='flex-1 whitespace-nowrap text-muted-foreground text-sm'>
-                                    {table.getFilteredSelectedRowModel().rows.length} of {table.getFilteredRowModel().rows.length} row(s)
-                                    selected.
-                                </div>
-                            ) : (
-                                <div className='flex-1 whitespace-nowrap text-muted-foreground text-sm'>
-                                    {totalItems > 0
-                                        ? `Showing ${paginationState.pageIndex * paginationState.pageSize + 1} to ${Math.min(
-                                              (paginationState.pageIndex + 1) * paginationState.pageSize,
-                                              totalItems
-                                          )} of ${totalItems} entries`
-                                        : 'No entries found'}
-                                </div>
-                            )}
+                    {isPaginationRequired && (
+                        <div className='flex flex-col gap-2.5'>
+                            <div className='flex w-full flex-col-reverse items-center justify-between gap-4 overflow-auto p-1 sm:flex-row sm:gap-8'>
+                                {table.getFilteredSelectedRowModel().rows.length > 0 ? (
+                                    <div className='flex-1 whitespace-nowrap text-muted-foreground text-sm'>
+                                        {table.getFilteredSelectedRowModel().rows.length} of {table.getFilteredRowModel().rows.length}{' '}
+                                        row(s) selected.
+                                    </div>
+                                ) : (
+                                    <div className='flex-1 whitespace-nowrap text-muted-foreground text-sm'>
+                                        {totalItems > 0
+                                            ? `Showing ${paginationState.pageIndex * paginationState.pageSize + 1} to ${Math.min(
+                                                  (paginationState.pageIndex + 1) * paginationState.pageSize,
+                                                  totalItems
+                                              )} of ${totalItems} entries`
+                                            : 'No entries found'}
+                                    </div>
+                                )}
 
-                            {/* Rows per page */}
-                            <div className='flex items-center space-x-2'>
-                                <p className='whitespace-nowrap font-medium text-sm'>Rows per page</p>
-                                <Select
-                                    value={`${paginationState.pageSize}`}
-                                    onValueChange={(value) => {
-                                        table.setPageSize(Number(value));
-                                    }}
-                                    searchable={false}>
-                                    <SelectTrigger className='h-8 w-[70px]'>
-                                        <SelectValue placeholder={paginationState.pageSize} />
-                                    </SelectTrigger>
-                                    <SelectContent side='top'>
-                                        {pageSizeOptions.map((pageSize) => (
-                                            <SelectItem key={pageSize} value={`${pageSize}`}>
-                                                {pageSize}
-                                            </SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                </Select>
-                            </div>
+                                {/* Rows per page */}
+                                <div className='flex items-center space-x-2'>
+                                    <p className='whitespace-nowrap font-medium text-sm'>Rows per page</p>
+                                    <Select
+                                        value={`${paginationState.pageSize}`}
+                                        onValueChange={(value) => {
+                                            table.setPageSize(Number(value));
+                                        }}
+                                        searchable={false}>
+                                        <SelectTrigger className='h-8 w-[70px]'>
+                                            <SelectValue placeholder={paginationState.pageSize} />
+                                        </SelectTrigger>
+                                        <SelectContent side='top'>
+                                            {pageSizeOptions.map((pageSize) => (
+                                                <SelectItem key={pageSize} value={`${pageSize}`}>
+                                                    {pageSize}
+                                                </SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
+                                </div>
 
-                            {/* Pagination Controls */}
-                            <div className='flex items-center space-x-2'>
-                                <Button
-                                    aria-label='Go to first page'
-                                    variant='outline'
-                                    className='hidden h-8 w-8 p-0 lg:flex'
-                                    onClick={() => table.setPageIndex(0)}
-                                    disabled={!table.getCanPreviousPage()}>
-                                    <DoubleArrowLeftIcon className='h-4 w-4' />
-                                </Button>
-                                <Button
-                                    aria-label='Go to previous page'
-                                    variant='outline'
-                                    className='h-8 w-8 p-0'
-                                    onClick={() => table.previousPage()}
-                                    disabled={!table.getCanPreviousPage()}>
-                                    <ChevronLeftIcon className='h-4 w-4' />
-                                </Button>
-                                <Button
-                                    aria-label='Go to next page'
-                                    variant='outline'
-                                    className='h-8 w-8 p-0'
-                                    onClick={() => table.nextPage()}
-                                    disabled={!table.getCanNextPage()}>
-                                    <ChevronRightIcon className='h-4 w-4' />
-                                </Button>
-                                <Button
-                                    aria-label='Go to last page'
-                                    variant='outline'
-                                    className='hidden h-8 w-8 p-0 lg:flex'
-                                    onClick={() => table.setPageIndex(table.getPageCount() - 1)}
-                                    disabled={!table.getCanNextPage()}>
-                                    <DoubleArrowRightIcon className='h-4 w-4' />
-                                </Button>
+                                {/* Pagination Controls */}
+                                <div className='flex items-center space-x-2'>
+                                    <Button
+                                        aria-label='Go to first page'
+                                        variant='outline'
+                                        className='hidden h-8 w-8 p-0 lg:flex'
+                                        onClick={() => table.setPageIndex(0)}
+                                        disabled={!table.getCanPreviousPage()}>
+                                        <DoubleArrowLeftIcon className='h-4 w-4' />
+                                    </Button>
+                                    <Button
+                                        aria-label='Go to previous page'
+                                        variant='outline'
+                                        className='h-8 w-8 p-0'
+                                        onClick={() => table.previousPage()}
+                                        disabled={!table.getCanPreviousPage()}>
+                                        <ChevronLeftIcon className='h-4 w-4' />
+                                    </Button>
+                                    <Button
+                                        aria-label='Go to next page'
+                                        variant='outline'
+                                        className='h-8 w-8 p-0'
+                                        onClick={() => table.nextPage()}
+                                        disabled={!table.getCanNextPage()}>
+                                        <ChevronRightIcon className='h-4 w-4' />
+                                    </Button>
+                                    <Button
+                                        aria-label='Go to last page'
+                                        variant='outline'
+                                        className='hidden h-8 w-8 p-0 lg:flex'
+                                        onClick={() => table.setPageIndex(table.getPageCount() - 1)}
+                                        disabled={!table.getCanNextPage()}>
+                                        <DoubleArrowRightIcon className='h-4 w-4' />
+                                    </Button>
+                                </div>
                             </div>
                         </div>
-                    </div>
+                    )}
                 </>
             )}
         </div>

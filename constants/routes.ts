@@ -11,6 +11,10 @@ export const ROUTES = {
         ADMISSION_SUB_MENUS: {
             PREADMISSION: '/preadmission',
             PREADMISSION_SUB_MENUS: {
+                CONFIGURATION: '/configuration',
+                CONFIGURATION_SUB_MENUS: {
+                    MASTER_ACADEMIC_YEAR: '/academic-year'
+                },
                 MASTERS: '/masters',
                 MASTERS_SUB_MENUS: {
                     MASTERS_CLASS: '/class',

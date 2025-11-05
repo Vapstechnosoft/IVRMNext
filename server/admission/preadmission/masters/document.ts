@@ -5,7 +5,7 @@ import type { ApiSearchparams } from '@/types';
 import type { IMasterDocumentList } from '@/types/admission/preadmission/masters';
 
 export async function getMasterDocument(searchParams?: ApiSearchparams) {
-    const urlParams = getSearchParamsUrl(searchParams ?? {}, 'imC_CasteName,amsmD_Description');
+    const urlParams = getSearchParamsUrl(searchParams ?? {}, 'amsmD_DocumentName,amsmD_Description');
     const url = `/master_document?${urlParams}`;
     return await api.get<IMasterDocumentList[]>('admission', url);
 }

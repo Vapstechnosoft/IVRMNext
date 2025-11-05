@@ -86,10 +86,11 @@ export default function AddMasterCasteCategoryForm({ onSuccess, className = '' }
                                 control={control}
                                 render={({ field }) => (
                                     <Select
+                                        key={field.value || 'empty'}
                                         onValueChange={(value) => {
                                             field.onChange(value);
                                         }}
-                                        value={field.value?.toString() || undefined}>
+                                        value={field.value?.toString() || ''}>
                                         <SelectTrigger className='w-full'>
                                             <SelectValue placeholder='Select a category' />
                                         </SelectTrigger>
