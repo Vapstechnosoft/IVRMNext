@@ -75,7 +75,7 @@ function MasterAcademicYearPageContent({
                         onClick={openAddForm}
                         className='w-fit shadow-md transition-all duration-200 hover:scale-105 hover:shadow-lg'>
                         <Plus className='h-4 w-4' />
-                        Add Academic Year Master
+                        Add Master Academic Year
                     </Button>
                 </div>
 
@@ -126,8 +126,8 @@ function MasterAcademicYearPageContent({
                         columnPinning={{ right: ['actions'] }}
                         loadingMessage='Loading master Academic Year...'
                         noDataTitle='No Master Academic Year Found'
-                        noDataDescription='Get started by creating your first Academic Year Master'
-                        errorTitle='Error Loading Academic Year Master'
+                        noDataDescription='Get started by creating your first Master Academic Year'
+                        errorTitle='Error Loading Master Academic Year'
                     />
                 </CollapsibleSection>
 
@@ -157,8 +157,8 @@ function FormSections() {
             {isAddFormOpen && (
                 <div ref={addFormRef}>
                     <CollapsibleSection
-                        title='Add New Academic Year Master'
-                        description='Fill in the details below to create a new Academic Year Master'
+                        title='Add New Master Academic Year'
+                        description='Fill in the details below to create a new Master Academic Year'
                         defaultOpen={true}
                         variant='outline'
                         size='md'
@@ -182,7 +182,7 @@ function FormSections() {
             {isEditFormOpen && selectedRow && (
                 <div ref={editFormRef}>
                     <CollapsibleSection
-                        title='Edit Academic Year Master'
+                        title='Edit Master Academic Year'
                         defaultOpen={true}
                         variant='outline'
                         size='md'

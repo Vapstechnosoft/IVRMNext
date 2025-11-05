@@ -49,8 +49,8 @@ export const PREADMISSION_QUERY_KEYS = {
     DOCUMENT_VIEW: 'document_view',
     MASTER_CONFIGURATION: 'master_configuration',
     DOCUMENT_DOWNLOAD: 'document_download',
-    REGISTRATION: 'registration',
-    PREADMISSION_REGISTRATION: 'Preadmission_Registration'
+    REGISTRATION_NUMBERING: 'registration_Numbering',
+    PRE_REGISTRATION_NUMBERING: 'Pre_Registration_Numbering'
 };
 
 export const FEES_QUERY_KEYS = {

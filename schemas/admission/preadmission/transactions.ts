@@ -99,7 +99,7 @@ export const studentApplicationFormSchema = {
         pasR_FatherSurname: createOptionalStringSchema('Father Surname', 1, 100),
         pasR_FatherEducation: createOptionalStringSchema('Father Education', 1, 100),
         pasR_FatherOccupation: createOptionalStringSchema('Father Occupation', 1, 100),
-        pasR_FatherPanno: createAlphanumericSchema('Father PAN Number', 1, 100, true),
+        pasR_FatherPanno: createAlphanumericSchema('Father PAN Number', 1, 10, true),
         pasR_FatherDesignation: createOptionalStringSchema('Father Designation', 1, 100),
         pasR_FatherOfficeAddr: createOptionalStringSchema('Father Office Address', 1, 100),
         pasR_FatherMobleNo: z
@@ -117,7 +117,7 @@ export const studentApplicationFormSchema = {
         pasR_MotherSurname: createOptionalStringSchema('Mother Surname', 1, 100),
         pasR_MotherEducation: createOptionalStringSchema('Mother Education', 1, 100),
         pasR_MotherOccupation: createOptionalStringSchema('Mother Occupation', 1, 100),
-        pasR_MotherPanno: createAlphanumericSchema('Mother PAN Number', 1, 100, true),
+        pasR_MotherPanno: createAlphanumericSchema('Mother PAN Number', 1, 10, true),
         pasR_MotherDesignation: createOptionalStringSchema('Mother Designation', 1, 100),
         pasR_MotherOfficeAddr: createOptionalStringSchema('Mother Office Address', 1, 100),
         pasR_MotherMobleNo: z
@@ -221,7 +221,7 @@ export const studentApplicationFormSchema = {
         pasR_FatherSurname: createOptionalStringSchema('Father Surname', 1, 100),
         pasR_FatherEducation: createOptionalStringSchema('Father Education', 1, 100),
         pasR_FatherOccupation: createOptionalStringSchema('Father Occupation', 1, 100),
-        pasR_FatherPanno: createAlphanumericSchema('Father PAN Number', 1, 100, true),
+        pasR_FatherPanno: createAlphanumericSchema('Father PAN Number', 1, 10, true),
         pasR_FatherDesignation: createOptionalStringSchema('Father Designation', 1, 100),
         pasR_FatherOfficeAddr: createOptionalStringSchema('Father Office Address', 1, 100),
         pasR_FatherMobleNo: z
@@ -239,7 +239,7 @@ export const studentApplicationFormSchema = {
         pasR_MotherSurname: createOptionalStringSchema('Mother Surname', 1, 100),
         pasR_MotherEducation: createOptionalStringSchema('Mother Education', 1, 100),
         pasR_MotherOccupation: createOptionalStringSchema('Mother Occupation', 1, 100),
-        pasR_MotherPanno: createAlphanumericSchema('Mother PAN Number', 1, 100, true),
+        pasR_MotherPanno: createAlphanumericSchema('Mother PAN Number', 1, 10, true),
         pasR_MotherDesignation: createOptionalStringSchema('Mother Designation', 1, 100),
         pasR_MotherOfficeAddr: createOptionalStringSchema('Mother Office Address', 1, 100),
         pasR_MotherMobleNo: z
@@ -350,7 +350,7 @@ export const studentApplicationFormUpdateSchema = {
         pasR_FatherSurname: createOptionalStringSchema('Father Surname', 1, 100),
         pasR_FatherEducation: createOptionalStringSchema('Father Education', 1, 100),
         pasR_FatherOccupation: createOptionalStringSchema('Father Occupation', 1, 100),
-        pasR_FatherPanno: createAlphanumericSchema('Father PAN Number', 1, 100, true),
+        pasR_FatherPanno: createAlphanumericSchema('Father PAN Number', 1, 10, true),
         pasR_FatherDesignation: createOptionalStringSchema('Father Designation', 1, 100),
         pasR_FatherOfficeAddr: createOptionalStringSchema('Father Office Address', 1, 100),
         pasR_FatherMobleNo: z
@@ -368,7 +368,7 @@ export const studentApplicationFormUpdateSchema = {
         pasR_MotherSurname: createOptionalStringSchema('Mother Surname', 1, 100),
         pasR_MotherEducation: createOptionalStringSchema('Mother Education', 1, 100),
         pasR_MotherOccupation: createOptionalStringSchema('Mother Occupation', 1, 100),
-        pasR_MotherPanno: createAlphanumericSchema('Mother PAN Number', 1, 100, true),
+        pasR_MotherPanno: createAlphanumericSchema('Mother PAN Number', 1, 10, true),
         pasR_MotherDesignation: createOptionalStringSchema('Mother Designation', 1, 100),
         pasR_MotherOfficeAddr: createOptionalStringSchema('Mother Office Address', 1, 100),
         pasR_MotherMobleNo: z
@@ -472,7 +472,7 @@ export const studentApplicationFormUpdateSchema = {
         pasR_FatherSurname: createOptionalStringSchema('Father Surname', 1, 100),
         pasR_FatherEducation: createOptionalStringSchema('Father Education', 1, 100),
         pasR_FatherOccupation: createOptionalStringSchema('Father Occupation', 1, 100),
-        pasR_FatherPanno: createAlphanumericSchema('Father PAN Number', 1, 100, true),
+        pasR_FatherPanno: createAlphanumericSchema('Father PAN Number', 1, 10, true),
         pasR_FatherDesignation: createOptionalStringSchema('Father Designation', 1, 100),
         pasR_FatherOfficeAddr: createOptionalStringSchema('Father Office Address', 1, 100),
         pasR_FatherMobleNo: z
@@ -490,7 +490,7 @@ export const studentApplicationFormUpdateSchema = {
         pasR_MotherSurname: createOptionalStringSchema('Mother Surname', 1, 100),
         pasR_MotherEducation: createOptionalStringSchema('Mother Education', 1, 100),
         pasR_MotherOccupation: createOptionalStringSchema('Mother Occupation', 1, 100),
-        pasR_MotherPanno: createAlphanumericSchema('Mother PAN Number', 1, 100, true),
+        pasR_MotherPanno: createAlphanumericSchema('Mother PAN Number', 1, 10, true),
         pasR_MotherDesignation: createOptionalStringSchema('Mother Designation', 1, 100),
         pasR_MotherOfficeAddr: createOptionalStringSchema('Mother Office Address', 1, 100),
         pasR_MotherMobleNo: z

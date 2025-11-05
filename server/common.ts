@@ -212,11 +212,11 @@ export async function getUserAccessibleModules() {
                                     pages: [
                                         {
                                             id: 1,
-                                            name: 'Academic Year Master',
+                                            name: ' Master Academic Year',
                                             icon: 'Settings',
                                             url: '/admission/preadmission/configuration/academic-year',
-                                            title: 'Academic Year Master',
-                                            description: 'Academic Year Master'
+                                            title: 'Master Academic Year ',
+                                            description: 'Master Academic Year '
                                         },
                                         {
                                             id: 2,
@@ -230,7 +230,7 @@ export async function getUserAccessibleModules() {
                                             id: 3,
                                             name: 'Registration Numbering',
                                             icon: 'Settings',
-                                            url: '/admission/preadmission/configuration/registration',
+                                            url: '/admission/preadmission/configuration/registration-numbering',
                                             title: 'Registration Numbering',
                                             description: 'Registration Numbering'
                                         },
@@ -238,7 +238,7 @@ export async function getUserAccessibleModules() {
                                             id: 4,
                                             name: 'Pre-Registration Numbering',
                                             icon: 'Settings',
-                                            url: '/admission/preadmission/configuration/preadmissionregistration',
+                                            url: '/admission/preadmission/configuration/pre-registration-numbering',
                                             title: 'Pre-Registration Numbering',
                                             description: 'Pre-Registration Numbering'
                                         }

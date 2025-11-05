@@ -144,10 +144,11 @@ export default function AddMasterCategoryForm({ onSuccess, className = '' }: Add
                                 control={control}
                                 render={({ field }) => (
                                     <Select
+                                        key={field.value || 'empty'}
                                         onValueChange={(value) => {
                                             field.onChange(value);
                                         }}
-                                        value={field.value?.toString() || undefined}>
+                                        value={field.value?.toString() || ''}>
                                         <SelectTrigger className='w-full'>
                                             <SelectValue placeholder='Select a Category' />
                                         </SelectTrigger>

@@ -2,7 +2,7 @@ import { PREADMISSION_QUERY_KEYS } from '@/constants/query-keys';
 import { getPreAdmissionSetOrder, getPreAdmissionYear } from '@/server/admission/preadmission/configuration/academic_year_master';
 import { checkPreadmissionLive } from '@/server/admission/preadmission/configuration/configuration';
 import { getMasterConfiguration } from '@/server/admission/preadmission/configuration/master_configuration';
-import { getRegistration } from '@/server/admission/preadmission/configuration/registration';
+import { getPreRegistrationNumbering, getRegistrationNumbering } from '@/server/admission/preadmission/configuration/transaction_numbering';
 import type { ApiSearchparams } from '@/types';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 
@@ -74,18 +74,34 @@ export const usePreAdmissionAcademicYearSetOrder = () => {
         }
     };
 };
-export const useRegistration = () => {
+export const useRegistrationNumbering = () => {
     const queryClient = useQueryClient();
 
     return {
         ...useQuery({
-            queryKey: [PREADMISSION_QUERY_KEYS.REGISTRATION],
-            queryFn: async () => getRegistration(),
+            queryKey: [PREADMISSION_QUERY_KEYS.REGISTRATION_NUMBERING],
+            queryFn: async () => getRegistrationNumbering(),
             staleTime: 0
         }),
         refetchAll: () => {
             return queryClient.invalidateQueries({
-                queryKey: [PREADMISSION_QUERY_KEYS.REGISTRATION]
+                queryKey: [PREADMISSION_QUERY_KEYS.REGISTRATION_NUMBERING]
+            });
+        }
+    };
+};
+export const usePreRegistrationNumbering = () => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [PREADMISSION_QUERY_KEYS.PRE_REGISTRATION_NUMBERING],
+            queryFn: async () => getPreRegistrationNumbering(),
+            staleTime: 0
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [PREADMISSION_QUERY_KEYS.PRE_REGISTRATION_NUMBERING]
             });
         }
     };

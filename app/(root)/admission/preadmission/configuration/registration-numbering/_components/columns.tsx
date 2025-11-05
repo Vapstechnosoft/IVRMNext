@@ -1,30 +1,12 @@
 'use client';
-
-import { Checkbox } from '@/components/ui/checkbox';
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
 import { ActionButtons } from '@/components/ui/form/action-buttons';
 import { useFormContext } from '@/components/ui/form/form-provider';
-import type { IMasterRegistrationList } from '@/types/admission/preadmission/configaration';
+import type { IMasterTransactionNumberingList } from '@/types/admission/preadmission/configaration';
 import type { ColumnDef } from '@tanstack/react-table';
 import { useCallback } from 'react';
 
-export const masterRegistrationColumns: ColumnDef<IMasterRegistrationList>[] = [
-    {
-        id: 'select',
-        header: ({ table }) => (
-            <Checkbox
-                checked={table.getIsAllPageRowsSelected() || (table.getIsSomePageRowsSelected() && 'indeterminate')}
-                onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
-                aria-label='Select all'
-            />
-        ),
-        cell: ({ row }) => (
-            <Checkbox checked={row.getIsSelected()} onCheckedChange={(value) => row.toggleSelected(!!value)} aria-label='Select row' />
-        ),
-        enableSorting: false,
-        enableHiding: false,
-        size: 24
-    },
+export const registrationNumberingColumns: ColumnDef<IMasterTransactionNumberingList>[] = [
     {
         accessorKey: 'imN_Id',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Sl.No' />,
@@ -92,30 +74,15 @@ export const masterRegistrationColumns: ColumnDef<IMasterRegistrationList>[] = [
     }
 ];
 
-function ActionButtonsCell({ rowData }: { rowData: IMasterRegistrationList }) {
-    const { openEditForm, openToggleForm } = useFormContext<IMasterRegistrationList>();
+function ActionButtonsCell({ rowData }: { rowData: IMasterTransactionNumberingList }) {
+    const { openEditForm } = useFormContext<IMasterTransactionNumberingList>();
 
     const handleEdit = useCallback(
-        (data: IMasterRegistrationList) => {
+        (data: IMasterTransactionNumberingList) => {
             openEditForm(data);
         },
         [openEditForm]
     );
 
-    const handleToggle = useCallback(
-        (data: IMasterRegistrationList) => {
-            openToggleForm(data);
-        },
-        [openToggleForm]
-    );
-
-    return (
-        <ActionButtons
-            rowData={rowData}
-            buttons={{ edit: true, toggle: true, delete: false }}
-            onEdit={handleEdit}
-            onToggle={handleToggle}
-            toggleConditionKey='amC_ActiveFlag'
-        />
-    );
+    return <ActionButtons rowData={rowData} buttons={{ edit: true, toggle: false, delete: false }} onEdit={handleEdit} />;
 }

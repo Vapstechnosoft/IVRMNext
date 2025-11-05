@@ -106,7 +106,7 @@ export const PreAdmissionAcademicYearSchema = {
             .positive('asmaY_Id must be a positive number')
     })
 };
-export const numberingSchema = z.object({
+export const transactionnumberingSchema = z.object({
     prefix_type: z.enum(['academic', 'particulars']),
     suffix_type: z.enum(['academic', 'particulars']),
     prefix_particulars: z.string().optional(),
