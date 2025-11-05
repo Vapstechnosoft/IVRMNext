@@ -1,6 +1,4 @@
 'use client';
-
-import { Heading } from '@/components/layout/heading';
 import { Button } from '@/components/ui/button';
 import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/generic-data-table';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
@@ -43,9 +41,7 @@ function MasterModeOfPaymentPageContent({
         <div className='min-h-screen'>
             <div className='container space-y-4 p-1'>
                 <div className='flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between'>
-                    <div className='space-y-1'>
-                        <Heading title='Fees Heads' description='' />
-                    </div>
+                    <div className='space-y-1'>{/* <Heading title='Mode Of Payment' description='' /> */}</div>
                     <Button
                         type='button'
                         onClick={openAddForm}

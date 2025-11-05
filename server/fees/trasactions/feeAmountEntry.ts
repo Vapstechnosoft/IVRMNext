@@ -12,7 +12,10 @@ import type {
 } from '@/types/fees/transactions/transactions';
 
 export async function getAmountEntry(searchParams?: ApiSearchparams) {
-    const urlParams = getSearchParamsUrl(searchParams ?? {});
+    const urlParams = getSearchParamsUrl(
+        searchParams ?? {},
+        'fmA_Amount,fmG_GroupName,asmay_Year,fmcC_ClassCategoryName,fmH_FeeName,ftI_Name'
+    );
     const url = `/fee_amount_entry/30?${urlParams}`;
     return await api.get<IFeeAmountEntryList[]>('fees', url);
 }
@@ -22,13 +25,15 @@ export async function addOrUpdateAmountEntry(data: any) {
     return await api.post<any>('fees', url, data);
 }
 
-export async function deleteAmountEntry(mi_id: number, id: number) {
-    const url = `/fee_amount_entry/delete_amount_entry/${id}`;
+export async function deleteAmountEntry(mi_id: number, asmay_id: number, id: number) {
+    const url = `/fee_amount_entry/deletedetails/30/${asmay_id}/${id}`;
+    console.info(url);
     return await api.put('fees', url);
 }
 
 export async function getCategorydrodowndata(academicYear_Id: number) {
     const url = `fee_amount_entry/getclass_categorylist?mi_id=30&asmay_id=${academicYear_Id}`;
+    console.info(url);
     return await api.post<IFeeClassCategoryDropDownList>('fees', url);
 }
 

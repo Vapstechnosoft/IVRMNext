@@ -5,7 +5,7 @@ import type { ApiSearchparams } from '@/types';
 import type { IMasterClassYearlyList } from '@/types/fees/masters/masters';
 
 export async function getMasterClassYearlyCategory(searchParams?: ApiSearchparams) {
-    const urlParams = getSearchParamsUrl(searchParams ?? {});
+    const urlParams = getSearchParamsUrl(searchParams ?? {}, 'asmaY_Year,fmcC_ClassCategoryName,asmcL_ClassName');
     const url = `/fee_class_category/yearlyclasscategorylist/30?${urlParams}`;
     return await api.get<IMasterClassYearlyList[]>('fees', url);
 }
@@ -17,7 +17,7 @@ export async function getGroupListCategory(searchParams?: ApiSearchparams) {
 }
 
 export async function MasterClassYearlyCategory(data: any) {
-    const url = '/api/fee_class_category/classcategorylist';
+    const url = '/fee_class_category/classcategorylist';
     return await api.post<any>('fees', url, data);
 }
 

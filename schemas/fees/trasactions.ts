@@ -3,9 +3,10 @@ import { deleteIdSchema } from '../validationSchemas';
 
 export const amountEntrySchema = {
     addOrUpdate: z.object({
-        asmaY_Id: z.number().int({ message: 'Academic Year is required' }).optional(),
-        feeGroupId: z.number().int({ message: 'Fee Group is required' }),
-        categoryId: z.number().int({ message: 'Category is required' })
+        //asmaY_Id: z.number().int({ message: 'Academic Year is required' }),
+        asmaY_Id: z.number({ message: 'Academic Year is required' }),
+        feeGroupId: z.number({ message: 'Fee Group is required' }),
+        categoryId: z.number({ message: 'Category is required' })
     }),
     delete: z.object({
         fmA_Id: deleteIdSchema('fmA_Id')
@@ -17,6 +18,8 @@ export const thirdPartyTransactionSchema = {
         .object({
             studentType: z.enum(['student', 'other']),
             academicYearId: z.number().min(1, 'Academic Year is required'),
+
+            // academicYearId: z.number({ message: 'Term is required' }),
             studentId: z.number().optional(),
             studentName: z.string().optional(),
             groupId: z.number().min(1, 'Group Name is required'),
