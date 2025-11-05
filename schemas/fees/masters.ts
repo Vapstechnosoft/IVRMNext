@@ -131,14 +131,13 @@ export const masterClassCategorySchema = {
 };
 export const masterClassSchema = {
     addOrUpdate: z.object({
-        asmcl_id: z.number().optional(),
-        asmcl_classcode: z.string().min(1, { message: 'Class Category Code is required' }),
-        asmcl_classname: z.string().min(1, { message: 'Class Category Name is required' }),
-        academicYearId: z.string().min(1, { message: 'Academic Year is required' }),
-        categoryId: z.string().min(1, { message: 'Category is required' })
+        academicYear: z.string().min(1, { message: 'Academic Year is required' }),
+        classCategory: z.string().min(1, { message: 'Class Category is required' }),
+        classes: z.array(z.string().min(1)).min(1, { message: 'At least one class must be selected' })
     }),
+
     delete: z.object({
-        asmS_Id: deleteIdSchema('asmS_Id')
+        asmS_Id: z.number().min(1, { message: 'Valid ASMCL ID is required for deletion' }) // Or use `deleteIdSchema
     })
 };
 export const masterGroupsGroupingSchema = {
