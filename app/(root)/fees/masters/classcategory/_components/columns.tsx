@@ -51,16 +51,7 @@ export const masterCasteCategoryColumns: ColumnDef<IMasterCasteCategoryList>[] =
         enableSorting: true,
         enableHiding: true
     },
-    // {
-    //     accessorKey: 'fmcC_ActiveFlag',
-    //     header: ({ column }) => <DataTableColumnHeader column={column} title='Active Status' />,
-    //     cell: ({ row }) => {
-    //         const value = row.getValue('fmcC_ActiveFlag');
-    //         return <div>{value ? '✅' : '❌'}</div>;
-    //     },
-    //     enableSorting: true,
-    //     enableHiding: true
-    // },
+
     {
         id: 'actions',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Actions' className='text-start' />,

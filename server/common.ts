@@ -306,11 +306,11 @@ export async function getUserAccessibleModules() {
                                         },
                                         {
                                             id: 13,
-                                            name: 'Category',
+                                            name: 'Yearly Category',
                                             icon: 'Settings',
                                             url: '/fees/masters/category',
-                                            title: 'Category',
-                                            description: 'Manage Category'
+                                            title: 'Yearly Category',
+                                            description: 'Manage Yearly Category'
                                         },
                                         {
                                             id: 14,

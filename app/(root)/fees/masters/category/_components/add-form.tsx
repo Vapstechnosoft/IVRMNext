@@ -5,7 +5,7 @@ import { FormError, Label } from '@/components/ui/extension/field';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useAcademicYearDropdown, useClassCategoryDropdown } from '@/hooks/fees/useMasters';
 import { masterClassSchema } from '@/schemas/fees/masters';
-import { addOrUpdateMasterClassYearlyCategory } from '@/server/fees/masters/class_yearly_category';
+import { addOrUpdateMasterClassYearlyCategory, getGroupListCategory } from '@/server/fees/masters/class_yearly_category';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Save } from 'lucide-react';
 import { useEffect, useState } from 'react';
@@ -19,11 +19,6 @@ type FormFields = {
 };
 
 interface DropdownOption {
-    value: string;
-    label: string;
-}
-
-interface ClassOption {
     value: string;
     label: string;
 }
@@ -53,23 +48,17 @@ export default function AddMasterClassForm({ onSuccess, className = '' }: AddMas
         }
     });
 
-    const [hasSubmitted, setHasSubmitted] = useState(false);
-    const [academicYearOptions, setAcademicYearOptions] = useState<DropdownOption[]>([]);
-    const [classCategoryOptions, setClassCategoryOptions] = useState<DropdownOption[]>([]);
-    const [classOptions, _setClassOptions] = useState<ClassOption[]>([
-        { value: '1', label: 'Class 1' },
-        { value: '2', label: 'Class 2' },
-        { value: '3', label: 'Class 3' },
-        { value: '4', label: 'Class 4' },
-        { value: '5', label: 'Class 5' }
-    ]);
-    const [selectedClasses, setSelectedClasses] = useState<string[]>([]);
-    const [searchTerm, setSearchTerm] = useState('');
-    const [isLoadingDropdowns, setIsLoadingDropdowns] = useState(false);
-
     const academicYear = watch('academicYear');
     const classCategory = watch('classCategory');
     const classesValue = watch('classes');
+
+    const [hasSubmitted, setHasSubmitted] = useState(false);
+    const [academicYearOptions, setAcademicYearOptions] = useState<DropdownOption[]>([]);
+    const [classCategoryOptions, setClassCategoryOptions] = useState<DropdownOption[]>([]);
+    const [classOptions, setClassOptions] = useState<DropdownOption[]>([]);
+    const [selectedClasses, setSelectedClasses] = useState<string[]>([]);
+    const [searchTerm, setSearchTerm] = useState('');
+    const [isLoadingDropdowns, setIsLoadingDropdowns] = useState(false);
 
     useEffect(() => {
         setIsLoadingDropdowns(loadingAcademic || loadingCategories);
@@ -118,6 +107,34 @@ export default function AddMasterClassForm({ onSuccess, className = '' }: AddMas
         }
     }, [academicYear, categoryData, categoryError, setValue]);
 
+    useEffect(() => {
+        const fetchClasses = async () => {
+            if (!academicYear || !classCategory) {
+                setClassOptions([]);
+                return;
+            }
+
+            try {
+                const response = await getGroupListCategory(30, Number(academicYear), {}); // mi_id = 30
+                if (response?.data && Array.isArray(response.data)) {
+                    const options = response.data.map((item: any) => ({
+                        value: item.asmcL_Id.toString(),
+                        label: item.asmcL_ClassName
+                    }));
+                    setClassOptions(options);
+                } else {
+                    setClassOptions([]);
+                }
+            } catch (error: any) {
+                console.error('Class fetch error:', error);
+                toast.error(error.message || 'Error fetching classes');
+                setClassOptions([]);
+            }
+        };
+
+        fetchClasses();
+    }, [academicYear, classCategory]);
+
     const filteredClassOptions = classOptions.filter((option) => option.label.toLowerCase().includes(searchTerm.toLowerCase()));
 
     const handleClassChange = (value: string) => {
@@ -143,15 +160,16 @@ export default function AddMasterClassForm({ onSuccess, className = '' }: AddMas
             }
 
             const payload = {
-                fmcC_Id: 0,
-                mI_Id: 30,
-                fmcC_ClassCategoryName: classCategoryOptions.find((opt) => opt.value === classCategory)?.label || '',
-                fmcC_ClassCategoryCode: classCategory,
-                fmcC_ActiveFlag: true,
-                asmaY_ID: Number.parseInt(academicYear),
-                asmcL_ID: 0,
-                clsYearData: classes,
-                user_id: 21602
+                FYCC_Id: 0, // For create always 0
+                MI_Id: 30, // Constant MI Id
+                FMCC_Id: Number(classCategory), // Selected class category ID
+                ASMAY_Id: Number(academicYear), // Selected academic year
+                ASMCL_ID: 0, // Always 0 as per your rules (single class will be in TempararyArrayList)
+                FYCC_ActiveFlag: true,
+                TempararyArrayList: classes.map((clsId) => ({
+                    ASMCL_ID: Number(clsId)
+                })),
+                user_id: 21602 // Static user id
             };
 
             const response = await addOrUpdateMasterClassYearlyCategory(payload);
@@ -177,6 +195,7 @@ export default function AddMasterClassForm({ onSuccess, className = '' }: AddMas
         setSelectedClasses([]);
         setSearchTerm('');
         setClassCategoryOptions([]);
+        setClassOptions([]);
     };
 
     return (
@@ -251,7 +270,7 @@ export default function AddMasterClassForm({ onSuccess, className = '' }: AddMas
                                     className='mb-2 w-full rounded border px-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-500'
                                     value={searchTerm}
                                     onChange={(e) => setSearchTerm(e.target.value)}
-                                    disabled={!academicYear || !classCategory}
+                                    disabled={!academicYear}
                                 />
                                 <div className='flex max-h-40 flex-col gap-2 overflow-y-auto'>
                                     {filteredClassOptions.length > 0 ? (
@@ -269,10 +288,10 @@ export default function AddMasterClassForm({ onSuccess, className = '' }: AddMas
                                                 <span className='truncate'>{option.label}</span>
                                             </label>
                                         ))
-                                    ) : !academicYear || !classCategory ? (
-                                        <span className='text-gray-400 text-sm'>Select Academic Year and Class Category first</span>
                                     ) : (
-                                        <span className='text-gray-400 text-sm'>No classes found</span>
+                                        <span className='text-gray-400 text-sm'>
+                                            {academicYear ? 'No classes found' : 'Select Academic Year first'}
+                                        </span>
                                     )}
                                 </div>
                             </div>
