@@ -226,7 +226,10 @@ export default function UpdateMasterConfiguration({ initialData, onSuccess, clas
                                 name='amC_Id'
                                 control={control}
                                 render={({ field }) => (
-                                    <Select onValueChange={(v) => field.onChange(Number(v))} value={field.value?.toString() || ''}>
+                                    <Select
+                                        key={field.value || 'empty'}
+                                        onValueChange={(v) => field.onChange(Number(v))}
+                                        value={field.value?.toString() || ''}>
                                         <SelectTrigger className='w-full'>
                                             <SelectValue placeholder='Select Category' />
                                         </SelectTrigger>
@@ -371,6 +374,7 @@ export default function UpdateMasterConfiguration({ initialData, onSuccess, clas
                                     control={control}
                                     render={({ field }) => (
                                         <Select
+                                            key={field.value || 'empty'}
                                             onValueChange={(v) => field.onChange(Number(v))}
                                             value={field.value !== undefined && field.value !== null ? field.value.toString() : '0'}>
                                             <SelectTrigger className='w-full'>
