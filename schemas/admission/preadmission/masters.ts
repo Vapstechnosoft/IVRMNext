@@ -142,7 +142,7 @@ export const masterDocumentSchema = {
         amsmD_Id: z.number().int({ message: 'AMSMD_ID is required' }).optional(),
         amsmD_DocumentName: createStringSchema('Document Name', 1, 100),
         amsmD_Description: createOptionalStringSchema('Description', 1, 1000),
-        amsmD_FLAG: z.number().int({ message: 'Mandatory Flag is required' })
+        amsmD_ActiveFlag: z.number().int({ message: 'Mandatory Flag is required' })
     }),
     delete: z.object({
         amsmD_Id: deleteIdSchema('amsmD_Id')

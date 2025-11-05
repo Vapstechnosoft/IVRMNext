@@ -96,6 +96,7 @@ export interface IMasterCasteCategoryDropDown {
 }
 
 export interface IMasterDocumentList {
+    amsmD_FLAG: any;
     amsmD_Id: number;
     mI_Id: number;
     amsmD_DocumentName: string;

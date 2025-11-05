@@ -52,9 +52,9 @@ export const masterClassColumns: ColumnDef<IMasterDocumentList>[] = [
         enableHiding: true
     },
     {
-        accessorKey: 'amsmD_FLAG',
+        accessorKey: 'amsmD_ActiveFlag',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Mandatory' />,
-        cell: ({ row }) => <div>{getStatusBadge((row.getValue('amsmD_FLAG') as boolean) === true ? 'yes' : 'no')}</div>,
+        cell: ({ row }) => <div>{getStatusBadge((row.getValue('amsmD_ActiveFlag') as boolean) === true ? 'yes' : 'no')}</div>,
         enableSorting: false,
         enableHiding: true
     },
