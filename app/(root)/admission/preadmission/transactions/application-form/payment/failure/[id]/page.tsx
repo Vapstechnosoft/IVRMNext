@@ -1,8 +1,6 @@
 'use client';
-
-import { Button } from '@/components/ui/button';
 import { updateApplicationPaymentStatus } from '@/server/admission/preadmission/transactions/application_form';
-import { AlertCircle, Loader2, RefreshCw, XCircle } from 'lucide-react';
+import { AlertCircle, Loader2, XCircle } from 'lucide-react';
 import { useParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
@@ -207,7 +205,7 @@ export default function PaymentFailurePage() {
                                     </li>
                                 </ul>
                             </div>
-
+                            {/* 
                             <div className='flex w-full flex-col gap-3 pt-2 sm:flex-row'>
                                 <Button
                                     type='button'
@@ -222,7 +220,7 @@ export default function PaymentFailurePage() {
                                     <RefreshCw className='h-4 w-4' />
                                     Try Again
                                 </Button>
-                            </div>
+                            </div> */}
                         </div>
                     )}
                 </div>

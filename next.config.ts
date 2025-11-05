@@ -17,18 +17,8 @@ const nextConfig: NextConfig = {
         remotePatterns: [
             {
                 protocol: 'https',
-                hostname: 'app.blob.core.windows.net',
-                pathname: '/logo/**' // Allows images under /logo
-            },
-            {
-                protocol: 'https',
-                hostname: 'app.blob.core.windows.net',
-                pathname: '/trackandtracedev/**' // Allows images under /trackandtracedev
-            },
-            {
-                protocol: 'https',
-                hostname: 'kusumadata.blob.core.windows.net',
-                pathname: '/files/**' // Allows images under /files
+                hostname: '**.blob.core.windows.net', // ✅ wildcard must include subdomains correctly
+                pathname: '**' // ✅ allow all paths
             }
         ]
     }
