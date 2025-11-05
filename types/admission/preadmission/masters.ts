@@ -100,6 +100,7 @@ export interface IMasterDocumentList {
     mI_Id: number;
     amsmD_DocumentName: string;
     amsmD_Description: string;
+    amsmD_FLAG: boolean;
     amsmD_ActiveFlag: boolean;
 }
 export interface IMasterReferenceList {
