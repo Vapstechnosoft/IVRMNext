@@ -2,6 +2,7 @@ import { PREADMISSION_QUERY_KEYS } from '@/constants/query-keys';
 import { getPreAdmissionSetOrder, getPreAdmissionYear } from '@/server/admission/preadmission/configuration/academic_year_master';
 import { checkPreadmissionLive } from '@/server/admission/preadmission/configuration/configuration';
 import { getMasterConfiguration } from '@/server/admission/preadmission/configuration/master_configuration';
+import { getRegistration } from '@/server/admission/preadmission/configuration/registration';
 import type { ApiSearchparams } from '@/types';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 
@@ -69,6 +70,22 @@ export const usePreAdmissionAcademicYearSetOrder = () => {
         refetchAll: () => {
             return queryClient.invalidateQueries({
                 queryKey: [PREADMISSION_QUERY_KEYS.SET_ORDER]
+            });
+        }
+    };
+};
+export const useRegistration = () => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [PREADMISSION_QUERY_KEYS.REGISTRATION],
+            queryFn: async () => getRegistration(),
+            staleTime: 0
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [PREADMISSION_QUERY_KEYS.REGISTRATION]
             });
         }
     };
