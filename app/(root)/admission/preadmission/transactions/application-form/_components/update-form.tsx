@@ -11,8 +11,8 @@ import { MultiSelect } from '@/components/ui/multi-select';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { useAcademicYearDropdown } from '@/hooks/admission/preadmission/useMasters';
 import {
+    useActivePreadmissionDetails,
     useCasteDropdown,
     useCountryDropdown,
     useGenderDropdown,
@@ -80,13 +80,7 @@ const steps = [
     }
 ];
 
-export default function UpdateStudentApplicationForm({
-    id,
-    rowData,
-    onSuccess,
-    onClose,
-    className = ''
-}: UpdateStudentApplicationFormProps) {
+export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, className = '' }: UpdateStudentApplicationFormProps) {
     const [currentStep, setCurrentStep] = useState(1);
 
     const {
@@ -105,6 +99,8 @@ export default function UpdateStudentApplicationForm({
             pasR_UndertakingFlag: 0
         }
     });
+
+    console.log('errors', errors);
 
     // Initialize form with row data if provided
     useEffect(() => {
@@ -223,13 +219,10 @@ export default function UpdateStudentApplicationForm({
 
     const [documentErrors, setDocumentErrors] = useState<Record<number, string>>({});
 
+    const { data: activePreadmission } = useActivePreadmissionDetails();
+
     const { data: religion, isLoading: religionLoading, error: religionError, refetchAll: refetchReligion } = useReligionDropdown();
-    const {
-        data: academicYearOptions,
-        isLoading: academicYearLoading,
-        error: academicYearError,
-        refetchAll: refetchAcademic
-    } = useAcademicYearDropdown();
+
     const conConuntryId = watch('pasR_ConCountry');
     const perConuntryId = watch('pasR_PerCountry');
     const { data: caste, isLoading: casteLoading, error: casteError, refetchAll: refetchCaste } = useCasteDropdown(watch('religion_Id'));
@@ -272,7 +265,6 @@ export default function UpdateStudentApplicationForm({
         refetchConState();
         refetchPerState();
         refetchPreadmissionDocuments();
-        refetchAcademic();
     };
 
     const nextStep = async () => {
@@ -440,7 +432,6 @@ export default function UpdateStudentApplicationForm({
             };
 
             // Submit the payload
-
             const response = await addStudentApplicationForm(payload);
 
             if (response && (response.success === true || response.status === 200)) {
@@ -851,46 +842,15 @@ export default function UpdateStudentApplicationForm({
                                         </div>
 
                                         <div className='flex justify-between'>
-                                            <div className='w-56'>
-                                                <Label htmlFor='academic_year'>
-                                                    Academic Year <span className='ml-1 text-red-500'>*</span>
-                                                </Label>
-                                                <Controller
-                                                    name={'asmaY_Id' as any}
-                                                    control={control}
-                                                    defaultValue={rowData?.asmaY_Id}
-                                                    render={({ field }) => (
-                                                        <Select
-                                                            onValueChange={(value) => field.onChange(Number(value))}
-                                                            value={field.value?.toString() || undefined}>
-                                                            <SelectTrigger id='academic_year'>
-                                                                <SelectValue placeholder='Select Academic Year' />
-                                                            </SelectTrigger>
-                                                            <SelectContent>
-                                                                {academicYearLoading ? (
-                                                                    <SelectItem value='loading' disabled>
-                                                                        Loading...
-                                                                    </SelectItem>
-                                                                ) : academicYearError ? (
-                                                                    <SelectItem value='error' disabled>
-                                                                        Error loading
-                                                                    </SelectItem>
-                                                                ) : academicYearOptions?.data && academicYearOptions.data.length > 0 ? (
-                                                                    academicYearOptions.data.map((item: any) => (
-                                                                        <SelectItem key={item.asmaY_Id} value={item.asmaY_Id.toString()}>
-                                                                            {item.asmaY_Year}
-                                                                        </SelectItem>
-                                                                    ))
-                                                                ) : (
-                                                                    <SelectItem value='none' disabled>
-                                                                        No academic year available
-                                                                    </SelectItem>
-                                                                )}
-                                                            </SelectContent>
-                                                        </Select>
-                                                    )}
-                                                />
-                                            </div>
+                                            <InputText
+                                                label='Academic Year'
+                                                required
+                                                id='academic_year'
+                                                placeholder='Enter first name'
+                                                defaultValue={activePreadmission?.data?.asmaY_Year}
+                                                className='w-fit font-semibold'
+                                                disabled
+                                            />
 
                                             {/* Student Photo Upload */}
                                             <div className='col-span-full w-fit'>
