@@ -1,0 +1,121 @@
+'use client';
+
+import { Checkbox } from '@/components/ui/checkbox';
+import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
+import { ActionButtons } from '@/components/ui/form/action-buttons';
+import { useFormContext } from '@/components/ui/form/form-provider';
+import type { IMasterRegistrationList } from '@/types/admission/preadmission/configaration';
+import type { ColumnDef } from '@tanstack/react-table';
+import { useCallback } from 'react';
+
+export const masterRegistrationColumns: ColumnDef<IMasterRegistrationList>[] = [
+    {
+        id: 'select',
+        header: ({ table }) => (
+            <Checkbox
+                checked={table.getIsAllPageRowsSelected() || (table.getIsSomePageRowsSelected() && 'indeterminate')}
+                onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
+                aria-label='Select all'
+            />
+        ),
+        cell: ({ row }) => (
+            <Checkbox checked={row.getIsSelected()} onCheckedChange={(value) => row.toggleSelected(!!value)} aria-label='Select row' />
+        ),
+        enableSorting: false,
+        enableHiding: false,
+        size: 24
+    },
+    {
+        accessorKey: 'imN_Id',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Sl.No' />,
+        cell: ({ row }) => {
+            return <div>{row.index + 1}</div>;
+        },
+        enableSorting: false,
+        enableHiding: false
+    },
+    {
+        accessorKey: 'imN_StartingNo',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Starting Number' />,
+        cell: ({ row }) => <div>{row.getValue('imN_StartingNo') || 'N/A'}</div>,
+        enableSorting: true,
+        enableHiding: true
+    },
+    {
+        accessorKey: 'imN_WidthNumeric',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Width of Numeric' />,
+        cell: ({ row }) => <div>{row.getValue('imN_WidthNumeric') || 'N/A'}</div>,
+        enableSorting: true,
+        enableHiding: true
+    },
+    {
+        accessorKey: 'imN_ZeroPrefixFlag',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Zero Prefix' />,
+        cell: ({ row }) => <div>{row.getValue('imN_ZeroPrefixFlag') ? 'Yes' : 'No'}</div>,
+        enableSorting: true,
+        enableHiding: true
+    },
+    {
+        accessorKey: 'imN_RestartNumFlag',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Restart Numbering' />,
+        cell: ({ row }) => <div>{row.getValue('imN_RestartNumFlag') ? 'Yes' : 'No'}</div>,
+        enableSorting: true,
+        enableHiding: true
+    },
+    {
+        accessorKey: 'imN_AutoManualFlag',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Auto/Manual' />,
+        cell: ({ row }) => <div>{row.getValue('imN_AutoManualFlag')}</div>,
+        enableSorting: true,
+        enableHiding: true
+    },
+    {
+        accessorKey: 'imN_SuffixAcadYearCode',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Academic Year Suffix' />,
+        cell: ({ row }) => <div>{row.getValue('imN_SuffixAcadYearCode') ? 'Yes' : 'No'}</div>,
+        enableSorting: true,
+        enableHiding: true
+    },
+    {
+        accessorKey: 'imN_PrefixAcadYearCode',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Prefix' />,
+        cell: ({ row }) => <div>{row.getValue('imN_PrefixAcadYearCode')}</div>,
+        enableSorting: true,
+        enableHiding: true
+    },
+    {
+        id: 'actions',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Actions' className='text-center' />,
+        accessorFn: (row: any) => row,
+        enableSorting: false,
+        cell: ({ row }) => <ActionButtonsCell rowData={row.original} />
+    }
+];
+
+function ActionButtonsCell({ rowData }: { rowData: IMasterRegistrationList }) {
+    const { openEditForm, openToggleForm } = useFormContext<IMasterRegistrationList>();
+
+    const handleEdit = useCallback(
+        (data: IMasterRegistrationList) => {
+            openEditForm(data);
+        },
+        [openEditForm]
+    );
+
+    const handleToggle = useCallback(
+        (data: IMasterRegistrationList) => {
+            openToggleForm(data);
+        },
+        [openToggleForm]
+    );
+
+    return (
+        <ActionButtons
+            rowData={rowData}
+            buttons={{ edit: true, toggle: true, delete: false }}
+            onEdit={handleEdit}
+            onToggle={handleToggle}
+            toggleConditionKey='amC_ActiveFlag'
+        />
+    );
+}

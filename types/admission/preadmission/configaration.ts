@@ -31,3 +31,24 @@ export interface IMasterSetOrderList {
     asmaY_Year: string;
     asmaY_Order: number;
 }
+export interface IMasterRegistrationList {
+    imN_Id: number;
+    mI_Id: number;
+    imN_AutoManualFlag: string;
+    imN_DuplicatesFlag: null;
+    imN_StartingNo: string;
+    imN_WidthNumeric: string;
+    imN_ZeroPrefixFlag: string;
+    imN_PrefixAcadYearCode: boolean;
+    imN_PrefixParticular: null;
+    imN_SuffixAcadYearCode: boolean;
+    imN_SuffixParticular: string;
+    imN_RestartNumFlag: string;
+    imN_Flag: string;
+    imN_PrefixFinYearCode: null;
+    imN_PrefixCalYearCode: null;
+    imN_SuffixFinYearCode: null;
+    imN_SuffixCalYearCode: null;
+    createdDate: string;
+    updatedDate: string;
+}

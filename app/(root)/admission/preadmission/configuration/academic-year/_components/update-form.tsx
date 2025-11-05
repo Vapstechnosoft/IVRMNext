@@ -141,7 +141,7 @@ export default function UpdateMasterAcademicYearForm({ onSuccess, className = ''
                             className='transition-colors focus:ring-2 focus:ring-primary/20'
                         />
                         <InputText
-                            label='Order'
+                            label='Academic Year Order'
                             required
                             type='number'
                             id='asmaY_Order'
@@ -156,7 +156,7 @@ export default function UpdateMasterAcademicYearForm({ onSuccess, className = ''
                     {/* Academic Year Dates */}
                     <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
                         <InputText
-                            label='From Date'
+                            label='Start Date'
                             required
                             type='datetime-local'
                             id='asmaY_From_Date'
@@ -166,7 +166,7 @@ export default function UpdateMasterAcademicYearForm({ onSuccess, className = ''
                             className='transition-colors focus:ring-2 focus:ring-primary/20'
                         />
                         <InputText
-                            label='To Date'
+                            label='End Date'
                             required
                             type='datetime-local'
                             id='asmaY_To_Date'
@@ -180,7 +180,7 @@ export default function UpdateMasterAcademicYearForm({ onSuccess, className = ''
                     {/* Pre-Admission Dates */}
                     <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
                         <InputText
-                            label='Pre-Admission From Date'
+                            label='Pre-Admission Start Date'
                             required
                             type='datetime-local'
                             id='asmaY_PreAdm_F_Date'
@@ -190,7 +190,7 @@ export default function UpdateMasterAcademicYearForm({ onSuccess, className = ''
                             className='transition-colors focus:ring-2 focus:ring-primary/20'
                         />
                         <InputText
-                            label='Pre-Admission To Date'
+                            label='Pre-Admission End Date'
                             required
                             type='datetime-local'
                             id='asmaY_PreAdm_T_Date'
@@ -204,78 +204,7 @@ export default function UpdateMasterAcademicYearForm({ onSuccess, className = ''
                     {/* Transport Dates */}
                     <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
                         <InputText
-                            label='Transport Start Date'
-                            required
-                            type='datetime-local'
-                            id='asmaY_TransportSDate'
-                            {...register('asmaY_TransportSDate')}
-                            defaultValue={row.asmaY_TransportSDate}
-                            error={errors.asmaY_TransportSDate?.message}
-                            className='transition-colors focus:ring-2 focus:ring-primary/20'
-                        />
-                        <InputText
-                            label='Transport End Date'
-                            required
-                            type='datetime-local'
-                            id='asmaY_TransportEDate'
-                            {...register('asmaY_TransportEDate')}
-                            defaultValue={row.asmaY_TransportEDate}
-                            error={errors.asmaY_TransportEDate?.message}
-                            className='transition-colors focus:ring-2 focus:ring-primary/20'
-                        />
-                    </div>
-
-                    {/* Fee Dates */}
-                    <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
-                        <InputText
-                            label='Advance Fee Date'
-                            required
-                            type='datetime-local'
-                            id='asmaY_AdvanceFeeDate'
-                            {...register('asmaY_AdvanceFeeDate')}
-                            defaultValue={row.asmaY_AdvanceFeeDate}
-                            error={errors.asmaY_AdvanceFeeDate?.message}
-                            className='transition-colors focus:ring-2 focus:ring-primary/20'
-                        />
-                        <InputText
-                            label='Regular Fee From Date'
-                            required
-                            type='datetime-local'
-                            id='asmaY_RegularFeeFDate'
-                            {...register('asmaY_RegularFeeFDate')}
-                            defaultValue={row.asmaY_RegularFeeFDate}
-                            error={errors.asmaY_RegularFeeFDate?.message}
-                            className='transition-colors focus:ring-2 focus:ring-primary/20'
-                        />
-                    </div>
-
-                    <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
-                        <InputText
-                            label='Regular Fee To Date'
-                            required
-                            type='datetime-local'
-                            id='asmaY_RegularFeeTDate'
-                            {...register('asmaY_RegularFeeTDate')}
-                            defaultValue={row.asmaY_RegularFeeTDate}
-                            error={errors.asmaY_RegularFeeTDate?.message}
-                            className='transition-colors focus:ring-2 focus:ring-primary/20'
-                        />
-                        <InputText
-                            label='Arrear Fee Date'
-                            required
-                            type='datetime-local'
-                            id='asmaY_ArrearFeeDate'
-                            {...register('asmaY_ArrearFeeDate')}
-                            defaultValue={row.asmaY_ArrearFeeDate}
-                            error={errors.asmaY_ArrearFeeDate?.message}
-                            className='transition-colors focus:ring-2 focus:ring-primary/20'
-                        />
-                    </div>
-
-                    {/* Other Dates */}
-                    <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
-                        <InputText
-                            label='Cut Off Date'
+                            label='Pre Admission Age Cut off Date'
                             required
                             type='datetime-local'
                             id='asmaY_Cut_Of_Date'
@@ -286,7 +215,6 @@ export default function UpdateMasterAcademicYearForm({ onSuccess, className = ''
                         />
                         <InputText
                             label='Reference Date'
-                            required
                             type='datetime-local'
                             id='asmaY_ReferenceDate'
                             {...register('asmaY_ReferenceDate')}
@@ -296,28 +224,67 @@ export default function UpdateMasterAcademicYearForm({ onSuccess, className = ''
                         />
                     </div>
 
-                    {/* Active Flags */}
+                    {/* Fee Dates */}
                     <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
                         <InputText
-                            label='Active Flag'
-                            required
-                            type='number'
-                            id='asmaY_ActiveFlag'
-                            placeholder='0 or 1'
-                            {...register('asmaY_ActiveFlag', { valueAsNumber: true })}
-                            defaultValue={row.asmaY_ActiveFlag}
-                            error={errors.asmaY_ActiveFlag?.message}
+                            label='Transport Start Date'
+                            type='datetime-local'
+                            id='asmaY_TransportSDate'
+                            {...register('asmaY_TransportSDate')}
+                            defaultValue={row.asmaY_TransportSDate}
+                            error={errors.asmaY_TransportSDate?.message}
                             className='transition-colors focus:ring-2 focus:ring-primary/20'
                         />
                         <InputText
-                            label='Pre-Active Flag'
-                            required
-                            type='number'
-                            id='asmaY_Pre_ActiveFlag'
-                            placeholder='0 or 1'
-                            {...register('asmaY_Pre_ActiveFlag', { valueAsNumber: true })}
-                            defaultValue={row.asmaY_Pre_ActiveFlag}
-                            error={errors.asmaY_Pre_ActiveFlag?.message}
+                            label='Transport End Date'
+                            type='datetime-local'
+                            id='asmaY_TransportEDate'
+                            {...register('asmaY_TransportEDate')}
+                            defaultValue={row.asmaY_TransportEDate}
+                            error={errors.asmaY_TransportEDate?.message}
+                            className='transition-colors focus:ring-2 focus:ring-primary/20'
+                        />
+                    </div>
+
+                    <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
+                        <InputText
+                            label='Financial Year Start Date'
+                            type='datetime-local'
+                            id='asmaY_RegularFeeFDate'
+                            {...register('asmaY_RegularFeeFDate')}
+                            defaultValue={row.asmaY_RegularFeeFDate}
+                            error={errors.asmaY_RegularFeeFDate?.message}
+                            className='transition-colors focus:ring-2 focus:ring-primary/20'
+                        />
+                        <InputText
+                            label='Financial Year End Date'
+                            type='datetime-local'
+                            id='asmaY_RegularFeeTDate'
+                            {...register('asmaY_RegularFeeTDate')}
+                            defaultValue={row.asmaY_RegularFeeTDate}
+                            error={errors.asmaY_RegularFeeTDate?.message}
+                            className='transition-colors focus:ring-2 focus:ring-primary/20'
+                        />
+                    </div>
+
+                    {/* Other Dates */}
+                    <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
+                        <InputText
+                            label='Advance Date'
+                            type='datetime-local'
+                            id='asmaY_AdvanceFeeDate'
+                            {...register('asmaY_AdvanceFeeDate')}
+                            defaultValue={row.asmaY_AdvanceFeeDate}
+                            error={errors.asmaY_AdvanceFeeDate?.message}
+                            className='transition-colors focus:ring-2 focus:ring-primary/20'
+                        />
+                        <InputText
+                            label='Arrear Date'
+                            type='datetime-local'
+                            id='asmaY_ArrearFeeDate'
+                            {...register('asmaY_ArrearFeeDate')}
+                            defaultValue={row.asmaY_ArrearFeeDate}
+                            error={errors.asmaY_ArrearFeeDate?.message}
                             className='transition-colors focus:ring-2 focus:ring-primary/20'
                         />
                     </div>

@@ -60,13 +60,6 @@ export const PreAdmissionAcademicYearSchema = {
         asmaY_PreAdm_F_Date: dateSchema('Pre-Admission From Date', true),
         asmaY_PreAdm_T_Date: dateSchema('Pre-Admission To Date', true),
         asmaY_Cut_Of_Date: dateSchema('Cut-off Date', true),
-        asmaY_TransportSDate: dateSchema('Transport Start Date', true),
-        asmaY_TransportEDate: dateSchema('Transport End Date', true),
-        asmaY_ReferenceDate: dateSchema('Reference Date', true),
-        asmaY_AdvanceFeeDate: dateSchema('Advance Fee Date', true),
-        asmaY_RegularFeeFDate: dateSchema('Regular Fee From Date', true),
-        asmaY_RegularFeeTDate: dateSchema('Regular Fee To Date', true),
-        asmaY_ArrearFeeDate: dateSchema('Arrear Fee Date', true),
 
         // Flag fields with defaults and transformations
         asmaY_ActiveFlag: z
@@ -78,19 +71,32 @@ export const PreAdmissionAcademicYearSchema = {
             .transform((val) => (typeof val === 'boolean' ? (val ? 1 : 0) : val))
             .default(0),
 
-        // Boolean flags with defaults and transformations
+        asmaY_TransportSDate: dateSchema('Transport Start Date', true).optional(),
+        asmaY_TransportEDate: dateSchema('Transport End Date', true).optional(),
+        asmaY_ReferenceDate: dateSchema('Reference Date', true).optional(),
+        asmaY_AdvanceFeeDate: dateSchema('Advance Fee Date', true).optional(),
+        asmaY_RegularFeeFDate: dateSchema('Regular Fee From Date', true).optional(),
+        asmaY_RegularFeeTDate: dateSchema('Regular Fee To Date', true).optional(),
+        asmaY_ArrearFeeDate: dateSchema('Arrear Fee Date', true).optional(),
+
+        // ----- BOOLEAN/FLAG FIELDS – OPTIONAL WITH DEFAULT -----
         asmaY_ReggularFlg: z
             .union([z.boolean(), z.number()])
             .transform((val) => Boolean(val))
-            .default(false),
+            .default(false)
+            .optional(),
+
         asmaY_NewFlg: z
             .union([z.boolean(), z.number()])
             .transform((val) => Boolean(val))
-            .default(false),
+            .default(false)
+            .optional(),
+
         asmaY_NewAdmissionFlg: z
             .union([z.boolean(), z.number()])
             .transform((val) => Boolean(val))
             .default(false)
+            .optional()
     }),
 
     delete: z.object({
@@ -100,3 +106,13 @@ export const PreAdmissionAcademicYearSchema = {
             .positive('asmaY_Id must be a positive number')
     })
 };
+export const numberingSchema = z.object({
+    prefix_type: z.enum(['academic', 'particulars']),
+    suffix_type: z.enum(['academic', 'particulars']),
+    prefix_particulars: z.string().optional(),
+    suffix_particulars: z.string().optional(),
+    prefix_numeric_width: z.coerce.number().min(1).max(10),
+    suffix_starting_from: z.coerce.number().min(1),
+    prefix_with_zero: z.enum(['yes', 'no']),
+    restart_frequency: z.enum(['never', 'yearly'])
+});
