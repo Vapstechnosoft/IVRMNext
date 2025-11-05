@@ -1,8 +1,8 @@
 'use client';
 import { Heading } from '@/components/layout/heading';
 import { Button } from '@/components/ui/button';
-import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/generic-data-table';
 import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
+import { GenericDataTable, useDataTableProps } from '@/components/ui/view-data-table/view-generic-data-table';
 import { getCategoryMappedSections } from '@/server/exam/exam-module/masters/category-class-mapping';
 import type { ICategoryClassMappingDetails, ICategoryMapping, ISection } from '@/types/exam/exam-module/masters';
 import { useEffect, useState } from 'react';

@@ -231,6 +231,7 @@ export const ExamTermAndExamMappingSchema = {
 
             asmaY_Id: z.preprocess(toNumber, z.number().int().positive({ message: 'Select Academic Year' })),
             eyc_Id: z.preprocess(toNumber, z.number().int().positive({ message: 'Select Category' }).optional()),
+            emcA_Id: z.preprocess(toNumber, z.number().int().positive({ message: 'Select Category' })),
             emgR_Id: z.preprocess(toNumber, z.number().int().positive({ message: 'Select Grade' })),
             ecT_TermName: z
                 .string()
@@ -342,19 +343,36 @@ const YearlyCategoryExamSubjectSchema = z.object({
     Exam_Subject_PT_GradeList: z.array(z.any()).optional()
 });
 
-export const SubSubjectSubExamSchema = z.object({
-    EYCESSS_Id: z.number().int().nonnegative().optional(),
-    EYCES_Id: z.number().int().nonnegative().optional(),
-    EMSS_Id: z.number().int().positive({ message: 'EMSS_Id required' }),
-    EMSE_Id: z.number().int().positive({ message: 'EMSE_Id required' }),
-    EMGR_Id: z.number().int().positive({ message: 'EMGR_Id required' }),
-    EYCESSS_MaxMarks: z.number().min(0).optional(),
-    EYCESSS_MinMarks: z.number().min(0).optional(),
-    EYCESSS_ExemptedFlg: z.boolean().optional(),
-    EYCESSS_ExemptedPer: z.number().min(0).max(100).optional(),
-    EYCESSS_ActiveFlg: z.boolean().optional(),
-    EYCESSS_SubSubjectOrder: z.number().int().nonnegative().optional()
-});
+export const SubSubjectSubExamSchema = z
+    .object({
+        eycessS_Id: z.number().int().nonnegative().optional(), // Primary key
+        eyceS_Id: z.number().int().nonnegative().optional(), // Foreign key to parent subject
+        ismS_Id: z.number().int().positive({ message: 'ismS_Id required' }), // Subject Id
+        emsS_Id: z.number().int().positive({ message: 'emsS_Id required' }), // SubSubject Id
+        emgR_GradeName: z.string().min(1, { message: 'Grade Name required' }),
+        ismS_SubjectName: z.string().min(1, { message: 'Subject Name required' }),
+        ismS_SubjectCode: z.string().min(1, { message: 'Subject Code required' }),
+        emsS_SubSubjectName: z.string().min(1, { message: 'SubSubject Name required' }),
+        emsS_SubSubjectCode: z.string().min(1, { message: 'SubSubject Code required' }),
+
+        eycessS_MaxMarks: z.number({ invalid_type_error: 'Enter Max Marks' }).min(0, 'Max Marks must be 0 or greater'),
+        eycessS_MinMarks: z.number({ invalid_type_error: 'Enter Min Marks' }).min(0, 'Min Marks must be 0 or greater'),
+        eycessS_ExemptedFlg: z.boolean().optional().default(false),
+        eycessS_ExemptedPer: z.number().min(0).max(100).optional(),
+        eycessS_SubSubjectOrder: z.number().int().nonnegative().optional(),
+        eycessS_ActiveFlg: z.boolean().optional().default(true),
+        eycessS_GradesFlg: z.boolean().optional().default(false),
+        eycessS_MarksFlg: z.boolean().optional().default(false)
+    })
+    //Logical validation refinements
+    .refine((data) => data.eycessS_MinMarks < data.eycessS_MaxMarks, {
+        message: 'Min Marks should be less than Max Marks',
+        path: ['eycessS_MinMarks']
+    })
+    .refine((data) => !data.eycessS_ExemptedFlg || (data.eycessS_ExemptedPer !== undefined && data.eycessS_ExemptedPer > 0), {
+        message: 'Exempted Percentage required when Exempted Flag is true',
+        path: ['eycessS_ExemptedPer']
+    });
 
 const ExmSubjectSubsubjectsSubexamWrapperSchema = z.object({
     ISMS_Id: z.number().int().positive({ message: 'ISMS_Id required' }),
@@ -370,6 +388,7 @@ export const ExamSubjectWizardSchema = {
             // top level ids & flags (matching payload keys)
             EYCE_Id: z.number().int().nonnegative().optional().default(0),
             EYC_Id: z.number().int().positive({ message: 'EYC_Id required' }),
+            EMCA_Id: z.number().int().positive({ message: 'EMCA_Id required' }),
             EMGR_Id: z.number().int().positive({ message: 'EMGR_Id required' }),
 
             // flags
@@ -418,6 +437,70 @@ export const ExamSubjectWizardSchema = {
         ),
 
     // keep delete schema similar to your prior example (rename to match EYCE if needed)
+    delete: z.object({
+        EYCE_Id: z.number({ required_error: 'EYCE_Id is required' }).int().positive({ message: 'Invalid EYCE_Id' })
+    })
+};
+
+export const BaseExamSubjectSchema = {
+    addOrUpdate: z
+        .object({
+            // Primary Identifiers
+            EYCE_Id: z.number().int().nonnegative().optional().default(0),
+            EYC_Id: z.number().int().positive({ message: 'EYC_Id is required' }),
+            ISMS_Id: z.number().int().positive({ message: 'ISMS_Id is required' }),
+            EMCA_Id: z.number().int().positive({ message: 'EMCA_Id is required' }),
+            EMGR_Id: z.number().int().positive({ message: 'EMGR_Id is required' }),
+
+            // Subject Info
+            ISMS_SubjectName: z.string().min(1, { message: 'Subject name is required' }),
+            ISMS_SubjectCode: z.string().min(1, { message: 'Subject code is required' }),
+
+            // Marks & Grade Info
+            EYCES_MaxMarks: z.number().min(0, { message: 'Max marks must be 0 or greater' }).max(1000, { message: 'Max marks too large' }),
+            EYCES_MinMarks: z.number().min(0, { message: 'Min marks must be 0 or greater' }).max(1000, { message: 'Min marks too large' }),
+            EYCES_MarksEntryMax: z
+                .number()
+                .min(0, { message: 'Marks entry max must be 0 or greater' })
+                .max(1000, { message: 'Marks entry max too large' }),
+
+            // Flags
+            EYCES_SubExamFlg: z.boolean().optional().default(false),
+            EYCES_SubSubjectFlg: z.boolean().optional().default(false),
+            EYCES_MarksGradeEntryFlg: z.enum(['M', 'G'], { message: 'Invalid marks/grade entry flag' }),
+            EYCES_MarksDisplayFlg: z.boolean().optional().default(true),
+            EYCES_GradeDisplayFlg: z.boolean().optional().default(true),
+            EYCES_AplResultFlg: z.boolean().optional().default(true),
+            EYCES_ActiveFlg: z.boolean().optional().default(true),
+
+            // Order
+            EYCES_SubjectOrder: z.number().int().min(1, { message: 'Subject order must be at least 1' }),
+
+            // Optional info
+            PT_Count: z.number().int().nonnegative().optional().default(0),
+
+            // Meta info
+            UserId: z.number().int().nonnegative().optional().default(0),
+            MI_Id: z.number().int().nonnegative().optional().default(0),
+            ASMAY_Id: z.number().int().nonnegative().optional().default(0),
+            ASMAY_Year: z.string().optional().nullable()
+        })
+        //  Cross-field validations
+        .refine((data) => data.EYC_Id > 0 && data.ISMS_Id > 0 && data.EMCA_Id > 0, {
+            message: 'Required identifiers are missing',
+            path: ['EYC_Id']
+        })
+        .refine((data) => data.EYC_Id > 0, { message: 'EYC_Id must be positive', path: ['EYC_Id'] })
+        .refine((data) => data.EYCES_MinMarks <= data.EYCES_MaxMarks, {
+            message: 'Min marks must be less than or equal to Max marks',
+            path: ['EYCES_MinMarks']
+        })
+        .refine((data) => data.EYCES_MarksEntryMax <= data.EYCES_MaxMarks, {
+            message: 'Marks entry max cannot exceed Max marks',
+            path: ['EYCES_MarksEntryMax']
+        }),
+
+    //  Delete schema block
     delete: z.object({
         EYCE_Id: z.number({ required_error: 'EYCE_Id is required' }).int().positive({ message: 'Invalid EYCE_Id' })
     })

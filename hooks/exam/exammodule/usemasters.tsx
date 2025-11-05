@@ -93,7 +93,7 @@ export const useMasterSubSubject = (searchParams?: ApiSearchparams) => {
             queryFn: async () => getMasterSubSubject(searchParams),
             staleTime: 0
         }),
-        reftechAll: () => {
+        refetchAll: () => {
             return queryClient.invalidateQueries({
                 queryKey: [EXAM_QUERY_KEYS.MASTER_SUB_SUBJECT_EX]
             });

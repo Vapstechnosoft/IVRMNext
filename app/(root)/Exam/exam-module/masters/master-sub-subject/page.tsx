@@ -45,17 +45,22 @@ function MasterSubSubjectPageContent({
     const [orderModalOpen, setOrderModalOpen] = useState(false);
     const [orderData, setOrderData] = useState<(IMasterSubSubject & { id: number })[]>([]);
     const [isOrderSaving, setIsOrderSaving] = useState(false);
+    const [isOrderloading, setIsOrderloading] = useState(true);
     const handleSetOrder = async () => {
         try {
+            setOrderModalOpen(true);
             const response = await getMasterSubSubjectOrderData(30);
 
             if (response.success && response.data) {
                 const data = Array.isArray(response.data) ? response.data : [];
                 const mapped = data.map((d: IMasterSubSubject) => ({ ...d, id: d.emsS_Id }));
                 setOrderData(mapped);
-                setOrderModalOpen(true);
+                setIsOrderSaving(false);
+                setIsOrderloading(false);
             } else {
                 toast.error(response.message || 'Failed to fetch sub-subjects.');
+                setIsOrderSaving(false);
+                setIsOrderloading(false);
             }
         } catch (error: any) {
             toast.error(error.message || 'Something went wrong while fetching sub-subjects.');
@@ -140,7 +145,8 @@ function MasterSubSubjectPageContent({
                         isOpen={orderModalOpen}
                         onClose={() => setOrderModalOpen(false)}
                         data={orderData}
-                        isLoading={isOrderSaving}
+                        isLoading={isOrderloading}
+                        isSaving={isOrderSaving}
                         columns={[
                             { key: 'id', label: 'SL.No', className: 'text-center w-12' },
                             { key: 'emsS_SubSubjectName', label: 'Sub Subject Name', className: 'text-left' },

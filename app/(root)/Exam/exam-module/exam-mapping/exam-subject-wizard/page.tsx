@@ -83,9 +83,6 @@ function ExamSubjectWizardPageContent({
             }));
 
             const payload = { temp_Subject_Order };
-
-            console.log('Payload to send:', payload);
-
             const response = await UpdateOrderedSubjectDetails(payload);
 
             if (response?.success) {
@@ -159,7 +156,7 @@ function ExamSubjectWizardPageContent({
     );
 }
 
-export function FormSections() {
+function FormSections() {
     const {
         isAddFormOpen,
         isEditFormOpen,
@@ -171,7 +168,6 @@ export function FormSections() {
         closeToggleForm,
         addFormRef,
         editFormRef,
-        openDetailsView,
         closeDetailsView
     } = useFormContext<IExamSubjectWizard>();
 

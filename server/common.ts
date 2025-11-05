@@ -547,14 +547,14 @@ export async function getUserAccessibleModules() {
                                             title: 'Yearly Category Subject Mapping',
                                             description: 'Manage Yearly Category Subject Mapping Details'
                                         },
-                                        {
-                                            id: 3,
-                                            name: 'Exam Login Privilages',
-                                            icon: 'BookOpen',
-                                            url: '/Exam/exam-module/exam-mapping/exam-login-privilages',
-                                            title: 'Exam Login Privilages',
-                                            description: 'Manage Exam Login Privilages Details'
-                                        },
+                                        // {
+                                        //     id: 3,
+                                        //     name: 'Exam Login Privilages',
+                                        //     icon: 'BookOpen',
+                                        //     url: '/Exam/exam-module/exam-mapping/exam-login-privilages',
+                                        //     title: 'Exam Login Privilages',
+                                        //     description: 'Manage Exam Login Privilages Details'
+                                        // },
                                         {
                                             id: 4,
                                             name: 'Yearly Category Date Mapping',

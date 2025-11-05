@@ -235,6 +235,23 @@ export const api = new ApiService();
  * @param searchParams - The searchParams object to generate the URL from.
  * @returns A string representing the URL.
  */
+// export function getSearchParamsUrl(searchParams: ApiSearchparams | undefined, searchColumns?: string): string {
+//     if (!searchParams) return '';
+
+//     const page = searchParams?.page || 1;
+//     const page_size = searchParams?.page_size || 10;
+//     const sort_column = searchParams?.sort_column || '';
+//     const sort_direction = searchParams?.sort_direction || 'asc';
+//     const search_query = searchParams?.search_query || '';
+//     const search_columns = searchParams?.search_columns || '';
+
+//     if (!search_query) {
+//         return `page=${page}&page_size=${page_size}&sort_column=${sort_column}&sort_direction=${sort_direction}`;
+//     }
+
+//     return `page=${page}&page_size=${page_size}&sort_column=${sort_column}&sort_direction=${sort_direction}&search_query=${search_query}&search_column=${searchColumns}`;
+// }
+
 export function getSearchParamsUrl(searchParams: ApiSearchparams | undefined, searchColumns?: string): string {
     if (!searchParams) return '';
 
@@ -243,11 +260,15 @@ export function getSearchParamsUrl(searchParams: ApiSearchparams | undefined, se
     const sort_column = searchParams?.sort_column || '';
     const sort_direction = searchParams?.sort_direction || 'asc';
     const search_query = searchParams?.search_query || '';
-    const search_columns = searchParams?.search_columns || '';
 
-    if (!search_query) {
-        return `page=${page}&page_size=${page_size}&sort_column=${sort_column}&sort_direction=${sort_direction}`;
+    let url = `page=${page}&page_size=${page_size}&sort_column=${sort_column}&sort_direction=${sort_direction}`;
+
+    if (search_query) {
+        url += `&search_query=${encodeURIComponent(search_query)}`;
+        if (searchColumns) {
+            url += `&search_column=${encodeURIComponent(searchColumns)}`;
+        }
     }
 
-    return `page=${page}&page_size=${page_size}&sort_column=${sort_column}&sort_direction=${sort_direction}&search_query=${search_query}&search_column=${searchColumns}`;
+    return url;
 }

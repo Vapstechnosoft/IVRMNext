@@ -72,6 +72,7 @@ export default function AddExamSubjectWizard({ onSuccess }: { onSuccess?: () => 
 
     const watchYear = watch('ASMAY_Id');
     const watchCategory = watch('EYC_Id');
+    const watchEMCA_ID = watch('EMCA_Id');
     const watchSubExam = watch('EYCE_SubExamFlg');
     const watchSubSubject = watch('EYCE_SubSubjectFlg');
     const watchGrade = watch('EMGR_Id');
@@ -139,10 +140,10 @@ export default function AddExamSubjectWizard({ onSuccess }: { onSuccess?: () => 
 
     // ------------------- Exams & Subjects Fetch -------------------
     useEffect(() => {
-        if (!watchCategory) return;
+        if (!watchEMCA_ID) return;
         (async () => {
             try {
-                const { data: ex } = await getExamsByCategoryandAcademicYear(30, Number(watchYear), Number(watchCategory));
+                const { data: ex } = await getExamsByCategoryandAcademicYear(30, Number(watchYear), Number(watchEMCA_ID));
                 const mappedExams = Array.isArray(ex)
                     ? ex.map((e: any) => ({
                           EME_Id: e.emE_Id ?? e.EME_Id,
@@ -159,6 +160,7 @@ export default function AddExamSubjectWizard({ onSuccess }: { onSuccess?: () => 
 
             try {
                 const { data: subj } = await getSubjectsByCategory(30, Number(watchCategory));
+                console.log(subj);
                 const formattedSubjects = Array.isArray(subj)
                     ? subj.map((s: any) => ({
                           ISMS_Id: s.ismS_Id ?? s.ISMS_Id,
@@ -207,7 +209,7 @@ export default function AddExamSubjectWizard({ onSuccess }: { onSuccess?: () => 
     // ------------------- Modal Handlers -------------------
     const onOpenSubExamModal = async (subject: any) => {
         try {
-            const list = await getSubExamList(1, subject.ISMS_Id);
+            const { data: list } = await getSubExamList(30, subject.ISMS_Id);
             setSubExamModalState({ open: true, subject: { ...subject, list } });
         } catch {
             setSubExamModalState({
@@ -225,7 +227,8 @@ export default function AddExamSubjectWizard({ onSuccess }: { onSuccess?: () => 
 
     const onOpenSubSubjectModal = async (subject: any) => {
         try {
-            const list = await getSubSubjectList(1, subject.ISMS_Id);
+            const { data: list } = await getSubSubjectList(30, subject.ISMS_Id);
+            console.log(list);
             setSubSubjectModalState({ open: true, subject: { ...subject, list } });
         } catch {
             setSubSubjectModalState({
@@ -312,7 +315,15 @@ export default function AddExamSubjectWizard({ onSuccess }: { onSuccess?: () => 
 
                             <div>
                                 <Label>Category *</Label>
-                                <Select value={watchCategory?.toString() ?? ''} onValueChange={(val) => setValue('EYC_Id', Number(val))}>
+                                <Select
+                                    value={watchCategory?.toString() ?? ''}
+                                    onValueChange={(val) => {
+                                        const selectedCategory = categories.find((c) => c.eyC_Id.toString() === val);
+                                        if (selectedCategory) {
+                                            setValue('EYC_Id', Number(selectedCategory.eyC_Id));
+                                            setValue('EMCA_Id', Number(selectedCategory.emcA_Id)); // 👈 extra field stored
+                                        }
+                                    }}>
                                     <SelectTrigger>
                                         <SelectValue placeholder='Select Category' />
                                     </SelectTrigger>
@@ -324,6 +335,7 @@ export default function AddExamSubjectWizard({ onSuccess }: { onSuccess?: () => 
                                         ))}
                                     </SelectContent>
                                 </Select>
+
                                 {errors.EYC_Id && <FormError>{errors.EYC_Id.message}</FormError>}
                             </div>
 

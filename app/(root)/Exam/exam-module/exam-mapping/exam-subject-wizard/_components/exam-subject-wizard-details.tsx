@@ -2,8 +2,8 @@
 
 import { Heading } from '@/components/layout/heading';
 import { Button } from '@/components/ui/button';
-import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/generic-data-table';
 import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
+import { GenericDataTable, useDataTableProps } from '@/components/ui/view-data-table/view-generic-data-table';
 import { getExamSubjectWizardDetails } from '@/server/exam/exam-module/exam-mapping/exam-subject-wizard';
 import type { IExamSubjectWizard, IExamSubjectWizardDetails } from '@/types/exam/exam-module/exam-mapping';
 import { useEffect, useState } from 'react';
@@ -33,8 +33,6 @@ function ExamSubjectWizardDetailsPageContent({
 }) {
     const [details, setDetails] = useState<IExamSubjectWizardDetails[]>([]);
     const [loading, setLoading] = useState(false);
-
-    const { openToggleForm, selectedRow } = useFormContext<IExamSubjectWizardDetails>();
 
     // -------------------------
     // Fetch Exam Subject Wizard Details
@@ -106,6 +104,7 @@ function ExamSubjectWizardDetailsPageContent({
                     noDataDescription='No subjects are mapped for this exam.'
                     errorTitle='Error Loading Details'
                     showViewOptions={false}
+                    columnPinning={{ right: ['actions'] }}
                 />
 
                 <FormSections />

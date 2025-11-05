@@ -1,7 +1,7 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
-import { CalendarYear } from '@/components/ui/calendar_year';
+import { DateField } from '@/components/ui/dateField';
 import { FormError, Label } from '@/components/ui/extension/field';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -15,7 +15,7 @@ import { getMasterGrade } from '@/server/exam/exam-module/masters/grade';
 import type { IMasterGrade } from '@/types/exam/exam-module/masters';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Trash2 } from 'lucide-react';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Controller, FormProvider, useFieldArray, useForm, useWatch } from 'react-hook-form';
 import { toast } from 'sonner';
 import type { z } from 'zod';
@@ -45,7 +45,7 @@ export default function AddExamTermAndExamMapping({ onSuccess }: { onSuccess?: (
     });
 
     const { refetchAll } = useExamTermAndExamMapping();
-    const { control, handleSubmit, reset, setValue, formState, getValues } = methods;
+    const { control, handleSubmit, reset, setValue, formState, watch } = methods;
     const { isSubmitting, errors } = formState;
 
     const [addedRows, setAddedRows] = useState<FormFields['exam_term']>([]);
@@ -242,48 +242,6 @@ export default function AddExamTermAndExamMapping({ onSuccess }: { onSuccess?: (
             toast.error(err?.message ?? 'Failed to save');
         }
     };
-
-    const DateField = ({ field, fieldState, label }: { field: any; fieldState: any; label: string }) => {
-        const [open, setOpen] = useState(false);
-        const ref = useRef<HTMLDivElement | null>(null);
-        useEffect(() => {
-            const handler = (e: MouseEvent) => {
-                if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
-            };
-            document.addEventListener('mousedown', handler);
-            return () => document.removeEventListener('mousedown', handler);
-        }, []);
-        return (
-            <div className='relative mt-4' ref={ref}>
-                <Label>
-                    {label} <span className='text-red-500'>*</span>
-                </Label>
-                <input
-                    readOnly
-                    value={field.value ?? ''}
-                    placeholder={`Select ${label}`}
-                    onClick={() => !topLocked && setOpen(true)}
-                    className={`w-full cursor-pointer rounded-md border px-3 py-2 text-sm shadow-sm ${
-                        topLocked ? 'cursor-not-allowed bg-gray-50' : ''
-                    }`}
-                />
-                {open && (
-                    <div className='absolute z-50 mt-2'>
-                        <div className='rounded-md bg-white shadow-lg'>
-                            <CalendarYear
-                                selected={field.value ? new Date(field.value) : undefined}
-                                onDayClick={(day) => {
-                                    field.onChange(day.toISOString().split('T')[0]);
-                                    setOpen(false);
-                                }}
-                            />
-                        </div>
-                    </div>
-                )}
-                {fieldState.error && <FormError>{fieldState.error.message}</FormError>}
-            </div>
-        );
-    };
     function handleReset() {
         // Reset all form fields to initial state
         reset({
@@ -474,7 +432,13 @@ export default function AddExamTermAndExamMapping({ onSuccess }: { onSuccess?: (
                                     control={control}
                                     name='ecT_TermStartDate'
                                     render={({ field, fieldState }) => (
-                                        <DateField field={field} fieldState={fieldState} label='Term Start Date' />
+                                        <DateField
+                                            field={field}
+                                            fieldState={fieldState}
+                                            label='Term Start Date'
+                                            placeholder='Select Date'
+                                            fromDate={new Date()}
+                                        />
                                     )}
                                 />
 
@@ -482,14 +446,26 @@ export default function AddExamTermAndExamMapping({ onSuccess }: { onSuccess?: (
                                     control={control}
                                     name='ecT_TermEndDate'
                                     render={({ field, fieldState }) => (
-                                        <DateField field={field} fieldState={fieldState} label='Term End Date' />
+                                        <DateField
+                                            field={field}
+                                            fieldState={fieldState}
+                                            label='Term End Date'
+                                            placeholder='Select Date'
+                                            fromDate={new Date(watch('ecT_TermStartDate'))}
+                                        />
                                     )}
                                 />
                                 <Controller
                                     control={control}
                                     name='ecT_MarksPublishDate'
                                     render={({ field, fieldState }) => (
-                                        <DateField field={field} fieldState={fieldState} label='Term Publish Date' />
+                                        <DateField
+                                            field={field}
+                                            fieldState={fieldState}
+                                            label='Term Publish Date'
+                                            placeholder='Select Date'
+                                            fromDate={new Date(watch('ecT_TermEndDate'))}
+                                        />
                                     )}
                                 />
                             </div>

@@ -3,8 +3,8 @@
 import ToggleMasterCategoryForm from '@/app/(root)/admission/preadmission/masters/category/_components/toggle-form';
 import { Heading } from '@/components/layout/heading';
 import { Button } from '@/components/ui/button';
-import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/generic-data-table';
 import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
+import { GenericDataTable, useDataTableProps } from '@/components/ui/view-data-table/view-generic-data-table';
 import { getYearlyCategorySubjectMappingDetails } from '@/server/exam/exam-module/exam-mapping/yearly-category-subject-mapping';
 import type { IMasterCategoryList } from '@/types/admission/preadmission/masters';
 import type { IYearlyCategorySubjectMapping, IYearlyCategorySubjectMappingViewDetails } from '@/types/exam/exam-module/exam-mapping';

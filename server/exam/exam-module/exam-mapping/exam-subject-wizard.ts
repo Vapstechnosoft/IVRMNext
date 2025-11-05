@@ -63,7 +63,7 @@ export async function deleteExamSubjectWizard(orgId: number, ecysE_Id: number) {
 // Get Sub Exam List by Subject
 // --------------------------------------------
 export async function getSubExamList(orgId: number, ismS_Id: number) {
-    const url = `exam_subject_wizard/sub_exam_list/${orgId}/${ismS_Id}`;
+    const url = `master_sub_exam/${orgId}`;
     return await api.get<any>('exam', url);
 }
 
@@ -71,7 +71,7 @@ export async function getSubExamList(orgId: number, ismS_Id: number) {
 // Get Sub Subject List by Subject
 // --------------------------------------------
 export async function getSubSubjectList(orgId: number, ismS_Id: number) {
-    const url = `exam_subject_wizard/sub_subject_list/${orgId}/${ismS_Id}`;
+    const url = `master_sub_subject/${orgId}`;
     return await api.get<any>('exam', url);
 }
 

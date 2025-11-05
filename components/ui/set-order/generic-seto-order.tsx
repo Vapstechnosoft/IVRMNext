@@ -26,8 +26,8 @@ interface MasterOrderViewProps<T extends { id: number }> {
     onSave: (updatedData: T[]) => void;
     tableHeight?: string;
     title: string;
-    isLoading?: boolean; // for page-level loader
-    isSaving?: boolean; // for button-level loader
+    isLoading?: boolean;
+    isSaving?: boolean;
 }
 
 export function MasterViewDetails<T extends { id: number }>({
@@ -64,17 +64,8 @@ export function MasterViewDetails<T extends { id: number }>({
 
     const renderSkeletonTable = () => (
         <div className='w-full rounded-md'>
-            <ScrollArea className={cn('h-[calc(40dvh-110px)] rounded-md border md:h-[calc(45dvh-110px)]')}>
+            <ScrollArea className='h-[calc(40dvh-110px)] rounded-md border md:h-[calc(45dvh-110px)]'>
                 <Table>
-                    {/* <TableHeader>
-                        <TableRow className='hover:bg-transparent'>
-                            {columns.map((_, i) => (
-                                <TableHead key={i}>
-                                    <Skeleton className='h-8 w-full' />
-                                </TableHead>
-                            ))}
-                        </TableRow>
-                    </TableHeader> */}
                     <TableBody>
                         {Array.from({ length: 6 }).map((_, i) => (
                             <TableRow key={i} className='hover:bg-transparent'>
@@ -94,13 +85,15 @@ export function MasterViewDetails<T extends { id: number }>({
 
     return (
         <Dialog open={isOpen} onOpenChange={onClose}>
-            <DialogContent className='w-full max-w-6xl'>
-                <DialogHeader>
+            <DialogContent className='flex max-h-[90vh] w-full max-w-6xl flex-col'>
+                {/* Fixed Header */}
+                <DialogHeader className='sticky top-0 z-10 border-b bg-white'>
                     <DialogTitle>{title}</DialogTitle>
                     <DialogDescription>Drag and drop to reorder</DialogDescription>
                 </DialogHeader>
 
-                <div className='overflow-hidden'>
+                {/* Scrollable Table Section */}
+                <ScrollArea className='max-h-[70vh] flex-1 overflow-y-auto rounded-md border'>
                     {isLoading ? (
                         <div className='flex flex-col items-center justify-center space-y-3 py-12'>
                             <Loader2 className='h-8 w-8 animate-spin text-muted-foreground' />
@@ -112,7 +105,7 @@ export function MasterViewDetails<T extends { id: number }>({
                             <p className='text-muted-foreground text-sm'>No records found.</p>
                         </div>
                     ) : (
-                        <ScrollArea className={cn('rounded-md border', tableHeight)}>
+                        <div className={cn('rounded-md')}>
                             <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
                                 <SortableContext items={items.map((i) => i.id)} strategy={verticalListSortingStrategy}>
                                     <table className='w-full table-auto border-collapse border border-gray-200'>
@@ -133,16 +126,17 @@ export function MasterViewDetails<T extends { id: number }>({
                                     </table>
                                 </SortableContext>
                             </DndContext>
-                            <ScrollBar orientation='horizontal' />
-                        </ScrollArea>
+                        </div>
                     )}
-                </div>
+                    <ScrollBar orientation='horizontal' />
+                </ScrollArea>
 
-                <DialogFooter className='mt-4 flex w-fit justify-end gap-2'>
-                    <Button variant='outline' onClick={onClose} disabled={isSaving}>
+                {/* Fixed Footer */}
+                <DialogFooter className='mt-4 flex w-fit w-full justify-end gap-2 border-t bg-white py-3'>
+                    <Button className='w-fit' variant='outline' onClick={onClose} disabled={isSaving}>
                         Cancel
                     </Button>
-                    <Button onClick={handleSave} disabled={isSaving || isLoading}>
+                    <Button className='w-fit' onClick={handleSave} disabled={isSaving || isLoading}>
                         {isSaving ? (
                             <>
                                 <Loader2 className='mr-2 h-4 w-4 animate-spin' /> Saving...

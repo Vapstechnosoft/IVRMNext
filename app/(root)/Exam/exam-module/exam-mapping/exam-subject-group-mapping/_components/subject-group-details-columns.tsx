@@ -15,49 +15,66 @@ export const ExamSubjectGroupingDetailsColumns: ColumnDef<IExamSubjectGroupingDe
             const pageIndex = table.getState().pagination.pageIndex;
             const pageSize = table.getState().pagination.pageSize;
             return <div>{pageIndex * pageSize + row.index + 1}</div>;
-        }
+        },
+        enableSorting: false,
+        enableHiding: true
     },
     {
         accessorKey: 'emcA_CategoryName',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Exam Category' />,
-        cell: ({ row }) => <div>{row.getValue('emcA_CategoryName')}</div>
+        cell: ({ row }) => <div>{row.getValue('emcA_CategoryName')}</div>,
+        enableHiding: true,
+        enableSorting: false
     },
     {
         accessorKey: 'esG_SubjectGroupName',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Group Name' />,
-        cell: ({ row }) => <div>{row.getValue('esG_SubjectGroupName')}</div>
+        cell: ({ row }) => <div>{row.getValue('esG_SubjectGroupName')}</div>,
+        enableHiding: true,
+        enableSorting: false
     },
     {
         accessorKey: 'emE_ExamName',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Exam Name' />,
-        cell: ({ row }) => <div>{row.getValue('emE_ExamName')}</div>
+        cell: ({ row }) => <div>{row.getValue('emE_ExamName')}</div>,
+        enableHiding: true,
+        enableSorting: false
     },
     {
         accessorKey: 'ismS_SubjectName',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Subject Name' />,
-        cell: ({ row }) => <div>{row.getValue('ismS_SubjectName')}</div>
+        cell: ({ row }) => <div>{row.getValue('ismS_SubjectName')}</div>,
+        enableHiding: true,
+        enableSorting: false
     },
     {
         accessorKey: 'esG_GroupMinMarks',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Min Marks' />,
-        cell: ({ row }) => <div>{row.getValue('esG_GroupMinMarks')}</div>
+        cell: ({ row }) => <div>{row.getValue('esG_GroupMinMarks')}</div>,
+        enableHiding: true,
+        enableSorting: false
     },
     {
         accessorKey: 'esG_GroupMaxMarks',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Max Marks' />,
-        cell: ({ row }) => <div>{row.getValue('esG_GroupMaxMarks')}</div>
+        cell: ({ row }) => <div>{row.getValue('esG_GroupMaxMarks')}</div>,
+        enableHiding: true,
+        enableSorting: false
     },
     {
         accessorKey: 'esG_CompulsoryFlag',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Compulsory' />,
-        cell: ({ row }) => <div>{row.getValue('esG_CompulsoryFlag') === 'Y' ? 'Yes' : 'No'}</div>
+        cell: ({ row }) => <div>{row.getValue('esG_CompulsoryFlag') === 'Y' ? 'Yes' : 'No'}</div>,
+        enableHiding: true,
+        enableSorting: false
     },
     {
         id: 'actions',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Active Status' className='text-center' />,
         accessorFn: (row) => row,
-        enableSorting: false,
-        cell: ({ row }) => <ActionButtonsCell rowData={row.original} />
+        cell: ({ row }) => <ActionButtonsCell rowData={row.original} />,
+        enableHiding: true,
+        enableSorting: false
     }
 ];
 

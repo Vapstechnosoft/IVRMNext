@@ -81,16 +81,6 @@ export const ExamSubjectGroupMappingColumns: ColumnDef<IExamSubjectGroupMapping>
         cell: ({ row }) => <div>{row.getValue('esG_GroupMaxMarks')}</div>
     },
 
-    // Promotion Type
-    {
-        accessorKey: 'esG_ExamPromotionFlag',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Promotion Type' />,
-        cell: ({ row }) => {
-            const value = row.getValue('esG_ExamPromotionFlag') as string;
-            return <div>{value === 'IE' ? 'Individual Exam' : 'Promotion Exam'}</div>;
-        }
-    },
-
     // Compulsory Flag
     {
         accessorKey: 'esG_CompulsoryFlag',
