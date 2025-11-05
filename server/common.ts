@@ -225,6 +225,22 @@ export async function getUserAccessibleModules() {
                                             url: '/admission/preadmission/configuration/master-configuration',
                                             title: 'Master Configuration',
                                             description: 'Master Configuration'
+                                        },
+                                        {
+                                            id: 3,
+                                            name: 'Registration',
+                                            icon: 'Settings',
+                                            url: '/admission/preadmission/configuration/registration',
+                                            title: 'Master Registration',
+                                            description: 'Master Registration'
+                                        },
+                                        {
+                                            id: 4,
+                                            name: 'PreRegistration',
+                                            icon: 'Settings',
+                                            url: '/admission/preadmission/configuration/preadmissionregistration',
+                                            title: 'Master PreRegistration',
+                                            description: 'Master PreRegistration'
                                         }
                                     ]
                                 }
