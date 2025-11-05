@@ -77,7 +77,7 @@ export default function AddMasterReligionCasteCategoryForm({ onSuccess, classNam
     };
 
     const handleReset = () => {
-        reset();
+        OnReset();
     };
 
     const handleClassSelection = (selectedValues: string[]) => {
@@ -102,10 +102,11 @@ export default function AddMasterReligionCasteCategoryForm({ onSuccess, classNam
                                 control={control}
                                 render={({ field }) => (
                                     <Select
+                                        key={field.value || 'empty'}
                                         onValueChange={(value) => {
                                             field.onChange(Number(value));
                                         }}
-                                        value={field.value?.toString() || undefined}>
+                                        value={field.value?.toString() || ''}>
                                         <SelectTrigger className='w-full'>
                                             <SelectValue placeholder='Select a Religion' />
                                         </SelectTrigger>
