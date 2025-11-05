@@ -212,7 +212,7 @@ export default function PaymentFailurePage() {
                                 <Button
                                     type='button'
                                     onClick={handleGoBack}
-                                    className='flex-1 rounded-lg border border-input bg-background px-6 py-3 font-medium transition-colors hover:bg-accent'>
+                                    className='flex-1 rounded-lg border border-input px-6 py-3 font-medium transition-colors hover:bg-accent'>
                                     Go Back
                                 </Button>
                                 <Button

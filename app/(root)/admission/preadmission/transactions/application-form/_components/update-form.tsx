@@ -735,45 +735,50 @@ export default function UpdateStudentApplicationForm({
                         {/* Mobile: Horizontal Stepper */}
                         <div className='block overflow-x-auto lg:hidden'>
                             <div className='flex min-w-max items-center justify-between px-4'>
-                                {steps.map((step, index) => (
-                                    <div key={step.id} className='flex flex-1 items-center'>
-                                        <div className='flex flex-col items-center'>
-                                            <Button
-                                                type='button'
-                                                // onClick={() => goToStep(step.id)}
-                                                disabled={isSubmitting}
-                                                className={cn(
-                                                    'flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full border-2 font-semibold transition-all duration-300 hover:scale-110 disabled:cursor-not-allowed disabled:opacity-50',
-                                                    currentStep === step.id
-                                                        ? 'border-blue-600 bg-blue-600 text-white shadow-blue-200 shadow-lg'
-                                                        : currentStep > step.id
-                                                          ? 'border-green-500 bg-green-500 text-white'
-                                                          : 'border-gray-300 bg-white text-gray-400'
-                                                )}>
-                                                {currentStep > step.id ? (
-                                                    <Check className='h-5 w-5' />
-                                                ) : (
-                                                    <span className='text-sm'>{step.id}</span>
-                                                )}
-                                            </Button>
-                                            <p
-                                                className={cn(
-                                                    'mt-1 text-nowrap text-center font-medium text-xs transition-colors',
-                                                    currentStep === step.id ? 'text-blue-600' : 'text-gray-500'
-                                                )}>
-                                                {step.name}
-                                            </p>
+                                {steps.map((step, index) => {
+                                    const IconComponent = getIconByName(step.icon);
+                                    return (
+                                        <div key={step.id} className='flex flex-1 items-center'>
+                                            <div className='flex flex-col items-center'>
+                                                <Button
+                                                    type='button'
+                                                    // onClick={() => goToStep(step.id)}
+                                                    disabled={isSubmitting}
+                                                    className={cn(
+                                                        'flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full border-2 font-semibold transition-all duration-300 hover:scale-110 disabled:cursor-not-allowed disabled:opacity-50',
+                                                        currentStep === step.id
+                                                            ? 'border-blue-600 bg-blue-600 text-white shadow-blue-200 shadow-lg'
+                                                            : currentStep > step.id
+                                                              ? 'border-green-500 bg-green-500 text-white'
+                                                              : 'border-gray-300 bg-white text-gray-400'
+                                                    )}>
+                                                    {currentStep > step.id ? (
+                                                        <Check className='h-5 w-5' />
+                                                    ) : (
+                                                        <span className='text-lg'>
+                                                            {IconComponent && <IconComponent className='h-5 w-5' />}
+                                                        </span>
+                                                    )}
+                                                </Button>
+                                                <p
+                                                    className={cn(
+                                                        'mt-1 text-nowrap text-center font-medium text-xs transition-colors',
+                                                        currentStep === step.id ? 'text-blue-600' : 'text-gray-500'
+                                                    )}>
+                                                    {step.name}
+                                                </p>
+                                            </div>
+                                            {index < steps.length - 1 && (
+                                                <div
+                                                    className={cn(
+                                                        'mx-2 h-0.5 flex-1 transition-all duration-300',
+                                                        currentStep > step.id ? 'bg-green-500' : 'bg-gray-300'
+                                                    )}
+                                                />
+                                            )}
                                         </div>
-                                        {index < steps.length - 1 && (
-                                            <div
-                                                className={cn(
-                                                    'mx-2 h-0.5 flex-1 transition-all duration-300',
-                                                    currentStep > step.id ? 'bg-green-500' : 'bg-gray-300'
-                                                )}
-                                            />
-                                        )}
-                                    </div>
-                                ))}
+                                    );
+                                })}
                             </div>
                         </div>
 

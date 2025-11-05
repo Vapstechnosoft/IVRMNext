@@ -21,7 +21,7 @@ interface ToggleMasterDocumentFormProps {
 
 export default function ToggleMasterDocumentForm({ rowData, onClose }: ToggleMasterDocumentFormProps) {
     const { refetchAll } = useMasterDocument();
-    const isActive = rowData.amsmD_FLAG;
+    const isActive = rowData.amsmD_ActiveFlag;
 
     const {
         register,

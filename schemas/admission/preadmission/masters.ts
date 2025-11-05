@@ -84,7 +84,7 @@ export const masterSectionSchema = {
             .min(1, { message: 'Minimum Capacity should be 1' })
             .max(100, { message: 'Maximum Capacity is 100' })
             .int({ message: 'Max Capacity is required' }),
-        asmc_order: z.number().int({ message: 'Section Order is required' })
+        asmc_order: z.number().min(1, { message: 'Minimum Order should be 1' }).int({ message: 'Section Order is required' })
     }),
     delete: z.object({
         asmS_Id: deleteIdSchema('asmS_Id')
