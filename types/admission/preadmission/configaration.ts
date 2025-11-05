@@ -31,7 +31,7 @@ export interface IMasterSetOrderList {
     asmaY_Year: string;
     asmaY_Order: number;
 }
-export interface IMasterRegistrationList {
+export interface IMasterTransactionNumberingList {
     imN_Id: number;
     mI_Id: number;
     imN_AutoManualFlag: string;

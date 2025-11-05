@@ -4,15 +4,15 @@ import { Button } from '@/components/ui/button';
 import { FormError, Label } from '@/components/ui/extension/field';
 import { Input } from '@/components/ui/input';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { numberingSchema } from '@/schemas/admission/preadmission/academic-year';
-import { addOrUpdateRegistration } from '@/server/admission/preadmission/configuration/registration';
+import { transactionnumberingSchema } from '@/schemas/admission/preadmission/academic-year';
+import { addOrUpdateTransactionNumbering } from '@/server/admission/preadmission/configuration/transaction_numbering';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Save } from 'lucide-react';
 import { Controller, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import type { z } from 'zod';
 
-type FormFields = z.infer<typeof numberingSchema>;
+type FormFields = z.infer<typeof transactionnumberingSchema>;
 
 interface AddRegistrationNumberingFormProps {
     onSuccess?: () => void;
@@ -27,7 +27,7 @@ export default function AddRegistrationNumberingForm({ onSuccess, className = ''
         watch,
         formState: { errors, isSubmitting }
     } = useForm<FormFields>({
-        resolver: zodResolver(numberingSchema),
+        resolver: zodResolver(transactionnumberingSchema),
         defaultValues: {
             prefix_type: 'academic',
             suffix_type: 'academic',
@@ -67,9 +67,7 @@ export default function AddRegistrationNumberingForm({ onSuccess, className = ''
                 imN_SuffixCalYearCode: data.suffix_type === 'academic'
             };
 
-            console.log('Submitted Payload:', payload);
-
-            await addOrUpdateRegistration(payload);
+            await addOrUpdateTransactionNumbering(payload);
             toast.success('Numbering configuration saved successfully!');
             reset();
             onSuccess?.();

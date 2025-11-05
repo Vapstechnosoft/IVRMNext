@@ -2,11 +2,11 @@
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
 import { ActionButtons } from '@/components/ui/form/action-buttons';
 import { useFormContext } from '@/components/ui/form/form-provider';
-import type { IMasterRegistrationList } from '@/types/admission/preadmission/configaration';
+import type { IMasterTransactionNumberingList } from '@/types/admission/preadmission/configaration';
 import type { ColumnDef } from '@tanstack/react-table';
 import { useCallback } from 'react';
 
-export const masterRegistrationColumns: ColumnDef<IMasterRegistrationList>[] = [
+export const registrationNumberingColumns: ColumnDef<IMasterTransactionNumberingList>[] = [
     {
         accessorKey: 'imN_Id',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Sl.No' />,
@@ -74,11 +74,11 @@ export const masterRegistrationColumns: ColumnDef<IMasterRegistrationList>[] = [
     }
 ];
 
-function ActionButtonsCell({ rowData }: { rowData: IMasterRegistrationList }) {
-    const { openEditForm } = useFormContext<IMasterRegistrationList>();
+function ActionButtonsCell({ rowData }: { rowData: IMasterTransactionNumberingList }) {
+    const { openEditForm } = useFormContext<IMasterTransactionNumberingList>();
 
     const handleEdit = useCallback(
-        (data: IMasterRegistrationList) => {
+        (data: IMasterTransactionNumberingList) => {
             openEditForm(data);
         },
         [openEditForm]
