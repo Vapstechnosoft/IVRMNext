@@ -60,7 +60,7 @@ export const masterClassColumns: ColumnDef<IMasterDocumentList>[] = [
     },
     {
         id: 'actions',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Actions' className='text-center' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Actions' className='text-start' />,
         accessorFn: (row: any) => row,
         enableSorting: false,
         cell: ({ row }) => <ActionButtonsCell rowData={row.original} />
@@ -68,7 +68,7 @@ export const masterClassColumns: ColumnDef<IMasterDocumentList>[] = [
 ];
 
 function ActionButtonsCell({ rowData }: { rowData: IMasterDocumentList }) {
-    const { openEditForm, openToggleForm } = useFormContext<IMasterDocumentList>();
+    const { openEditForm, openToggleForm, openDeleteForm } = useFormContext<IMasterDocumentList>();
 
     const handleEdit = useCallback(
         (data: IMasterDocumentList) => {
@@ -84,12 +84,20 @@ function ActionButtonsCell({ rowData }: { rowData: IMasterDocumentList }) {
         [openToggleForm]
     );
 
+    const handleDelete = useCallback(
+        (data: IMasterDocumentList) => {
+            openDeleteForm(data);
+        },
+        [openDeleteForm]
+    );
+
     return (
         <ActionButtons
             rowData={rowData}
-            buttons={{ edit: true, toggle: true, delete: false }}
+            buttons={{ edit: true, toggle: true, delete: true }}
             onEdit={handleEdit}
             onToggle={handleToggle}
+            onDelete={handleDelete}
             toggleConditionKey='amsmD_ActiveFlag'
         />
     );

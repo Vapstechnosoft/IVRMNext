@@ -6,12 +6,13 @@ import { FormError, Label } from '@/components/ui/extension/field';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useExamTermAndExamMapping } from '@/hooks/exam/exammodule/exam-mapping';
+import { useAcademicYearDropdown } from '@/hooks/fees/useMasters';
 import { ExamTermAndExamMappingSchema } from '@/schemas/exam/exam-module/exam-mapping';
 import { getExamGroupsByCategory } from '@/server/exam/exam-module/exam-mapping/exam-subject-group-mapping';
 import { addOrUpdateExamTermAndExamMapping } from '@/server/exam/exam-module/exam-mapping/examTerm-and-exam-mappiong';
 import { getCategoryDropDownByAcademicYearlist } from '@/server/exam/exam-module/exam-mapping/yearly-category-dates-mapping';
-import { getAcademicYears } from '@/server/exam/exam-module/masters/category-class-mapping';
 import { getMasterGrade } from '@/server/exam/exam-module/masters/grade';
+import type { IAcademicYearDropDown } from '@/types/admission/preadmission/masters';
 import type { IMasterGrade } from '@/types/exam/exam-module/masters';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Trash2 } from 'lucide-react';
@@ -72,20 +73,25 @@ export default function AddExamTermAndExamMapping({ onSuccess }: { onSuccess?: (
     const [entryRoundOff, setEntryRoundOff] = useState<boolean>(false);
     const [entryConversion, setEntryConversion] = useState<boolean>(false);
     const [entryNotApplicable, setEntryNotApplicable] = useState<boolean>(false);
-
+    const { data: academicData, isLoading: loadingAcademic, error: academicError } = useAcademicYearDropdown();
     const topLocked = addedRows.length > 0;
 
     useEffect(() => {
-        async function fetchYears() {
-            try {
-                const years = await getAcademicYears();
-                setAcademicYears(Array.isArray(years) ? years : []);
-            } catch (err: any) {
-                toast.error(err?.message ?? 'Failed to load academic years');
-            }
+        // Academic Years
+        if (academicError) {
+            toast.error(academicError.message || 'Error fetching academic years');
+            setAcademicYears([]);
+        } else if (academicData?.data && Array.isArray(academicData.data)) {
+            const formattedYears: IAcademicYearDropDown[] = academicData.data.map((item: any) => ({
+                asmaY_Id: item.asmaY_Id?.toString() ?? '',
+                asmaY_Year: item.asmaY_Year ?? '',
+                asmaY_Order: item.asmaY_Order ?? 0
+            }));
+            setAcademicYears(formattedYears);
+        } else {
+            setAcademicYears([]);
         }
-        fetchYears();
-    }, []);
+    }, [academicData, academicError]);
 
     useEffect(() => {
         if (!asmaY_Id || topLocked) return;
@@ -204,21 +210,21 @@ export default function AddExamTermAndExamMapping({ onSuccess }: { onSuccess?: (
         try {
             // Build API payload matching the required structure
             const payload = {
-                ECT_Id: 0,
-                MI_Id: orgId,
-                ECT_TermName: data.ecT_TermName,
-                ASMAY_Id: Number(data.asmaY_Id),
-                EMCA_Id: Number(data.emcA_Id),
-                EMGR_Id: Number(data.emgR_Id),
-                ECT_Marks: Number(data.ecT_Marks),
+                ECT_Id: Number(data.ecT_Id ?? 0),
+                MI_Id: Number(data.mI_Id ?? 0),
+                ASMAY_Id: Number(data.asmaY_Id ?? 0),
+                EMCA_Id: Number(data.emcA_Id ?? 0),
+                EMGR_Id: Number(data.emcA_Id ?? 0),
+                ECT_Marks: Number(data.ecT_Marks ?? 0),
+                ECT_MinMarks: Number(data.ecT_MinMarks ?? 0),
                 ECT_TermStartDate: data.ecT_TermStartDate,
                 ECT_TermEndDate: data.ecT_TermEndDate,
-                ECT_MinMarks: Number(data.ecT_MinMarks),
+                ECT_TermName: data.ecT_TermName,
                 ECT_PublishDate: data.ecT_MarksPublishDate,
                 exam_term: addedRows.map((r) => ({
                     ECTEX_Id: 0,
-                    ECT_Id: 0,
-                    EME_Id: r.emE_Id,
+                    ECT_Id: Number(data.ecT_Id ?? 0),
+                    EME_Id: Number(r.emE_Id ?? 0),
                     ECTEX_RoundOffReqFlg: r.ecteX_RoundOffReqFlg,
                     ECTEX_ConversionReqFlg: r.ecteX_ConversionReqFlg,
                     ECTEX_MarksPercentValue: Number(r.ecteX_MarksPercentValue),
@@ -226,7 +232,7 @@ export default function AddExamTermAndExamMapping({ onSuccess }: { onSuccess?: (
                     ECTEX_NotApplToTotalFlg: r.ecteX_NotApplicableToTotal
                 }))
             };
-
+            console.log(payload);
             const res = await addOrUpdateExamTermAndExamMapping(payload);
             if (res?.success) {
                 toast.success('Exam term mapping saved successfully');

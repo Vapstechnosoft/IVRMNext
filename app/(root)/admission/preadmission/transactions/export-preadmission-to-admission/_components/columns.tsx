@@ -36,7 +36,7 @@ export const exportPreadmissionToAdmissionColumns: ColumnDef<IPreadmissionApplic
     },
     {
         accessorKey: 'pasR_RegistrationNo',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Registration No' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Application No' />,
         cell: ({ row }) => <div>{row.getValue('pasR_RegistrationNo') ?? 'N.A'}</div>,
         enableSorting: true,
         enableHiding: true,
@@ -73,5 +73,12 @@ export const exportPreadmissionToAdmissionColumns: ColumnDef<IPreadmissionApplic
         meta: {
             title: 'Applied Class'
         }
+    },
+    {
+        accessorKey: 'applied_by',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='User Name' />,
+        cell: ({ row }) => <div>{row.getValue('applied_by')}</div>,
+        enableSorting: false,
+        enableHiding: true
     }
 ];

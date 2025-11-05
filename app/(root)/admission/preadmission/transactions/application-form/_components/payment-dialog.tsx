@@ -6,7 +6,7 @@ import { AdaptiveBody, AdaptiveDialog } from '@/components/ui/extension/adaptive
 import { useStudentApplicationList } from '@/hooks/admission/preadmission/useTransactions';
 import { applicationFormInitiatePayment } from '@/server/admission/preadmission/transactions/application_form';
 import type { IInitiatePaymentResponse, IPreadmissionStudentApplicationList } from '@/types/admission/preadmission/transactions';
-import { CreditCard, Hash, IndianRupee, Loader2, Mail, Phone, ReceiptIndianRupee, User } from 'lucide-react';
+import { ArrowUpRight, CreditCard, Hash, IndianRupee, Loader2, Mail, Phone, ReceiptIndianRupee, User } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { toast } from 'sonner';
 
@@ -86,6 +86,7 @@ export default function PaymentDialog({ cell }: { cell: any }) {
             <div className='flex gap-2' onClick={() => handleEdit(cell.getValue())}>
                 <Badge className='cursor-pointer bg-green-500 p-3 font-extrabold text-black hover:bg-green-600'>
                     <ReceiptIndianRupee className='h-4 w-4' /> Pay Now
+                    <ArrowUpRight className='size-4 transition-all ease-linear group-hover:translate-x-2' />
                 </Badge>
             </div>
 
