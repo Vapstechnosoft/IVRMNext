@@ -74,7 +74,7 @@ export default function UpdatePaymentGatewayDetailsForm({ onSuccess, selectedRow
                 fpgD_Image: selectedRow.fpgD_Image || '',
                 fpgD_URL: selectedRow.fpgD_URL || '',
                 fpgD_AccNo: selectedRow.fpgD_AccNo || '',
-                fpgD_MerchantKey: selectedRow.fpgD_MerchantKey || '',
+                fpgD_MerchantKey: selectedRow.fpgD_AuthorisationKey || '',
                 impG_Id: selectedRow.impG_Id || 0,
                 fpgD_MobileActiveFlag: selectedRow.fpgD_MobileActiveFlag ?? false,
                 submerchantIds: getSubmerchantIds()
@@ -92,12 +92,17 @@ export default function UpdatePaymentGatewayDetailsForm({ onSuccess, selectedRow
             fpgD_Image: data.fpgD_Image,
             fpgD_URL: data.fpgD_URL,
             fpgD_AccNo: data.fpgD_AccNo,
-            submerchantIds:
-                data.submerchantIds?.filter((item) => item.id.trim() !== '').map((item) => ({ fpgD_SubMerchantId: item.id })) || [],
+            // submerchantIds:
+            //     data.submerchantIds?.filter((item) => item.id.trim() !== '').map((item) => ({ fpgD_SubMerchantId: item.id })) || [],
+
+            submerchantIds: data.submerchantIds?.filter((item) => item.id.trim() !== '').map((item) => item.id) || [],
+
             fpgD_MerchantKey: data.fpgD_MerchantKey,
             impG_Id: data.impG_Id,
             fpgD_MobileActiveFlag: data.fpgD_MobileActiveFlag
         };
+
+        console.log('Payload to be sent:', JSON.stringify(payload));
 
         try {
             const response = await addOrUpdatepaymentgatewaydetails(payload);
@@ -170,8 +175,11 @@ export default function UpdatePaymentGatewayDetailsForm({ onSuccess, selectedRow
                         name='impG_Id'
                         rules={{ required: 'Gateway Name is required' }}
                         control={control}
+                        defaultValue={selectedRow?.impG_Id ?? 0}
                         render={({ field }) => (
-                            <Select onValueChange={(value) => field.onChange(Number(value))} value={field.value?.toString() || undefined}>
+                            <Select
+                                onValueChange={(value) => field.onChange(Number(value))}
+                                value={field.value ? field.value.toString() : ''}>
                                 <SelectTrigger>
                                     <SelectValue placeholder='Select Gateway' />
                                 </SelectTrigger>
@@ -262,7 +270,7 @@ export default function UpdatePaymentGatewayDetailsForm({ onSuccess, selectedRow
                 </Button>
                 <Button type='submit' disabled={isSubmitting} isLoading={isSubmitting} loadingText='Saving...'>
                     <Save className='mr-2 h-4 w-4' />
-                    Update Payment Gateway
+                    Update
                 </Button>
             </div>
         </form>

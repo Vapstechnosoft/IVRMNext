@@ -11,8 +11,8 @@ import { MultiSelect } from '@/components/ui/multi-select';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { useAcademicYearDropdown } from '@/hooks/admission/preadmission/useMasters';
 import {
+    useActivePreadmissionDetails,
     useCasteDropdown,
     useCountryDropdown,
     useGenderDropdown,
@@ -80,13 +80,7 @@ const steps = [
     }
 ];
 
-export default function UpdateStudentApplicationForm({
-    id,
-    rowData,
-    onSuccess,
-    onClose,
-    className = ''
-}: UpdateStudentApplicationFormProps) {
+export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, className = '' }: UpdateStudentApplicationFormProps) {
     const [currentStep, setCurrentStep] = useState(1);
 
     const {
@@ -105,6 +99,8 @@ export default function UpdateStudentApplicationForm({
             pasR_UndertakingFlag: 0
         }
     });
+
+    console.log('errors', errors);
 
     // Initialize form with row data if provided
     useEffect(() => {
@@ -223,13 +219,10 @@ export default function UpdateStudentApplicationForm({
 
     const [documentErrors, setDocumentErrors] = useState<Record<number, string>>({});
 
+    const { data: activePreadmission } = useActivePreadmissionDetails();
+
     const { data: religion, isLoading: religionLoading, error: religionError, refetchAll: refetchReligion } = useReligionDropdown();
-    const {
-        data: academicYearOptions,
-        isLoading: academicYearLoading,
-        error: academicYearError,
-        refetchAll: refetchAcademic
-    } = useAcademicYearDropdown();
+
     const conConuntryId = watch('pasR_ConCountry');
     const perConuntryId = watch('pasR_PerCountry');
     const { data: caste, isLoading: casteLoading, error: casteError, refetchAll: refetchCaste } = useCasteDropdown(watch('religion_Id'));
@@ -272,7 +265,6 @@ export default function UpdateStudentApplicationForm({
         refetchConState();
         refetchPerState();
         refetchPreadmissionDocuments();
-        refetchAcademic();
     };
 
     const nextStep = async () => {
@@ -440,7 +432,6 @@ export default function UpdateStudentApplicationForm({
             };
 
             // Submit the payload
-
             const response = await addStudentApplicationForm(payload);
 
             if (response && (response.success === true || response.status === 200)) {
@@ -735,45 +726,50 @@ export default function UpdateStudentApplicationForm({
                         {/* Mobile: Horizontal Stepper */}
                         <div className='block overflow-x-auto lg:hidden'>
                             <div className='flex min-w-max items-center justify-between px-4'>
-                                {steps.map((step, index) => (
-                                    <div key={step.id} className='flex flex-1 items-center'>
-                                        <div className='flex flex-col items-center'>
-                                            <Button
-                                                type='button'
-                                                // onClick={() => goToStep(step.id)}
-                                                disabled={isSubmitting}
-                                                className={cn(
-                                                    'flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full border-2 font-semibold transition-all duration-300 hover:scale-110 disabled:cursor-not-allowed disabled:opacity-50',
-                                                    currentStep === step.id
-                                                        ? 'border-blue-600 bg-blue-600 text-white shadow-blue-200 shadow-lg'
-                                                        : currentStep > step.id
-                                                          ? 'border-green-500 bg-green-500 text-white'
-                                                          : 'border-gray-300 bg-white text-gray-400'
-                                                )}>
-                                                {currentStep > step.id ? (
-                                                    <Check className='h-5 w-5' />
-                                                ) : (
-                                                    <span className='text-sm'>{step.id}</span>
-                                                )}
-                                            </Button>
-                                            <p
-                                                className={cn(
-                                                    'mt-1 text-nowrap text-center font-medium text-xs transition-colors',
-                                                    currentStep === step.id ? 'text-blue-600' : 'text-gray-500'
-                                                )}>
-                                                {step.name}
-                                            </p>
+                                {steps.map((step, index) => {
+                                    const IconComponent = getIconByName(step.icon);
+                                    return (
+                                        <div key={step.id} className='flex flex-1 items-center'>
+                                            <div className='flex flex-col items-center'>
+                                                <Button
+                                                    type='button'
+                                                    // onClick={() => goToStep(step.id)}
+                                                    disabled={isSubmitting}
+                                                    className={cn(
+                                                        'flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full border-2 font-semibold transition-all duration-300 hover:scale-110 disabled:cursor-not-allowed disabled:opacity-50',
+                                                        currentStep === step.id
+                                                            ? 'border-blue-600 bg-blue-600 text-white shadow-blue-200 shadow-lg'
+                                                            : currentStep > step.id
+                                                              ? 'border-green-500 bg-green-500 text-white'
+                                                              : 'border-gray-300 bg-white text-gray-400'
+                                                    )}>
+                                                    {currentStep > step.id ? (
+                                                        <Check className='h-5 w-5' />
+                                                    ) : (
+                                                        <span className='text-lg'>
+                                                            {IconComponent && <IconComponent className='h-5 w-5' />}
+                                                        </span>
+                                                    )}
+                                                </Button>
+                                                <p
+                                                    className={cn(
+                                                        'mt-1 text-nowrap text-center font-medium text-xs transition-colors',
+                                                        currentStep === step.id ? 'text-blue-600' : 'text-gray-500'
+                                                    )}>
+                                                    {step.name}
+                                                </p>
+                                            </div>
+                                            {index < steps.length - 1 && (
+                                                <div
+                                                    className={cn(
+                                                        'mx-2 h-0.5 flex-1 transition-all duration-300',
+                                                        currentStep > step.id ? 'bg-green-500' : 'bg-gray-300'
+                                                    )}
+                                                />
+                                            )}
                                         </div>
-                                        {index < steps.length - 1 && (
-                                            <div
-                                                className={cn(
-                                                    'mx-2 h-0.5 flex-1 transition-all duration-300',
-                                                    currentStep > step.id ? 'bg-green-500' : 'bg-gray-300'
-                                                )}
-                                            />
-                                        )}
-                                    </div>
-                                ))}
+                                    );
+                                })}
                             </div>
                         </div>
 
@@ -846,46 +842,15 @@ export default function UpdateStudentApplicationForm({
                                         </div>
 
                                         <div className='flex justify-between'>
-                                            <div className='w-56'>
-                                                <Label htmlFor='academic_year'>
-                                                    Academic Year <span className='ml-1 text-red-500'>*</span>
-                                                </Label>
-                                                <Controller
-                                                    name={'asmaY_Id' as any}
-                                                    control={control}
-                                                    defaultValue={rowData?.asmaY_Id}
-                                                    render={({ field }) => (
-                                                        <Select
-                                                            onValueChange={(value) => field.onChange(Number(value))}
-                                                            value={field.value?.toString() || undefined}>
-                                                            <SelectTrigger id='academic_year'>
-                                                                <SelectValue placeholder='Select Academic Year' />
-                                                            </SelectTrigger>
-                                                            <SelectContent>
-                                                                {academicYearLoading ? (
-                                                                    <SelectItem value='loading' disabled>
-                                                                        Loading...
-                                                                    </SelectItem>
-                                                                ) : academicYearError ? (
-                                                                    <SelectItem value='error' disabled>
-                                                                        Error loading
-                                                                    </SelectItem>
-                                                                ) : academicYearOptions?.data && academicYearOptions.data.length > 0 ? (
-                                                                    academicYearOptions.data.map((item: any) => (
-                                                                        <SelectItem key={item.asmaY_Id} value={item.asmaY_Id.toString()}>
-                                                                            {item.asmaY_Year}
-                                                                        </SelectItem>
-                                                                    ))
-                                                                ) : (
-                                                                    <SelectItem value='none' disabled>
-                                                                        No academic year available
-                                                                    </SelectItem>
-                                                                )}
-                                                            </SelectContent>
-                                                        </Select>
-                                                    )}
-                                                />
-                                            </div>
+                                            <InputText
+                                                label='Academic Year'
+                                                required
+                                                id='academic_year'
+                                                placeholder='Enter first name'
+                                                defaultValue={activePreadmission?.data?.asmaY_Year}
+                                                className='w-fit font-semibold'
+                                                disabled
+                                            />
 
                                             {/* Student Photo Upload */}
                                             <div className='col-span-full w-fit'>
@@ -1092,7 +1057,11 @@ export default function UpdateStudentApplicationForm({
                                                                         'w-full font-normal',
                                                                         !field.value && 'text-muted-foreground'
                                                                     )}>
-                                                                    {field.value ? format(field.value, 'PPP') : <span>Pick a date</span>}
+                                                                    {field.value ? (
+                                                                        format(field.value, 'dd-MM-yyyy')
+                                                                    ) : (
+                                                                        <span>Pick a date</span>
+                                                                    )}
                                                                     <Calendar className='ml-auto h-4 w-4 opacity-50' />
                                                                 </Button>
                                                             </PopoverTrigger>

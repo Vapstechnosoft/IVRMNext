@@ -7,6 +7,7 @@ export interface IFeeAmountEntryList {
     ftI_Name: string;
     fmA_Amount: number;
     fmA_CreatedDate: string;
+    asmaY_Id: number;
 }
 
 export interface IFeeGroupDropDownList {

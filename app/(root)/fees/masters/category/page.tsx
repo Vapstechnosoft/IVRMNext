@@ -1,6 +1,5 @@
 'use client';
 
-import { Heading } from '@/components/layout/heading';
 import { Button } from '@/components/ui/button';
 import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/generic-data-table';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
@@ -12,7 +11,6 @@ import { use, useEffect } from 'react';
 import AddMasterClassForm from './_components/add-form';
 import { masterClassYearlyCategoryColumns } from './_components/columns';
 import ToggleMasterClassForm from './_components/toggle-form';
-import UpdateMasterClassForm from './_components/update-form';
 
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 
@@ -48,9 +46,7 @@ function MasterClassPageContent({
             <div className='container space-y-4 p-1'>
                 {/* Header */}
                 <div className='flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between'>
-                    <div className='space-y-1'>
-                        <Heading title='Master Class Yearly Category' description='Manage yearly mapping between class and category' />
-                    </div>
+                    <div className='space-y-1'></div>
                     <Button
                         type='button'
                         onClick={openAddForm}
@@ -74,7 +70,7 @@ function MasterClassPageContent({
                         columnPinning={{ right: ['actions'] }}
                         loadingMessage='Loading yearly class categories...'
                         noDataTitle='No Records Found'
-                        noDataDescription='Start by adding a new class-category mapping'
+                        noDataDescription='Start by adding a new  Yearly Category'
                         errorTitle='Error Loading Data'
                     />
                 </CollapsibleSection>
@@ -87,17 +83,8 @@ function MasterClassPageContent({
 }
 
 function FormSections({ refetch }: { refetch: () => void }) {
-    const {
-        isAddFormOpen,
-        isEditFormOpen,
-        isToggleFormOpen,
-        selectedRow,
-        closeAddForm,
-        closeEditForm,
-        closeToggleForm,
-        addFormRef,
-        editFormRef
-    } = useFormContext<IMasterClassYearlyList>();
+    const { isAddFormOpen, isEditFormOpen, isToggleFormOpen, selectedRow, closeAddForm, closeToggleForm, addFormRef } =
+        useFormContext<IMasterClassYearlyList>();
 
     useEffect(() => {
         if (isEditFormOpen && !selectedRow) {
@@ -141,41 +128,6 @@ function FormSections({ refetch }: { refetch: () => void }) {
                     </CollapsibleSection>
                 </div>
             )}
-
-            {/* Edit Form */}
-            {isEditFormOpen && selectedRow ? (
-                <div ref={editFormRef}>
-                    <CollapsibleSection
-                        title='Edit Yearly Class Category'
-                        description={`Editing: ${selectedRow.fmcC_ClassCategoryName} (${selectedRow.asmaY_Year})`}
-                        defaultOpen
-                        variant='outline'
-                        size='md'
-                        className='slide-in-from-top-4 animate-in border-primary/20 shadow-lg duration-300'>
-                        <div className='relative'>
-                            <Button
-                                type='button'
-                                onClick={closeEditForm}
-                                variant='ghost'
-                                size='sm'
-                                className='-top-[3.5rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
-                                <X className='h-4 w-4 text-destructive' /> Close
-                            </Button>
-                            <UpdateMasterClassForm
-                                selectedRow={selectedRow}
-                                onSuccess={() => {
-                                    handleSuccess();
-                                    closeEditForm();
-                                }}
-                            />
-                        </div>
-                    </CollapsibleSection>
-                </div>
-            ) : isEditFormOpen ? (
-                <div className='rounded-md border border-red-200 bg-red-50 p-4'>
-                    <p className='font-medium text-red-600'>Error: Invalid or no class selected for editing.</p>
-                </div>
-            ) : null}
 
             {/* Toggle Form */}
             {isToggleFormOpen && selectedRow && (

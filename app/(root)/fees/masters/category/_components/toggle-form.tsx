@@ -30,7 +30,7 @@ export default function ToggleMasterClassForm({ rowData, onClose, onSuccess }: T
 
         setIsSubmitting(true);
         try {
-            const response = await toggleMasterclassYearlyCategory(30, Number(rowData.fmcC_Id));
+            const response = await toggleMasterclassYearlyCategory(Number(rowData.fycC_Id));
 
             if (response.success) {
                 toast.success(`${rowData.fmcC_ClassCategoryName} successfully ${isActive ? 'deactivated' : 'activated'}`);

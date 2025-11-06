@@ -4,7 +4,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
-
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { useFormContext } from '@/components/ui/form/form-provider';
 import { getStudentApplicationForm } from '@/server/admission/preadmission/transactions/application_form';
 import type { IPreadmissionStudentApplicationList } from '@/types/admission/preadmission/transactions';
@@ -15,8 +15,10 @@ import { Edit } from 'lucide-react';
 import { ROLES } from '@/constants';
 
 import { useSession } from 'next-auth/react';
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 
+import { Spinner } from '@/components/ui/spinner';
+import { useDocumentDownload } from '@/hooks/admission/preadmission/useTransactions';
 import PaymentDialog from './payment-dialog';
 import ToggleStudentApplicationForm from './toggle-form';
 
@@ -39,12 +41,12 @@ export const studentApplicationColumns: ColumnDef<IPreadmissionStudentApplicatio
     },
     {
         accessorKey: 'pasr_id',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Sl.No' />,
+        header: ({ column }) => <DataTableColumnHeader className='ml-2' column={column} title='Sl.No' />,
         cell: ({ row, table }) => {
             const pageIndex = table.getState().pagination.pageIndex;
             const pageSize = table.getState().pagination.pageSize;
             const continuousIndex = pageIndex * pageSize + row.index + 1;
-            return <div>{continuousIndex}</div>;
+            return <div className='ml-2'>{continuousIndex}</div>;
         },
         enableSorting: true,
         enableHiding: false
@@ -99,6 +101,88 @@ export const studentApplicationColumns: ColumnDef<IPreadmissionStudentApplicatio
         enableHiding: true
     },
     {
+        accessorKey: 'application_form',
+        header: ({ column }) => <DataTableColumnHeader className='text-nowrap' column={column} title='Application Form' />,
+        cell: ({ row }) => {
+            const appId = row.original.pasr_id;
+            const [showPdfModal, setShowPdfModal] = useState(false);
+            const { data: pdfData, isLoading } = useDocumentDownload(appId, {});
+            const [iframeLoading, setIframeLoading] = useState(false);
+
+            const pdfBase64: string | null | undefined =
+                typeof pdfData?.data === 'string'
+                    ? pdfData.data
+                    : Array.isArray(pdfData?.data)
+                      ? ((pdfData.data[0] as unknown as string) ?? null)
+                      : null;
+
+            useEffect(() => {
+                if (showPdfModal && pdfBase64) {
+                    setIframeLoading(true);
+                }
+                if (!showPdfModal) setIframeLoading(false);
+            }, [showPdfModal, pdfBase64]);
+
+            return (
+                <>
+                    <Button variant='link' className='p-0 text-blue-600 hover:underline' onClick={() => setShowPdfModal(true)}>
+                        View Application
+                    </Button>
+
+                    {showPdfModal && (
+                        <Dialog open={showPdfModal} onOpenChange={setShowPdfModal}>
+                            <DialogContent className='flex h-[90vh] max-w-5xl flex-col p-0'>
+                                <DialogHeader className='p-0'>
+                                    <DialogTitle className='pt-3 text-center font-semibold text-lg'>
+                                        Preadmission Application Form
+                                    </DialogTitle>
+                                </DialogHeader>
+                                <div className='relative min-h-0 flex-1 overflow-hidden'>
+                                    {/* Spinner while loading PDF */}
+                                    {(isLoading || iframeLoading) && (
+                                        <div className='absolute inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm'>
+                                            <div className=' transition-all'>
+                                                <div className='flex flex-col items-center'>
+                                                    <Spinner size='lg' className='text-primary' />
+                                                    <p className='mt-3 font-medium text-gray-700 text-sm'>Loading document...</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    )}
+                                    {/* PDF Viewer replaces iframe, removes extra padding */}
+                                    <div className='relative h-full min-h-0 w-full'>
+                                        {/* toolbar: download / open */}
+                                        {pdfBase64 ? <div className='absolute top-3 right-3 z-30 flex gap-3' /> : null}
+
+                                        {/* inline PDF viewer using iframe (falls back to message when no PDF) */}
+                                        {typeof pdfBase64 === 'string' && pdfBase64 ? (
+                                            <iframe
+                                                src={
+                                                    pdfBase64.startsWith('data:') || pdfBase64.startsWith('http')
+                                                        ? pdfBase64
+                                                        : `data:application/pdf;base64,${pdfBase64}`
+                                                }
+                                                title='Preadmission Application Form'
+                                                className='h-full min-h-0 w-full border-0'
+                                                style={{ display: iframeLoading ? 'none' : 'block' }}
+                                                onLoad={() => setIframeLoading(false)}
+                                            />
+                                        ) : (
+                                            <div className='flex h-full items-center justify-center'>
+                                                <div className='text-gray-500 text-sm'>No document available</div>
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+                            </DialogContent>
+                        </Dialog>
+                    )}
+                </>
+            );
+        },
+        enableSorting: false
+    },
+    {
         id: 'actions',
         header: ({ column }) => <DataTableColumnHeader className='text-center' column={column} title='Actions' />,
         accessorFn: (row: any) => {
@@ -117,7 +201,7 @@ export const studentApplicationColumns: ColumnDef<IPreadmissionStudentApplicatio
             }, [session?.data?.role]);
 
             return (
-                <div className='flex items-center gap-2'>
+                <div className='flex items-start justify-start gap-2'>
                     <Button
                         type='button'
                         variant='ghost'
@@ -154,7 +238,7 @@ export const studentApplicationColumns: ColumnDef<IPreadmissionStudentApplicatio
                                 setLoading(false);
                             }
                         }}
-                        className='p-1'>
+                        className='w-fit p-1'>
                         {loading ? (
                             <span className='inline-block h-4 w-4 animate-spin rounded-full border-2 border-gray-400 border-t-transparent' />
                         ) : (

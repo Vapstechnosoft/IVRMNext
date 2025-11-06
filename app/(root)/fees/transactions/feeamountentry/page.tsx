@@ -1,6 +1,4 @@
 'use client';
-
-import { Heading } from '@/components/layout/heading';
 import { Button } from '@/components/ui/button';
 import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/generic-data-table';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
@@ -45,9 +43,7 @@ function MasterFeeAmountEntryPageContent({
             <div className='container space-y-4 p-1'>
                 {/* Header */}
                 <div className='flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between'>
-                    <div className='space-y-1'>
-                        <Heading title='Fee Amount Entries' description='' />
-                    </div>
+                    <div className='space-y-1'>{/* <Heading title='Fee Amount Entries' description='' /> */}</div>
                     <Button
                         type='button'
                         onClick={openAddForm}
@@ -100,7 +96,7 @@ function FormSections() {
             {isAddFormOpen && (
                 <div ref={addFormRef}>
                     <CollapsibleSection
-                        title='Add New Amount Entry'
+                        title='Add New Fee Amount Entry'
                         description='Fill in the details below to create a new Amount Entry.'
                         defaultOpen={true}
                         variant='outline'

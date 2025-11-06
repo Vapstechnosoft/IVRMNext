@@ -39,19 +39,19 @@ export const feeTermsColumns: ColumnDef<IMasterTermsList>[] = [
     },
     {
         accessorKey: 'fmT_Name',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Type' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Term Name' />,
         cell: ({ row }) => <div>{row.getValue('fmT_Name')}</div>,
         enableSorting: true,
         enableHiding: true
     },
 
     {
-        accessorKey: 'fmfS_ECSFlag',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='ECS Flag' />,
+        accessorKey: 'fmT_IncludeArrearFeeFlg',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Arrear Flag' />,
 
         cell: ({ row }) => {
-            const value = row.getValue('fmfS_ECSFlag');
-            return <div>{value ? '✅' : '❌'}</div>;
+            const value = row.getValue('fmT_IncludeArrearFeeFlg');
+            return <div>{value ? 'Enabled' : 'Disable'}</div>;
         },
         enableSorting: true,
         enableHiding: true

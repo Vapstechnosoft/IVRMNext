@@ -13,19 +13,22 @@ export const GradeDetailsColumns: ColumnDef<IGradeDetails>[] = [
             const continuousIndex = pageIndex * pageSize + row.index + 1;
             return <div>{continuousIndex}</div>;
         },
-        enableSorting: false
+        enableSorting: false,
+        enableHiding: true
     },
     {
         accessorKey: 'emgD_Name',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Grade Name' />,
         cell: ({ row }) => <div>{row.getValue('emgD_Name')}</div>,
-        enableSorting: false
+        enableSorting: false,
+        enableHiding: true
     },
     {
         accessorKey: 'emgD_From',
         header: ({ column }) => <DataTableColumnHeader column={column} title='From' />,
         cell: ({ row }) => <div>{row.getValue('emgD_From')}</div>,
-        enableSorting: false
+        enableSorting: false,
+        enableHiding: true
     },
     {
         accessorKey: 'emgD_To',
@@ -37,12 +40,14 @@ export const GradeDetailsColumns: ColumnDef<IGradeDetails>[] = [
         accessorKey: 'emgD_GradePoints',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Grade Points' />,
         cell: ({ row }) => <div>{row.getValue('emgD_GradePoints')}</div>,
-        enableSorting: false
+        enableSorting: false,
+        enableHiding: true
     },
     {
         accessorKey: 'emgD_Remarks',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Remarks' />,
         cell: ({ row }) => <div>{row.getValue('emgD_Remarks')}</div>,
-        enableSorting: false
+        enableSorting: false,
+        enableHiding: true
     }
 ];

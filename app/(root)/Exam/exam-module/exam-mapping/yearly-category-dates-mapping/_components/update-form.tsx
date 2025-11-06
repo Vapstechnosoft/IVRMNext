@@ -5,12 +5,13 @@ import { CalendarYear } from '@/components/ui/calendar_year';
 import { FormError, Label } from '@/components/ui/extension/field';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useYearlyCategoryDateMapping } from '@/hooks/exam/exammodule/exam-mapping';
+import { useAcademicYearDropdown } from '@/hooks/fees/useMasters';
 import { yearlyCategoryDatesMappingSchema } from '@/schemas/exam/exam-module/exam-mapping';
 import {
     addOrUpdateYearlyCategoryDatesMapping,
     getCategoryDropDownByAcademicYearlist
 } from '@/server/exam/exam-module/exam-mapping/yearly-category-dates-mapping';
-import { getAcademicYears } from '@/server/exam/exam-module/masters/category-class-mapping';
+import type { IAcademicYearDropDown } from '@/types/admission/preadmission/masters';
 import type { IYearlyCategoryDatesMapping } from '@/types/exam/exam-module/exam-mapping';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useEffect, useRef, useState } from 'react';
@@ -44,25 +45,47 @@ export default function UpdateYearlyCategoryDatesMapping({ selectedRow, onSucces
         }
     });
 
+    useEffect(() => {
+        if (selectedRow) {
+            methods.reset({
+                eyC_Id: selectedRow.eyC_Id,
+                mI_Id: 30,
+                asmaY_Id: selectedRow.asmaY_Id,
+                emcA_Id: selectedRow.emcA_Id,
+                eyC_ExamStartDate: selectedRow.eyC_ExamStartDate?.split('T')[0],
+                eyC_ExamEndDate: selectedRow.eyC_ExamEndDate?.split('T')[0],
+                eyC_MarksEntryLastDate: selectedRow.eyC_MarksEntryLastDate?.split('T')[0],
+                eyC_MarksProcessLastDate: selectedRow.eyC_MarksProcessLastDate?.split('T')[0],
+                eyC_MarksPublishDate: selectedRow.eyC_MarksPublishDate?.split('T')[0]
+            });
+        }
+    }, [selectedRow, methods]);
+
     const { control, handleSubmit, formState } = methods;
     const { isSubmitting } = formState;
     const { refetchAll } = useYearlyCategoryDateMapping();
 
     const [academicYears, setAcademicYears] = useState<{ asmaY_Id: number; asmaY_Year: string }[]>([]);
     const [categories, setCategories] = useState<{ emcA_Id: number; emcA_CategoryName: string }[]>([]);
+    const { data: academicData, isLoading: loadingAcademic, error: academicError } = useAcademicYearDropdown();
 
     // Fetch academic years on mount
     useEffect(() => {
-        async function fetchYears() {
-            try {
-                const years = await getAcademicYears();
-                setAcademicYears(Array.isArray(years) ? years : []);
-            } catch (err: any) {
-                toast.error(err?.message ?? 'Failed to load academic years');
-            }
+        // Academic Years
+        if (academicError) {
+            toast.error(academicError.message || 'Error fetching academic years');
+            setAcademicYears([]);
+        } else if (academicData?.data && Array.isArray(academicData.data)) {
+            const formattedYears: IAcademicYearDropDown[] = academicData.data.map((item: any) => ({
+                asmaY_Id: item.asmaY_Id?.toString() ?? '',
+                asmaY_Year: item.asmaY_Year ?? '',
+                asmaY_Order: item.asmaY_Order ?? 0
+            }));
+            setAcademicYears(formattedYears);
+        } else {
+            setAcademicYears([]);
         }
-        fetchYears();
-    }, []);
+    }, [academicData, academicError]);
 
     // Watch selected Academic Year
     const selectedYearId = useWatch({ control, name: 'asmaY_Id' });

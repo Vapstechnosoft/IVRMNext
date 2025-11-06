@@ -24,7 +24,7 @@ interface ActionButtonsProps {
 
 export function ActionButtons({
     rowData,
-    buttons = { edit: true, delete: true, toggle: false },
+    buttons = { edit: true, delete: false, toggle: false },
     onEdit,
     onDelete,
     onToggle,

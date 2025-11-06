@@ -37,7 +37,8 @@ export default function AddFineSlabForm({ onSuccess, fineslab = '' }: AddFineSla
         resolver: zodResolver(fineslabSchema.addOrUpdate),
         mode: 'onChange',
         defaultValues: {
-            fmfS_Id: 0
+            fmfS_Id: 0,
+            fmfS_FineType: undefined
         }
     });
 
@@ -72,7 +73,13 @@ export default function AddFineSlabForm({ onSuccess, fineslab = '' }: AddFineSla
     };
 
     const handleReset = () => {
-        reset();
+        reset({
+            fmfS_Id: 0,
+            fmfS_FineType: undefined,
+            fmfS_FromDay: 0,
+            fmfS_ToDay: 0,
+            fmfS_ECSFlag: '0'
+        });
     };
 
     return (
@@ -87,7 +94,7 @@ export default function AddFineSlabForm({ onSuccess, fineslab = '' }: AddFineSla
                             name='fmfS_FineType'
                             control={control}
                             render={({ field }) => (
-                                <Select onValueChange={field.onChange} value={field.value || undefined}>
+                                <Select onValueChange={field.onChange} value={field.value || ''}>
                                     <SelectTrigger className='w-full text-center'>
                                         <SelectValue placeholder='--Select--' />
                                     </SelectTrigger>

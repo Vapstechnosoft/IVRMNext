@@ -52,15 +52,15 @@ export const masterClassColumns: ColumnDef<IMasterDocumentList>[] = [
         enableHiding: true
     },
     {
-        accessorKey: 'amsmD_FLAG',
+        accessorKey: 'amsmD_ActiveFlag',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Mandatory' />,
-        cell: ({ row }) => <div>{getStatusBadge((row.getValue('amsmD_FLAG') as boolean) === true ? 'yes' : 'no')}</div>,
+        cell: ({ row }) => <div>{getStatusBadge((row.getValue('amsmD_ActiveFlag') as boolean) === true ? 'yes' : 'no')}</div>,
         enableSorting: false,
         enableHiding: true
     },
     {
         id: 'actions',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Actions' className='text-center' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Actions' className='text-start' />,
         accessorFn: (row: any) => row,
         enableSorting: false,
         cell: ({ row }) => <ActionButtonsCell rowData={row.original} />
@@ -68,7 +68,7 @@ export const masterClassColumns: ColumnDef<IMasterDocumentList>[] = [
 ];
 
 function ActionButtonsCell({ rowData }: { rowData: IMasterDocumentList }) {
-    const { openEditForm, openToggleForm } = useFormContext<IMasterDocumentList>();
+    const { openEditForm, openToggleForm, openDeleteForm } = useFormContext<IMasterDocumentList>();
 
     const handleEdit = useCallback(
         (data: IMasterDocumentList) => {
@@ -84,12 +84,20 @@ function ActionButtonsCell({ rowData }: { rowData: IMasterDocumentList }) {
         [openToggleForm]
     );
 
+    const handleDelete = useCallback(
+        (data: IMasterDocumentList) => {
+            openDeleteForm(data);
+        },
+        [openDeleteForm]
+    );
+
     return (
         <ActionButtons
             rowData={rowData}
-            buttons={{ edit: true, toggle: true, delete: false }}
+            buttons={{ edit: true, toggle: true, delete: true }}
             onEdit={handleEdit}
             onToggle={handleToggle}
+            onDelete={handleDelete}
             toggleConditionKey='amsmD_ActiveFlag'
         />
     );

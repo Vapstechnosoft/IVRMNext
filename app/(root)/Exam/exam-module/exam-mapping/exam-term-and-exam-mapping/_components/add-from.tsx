@@ -1,21 +1,22 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
-import { CalendarYear } from '@/components/ui/calendar_year';
+import { DateField } from '@/components/ui/dateField';
 import { FormError, Label } from '@/components/ui/extension/field';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useExamTermAndExamMapping } from '@/hooks/exam/exammodule/exam-mapping';
+import { useAcademicYearDropdown } from '@/hooks/fees/useMasters';
 import { ExamTermAndExamMappingSchema } from '@/schemas/exam/exam-module/exam-mapping';
 import { getExamGroupsByCategory } from '@/server/exam/exam-module/exam-mapping/exam-subject-group-mapping';
 import { addOrUpdateExamTermAndExamMapping } from '@/server/exam/exam-module/exam-mapping/examTerm-and-exam-mappiong';
 import { getCategoryDropDownByAcademicYearlist } from '@/server/exam/exam-module/exam-mapping/yearly-category-dates-mapping';
-import { getAcademicYears } from '@/server/exam/exam-module/masters/category-class-mapping';
 import { getMasterGrade } from '@/server/exam/exam-module/masters/grade';
+import type { IAcademicYearDropDown } from '@/types/admission/preadmission/masters';
 import type { IMasterGrade } from '@/types/exam/exam-module/masters';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Trash2 } from 'lucide-react';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Controller, FormProvider, useFieldArray, useForm, useWatch } from 'react-hook-form';
 import { toast } from 'sonner';
 import type { z } from 'zod';
@@ -45,7 +46,7 @@ export default function AddExamTermAndExamMapping({ onSuccess }: { onSuccess?: (
     });
 
     const { refetchAll } = useExamTermAndExamMapping();
-    const { control, handleSubmit, reset, setValue, formState, getValues } = methods;
+    const { control, handleSubmit, reset, setValue, formState, watch } = methods;
     const { isSubmitting, errors } = formState;
 
     const [addedRows, setAddedRows] = useState<FormFields['exam_term']>([]);
@@ -72,20 +73,25 @@ export default function AddExamTermAndExamMapping({ onSuccess }: { onSuccess?: (
     const [entryRoundOff, setEntryRoundOff] = useState<boolean>(false);
     const [entryConversion, setEntryConversion] = useState<boolean>(false);
     const [entryNotApplicable, setEntryNotApplicable] = useState<boolean>(false);
-
+    const { data: academicData, isLoading: loadingAcademic, error: academicError } = useAcademicYearDropdown();
     const topLocked = addedRows.length > 0;
 
     useEffect(() => {
-        async function fetchYears() {
-            try {
-                const years = await getAcademicYears();
-                setAcademicYears(Array.isArray(years) ? years : []);
-            } catch (err: any) {
-                toast.error(err?.message ?? 'Failed to load academic years');
-            }
+        // Academic Years
+        if (academicError) {
+            toast.error(academicError.message || 'Error fetching academic years');
+            setAcademicYears([]);
+        } else if (academicData?.data && Array.isArray(academicData.data)) {
+            const formattedYears: IAcademicYearDropDown[] = academicData.data.map((item: any) => ({
+                asmaY_Id: item.asmaY_Id?.toString() ?? '',
+                asmaY_Year: item.asmaY_Year ?? '',
+                asmaY_Order: item.asmaY_Order ?? 0
+            }));
+            setAcademicYears(formattedYears);
+        } else {
+            setAcademicYears([]);
         }
-        fetchYears();
-    }, []);
+    }, [academicData, academicError]);
 
     useEffect(() => {
         if (!asmaY_Id || topLocked) return;
@@ -204,21 +210,21 @@ export default function AddExamTermAndExamMapping({ onSuccess }: { onSuccess?: (
         try {
             // Build API payload matching the required structure
             const payload = {
-                ECT_Id: 0,
-                MI_Id: orgId,
-                ECT_TermName: data.ecT_TermName,
-                ASMAY_Id: Number(data.asmaY_Id),
-                EMCA_Id: Number(data.emcA_Id),
-                EMGR_Id: Number(data.emgR_Id),
-                ECT_Marks: Number(data.ecT_Marks),
+                ECT_Id: Number(data.ecT_Id ?? 0),
+                MI_Id: Number(data.mI_Id ?? 0),
+                ASMAY_Id: Number(data.asmaY_Id ?? 0),
+                EMCA_Id: Number(data.emcA_Id ?? 0),
+                EMGR_Id: Number(data.emcA_Id ?? 0),
+                ECT_Marks: Number(data.ecT_Marks ?? 0),
+                ECT_MinMarks: Number(data.ecT_MinMarks ?? 0),
                 ECT_TermStartDate: data.ecT_TermStartDate,
                 ECT_TermEndDate: data.ecT_TermEndDate,
-                ECT_MinMarks: Number(data.ecT_MinMarks),
+                ECT_TermName: data.ecT_TermName,
                 ECT_PublishDate: data.ecT_MarksPublishDate,
                 exam_term: addedRows.map((r) => ({
                     ECTEX_Id: 0,
-                    ECT_Id: 0,
-                    EME_Id: r.emE_Id,
+                    ECT_Id: Number(data.ecT_Id ?? 0),
+                    EME_Id: Number(r.emE_Id ?? 0),
                     ECTEX_RoundOffReqFlg: r.ecteX_RoundOffReqFlg,
                     ECTEX_ConversionReqFlg: r.ecteX_ConversionReqFlg,
                     ECTEX_MarksPercentValue: Number(r.ecteX_MarksPercentValue),
@@ -226,7 +232,7 @@ export default function AddExamTermAndExamMapping({ onSuccess }: { onSuccess?: (
                     ECTEX_NotApplToTotalFlg: r.ecteX_NotApplicableToTotal
                 }))
             };
-
+            console.log(payload);
             const res = await addOrUpdateExamTermAndExamMapping(payload);
             if (res?.success) {
                 toast.success('Exam term mapping saved successfully');
@@ -241,48 +247,6 @@ export default function AddExamTermAndExamMapping({ onSuccess }: { onSuccess?: (
             console.error('Submit error:', err);
             toast.error(err?.message ?? 'Failed to save');
         }
-    };
-
-    const DateField = ({ field, fieldState, label }: { field: any; fieldState: any; label: string }) => {
-        const [open, setOpen] = useState(false);
-        const ref = useRef<HTMLDivElement | null>(null);
-        useEffect(() => {
-            const handler = (e: MouseEvent) => {
-                if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
-            };
-            document.addEventListener('mousedown', handler);
-            return () => document.removeEventListener('mousedown', handler);
-        }, []);
-        return (
-            <div className='relative mt-4' ref={ref}>
-                <Label>
-                    {label} <span className='text-red-500'>*</span>
-                </Label>
-                <input
-                    readOnly
-                    value={field.value ?? ''}
-                    placeholder={`Select ${label}`}
-                    onClick={() => !topLocked && setOpen(true)}
-                    className={`w-full cursor-pointer rounded-md border px-3 py-2 text-sm shadow-sm ${
-                        topLocked ? 'cursor-not-allowed bg-gray-50' : ''
-                    }`}
-                />
-                {open && (
-                    <div className='absolute z-50 mt-2'>
-                        <div className='rounded-md bg-white shadow-lg'>
-                            <CalendarYear
-                                selected={field.value ? new Date(field.value) : undefined}
-                                onDayClick={(day) => {
-                                    field.onChange(day.toISOString().split('T')[0]);
-                                    setOpen(false);
-                                }}
-                            />
-                        </div>
-                    </div>
-                )}
-                {fieldState.error && <FormError>{fieldState.error.message}</FormError>}
-            </div>
-        );
     };
     function handleReset() {
         // Reset all form fields to initial state
@@ -474,7 +438,13 @@ export default function AddExamTermAndExamMapping({ onSuccess }: { onSuccess?: (
                                     control={control}
                                     name='ecT_TermStartDate'
                                     render={({ field, fieldState }) => (
-                                        <DateField field={field} fieldState={fieldState} label='Term Start Date' />
+                                        <DateField
+                                            field={field}
+                                            fieldState={fieldState}
+                                            label='Term Start Date'
+                                            placeholder='Select Date'
+                                            fromDate={new Date()}
+                                        />
                                     )}
                                 />
 
@@ -482,14 +452,26 @@ export default function AddExamTermAndExamMapping({ onSuccess }: { onSuccess?: (
                                     control={control}
                                     name='ecT_TermEndDate'
                                     render={({ field, fieldState }) => (
-                                        <DateField field={field} fieldState={fieldState} label='Term End Date' />
+                                        <DateField
+                                            field={field}
+                                            fieldState={fieldState}
+                                            label='Term End Date'
+                                            placeholder='Select Date'
+                                            fromDate={new Date(watch('ecT_TermStartDate'))}
+                                        />
                                     )}
                                 />
                                 <Controller
                                     control={control}
                                     name='ecT_MarksPublishDate'
                                     render={({ field, fieldState }) => (
-                                        <DateField field={field} fieldState={fieldState} label='Term Publish Date' />
+                                        <DateField
+                                            field={field}
+                                            fieldState={fieldState}
+                                            label='Term Publish Date'
+                                            placeholder='Select Date'
+                                            fromDate={new Date(watch('ecT_TermEndDate'))}
+                                        />
                                     )}
                                 />
                             </div>

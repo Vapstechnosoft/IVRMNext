@@ -13,6 +13,7 @@ import { Save } from 'lucide-react';
 import { useEffect } from 'react';
 import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
+
 import type { z } from 'zod';
 
 type FormFields = z.infer<typeof fineslabSchema.addOrUpdate>;
@@ -44,6 +45,7 @@ export default function UpdateFineSlabForm({ onSuccess, fineslab = '', selectedR
         if (row) {
             reset({
                 fmfS_FineType: row.fmfS_FineType as 'Between' | 'GreaterThan' | 'LessThan',
+
                 fmfS_Id: row.fmfS_Id,
                 fmfS_FromDay: row.fmfS_FromDay,
                 fmfS_ToDay: row.fmfS_ToDay,
@@ -51,7 +53,7 @@ export default function UpdateFineSlabForm({ onSuccess, fineslab = '', selectedR
                 fmfS_ActiveFlag: row.fmfS_ActiveFlag
             });
         }
-    }, [row, reset, setValue]);
+    }, [JSON.stringify(row)]);
 
     const onSubmit: SubmitHandler<FormFields | any> = async (data: FormFields) => {
         try {
@@ -65,6 +67,9 @@ export default function UpdateFineSlabForm({ onSuccess, fineslab = '', selectedR
                 fmfS_ECSFlag: fmfS_ECSFlag,
                 fmfS_ActiveFlag: fmfS_ActiveFlag
             };
+
+            console.log('Payload to be sent:', JSON.stringify(payload));
+
             const response = await addOrUpdateFineSlab(payload);
 
             if (response.success) {
@@ -86,8 +91,8 @@ export default function UpdateFineSlabForm({ onSuccess, fineslab = '', selectedR
 
     return (
         <div className={`${fineslab}`}>
-            <form onSubmit={handleSubmit(onSubmit)} className='space-y-6'>
-                <div className='space-y-4'>
+            <form onSubmit={handleSubmit(onSubmit)} className='flex w-full flex-col items-center justify-center space-y-6'>
+                <div className='w-full max-w-md space-y-4'>
                     <div className='w-full max-w-md'>
                         <div className='flex flex-col items-center gap-1.5'>
                             <Label htmlFor='fmfS_FineType' className='text-center'>
@@ -96,8 +101,9 @@ export default function UpdateFineSlabForm({ onSuccess, fineslab = '', selectedR
                             <Controller
                                 name='fmfS_FineType'
                                 control={control}
+                                defaultValue={row?.fmfS_FineType as 'Between' | 'GreaterThan' | 'LessThan'}
                                 render={({ field }) => (
-                                    <Select onValueChange={field.onChange} value={field.value || undefined}>
+                                    <Select onValueChange={field.onChange} value={field.value ?? undefined}>
                                         <SelectTrigger className='w-full text-center'>
                                             <SelectValue placeholder='--Select--' />
                                         </SelectTrigger>
@@ -158,7 +164,7 @@ export default function UpdateFineSlabForm({ onSuccess, fineslab = '', selectedR
                     )}
 
                     <div className='group flex flex-col gap-1.5'>
-                        <div className='group flex flex-row gap-6'>
+                        <div className='flex flex-row items-center justify-center gap-2'>
                             <Controller
                                 name='fmfS_ECSFlag'
                                 control={control}

@@ -167,6 +167,7 @@ export interface IAcademicYear {
 export interface ICategory {
     emcA_Id: number;
     emcA_CategoryName: string;
+    eyC_Id: number;
 }
 
 export interface IClass {

@@ -21,6 +21,7 @@ export async function addOrUpdateYearlyCategoryDatesMapping(data: any) {
 
 // Get Category Dropdown By Academic Year
 export async function getCategoryDropDownByAcademicYearlist(orgId: number, asmay_id: number) {
+    console.log('asmay_id', asmay_id);
     if (!asmay_id) throw new Error('Academic Year ID is required');
     const url = `/exam_master_category/exam_category_drop_down_by_academic_year_list/${orgId}/${asmay_id}`;
     return await api.get<ICategory>('exam', url);

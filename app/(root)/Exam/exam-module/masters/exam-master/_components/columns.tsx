@@ -61,7 +61,7 @@ export const MasterExamColumns: ColumnDef<IMasterExam>[] = [
     {
         accessorKey: 'emE_FinalExamFlag',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Final Exam Flag' />,
-        cell: ({ row }) => getStatusBadge((row.getValue('emE_FinalExamFlag') as number) === 1 ? 'yes' : 'no')
+        cell: ({ row }) => getStatusBadge(row.getValue('emE_FinalExamFlag') === true ? 'yes' : 'no')
     },
     {
         accessorKey: 'emE_ExamOrder',

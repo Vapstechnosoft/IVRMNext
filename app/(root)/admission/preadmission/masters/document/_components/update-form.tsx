@@ -45,7 +45,7 @@ export default function UpdateMasterDocumentForm({ onSuccess, className = '', se
             reset({
                 amsmD_DocumentName: row.amsmD_DocumentName || '',
                 amsmD_Description: row.amsmD_Description || '',
-                amsmD_FLAG: row.amsmD_FLAG ? 1 : 0
+                amsmD_ActiveFlag: row.amsmD_ActiveFlag ? 1 : 0
             });
         }
     }, [row, reset]);
@@ -56,7 +56,7 @@ export default function UpdateMasterDocumentForm({ onSuccess, className = '', se
                 amsmD_Id: row.amsmD_Id,
                 amsmD_DocumentName: data?.amsmD_DocumentName,
                 amsmD_Description: data?.amsmD_Description,
-                amsmD_FLAG: data?.amsmD_FLAG === 1
+                amsmD_ActiveFlag: data?.amsmD_ActiveFlag === 1
             };
             const response = await addOrUpdateMasterDocument(payload);
 
@@ -105,16 +105,16 @@ export default function UpdateMasterDocumentForm({ onSuccess, className = '', se
 
                         {/* Is Mandatory */}
                         <div className='group flex flex-col gap-1.5 space-y-2'>
-                            <Label aria-label='Document Is Mandatory' htmlFor='amsmD_FLAG'>
+                            <Label aria-label='Document Is Mandatory' htmlFor='amsmD_ActiveFlag'>
                                 Document Is Mandatory <span className='ml-1 text-red-500'>*</span>
                             </Label>
                             <Controller
-                                name='amsmD_FLAG'
+                                name='amsmD_ActiveFlag'
                                 control={control}
                                 render={({ field }) => (
                                     <RadioGroup
                                         value={String(field.value)}
-                                        onValueChange={(value) => setValue('amsmD_FLAG', Number(value))}
+                                        onValueChange={(value) => setValue('amsmD_ActiveFlag', Number(value))}
                                         className='flex gap-4'>
                                         <div className='flex items-center space-x-2'>
                                             <RadioGroupItem value='1' id='yes' />
@@ -127,7 +127,7 @@ export default function UpdateMasterDocumentForm({ onSuccess, className = '', se
                                     </RadioGroup>
                                 )}
                             />
-                            {errors.amsmD_FLAG && <FormError>{errors.amsmD_FLAG.message}</FormError>}
+                            {errors.amsmD_ActiveFlag && <FormError>{errors.amsmD_ActiveFlag.message}</FormError>}
                         </div>
                     </div>
                 </div>
