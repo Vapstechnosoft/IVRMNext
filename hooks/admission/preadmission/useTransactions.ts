@@ -9,6 +9,7 @@ import {
     getReligionDropdown,
     getSourceDropdown,
     getStateDropdown,
+    getStudentApplicationForm,
     getStudentApplicationList
 } from '@/server/admission/preadmission/transactions/application_form';
 import { getDocumentView, getDocumentpdf } from '@/server/admission/preadmission/transactions/document-view';
@@ -339,19 +340,37 @@ export const useDocumentView = (asmay_id: number, asmcl_id: number, searchParams
     };
 };
 
-export const useDocumentDownload = (pasr_id: number, searchParams?: ApiSearchparams) => {
+export const useDocumentDownload = (pasr_id: number) => {
     const queryClient = useQueryClient();
 
     return {
         ...useQuery({
-            queryKey: [PREADMISSION_QUERY_KEYS.DOCUMENT_DOWNLOAD, pasr_id, searchParams ?? {}],
-            queryFn: async () => getDocumentpdf(pasr_id, searchParams),
+            queryKey: [PREADMISSION_QUERY_KEYS.DOCUMENT_DOWNLOAD, pasr_id],
+            queryFn: async () => getDocumentpdf(pasr_id),
             staleTime: 0,
             enabled: !!pasr_id
         }),
         refetchAll: () => {
             return queryClient.invalidateQueries({
                 queryKey: [PREADMISSION_QUERY_KEYS.DOCUMENT_DOWNLOAD]
+            });
+        }
+    };
+};
+
+export const useStudentApplicationForm = (pasr_id: number) => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [PREADMISSION_QUERY_KEYS.STUDENT_APPLICATION_FORM, pasr_id],
+            queryFn: async () => getStudentApplicationForm(pasr_id),
+            staleTime: 0,
+            enabled: !!pasr_id
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [PREADMISSION_QUERY_KEYS.STUDENT_APPLICATION_FORM]
             });
         }
     };

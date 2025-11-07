@@ -155,6 +155,14 @@ export async function getUserAccessibleModules() {
                                             url: '/admission/preadmission/masters/religion-caste-category',
                                             title: 'Master Religion Caste Category',
                                             description: 'Manage Master Religion Caste Category Details'
+                                        },
+                                        {
+                                            id: 12,
+                                            name: 'Class Teacher',
+                                            icon: 'Settings',
+                                            url: '/admission/preadmission/masters/class-teacher',
+                                            title: 'Class Teacher',
+                                            description: 'Manage Master Class Teacher Details'
                                         }
                                     ]
                                 },

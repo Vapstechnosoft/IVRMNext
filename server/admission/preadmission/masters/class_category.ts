@@ -6,7 +6,8 @@ import type {
     IAcademicYearDropDown,
     IMasterCategoryDropDown,
     IMasterClassCategoryList,
-    IMasterClassDropDown
+    IMasterClassDropDown,
+    IMasterSectionDropDown
 } from '@/types/admission/preadmission/masters';
 
 export async function getMasterClassCategory(searchParams?: ApiSearchparams) {
@@ -32,7 +33,7 @@ export async function getMasterClassDropdown() {
 
 export async function getMasterSectionDropdown() {
     const url = '/master_class_category/master_section_drop_down_list';
-    return await api.get<IMasterClassDropDown[]>('admission', url);
+    return await api.get<IMasterSectionDropDown[]>('admission', url);
 }
 
 export async function addMasterClassCategory(data: any) {
