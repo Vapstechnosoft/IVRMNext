@@ -94,6 +94,15 @@ export const FEES_QUERY_KEYS = {
     FEE_THIRDPARTY_BANKDROPDOWN: 'fee_thirdparty_bankdropdown',
     FEE_MASTER_HEADS_DROPDOWN: 'fee_master_heads_dropdown',
     FEE_MASTER_INSTALLMENT_DROPDOWN: 'fee_master_installment_dropdown',
+    FEE_ALL_HEAD: 'fee_all_head',
+    FEE_ONLINE_PAYMENT_HEAD_GROUP: 'fee_online_payment_head_group',
+    FEE_ONLINE_PAYMENT_HEAD_GROUP_INSTALLMENT_YEAR: 'fee_online_payment_head_group_installment_year',
+    FEE_ONLINE_PAYMENT_HEAD_GROUP_INSTALLMENT_CLASS: 'fee_online_payment_head_group_installment_class',
+    FEE_ONLINE_PAYMENT_HEAD_GROUP_INSTALLMENT_SUB_MERCHANT: 'fee_online_payment_head_group_installment_sub_merchant',
+    FEE_ONLINE_PAYMENT_HEAD_GROUP_INSTALLMENT_GROUPNAME: 'fee_online_payment_head_group_installment_groupname',
+    FEE_ONLINE_PAYMENT_HEAD_GROUP_INSTALLMENT_HEADNAME: 'fee_online_payment_head_group_installment_headname',
+    FEE_ONLINE_PAYMENT_HEAD_TABLE: 'fee_online_payment_head_table',
+    FEE_ONLINE_PAYMENT_HEAD_GROUP_TERMS: 'fee_online_payment_head_group_terms'
     FEE_PREADMISSION_TRANSACTION_DETAILS: 'fee_preadmission_transaction_details',
     FEE_PREADMISSION_STUDENT_DROPDOWN: 'fee_preadmission_student_dropdown'
 };

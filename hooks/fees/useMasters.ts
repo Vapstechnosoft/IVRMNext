@@ -13,7 +13,7 @@ import { getfeeInstallment, getfeeInstallmentyId } from '@/server/fees/masters/f
 import { getfeeInstallmentDueDate } from '@/server/fees/masters/feeinstallmentduedate';
 import { getMasterConcession } from '@/server/fees/masters/feemasterconcession';
 import { getFeeTermList } from '@/server/fees/masters/feemasterterms';
-import { getMasterfeeInstallment, getMasterfeehead } from '@/server/fees/masters/yearly_group_mapping';
+import { getMasterAllFeeHead, getMasterfeeInstallment, getMasterfeehead } from '@/server/fees/masters/yearly_group_mapping';
 
 import { getGroupListCategory, getMasterYearlyCategory } from '@/server/fees/masters/fees_yearly_group';
 
@@ -22,6 +22,14 @@ import { getFeeGroup, getFeeGroupGrouping } from '@/server/fees/masters/groupsgr
 import { getMasterGroup } from '@/server/fees/masters/master_group';
 import { getMasterConcessionDetails } from '@/server/fees/masters/masterconcessiondetails';
 import { getModeOfPayment } from '@/server/fees/masters/modeOfPayment';
+import {
+    getClassDropDownList,
+    getFeeOnlinePaymentHeadGroupTable,
+    getGroupNameDropDownList,
+    getHeadNameDropDownList,
+    getOnlinePaymentHeadGroupInstallment,
+    getSubMerchantDropDownList
+} from '@/server/fees/masters/online_payment_head_group';
 import type { ApiSearchparams } from '@/types';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 
@@ -544,13 +552,132 @@ export const useFeePrevilegeList = () => {
     };
 };
 
-export const useFeeMasterHead = (searchParams?: ApiSearchparams) => {
+export const useMasterFeeOnlinePaymentHeadGroupTable = (searchParams?: ApiSearchparams) => {
     const queryClient = useQueryClient();
 
     return {
         ...useQuery({
-            queryKey: [FEES_QUERY_KEYS.FEE_MASTER_HEADS_DROPDOWN, searchParams ?? {}],
-            queryFn: async () => getMasterfeehead(searchParams),
+            queryKey: [FEES_QUERY_KEYS.FEE_ONLINE_PAYMENT_HEAD_TABLE, searchParams ?? {}],
+            queryFn: async () => getFeeOnlinePaymentHeadGroupTable(searchParams),
+            staleTime: 0
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [FEES_QUERY_KEYS.FEE_ONLINE_PAYMENT_HEAD_TABLE]
+            });
+        }
+    };
+};
+
+export const useMasterOnlinePaymentHeadGroup = () => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [FEES_QUERY_KEYS.FEE_ONLINE_PAYMENT_HEAD_GROUP],
+            queryFn: async () => getAcademicYearDropdown(),
+            staleTime: 0
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [FEES_QUERY_KEYS.FEE_ONLINE_PAYMENT_HEAD_GROUP]
+            });
+        }
+    };
+};
+
+export const useMasterOnlinePaymentHeadGroupClass = (academicYears?: number) => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [FEES_QUERY_KEYS.FEE_ONLINE_PAYMENT_HEAD_GROUP_INSTALLMENT_CLASS, academicYears ?? {}],
+            queryFn: async () => getClassDropDownList(academicYears),
+            staleTime: 0
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [FEES_QUERY_KEYS.FEE_ONLINE_PAYMENT_HEAD_GROUP_INSTALLMENT_CLASS]
+            });
+        }
+    };
+};
+
+export const useMasterOnlinePaymentHeadGroupSubMerchant = (academicYears?: number) => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [FEES_QUERY_KEYS.FEE_ONLINE_PAYMENT_HEAD_GROUP_INSTALLMENT_SUB_MERCHANT, academicYears ?? {}],
+            queryFn: async () => getSubMerchantDropDownList(academicYears),
+            staleTime: 0
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [FEES_QUERY_KEYS.FEE_ONLINE_PAYMENT_HEAD_GROUP_INSTALLMENT_SUB_MERCHANT]
+            });
+        }
+    };
+};
+
+export const useMasterOnlinePaymentHeadGroupGroupName = (academicYears?: number) => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [FEES_QUERY_KEYS.FEE_ONLINE_PAYMENT_HEAD_GROUP_INSTALLMENT_GROUPNAME, academicYears ?? {}],
+            queryFn: async () => getGroupNameDropDownList(academicYears),
+            staleTime: 0
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [FEES_QUERY_KEYS.FEE_ONLINE_PAYMENT_HEAD_GROUP_INSTALLMENT_GROUPNAME]
+            });
+        }
+    };
+};
+
+export const useMasterOnlinePaymentHeadGroupHeadName = (academicYears?: number, groupName?: number) => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [FEES_QUERY_KEYS.FEE_ONLINE_PAYMENT_HEAD_GROUP_INSTALLMENT_HEADNAME, academicYears ?? {}],
+            queryFn: async () => getHeadNameDropDownList(academicYears, groupName),
+            staleTime: 0
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [FEES_QUERY_KEYS.FEE_ONLINE_PAYMENT_HEAD_GROUP_INSTALLMENT_HEADNAME]
+            });
+        }
+    };
+};
+
+export const useMasterOnlinePaymentHeadGroupInstallment = (academicYears?: number) => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [FEES_QUERY_KEYS.FEE_ONLINE_PAYMENT_HEAD_GROUP_INSTALLMENT_YEAR],
+            queryFn: async () => getOnlinePaymentHeadGroupInstallment(academicYears),
+            staleTime: 0
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [FEES_QUERY_KEYS.FEE_ONLINE_PAYMENT_HEAD_GROUP_INSTALLMENT_YEAR]
+            });
+        }
+    };
+};
+
+export const useFeeMasterHead = () => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [FEES_QUERY_KEYS.FEE_MASTER_HEADS_DROPDOWN],
+            queryFn: async () => getMasterfeehead(),
             staleTime: 0,
             retry: 1
         }),
@@ -562,19 +689,36 @@ export const useFeeMasterHead = (searchParams?: ApiSearchparams) => {
     };
 };
 
-export const useFeeMasterInstallment = (searchParams?: ApiSearchparams) => {
+export const useFeeMasterInstallment = () => {
     const queryClient = useQueryClient();
 
     return {
         ...useQuery({
-            queryKey: [FEES_QUERY_KEYS.FEE_MASTER_INSTALLMENT_DROPDOWN, searchParams ?? {}],
-            queryFn: async () => getMasterfeeInstallment(searchParams),
+            queryKey: [FEES_QUERY_KEYS.FEE_MASTER_INSTALLMENT_DROPDOWN],
+            queryFn: async () => getMasterfeeInstallment(),
             staleTime: 0,
             retry: 1
         }),
         refetchAll: () => {
             return queryClient.invalidateQueries({
                 queryKey: [FEES_QUERY_KEYS.FEE_MASTER_INSTALLMENT_DROPDOWN]
+            });
+        }
+    };
+};
+
+export const useMasterAllFeeHead = (searchParams?: ApiSearchparams) => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [FEES_QUERY_KEYS.FEE_ALL_HEAD, searchParams ?? {}],
+            queryFn: async () => getMasterAllFeeHead(searchParams),
+            staleTime: 0
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [FEES_QUERY_KEYS.FEE_ALL_HEAD]
             });
         }
     };
