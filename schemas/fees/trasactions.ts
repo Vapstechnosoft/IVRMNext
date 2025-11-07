@@ -151,3 +151,15 @@ export const feeTransactionWaivedOffSchema = {
         fmC_Id: deleteIdSchema('fmC_Id')
     })
 };
+
+export const feePreadmissionTransactionSchema = {
+    addOrUpdate: z.object({
+        //asmaY_Id: z.number().int({ message: 'Academic Year is required' }),
+        asmaY_Id: z.number({ message: 'Academic Year is required' }),
+        feeGroupId: z.number({ message: 'Fee Group is required' }),
+        categoryId: z.number({ message: 'Category is required' })
+    }),
+    delete: z.object({
+        fmA_Id: deleteIdSchema('fmA_Id')
+    })
+};

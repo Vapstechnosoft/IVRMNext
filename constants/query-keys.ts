@@ -93,7 +93,9 @@ export const FEES_QUERY_KEYS = {
     FEE_THIRDPARTY_HEADDROPDOWN: 'fee_thirdparty_headdropdown',
     FEE_THIRDPARTY_BANKDROPDOWN: 'fee_thirdparty_bankdropdown',
     FEE_MASTER_HEADS_DROPDOWN: 'fee_master_heads_dropdown',
-    FEE_MASTER_INSTALLMENT_DROPDOWN: 'fee_master_installment_dropdown'
+    FEE_MASTER_INSTALLMENT_DROPDOWN: 'fee_master_installment_dropdown',
+    FEE_PREADMISSION_TRANSACTION_DETAILS: 'fee_preadmission_transaction_details',
+    FEE_PREADMISSION_STUDENT_DROPDOWN: 'fee_preadmission_student_dropdown'
 };
 
 export const EXAM_QUERY_KEYS = {
