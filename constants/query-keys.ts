@@ -21,7 +21,10 @@ export const ADMISSION_QUERY_KEYS = {
     MASTER_REFERENCE: 'master_reference',
     MASTER_SOURCE: 'master_source',
     MASTER_RELIGION_CASTE_CATEGORY: 'master_religion_caste_category',
-    UNMAPPED_CASTE_CATEGORY_DROPDOWN: 'unmapped_caste_category_dropdown'
+    UNMAPPED_CASTE_CATEGORY_DROPDOWN: 'unmapped_caste_category_dropdown',
+    MASTER_CLASS_TEACHER: 'master_class_teacher',
+    MASTER_CLASS_TEACHER_EMPLOYEE: 'master_class_teacher_employee',
+    MASTER_EXCHANGE_CLASS_TEACHER_MAPPING: 'exchange_class_teacher_mapping'
 };
 
 export const PREADMISSION_QUERY_KEYS = {
