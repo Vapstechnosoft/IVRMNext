@@ -10,12 +10,12 @@ import { useCallback } from 'react';
 export const masterClassYearlyCategoryColumns: ColumnDef<IMasterClassYearlyList>[] = [
     {
         accessorKey: 'fyccC_Id',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Sl. No' className='w-full text-center' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Sl. No' className='w-full pl-6' />,
         cell: ({ row, table }) => {
             const pageIndex = table.getState().pagination.pageIndex;
             const pageSize = table.getState().pagination.pageSize;
 
-            return <div className='w-full text-center'>{pageIndex * pageSize + row.index + 1}</div>;
+            return <div className='w-full pl-6'>{pageIndex * pageSize + row.index + 1}</div>;
         },
         enableSorting: false,
         enableHiding: false

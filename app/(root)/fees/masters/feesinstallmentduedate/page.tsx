@@ -21,10 +21,11 @@ export default function MasterFeeDueDate(props: {
 }) {
     const searchParams = use(props.searchParams);
     const { data: response, isLoading, error } = useMasterFeeInstallmentDueDate(searchParams as any);
+    console.log('Installment Due Date Table response:', response);
 
     return (
         <FormProvider<IMasterFeesInstallmentDueDateList>>
-            <MasterFeeDueDateContent response={response} isLoading={isLoading} error={error} />
+            <MasterFeeDueDateContent response={response?.data ?? []} isLoading={isLoading} error={error} />
         </FormProvider>
     );
 }
@@ -34,7 +35,7 @@ function MasterFeeDueDateContent({
     isLoading,
     error
 }: {
-    response: any;
+    response: IMasterFeesInstallmentDueDateList[];
     isLoading: boolean;
     error: any;
 }) {
@@ -46,9 +47,7 @@ function MasterFeeDueDateContent({
             <div className='container space-y-4 p-1'>
                 {/* Header */}
                 <div className='flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between'>
-                    <div className='space-y-1'>
-                        <Heading title='Fees Installment Due Date' description='' />
-                    </div>
+                    <Heading title='' description='' />
                     <Button
                         type='button'
                         onClick={openAddForm}
@@ -69,11 +68,11 @@ function MasterFeeDueDateContent({
                         columns={masterInstallmentDueDateColumns}
                         isLoading={isLoading}
                         error={error}
-                        columnPinning={{ right: ['actions'] }}
                         loadingMessage='Loading master Fees Installment Due Date...'
                         noDataTitle='No Master Fees Installment Due Date Found'
                         noDataDescription='Get started by creating your first master Fees Installment Due Date'
                         errorTitle='Error Loading Fees Installment Due Date'
+                        columnPinning={{ right: ['actions'] }}
                     />
                 </CollapsibleSection>
 
@@ -99,7 +98,6 @@ function FormSections() {
 
     return (
         <>
-            {/* Add Form */}
             {isAddFormOpen && (
                 <div ref={addFormRef}>
                     <CollapsibleSection
@@ -124,7 +122,6 @@ function FormSections() {
                 </div>
             )}
 
-            {/* Edit Form */}
             {isEditFormOpen && selectedRow && (
                 <div ref={editFormRef}>
                     <CollapsibleSection
@@ -148,7 +145,6 @@ function FormSections() {
                 </div>
             )}
 
-            {/* Toggle Form */}
             {isToggleFormOpen && selectedRow && <ToggleMasterInstallmentDueDateForm rowData={selectedRow} onClose={closeToggleForm} />}
         </>
     );

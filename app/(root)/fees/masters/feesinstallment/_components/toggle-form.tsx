@@ -22,11 +22,7 @@ interface ToggleMasterInstallmentFormProps {
 export default function ToggleMasterInstallmentForm({ rowData, onClose }: ToggleMasterInstallmentFormProps) {
     const { refetchAll } = useMasterFeeInstallment();
 
-    // Normalize boolean/number safely
-    const isActive =
-        typeof (rowData as any).fmI_ActiveFlag === 'number'
-            ? (rowData as any).fmI_ActiveFlag === 1
-            : Boolean((rowData as any).fmI_ActiveFlag);
+    const isActive = rowData.fmI_ActiceFlag === true;
 
     const {
         register,
@@ -45,11 +41,11 @@ export default function ToggleMasterInstallmentForm({ rowData, onClose }: Toggle
 
     const onSubmit: SubmitHandler<FormFields> = async (_formData) => {
         try {
-            const response = await toggleMasterfeeInstallment(30, rowData.mI_Id);
+            const response = await toggleMasterfeeInstallment(rowData.fmI_Id);
 
             if (response.success) {
                 toast.success(response.message || 'Status updated successfully!');
-                refetchAll();
+                await refetchAll();
                 closeDialog();
             } else {
                 toast.error(response.message || 'Failed to update status.');
@@ -63,12 +59,12 @@ export default function ToggleMasterInstallmentForm({ rowData, onClose }: Toggle
         <AdaptiveDialog title='Toggle Master Installment Status' isOpen={true} onClose={closeDialog}>
             <form onSubmit={handleSubmit(onSubmit)} className='flex flex-col gap-4'>
                 <AdaptiveBody className='flex flex-col gap-5'>
-                    <input type='hidden' {...register('mI_ID', { valueAsNumber: true })} defaultValue={rowData.mI_Id} />
+                    <input type='hidden' {...register('fmI_Id', { valueAsNumber: true })} defaultValue={rowData.fmI_Id} />
                     <p>
                         Are you sure you want to {isActive ? 'deactivate' : 'activate'} <strong>{rowData.fmI_Name}</strong>?
                     </p>
 
-                    <FormError>{errors.mI_ID?.message}</FormError>
+                    <FormError>{errors.fmI_Id?.message}</FormError>
                     <FormError>{errors.root?.message}</FormError>
                 </AdaptiveBody>
 
