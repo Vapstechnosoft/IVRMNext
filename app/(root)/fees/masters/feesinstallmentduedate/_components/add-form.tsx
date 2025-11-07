@@ -79,7 +79,7 @@ export default function AddMasterInstallmentDueDateForm({ onSuccess }: AddMaster
             ftI_Name: row.ftI_Name,
             fdate: row.fdate,
             tdate: row.tdate,
-            aplc: row.aplc,
+            aplc: row.aplc1,
             ddate: row.ddate
         }));
     };

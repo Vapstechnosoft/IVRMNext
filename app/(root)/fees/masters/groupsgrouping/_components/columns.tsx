@@ -2,7 +2,6 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
-import { Checkbox } from '@/components/ui/checkbox';
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { ActionButtons } from '@/components/ui/form/action-buttons';
@@ -13,25 +12,25 @@ import { Eye } from 'lucide-react';
 import { useCallback, useState } from 'react';
 
 export const feegroupgroupingColoumn: ColumnDef<IMasterGroupsGrouping>[] = [
-    {
-        id: 'select',
-        header: ({ table }) => (
-            <Checkbox
-                checked={table.getIsAllPageRowsSelected() || (table.getIsSomePageRowsSelected() && 'indeterminate')}
-                onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
-                aria-label='Select all'
-            />
-        ),
-        cell: ({ row }) => (
-            <Checkbox checked={row.getIsSelected()} onCheckedChange={(value) => row.toggleSelected(!!value)} aria-label='Select row' />
-        ),
-        enableSorting: false,
-        enableHiding: false,
-        size: 24
-    },
+    // {
+    //     id: 'select',
+    //     header: ({ table }) => (
+    //         <Checkbox
+    //             checked={table.getIsAllPageRowsSelected() || (table.getIsSomePageRowsSelected() && 'indeterminate')}
+    //             onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
+    //             aria-label='Select all'
+    //         />
+    //     ),
+    //     cell: ({ row }) => (
+    //         <Checkbox checked={row.getIsSelected()} onCheckedChange={(value) => row.toggleSelected(!!value)} aria-label='Select row' />
+    //     ),
+    //     enableSorting: false,
+    //     enableHiding: false,
+    //     size: 24
+    // },
     {
         accessorKey: 'fmgG_Id',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Sl.No' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Sl.No' className='pl-6' />,
         cell: ({ row, table }) => {
             const pageIndex = table.getState().pagination.pageIndex;
             const pageSize = table.getState().pagination.pageSize;
@@ -43,7 +42,7 @@ export const feegroupgroupingColoumn: ColumnDef<IMasterGroupsGrouping>[] = [
     },
     {
         accessorKey: 'fmgG_GroupName',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Group Name' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Group Name' className='' />,
         cell: ({ row }) => {
             const value = row.getValue('fmgG_GroupName') as string;
             return <div className='font-medium'>{value || '—'}</div>;

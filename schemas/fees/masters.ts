@@ -149,7 +149,9 @@ export const masterClassSchema = {
     }),
 
     delete: z.object({
-        fycC_Id: z.number().min(1, { message: 'Valid Class Yearly Category ID is required for deletion' })
+        fycC_Id: z.number().min(1, {
+            message: 'Valid Class Yearly Category ID is required for deletion'
+        })
     })
 };
 
@@ -179,7 +181,7 @@ export const masterInstallmentSchema = {
             .optional()
     }),
     delete: z.object({
-        mI_ID: z.number().optional()
+        fmI_Id: z.number().optional()
     })
 };
 export const masterGroupSchema = {
@@ -191,10 +193,16 @@ export const masterGroupSchema = {
             if (typeof val === 'string' && val.trim() === '') return undefined;
             return val;
         }, z.enum(['transport', 'hostel']).optional()),
-        studentType: z.preprocess((val) => {
-            if (typeof val === 'string' && val.trim() === '') return undefined;
-            return val;
-        }, z.enum(['regular', 'newstudent']).optional()),
+        studentType: z.preprocess(
+            (val) => {
+                if (typeof val === 'string' && val.trim() === '') return undefined;
+                return val;
+            },
+            z.enum(['regular', 'newstudent'], {
+                required_error: 'Please select Regular or New Student',
+                invalid_type_error: 'Please select Regular or New Student'
+            })
+        ),
         fmG_CompulsoryFlag: z.boolean().default(false)
     }),
     toggle: z.object({

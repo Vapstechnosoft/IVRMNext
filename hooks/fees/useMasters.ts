@@ -1,7 +1,7 @@
 import { ADMISSION_QUERY_KEYS, FEES_QUERY_KEYS } from '@/constants/query-keys';
 import { getMasterClassCategory } from '@/server/fees/masters/class_category';
 
-import { getClassCategory } from '@/server/fees/masters/class_yearly_category';
+import { getClassCategory, getMasterClassYearlyCategory } from '@/server/fees/masters/class_yearly_category';
 
 import { getAcademicYearDropdown } from '@/server/fees/masters/class_yearly_category';
 
@@ -9,13 +9,13 @@ import { getFeeTermHeadList, getheadsdropdown, getinstallmentsdropdown, getterms
 import { getpaymentgateway_dropdown, getpaymentgatewaydetails } from '@/server/fees/masters/fee_payment_gateway_details';
 import { getFeePrevilegeList, getGroupsDropdown, getRolesDropdown } from '@/server/fees/masters/fee_previlege';
 import { getfeehead } from '@/server/fees/masters/feehead';
-import { getfeeInstallment } from '@/server/fees/masters/feeinstallment';
+import { getfeeInstallment, getfeeInstallmentyId } from '@/server/fees/masters/feeinstallment';
 import { getfeeInstallmentDueDate } from '@/server/fees/masters/feeinstallmentduedate';
 import { getMasterConcession } from '@/server/fees/masters/feemasterconcession';
 import { getFeeTermList } from '@/server/fees/masters/feemasterterms';
 import { getMasterfeeInstallment, getMasterfeehead } from '@/server/fees/masters/yearly_group_mapping';
 
-import { getGroupListCategory, getMasterClassYearlyCategory } from '@/server/fees/masters/fees_yearly_group';
+import { getGroupListCategory, getMasterYearlyCategory } from '@/server/fees/masters/fees_yearly_group';
 
 import { getFineSlab } from '@/server/fees/masters/fineSlab';
 import { getFeeGroup, getFeeGroupGrouping } from '@/server/fees/masters/groupsgrouping';
@@ -180,7 +180,22 @@ export const useMasterClassCategory = (searchParams?: ApiSearchparams) => {
     };
 };
 
-//yearly category
+export const useMasterGetYearlyCategory = (searchParams?: ApiSearchparams) => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [FEES_QUERY_KEYS.FEE_YEARLY_CATEGORY, searchParams ?? {}],
+            queryFn: async () => getMasterYearlyCategory(searchParams),
+            staleTime: 0
+        }),
+        refetchAll: () =>
+            queryClient.invalidateQueries({
+                queryKey: [FEES_QUERY_KEYS.FEE_YEARLY_CATEGORY]
+            })
+    };
+};
+
 export const useMasterYearlyCategory = (searchParams?: ApiSearchparams) => {
     const queryClient = useQueryClient();
 
@@ -222,7 +237,7 @@ export const useMasterFeeInstallment = (searchParams?: ApiSearchparams) => {
     return {
         ...useQuery({
             queryKey: [FEES_QUERY_KEYS.FEE_INSTALLMENT, searchParams ?? {}],
-            queryFn: async () => getfeeInstallment(searchParams),
+            queryFn: async () => getfeeInstallment(30, searchParams),
             staleTime: 0
         }),
         refetchAll: () => {
@@ -232,6 +247,24 @@ export const useMasterFeeInstallment = (searchParams?: ApiSearchparams) => {
         }
     };
 };
+export const useMasterFeeInstallmentyId = (fmi_id: number) => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [FEES_QUERY_KEYS.FEE_INSTALLMENT, fmi_id],
+            queryFn: async () => getfeeInstallmentyId(fmi_id),
+            enabled: !!fmi_id,
+            staleTime: 0
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [FEES_QUERY_KEYS.FEE_INSTALLMENT]
+            });
+        }
+    };
+};
+
 //group
 
 export const useMasterGroup = (searchParams?: ApiSearchparams) => {

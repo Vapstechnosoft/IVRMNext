@@ -35,7 +35,7 @@ export const masterInstallmentDueDateColumns: ColumnDef<IMasterFeesInstallmentDu
     {
         accessorKey: 'fname',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Installment Name' />,
-        cell: ({ row }) => <div>{row.getValue('fname')}</div>,
+        cell: ({ row }) => <div>{row.getValue('fname') ?? '-'}</div>,
         enableSorting: true
     },
     {
@@ -65,7 +65,7 @@ export const masterInstallmentDueDateColumns: ColumnDef<IMasterFeesInstallmentDu
     {
         id: 'actions',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Actions' className='text-center' />,
-        accessorFn: (row: any) => row,
+        accessorFn: (row) => row,
         enableSorting: false,
         cell: ({ row }) => <ActionButtonsCell rowData={row.original} />
     }

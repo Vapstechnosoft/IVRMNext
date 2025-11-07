@@ -62,7 +62,6 @@ export interface IMasterFeesInstallmentList {
     fmI_Installment_Type: string;
     ftI_Name?: string;
     fmI_ActiceFlag?: boolean | number;
-    fmI_ActiveFlag?: boolean | number;
     installments?: Array<{
         sno?: number;
         ftI_Id?: number;
@@ -304,4 +303,28 @@ export interface IMasterYearlyRebateList {
     fyG_PartialRebateAmtOrPercentageValue?: number | string;
     fyG_PartialRebateTypeFlg?: string;
     fyG_PartialRebateApplicableFlg?: boolean;
+}
+
+export interface InstallmentResponse {
+    success: boolean;
+    message: string;
+    data: {
+        feemasterinstalment: FeeMasterInstallment[];
+        feeinstalmentlist: FeeInstallmentList[];
+    };
+}
+
+export interface FeeMasterInstallment {
+    fmI_Id: number;
+    mI_Id: number;
+    fmI_Name: string;
+    fmI_No_Of_Installments: number;
+    fmI_Installment_Type: string;
+    fmI_ActiceFlag: boolean;
+}
+
+export interface FeeInstallmentList {
+    ftI_Id: number;
+    fmI_Id: number;
+    ftI_Name: string;
 }

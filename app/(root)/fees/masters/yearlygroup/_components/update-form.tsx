@@ -8,7 +8,7 @@ import { FEES_QUERY_KEYS } from '@/constants/query-keys';
 import { useAcademicYearDropdown, useMasterFeeYearlyGroup, useMasterGroupListDropDown } from '@/hooks/fees/useMasters';
 import { cn } from '@/lib/utils';
 import { YearlyGroupSchema } from '@/schemas/fees/masters';
-import { addOrUpdateMasterClassYearlyCategory } from '@/server/fees/masters/fees_yearly_group';
+import { addOrUpdateMasterGroupYearlyCategory } from '@/server/fees/masters/fees_yearly_group';
 import type { IMaasterFeesYearlyGrouping } from '@/types/fees/masters/masters';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useQueryClient } from '@tanstack/react-query';
@@ -170,7 +170,7 @@ export default function UpdateYearlyGroupForm({ onSuccess, selectedRow }: Update
                 fyG_PartialRebateAmtOrPercentageValue: data.rebateApplicable && data.rebateValue ? Number(data.rebateValue) : 0
             };
 
-            const response = await addOrUpdateMasterClassYearlyCategory(payload);
+            const response = await addOrUpdateMasterGroupYearlyCategory(payload);
 
             if (response.success) {
                 toast.success(response.message || 'Master Yearly Group updated successfully!');

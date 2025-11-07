@@ -29,7 +29,6 @@ export default function UpdateMasterGroupForm({ onSuccess, selectedRow: row }: U
 
     const {
         control,
-
         register,
         handleSubmit,
         reset,
@@ -41,8 +40,16 @@ export default function UpdateMasterGroupForm({ onSuccess, selectedRow: row }: U
 
     useEffect(() => {
         if (row) {
-            const transportHostelType: 'transport' | 'hostel' = row.fmG_HostelFlg ? 'hostel' : 'transport';
-            const studentType: 'regular' | 'newstudent' = row.fmG_RegNewFlg === 'N' ? 'newstudent' : 'regular';
+            // Only set transportHostelType if one of the flags is explicitly true.
+            // If both flags are false/undefined, leave the radio empty.
+            let transportHostelType: 'transport' | 'hostel' | undefined;
+            if (row.fmG_HostelFlg === true) transportHostelType = 'hostel';
+            else if (row.fmG_TransportFlg === true) transportHostelType = 'transport';
+
+            // For studentType, map 'R' -> regular, 'N' -> newstudent. If value missing, leave undefined.
+            let studentType: 'regular' | 'newstudent' | undefined;
+            if (row.fmG_RegNewFlg === 'R') studentType = 'regular';
+            else if (row.fmG_RegNewFlg === 'N') studentType = 'newstudent';
 
             reset({
                 fmG_Id: row.fmG_Id,
@@ -98,8 +105,13 @@ export default function UpdateMasterGroupForm({ onSuccess, selectedRow: row }: U
 
     const handleReset = () => {
         if (row) {
-            const transportHostelType: 'transport' | 'hostel' = row.fmG_HostelFlg ? 'hostel' : 'transport';
-            const studentType: 'regular' | 'newstudent' = row.fmG_RegNewFlg === 'N' ? 'newstudent' : 'regular';
+            let transportHostelType: 'transport' | 'hostel' | undefined;
+            if (row.fmG_HostelFlg === true) transportHostelType = 'hostel';
+            else if (row.fmG_TransportFlg === true) transportHostelType = 'transport';
+
+            let studentType: 'regular' | 'newstudent' | undefined;
+            if (row.fmG_RegNewFlg === 'R') studentType = 'regular';
+            else if (row.fmG_RegNewFlg === 'N') studentType = 'newstudent';
 
             reset({
                 fmG_Id: row.fmG_Id,
@@ -143,7 +155,7 @@ export default function UpdateMasterGroupForm({ onSuccess, selectedRow: row }: U
                             name='transportHostelType'
                             control={control}
                             render={({ field }) => (
-                                <RadioGroup value={field.value} onValueChange={field.onChange} className='flex items-center gap-4'>
+                                <RadioGroup value={field.value ?? ''} onValueChange={field.onChange} className='flex items-center gap-4'>
                                     <div className='flex items-center justify-center gap-1'>
                                         <RadioGroupItem value='transport' id='transport' />
                                         <Label htmlFor='transport' className='cursor-pointer text-gray-600 text-sm'>
@@ -182,7 +194,7 @@ export default function UpdateMasterGroupForm({ onSuccess, selectedRow: row }: U
                             name='studentType'
                             control={control}
                             render={({ field }) => (
-                                <RadioGroup value={field.value} onValueChange={field.onChange} className='flex items-center gap-4'>
+                                <RadioGroup value={field.value ?? ''} onValueChange={field.onChange} className='flex items-center gap-4'>
                                     <div className='flex items-center justify-center gap-1'>
                                         <RadioGroupItem value='regular' id='regular' />
                                         <Label htmlFor='regular' className='cursor-pointer text-gray-600 text-sm'>
