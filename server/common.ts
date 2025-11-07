@@ -458,8 +458,8 @@ export async function getUserAccessibleModules() {
                                             name: 'Fee waivedoff',
                                             icon: 'Settings',
                                             url: '/fees/transactions/waivedoff',
-                                            title: 'Fee Transactions',
-                                            description: 'Fee Transactions'
+                                            title: 'Fee waivedoff',
+                                            description: 'Fee waivedoff'
                                         }
 
                                         // ,
