@@ -188,3 +188,13 @@ export interface IMasterConfiguration {
     ispaC_ApplNoIncrementFlg: boolean;
     ispaC_ApplNoIncrementBy: number;
 }
+
+export interface IMasterClassTeacherList {
+    imcT_Id: number;
+    asmaY_Year: string;
+    asmcL_ClassName: string;
+    asmC_SectionName: string;
+    employee_code: string;
+    employee_name: string;
+    imcT_ActiveFlag: boolean;
+}

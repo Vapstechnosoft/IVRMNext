@@ -155,6 +155,14 @@ export async function getUserAccessibleModules() {
                                             url: '/admission/preadmission/masters/religion-caste-category',
                                             title: 'Master Religion Caste Category',
                                             description: 'Manage Master Religion Caste Category Details'
+                                        },
+                                        {
+                                            id: 12,
+                                            name: 'Class Teacher',
+                                            icon: 'Settings',
+                                            url: '/admission/preadmission/masters/class-teacher',
+                                            title: 'Class Teacher',
+                                            description: 'Manage Master Religion Class Teacher Details'
                                         }
                                     ]
                                 },
@@ -241,6 +249,21 @@ export async function getUserAccessibleModules() {
                                             url: '/admission/preadmission/configuration/pre-registration-numbering',
                                             title: 'Pre-Registration Numbering',
                                             description: 'Pre-Registration Numbering'
+                                        }
+                                    ]
+                                },
+                                {
+                                    id: 3,
+                                    name: 'Reports',
+                                    icon: 'Settings',
+                                    pages: [
+                                        {
+                                            id: 1,
+                                            name: ' Student Count Report',
+                                            icon: 'Settings',
+                                            url: '/admission/preadmission/reports/student-count-report',
+                                            title: 'Student Count Report ',
+                                            description: 'Student Count Report'
                                         }
                                     ]
                                 }

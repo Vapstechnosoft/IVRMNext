@@ -137,6 +137,21 @@ export const masterCasteSchema = {
     })
 };
 
+export const masterClassTeacherSchema = {
+    addOrUpdate: z.object({
+        imcT_Id: z.number().int().nonnegative().optional(), // optional when creating new record
+        asmaY_Id: z.number().int().nonnegative({
+            message: 'Academic year id must be a non-negative integer'
+        }),
+        asmcL_Id: z.number().int().nonnegative({ message: 'Class id must be a non-negative integer' }),
+        asmS_Id: z.number().int().nonnegative({ message: 'Section id must be a non-negative integer' }),
+        hrmE_Id: z.number().int().nonnegative({ message: 'Employee id must be a non-negative integer' })
+    }),
+    delete: z.object({
+        imcT_Id: z.number().int().positive({ message: 'imcT_Id is required for delete' })
+    })
+};
+
 export const masterDocumentSchema = {
     addOrUpdate: z.object({
         amsmD_Id: z.number().int({ message: 'AMSMD_ID is required' }).optional(),
