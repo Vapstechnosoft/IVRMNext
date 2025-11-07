@@ -40,7 +40,7 @@ export default function AddMasterAcademicYearForm({ onSuccess, className = '' }:
         mode: 'onChange',
         defaultValues: {
             asmaY_ActiveFlag: 0,
-            asmaY_Pre_ActiveFlag: 0,
+            asmaY_Pre_ActiveFlag: false,
             asmaY_ReggularFlg: false,
             asmaY_NewFlg: false,
             asmaY_NewAdmissionFlg: false,
@@ -75,7 +75,7 @@ export default function AddMasterAcademicYearForm({ onSuccess, className = '' }:
                 ASMAY_Order: Number(data.asmaY_Order),
                 ASMAY_ActiveFlag: 1,
                 ASMAY_Cut_Of_Date: data.asmaY_Cut_Of_Date,
-                ASMAY_Pre_ActiveFlag: 1,
+                ASMAY_Pre_ActiveFlag: data.asmaY_Pre_ActiveFlag === true ? 1 : 0,
                 ASMAY_ReggularFlg: Boolean(data.asmaY_ReggularFlg),
                 ASMAY_NewFlg: Boolean(data.asmaY_NewFlg),
                 ASMAY_NewAdmissionFlg: Boolean(data.asmaY_NewAdmissionFlg),
@@ -653,6 +653,18 @@ export default function AddMasterAcademicYearForm({ onSuccess, className = '' }:
                         <div className='flex justify-start gap-4'>
                             <div className='flex items-center space-x-2'>
                                 <Controller
+                                    name='asmaY_NewAdmissionFlg'
+                                    control={control}
+                                    render={({ field }) => (
+                                        <Checkbox id='asmaY_NewAdmissionFlg' checked={field.value} onCheckedChange={field.onChange} />
+                                    )}
+                                />
+                                <Label htmlFor='asmaY_NewAdmissionFlg' className='cursor-pointer'>
+                                    New Admission Flag
+                                </Label>
+                            </div>
+                            <div className='flex items-center space-x-2'>
+                                <Controller
                                     name='asmaY_ReggularFlg'
                                     control={control}
                                     render={({ field }) => (
@@ -660,10 +672,9 @@ export default function AddMasterAcademicYearForm({ onSuccess, className = '' }:
                                     )}
                                 />
                                 <Label htmlFor='asmaY_ReggularFlg' className='cursor-pointer'>
-                                    Regular Year
+                                    Regular Flag
                                 </Label>
                             </div>
-
                             <div className='flex items-center space-x-2'>
                                 <Controller
                                     name='asmaY_NewFlg'
@@ -673,20 +684,19 @@ export default function AddMasterAcademicYearForm({ onSuccess, className = '' }:
                                     )}
                                 />
                                 <Label htmlFor='asmaY_NewFlg' className='cursor-pointer'>
-                                    New Year
+                                    New Flag
                                 </Label>
                             </div>
-
                             <div className='flex items-center space-x-2'>
                                 <Controller
-                                    name='asmaY_NewAdmissionFlg'
+                                    name='asmaY_Pre_ActiveFlag'
                                     control={control}
                                     render={({ field }) => (
-                                        <Checkbox id='asmaY_NewAdmissionFlg' checked={field.value} onCheckedChange={field.onChange} />
+                                        <Checkbox id='asmaY_Pre_ActiveFlag' checked={field.value} onCheckedChange={field.onChange} />
                                     )}
                                 />
-                                <Label htmlFor='asmaY_NewAdmissionFlg' className='cursor-pointer'>
-                                    New Admissions Open
+                                <Label htmlFor='asmaY_Pre_ActiveFlag' className='cursor-pointer'>
+                                    Preadmission Flag
                                 </Label>
                             </div>
                         </div>
