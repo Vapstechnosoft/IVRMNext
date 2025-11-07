@@ -9,7 +9,7 @@ import { FEES_QUERY_KEYS } from '@/constants/query-keys';
 import { useAcademicYearDropdown, useMasterFeeYearlyGroup, useMasterGroupListDropDown } from '@/hooks/fees/useMasters';
 import { cn } from '@/lib/utils';
 import { YearlyGroupSchema } from '@/schemas/fees/masters';
-import { addOrUpdateMasterClassYearlyCategory } from '@/server/fees/masters/fees_yearly_group';
+import { addOrUpdateMasterGroupYearlyCategory } from '@/server/fees/masters/fees_yearly_group';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useQueryClient } from '@tanstack/react-query';
 import { CheckSquare, ChevronsUpDown, Save, Search, Square } from 'lucide-react';
@@ -101,7 +101,7 @@ export default function AddMasterYearlyGroup({ onSuccess }: AddMasterYearlyGroup
         };
 
         try {
-            const response = await addOrUpdateMasterClassYearlyCategory(payload);
+            const response = await addOrUpdateMasterGroupYearlyCategory(payload);
             if (response.success) {
                 toast.success(response.message || 'Form submitted successfully!');
                 try {
@@ -363,7 +363,7 @@ export default function AddMasterYearlyGroup({ onSuccess }: AddMasterYearlyGroup
                         disabled={isSubmitting || !academicYearOptions?.data}
                         className='order-1 w-fit transition-all duration-200 hover:scale-105 sm:order-2'>
                         <Save className='mr-2 h-4 w-4' />
-                        Save
+                        Save Yearly Groups
                     </Button>
                 </div>
             </form>

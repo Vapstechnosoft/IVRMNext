@@ -317,7 +317,7 @@ export default function AddMasterClassForm({ onSuccess, className = '' }: AddMas
                         className='order-1 w-fit transition-all duration-200 hover:scale-105 sm:order-2'>
                         <div className='flex items-center'>
                             <Save className='mr-2 h-4 w-4' />
-                            Save Master Class
+                            Save Yearly Category
                         </div>
                     </Button>
                 </div>

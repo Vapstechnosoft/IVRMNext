@@ -1,6 +1,4 @@
 'use client';
-
-import { Heading } from '@/components/layout/heading';
 import { Button } from '@/components/ui/button';
 import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/generic-data-table';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
@@ -31,10 +29,10 @@ export default function MasterYearlyRebateSettings({
                     {/* Header */}
                     <div className='flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between'>
                         <div className='space-y-1'>
-                            <Heading
+                            {/* <Heading
                                 title='Fees Yearly Group'
                                 description='Manage fee groups, rebates, and installments by academic year'
-                            />
+                            /> */}
                         </div>
                         <AddButton />
                     </div>

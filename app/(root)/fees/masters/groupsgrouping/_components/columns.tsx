@@ -2,7 +2,6 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
-import { Checkbox } from '@/components/ui/checkbox';
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { ActionButtons } from '@/components/ui/form/action-buttons';
@@ -14,36 +13,20 @@ import { useCallback, useState } from 'react';
 
 export const feegroupgroupingColoumn: ColumnDef<IMasterGroupsGrouping>[] = [
     {
-        id: 'select',
-        header: ({ table }) => (
-            <Checkbox
-                checked={table.getIsAllPageRowsSelected() || (table.getIsSomePageRowsSelected() && 'indeterminate')}
-                onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
-                aria-label='Select all'
-            />
-        ),
-        cell: ({ row }) => (
-            <Checkbox checked={row.getIsSelected()} onCheckedChange={(value) => row.toggleSelected(!!value)} aria-label='Select row' />
-        ),
-        enableSorting: false,
-        enableHiding: false,
-        size: 24
-    },
-    {
         accessorKey: 'fmgG_Id',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Sl.No' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Sl.No' className='pl-6' />,
         cell: ({ row, table }) => {
             const pageIndex = table.getState().pagination.pageIndex;
             const pageSize = table.getState().pagination.pageSize;
             const continuousIndex = pageIndex * pageSize + row.index + 1;
-            return <div>{continuousIndex}</div>;
+            return <div className='pl-6'>{continuousIndex}</div>;
         },
         enableSorting: true,
         enableHiding: false
     },
     {
         accessorKey: 'fmgG_GroupName',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Group Name' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Group Name' className='' />,
         cell: ({ row }) => {
             const value = row.getValue('fmgG_GroupName') as string;
             return <div className='font-medium'>{value || '—'}</div>;
@@ -62,14 +45,20 @@ export const feegroupgroupingColoumn: ColumnDef<IMasterGroupsGrouping>[] = [
         enableSorting: true,
         enableHiding: true
     },
-
     {
-        accessorKey: 'selectedFeeGroupIds',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Fee Group IDs' />,
+        accessorKey: 'selectedFeeGroups',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Fee Group Names' />,
         cell: ({ row }) => {
-            const ids = row.getValue('selectedFeeGroupIds') as number[];
-            const count = ids?.length || 0;
-            return <SelectedFeeGroupsCell ids={ids} count={count} />;
+            const selectedFeeGroups =
+                (row.getValue('selectedFeeGroups') as Array<{
+                    fmG_Id: number;
+                    fmG_GroupName: string;
+                }>) || [];
+
+            const fmG_GroupName = selectedFeeGroups.map((group) => group.fmG_GroupName);
+            const count = fmG_GroupName.length;
+
+            return <SelectedFeeGroupsCell fmG_GroupName={fmG_GroupName} count={count} />;
         },
         enableSorting: false,
         enableHiding: true
@@ -85,10 +74,10 @@ export const feegroupgroupingColoumn: ColumnDef<IMasterGroupsGrouping>[] = [
 
 // Selected Fee Groups View Modal
 function SelectedFeeGroupsCell({
-    ids,
+    fmG_GroupName,
     count
 }: {
-    ids: number[];
+    fmG_GroupName: string[];
     count: number;
 }) {
     const [open, setOpen] = useState(false);
@@ -105,14 +94,14 @@ function SelectedFeeGroupsCell({
             <Dialog open={open} onOpenChange={setOpen}>
                 <DialogContent>
                     <DialogHeader>
-                        <DialogTitle>Selected Fee Group IDs ({count})</DialogTitle>
+                        <DialogTitle>Selected Fee Groups ({count})</DialogTitle>
                     </DialogHeader>
                     <div className='max-h-96 space-y-2 overflow-y-auto'>
-                        {ids && ids.length > 0 ? (
+                        {fmG_GroupName && fmG_GroupName.length > 0 ? (
                             <ul className='list-inside list-disc space-y-1 text-sm'>
-                                {ids.map((id) => (
-                                    <li key={id} className='text-foreground'>
-                                        Fee Group ID: <span className='font-mono font-semibold'>{id}</span>
+                                {fmG_GroupName.map((name, index) => (
+                                    <li key={`${name}-${index}`} className='text-foreground'>
+                                        Fee Group Name: <span className='font-mono font-semibold'>{name}</span>
                                     </li>
                                 ))}
                             </ul>

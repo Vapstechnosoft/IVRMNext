@@ -2,7 +2,7 @@
 
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Save } from 'lucide-react';
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { Controller, useFieldArray, useForm, useWatch } from 'react-hook-form';
 import { toast } from 'sonner';
 import type { z } from 'zod';
@@ -19,7 +19,7 @@ import type { IMasterFeesInstallmentList } from '@/types/fees/masters/masters';
 
 type FormFields = z.infer<typeof masterInstallmentSchema.addOrUpdate> & {
     fmI_Id?: number;
-    installments?: { sno: number; ftI_Name: string }[];
+    installments?: { sno: number; ftI_Name: string; ftI_Id?: number }[];
 };
 
 interface UpdateMasterFeeInstallmentFormProps {
@@ -29,6 +29,56 @@ interface UpdateMasterFeeInstallmentFormProps {
 
 export default function UpdateMasterFeeInstallmentForm({ onSuccess, selectedRow: row }: UpdateMasterFeeInstallmentFormProps) {
     const { refetchAll } = useMasterFeeInstallment();
+
+    const sanitizedRef = useRef<{
+        fmI_Id?: number | string;
+        fmI_ActiveFlag?: any;
+    }>({});
+
+    const sanitizeId = (id: any) => {
+        if (id === null || id === undefined) return undefined;
+        if (typeof id === 'string') {
+            const trimmed = id.trim();
+            const lower = trimmed.toLowerCase();
+            if (lower === '$undefined' || lower === 'undefined' || trimmed === '') {
+                return undefined;
+            }
+            const n = Number(trimmed);
+            if (!Number.isNaN(n) && n > 0 && Number.isInteger(n)) {
+                return n;
+            }
+            if (!Number.isNaN(n)) {
+                return undefined;
+            }
+            return trimmed;
+        }
+        if (typeof id === 'number') {
+            return id > 0 && Number.isInteger(id) ? id : undefined;
+        }
+        return undefined;
+    };
+
+    const sanitizeSnapshot = (vals: any): FormFields | null => {
+        if (!vals) return null;
+        const copy: any = { ...vals };
+
+        copy.fmI_Id = sanitizeId(copy.fmI_Id);
+
+        if (Array.isArray(copy.installments)) {
+            copy.installments = copy.installments.map((inst: any) => ({
+                sno: inst?.sno,
+                ftI_Name: inst?.ftI_Name ?? '',
+                ftI_Id: sanitizeId(inst?.ftI_Id ?? inst?.id)
+            }));
+        }
+
+        copy.fmI_No_Of_Installments = Number(copy.fmI_No_Of_Installments) || 1;
+
+        copy.fmI_Installment_Type = copy.fmI_Installment_Type ?? '';
+        copy.fmI_Name = copy.fmI_Name ?? '';
+
+        return copy as FormFields;
+    };
 
     const {
         control,
@@ -41,9 +91,14 @@ export default function UpdateMasterFeeInstallmentForm({ onSuccess, selectedRow:
         resolver: zodResolver(masterInstallmentSchema.addOrUpdate),
         mode: 'onChange',
         defaultValues: {
-            installments: []
+            installments: [],
+            fmI_Installment_Type: row?.fmI_Installment_Type?.toLowerCase() || '',
+            fmI_Name: row?.fmI_Name || '',
+            fmI_No_Of_Installments: row?.fmI_No_Of_Installments || 1
         }
     });
+
+    const initialValuesRef = useRef<FormFields | null>(null);
 
     const { fields, append, remove } = useFieldArray({
         control,
@@ -55,42 +110,55 @@ export default function UpdateMasterFeeInstallmentForm({ onSuccess, selectedRow:
         name: 'fmI_No_Of_Installments'
     });
 
-    const INSTALLMENT_TYPES = [
-        { value: 'general', label: 'General', count: 0 },
-        { value: 'monthly', label: 'Monthly', count: 12 },
-        { value: 'quarterly', label: 'Quarterly', count: 4 },
-        { value: 'halfyearly', label: 'Half Yearly', count: 2 },
-        { value: 'yearly', label: 'Yearly', count: 1 },
-        { value: 'bimonthly', label: 'Bi-Monthly', count: 24 },
-        { value: 'anytime', label: 'Anytime', count: 1 }
-    ];
+    useEffect(() => {
+        if (!row) return;
 
-    const handleTypeChange = (value: string) => {
-        const selected = INSTALLMENT_TYPES.find((t) => t.value === value);
-        if (value !== 'general') {
-            const count = selected?.count || 0;
-            setValue('fmI_No_Of_Installments', count, { shouldDirty: true });
-        }
-    };
+        const rawType = row.fmI_Installment_Type;
+        let normalizedType = '';
 
-    const normalizeType = (val: any) => {
-        if (val === undefined || val === null) return '';
-        if (typeof val === 'number') {
-            if (val === 1) return 'monthly';
-            if (val === 2) return 'quarterly';
+        if (rawType === undefined || rawType === null) {
+            normalizedType = '';
+        } else if (typeof rawType === 'number' || /^(\d+)$/g.test(String(rawType))) {
+            const num = Number(rawType);
+            normalizedType = num === 1 ? 'monthly' : num === 2 ? 'quarterly' : String(rawType);
+        } else {
+            normalizedType = String(rawType).toLowerCase();
         }
-        const s = String(val).toLowerCase().trim();
-        if (s === '1') return 'monthly';
-        if (s === '2') return 'quarterly';
-        if (s.includes('month') && s.includes('bi') === false) return 'monthly';
-        if (s.includes('quarter')) return 'quarterly';
-        if (s.includes('half')) return 'halfyearly';
-        if (s.includes('year')) return 'yearly';
-        if (s.includes('bimonth')) return 'bimonthly';
-        if (s === 'anytime') return 'anytime';
-        if (s === 'general') return 'general';
-        return s;
-    };
+
+        const fmIId = sanitizeId(row.fmI_Id ?? (row as any).id);
+        sanitizedRef.current = {
+            fmI_Id: fmIId,
+            fmI_ActiveFlag: row.fmI_ActiceFlag
+        };
+
+        const installments =
+            Array.isArray((row as any).fydto) && (row as any).fydto.length > 0
+                ? (row as any).fydto.map((inst: any, index: number) => ({
+                      sno: index + 1,
+                      ftI_Name: inst.ftI_Name ?? `Installment ${index + 1}`,
+                      ftI_Id: sanitizeId(inst.ftI_Id ?? inst.id)
+                  }))
+                : Array.from({ length: row.fmI_No_Of_Installments || 1 }, (_, i) => ({
+                      sno: i + 1,
+                      ftI_Name: `Installment ${i + 1}`
+                  }));
+
+        setValue('fmI_Installment_Type', normalizedType, { shouldValidate: true });
+        setValue('fmI_Name', row.fmI_Name, { shouldValidate: true });
+        setValue('fmI_No_Of_Installments', installments.length, {
+            shouldValidate: true
+        });
+        setValue('installments', installments, { shouldValidate: true });
+        setValue('fmI_Id', typeof fmIId === 'number' ? fmIId : undefined);
+
+        initialValuesRef.current = sanitizeSnapshot({
+            fmI_Id: typeof fmIId === 'number' ? fmIId : undefined,
+            fmI_Installment_Type: normalizedType,
+            fmI_Name: row.fmI_Name,
+            fmI_No_Of_Installments: installments.length,
+            installments
+        });
+    }, [row, setValue]);
 
     useEffect(() => {
         if (watchNoOfInstallments !== undefined) {
@@ -109,62 +177,70 @@ export default function UpdateMasterFeeInstallmentForm({ onSuccess, selectedRow:
         }
     }, [watchNoOfInstallments, fields.length, append, remove]);
 
-    useEffect(() => {
-        if (row) {
-            const pickInstallmentName = (inst: any, idx: number) =>
-                inst?.ftI_Name ?? inst?.ftI_NAME ?? inst?.installmentname ?? `Installment ${idx + 1}`;
-
-            let mappedInstallments: { sno: number; ftI_Name: string }[] = [];
-
-            if (Array.isArray(row.installments) && row.installments.length > 0) {
-                mappedInstallments = row.installments.map((inst: any, index: number) => ({
-                    sno: inst?.sno ?? index + 1,
-                    ftI_Name: pickInstallmentName(inst, index)
-                }));
-            } else {
-                const count = Number(row.fmI_No_Of_Installments) || 1;
-                mappedInstallments = Array.from({ length: count }, (_, i) => {
-                    const r: any = row as any;
-                    return {
-                        sno: i + 1,
-                        ftI_Name: r?.ftI_Name ?? r?.ftI_NAME ?? r?.installmentname ?? `Installment ${i + 1}`
-                    };
-                });
-            }
-
-            const normalizedType = normalizeType(row.fmI_Installment_Type);
-
-            reset({
-                fmI_Id: row.fmI_Id,
-                fmI_Name: row.fmI_Name,
-                fmI_Installment_Type: normalizedType,
-                fmI_No_Of_Installments: mappedInstallments.length,
-                installments: mappedInstallments
-            });
-        }
-    }, [row, reset]);
-
     const onSubmit = async (data: FormFields) => {
         try {
+            const idFromForm = sanitizeId((data as any)?.fmI_Id ?? data.fmI_Id);
+            const originalId =
+                (idFromForm && typeof idFromForm === 'number' && idFromForm > 0 ? idFromForm : undefined) ??
+                (typeof sanitizedRef.current?.fmI_Id === 'number'
+                    ? sanitizedRef.current?.fmI_Id
+                    : sanitizeId(row.fmI_Id ?? (row as any).id));
+
+            const fmI_Id = originalId && typeof originalId === 'number' && originalId > 0 ? originalId : undefined;
+
             const payload = {
-                fmI_Id: data.fmI_Id ?? row.fmI_Id,
-                mI_Id: row.mI_Id ?? 30,
+                fmI_Id,
+                mI_Id: row.mI_Id,
                 fmI_Name: data.fmI_Name,
                 fmI_Installment_Type: data.fmI_Installment_Type,
-                fmI_No_Of_Installments: data.installments?.length ?? 0,
-                fydto:
-                    data.installments?.map((inst) => ({
-                        ftI_Name: inst.ftI_Name || ''
-                    })) ?? [],
-                fmI_ActiveFlag: row.fmI_ActiveFlag ?? true
+                fmI_No_Of_Installments: data.fmI_No_Of_Installments,
+                fydto: (data.installments || []).map((inst: any, idx: number) => {
+                    const originalInst = (row as any).fydto?.[idx] ?? {};
+                    const originalId = sanitizeId(originalInst.ftI_Id ?? originalInst.id);
+                    const idFromForm = sanitizeId(inst.ftI_Id);
+                    const ftI_Id =
+                        idFromForm && typeof idFromForm === 'number' && idFromForm > 0
+                            ? idFromForm
+                            : originalId && typeof originalId === 'number' && originalId > 0
+                              ? originalId
+                              : undefined;
+                    return {
+                        ftI_Id,
+                        ftI_Name: inst.ftI_Name
+                    };
+                })
             };
 
-            const response = await addOrUpdateInstallment(payload);
+            const sanitizeOutgoing = (obj: any): any => {
+                if (obj === null || obj === undefined) return undefined;
+                if (typeof obj === 'string') {
+                    const t = obj.trim();
+                    if (t.toLowerCase() === '$undefined' || t.toLowerCase() === 'undefined' || t === '') return undefined;
+                    const n = Number(t);
+                    if (!Number.isNaN(n) && Number.isInteger(n) && n > 0) return n;
+                    return obj;
+                }
+                if (typeof obj === 'number' || typeof obj === 'boolean') return obj;
+                if (Array.isArray(obj)) return obj.map((v) => sanitizeOutgoing(v));
+                if (typeof obj === 'object') {
+                    const out: any = Array.isArray(obj) ? [] : {};
+                    for (const k of Object.keys(obj)) {
+                        const v = sanitizeOutgoing(obj[k]);
+                        if (v !== undefined) out[k] = v;
+                    }
+                    return out;
+                }
+                return undefined;
+            };
+
+            const clean = sanitizeOutgoing(payload);
+
+            const response = await addOrUpdateInstallment(clean);
 
             if (response?.success) {
                 toast.success(response?.message ?? 'Master Installment updated successfully!');
                 refetchAll();
-                reset();
+                reset(sanitizeSnapshot(initialValuesRef.current) ?? undefined);
                 onSuccess?.();
             } else {
                 toast.error(response?.message || 'Failed to update installment');
@@ -176,7 +252,11 @@ export default function UpdateMasterFeeInstallmentForm({ onSuccess, selectedRow:
     };
 
     const handleReset = () => {
-        reset();
+        if (initialValuesRef.current) {
+            reset(sanitizeSnapshot(initialValuesRef.current) ?? undefined);
+        } else {
+            reset();
+        }
     };
 
     return (
@@ -184,7 +264,6 @@ export default function UpdateMasterFeeInstallmentForm({ onSuccess, selectedRow:
             <form onSubmit={handleSubmit(onSubmit)} className='space-y-6'>
                 <input type='hidden' {...register('fmI_Id')} />
 
-                {/* Master Installment Name */}
                 <div className='flex flex-col gap-1.5'>
                     <Label htmlFor='fmI_Name'>
                         Master Installment Name <span className='text-red-500'>*</span>
@@ -206,7 +285,6 @@ export default function UpdateMasterFeeInstallmentForm({ onSuccess, selectedRow:
                     {errors.fmI_Name && <FormError>{errors.fmI_Name.message}</FormError>}
                 </div>
 
-                {/* Installment Type (dropdown) */}
                 <div className='flex flex-col gap-1.5'>
                     <Label htmlFor='fmI_Installment_Type'>
                         Installment Type <span className='text-red-500'>*</span>
@@ -215,21 +293,18 @@ export default function UpdateMasterFeeInstallmentForm({ onSuccess, selectedRow:
                         name='fmI_Installment_Type'
                         control={control}
                         render={({ field }) => (
-                            <Select
-                                value={field.value ?? ''}
-                                onValueChange={(val) => {
-                                    field.onChange(val);
-                                    handleTypeChange(val);
-                                }}>
+                            <Select value={field.value ?? ''} onValueChange={field.onChange}>
                                 <SelectTrigger className='w-full' disabled>
                                     <SelectValue placeholder='Select Installment Type' />
                                 </SelectTrigger>
                                 <SelectContent className='max-h-56 overflow-y-auto'>
-                                    {INSTALLMENT_TYPES.map((type) => (
-                                        <SelectItem key={type.value} value={type.value}>
-                                            {type.label}
-                                        </SelectItem>
-                                    ))}
+                                    <SelectItem value='general'>General</SelectItem>
+                                    <SelectItem value='monthly'>Monthly</SelectItem>
+                                    <SelectItem value='quarterly'>Quarterly</SelectItem>
+                                    <SelectItem value='halfyearly'>Half Yearly</SelectItem>
+                                    <SelectItem value='yearly'>Yearly</SelectItem>
+                                    <SelectItem value='bimonthly'>Bi-Monthly</SelectItem>
+                                    <SelectItem value='anytime'>Anytime</SelectItem>
                                 </SelectContent>
                             </Select>
                         )}
@@ -237,7 +312,6 @@ export default function UpdateMasterFeeInstallmentForm({ onSuccess, selectedRow:
                     {errors.fmI_Installment_Type && <FormError>{errors.fmI_Installment_Type.message}</FormError>}
                 </div>
 
-                {/* No of Installments */}
                 <div className='flex flex-col gap-1.5'>
                     <Label htmlFor='fmI_No_Of_Installments'>No. of Installments</Label>
                     <Controller
@@ -259,7 +333,6 @@ export default function UpdateMasterFeeInstallmentForm({ onSuccess, selectedRow:
                     {errors.fmI_No_Of_Installments && <FormError>{errors.fmI_No_Of_Installments.message}</FormError>}
                 </div>
 
-                {/* Dynamic Installments Table */}
                 {fields.length > 0 && (
                     <div className='overflow-x-auto rounded-lg border border-gray-200 shadow-sm'>
                         <table className='min-w-full border-collapse bg-white'>
@@ -286,6 +359,20 @@ export default function UpdateMasterFeeInstallmentForm({ onSuccess, selectedRow:
                                                     />
                                                 )}
                                             />
+                                            {/* Preserve ftI_Id so payload includes existing installment IDs. Use Controller to avoid DOM string coercion issues. */}
+                                            <Controller
+                                                name={`installments.${index}.ftI_Id` as const}
+                                                control={control}
+                                                render={({ field }) => (
+                                                    <input
+                                                        type='hidden'
+                                                        value={field.value as any}
+                                                        onChange={(e) => {
+                                                            field.onChange(e.target.value);
+                                                        }}
+                                                    />
+                                                )}
+                                            />
                                             {errors.installments?.[index]?.ftI_Name && (
                                                 <FormError>{errors.installments?.[index]?.ftI_Name?.message}</FormError>
                                             )}
@@ -297,7 +384,6 @@ export default function UpdateMasterFeeInstallmentForm({ onSuccess, selectedRow:
                     </div>
                 )}
 
-                {/* Action Buttons */}
                 <div className='flex flex-col gap-3 border-t pt-4 sm:flex-row sm:justify-start'>
                     <Button
                         type='button'
