@@ -162,7 +162,7 @@ export async function getUserAccessibleModules() {
                                             icon: 'Settings',
                                             url: '/admission/preadmission/masters/class-teacher',
                                             title: 'Class Teacher',
-                                            description: 'Manage Master Religion Class Teacher Details'
+                                            description: 'Manage Master Class Teacher Details'
                                         }
                                     ]
                                 },

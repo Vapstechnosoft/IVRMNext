@@ -1,15 +1,19 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
+import { CalendarYear } from '@/components/ui/calendar_year';
 import { Checkbox } from '@/components/ui/checkbox';
 import { FormError, Label } from '@/components/ui/extension/field';
 import { InputText } from '@/components/ui/extension/input-text';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { usePreAdmissionAcademicYear } from '@/hooks/admission/preadmission/useConfigurations';
+import { cn } from '@/lib/utils';
 import { PreAdmissionAcademicYearSchema } from '@/schemas/admission/preadmission/academic-year';
 import { addOrUpdatePreAdmissionYear } from '@/server/admission/preadmission/configuration/academic_year_master';
 import type { IMasterAcademicYearMasterList } from '@/types/admission/preadmission/configaration';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Save } from 'lucide-react';
+import { format } from 'date-fns';
+import { CalendarIcon, Save } from 'lucide-react';
 import { useEffect } from 'react';
 import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
@@ -154,139 +158,497 @@ export default function UpdateMasterAcademicYearForm({ onSuccess, className = ''
                     </div>
 
                     {/* Academic Year Dates */}
-                    <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
-                        <InputText
-                            label='Start Date'
-                            required
-                            type='datetime-local'
-                            id='asmaY_From_Date'
-                            {...register('asmaY_From_Date')}
-                            defaultValue={row.asmaY_From_Date}
-                            error={errors.asmaY_From_Date?.message}
-                            className='transition-colors focus:ring-2 focus:ring-primary/20'
-                        />
-                        <InputText
-                            label='End Date'
-                            required
-                            type='datetime-local'
-                            id='asmaY_To_Date'
-                            {...register('asmaY_To_Date')}
-                            defaultValue={row.asmaY_To_Date}
-                            error={errors.asmaY_To_Date?.message}
-                            className='transition-colors focus:ring-2 focus:ring-primary/20'
-                        />
+                    <div className='space-y-4'>
+                        <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
+                            <Controller
+                                name='asmaY_From_Date'
+                                control={control}
+                                render={({ field }) => (
+                                    <div className='flex flex-col gap-1.5'>
+                                        <Label>
+                                            {' '}
+                                            Start Date<span className='text-red-600'> *</span>
+                                        </Label>
+                                        <Popover>
+                                            <PopoverTrigger asChild>
+                                                <Button
+                                                    type='button'
+                                                    variant='outline'
+                                                    className={cn(
+                                                        'w-full justify-start text-left font-normal',
+                                                        !field.value && 'text-muted-foreground',
+                                                        errors.asmaY_From_Date && 'border-red-500'
+                                                    )}>
+                                                    <CalendarIcon className='mr-2 h-4 w-4' />
+                                                    {field.value ? format(new Date(field.value), 'dd/MM/yyyy') : 'Select date'}
+                                                </Button>
+                                            </PopoverTrigger>
+                                            <PopoverContent className='w-auto p-0' align='start'>
+                                                <CalendarYear
+                                                    mode='single'
+                                                    selected={field.value ? new Date(field.value) : undefined}
+                                                    onSelect={(date) => field.onChange(date?.toISOString())}
+                                                    captionLayout='dropdown'
+                                                    fromYear={2000}
+                                                    toYear={2050}
+                                                    required
+                                                />
+                                            </PopoverContent>
+                                        </Popover>
+                                        {errors.asmaY_From_Date && <p className='text-red-500 text-sm'>{errors.asmaY_From_Date.message}</p>}
+                                    </div>
+                                )}
+                            />
+
+                            <Controller
+                                name='asmaY_To_Date'
+                                control={control}
+                                render={({ field }) => (
+                                    <div className='flex flex-col gap-1.5'>
+                                        <Label>
+                                            End Date<span className='text-red-600'> *</span>
+                                        </Label>
+                                        <Popover>
+                                            <PopoverTrigger asChild>
+                                                <Button
+                                                    type='button'
+                                                    variant='outline'
+                                                    className={cn(
+                                                        'w-full justify-start text-left font-normal',
+                                                        !field.value && 'text-muted-foreground',
+                                                        errors.asmaY_To_Date && 'border-red-500'
+                                                    )}>
+                                                    <CalendarIcon className='mr-2 h-4 w-4' />
+                                                    {field.value ? format(new Date(field.value), 'dd/MM/yyyy') : 'Select date'}
+                                                </Button>
+                                            </PopoverTrigger>
+                                            <PopoverContent className='w-auto p-0' align='start'>
+                                                <CalendarYear
+                                                    mode='single'
+                                                    selected={field.value ? new Date(field.value) : undefined}
+                                                    onSelect={(date) => field.onChange(date?.toISOString())}
+                                                    captionLayout='dropdown'
+                                                    fromYear={2000}
+                                                    toYear={2050}
+                                                />
+                                            </PopoverContent>
+                                        </Popover>
+                                        {errors.asmaY_To_Date && <p className='text-red-500 text-sm'>{errors.asmaY_To_Date.message}</p>}
+                                    </div>
+                                )}
+                            />
+                        </div>
                     </div>
 
                     {/* Pre-Admission Dates */}
-                    <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
-                        <InputText
-                            label='Pre-Admission Start Date'
-                            required
-                            type='datetime-local'
-                            id='asmaY_PreAdm_F_Date'
-                            {...register('asmaY_PreAdm_F_Date')}
-                            defaultValue={row.asmaY_PreAdm_F_Date}
-                            error={errors.asmaY_PreAdm_F_Date?.message}
-                            className='transition-colors focus:ring-2 focus:ring-primary/20'
-                        />
-                        <InputText
-                            label='Pre-Admission End Date'
-                            required
-                            type='datetime-local'
-                            id='asmaY_PreAdm_T_Date'
-                            {...register('asmaY_PreAdm_T_Date')}
-                            defaultValue={row.asmaY_PreAdm_T_Date}
-                            error={errors.asmaY_PreAdm_T_Date?.message}
-                            className='transition-colors focus:ring-2 focus:ring-primary/20'
-                        />
+                    <div className='space-y-4'>
+                        <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
+                            <Controller
+                                name='asmaY_PreAdm_F_Date'
+                                control={control}
+                                render={({ field }) => (
+                                    <div className='flex flex-col gap-1.5'>
+                                        <Label>
+                                            Pre Admission Start Date
+                                            <span className='text-red-600'> *</span>
+                                        </Label>
+                                        <Popover>
+                                            <PopoverTrigger asChild>
+                                                <Button
+                                                    type='button'
+                                                    variant='outline'
+                                                    className={cn(
+                                                        'w-full justify-start text-left font-normal',
+                                                        !field.value && 'text-muted-foreground',
+                                                        errors.asmaY_PreAdm_F_Date && 'border-red-500'
+                                                    )}>
+                                                    <CalendarIcon className='mr-2 h-4 w-4' />
+                                                    {field.value ? format(new Date(field.value), 'dd/MM/yyyy') : 'Select date'}
+                                                </Button>
+                                            </PopoverTrigger>
+                                            <PopoverContent className='w-auto p-0' align='start'>
+                                                <CalendarYear
+                                                    mode='single'
+                                                    selected={field.value ? new Date(field.value) : undefined}
+                                                    onSelect={(date) => field.onChange(date?.toISOString())}
+                                                    captionLayout='dropdown'
+                                                    fromYear={2000}
+                                                    toYear={2050}
+                                                />
+                                            </PopoverContent>
+                                        </Popover>
+                                        {errors.asmaY_PreAdm_F_Date && (
+                                            <p className='text-red-500 text-sm'>{errors.asmaY_PreAdm_F_Date.message}</p>
+                                        )}
+                                    </div>
+                                )}
+                            />
+
+                            <Controller
+                                name='asmaY_PreAdm_T_Date'
+                                control={control}
+                                render={({ field }) => (
+                                    <div className='flex flex-col gap-1.5'>
+                                        <Label>
+                                            Pre Admission End Date
+                                            <span className='text-red-600'> *</span>
+                                        </Label>
+                                        <Popover>
+                                            <PopoverTrigger asChild>
+                                                <Button
+                                                    type='button'
+                                                    variant='outline'
+                                                    className={cn(
+                                                        'w-full justify-start text-left font-normal',
+                                                        !field.value && 'text-muted-foreground',
+                                                        errors.asmaY_PreAdm_T_Date && 'border-red-500'
+                                                    )}>
+                                                    <CalendarIcon className='mr-2 h-4 w-4' />
+                                                    {field.value ? format(new Date(field.value), 'dd/MM/yyyy') : 'Select date'}
+                                                </Button>
+                                            </PopoverTrigger>
+                                            <PopoverContent className='w-auto p-0' align='start'>
+                                                <CalendarYear
+                                                    mode='single'
+                                                    selected={field.value ? new Date(field.value) : undefined}
+                                                    onSelect={(date) => field.onChange(date?.toISOString())}
+                                                    captionLayout='dropdown'
+                                                    fromYear={2000}
+                                                    toYear={2050}
+                                                />
+                                            </PopoverContent>
+                                        </Popover>
+                                        {errors.asmaY_PreAdm_T_Date && (
+                                            <p className='text-red-500 text-sm'>{errors.asmaY_PreAdm_T_Date.message}</p>
+                                        )}
+                                    </div>
+                                )}
+                            />
+                        </div>
                     </div>
 
                     {/* Transport Dates */}
-                    <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
-                        <InputText
-                            label='Pre Admission Age Cut off Date'
-                            required
-                            type='datetime-local'
-                            id='asmaY_Cut_Of_Date'
-                            {...register('asmaY_Cut_Of_Date')}
-                            defaultValue={row.asmaY_Cut_Of_Date}
-                            error={errors.asmaY_Cut_Of_Date?.message}
-                            className='transition-colors focus:ring-2 focus:ring-primary/20'
-                        />
-                        <InputText
-                            label='Reference Date'
-                            type='datetime-local'
-                            id='asmaY_ReferenceDate'
-                            {...register('asmaY_ReferenceDate')}
-                            defaultValue={row.asmaY_ReferenceDate}
-                            error={errors.asmaY_ReferenceDate?.message}
-                            className='transition-colors focus:ring-2 focus:ring-primary/20'
-                        />
+                    <div className='space-y-4'>
+                        <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
+                            <Controller
+                                name='asmaY_Cut_Of_Date'
+                                control={control}
+                                render={({ field }) => (
+                                    <div className='flex flex-col gap-1.5'>
+                                        <Label>
+                                            Pre Admission Age Cut off Date
+                                            <span className='text-red-600'> *</span>
+                                        </Label>
+                                        <Popover>
+                                            <PopoverTrigger asChild>
+                                                <Button
+                                                    type='button'
+                                                    variant='outline'
+                                                    className={cn(
+                                                        'w-full justify-start text-left font-normal',
+                                                        !field.value && 'text-muted-foreground',
+                                                        errors.asmaY_Cut_Of_Date && 'border-red-500'
+                                                    )}>
+                                                    <CalendarIcon className='mr-2 h-4 w-4' />
+                                                    {field.value ? format(new Date(field.value), 'dd/MM/yyyy') : 'Select date'}
+                                                </Button>
+                                            </PopoverTrigger>
+                                            <PopoverContent className='w-auto p-0' align='start'>
+                                                <CalendarYear
+                                                    mode='single'
+                                                    selected={field.value ? new Date(field.value) : undefined}
+                                                    onSelect={(date) => field.onChange(date?.toISOString())}
+                                                    captionLayout='dropdown'
+                                                    fromYear={2000}
+                                                    toYear={2050}
+                                                />
+                                            </PopoverContent>
+                                        </Popover>
+                                        {errors.asmaY_Cut_Of_Date && (
+                                            <p className='text-red-500 text-sm'>{errors.asmaY_Cut_Of_Date.message}</p>
+                                        )}
+                                    </div>
+                                )}
+                            />
+
+                            <Controller
+                                name='asmaY_ReferenceDate'
+                                control={control}
+                                render={({ field }) => (
+                                    <div className='flex flex-col gap-1.5'>
+                                        <Label>Reference Date</Label>
+                                        <Popover>
+                                            <PopoverTrigger asChild>
+                                                <Button
+                                                    type='button'
+                                                    variant='outline'
+                                                    className={cn(
+                                                        'w-full justify-start text-left font-normal',
+                                                        !field.value && 'text-muted-foreground',
+                                                        errors.asmaY_ReferenceDate && 'border-red-500'
+                                                    )}>
+                                                    <CalendarIcon className='mr-2 h-4 w-4' />
+                                                    {field.value ? format(new Date(field.value), 'dd/MM/yyyy') : 'Select date'}
+                                                </Button>
+                                            </PopoverTrigger>
+                                            <PopoverContent className='w-auto p-0' align='start'>
+                                                <CalendarYear
+                                                    mode='single'
+                                                    selected={field.value ? new Date(field.value) : undefined}
+                                                    onSelect={(date) => field.onChange(date?.toISOString())}
+                                                    captionLayout='dropdown'
+                                                    fromYear={2000}
+                                                    toYear={2050}
+                                                />
+                                            </PopoverContent>
+                                        </Popover>
+                                        {errors.asmaY_ReferenceDate && (
+                                            <p className='text-red-500 text-sm'>{errors.asmaY_ReferenceDate.message}</p>
+                                        )}
+                                    </div>
+                                )}
+                            />
+                        </div>
                     </div>
 
                     {/* Fee Dates */}
-                    <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
-                        <InputText
-                            label='Transport Start Date'
-                            type='datetime-local'
-                            id='asmaY_TransportSDate'
-                            {...register('asmaY_TransportSDate')}
-                            defaultValue={row.asmaY_TransportSDate}
-                            error={errors.asmaY_TransportSDate?.message}
-                            className='transition-colors focus:ring-2 focus:ring-primary/20'
-                        />
-                        <InputText
-                            label='Transport End Date'
-                            type='datetime-local'
-                            id='asmaY_TransportEDate'
-                            {...register('asmaY_TransportEDate')}
-                            defaultValue={row.asmaY_TransportEDate}
-                            error={errors.asmaY_TransportEDate?.message}
-                            className='transition-colors focus:ring-2 focus:ring-primary/20'
-                        />
-                    </div>
+                    <div className='space-y-4'>
+                        <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
+                            <Controller
+                                name='asmaY_TransportSDate'
+                                control={control}
+                                render={({ field }) => (
+                                    <div className='flex flex-col gap-1.5'>
+                                        <Label>Transport Start Date</Label>
+                                        <Popover>
+                                            <PopoverTrigger asChild>
+                                                <Button
+                                                    type='button'
+                                                    variant='outline'
+                                                    className={cn(
+                                                        'w-full justify-start text-left font-normal',
+                                                        !field.value && 'text-muted-foreground',
+                                                        errors.asmaY_TransportSDate && 'border-red-500'
+                                                    )}>
+                                                    <CalendarIcon className='mr-2 h-4 w-4' />
+                                                    {field.value ? format(new Date(field.value), 'dd/MM/yyyy') : 'Select date'}
+                                                </Button>
+                                            </PopoverTrigger>
+                                            <PopoverContent className='w-auto p-0' align='start'>
+                                                <CalendarYear
+                                                    mode='single'
+                                                    selected={field.value ? new Date(field.value) : undefined}
+                                                    onSelect={(date) => field.onChange(date?.toISOString())}
+                                                    captionLayout='dropdown'
+                                                    fromYear={2000}
+                                                    toYear={2050}
+                                                />
+                                            </PopoverContent>
+                                        </Popover>
+                                        {errors.asmaY_TransportSDate && (
+                                            <p className='text-red-500 text-sm'>{errors.asmaY_TransportSDate.message}</p>
+                                        )}
+                                    </div>
+                                )}
+                            />
 
-                    <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
-                        <InputText
-                            label='Financial Year Start Date'
-                            type='datetime-local'
-                            id='asmaY_RegularFeeFDate'
-                            {...register('asmaY_RegularFeeFDate')}
-                            defaultValue={row.asmaY_RegularFeeFDate}
-                            error={errors.asmaY_RegularFeeFDate?.message}
-                            className='transition-colors focus:ring-2 focus:ring-primary/20'
-                        />
-                        <InputText
-                            label='Financial Year End Date'
-                            type='datetime-local'
-                            id='asmaY_RegularFeeTDate'
-                            {...register('asmaY_RegularFeeTDate')}
-                            defaultValue={row.asmaY_RegularFeeTDate}
-                            error={errors.asmaY_RegularFeeTDate?.message}
-                            className='transition-colors focus:ring-2 focus:ring-primary/20'
-                        />
+                            <Controller
+                                name='asmaY_TransportEDate'
+                                control={control}
+                                render={({ field }) => (
+                                    <div className='flex flex-col gap-1.5'>
+                                        <Label>Transport End Date</Label>
+                                        <Popover>
+                                            <PopoverTrigger asChild>
+                                                <Button
+                                                    type='button'
+                                                    variant='outline'
+                                                    className={cn(
+                                                        'w-full justify-start text-left font-normal',
+                                                        !field.value && 'text-muted-foreground',
+                                                        errors.asmaY_TransportEDate && 'border-red-500'
+                                                    )}>
+                                                    <CalendarIcon className='mr-2 h-4 w-4' />
+                                                    {field.value ? format(new Date(field.value), 'dd/MM/yyyy') : 'Select date'}
+                                                </Button>
+                                            </PopoverTrigger>
+                                            <PopoverContent className='w-auto p-0' align='start'>
+                                                <CalendarYear
+                                                    mode='single'
+                                                    selected={field.value ? new Date(field.value) : undefined}
+                                                    onSelect={(date) => field.onChange(date?.toISOString())}
+                                                    captionLayout='dropdown'
+                                                    fromYear={2000}
+                                                    toYear={2050}
+                                                />
+                                            </PopoverContent>
+                                        </Popover>
+                                        {errors.asmaY_TransportEDate && (
+                                            <p className='text-red-500 text-sm'>{errors.asmaY_TransportEDate.message}</p>
+                                        )}
+                                    </div>
+                                )}
+                            />
+                        </div>
+
+                        <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
+                            <Controller
+                                name='asmaY_RegularFeeFDate'
+                                control={control}
+                                render={({ field }) => (
+                                    <div className='flex flex-col gap-1.5'>
+                                        <Label>Financial Year Start Date</Label>
+                                        <Popover>
+                                            <PopoverTrigger asChild>
+                                                <Button
+                                                    type='button'
+                                                    variant='outline'
+                                                    className={cn(
+                                                        'w-full justify-start text-left font-normal',
+                                                        !field.value && 'text-muted-foreground',
+                                                        errors.asmaY_RegularFeeFDate && 'border-red-500'
+                                                    )}>
+                                                    <CalendarIcon className='mr-2 h-4 w-4' />
+                                                    {field.value ? format(new Date(field.value), 'dd/MM/yyyy') : 'Select date'}
+                                                </Button>
+                                            </PopoverTrigger>
+                                            <PopoverContent className='w-auto p-0' align='start'>
+                                                <CalendarYear
+                                                    mode='single'
+                                                    selected={field.value ? new Date(field.value) : undefined}
+                                                    onSelect={(date) => field.onChange(date?.toISOString())}
+                                                    captionLayout='dropdown'
+                                                    fromYear={2000}
+                                                    toYear={2050}
+                                                />
+                                            </PopoverContent>
+                                        </Popover>
+                                        {errors.asmaY_RegularFeeFDate && (
+                                            <p className='text-red-500 text-sm'>{errors.asmaY_RegularFeeFDate.message}</p>
+                                        )}
+                                    </div>
+                                )}
+                            />
+
+                            <Controller
+                                name='asmaY_RegularFeeTDate'
+                                control={control}
+                                render={({ field }) => (
+                                    <div className='flex flex-col gap-1.5'>
+                                        <Label>Financial Year End Date</Label>
+                                        <Popover>
+                                            <PopoverTrigger asChild>
+                                                <Button
+                                                    type='button'
+                                                    variant='outline'
+                                                    className={cn(
+                                                        'w-full justify-start text-left font-normal',
+                                                        !field.value && 'text-muted-foreground',
+                                                        errors.asmaY_RegularFeeTDate && 'border-red-500'
+                                                    )}>
+                                                    <CalendarIcon className='mr-2 h-4 w-4' />
+                                                    {field.value ? format(new Date(field.value), 'dd/MM/yyyy') : 'Select date'}
+                                                </Button>
+                                            </PopoverTrigger>
+                                            <PopoverContent className='w-auto p-0' align='start'>
+                                                <CalendarYear
+                                                    mode='single'
+                                                    selected={field.value ? new Date(field.value) : undefined}
+                                                    onSelect={(date) => field.onChange(date?.toISOString())}
+                                                    captionLayout='dropdown'
+                                                    fromYear={2000}
+                                                    toYear={2050}
+                                                />
+                                            </PopoverContent>
+                                        </Popover>
+                                        {errors.asmaY_RegularFeeTDate && (
+                                            <p className='text-red-500 text-sm'>{errors.asmaY_RegularFeeTDate.message}</p>
+                                        )}
+                                    </div>
+                                )}
+                            />
+                        </div>
                     </div>
 
                     {/* Other Dates */}
-                    <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
-                        <InputText
-                            label='Advance Date'
-                            type='datetime-local'
-                            id='asmaY_AdvanceFeeDate'
-                            {...register('asmaY_AdvanceFeeDate')}
-                            defaultValue={row.asmaY_AdvanceFeeDate}
-                            error={errors.asmaY_AdvanceFeeDate?.message}
-                            className='transition-colors focus:ring-2 focus:ring-primary/20'
-                        />
-                        <InputText
-                            label='Arrear Date'
-                            type='datetime-local'
-                            id='asmaY_ArrearFeeDate'
-                            {...register('asmaY_ArrearFeeDate')}
-                            defaultValue={row.asmaY_ArrearFeeDate}
-                            error={errors.asmaY_ArrearFeeDate?.message}
-                            className='transition-colors focus:ring-2 focus:ring-primary/20'
-                        />
+                    <div className='space-y-4'>
+                        <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
+                            <Controller
+                                name='asmaY_AdvanceFeeDate'
+                                control={control}
+                                render={({ field }) => (
+                                    <div className='flex flex-col gap-1.5'>
+                                        <Label>Advance Date</Label>
+                                        <Popover>
+                                            <PopoverTrigger asChild>
+                                                <Button
+                                                    type='button'
+                                                    variant='outline'
+                                                    className={cn(
+                                                        'w-full justify-start text-left font-normal',
+                                                        !field.value && 'text-muted-foreground',
+                                                        errors.asmaY_AdvanceFeeDate && 'border-red-500'
+                                                    )}>
+                                                    <CalendarIcon className='mr-2 h-4 w-4' />
+                                                    {field.value ? format(new Date(field.value), 'dd/MM/yyyy') : 'Select date'}
+                                                </Button>
+                                            </PopoverTrigger>
+                                            <PopoverContent className='w-auto p-0' align='start'>
+                                                <CalendarYear
+                                                    mode='single'
+                                                    selected={field.value ? new Date(field.value) : undefined}
+                                                    onSelect={(date) => field.onChange(date?.toISOString())}
+                                                    captionLayout='dropdown'
+                                                    fromYear={2000}
+                                                    toYear={2050}
+                                                />
+                                            </PopoverContent>
+                                        </Popover>
+                                        {errors.asmaY_AdvanceFeeDate && (
+                                            <p className='text-red-500 text-sm'>{errors.asmaY_AdvanceFeeDate.message}</p>
+                                        )}
+                                    </div>
+                                )}
+                            />
+
+                            <Controller
+                                name='asmaY_ArrearFeeDate'
+                                control={control}
+                                render={({ field }) => (
+                                    <div className='flex flex-col gap-1.5'>
+                                        <Label>Arrear Date</Label>
+                                        <Popover>
+                                            <PopoverTrigger asChild>
+                                                <Button
+                                                    type='button'
+                                                    variant='outline'
+                                                    className={cn(
+                                                        'w-full justify-start text-left font-normal',
+                                                        !field.value && 'text-muted-foreground',
+                                                        errors.asmaY_ArrearFeeDate && 'border-red-500'
+                                                    )}>
+                                                    <CalendarIcon className='mr-2 h-4 w-4' />
+                                                    {field.value ? format(new Date(field.value), 'dd/MM/yyyy') : 'Select date'}
+                                                </Button>
+                                            </PopoverTrigger>
+                                            <PopoverContent className='w-auto p-0' align='start'>
+                                                <CalendarYear
+                                                    mode='single'
+                                                    selected={field.value ? new Date(field.value) : undefined}
+                                                    onSelect={(date) => field.onChange(date?.toISOString())}
+                                                    captionLayout='dropdown'
+                                                    fromYear={2000}
+                                                    toYear={2050}
+                                                />
+                                            </PopoverContent>
+                                        </Popover>
+                                        {errors.asmaY_ArrearFeeDate && (
+                                            <p className='text-red-500 text-sm'>{errors.asmaY_ArrearFeeDate.message}</p>
+                                        )}
+                                    </div>
+                                )}
+                            />
+                        </div>
                     </div>
 
                     {/* Boolean Flags */}
@@ -363,7 +725,7 @@ export default function UpdateMasterAcademicYearForm({ onSuccess, className = ''
                         loadingText='Saving...'>
                         <div className='flex items-center'>
                             <Save className='mr-2 h-4 w-4' />
-                            Save Academic Year
+                            Update Academic Year
                         </div>
                     </Button>
                 </div>

@@ -10,7 +10,7 @@ import {
     getMasterClassDropdown,
     getMasterSectionDropdown
 } from '@/server/admission/preadmission/masters/class_category';
-import { getEmployeeDrowpDown, getMasterClassTeacher } from '@/server/admission/preadmission/masters/class_teacher';
+import { getEmployeeDrowpDown, getMasterClassTeacher, getTeacherClassSection } from '@/server/admission/preadmission/masters/class_teacher';
 import { getMasterDocument } from '@/server/admission/preadmission/masters/document';
 import { getMasterReference } from '@/server/admission/preadmission/masters/reference';
 import { getMasterReligion } from '@/server/admission/preadmission/masters/religion';
@@ -362,6 +362,28 @@ export const useClassTeacherEmployee = (asmaY_Id?: number) => {
         refetchAll: (id?: number) => {
             return queryClient.invalidateQueries({
                 queryKey: [ADMISSION_QUERY_KEYS.MASTER_CLASS_TEACHER_EMPLOYEE, id ?? {}]
+            });
+        }
+    };
+};
+export const usegetExchangeClassSection = (asmaY_Id?: number, hrmE_Id?: number) => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [ADMISSION_QUERY_KEYS.MASTER_EXCHANGE_CLASS_TEACHER_MAPPING, asmaY_Id ?? {}, hrmE_Id ?? {}],
+            queryFn: async () => {
+                if (!asmaY_Id || asmaY_Id <= 0 || !hrmE_Id || hrmE_Id <= 0) {
+                    return { data: [] } as any;
+                }
+                return await getTeacherClassSection(asmaY_Id, hrmE_Id);
+            },
+            enabled: Boolean(asmaY_Id && asmaY_Id > 0 && hrmE_Id && hrmE_Id > 0),
+            staleTime: 0
+        }),
+        refetchAll: (year?: number, emp?: number) => {
+            return queryClient.invalidateQueries({
+                queryKey: [ADMISSION_QUERY_KEYS.MASTER_EXCHANGE_CLASS_TEACHER_MAPPING, year ?? {}, emp ?? {}]
             });
         }
     };

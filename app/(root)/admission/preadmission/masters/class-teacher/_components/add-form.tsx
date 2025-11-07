@@ -6,7 +6,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import {
     useAcademicYearDropdown,
     useClassTeacherEmployee, // Add this import
-    useMasterCaste,
     useMasterClassDropdown,
     useMasterSectionDropdown
 } from '@/hooks/admission/preadmission/useMasters';
@@ -60,8 +59,6 @@ export default function AddMasterClassTeacherForm({ onSuccess, className = '' }:
         refetchAll: refetchEmployee
     } = useClassTeacherEmployee(selectedAcademicYearId);
 
-    const { refetchAll } = useMasterCaste();
-
     const {
         control,
         handleSubmit,
@@ -90,7 +87,6 @@ export default function AddMasterClassTeacherForm({ onSuccess, className = '' }:
                 refetchMasterClass();
                 refetchMasterSection();
                 refetchAcademicYear();
-                refetchAll();
                 refetchEmployee();
                 onSuccess?.();
             } else {
@@ -234,8 +230,8 @@ export default function AddMasterClassTeacherForm({ onSuccess, className = '' }:
                             {errors.asmS_Id && <FormError>{errors.asmS_Id.message}</FormError>}
                         </div>
                         <div className='group flex flex-col gap-1.5'>
-                            <Label aria-label='Staff' htmlFor='hrmE_Id'>
-                                Staff <span className='ml-1 text-red-500'>*</span>
+                            <Label aria-label='Employee' htmlFor='hrmE_Id'>
+                                Employee Name <span className='ml-1 text-red-500'>*</span>
                             </Label>
                             <Controller
                                 name='hrmE_Id'
@@ -250,16 +246,16 @@ export default function AddMasterClassTeacherForm({ onSuccess, className = '' }:
                                         disabled={!selectedAcademicYearId} // Disable if no academic year selected
                                     >
                                         <SelectTrigger className='w-full'>
-                                            <SelectValue placeholder='Select a Staff' />
+                                            <SelectValue placeholder='Select a Employee' />
                                         </SelectTrigger>
                                         <SelectContent>
                                             {employeeLoading ? (
                                                 <SelectItem value='loading' disabled>
-                                                    Loading Staff...
+                                                    Loading Employee Name...
                                                 </SelectItem>
                                             ) : employeeError ? (
                                                 <SelectItem value='error' disabled>
-                                                    Error loading Staff
+                                                    Error loading Employee Name
                                                 </SelectItem>
                                             ) : !selectedAcademicYearId ? (
                                                 <SelectItem value='no-year' disabled>

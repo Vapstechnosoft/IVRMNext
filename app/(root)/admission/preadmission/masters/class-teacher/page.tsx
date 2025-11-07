@@ -8,23 +8,26 @@ import { useClassTeacher } from '@/hooks/admission/preadmission/useMasters';
 import type { IMasterClassTeacherList } from '@/types/admission/preadmission/masters';
 import { Plus, X } from 'lucide-react';
 import { use } from 'react';
-import AddMasterCasteForm from './_components/add-form';
-import { masterCasteColumns } from './_components/columns';
+import AddMasterClassTeacherForm from './_components/add-form';
+import { masterClassTeacherColumns } from './_components/columns';
+import ToggleMasterClassTeachersForm from './_components/toggle-form';
 
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 
-export default function MasterCastePage(props: { searchParams: SearchParams }) {
+export default function MasterClassTeacherPage(props: {
+    searchParams: SearchParams;
+}) {
     const searchParams = use(props.searchParams);
     const { data: response, isLoading, error } = useClassTeacher(searchParams);
 
     return (
         <FormProvider<IMasterClassTeacherList>>
-            <MasterCastePageContent response={response} isLoading={isLoading} error={error} />
+            <MasterClassTeacherPageContent response={response} isLoading={isLoading} error={error} />
         </FormProvider>
     );
 }
 
-function MasterCastePageContent({
+function MasterClassTeacherPageContent({
     response,
     isLoading,
     error
@@ -58,7 +61,7 @@ function MasterCastePageContent({
                     className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
                     <GenericDataTable<IMasterClassTeacherList>
                         {...tableProps}
-                        columns={masterCasteColumns}
+                        columns={masterClassTeacherColumns}
                         isLoading={isLoading}
                         error={error}
                         showViewOptions={false}
@@ -78,7 +81,8 @@ function MasterCastePageContent({
 }
 
 function FormSections() {
-    const { isAddFormOpen, closeAddForm, addFormRef } = useFormContext<IMasterClassTeacherList>();
+    const { isAddFormOpen, closeAddForm, addFormRef, isToggleFormOpen, selectedRow, closeToggleForm } =
+        useFormContext<IMasterClassTeacherList>();
 
     return (
         <>
@@ -101,11 +105,13 @@ function FormSections() {
                                 className='-top-[3.5rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
                                 <X className='h-4 w-4 text-destructive' /> Close
                             </Button>
-                            <AddMasterCasteForm onSuccess={closeAddForm} />
+                            <AddMasterClassTeacherForm onSuccess={closeAddForm} />
                         </div>
                     </CollapsibleSection>
                 </div>
             )}
+            {/* Toggle Form */}
+            {isToggleFormOpen && selectedRow && <ToggleMasterClassTeachersForm rowData={selectedRow} onClose={closeToggleForm} />}
         </>
     );
 }

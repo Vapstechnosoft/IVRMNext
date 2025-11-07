@@ -148,7 +148,21 @@ export const masterClassTeacherSchema = {
         hrmE_Id: z.number().int().nonnegative({ message: 'Employee id must be a non-negative integer' })
     }),
     delete: z.object({
-        imcT_Id: z.number().int().positive({ message: 'imcT_Id is required for delete' })
+        imcT_Id: deleteIdSchema('imcT_Id')
+    })
+};
+export const masterExchangeClassTeacherSchema = {
+    addOrUpdate: z.object({
+        imcT_Id_1: z.number().int().nonnegative({
+            message: 'Class Teacher id must be a non-negative integer'
+        }),
+        hrmE_Id_1: z.number().int().nonnegative({
+            message: 'Employe year id must be a non-negative integer'
+        }),
+        imcT_Id_2: z.number().int().nonnegative({
+            message: 'Class Teacher id must be a non-negative integer'
+        }),
+        hrmE_Id_2: z.number().int().nonnegative({ message: 'Employe id must be a non-negative integer' })
     })
 };
 

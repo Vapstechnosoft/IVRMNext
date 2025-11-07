@@ -67,6 +67,13 @@ export interface IMasterClassDropDown {
     asmcL_ClassName: string;
     asmcL_Order: number;
 }
+export interface IMasterClassSectionDropDown {
+    imcT_Id: number;
+    asmcL_Id: number;
+    asmcL_ClassName: string;
+    asmS_Id: number;
+    asmC_SectionName: string;
+}
 export interface IMasterSectionDropDown {
     asmS_Id: number;
     asmC_SectionCode: string;

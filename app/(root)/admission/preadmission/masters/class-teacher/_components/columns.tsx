@@ -8,7 +8,7 @@ import type { IMasterClassTeacherList } from '@/types/admission/preadmission/mas
 import type { ColumnDef } from '@tanstack/react-table';
 import { useCallback } from 'react';
 
-export const masterCasteColumns: ColumnDef<IMasterClassTeacherList>[] = [
+export const masterClassTeacherColumns: ColumnDef<IMasterClassTeacherList>[] = [
     {
         id: 'select',
         header: ({ table }) => (
