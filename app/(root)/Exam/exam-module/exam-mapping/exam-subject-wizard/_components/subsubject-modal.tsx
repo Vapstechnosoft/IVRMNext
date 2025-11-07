@@ -86,21 +86,6 @@ export default function SubSubjectModal({
 
     if (!subject) return null;
 
-    const onSubmit = (values: SubSubjectFormValues) => {
-        const selected = values.subsubject_list.filter((r) => r.checkedvalue);
-        const parentMax = Number(subject.ECYSES_MaxMarks ?? 0);
-        const parentMin = Number(subject.ECYSES_MinMarks ?? 0);
-        const totMax = selected.reduce((acc, cur) => acc + Number(cur.eycessS_MaxMarks || 0), 0);
-        const totMin = selected.reduce((acc, cur) => acc + Number(cur.eycessS_MinMarks || 0), 0);
-
-        if (selected.length > 0 && (totMax !== parentMax || totMin !== parentMin)) {
-            alert('Sum of selected sub-subjects (max/min) must equal subject max/min marks');
-            return;
-        }
-
-        onSave(subject.ismS_Id, selected);
-    };
-
     return (
         <Dialog open={open} onOpenChange={(val) => !val && onClose()}>
             <DialogContent className='max-h-[70vh] w-full min-w-[80vw] overflow-x-auto overflow-y-auto pt-0 sm:overflow-x-hidden'>
@@ -110,7 +95,7 @@ export default function SubSubjectModal({
                 </DialogHeader>
 
                 <FormProvider {...methods}>
-                    <form onSubmit={handleSubmit(onSubmit)}>
+                    <form onSubmit={(e) => e.preventDefault()}>
                         <div className='overflow-x-auto'>
                             <table className='w-full table-auto border-collapse'>
                                 <thead>
@@ -363,7 +348,26 @@ export default function SubSubjectModal({
                         </div>
 
                         <div className='flex w-fit justify-end gap-2 border-t bg-white pt-2'>
-                            <Button className='w-fit' type='submit'>
+                            <Button
+                                className='w-fit'
+                                type='button'
+                                onClick={() => {
+                                    const values = getValues();
+                                    const selected = values.subsubject_list.filter((r) => r.checkedvalue);
+
+                                    const parentMax = Number(subject.ECYSES_MaxMarks ?? 0);
+                                    const parentMin = Number(subject.ECYSES_MinMarks ?? 0);
+                                    const totMax = selected.reduce((acc, cur) => acc + Number(cur.eycessS_MaxMarks || 0), 0);
+                                    const totMin = selected.reduce((acc, cur) => acc + Number(cur.eycessS_MinMarks || 0), 0);
+
+                                    if (selected.length > 0 && (totMax !== parentMax || totMin !== parentMin)) {
+                                        alert('Sum of selected sub-subjects (max/min) must equal subject max/min marks');
+                                        return;
+                                    }
+
+                                    onSave(subject.ismS_Id, selected);
+                                    onClose();
+                                }}>
                                 Save & Close
                             </Button>
                             <Button className='w-fit' type='button' variant='ghost' onClick={onClose}>

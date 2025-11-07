@@ -109,6 +109,10 @@ export const studentApplicationFormSchema = {
                 message: 'Mobile number cannot start with 0'
             })
             .optional(),
+        pasA_FatherInstitution: createOptionalStringSchema('Father Attended Institution', 1, 150),
+        pasA_FatherMotherTongue: createOptionalStringSchema('Father Mother Tongue', 1, 100),
+        pasA_FatherBusiness: createOptionalStringSchema('Father Business', 1, 150),
+        pasA_FatherCompany: createOptionalStringSchema('Father Company', 1, 150),
 
         // Mother Details
         pasR_MotherName: createStringSchema('Mother Name', 1, 100),
@@ -127,6 +131,10 @@ export const studentApplicationFormSchema = {
                 message: 'Mobile number cannot start with 0'
             })
             .optional(),
+        pasA_MotherInstitution: createOptionalStringSchema('Mother Attended Institution', 1, 150),
+        pasA_MotherMotherTongue: createOptionalStringSchema('Mother`s Mother Tongue', 1, 100),
+        pasA_MotherBusiness: createOptionalStringSchema('Mother Business', 1, 150),
+        pasA_MotherCompany: createOptionalStringSchema('Mother Company', 1, 150),
 
         // Income
         pasR_FatherIncome: z.number().optional(),
@@ -143,6 +151,11 @@ export const studentApplicationFormSchema = {
             })
             .optional(),
         pasR_AltContactEmail: createEmailSchema('Alternate Contact Email', 1, 50, true),
+
+        //Other Details
+        pasA_AdmittingReason: createOptionalStringSchema('Admitting Reason', 1, 250),
+        pasA_WillingToContributeRemarks: createOptionalStringSchema('Willing to Contribute Remarks', 1, 250),
+        pasA_WillingToContributeFlg: z.number().int({ message: 'Willing to Contribute Flag' }),
 
         // Final
         pasR_UndertakingFlag: z.number().int({ message: 'Undertaking Flag is required' })
@@ -238,6 +251,10 @@ export const studentApplicationFormUpdateSchema = {
                 message: 'Mobile number cannot start with 0'
             })
             .optional(),
+        pasA_FatherInstitution: createOptionalStringSchema('Father Attended Institution', 1, 150),
+        pasA_FatherMotherTongue: createOptionalStringSchema('Father Mother Tongue', 1, 100),
+        pasA_FatherBusiness: createOptionalStringSchema('Father Business', 1, 150),
+        pasA_FatherCompany: createOptionalStringSchema('Father Company', 1, 150),
 
         // Mother Details
         pasR_MotherName: createStringSchema('Mother Name', 1, 100),
@@ -256,6 +273,10 @@ export const studentApplicationFormUpdateSchema = {
                 message: 'Mobile number cannot start with 0'
             })
             .optional(),
+        pasA_MotherInstitution: createOptionalStringSchema('Mother Attended Institution', 1, 150),
+        pasA_MotherMotherTongue: createOptionalStringSchema('Mother`s Mother Tongue', 1, 100),
+        pasA_MotherBusiness: createOptionalStringSchema('Mother Business', 1, 150),
+        pasA_MotherCompany: createOptionalStringSchema('Mother Company', 1, 150),
 
         // Income
         pasR_FatherIncome: z.number().optional(),
@@ -272,6 +293,11 @@ export const studentApplicationFormUpdateSchema = {
             })
             .optional(),
         pasR_AltContactEmail: createEmailSchema('Alternate Contact Email', 1, 50, true),
+
+        //Other Details
+        pasA_AdmittingReason: createOptionalStringSchema('Admitting Reason', 1, 250),
+        pasA_WillingToContributeRemarks: createOptionalStringSchema('Willing to Contribute Remarks', 1, 250),
+        pasA_WillingToContributeFlg: z.number().int({ message: 'Willing to Contribute Flag' }),
 
         // Final
         pasR_UndertakingFlag: z.number().int({ message: 'Undertaking Flag is required' })

@@ -13,11 +13,11 @@ import { ExamSubjectWizardSchema, SubSubjectSubExamSchema } from '@/schemas/exam
 import { getCategoryDropDownByAcademicYearlist } from '@/server/exam/exam-module/exam-mapping/exam-subject-group-mapping';
 import {
     addOrUpdateExamSubjectWizard,
-    getSubExamList,
-    getSubSubjectList,
+    getSubSubjectSubExamList,
     getSubjectsByCategory
 } from '@/server/exam/exam-module/exam-mapping/exam-subject-wizard';
 import { getExamsByCategoryandAcademicYear } from '@/server/exam/exam-module/masters/exam';
+import { getMasterSubExamDropdownList } from '@/server/exam/exam-module/masters/sub-exam';
 import type { IAcademicYearDropDown } from '@/types/admission/preadmission/masters';
 import type { ICategory, IMasterGrade } from '@/types/exam/exam-module/masters';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -28,6 +28,7 @@ import type { z } from 'zod';
 import SubExamModal from './subexam-model';
 import SubjectTable from './subject-table';
 import SubSubjectModal from './subsubject-modal';
+import SubSubjectSubExamModal from './subsubject-subexam-model';
 
 type FormFields = z.infer<typeof ExamSubjectWizardSchema.addOrUpdate>;
 
@@ -83,6 +84,9 @@ export default function AddExamSubjectWizard({ onSuccess }: { onSuccess?: () => 
     const [subSubjectModalState, setSubSubjectModalState] = useState<{ open: boolean; subject?: any }>({
         open: false
     });
+    const [subSubjectSubExamModalState, setSubSubjectSubExamModalState] = useState<{ open: boolean; subject?: any }>({
+        open: false
+    });
 
     const { data: academicData, isLoading: loadingAcademic, error: academicError } = useAcademicYearDropdown();
     const { data: gradeData, isLoading: loadingGrade, error: gradeError } = useMasterGrade();
@@ -130,7 +134,6 @@ export default function AddExamSubjectWizard({ onSuccess }: { onSuccess?: () => 
             try {
                 const { data: cats } = await getCategoryDropDownByAcademicYearlist(30, Number(watchYear));
                 setCategories(Array.isArray(cats) ? cats : []);
-                setValue('EYC_Id', 0);
             } catch (err: any) {
                 toast.error(err?.message ?? 'Failed to load categories');
             }
@@ -209,7 +212,7 @@ export default function AddExamSubjectWizard({ onSuccess }: { onSuccess?: () => 
     // ------------------- Modal Handlers -------------------
     const onOpenSubExamModal = async (subject: any) => {
         try {
-            const { data: list } = await getSubExamList(30, subject.ISMS_Id);
+            const { data: list } = await getMasterSubExamDropdownList(30);
             setSubExamModalState({ open: true, subject: { ...subject, list } });
         } catch {
             setSubExamModalState({
@@ -227,7 +230,7 @@ export default function AddExamSubjectWizard({ onSuccess }: { onSuccess?: () => 
 
     const onOpenSubSubjectModal = async (subject: any) => {
         try {
-            const { data: list } = await getSubSubjectList(30, subject.ISMS_Id);
+            const { data: list } = await getMasterSubExamDropdownList(30);
             console.log(list);
             setSubSubjectModalState({ open: true, subject: { ...subject, list } });
         } catch {
@@ -238,6 +241,24 @@ export default function AddExamSubjectWizard({ onSuccess }: { onSuccess?: () => 
                     list: [
                         { EMSS_Id: 1, EMSS_SubSubjectName: 'Theory' },
                         { EMSS_Id: 2, EMSS_SubSubjectName: 'Practical' }
+                    ]
+                }
+            });
+        }
+    };
+
+    const onOpenSubSubjectSubExamModal = async (subject: any) => {
+        try {
+            const { data: list } = await getSubSubjectSubExamList(30);
+            setSubSubjectSubExamModalState({ open: true, subject: { ...subject, list } });
+        } catch {
+            setSubSubjectSubExamModalState({
+                open: true,
+                subject: {
+                    ...subject,
+                    list: [
+                        { EMSE_Id: 1, EMSE_SubExamName: 'Internal Test' },
+                        { EMSE_Id: 2, EMSE_SubExamName: 'Viva' }
                     ]
                 }
             });
@@ -263,20 +284,98 @@ export default function AddExamSubjectWizard({ onSuccess }: { onSuccess?: () => 
         setSubSubjectModalState({ open: false });
     };
 
+    const handleSaveSubSubjectSubExam = (subjectId: number, selectedList: any[]) => {
+        setSubjects((prev) =>
+            prev.map((s) =>
+                s.ISMS_Id === subjectId ? { ...s, subSubjectSubExamConfig: selectedList, EYCES_SubSubjectFlg: selectedList.length > 0 } : s
+            )
+        );
+        setSubSubjectSubExamModalState({ open: false });
+    };
+
     // ------------------- Submit Handler -------------------
     const onSubmit = async (values: FormFields) => {
         try {
+            const subExamList: any[] = [];
+            const subSubjectList: any[] = [];
+            const subSubjectSubExamList: any[] = [];
+
+            subjects.forEach((s) => {
+                // ----- SubExam list -----
+                if (s.subExamConfig?.length) {
+                    subExamList.push({
+                        ISMS_Id: s.ISMS_Id,
+                        sub_exam_list: s.subExamConfig.map((se: any) => ({
+                            EYCESSE_Id: se.EYCESSE_Id ?? 0,
+                            EYCES_Id: se.EYCES_Id ?? 0,
+                            ISMS_Id: s.ISMS_Id,
+                            EMSE_Id: se.EMSE_Id,
+                            EMGR_Id: se.EMGR_Id ?? s.EMGR_Id ?? 0,
+                            EYCESSE_MaxMarks: se.EYCESSE_MaxMarks ?? 0,
+                            EYCESSE_MinMarks: se.EYCESSE_MinMarks ?? 0,
+                            EYCESSE_ActiveFlg: true
+                        }))
+                    });
+                }
+
+                // ----- SubSubject list -----
+                if (s.subSubjectConfig?.length) {
+                    subSubjectList.push({
+                        ISMS_Id: s.ISMS_Id,
+                        sub_subject_list: s.subSubjectConfig.map((ss: any) => ({
+                            EYCESSS_Id: ss.EYCESSS_Id ?? 0,
+                            EYCES_Id: ss.EYCES_Id ?? 0,
+                            ISMS_Id: s.ISMS_Id,
+                            EMSS_Id: ss.EMSS_Id,
+                            EMGR_Id: ss.EMGR_Id ?? s.EMGR_Id ?? 0,
+                            EYCESSS_MaxMarks: ss.EYCESSS_MaxMarks ?? 0,
+                            EYCESSS_MinMarks: ss.EYCESSS_MinMarks ?? 0,
+                            EYCESSS_ExemptedFlg: ss.EYCESSS_ExemptedFlg ?? true,
+                            EYCESSS_ExemptedPer: ss.EYCESSS_ExemptedPer ?? 35,
+                            EYCESSS_ActiveFlg: true,
+                            EYCESSS_SubSubjectOrder: ss.EYCESSS_SubSubjectOrder ?? 0
+                        }))
+                    });
+                }
+
+                // ----- SubSubject + SubExam combined -----
+                if (s.subSubjectConfig?.length) {
+                    subSubjectSubExamList.push({
+                        ISMS_Id: s.ISMS_Id,
+                        sub_subject_sub_exam_list: s.subSubjectConfig.map((ss: any) => ({
+                            EYCESSS_Id: ss.EYCESSS_Id ?? 0,
+                            EYCES_Id: ss.EYCES_Id ?? 0,
+                            EMSS_Id: ss.EMSS_Id,
+                            EMSE_Id: ss.EMSE_Id,
+                            EMGR_Id: ss.EMGR_Id ?? s.EMGR_Id ?? 0,
+                            EYCESSS_MaxMarks: ss.EYCESSS_MaxMarks ?? 25,
+                            EYCESSS_MinMarks: ss.EYCESSS_MinMarks ?? 10,
+                            EYCESSS_ExemptedFlg: ss.EYCESSS_ExemptedFlg ?? true,
+                            EYCESSS_ExemptedPer: ss.EYCESSS_ExemptedPer ?? 35,
+                            EYCESSS_ActiveFlg: true,
+                            EYCESSS_SubSubjectOrder: ss.EYCESSS_SubSubjectOrder ?? 0
+                        }))
+                    });
+                }
+            });
+
             const payload: FormFields = {
                 ...values,
+                UserId: 0,
+                MI_Id: 0,
+                ASMAY_Id: Number(values.ASMAY_Id) ?? 0,
+                ASMAY_Year: '',
+                EYCE_BestOfApplicableFlg: values.EYCE_BestOfApplicableFlg ?? true,
+                EYCE_BestOf: values.EYCE_BestOf ?? 5,
                 exams_list: exams.filter((e) => e.checked),
                 yearly_category_exam_subjects: subjects,
-                exm_subject_subsubjects_subexam: subjects.map((s) => ({
-                    ISMS_Id: s.ISMS_Id,
-                    sub_subject_sub_exam_list: s.subSubjectConfig ?? []
-                })),
+                exm_subject_subexams_list: subExamList,
+                exm_subject_subsubjects_list: subSubjectList,
+                exm_subject_subsubjects_subexam: subSubjectSubExamList,
                 Temp_Subject_Order: []
             };
 
+            console.log('🚀 Final Payload:', payload);
             await addOrUpdateExamSubjectWizard(payload);
             toast.success('Exam Subject Wizard saved successfully');
             onSuccess?.();
@@ -389,6 +488,7 @@ export default function AddExamSubjectWizard({ onSuccess }: { onSuccess?: () => 
                                             fieldState={fieldState}
                                             label='Attendance From'
                                             placeholder='Select Attendance From Date'
+                                            fromDate={new Date()}
                                         />
                                     )}
                                 />
@@ -402,6 +502,7 @@ export default function AddExamSubjectWizard({ onSuccess }: { onSuccess?: () => 
                                             fieldState={fieldState}
                                             label='Attendance To'
                                             placeholder='Select Attendance To Date'
+                                            fromDate={new Date(watch('EYCE_AttendanceFromDate'))}
                                         />
                                     )}
                                 />
@@ -444,6 +545,7 @@ export default function AddExamSubjectWizard({ onSuccess }: { onSuccess?: () => 
                             showSubSubjectColumn={watchSubSubject ?? false}
                             onOpenSubExamModal={onOpenSubExamModal}
                             onOpenSubSubjectModal={onOpenSubSubjectModal}
+                            onOpenSubSubjectSubExamModal={onOpenSubSubjectSubExamModal}
                             gradeList={gradeList}
                         />
                     </div>
@@ -472,6 +574,14 @@ export default function AddExamSubjectWizard({ onSuccess }: { onSuccess?: () => 
                     subject={subSubjectModalState.subject}
                     onClose={() => setSubSubjectModalState({ open: false })}
                     onSave={handleSaveSubSubject}
+                    gradeList={gradeList}
+                    schema={SubSubjectSubExamSchema}
+                />
+                <SubSubjectSubExamModal
+                    open={subSubjectSubExamModalState.open}
+                    subject={subSubjectSubExamModalState.subject}
+                    onClose={() => setSubSubjectSubExamModalState({ open: false })}
+                    onSave={handleSaveSubSubjectSubExam}
                     gradeList={gradeList}
                     schema={SubSubjectSubExamSchema}
                 />

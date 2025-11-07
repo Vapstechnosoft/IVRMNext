@@ -21,7 +21,10 @@ export const ADMISSION_QUERY_KEYS = {
     MASTER_REFERENCE: 'master_reference',
     MASTER_SOURCE: 'master_source',
     MASTER_RELIGION_CASTE_CATEGORY: 'master_religion_caste_category',
-    UNMAPPED_CASTE_CATEGORY_DROPDOWN: 'unmapped_caste_category_dropdown'
+    UNMAPPED_CASTE_CATEGORY_DROPDOWN: 'unmapped_caste_category_dropdown',
+    MASTER_CLASS_TEACHER: 'master_class_teacher',
+    MASTER_CLASS_TEACHER_EMPLOYEE: 'master_class_teacher_employee',
+    MASTER_EXCHANGE_CLASS_TEACHER_MAPPING: 'exchange_class_teacher_mapping'
 };
 
 export const PREADMISSION_QUERY_KEYS = {
@@ -50,7 +53,9 @@ export const PREADMISSION_QUERY_KEYS = {
     MASTER_CONFIGURATION: 'master_configuration',
     DOCUMENT_DOWNLOAD: 'document_download',
     REGISTRATION_NUMBERING: 'registration_Numbering',
-    PRE_REGISTRATION_NUMBERING: 'Pre_Registration_Numbering'
+    PRE_REGISTRATION_NUMBERING: 'Pre_Registration_Numbering',
+    STUDENT_COUNT_REPORT: 'student_count_report',
+    STUDENT_APPLICATION_FORM: 'student_application_form'
 };
 
 export const FEES_QUERY_KEYS = {
@@ -60,6 +65,7 @@ export const FEES_QUERY_KEYS = {
     ACADEMIC_DROPDOWN: 'academic_dropdown',
     FEE_PAYMENTGATEWAY_DETAILS: 'paymentGatewayDetails',
     FEE_FINESLAB: 'masterfineslab',
+    FEE_YEARLY_CATEGORY: 'fee_yearly_category',
     FEE_CLASS_YEARLY_CATEGORY: 'fee_class_yearly_category',
     FEE_GROUP: 'fee_group',
     FEE_GROUP_GROUPING: 'fee_group_grouping',
@@ -92,7 +98,18 @@ export const FEES_QUERY_KEYS = {
     FEE_THIRDPARTY_HEADDROPDOWN: 'fee_thirdparty_headdropdown',
     FEE_THIRDPARTY_BANKDROPDOWN: 'fee_thirdparty_bankdropdown',
     FEE_MASTER_HEADS_DROPDOWN: 'fee_master_heads_dropdown',
-    FEE_MASTER_INSTALLMENT_DROPDOWN: 'fee_master_installment_dropdown'
+    FEE_MASTER_INSTALLMENT_DROPDOWN: 'fee_master_installment_dropdown',
+    FEE_ALL_HEAD: 'fee_all_head',
+    FEE_ONLINE_PAYMENT_HEAD_GROUP: 'fee_online_payment_head_group',
+    FEE_ONLINE_PAYMENT_HEAD_GROUP_INSTALLMENT_YEAR: 'fee_online_payment_head_group_installment_year',
+    FEE_ONLINE_PAYMENT_HEAD_GROUP_INSTALLMENT_CLASS: 'fee_online_payment_head_group_installment_class',
+    FEE_ONLINE_PAYMENT_HEAD_GROUP_INSTALLMENT_SUB_MERCHANT: 'fee_online_payment_head_group_installment_sub_merchant',
+    FEE_ONLINE_PAYMENT_HEAD_GROUP_INSTALLMENT_GROUPNAME: 'fee_online_payment_head_group_installment_groupname',
+    FEE_ONLINE_PAYMENT_HEAD_GROUP_INSTALLMENT_HEADNAME: 'fee_online_payment_head_group_installment_headname',
+    FEE_ONLINE_PAYMENT_HEAD_TABLE: 'fee_online_payment_head_table',
+    FEE_ONLINE_PAYMENT_HEAD_GROUP_TERMS: 'fee_online_payment_head_group_terms',
+    FEE_PREADMISSION_TRANSACTION_DETAILS: 'fee_preadmission_transaction_details',
+    FEE_PREADMISSION_STUDENT_DROPDOWN: 'fee_preadmission_student_dropdown'
 };
 
 export const EXAM_QUERY_KEYS = {

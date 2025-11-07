@@ -116,7 +116,7 @@ export interface IExamSubjectGroupMapping {
     asmaY_Year: string;
     emcA_CategoryName: string;
     esG_SubjectGroupName: string;
-    eysgR_PromotionType: 'IE' | 'PE';
+    esG_ExamPromotionFlag: 'IE' | 'PE';
     esG_GroupMinMarks: number;
     esG_GroupMaxMarks: number;
     emE_ExamName?: string | null;

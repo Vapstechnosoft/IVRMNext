@@ -41,7 +41,7 @@ export default function AddMasterCategoryForm({ onSuccess, className = '' }: Add
 
     const onSubmit: SubmitHandler<FormFields> = async (data) => {
         try {
-            // ✅ Build payload as per your backend structure
+            //  Build payload as per your backend structure
             const payload = {
                 mI_Id: 30,
                 emcA_CategoryName: data.emcA_CategoryName,

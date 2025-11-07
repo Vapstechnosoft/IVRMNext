@@ -213,100 +213,90 @@ export const ExamSubjectGroupSchema = {
     })
 };
 
-const toNumber = (val: unknown) => {
-    if (val === '' || val === null || val === undefined) return Number.NaN;
+// utils/schema/exam/exam-module/exam-mapping.ts
+
+const toNumber = (val: unknown): number => {
+    if (val === '' || val === null || val === undefined) return 0;
     if (typeof val === 'number') return val;
     if (typeof val === 'string') {
-        const n = Number(val);
-        return Number.isNaN(n) ? Number.NaN : n;
+        const n = Number(val.trim());
+        return Number.isNaN(n) ? 0 : n;
     }
-    return Number.NaN;
+    return 0;
 };
 
 export const ExamTermAndExamMappingSchema = {
     addOrUpdate: z
         .object({
-            mI_Id: z.preprocess(toNumber, z.number().int().nonnegative().optional()),
-            ecT_Id: z.preprocess(toNumber, z.number().int().nonnegative().optional().nullable()),
+            // Core IDs
+            ecT_Id: z.preprocess(toNumber, z.number().int().min(0).optional().default(0)),
+            mI_Id: z.preprocess(toNumber, z.number().int().min(1).default(30)),
 
-            asmaY_Id: z.preprocess(toNumber, z.number().int().positive({ message: 'Select Academic Year' })),
-            eyc_Id: z.preprocess(toNumber, z.number().int().positive({ message: 'Select Category' }).optional()),
-            emcA_Id: z.preprocess(toNumber, z.number().int().positive({ message: 'Select Category' })),
-            emgR_Id: z.preprocess(toNumber, z.number().int().positive({ message: 'Select Grade' })),
-            ecT_TermName: z
-                .string()
-                .min(1, { message: 'Enter Term Name' })
-                .max(100, { message: 'Term Name must be at most 100 characters' })
-                .regex(/^[A-Za-z0-9\s-]+$/, {
-                    message: 'Term Name must contain only letters, numbers, spaces, or hyphens'
-                }),
+            asmaY_Id: z.preprocess(toNumber, z.number().int().min(1, 'Select Academic Year')),
+            emcA_Id: z.preprocess(toNumber, z.number().int().min(1, 'Select Category')),
+            emgR_Id: z.preprocess(toNumber, z.number().int().min(1, 'Select Grade')),
 
-            ecT_TermStartDate: z.string().min(1, { message: 'Select Start Date' }),
-            ecT_TermEndDate: z.string().min(1, { message: 'Select End Date' }),
-            ecT_MarksPublishDate: z.string().min(1, { message: 'Select Publish Date' }),
+            // Term Details
+            ecT_TermName: z.string().trim().min(1, 'Enter Term Name').max(100),
 
-            ecT_Marks: z.preprocess(
-                toNumber,
-                z.number().int({ message: 'Term Marks must be an integer' }).positive({ message: 'Enter Term Marks' })
-            ),
+            ecT_TermStartDate: z.string().min(1, 'Select Start Date'),
+            ecT_TermEndDate: z.string().min(1, 'Select End Date'),
+            ecT_MarksPublishDate: z.string().min(1, 'Select Publish Date'),
 
-            ecT_MinMarks: z.preprocess(
-                toNumber,
-                z
-                    .number()
-                    .int({ message: 'Min Marks must be an integer' })
-                    .min(0, { message: 'Enter Min Marks' })
-                    .max(999, { message: 'Min Marks cannot exceed 999' })
-            ),
+            ecT_Marks: z.preprocess(toNumber, z.number().int().min(1, 'Enter Term Marks')),
+            ecT_MinMarks: z.preprocess(toNumber, z.number().int().min(0, 'Min marks ≥ 0')),
 
-            // saved exam rows
+            // Exam Term Rows (critical fix here)
             exam_term: z
                 .array(
                     z.object({
-                        emE_Id: z.preprocess(toNumber, z.number().int().positive({ message: 'Select Exam' })),
-                        emE_ExamName: z.string().min(1, { message: 'Exam name required' }),
-                        ecteX_MarksPerFlag: z.enum(['M', 'P'], { required_error: 'Select Marks or Percentage' }),
-                        ecteX_MarksPercentValue: z.preprocess(
-                            toNumber,
-                            z
-                                .number()
-                                .min(0.01, { message: 'Enter valid marks/percentage value' })
-                                .max(999, { message: 'Marks/Percentage cannot exceed 999' })
-                        ),
-                        ecteX_RoundOffReqFlg: z.boolean().optional().default(false),
-                        ecteX_ConversionReqFlg: z.boolean().optional().default(false),
-                        ecteX_NotApplicableToTotal: z.boolean().optional().default(false)
+                        emE_Id: z.preprocess(toNumber, z.number().int().min(1, 'Select Exam')),
+                        emE_ExamName: z.string().min(1, 'Exam name missing'),
+                        ecteX_MarksPerFlag: z.enum(['M', 'P']),
+                        ecteX_MarksPercentValue: z.preprocess(toNumber, z.number().int().min(1, 'Enter Marks/Percentage value')),
+                        ecteX_RoundOffReqFlg: z.boolean().default(false),
+                        ecteX_ConversionReqFlg: z.boolean().default(false),
+                        ecteX_NotApplicableToTotal: z.boolean().default(false)
                     })
                 )
-                .min(1, { message: 'Add at least one exam for the term' })
+                .min(1, 'Add at least one exam')
         })
-        // total marks check (sum of saved details must equal ecT_Marks)
+        // TOTAL MARKS MUST EQUAL TERM MARKS
         .refine(
             (data) => {
-                const total = data.exam_term.reduce((sum, item) => sum + Number(item.ecteX_MarksPercentValue), 0);
-                return Number(total) === Number(data.ecT_Marks);
+                const total = data.exam_term.reduce((sum, item) => sum + item.ecteX_MarksPercentValue, 0);
+                return Math.abs(total - data.ecT_Marks) < 0.01; // floating point safe
             },
             {
-                path: ['saveddetails'],
-                message: 'Total Marks / Percentage should be equal to Term Marks'
+                message: 'Sum of exam values must equal Term Marks',
+                path: ['exam_term']
             }
         )
-        // duplicate exam check
+        // NO DUPLICATE EXAMS
         .refine(
             (data) => {
-                const examIds = data.exam_term.map((s) => s.emE_Id);
-                return new Set(examIds).size === examIds.length;
+                const ids = data.exam_term.map((x) => x.emE_Id);
+                return new Set(ids).size === ids.length;
             },
             {
-                path: ['saveddetails'],
-                message: 'Duplicate exams not allowed for the same term'
+                message: 'Duplicate exams not allowed',
+                path: ['exam_term']
             }
-        ),
+        )
+        // DATE ORDER: Start ≤ End ≤ Publish
+        .refine((data) => new Date(data.ecT_TermStartDate) <= new Date(data.ecT_TermEndDate), {
+            message: 'Start date cannot be after End date',
+            path: ['ecT_TermEndDate']
+        })
+        .refine((data) => new Date(data.ecT_TermEndDate) <= new Date(data.ecT_MarksPublishDate), {
+            message: 'End date cannot be after Publish date',
+            path: ['ecT_MarksPublishDate']
+        }),
 
     delete: z.object({
-        ecT_Id: z.number().int().positive({ message: 'Invalid Term ID' }),
-        asmaY_Id: z.number().int().positive({ message: 'Invalid Academic Year ID' }),
-        emcA_Id: z.number().int().positive({ message: 'Invalid Category ID' })
+        ecT_Id: z.number().int().min(1),
+        asmaY_Id: z.number().int().min(1),
+        emcA_Id: z.number().int().min(1)
     })
 };
 
@@ -354,9 +344,12 @@ export const SubSubjectSubExamSchema = z
         ismS_SubjectCode: z.string().min(1, { message: 'Subject Code required' }),
         emsS_SubSubjectName: z.string().min(1, { message: 'SubSubject Name required' }),
         emsS_SubSubjectCode: z.string().min(1, { message: 'SubSubject Code required' }),
+        emsE_SubExamName: z.string().min(1, { message: 'SubExam Name required' }),
+        emsE_SubExamCode: z.string().min(1, { message: 'SubExam Code required' }),
 
         eycessS_MaxMarks: z.number({ invalid_type_error: 'Enter Max Marks' }).min(0, 'Max Marks must be 0 or greater'),
         eycessS_MinMarks: z.number({ invalid_type_error: 'Enter Min Marks' }).min(0, 'Min Marks must be 0 or greater'),
+        eycessS_MarksEntryMax: z.number({ invalid_type_error: 'Enter Marks Entry Max' }).min(0, 'Marks Entry Max must be 0 or greater'),
         eycessS_ExemptedFlg: z.boolean().optional().default(false),
         eycessS_ExemptedPer: z.number().min(0).max(100).optional(),
         eycessS_SubSubjectOrder: z.number().int().nonnegative().optional(),
@@ -378,6 +371,14 @@ const ExmSubjectSubsubjectsSubexamWrapperSchema = z.object({
     ISMS_Id: z.number().int().positive({ message: 'ISMS_Id required' }),
     sub_subject_sub_exam_list: z.array(SubSubjectSubExamSchema).optional()
 });
+const ExmSubSubjectWrapperSchema = z.object({
+    ISMS_Id: z.number().int().positive({ message: 'ISMS_Id required' }),
+    exm_subject_subexams_list: z.array(SubSubjectSubExamSchema).optional()
+});
+const ExmSubSubjectExamWrapperSchema = z.object({
+    ISMS_Id: z.number().int().positive({ message: 'ISMS_Id required' }),
+    exm_subject_subsubjects_list: z.array(SubSubjectSubExamSchema).optional()
+});
 
 /**
  * MAIN updated schema to match your payload plus validations
@@ -385,18 +386,15 @@ const ExmSubjectSubsubjectsSubexamWrapperSchema = z.object({
 export const ExamSubjectWizardSchema = {
     addOrUpdate: z
         .object({
-            // top level ids & flags (matching payload keys)
             EYCE_Id: z.number().int().nonnegative().optional().default(0),
             EYC_Id: z.number().int().positive({ message: 'EYC_Id required' }),
             EMCA_Id: z.number().int().positive({ message: 'EMCA_Id required' }),
             EMGR_Id: z.number().int().positive({ message: 'EMGR_Id required' }),
 
-            // flags
             EYCE_SubExamFlg: z.boolean().optional(),
             EYCE_SubSubjectFlg: z.boolean().optional(),
             EYCE_ActiveFlg: z.boolean().optional(),
 
-            // attendance dates (validate iso and not empty)
             EYCE_AttendanceFromDate: isoDateString,
             EYCE_AttendanceToDate: isoDateString,
 
@@ -405,24 +403,20 @@ export const ExamSubjectWizardSchema = {
             ASMAY_Id: z.number().int().nonnegative().optional().default(0),
             ASMAY_Year: z.string().optional().nullable(),
 
-            // BestOf fields
             EYCE_BestOfApplicableFlg: z.boolean().optional(),
             EYCE_BestOf: z.number().int().min(0).optional(),
+
             exams_list: z.array(ExamItemSchema).optional().default([]),
             yearly_category_exam_subjects: z
                 .array(YearlyCategoryExamSubjectSchema)
                 .min(1, { message: 'At least one yearly_category_exam_subjects is required' }),
 
-            // lists that may be empty arrays in payload; validating shapes loosely
-            exm_subject_subexams_list: z.array(z.any()).optional(),
-            exm_subject_subsubjects_list: z.array(z.any()).optional(),
-
-            // nested structure for subsubjects->subexam
-            exm_subject_subsubjects_subexam: z.array(ExmSubjectSubsubjectsSubexamWrapperSchema).optional(),
+            exm_subject_subexams_list: z.array(ExmSubSubjectExamWrapperSchema).optional().default([]),
+            exm_subject_subsubjects_list: z.array(ExmSubSubjectWrapperSchema).optional().default([]),
+            exm_subject_subsubjects_subexam: z.array(ExmSubjectSubsubjectsSubexamWrapperSchema).optional().default([]),
 
             Temp_Subject_Order: z.array(z.any()).optional().default([])
         })
-        // Attendance date ordering
         .refine(
             (data) => {
                 try {
@@ -436,7 +430,6 @@ export const ExamSubjectWizardSchema = {
             { message: 'Attendance To must be after From Date', path: ['EYCE_AttendanceToDate'] }
         ),
 
-    // keep delete schema similar to your prior example (rename to match EYCE if needed)
     delete: z.object({
         EYCE_Id: z.number({ required_error: 'EYCE_Id is required' }).int().positive({ message: 'Invalid EYCE_Id' })
     })

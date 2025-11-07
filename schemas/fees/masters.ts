@@ -7,7 +7,7 @@ export const loginSchema = z.object({
 export const masterFeeheadSchema = {
     addOrUpdate: z.object({
         fmH_Id: z.number().optional(),
-        fmH_FeeName: createStringSchema('Fee Head Name', 1, 100),
+        fmH_FeeName: createStringSchema('Fee Head Name', 3, 100),
         fmH_Order: z.number().int({ message: 'fmH_Order is required' }),
         //fmH_Flag: createStringSchema('fmH_Flag', 1, 100),
 
@@ -137,20 +137,39 @@ export const masterClassCategorySchema = {
         fmcC_ActiveFlag: z.boolean().optional()
     }),
     delete: z.object({
-        fmcC_Id: deleteIdSchema('fmcC_Id')
+        fyccC_Id: z
+            .number({
+                required_error: 'Class Category ID (fyccC_Id) is required',
+                invalid_type_error: 'Class Category ID must be a number'
+            })
+            .positive('Class Category ID must be positive')
     })
 };
 export const masterClassSchema = {
     addOrUpdate: z.object({
         academicYear: z.string().min(1, { message: 'Academic Year is required' }),
         classCategory: z.string().min(1, { message: 'Class Category is required' }),
-        classes: z.array(z.string().min(1)).min(1, { message: 'At least one class must be selected' })
+        headInstallments: z
+            .array(
+                z.object({
+                    id: z.number(),
+                    fmH_Id: z.string().min(1, { message: 'Fee Head is required' }),
+                    fmI_Id: z.string().min(1, { message: 'Fee Installment is required' }),
+                    fineApplicable: z.boolean(),
+                    active: z.boolean(),
+                    commonAmount: z.boolean()
+                })
+            )
+            .min(1, { message: 'At least one head installment is required' })
     }),
 
     delete: z.object({
-        asmS_Id: z.number().min(1, { message: 'Valid ASMCL ID is required for deletion' }) // Or use `deleteIdSchema
+        fycC_Id: z.number().min(1, {
+            message: 'Valid Class Yearly Category ID is required for deletion'
+        })
     })
 };
+
 export const masterGroupsGroupingSchema = {
     addOrUpdate: z.object({
         fmgG_GroupName: z.string().min(1, { message: 'Grouping Name is required' }),
@@ -177,7 +196,7 @@ export const masterInstallmentSchema = {
             .optional()
     }),
     delete: z.object({
-        mI_ID: z.number().optional()
+        fmI_Id: z.number().optional()
     })
 };
 export const masterGroupSchema = {
@@ -189,10 +208,16 @@ export const masterGroupSchema = {
             if (typeof val === 'string' && val.trim() === '') return undefined;
             return val;
         }, z.enum(['transport', 'hostel']).optional()),
-        studentType: z.preprocess((val) => {
-            if (typeof val === 'string' && val.trim() === '') return undefined;
-            return val;
-        }, z.enum(['regular', 'newstudent']).optional()),
+        studentType: z.preprocess(
+            (val) => {
+                if (typeof val === 'string' && val.trim() === '') return undefined;
+                return val;
+            },
+            z.enum(['regular', 'newstudent'], {
+                required_error: 'Please select Regular or New Student',
+                invalid_type_error: 'Please select Regular or New Student'
+            })
+        ),
         fmG_CompulsoryFlag: z.boolean().default(false)
     }),
     toggle: z.object({
@@ -475,24 +500,6 @@ export const feePrivilegeSchema = {
     })
 };
 
-export const masterOnlinePaymentHeadGroupSchema = {
-    addOrUpdate: z.object({
-        fmcC_Id: z.number().int({ message: 'ivrmmoD_Id is required' }).optional(),
-        mI_Id: createStringSchema('ivrmmoD_ModeOfPayment', 1, 100),
-        institutionName: createStringSchema('institutionName', 1, 100),
-        classCategory: createStringSchema('classCategory', 1, 100),
-        subMerchantId: createStringSchema('subMerchantId', 1, 100),
-        groupName: createStringSchema('groupName', 1, 100),
-        headSearchTerm: createStringSchema('headSearchTerm', 1, 100),
-        installmentName: createStringSchema('installmentName', 1, 100),
-        terms: createStringSchema('headSearchTerm', 1, 100),
-        academicYear: createStringSchema('headSearchTerm', 1, 100)
-    }),
-    delete: z.object({
-        fmcC_Id: deleteIdSchema('ivrmmoD_Id')
-    })
-};
-
 export const masterTermFeeHeadDueDateSchema = {
     addOrUpdate: z.object({
         asmaY_Id: z.number().int({ message: 'Academic Year is required' }).optional(),
@@ -501,5 +508,23 @@ export const masterTermFeeHeadDueDateSchema = {
     }),
     delete: z.object({
         fmA_Id: deleteIdSchema('fmA_Id')
+    })
+};
+
+export const masterOnlinePaymentHeadGroupSchema = {
+    addOrUpdate: z.object({
+        mI_Id: z.string().min(1, { message: 'Institution is required' }),
+        institutionName: z.string().min(1, { message: 'Institution Name is required' }),
+        asmaY_Id: z.number().int({ message: 'Academic Year is required' }).optional(),
+        classCategory: z.string().min(1, { message: 'Class is required' }),
+        subMerchantId: z.string().min(1, { message: 'Sub Merchant Id is required' }),
+        groupName: z.string().min(1, { message: 'Group Name is required' }),
+        headSearchTerm: z.string().optional(),
+        installmentName: z.string().min(1, { message: 'Installment is required' }),
+        terms: z.string().min(1, { message: 'Terms is required' }),
+        academicYear: z.string().optional()
+    }),
+    delete: z.object({
+        fmcC_Id: deleteIdSchema('fmcC_Id')
     })
 };

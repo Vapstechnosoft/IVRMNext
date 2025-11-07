@@ -94,3 +94,18 @@ export function deleteIdSchema(field: string) {
         path: [field]
     });
 }
+
+export function createCustomStringSchema(field: string, min: number, max: number) {
+    return z
+        .string({ message: `${field} is required` })
+        .min(min, { message: `Minimum ${min} characters required for ${field}` })
+        .max(max, { message: `Maximum ${max} characters allowed for ${field}` })
+        .refine((val) => /[A-Za-z0-9]/.test(val), { message: 'Grade Name cannot contain only special characters' })
+        .refine((value) => value.trim() === value, {
+            message: `${field} cannot have leading or trailing spaces`
+        })
+        .refine((val) => /^[A-Za-z0-9][A-Za-z0-9\s!@#$%^&*(),.?":{}|<>-]*$/.test(val), {
+            message: 'Grade Name should not start with a special character'
+        })
+        .refine((val) => !/^[0-9]+$/.test(val), { message: 'Grade Name cannot be only numbers' });
+}

@@ -143,7 +143,7 @@ export default function SubExamModal({
                                     <tr className='text-sm'>
                                         <th className='border p-2'>SLNO</th>
                                         <th className='border p-2'>Select</th>
-                                        <th className='border p-2'>Sub-Subject</th>
+                                        <th className='border p-2'>Sub-Exam</th>
                                         <th className='border p-2'>Max Marks</th>
                                         <th className='border p-2'>Min Marks</th>
                                         <th className='border p-2'>Grade</th>

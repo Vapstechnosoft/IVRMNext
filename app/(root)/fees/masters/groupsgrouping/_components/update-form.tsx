@@ -74,10 +74,13 @@ export default function UpdateMasterFeeGroupGroupingForm({
     // Populate form + auto-select existing fee groups
     useEffect(() => {
         if (selectedRow) {
+            // Extract IDs from selectedFeeGroups array
+            const selectedIds = selectedRow.selectedFeeGroups?.map((group: { fmG_Id: any }) => group.fmG_Id) || [];
+
             const initialData = {
                 fmgG_GroupName: selectedRow.fmgG_GroupName || '',
                 fmgG_GroupCode: selectedRow.fmgG_GroupCode || '',
-                selectedFeeGroupIds: selectedRow.selectedFeeGroupIds || []
+                selectedFeeGroupIds: selectedIds
             };
             reset(initialData);
         }

@@ -1,5 +1,4 @@
 'use client';
-import { Heading } from '@/components/layout/heading';
 import { Button } from '@/components/ui/button';
 import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/generic-data-table';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
@@ -46,9 +45,6 @@ function MasterFeeInstallmentPageContent({
             <div className='container space-y-4 p-1'>
                 {/* Header */}
                 <div className='flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between'>
-                    <div className='space-y-1'>
-                        <Heading title='Fees Installment' description='Manage fee installments and payment schedules' />
-                    </div>
                     <Button
                         type='button'
                         onClick={openAddForm}

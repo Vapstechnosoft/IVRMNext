@@ -155,6 +155,14 @@ export async function getUserAccessibleModules() {
                                             url: '/admission/preadmission/masters/religion-caste-category',
                                             title: 'Master Religion Caste Category',
                                             description: 'Manage Master Religion Caste Category Details'
+                                        },
+                                        {
+                                            id: 12,
+                                            name: 'Class Teacher',
+                                            icon: 'Settings',
+                                            url: '/admission/preadmission/masters/class-teacher',
+                                            title: 'Class Teacher',
+                                            description: 'Manage Master Class Teacher Details'
                                         }
                                     ]
                                 },
@@ -458,8 +466,8 @@ export async function getUserAccessibleModules() {
                                             name: 'Fee waivedoff',
                                             icon: 'Settings',
                                             url: '/fees/transactions/waivedoff',
-                                            title: 'Fee Transactions',
-                                            description: 'Fee Transactions'
+                                            title: 'Fee waivedoff',
+                                            description: 'Fee waivedoff'
                                         }
                                     ]
                                 }
@@ -561,22 +569,6 @@ export async function getUserAccessibleModules() {
                                     name: 'Exam Mapping',
                                     icon: 'Settings',
                                     pages: [
-                                        {
-                                            id: 53,
-                                            name: 'Exam Subject Wizard',
-                                            icon: 'BookOpen',
-                                            url: '/Exam/exam-module/exam-mapping/exam-subject-wizard',
-                                            title: 'Exam Subject Wizard',
-                                            description: 'Manage Exam Subject Wizard Details'
-                                        },
-                                        {
-                                            id: 54,
-                                            name: 'Exam Login Privilages',
-                                            icon: 'BookOpen',
-                                            url: '/Exam/exam-module/exam-mapping/exam-login-privilages',
-                                            title: 'Exam Login Privilages',
-                                            description: 'Manage Exam Login Privilages Details'
-                                        },
                                         {
                                             id: 55,
                                             name: 'Yearly Category Date Mapping',

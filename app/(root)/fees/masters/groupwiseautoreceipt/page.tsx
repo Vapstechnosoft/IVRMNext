@@ -1,6 +1,4 @@
 'use client';
-
-import { Heading } from '@/components/layout/heading';
 import { Button } from '@/components/ui/button';
 import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/generic-data-table';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
@@ -49,10 +47,10 @@ function MasterClassPageContent({
                 {/* Header */}
                 <div className='flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between'>
                     <div className='space-y-1'>
-                        <Heading
+                        {/* <Heading
                             title='Master Group Wise Auto Receipt'
                             description='Manage group-wise auto receipt settings by academic year'
-                        />
+                        /> */}
                     </div>
                     <Button
                         type='button'

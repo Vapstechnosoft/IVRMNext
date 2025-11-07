@@ -28,6 +28,10 @@ export const ROUTES = {
                 TRANSACTIONS: '/transactions',
                 TRANSACTIONS_SUB_MENUS: {
                     APPLICATION_FORM: '/application-form'
+                },
+                REPORTS: '/reports',
+                REPORTS_SUB_MENUS: {
+                    STUDENT_COUNT_REPORT: '/student-count-report'
                 }
             }
         }

@@ -1,11 +1,9 @@
 'use client';
-
-import { Heading } from '@/components/layout/heading';
 import { Button } from '@/components/ui/button';
 import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/generic-data-table';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
-import { useMasterFeeYearlyGroup } from '@/hooks/fees/useMasters';
+import { useMasterGetYearlyCategory } from '@/hooks/fees/useMasters';
 import type { IMaasterFeesYearlyGrouping } from '@/types/fees/masters/masters';
 import { Plus, X } from 'lucide-react';
 import { use } from 'react';
@@ -21,7 +19,7 @@ export default function MasterYearlyGroupClient({
 }) {
     const unwrappedSearchParams = use(searchParams);
 
-    const { data: response, isLoading, error } = useMasterFeeYearlyGroup(unwrappedSearchParams);
+    const { data: response, isLoading, error } = useMasterGetYearlyCategory(unwrappedSearchParams);
     const tableProps = useDataTableProps(response);
 
     return (
@@ -31,10 +29,10 @@ export default function MasterYearlyGroupClient({
                     {/* Header */}
                     <div className='flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between'>
                         <div className='space-y-1'>
-                            <Heading
+                            {/* <Heading
                                 title='Fees Yearly Group'
                                 description='Manage fee groups, rebates, and installments by academic year'
-                            />
+                            /> */}
                         </div>
                         <AddButton />
                     </div>

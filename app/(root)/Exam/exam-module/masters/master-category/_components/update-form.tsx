@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { FormError, Label } from '@/components/ui/extension/field';
 import { InputText } from '@/components/ui/extension/input-text';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { useMasterCategory } from '@/hooks/exam/exammodule/usemasters';
 import { masterCategorySchema } from '@/schemas/exam/exam-module/masters';
 import { addOrUpdateExamMasterCategory } from '@/server/exam/exam-module/masters/category';
 import type { IMasterCategory } from '@/types/exam/exam-module/masters';
@@ -38,8 +39,7 @@ export default function UpdateMasterCategoryForm({ initialData, onSuccess, class
             emcA_CCECheckingFlg: initialData?.emcA_CCECheckingFlg ?? true
         }
     });
-
-    // ✅ Reset form whenever new initialData is passed
+    const { refetchAll } = useMasterCategory();
     useEffect(() => {
         if (initialData) {
             reset({
@@ -64,6 +64,8 @@ export default function UpdateMasterCategoryForm({ initialData, onSuccess, class
 
             if (response.success) {
                 toast.success('Category updated successfully');
+                reset();
+                refetchAll();
                 onSuccess?.();
             } else {
                 toast.error(response.message || 'Failed to update category');

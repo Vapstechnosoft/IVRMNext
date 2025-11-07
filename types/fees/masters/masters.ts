@@ -62,7 +62,6 @@ export interface IMasterFeesInstallmentList {
     fmI_Installment_Type: string;
     ftI_Name?: string;
     fmI_ActiceFlag?: boolean | number;
-    fmI_ActiveFlag?: boolean | number;
     installments?: Array<{
         sno?: number;
         ftI_Id?: number;
@@ -130,6 +129,7 @@ export interface IMasterClassYearlyList {
 export interface IMasterCasteCategoryList {
     fmcC_Id: number;
     mI_Id: number;
+    fyccC_Id: number;
     fmcC_ClassCategoryName: string;
     imcC_CategoryDesc: string;
     fmcC_ClassCategoryCode: string;
@@ -232,6 +232,7 @@ export interface IMasterYearlyRebateSettingsList {
 }
 
 export interface IMasterGroupsGrouping {
+    selectedFeeGroups: any;
     fmgG_Id: number;
     fmgG_GroupName: string;
     fmgG_GroupCode: string;
@@ -267,6 +268,7 @@ export interface IMasterRoleDropdown {
 }
 
 export interface IMasterOnlinePaymentHeadgroupList {
+    fopM_Id(fopM_Id: any): unknown;
     fmcC_Id: number;
     mI_Id: number;
     institutionName: string;
@@ -304,4 +306,100 @@ export interface IMasterYearlyRebateList {
     fyG_PartialRebateAmtOrPercentageValue?: number | string;
     fyG_PartialRebateTypeFlg?: string;
     fyG_PartialRebateApplicableFlg?: boolean;
+}
+
+export interface InstallmentResponse {
+    success: boolean;
+    message: string;
+    data: {
+        feemasterinstalment: FeeMasterInstallment[];
+        feeinstalmentlist: FeeInstallmentList[];
+    };
+}
+
+export interface FeeMasterInstallment {
+    fmI_Id: number;
+    mI_Id: number;
+    fmI_Name: string;
+    fmI_No_Of_Installments: number;
+    fmI_Installment_Type: string;
+    fmI_ActiceFlag: boolean;
+}
+
+export interface FeeInstallmentList {
+    ftI_Id: number;
+    fmI_Id: number;
+    ftI_Name: string;
+}
+
+export interface IMasterOnlinePaymentHeadgroupList {
+    fmcC_Id: number;
+    mI_Id: number;
+    institutionName: string;
+    classCategory: string;
+    subMerchantId: string;
+    groupName: string;
+    className: string;
+    headSearchTerm: string;
+    installmentName: string;
+    terms: string;
+    academicYear: string;
+}
+export interface IMasterFeesInstallmentList {
+    fmI_Id: number;
+    mI_Id: number;
+    fmI_Name: string;
+    fmI_No_Of_Installments: number;
+    fmI_Installment_Type: string;
+    ftI_Name?: string;
+    fmI_ActiceFlag?: boolean | number;
+    installments?: Array<{
+        sno?: number;
+        ftI_Id?: number;
+        ftI_Name?: string;
+        fdate?: string;
+        tdate?: string;
+        aplc?: string;
+        ddate?: string;
+    }>;
+}
+export interface IMasterClassYearlyList {
+    fmG_GroupName: string;
+    fmG_Id: any;
+    asmcl_ActiveFlag: boolean;
+    asmcL_Id: number;
+    asmaY_ID: number;
+    asmaY_Year: string;
+    fmcC_Id: string;
+    fmcC_ClassCategoryName: string;
+    fycC_ActiveFlag: boolean;
+    asmcL_ClassName: string;
+    fyccC_Id: number;
+    fycC_Id: number;
+}
+
+export interface IMasterFeeHeadDropdownList {
+    mI_Id: number;
+    fmH_Id: number;
+    fmH_FeeName: string;
+}
+
+export interface IMasterFeeInstallmentDropdownList {
+    fmI_Id: number;
+    fmI_Name: string;
+}
+
+export interface IMasterAllFeeHeadList {
+    fyghM_Id: number;
+    mI_Id: number;
+    asmaY_Id: number;
+    fmG_Id: number;
+    fmH_Id: number;
+    fmI_Id: number;
+    returnval: boolean;
+    fmG_GroupName: string;
+    fmH_FeeName: string;
+    fmI_Name: string;
+    userid: number;
+    deleteId: number;
 }
