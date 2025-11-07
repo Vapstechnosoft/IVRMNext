@@ -570,22 +570,6 @@ export async function getUserAccessibleModules() {
                                     icon: 'Settings',
                                     pages: [
                                         {
-                                            id: 53,
-                                            name: 'Exam Subject Wizard',
-                                            icon: 'BookOpen',
-                                            url: '/Exam/exam-module/exam-mapping/exam-subject-wizard',
-                                            title: 'Exam Subject Wizard',
-                                            description: 'Manage Exam Subject Wizard Details'
-                                        },
-                                        {
-                                            id: 54,
-                                            name: 'Exam Login Privilages',
-                                            icon: 'BookOpen',
-                                            url: '/Exam/exam-module/exam-mapping/exam-login-privilages',
-                                            title: 'Exam Login Privilages',
-                                            description: 'Manage Exam Login Privilages Details'
-                                        },
-                                        {
                                             id: 55,
                                             name: 'Yearly Category Date Mapping',
                                             icon: 'CalendarDays',
