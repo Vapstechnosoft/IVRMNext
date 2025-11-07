@@ -54,7 +54,7 @@ export default function UpdateMasterAcademicYearForm({ onSuccess, className = ''
                 asmaY_Order: Number(row.asmaY_Order),
                 asmaY_ActiveFlag: Number(row.asmaY_ActiveFlag),
                 asmaY_Cut_Of_Date: row.asmaY_Cut_Of_Date ? new Date(row.asmaY_Cut_Of_Date).toISOString().slice(0, 16) : null,
-                asmaY_Pre_ActiveFlag: Number(row.asmaY_Pre_ActiveFlag),
+                asmaY_Pre_ActiveFlag: row.asmaY_Pre_ActiveFlag === 1,
                 asmaY_ReggularFlg: Boolean(row.asmaY_ReggularFlg),
                 asmaY_NewFlg: Boolean(row.asmaY_NewFlg),
                 asmaY_NewAdmissionFlg: Boolean(row.asmaY_NewAdmissionFlg),
@@ -82,7 +82,7 @@ export default function UpdateMasterAcademicYearForm({ onSuccess, className = ''
                 ASMAY_Order: Number(data.asmaY_Order),
                 ASMAY_ActiveFlag: Number(data.asmaY_ActiveFlag),
                 ASMAY_Cut_Of_Date: data.asmaY_Cut_Of_Date,
-                ASMAY_Pre_ActiveFlag: Number(data.asmaY_Pre_ActiveFlag),
+                ASMAY_Pre_ActiveFlag: data.asmaY_Pre_ActiveFlag === true ? 1 : 0,
                 ASMAY_ReggularFlg: Boolean(data.asmaY_ReggularFlg),
                 ASMAY_NewFlg: Boolean(data.asmaY_NewFlg),
                 ASMAY_NewAdmissionFlg: Boolean(data.asmaY_NewAdmissionFlg),
@@ -293,6 +293,18 @@ export default function UpdateMasterAcademicYearForm({ onSuccess, className = ''
                     <div className='flex justify-start gap-4'>
                         <div className='flex items-center space-x-2'>
                             <Controller
+                                name='asmaY_NewAdmissionFlg'
+                                control={control}
+                                render={({ field }) => (
+                                    <Checkbox id='asmaY_NewAdmissionFlg' checked={field.value} onCheckedChange={field.onChange} />
+                                )}
+                            />
+                            <Label htmlFor='asmaY_NewAdmissionFlg' className='cursor-pointer'>
+                                New Admission Flag
+                            </Label>
+                        </div>
+                        <div className='flex items-center space-x-2'>
+                            <Controller
                                 name='asmaY_ReggularFlg'
                                 control={control}
                                 render={({ field }) => (
@@ -303,7 +315,6 @@ export default function UpdateMasterAcademicYearForm({ onSuccess, className = ''
                                 Regular Flag
                             </Label>
                         </div>
-
                         <div className='flex items-center space-x-2'>
                             <Controller
                                 name='asmaY_NewFlg'
@@ -316,17 +327,16 @@ export default function UpdateMasterAcademicYearForm({ onSuccess, className = ''
                                 New Flag
                             </Label>
                         </div>
-
                         <div className='flex items-center space-x-2'>
                             <Controller
-                                name='asmaY_NewAdmissionFlg'
+                                name='asmaY_Pre_ActiveFlag'
                                 control={control}
                                 render={({ field }) => (
-                                    <Checkbox id='asmaY_NewAdmissionFlg' checked={field.value} onCheckedChange={field.onChange} />
+                                    <Checkbox id='asmaY_Pre_ActiveFlag' checked={field.value} onCheckedChange={field.onChange} />
                                 )}
                             />
-                            <Label htmlFor='asmaY_NewAdmissionFlg' className='cursor-pointer'>
-                                New Admission Flag
+                            <Label htmlFor='asmaY_Pre_ActiveFlag' className='cursor-pointer'>
+                                Preadmission Flag
                             </Label>
                         </div>
                     </div>
