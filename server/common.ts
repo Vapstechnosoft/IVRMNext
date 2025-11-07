@@ -251,21 +251,6 @@ export async function getUserAccessibleModules() {
                                             description: 'Pre-Registration Numbering'
                                         }
                                     ]
-                                },
-                                {
-                                    id: 3,
-                                    name: 'Reports',
-                                    icon: 'Settings',
-                                    pages: [
-                                        {
-                                            id: 1,
-                                            name: ' Student Count Report',
-                                            icon: 'Settings',
-                                            url: '/admission/preadmission/reports/student-count-report',
-                                            title: 'Student Count Report ',
-                                            description: 'Student Count Report'
-                                        }
-                                    ]
                                 }
                             ]
                         }

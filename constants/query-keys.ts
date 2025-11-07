@@ -54,6 +54,7 @@ export const PREADMISSION_QUERY_KEYS = {
     DOCUMENT_DOWNLOAD: 'document_download',
     REGISTRATION_NUMBERING: 'registration_Numbering',
     PRE_REGISTRATION_NUMBERING: 'Pre_Registration_Numbering',
+    STUDENT_COUNT_REPORT: 'student_count_report',
     STUDENT_APPLICATION_FORM: 'student_application_form'
 };
 
