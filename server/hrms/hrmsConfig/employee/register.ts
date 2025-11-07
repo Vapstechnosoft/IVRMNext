@@ -1,6 +1,7 @@
 'use server';
 
 import { api } from '@/lib/apiService';
+import { HRMS_MI_ID } from '@/constants/hrms-config';
 import type {
     EmployeeAddressDetailsRequest,
     EmployeeAddressDetailsResponse,
@@ -56,21 +57,27 @@ import type {
 export async function getEmployeeRegisterOnload(payload: EmployeeRegisterOnloadRequest) {
     const url = '/api/EmployeeRegistrationNew/onloadgetdetails';
     
-    const response = await api.post<EmployeeRegisterOnloadResponse>('hrms', url, payload);
-    
-    // The backend returns raw data, not wrapped in ApiResponse format
-    // Wrap it to match the expected ApiResponse structure
-    if (response && typeof response === 'object' && 'success' in response && 'data' in response) {
-        // Already wrapped
-        return response;
+    try {
+        const response = await api.post<EmployeeRegisterOnloadResponse>('hrms', url, payload);
+        
+        // The backend returns raw data, not wrapped in ApiResponse format
+        // Wrap it to match the expected ApiResponse structure
+        if (response && typeof response === 'object' && 'success' in response && 'data' in response) {
+            // Already wrapped
+            return response;
+        }
+        
+        // Wrap raw response data
+        const wrappedResponse = {
+            success: true,
+            message: 'Data loaded successfully',
+            data: response as unknown as EmployeeRegisterOnloadResponse
+        };
+        return wrappedResponse;
+    } catch (error: any) {
+        console.error('🔍 [SERVER] getEmployeeRegisterOnload ERROR:', error?.message);
+        throw error;
     }
-    
-    // Wrap raw response data
-    return {
-        success: true,
-        message: 'Data loaded successfully',
-        data: response as unknown as EmployeeRegisterOnloadResponse
-    };
 }
 
 export async function saveEmployeeRegister(payload: EmployeeRegisterSaveRequest) {
@@ -174,7 +181,235 @@ export async function addUpdateEmployeeArrearDetails(payload: EmployeeArrearDeta
  */
 export async function getEmployeeById(id: number) {
     const url = `/api/EmployeeRegistrationNew/getRecordById/${id}`;
-    return await api.get<GetEmployeeByIdResponse>('hrms', url);
+    
+    console.log('🔍 [EDIT] Fetching employee from API:', id);
+    
+    try {
+        const response = await api.get<any>('hrms', url);
+        
+        // The API returns an onload-like structure with employeedetailList
+        // Extract the specific employee from the list
+        let employeeData = null;
+        
+        if (response && typeof response === 'object') {
+            // Log full response structure for debugging
+            console.log('🔍 [EDIT] API Response structure:', {
+                hasEmployeedetailList: !!response.employeedetailList,
+                employeedetailListLength: Array.isArray(response.employeedetailList) ? response.employeedetailList.length : 0,
+                rootLevelKeys: Object.keys(response),
+                hasQualificationDetails: !!(response as any).qualificationDetails,
+                rootQualificationDetails: (response as any).qualificationDetails
+            });
+            
+            // Check if employee data is in employeedetailList
+            if (response.employeedetailList && Array.isArray(response.employeedetailList)) {
+                // Find the employee with matching ID
+                employeeData = response.employeedetailList.find((emp: any) => emp.HRME_Id === id);
+                console.log('🔍 [EDIT] Employee found in list:', employeeData?.HRME_EmployeeCode, employeeData?.HRME_EmployeeFirstName);
+                
+            }
+            
+            // If not found in list, try root level (fallback)
+            if (!employeeData && response.HRME_Id === id) {
+                employeeData = response;
+                console.log('🔍 [EDIT] Employee found at root level');
+            }
+        }
+        
+        if (!employeeData) {
+            console.error('🔍 [EDIT] Employee not found in response');
+            throw new Error('Employee not found');
+        }
+        
+        // Log medical fields in employee object BEFORE copying from root
+        console.log('🔍 [EDIT] Medical fields in employee object (before copy):', {
+            HRME_Height: (employeeData as any).HRME_Height,
+            HRME_HeightUOM: (employeeData as any).HRME_HeightUOM,
+            HRME_Weight: (employeeData as any).HRME_Weight,
+            HRME_WeightUOM: (employeeData as any).HRME_WeightUOM,
+            HRME_EyeSightIssue: (employeeData as any).HRME_EyeSightIssue,
+            HRME_AnyHealthIssue: (employeeData as any).HRME_AnyHealthIssue,
+            HRME_IdentificationMark: (employeeData as any).HRME_IdentificationMark
+        });
+        
+        // Log medical fields in root response
+        console.log('🔍 [EDIT] Medical fields in root response:', {
+            HRME_Height: (response as any).HRME_Height,
+            HRME_HeightUOM: (response as any).HRME_HeightUOM,
+            HRME_Weight: (response as any).HRME_Weight,
+            HRME_WeightUOM: (response as any).HRME_WeightUOM,
+            HRME_EyeSightIssue: (response as any).HRME_EyeSightIssue,
+            HRME_AnyHealthIssue: (response as any).HRME_AnyHealthIssue,
+            HRME_IdentificationMark: (response as any).HRME_IdentificationMark
+        });
+        
+        // Log other details fields in employee object BEFORE copying from root
+        console.log('🔍 [EDIT] Other details fields in employee object (before copy):', {
+            HRME_BiometricCode: (employeeData as any).HRME_BiometricCode,
+            HRME_RFCardId: (employeeData as any).HRME_RFCardId,
+            HRME_ExcPunch: (employeeData as any).HRME_ExcPunch,
+            HRME_RetiredFlg: (employeeData as any).HRME_RetiredFlg,
+            HRME_PensionStoppedDate: (employeeData as any).HRME_PensionStoppedDate,
+            HRME_MSTeamsUserId: (employeeData as any).HRME_MSTeamsUserId,
+            HRME_MSTeamsPassword: (employeeData as any).HRME_MSTeamsPassword,
+            HRME_LeftFlag: (employeeData as any).HRME_LeftFlag,
+            HRME_DOL: (employeeData as any).HRME_DOL,
+            HRME_LeavingReason: (employeeData as any).HRME_LeavingReason
+        });
+        
+        // Log other details fields in root response
+        console.log('🔍 [EDIT] Other details fields in root response:', {
+            HRME_BiometricCode: (response as any).HRME_BiometricCode,
+            HRME_RFCardId: (response as any).HRME_RFCardId,
+            HRME_ExcPunch: (response as any).HRME_ExcPunch,
+            HRME_RetiredFlg: (response as any).HRME_RetiredFlg,
+            HRME_PensionStoppedDate: (response as any).HRME_PensionStoppedDate,
+            HRME_MSTeamsUserId: (response as any).HRME_MSTeamsUserId,
+            HRME_MSTeamsPassword: (response as any).HRME_MSTeamsPassword,
+            HRME_LeftFlag: (response as any).HRME_LeftFlag,
+            HRME_DOL: (response as any).HRME_DOL,
+            HRME_LeavingReason: (response as any).HRME_LeavingReason
+        });
+        
+        // Log the full employee object keys to see what's actually there
+        console.log('🔍 [EDIT] Employee object keys (sample):', Object.keys(employeeData as any).slice(0, 50));
+        console.log('🔍 [EDIT] Full employee object (other details check):', {
+            hasBiometricCode: 'HRME_BiometricCode' in (employeeData as any),
+            biometricCodeValue: (employeeData as any).HRME_BiometricCode,
+            hasRFCardId: 'HRME_RFCardId' in (employeeData as any),
+            rfCardIdValue: (employeeData as any).HRME_RFCardId,
+            hasExcPunch: 'HRME_ExcPunch' in (employeeData as any),
+            excPunchValue: (employeeData as any).HRME_ExcPunch,
+            hasRetiredFlg: 'HRME_RetiredFlg' in (employeeData as any),
+            retiredFlgValue: (employeeData as any).HRME_RetiredFlg,
+            hasPensionStoppedDate: 'HRME_PensionStoppedDate' in (employeeData as any),
+            pensionStoppedDateValue: (employeeData as any).HRME_PensionStoppedDate,
+            hasMSTeamsUserId: 'HRME_MSTeamsUserId' in (employeeData as any),
+            msTeamsUserIdValue: (employeeData as any).HRME_MSTeamsUserId,
+            hasMSTeamsPassword: 'HRME_MSTeamsPassword' in (employeeData as any),
+            msTeamsPasswordValue: (employeeData as any).HRME_MSTeamsPassword ? '***' : '',
+            hasLeftFlag: 'HRME_LeftFlag' in (employeeData as any),
+            leftFlagValue: (employeeData as any).HRME_LeftFlag,
+            hasDOL: 'HRME_DOL' in (employeeData as any),
+            dolValue: (employeeData as any).HRME_DOL,
+            hasLeavingReason: 'HRME_LeavingReason' in (employeeData as any),
+            leavingReasonValue: (employeeData as any).HRME_LeavingReason
+        });
+        
+        // Attach qualificationDetails, experienceDetails, and documentList from root level if they exist
+        // These are not included in the employeedetailList items
+        if ((response as any).qualificationDetails && Array.isArray((response as any).qualificationDetails)) {
+            (employeeData as any).qualificationDetails = (response as any).qualificationDetails;
+        }
+        
+        if ((response as any).experienceDetails && Array.isArray((response as any).experienceDetails)) {
+            (employeeData as any).experienceDetails = (response as any).experienceDetails;
+            console.log('🔍 [EDIT] Attached experienceDetails to employee:', (employeeData as any).experienceDetails.length, 'experiences');
+        }
+        
+        if ((response as any).documentList && Array.isArray((response as any).documentList)) {
+            (employeeData as any).documentList = (response as any).documentList;
+            console.log('🔍 [EDIT] Attached documentList to employee:', (employeeData as any).documentList.length, 'documents');
+        }
+        
+        // Copy medical fields from root level if they exist AND are not null/empty
+        // Only copy if the employee object doesn't already have a value OR if root has a non-null value
+        if ((response as any).HRME_Height !== undefined && (response as any).HRME_Height !== null && (response as any).HRME_Height !== '') {
+            (employeeData as any).HRME_Height = (response as any).HRME_Height;
+        }
+        if ((response as any).HRME_HeightUOM !== undefined && (response as any).HRME_HeightUOM !== null && (response as any).HRME_HeightUOM !== '') {
+            (employeeData as any).HRME_HeightUOM = (response as any).HRME_HeightUOM;
+        }
+        if ((response as any).HRME_Weight !== undefined && (response as any).HRME_Weight !== null && (response as any).HRME_Weight !== '') {
+            (employeeData as any).HRME_Weight = (response as any).HRME_Weight;
+        }
+        if ((response as any).HRME_WeightUOM !== undefined && (response as any).HRME_WeightUOM !== null && (response as any).HRME_WeightUOM !== '') {
+            (employeeData as any).HRME_WeightUOM = (response as any).HRME_WeightUOM;
+        }
+        if ((response as any).HRME_EyeSightIssue !== undefined && (response as any).HRME_EyeSightIssue !== null && (response as any).HRME_EyeSightIssue !== '') {
+            (employeeData as any).HRME_EyeSightIssue = (response as any).HRME_EyeSightIssue;
+        }
+        if ((response as any).HRME_AnyHealthIssue !== undefined && (response as any).HRME_AnyHealthIssue !== null && (response as any).HRME_AnyHealthIssue !== '') {
+            (employeeData as any).HRME_AnyHealthIssue = (response as any).HRME_AnyHealthIssue;
+        }
+        if ((response as any).HRME_IdentificationMark !== undefined && (response as any).HRME_IdentificationMark !== null && (response as any).HRME_IdentificationMark !== '') {
+            (employeeData as any).HRME_IdentificationMark = (response as any).HRME_IdentificationMark;
+        }
+        
+        // Copy other details fields from root level if they exist
+        // For strings: copy if not null and not empty string
+        // For booleans: copy if not null (false is a valid value)
+        // For dates: copy if not null and not empty string
+        if ((response as any).HRME_BiometricCode !== undefined && (response as any).HRME_BiometricCode !== null && (response as any).HRME_BiometricCode !== '') {
+            (employeeData as any).HRME_BiometricCode = (response as any).HRME_BiometricCode;
+        }
+        if ((response as any).HRME_RFCardId !== undefined && (response as any).HRME_RFCardId !== null && (response as any).HRME_RFCardId !== '') {
+            (employeeData as any).HRME_RFCardId = (response as any).HRME_RFCardId;
+        }
+        // For booleans, copy even if false (false is a valid value)
+        if ((response as any).HRME_ExcPunch !== undefined && (response as any).HRME_ExcPunch !== null) {
+            (employeeData as any).HRME_ExcPunch = (response as any).HRME_ExcPunch;
+        }
+        if ((response as any).HRME_RetiredFlg !== undefined && (response as any).HRME_RetiredFlg !== null) {
+            (employeeData as any).HRME_RetiredFlg = (response as any).HRME_RetiredFlg;
+        }
+        if ((response as any).HRME_PensionStoppedDate !== undefined && (response as any).HRME_PensionStoppedDate !== null && (response as any).HRME_PensionStoppedDate !== '') {
+            (employeeData as any).HRME_PensionStoppedDate = (response as any).HRME_PensionStoppedDate;
+        }
+        if ((response as any).HRME_MSTeamsUserId !== undefined && (response as any).HRME_MSTeamsUserId !== null && (response as any).HRME_MSTeamsUserId !== '') {
+            (employeeData as any).HRME_MSTeamsUserId = (response as any).HRME_MSTeamsUserId;
+        }
+        if ((response as any).HRME_MSTeamsPassword !== undefined && (response as any).HRME_MSTeamsPassword !== null && (response as any).HRME_MSTeamsPassword !== '') {
+            (employeeData as any).HRME_MSTeamsPassword = (response as any).HRME_MSTeamsPassword;
+        }
+        // For booleans, copy even if false
+        if ((response as any).HRME_LeftFlag !== undefined && (response as any).HRME_LeftFlag !== null) {
+            (employeeData as any).HRME_LeftFlag = (response as any).HRME_LeftFlag;
+        }
+        if ((response as any).HRME_DOL !== undefined && (response as any).HRME_DOL !== null && (response as any).HRME_DOL !== '') {
+            (employeeData as any).HRME_DOL = (response as any).HRME_DOL;
+        }
+        if ((response as any).HRME_LeavingReason !== undefined && (response as any).HRME_LeavingReason !== null && (response as any).HRME_LeavingReason !== '') {
+            (employeeData as any).HRME_LeavingReason = (response as any).HRME_LeavingReason;
+        }
+        
+        // Also check if employee object has these fields but they're empty - if root has them, prefer root
+        // But if root is null and employee has empty string, keep empty string (don't overwrite with null)
+        // Actually, the above logic already handles this - we only copy if root is not null
+        
+        console.log('🔍 [EDIT] Medical fields attached:', {
+            HRME_Height: (employeeData as any).HRME_Height,
+            HRME_HeightUOM: (employeeData as any).HRME_HeightUOM,
+            HRME_Weight: (employeeData as any).HRME_Weight,
+            HRME_WeightUOM: (employeeData as any).HRME_WeightUOM,
+            HRME_EyeSightIssue: (employeeData as any).HRME_EyeSightIssue,
+            HRME_AnyHealthIssue: (employeeData as any).HRME_AnyHealthIssue,
+            HRME_IdentificationMark: (employeeData as any).HRME_IdentificationMark
+        });
+        
+        console.log('🔍 [EDIT] Other details fields attached:', {
+            HRME_BiometricCode: (employeeData as any).HRME_BiometricCode,
+            HRME_RFCardId: (employeeData as any).HRME_RFCardId,
+            HRME_ExcPunch: (employeeData as any).HRME_ExcPunch,
+            HRME_RetiredFlg: (employeeData as any).HRME_RetiredFlg,
+            HRME_PensionStoppedDate: (employeeData as any).HRME_PensionStoppedDate,
+            HRME_MSTeamsUserId: (employeeData as any).HRME_MSTeamsUserId,
+            HRME_MSTeamsPassword: (employeeData as any).HRME_MSTeamsPassword ? '***' : '',
+            HRME_LeftFlag: (employeeData as any).HRME_LeftFlag,
+            HRME_DOL: (employeeData as any).HRME_DOL,
+            HRME_LeavingReason: (employeeData as any).HRME_LeavingReason
+        });
+        
+        // Wrap response in success format
+        return {
+            success: true,
+            message: 'Employee details fetched successfully',
+            data: employeeData as GetEmployeeByIdResponse
+        };
+    } catch (error: any) {
+        console.error('🔍 [EDIT] ERROR:', error?.message);
+        throw error;
+    }
 }
 
 /**
@@ -185,21 +420,24 @@ export async function getEmployeeById(id: number) {
 export async function saveQualification(qualifications: SaveQualificationRequest[]) {
     const url = '/api/EmployeeRegistrationNew/SaveQulaification';
     
-    const response = await api.post<SaveQualificationResponse>('hrms', url, qualifications);
-    
-    // The backend returns raw data, not wrapped in ApiResponse format
-    // Wrap it to match the expected ApiResponse structure
-    if (response && typeof response === 'object' && 'success' in response && 'data' in response) {
-        // Already wrapped
-        return response;
+    try {
+        const response = await api.post<SaveQualificationResponse>('hrms', url, qualifications);
+        
+        // The backend returns raw data, not wrapped in ApiResponse format
+        // Wrap it to match the expected ApiResponse structure
+        if (response && typeof response === 'object' && 'success' in response && 'data' in response) {
+            return response;
+        }
+        
+        // Wrap raw response data
+        return {
+            success: true,
+            message: 'Qualification details saved successfully',
+            data: response as unknown as SaveQualificationResponse
+        };
+    } catch (error: any) {
+        throw error;
     }
-    
-    // Wrap raw response data
-    return {
-        success: true,
-        message: 'Qualification details saved successfully',
-        data: response as unknown as SaveQualificationResponse
-    };
 }
 
 /**
@@ -210,95 +448,83 @@ export async function savePersonalDetails(payload: SavePersonalDetailsRequest) {
     const url = '/api/EmployeeRegistrationNew/SavePersonalDetails';
     
     try {
-        console.log('=== Server: savePersonalDetails Request Debug ===');
-        console.log('Payload HRME_Id:', payload.HRME_Id);
-        console.log('URL:', url);
-        console.log('=================================================');
+        console.log('🔍 [OTHER DETAILS SAVE] Server-side - Starting save:', {
+            employeeId: payload.HRME_Id || 'N/A',
+            otherDetailsFields: {
+                biometricCode: payload.HRME_BiometricCode || 'N/A',
+                rfCardId: payload.HRME_RFCardId || 'N/A',
+                punchRelaxation: payload.HRME_ExcPunch || false,
+                stopPension: payload.HRME_RetiredFlg || false,
+                dateOfStopPension: payload.HRME_PensionStoppedDate || 'N/A',
+                msTeamsUserName: payload.HRME_MSTeamsUserId || 'N/A',
+                msTeamsPassword: payload.HRME_MSTeamsPassword ? '***' : 'N/A',
+                employeeLeft: payload.HRME_LeftFlag || false,
+                lastWorkingDay: payload.HRME_DOL || 'N/A',
+                reasonForLeaving: payload.HRME_LeavingReason || 'N/A'
+            },
+            payloadKeys: Object.keys(payload)
+        });
+        
+        // Log the actual payload values for "Other Details" fields to verify they're being sent
+        console.log('🔍 [OTHER DETAILS SAVE] Server-side - Payload values (other details):', {
+            HRME_BiometricCode: payload.HRME_BiometricCode,
+            HRME_RFCardId: payload.HRME_RFCardId,
+            HRME_ExcPunch: payload.HRME_ExcPunch,
+            HRME_RetiredFlg: payload.HRME_RetiredFlg,
+            HRME_PensionStoppedDate: payload.HRME_PensionStoppedDate,
+            HRME_MSTeamsUserId: payload.HRME_MSTeamsUserId,
+            HRME_MSTeamsPassword: payload.HRME_MSTeamsPassword ? '***' : '',
+            HRME_LeftFlag: payload.HRME_LeftFlag,
+            HRME_DOL: payload.HRME_DOL,
+            HRME_LeavingReason: payload.HRME_LeavingReason
+        });
+        
+        console.log('🔍 [SAVE] savePersonalDetails:', {
+            HRME_Id: payload.HRME_Id,
+            Code: payload.HRME_EmployeeCode,
+            Name: `${payload.HRME_EmployeeFirstName} ${payload.HRME_EmployeeLastName}`,
+            Photo: payload.HRME_Photo ? `${(payload.HRME_Photo.length / 1024).toFixed(0)}KB` : 'No photo'
+        });
         
         const response = await api.post<SavePersonalDetailsResponse>('hrms', url, payload);
         
-        // Debug logging
-        console.log('=== Server: savePersonalDetails Response Debug ===');
-        console.log('Raw response:', JSON.stringify(response, null, 2));
-        console.log('Response type:', typeof response);
-        console.log('Is response an object?', response && typeof response === 'object');
+        console.log('🔍 [OTHER DETAILS SAVE] Server-side - Response received:', {
+            success: typeof response === 'object' && 'success' in response ? (response as any).success : typeof response === 'string',
+            message: typeof response === 'object' && 'message' in response ? (response as any).message : typeof response === 'string' ? response : 'No message',
+            dataType: typeof response,
+            responseKeys: typeof response === 'object' ? Object.keys(response) : []
+        });
         
-        if (response && typeof response === 'object') {
-            console.log('Response keys:', Object.keys(response));
-            console.log('Has success property:', 'success' in response);
-            console.log('Has data property:', 'data' in response);
-            
-            if ('HRME_Id' in response) {
-                console.log('Direct HRME_Id found:', (response as any).HRME_Id);
-            }
-            
-            if ('data' in response && (response as any).data) {
-                const dataObj = (response as any).data;
-                console.log('Response.data type:', typeof dataObj);
-                if (typeof dataObj === 'string') {
-                    console.log('Response.data is a string:', dataObj);
-                } else if (typeof dataObj === 'object') {
-                    console.log('Response.data keys:', Object.keys(dataObj));
-                    if ('HRME_Id' in dataObj) {
-                        console.log('Response.data.HRME_Id:', dataObj.HRME_Id);
-                    }
-                }
-            }
-            
-            // Check if response is an array
-            if (Array.isArray(response)) {
-                console.log('Response is an array, length:', response.length);
-                if (response.length > 0 && 'HRME_Id' in response[0]) {
-                    console.log('HRME_Id in array[0]:', (response[0] as any).HRME_Id);
-                }
-            }
-        }
-        console.log('==================================================');
-        
-        // The backend returns raw data, not wrapped in ApiResponse format
-        // Wrap it to match the expected ApiResponse structure
-        if (response && typeof response === 'object' && 'success' in response && 'data' in response) {
-            // Already wrapped
-            console.log('Response already wrapped, returning as-is');
-            
-            // Check if data is a string (like "Duplicate") - this is an error case
-            if (typeof response.data === 'string') {
-                console.warn('API returned string in data field:', response.data);
-                // Return as-is, let client handle it
-            }
-            return response;
-        }
-        
-        // Check if response is directly a string (like "Duplicate")
+        // Check if response is directly a string (like "Add", "Update", "Duplicate")
         if (typeof response === 'string') {
-            console.warn('API returned direct string response:', response);
+            console.log('🔍 [SAVE] String response:', response);
             return {
-                success: false,
+                success: response !== 'Duplicate',
                 message: response,
                 data: response as unknown as SavePersonalDetailsResponse
             };
         }
         
-        // Wrap raw response data
-        const wrappedResponse = {
+        // Wrap response if needed
+        return {
             success: true,
             message: 'Personal details saved successfully',
             data: response as unknown as SavePersonalDetailsResponse
         };
-        console.log('Wrapped response:', JSON.stringify(wrappedResponse, null, 2));
-        console.log('Wrapped response.data.HRME_Id:', wrappedResponse.data?.HRME_Id);
-        return wrappedResponse;
     } catch (error: any) {
-        console.error('=== Server: savePersonalDetails ERROR ===');
-        console.error('Error type:', error?.constructor?.name);
-        console.error('Error message:', error?.message);
-        console.error('Error stack:', error?.stack);
-        console.error('Error response:', error?.response);
-        console.error('Error response data:', error?.response?.data);
-        console.error('Full error:', JSON.stringify(error, null, 2));
-        console.error('==========================================');
-        
-        // Re-throw to let the caller handle it
+        console.error('🔍 [OTHER DETAILS SAVE] Server-side - Error:', {
+            message: error?.message,
+            status: error?.response?.status,
+            statusText: error?.response?.statusText,
+            data: error?.response?.data,
+            validationErrors: error?.response?.data?.errors,
+            fullError: error
+        });
+        console.error('🔍 [SAVE] ERROR:', error?.message);
+        console.error('🔍 [SAVE] Status:', error?.response?.status);
+        if (error?.response?.data) {
+            console.error('🔍 [SAVE] API Error:', error.response.data);
+        }
         throw error;
     }
 }
@@ -336,21 +562,33 @@ export async function saveExperienceDetails(experiences: SaveExperienceDetailsRe
 export async function saveDocumentDetails(documents: SaveDocumentDetailsRequest[]) {
     const url = '/api/EmployeeRegistrationNew/SaveDocumentDetails';
     
-    const response = await api.post<SaveDocumentDetailsResponse>('hrms', url, documents);
-    
-    // The backend returns raw data, not wrapped in ApiResponse format
-    // Wrap it to match the expected ApiResponse structure
-    if (response && typeof response === 'object' && 'success' in response && 'data' in response) {
-        // Already wrapped
-        return response;
+    try {
+        const response = await api.post<SaveDocumentDetailsResponse>('hrms', url, documents);
+        
+        // The backend returns raw data, not wrapped in ApiResponse format
+        // Handle string responses like 'Add' or 'Update' as success
+        if (typeof response === 'string') {
+            return {
+                success: true,
+                message: 'Document details saved successfully',
+                data: response as unknown as SaveDocumentDetailsResponse
+            };
+        }
+        
+        // Wrap it to match the expected ApiResponse structure
+        if (response && typeof response === 'object' && 'success' in response && 'data' in response) {
+            return response;
+        }
+        
+        // Wrap raw response data
+        return {
+            success: true,
+            message: 'Document details saved successfully',
+            data: response as unknown as SaveDocumentDetailsResponse
+        };
+    } catch (error: any) {
+        throw error;
     }
-    
-    // Wrap raw response data
-    return {
-        success: true,
-        message: 'Document details saved successfully',
-        data: response as unknown as SaveDocumentDetailsResponse
-    };
 }
 
 /**
@@ -361,21 +599,72 @@ export async function saveDocumentDetails(documents: SaveDocumentDetailsRequest[
 export async function saveMedicalDetails(payload: SaveMedicalDetailsRequest) {
     const url = '/api/EmployeeRegistrationNew/SaveMedicalDetails';
     
-    const response = await api.post<SaveMedicalDetailsResponse>('hrms', url, payload);
+    console.log('🔍 [MEDICAL SAVE] Server-side - Starting save:', {
+        employeeId: payload.HRME_Id || 'N/A',
+        medicalFields: {
+            height: payload.HRME_Height || 'N/A',
+            heightUnit: payload.HRME_HeightUOM || 'N/A',
+            weight: payload.HRME_Weight || 'N/A',
+            weightUnit: payload.HRME_WeightUOM || 'N/A',
+            eyeSightIssue: payload.HRME_EyeSightIssue || 'N/A',
+            anyHealthIssue: payload.HRME_AnyHealthIssue || 'N/A',
+            identificationMark: payload.HRME_IdentificationMark || 'N/A'
+        },
+        payloadKeys: Object.keys(payload)
+    });
     
-    // The backend returns raw data, not wrapped in ApiResponse format
-    // Wrap it to match the expected ApiResponse structure
-    if (response && typeof response === 'object' && 'success' in response && 'data' in response) {
-        // Already wrapped
-        return response;
+    try {
+        const response = await api.post<SaveMedicalDetailsResponse>('hrms', url, payload);
+        
+        console.log('🔍 [MEDICAL SAVE] Server-side - Response received:', {
+            success: (response as any)?.success || typeof response === 'object',
+            message: (response as any)?.message || 'No message',
+            dataType: typeof response,
+            responseKeys: typeof response === 'object' ? Object.keys(response) : [],
+            fullResponse: response
+        });
+        
+        // The backend returns raw data, not wrapped in ApiResponse format
+        // Handle string responses like 'Add' or 'Update' as success
+        if (typeof response === 'string') {
+            const wrappedResponse = {
+                success: true,
+                message: 'Medical details saved successfully',
+                data: response as unknown as SaveMedicalDetailsResponse
+            };
+            console.log('🔍 [MEDICAL SAVE] Server-side - String response wrapped:', wrappedResponse);
+            return wrappedResponse;
+        }
+        
+        // Wrap it to match the expected ApiResponse structure
+        if (response && typeof response === 'object' && 'success' in response && 'data' in response) {
+            return response;
+        }
+        
+        // Wrap raw response data
+        return {
+            success: true,
+            message: 'Medical details saved successfully',
+            data: response as unknown as SaveMedicalDetailsResponse
+        };
+    } catch (error: any) {
+        console.error('🔍 [MEDICAL SAVE] Server-side - Error:', {
+            message: error?.message,
+            status: error?.response?.status,
+            statusText: error?.response?.statusText,
+            data: error?.response?.data,
+            validationErrors: error?.response?.data?.errors,
+            fullError: error
+        });
+        
+        // Extract validation error messages
+        if (error?.response?.data?.errors) {
+            const validationErrors = error.response.data.errors;
+            console.error('🔍 [MEDICAL SAVE] Server-side - Validation Errors:', JSON.stringify(validationErrors, null, 2));
+        }
+        
+        throw error;
     }
-    
-    // Wrap raw response data
-    return {
-        success: true,
-        message: 'Medical details saved successfully',
-        data: response as unknown as SaveMedicalDetailsResponse
-    };
 }
 
 /**
@@ -463,19 +752,51 @@ export async function saveIncrementDetails(payload: SaveIncrementDetailsRequest)
 export async function saveEarningDetails(earnings: SaveEarningDetailsRequest[]) {
     const url = '/api/EmployeeRegistrationNew/SaveEarningDetails';
     
-    const response = await api.post<SaveEarningDetailsResponse>('hrms', url, earnings);
+    console.log('🔍 [PAYROLL SAVE] Server - SaveEarningDetails called', {
+        url,
+        earningsCount: earnings.length,
+        earnings: earnings.map((item) => ({
+            HREED_Id: item.HREED_Id,
+            HRME_Id: item.HRME_Id,
+            HRMED_Id: item.HRMED_Id,
+            HRMED_Name: item.HRMED_Name,
+            HREED_Amount: item.HREED_Amount,
+            HREED_Percentage: item.HREED_Percentage,
+            HREED_ActiveFlag: item.HREED_ActiveFlag
+        }))
+    });
     
-    // Check if response is already wrapped
-    if (response && typeof response === 'object' && 'success' in response && 'data' in response) {
-        return response;
+    try {
+        const response = await api.post<SaveEarningDetailsResponse>('hrms', url, earnings);
+        
+        console.log('🔍 [PAYROLL SAVE] Server - SaveEarningDetails API response', {
+            success: response?.success,
+            message: response?.message,
+            data: response?.data,
+            fullResponse: response
+        });
+        
+        // Check if response is already wrapped
+        if (response && typeof response === 'object' && 'success' in response && 'data' in response) {
+            return response;
+        }
+        
+        // Wrap the response
+        return {
+            success: true,
+            message: 'Earning details saved successfully',
+            data: response as unknown as SaveEarningDetailsResponse
+        };
+    } catch (error: any) {
+        console.error('🔍 [PAYROLL SAVE] Server - SaveEarningDetails error', {
+            message: error.message,
+            status: error.response?.status,
+            statusText: error.response?.statusText,
+            data: error.response?.data,
+            fullError: error
+        });
+        throw error;
     }
-    
-    // Wrap the response
-    return {
-        success: true,
-        message: 'Earning details saved successfully',
-        data: response as unknown as SaveEarningDetailsResponse
-    };
 }
 
 /**
@@ -485,19 +806,51 @@ export async function saveEarningDetails(earnings: SaveEarningDetailsRequest[]) 
 export async function saveArrearDetails(arrears: SaveArrearDetailsRequest[]) {
     const url = '/api/EmployeeRegistrationNew/SaveArrearDetails';
     
-    const response = await api.post<SaveArrearDetailsResponse>('hrms', url, arrears);
+    console.log('🔍 [PAYROLL SAVE] Server - SaveArrearDetails called', {
+        url,
+        arrearsCount: arrears.length,
+        arrears: arrears.map((item) => ({
+            HREED_Id: item.HREED_Id,
+            HRME_Id: item.HRME_Id,
+            HRMED_Id: item.HRMED_Id,
+            HRMED_Name: item.HRMED_Name,
+            HREED_Amount: item.HREED_Amount,
+            HREED_Percentage: item.HREED_Percentage,
+            HREED_ActiveFlag: item.HREED_ActiveFlag
+        }))
+    });
     
-    // Check if response is already wrapped
-    if (response && typeof response === 'object' && 'success' in response && 'data' in response) {
-        return response;
+    try {
+        const response = await api.post<SaveArrearDetailsResponse>('hrms', url, arrears);
+        
+        console.log('🔍 [PAYROLL SAVE] Server - SaveArrearDetails API response', {
+            success: response?.success,
+            message: response?.message,
+            data: response?.data,
+            fullResponse: response
+        });
+        
+        // Check if response is already wrapped
+        if (response && typeof response === 'object' && 'success' in response && 'data' in response) {
+            return response;
+        }
+        
+        // Wrap the response
+        return {
+            success: true,
+            message: 'Arrear details saved successfully',
+            data: response as unknown as SaveArrearDetailsResponse
+        };
+    } catch (error: any) {
+        console.error('🔍 [PAYROLL SAVE] Server - SaveArrearDetails error', {
+            message: error.message,
+            status: error.response?.status,
+            statusText: error.response?.statusText,
+            data: error.response?.data,
+            fullError: error
+        });
+        throw error;
     }
-    
-    // Wrap the response
-    return {
-        success: true,
-        message: 'Arrear details saved successfully',
-        data: response as unknown as SaveArrearDetailsResponse
-    };
 }
 
 /**
@@ -507,19 +860,51 @@ export async function saveArrearDetails(arrears: SaveArrearDetailsRequest[]) {
 export async function saveDeductionDetails(deductions: SaveDeductionDetailsRequest[]) {
     const url = '/api/EmployeeRegistrationNew/SaveDeductionDetails';
     
-    const response = await api.post<SaveDeductionDetailsResponse>('hrms', url, deductions);
+    console.log('🔍 [PAYROLL SAVE] Server - SaveDeductionDetails called', {
+        url,
+        deductionsCount: deductions.length,
+        deductions: deductions.map((item) => ({
+            HREED_Id: item.HREED_Id,
+            HRME_Id: item.HRME_Id,
+            HRMED_Id: item.HRMED_Id,
+            HRMED_Name: item.HRMED_Name,
+            HREED_Amount: item.HREED_Amount,
+            HREED_Percentage: item.HREED_Percentage,
+            HREED_ActiveFlag: item.HREED_ActiveFlag
+        }))
+    });
     
-    // Check if response is already wrapped
-    if (response && typeof response === 'object' && 'success' in response && 'data' in response) {
-        return response;
+    try {
+        const response = await api.post<SaveDeductionDetailsResponse>('hrms', url, deductions);
+        
+        console.log('🔍 [PAYROLL SAVE] Server - SaveDeductionDetails API response', {
+            success: response?.success,
+            message: response?.message,
+            data: response?.data,
+            fullResponse: response
+        });
+        
+        // Check if response is already wrapped
+        if (response && typeof response === 'object' && 'success' in response && 'data' in response) {
+            return response;
+        }
+        
+        // Wrap the response
+        return {
+            success: true,
+            message: 'Deduction details saved successfully',
+            data: response as unknown as SaveDeductionDetailsResponse
+        };
+    } catch (error: any) {
+        console.error('🔍 [PAYROLL SAVE] Server - SaveDeductionDetails error', {
+            message: error.message,
+            status: error.response?.status,
+            statusText: error.response?.statusText,
+            data: error.response?.data,
+            fullError: error
+        });
+        throw error;
     }
-    
-    // Wrap the response
-    return {
-        success: true,
-        message: 'Deduction details saved successfully',
-        data: response as unknown as SaveDeductionDetailsResponse
-    };
 }
 
 /**

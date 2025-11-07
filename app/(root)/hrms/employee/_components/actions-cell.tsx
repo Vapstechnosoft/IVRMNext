@@ -10,10 +10,9 @@ import {
     DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu';
 import { useFormContext } from '@/components/ui/form/form-provider';
-import { useDeleteEmployee } from '@/hooks/hrms/useEmployee';
 import type { EmployeeListItem } from '@/types/hrms/employee';
 import type { Row } from '@tanstack/react-table';
-import { Edit, MoreHorizontal, Trash2 } from 'lucide-react';
+import { Edit, MoreHorizontal, Power } from 'lucide-react';
 
 interface ActionsCellProps {
     row: Row<EmployeeListItem>;
@@ -21,17 +20,14 @@ interface ActionsCellProps {
 
 export function ActionsCell({ row }: ActionsCellProps) {
     const employee = row.original;
-    const { openEditForm } = useFormContext<EmployeeListItem>();
-    const { mutate: deleteEmployee } = useDeleteEmployee();
+    const { openEditForm, openToggleForm } = useFormContext<EmployeeListItem>();
 
     const handleEdit = () => {
         openEditForm(employee);
     };
 
-    const handleDelete = () => {
-        if (confirm('Are you sure you want to delete this employee?')) {
-            deleteEmployee(employee.HRME_Id);
-        }
+    const handleToggle = () => {
+        openToggleForm(employee);
     };
 
     return (
@@ -49,9 +45,9 @@ export function ActionsCell({ row }: ActionsCellProps) {
                     <Edit className='mr-2 h-4 w-4' />
                     Edit
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={handleDelete} className='text-destructive'>
-                    <Trash2 className='mr-2 h-4 w-4' />
-                    Delete
+                <DropdownMenuItem onClick={handleToggle}>
+                    <Power className='mr-2 h-4 w-4' />
+                    {employee.HRME_ActiveFlag ? 'Deactivate' : 'Activate'}
                 </DropdownMenuItem>
             </DropdownMenuContent>
         </DropdownMenu>

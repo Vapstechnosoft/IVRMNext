@@ -88,6 +88,7 @@ export interface SavePersonalDetailsRequest {
     UpdatedDate: string;
     HRME_Id: number;
     MI_Id: number;
+    dmoObj?: any; // Required by API but unclear structure
     HRMET_Id: number;
     HRMGT_Id: number;
     HRMD_Id: number;
@@ -144,7 +145,7 @@ export interface SavePersonalDetailsRequest {
     HRME_ESIApplicableFlag: boolean;
     HRME_Photo?: string;
     HRME_LeftFlag: boolean;
-    HRME_DOL?: string;
+    HRME_DOL?: string | null;
     HRME_LeavingReason?: string;
     HRME_Height?: string;
     HRME_HeightUOM?: string;
@@ -175,7 +176,7 @@ export interface SavePersonalDetailsRequest {
     HRME_MSTeamsPassword?: string;
     HRME_ExcPunch: boolean;
     HRME_RetiredFlg: boolean;
-    HRME_PensionStoppedDate?: string;
+    HRME_PensionStoppedDate?: string | null;
     HRME_FPFNotApplicableFlg: boolean;
     HRME_EPFNotApplicableFlg: boolean;
     HRME_AllowSoftwareAccessFlg: boolean;
@@ -249,7 +250,7 @@ export interface EmployeeRegisterSaveRequest {
     HRME_Photo?: string;
     HRME_LeftFlag?: boolean;
     HRME_DOC?: string;
-    HRME_DOL?: string;
+    HRME_DOL?: string | null;
     HRME_LeavingReason?: string;
     HRME_Height?: string;
     HRME_HeightUOM?: string;
@@ -275,7 +276,7 @@ export interface EmployeeRegisterSaveRequest {
     HRME_RGRecognitionYear?: string;
     HRME_ExcPunch?: boolean;
     HRME_RetiredFlg?: boolean;
-    HRME_PensionStoppedDate?: string;
+    HRME_PensionStoppedDate?: string | null;
     HRME_FPFNotApplicableFlg?: boolean;
     HRME_EPFNotApplicableFlg?: boolean;
     HRME_AllowSoftwareAccessFlg?: boolean;
@@ -740,7 +741,7 @@ export interface SaveMedicalDetailsRequest {
     HRME_ESIApplicableFlag: boolean;
     HRME_Photo?: string;
     HRME_LeftFlag: boolean;
-    HRME_DOL?: string;
+    HRME_DOL?: string | null;
     HRME_LeavingReason?: string;
     HRME_Height?: string;
     HRME_HeightUOM?: string;
@@ -771,7 +772,7 @@ export interface SaveMedicalDetailsRequest {
     HRME_MSTeamsPassword?: string;
     HRME_ExcPunch: boolean;
     HRME_RetiredFlg: boolean;
-    HRME_PensionStoppedDate?: string;
+    HRME_PensionStoppedDate?: string | null;
     HRME_FPFNotApplicableFlg: boolean;
     HRME_EPFNotApplicableFlg: boolean;
     HRME_AllowSoftwareAccessFlg: boolean;

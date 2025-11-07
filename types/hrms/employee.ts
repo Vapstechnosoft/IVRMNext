@@ -225,6 +225,8 @@ export interface EmployeeListItem {
     HRME_EmployeeMiddleName?: string;
     HRME_EmployeeLastName?: string;
     HRME_EmployeeCode: string;
+    HRME_EmployeeOrder?: number;
+    HRME_Photo?: string;
     HRMET_EmployeeType?: string;
     HRMGT_EmployeeGroupType?: string;
     HRMD_DepartmentName?: string;
