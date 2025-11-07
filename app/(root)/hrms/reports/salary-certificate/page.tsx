@@ -3,52 +3,11 @@
 import { Heading } from '@/components/layout/heading';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { type BaseEntity, createLocalCrud } from '@/lib/localdb';
 import { Download, Printer } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';
-
-// Data interfaces from employee-category masters
-interface GroupType extends BaseEntity {
-    groupType: string;
-    groupCode: string;
-    order: number;
-    isActive: boolean;
-}
-
-interface Department extends BaseEntity {
-    departmentName: string;
-    internalTrainingHours: string;
-    order: number;
-    isActive: boolean;
-}
-
-interface Designation extends BaseEntity {
-    designationName: string;
-    basicAmount: string;
-    sanctionedSeats: string;
-    displaySanctionedSeats: boolean;
-    order: number;
-    isActive: boolean;
-}
-
-interface Employee extends BaseEntity {
-    employeeCode: string;
-    employeeName: string;
-    groupTypeId: number;
-    departmentId: number;
-    designationId: number;
-    departmentName: string;
-    designationName: string;
-    dateOfJoining: string;
-    basicSalary: number;
-    allowances: number;
-    deductions: number;
-    grossSalary: number;
-    netSalary: number;
-}
+import { SalaryCertificateFilters, type SalaryCertificateFilters as SalaryCertificateFiltersType, type GroupType, type Department, type Designation, type Employee } from './_components/filters';
 
 // Salary certificate data structure
 interface SalaryCertificate extends BaseEntity {
@@ -68,16 +27,6 @@ interface SalaryCertificate extends BaseEntity {
     certificateNumber: string;
 }
 
-// Report filters
-interface SalaryCertificateFilters {
-    groupType: string;
-    department: string;
-    designation: string;
-    month: string;
-    year: string;
-    selectedEmployee: string;
-}
-
 export default function SalaryCertificatePage() {
     // Database instances
     const groupTypeDB = createLocalCrud<GroupType>('master:group-type');
@@ -95,7 +44,7 @@ export default function SalaryCertificatePage() {
     const [_isLoading, setIsLoading] = useState(true);
     const [showCertificate, setShowCertificate] = useState(false);
 
-    const [filters, setFilters] = useState<SalaryCertificateFilters>({
+    const [filters, setFilters] = useState<SalaryCertificateFiltersType>({
         groupType: 'All',
         department: 'All',
         designation: 'All',
@@ -490,162 +439,16 @@ export default function SalaryCertificatePage() {
             </div>
 
             {/* Report Configuration Section */}
-            <CollapsibleSection
-                title='SALARY CERTIFICATE'
-                description='Generate employee salary certificates with detailed breakdown'
-                defaultOpen={true}
-                variant='default'
-                size='lg'
-                className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
-                {/* Filter Section - Row 1: Cascading Dropdowns */}
-                <div className='grid grid-cols-1 gap-4 md:grid-cols-3'>
-                    {/* Group Type Filter */}
-                    <div className='space-y-2'>
-                        <label htmlFor='group-type-select' className='font-medium text-foreground text-sm'>
-                            Group Type: <span className='text-red-500'>*</span>
-                        </label>
-                        <Select value={filters.groupType} onValueChange={(value) => handleFilterChange('groupType', value)}>
-                            <SelectTrigger id='group-type-select'>
-                                <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent>
-                                <SelectItem value='All'>All</SelectItem>
-                                {groupTypes.map((group) => (
-                                    <SelectItem key={group.id} value={group.groupType}>
-                                        {group.groupType}
-                                    </SelectItem>
-                                ))}
-                            </SelectContent>
-                        </Select>
-                    </div>
-
-                    {/* Department Filter */}
-                    <div className='space-y-2'>
-                        <label htmlFor='department-select' className='font-medium text-foreground text-sm'>
-                            Department: <span className='text-red-500'>*</span>
-                        </label>
-                        <Select value={filters.department} onValueChange={(value) => handleFilterChange('department', value)}>
-                            <SelectTrigger id='department-select'>
-                                <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent>
-                                <SelectItem value='All'>All</SelectItem>
-                                {availableDepartments.map((dept) => (
-                                    <SelectItem key={dept.id} value={dept.departmentName}>
-                                        {dept.departmentName}
-                                    </SelectItem>
-                                ))}
-                            </SelectContent>
-                        </Select>
-                    </div>
-
-                    {/* Designation Filter */}
-                    <div className='space-y-2'>
-                        <label htmlFor='designation-select' className='font-medium text-foreground text-sm'>
-                            Designation: <span className='text-red-500'>*</span>
-                        </label>
-                        <Select value={filters.designation} onValueChange={(value) => handleFilterChange('designation', value)}>
-                            <SelectTrigger id='designation-select'>
-                                <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent>
-                                <SelectItem value='All'>All</SelectItem>
-                                {availableDesignations.map((desig) => (
-                                    <SelectItem key={desig.id} value={desig.designationName}>
-                                        {desig.designationName}
-                                    </SelectItem>
-                                ))}
-                            </SelectContent>
-                        </Select>
-                    </div>
-                </div>
-
-                {/* Filter Section - Row 2: Month, Year, Employee */}
-                <div className='grid grid-cols-1 gap-4 md:grid-cols-3'>
-                    {/* Month Filter */}
-                    <div className='space-y-2'>
-                        <label htmlFor='month-select' className='font-medium text-foreground text-sm'>
-                            Month: <span className='text-red-500'>*</span>
-                        </label>
-                        <Select value={filters.month} onValueChange={(value) => handleFilterChange('month', value)}>
-                            <SelectTrigger id='month-select'>
-                                <SelectValue placeholder='Select' />
-                            </SelectTrigger>
-                            <SelectContent>
-                                {[
-                                    'January',
-                                    'February',
-                                    'March',
-                                    'April',
-                                    'May',
-                                    'June',
-                                    'July',
-                                    'August',
-                                    'September',
-                                    'October',
-                                    'November',
-                                    'December'
-                                ].map((month) => (
-                                    <SelectItem key={month} value={month}>
-                                        {month}
-                                    </SelectItem>
-                                ))}
-                            </SelectContent>
-                        </Select>
-                    </div>
-
-                    {/* Year Filter */}
-                    <div className='space-y-2'>
-                        <label htmlFor='year-select' className='font-medium text-foreground text-sm'>
-                            Year: <span className='text-red-500'>*</span>
-                        </label>
-                        <Select value={filters.year} onValueChange={(value) => handleFilterChange('year', value)}>
-                            <SelectTrigger id='year-select'>
-                                <SelectValue placeholder='Select' />
-                            </SelectTrigger>
-                            <SelectContent>
-                                {Array.from({ length: 5 }, (_, i) => {
-                                    const year = new Date().getFullYear() - 2 + i;
-                                    return (
-                                        <SelectItem key={`year-${year}`} value={year.toString()}>
-                                            {year}
-                                        </SelectItem>
-                                    );
-                                })}
-                            </SelectContent>
-                        </Select>
-                    </div>
-
-                    {/* Employee Selection */}
-                    <div className='space-y-2'>
-                        <label htmlFor='employee-select' className='font-medium text-foreground text-sm'>
-                            Employee: <span className='text-red-500'>*</span>
-                        </label>
-                        <Select value={filters.selectedEmployee} onValueChange={(value) => handleFilterChange('selectedEmployee', value)}>
-                            <SelectTrigger id='employee-select'>
-                                <SelectValue placeholder='Select' />
-                            </SelectTrigger>
-                            <SelectContent>
-                                {filteredEmployees.map((emp) => (
-                                    <SelectItem key={emp.id} value={emp.id.toString()}>
-                                        {emp.employeeName} ({emp.employeeCode})
-                                    </SelectItem>
-                                ))}
-                            </SelectContent>
-                        </Select>
-                    </div>
-                </div>
-
-                {/* Action Buttons */}
-                <div className='flex gap-2 pt-4'>
-                    <Button onClick={handleGenerateSlip} className='bg-blue-600 hover:bg-blue-700'>
-                        GENERATE SLIP
-                    </Button>
-                    <Button variant='outline' onClick={handleCancel}>
-                        CANCEL
-                    </Button>
-                </div>
-            </CollapsibleSection>
+            <SalaryCertificateFilters
+                filters={filters}
+                groupTypes={groupTypes}
+                availableDepartments={availableDepartments}
+                availableDesignations={availableDesignations}
+                filteredEmployees={filteredEmployees}
+                onFilterChange={handleFilterChange}
+                onGenerate={handleGenerateSlip}
+                onCancel={handleCancel}
+            />
 
             {/* Certificate Results */}
             {showCertificate && selectedEmployeeDetails && (

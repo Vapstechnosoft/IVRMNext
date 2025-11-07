@@ -1,12 +1,10 @@
 'use client';
 
-import { Button } from '@/components/ui/button';
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
+import { type BaseEntity } from '@/lib/localdb';
 import type { ColumnDef } from '@tanstack/react-table';
-import { Edit, Trash2 } from 'lucide-react';
 
-export interface LIEORow {
-    id: number;
+export interface LIEORow extends BaseEntity {
     type: string;
     department: string;
     designation: string;
@@ -15,38 +13,20 @@ export interface LIEORow {
     date: string;
     lateBy?: string; // mm:ss
     earlyOut?: string; // mm:ss
-
-    createdAt: string;
 }
 
-interface LIEORowColumnsProps {
-    onEdit: (row: LIEORow) => void;
-    onDelete: (row: LIEORow) => void;
-}
-
-export const getLIEORowColumns = ({ onEdit, onDelete }: LIEORowColumnsProps): ColumnDef<LIEORow>[] => [
+export const employeeLateInEarlyOutReportColumns: ColumnDef<LIEORow>[] = [
     {
         id: 'sl',
         header: ({ column }) => <DataTableColumnHeader column={column} title='SL.NO' />,
         cell: ({ row }) => <div className='font-medium'>{row.index + 1}</div>,
         enableSorting: false
     },
-    // TODO: Add other columns based on the entity fields
-    {
-        id: 'actions',
-        header: 'Action',
-        cell: ({ row }) => {
-            const entity = row.original;
-            return (
-                <div className='flex items-center gap-2'>
-                    <Button variant='outline' size='sm' onClick={() => onEdit(entity)}>
-                        <Edit className='h-4 w-4' />
-                    </Button>
-                    <Button variant='outline' size='sm' className='text-red-600' onClick={() => onDelete(entity)}>
-                        <Trash2 className='h-4 w-4' />
-                    </Button>
-                </div>
-            );
-        }
-    }
+    { accessorKey: 'employeeName', header: ({ column }) => <DataTableColumnHeader column={column} title='Employee Name' /> },
+    { accessorKey: 'employeeCode', header: ({ column }) => <DataTableColumnHeader column={column} title='Code' /> },
+    { accessorKey: 'department', header: ({ column }) => <DataTableColumnHeader column={column} title='Department' /> },
+    { accessorKey: 'designation', header: ({ column }) => <DataTableColumnHeader column={column} title='Designation' /> },
+    { accessorKey: 'date', header: ({ column }) => <DataTableColumnHeader column={column} title='Date' /> },
+    { accessorKey: 'lateBy', header: ({ column }) => <DataTableColumnHeader column={column} title='Late By' /> },
+    { accessorKey: 'earlyOut', header: ({ column }) => <DataTableColumnHeader column={column} title='Early Out' /> }
 ];

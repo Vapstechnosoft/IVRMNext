@@ -1,56 +1,27 @@
-// Refactored by automation script on 2025-10-28T15:40:35.838Z
-// TODO: Complete refactoring by:
-// 1. Import columns from _components/columns.tsx
-// 2. Import form from _components/filters.tsx
-// 3. Extract column definitions and form to the respective files
-// 4. Update handlers to use the new structure
-
 'use client';
 
 import { Heading } from '@/components/layout/heading';
-import { Button } from '@/components/ui/button';
-import { Checkbox } from '@/components/ui/checkbox';
 import { GenericDataTable } from '@/components/ui/data-table/generic-data-table';
-import { InputText } from '@/components/ui/extension/input-text';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { useMemo, useState } from 'react';
-
-interface LeaveRow {
-    slNo: number;
-    employeeCode: string;
-    employeeName: string;
-    leaveName: string;
-    fromDate: string;
-    toDate: string;
-    appliedDays: number;
-    leaveStatus: 'Approved' | 'Pending' | 'Rejected';
-    leaveBalance: number;
-}
+import { useState } from 'react';
+import { leaveReportColumns, type LeaveReportRow } from './_components/columns';
+import { LeaveReportFilters, type LeaveReportFilters as FiltersType } from './_components/filters';
 
 export default function LeaveReportPage() {
-    const [rows, setRows] = useState<LeaveRow[]>([]);
-    const [isIndividual, setIsIndividual] = useState(false);
-    const [company, setCompany] = useState('');
-    const [employee, setEmployee] = useState('');
-    const [leave, setLeave] = useState('All');
-    const [fromDate, setFromDate] = useState('');
-    const [toDate, setToDate] = useState('');
+    const [rows, setRows] = useState<LeaveReportRow[]>([]);
+    const [filters, setFilters] = useState<FiltersType>({
+        company: '',
+        isIndividual: false,
+        employee: '',
+        leave: 'All',
+        fromDate: '',
+        toDate: '',
+        showEmployeeLeaveBalance: false
+    });
 
-    const columns = useMemo(
-        () => [
-            { accessorKey: 'slNo', header: 'Sl.No' },
-            { accessorKey: 'employeeCode', header: 'Employee Code' },
-            { accessorKey: 'employeeName', header: 'Employee Name' },
-            { accessorKey: 'leaveName', header: 'Leave Name' },
-            { accessorKey: 'fromDate', header: 'From Date' },
-            { accessorKey: 'toDate', header: 'To Date' },
-            { accessorKey: 'appliedDays', header: 'Applied Days' },
-            { accessorKey: 'leaveStatus', header: 'Leave Status' },
-            { accessorKey: 'leaveBalance', header: 'Leave Balance' }
-        ],
-        []
-    );
+    const handleFilterChange = (key: keyof FiltersType, value: any) => {
+        setFilters((prev) => ({ ...prev, [key]: value }));
+    };
 
     const handleReport = () => {
         setRows(
@@ -62,19 +33,22 @@ export default function LeaveReportPage() {
                 fromDate: '2025-01-01',
                 toDate: '2025-01-02',
                 appliedDays: 8,
-                leaveStatus: 'Approved',
+                leaveStatus: 'Approved' as const,
                 leaveBalance: 8
-            })) as LeaveRow[]
+            }))
         );
     };
 
     const handleClear = () => {
-        setIsIndividual(false);
-        setCompany('');
-        setEmployee('');
-        setLeave('All');
-        setFromDate('');
-        setToDate('');
+        setFilters({
+            company: '',
+            isIndividual: false,
+            employee: '',
+            leave: 'All',
+            fromDate: '',
+            toDate: '',
+            showEmployeeLeaveBalance: false
+        });
         setRows([]);
     };
 
@@ -87,109 +61,7 @@ export default function LeaveReportPage() {
                     </div>
                 </div>
 
-                <CollapsibleSection
-                    title=''
-                    description=''
-                    defaultOpen={true}
-                    variant='default'
-                    size='lg'
-                    className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
-                    <div className='grid grid-cols-1 gap-4'>
-                        <div className='flex items-center gap-4'>
-                            <span className='font-medium text-sm'>Company Name</span>
-                            <Select value={company} onValueChange={setCompany}>
-                                <SelectTrigger className='w-80'>
-                                    <SelectValue placeholder='Select or Search Company' />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value='ALL'>All</SelectItem>
-                                    <SelectItem value='VKS'>VKS</SelectItem>
-                                    <SelectItem value='Other Co'>Other Co</SelectItem>
-                                </SelectContent>
-                            </Select>
-                        </div>
-
-                        <div className='flex items-center gap-6'>
-                            <label className='flex items-center gap-2 text-sm'>
-                                <input type='radio' checked={!isIndividual} onChange={() => setIsIndividual(false)} /> All
-                            </label>
-                            <label className='flex items-center gap-2 text-sm'>
-                                <input type='radio' checked={isIndividual} onChange={() => setIsIndividual(true)} /> Individual
-                            </label>
-                        </div>
-
-                        <div className='grid grid-cols-1 items-end gap-4 md:grid-cols-3'>
-                            <div>
-                                <label htmlFor='employee-select' className='font-medium text-sm'>
-                                    Employee
-                                </label>
-                                <Select value={employee} onValueChange={setEmployee}>
-                                    <SelectTrigger id='employee-select'>
-                                        <SelectValue placeholder='Select or Search Employee' />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        <SelectItem value='ALL'>All</SelectItem>
-                                        <SelectItem value='R Siddesh Kumar'>R Siddesh Kumar</SelectItem>
-                                        <SelectItem value='Benoy Yogesh Shetty'>Benoy Yogesh Shetty</SelectItem>
-                                        <SelectItem value='Shruthi NA'>Shruthi NA</SelectItem>
-                                    </SelectContent>
-                                </Select>
-                            </div>
-
-                            <div>
-                                <label htmlFor='leave-select' className='font-medium text-sm'>
-                                    Leave
-                                </label>
-                                <Select value={leave} onValueChange={setLeave}>
-                                    <SelectTrigger id='leave-select'>
-                                        <SelectValue placeholder='All' />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        {['All', 'Casual Leave', 'Sick Leave', 'Privilege Leave', 'Comp Off', 'Optional Leave'].map((l) => (
-                                            <SelectItem key={l} value={l}>
-                                                {l}
-                                            </SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                </Select>
-                            </div>
-
-                            <div className='grid grid-cols-1 gap-2 md:col-span-1 md:grid-cols-2'>
-                                <div>
-                                    <label htmlFor='from-date-input' className='font-medium text-sm'>
-                                        From Date
-                                    </label>
-                                    <InputText
-                                        id='from-date-input'
-                                        type='date'
-                                        value={fromDate}
-                                        onChange={(e) => setFromDate(e.target.value)}
-                                    />
-                                </div>
-                                <div>
-                                    <label htmlFor='to-date-input' className='font-medium text-sm'>
-                                        To Date
-                                    </label>
-                                    <InputText id='to-date-input' type='date' value={toDate} onChange={(e) => setToDate(e.target.value)} />
-                                </div>
-                            </div>
-
-                            <div className='flex items-center gap-2 md:col-span-3'>
-                                <Checkbox id='empLeaveBalance' />
-                                <label htmlFor='empLeaveBalance' className='text-sm'>
-                                    Employee Leave Balance
-                                </label>
-                            </div>
-
-                            <div className='flex gap-2 md:col-span-3'>
-                                <Button onClick={handleReport}>Report</Button>
-                                <Button variant='destructive' onClick={handleClear}>
-                                    Clear
-                                </Button>
-                            </div>
-                        </div>
-                    </div>
-                </CollapsibleSection>
+                <LeaveReportFilters filters={filters} onFilterChange={handleFilterChange} onReport={handleReport} onCancel={handleClear} />
 
                 <CollapsibleSection
                     title='Leave Report'
@@ -198,7 +70,7 @@ export default function LeaveReportPage() {
                     variant='default'
                     size='lg'
                     className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
-                    <GenericDataTable data={rows} columns={columns} totalItems={rows.length} isLoading={false} />
+                    <GenericDataTable data={rows} columns={leaveReportColumns} totalItems={rows.length} isLoading={false} />
                 </CollapsibleSection>
             </div>
         </div>

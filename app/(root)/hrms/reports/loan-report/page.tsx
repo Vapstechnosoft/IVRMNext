@@ -1,15 +1,9 @@
 'use client';
 
 import { Heading } from '@/components/layout/heading';
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
 import { DataTable } from '@/components/ui/data-table/data-table';
-import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
-import { MultiSelect } from '@/components/ui/multi-select';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { HRMS_MI_ID } from '@/constants/hrms-config';
 import {
     useFilterEmployeesForLoanReport,
@@ -17,45 +11,16 @@ import {
     useLoanReportOnload
 } from '@/hooks/hrms/useReports';
 import type { EmployeeDropdown } from '@/types/hrms/reports/loan-report';
-import type { ColumnDef } from '@tanstack/react-table';
-import { Calculator, CreditCard, DollarSign, Download, Percent, Printer, Search, TrendingUp, Users, X } from 'lucide-react';
+import { Calculator, CreditCard, DollarSign, Download, Percent, Printer, TrendingUp, Users } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';
-
-// Employee Loan Report data structure
-interface EmployeeLoanRecord {
-    id?: number;
-    createdAt?: string;
-    employeeCode: string;
-    employeeName: string;
-    groupType: string;
-    department: string;
-    designation: string;
-    loanApplicationDate: string;
-    loanType: 'Personal Loan' | 'Home Loan' | 'Vehicle Loan' | 'Education Loan' | 'Emergency Loan' | 'Medical Loan';
-    loanAmount: number;
-    approvedAmount: number;
-    interestRate: number;
-    loanTenure: number; // in months
-    emiAmount: number;
-    loanStartDate: string;
-    loanEndDate: string;
-    totalInterest: number;
-    totalPayableAmount: number;
-    paidAmount: number;
-    remainingAmount: number;
-    paidEMIs: number;
-    remainingEMIs: number;
-    status: 'Pending' | 'Approved' | 'Rejected' | 'Active' | 'Completed' | 'Defaulted';
-    approvalDate: string;
-    approvedBy: string;
-    guarantor: string;
-    loanPurpose: string;
-    month: string;
-    year: string;
-    basicSalary: number;
-    loanToSalaryRatio: number;
-}
+import { LoanReportFilters, type LoanFilters } from './_components/filters';
+import {
+    loanReportColumns,
+    loanTypeSummaryColumns,
+    type EmployeeLoanRecord,
+    type LoanTypeSummary
+} from './_components/columns';
 
 // Loan Summary
 interface LoanSummary {
@@ -74,30 +39,6 @@ interface LoanSummary {
     defaultedLoans: number;
     averageLoanAmount: number;
     averageInterestRate: number;
-}
-
-// Loan Type Summary
-interface LoanTypeSummary {
-    loanType: string;
-    totalRequests: number;
-    totalAmount: number;
-    approvedRequests: number;
-    approvedAmount: number;
-    activeLoans: number;
-    completedLoans: number;
-    averageInterestRate: number;
-    totalInterest: number;
-}
-
-// Report filters
-interface LoanFilters {
-    reportScope: 'all' | 'individual';
-    selectedGroupTypes: number[];
-    selectedDepartments: number[];
-    selectedDesignations: number[];
-    selectedEmployee: string;
-    month: string;
-    year: string;
 }
 
 export default function LoanReportPage() {
@@ -382,8 +323,8 @@ export default function LoanReportPage() {
         setFilteredRecords(loanRecords);
     }, [loanRecords]);
 
-    const handleFilterChange = (key: keyof LoanFilters, value: any) => {
-        setFilters((prev) => ({ ...prev, [key]: value }));
+    const handleFilterChange = (newFilters: LoanFilters) => {
+        setFilters(newFilters);
     };
 
     const handleSearch = () => {
@@ -557,165 +498,6 @@ export default function LoanReportPage() {
             .sort((a, b) => b.totalAmount - a.totalAmount);
     }, [filteredRecords]);
 
-    // Table columns
-    const columns: ColumnDef<EmployeeLoanRecord>[] = [
-        {
-            accessorKey: 'id',
-            header: ({ column }) => <DataTableColumnHeader column={column} title='SL.No.' />,
-            cell: ({ row, table }) => {
-                const pageIndex = table.getState().pagination.pageIndex;
-                const pageSize = table.getState().pagination.pageSize;
-                const continuousIndex = pageIndex * pageSize + row.index + 1;
-                return <div className='text-center'>{continuousIndex}</div>;
-            },
-            enableSorting: false,
-            enableHiding: false,
-            size: 80
-        },
-        {
-            accessorKey: 'employeeCode',
-            header: ({ column }) => <DataTableColumnHeader column={column} title='Employee Code' />,
-            cell: ({ row }) => <div className='font-medium'>{row.getValue('employeeCode')}</div>,
-            enableSorting: true,
-            enableHiding: true
-        },
-        {
-            accessorKey: 'employeeName',
-            header: ({ column }) => <DataTableColumnHeader column={column} title='Employee Name' />,
-            cell: ({ row }) => <div>{row.getValue('employeeName')}</div>,
-            enableSorting: true,
-            enableHiding: true
-        },
-        {
-            accessorKey: 'department',
-            header: ({ column }) => <DataTableColumnHeader column={column} title='Department' />,
-            cell: ({ row }) => <div className='text-sm'>{row.getValue('department')}</div>,
-            enableSorting: true,
-            enableHiding: true
-        },
-        {
-            accessorKey: 'loanType',
-            header: ({ column }) => <DataTableColumnHeader column={column} title='Loan Type' />,
-            cell: ({ row }) => {
-                const type = row.getValue('loanType') as string;
-                return (
-                    <Badge variant='outline' className='text-xs'>
-                        {type}
-                    </Badge>
-                );
-            },
-            enableSorting: true,
-            enableHiding: true
-        },
-        {
-            accessorKey: 'loanAmount',
-            header: ({ column }) => <DataTableColumnHeader column={column} title='Loan Amount' />,
-            cell: ({ row }) => <div>₹{(row.getValue('loanAmount') as number).toLocaleString()}</div>,
-            enableSorting: true,
-            enableHiding: true
-        },
-        {
-            accessorKey: 'approvedAmount',
-            header: ({ column }) => <DataTableColumnHeader column={column} title='Approved Amount' />,
-            cell: ({ row }) => <div className='text-green-600'>₹{(row.getValue('approvedAmount') as number).toLocaleString()}</div>,
-            enableSorting: true,
-            enableHiding: true
-        },
-        {
-            accessorKey: 'interestRate',
-            header: ({ column }) => <DataTableColumnHeader column={column} title='Interest Rate' />,
-            cell: ({ row }) => <div>{row.getValue('interestRate')}%</div>,
-            enableSorting: true,
-            enableHiding: true
-        },
-        {
-            accessorKey: 'emiAmount',
-            header: ({ column }) => <DataTableColumnHeader column={column} title='EMI Amount' />,
-            cell: ({ row }) => <div className='text-blue-600'>₹{(row.getValue('emiAmount') as number).toLocaleString()}</div>,
-            enableSorting: true,
-            enableHiding: true
-        },
-        {
-            accessorKey: 'remainingAmount',
-            header: ({ column }) => <DataTableColumnHeader column={column} title='Remaining Amount' />,
-            cell: ({ row }) => <div className='text-orange-600'>₹{(row.getValue('remainingAmount') as number).toLocaleString()}</div>,
-            enableSorting: true,
-            enableHiding: true
-        },
-        {
-            accessorKey: 'status',
-            header: ({ column }) => <DataTableColumnHeader column={column} title='Status' />,
-            cell: ({ row }) => {
-                const status = row.getValue('status') as string;
-                const variant =
-                    status === 'Approved' || status === 'Active'
-                        ? 'default'
-                        : status === 'Pending'
-                          ? 'secondary'
-                          : status === 'Rejected' || status === 'Defaulted'
-                            ? 'destructive'
-                            : status === 'Completed'
-                              ? 'default'
-                              : 'outline';
-                return <Badge variant={variant}>{status}</Badge>;
-            },
-            enableSorting: true,
-            enableHiding: true
-        }
-    ];
-
-    // Loan type summary columns
-    const typeColumns: ColumnDef<LoanTypeSummary>[] = [
-        {
-            accessorKey: 'loanType',
-            header: ({ column }) => <DataTableColumnHeader column={column} title='Loan Type' />,
-            cell: ({ row }) => <div className='font-semibold'>{row.getValue('loanType')}</div>,
-            enableSorting: true,
-            enableHiding: false
-        },
-        {
-            accessorKey: 'totalRequests',
-            header: ({ column }) => <DataTableColumnHeader column={column} title='Total Requests' />,
-            cell: ({ row }) => <div className='text-center'>{row.getValue('totalRequests')}</div>,
-            enableSorting: true,
-            enableHiding: true
-        },
-        {
-            accessorKey: 'totalAmount',
-            header: ({ column }) => <DataTableColumnHeader column={column} title='Total Amount' />,
-            cell: ({ row }) => <div>₹{(row.getValue('totalAmount') as number).toLocaleString()}</div>,
-            enableSorting: true,
-            enableHiding: true
-        },
-        {
-            accessorKey: 'approvedRequests',
-            header: ({ column }) => <DataTableColumnHeader column={column} title='Approved Requests' />,
-            cell: ({ row }) => <div className='text-center text-green-600'>{row.getValue('approvedRequests')}</div>,
-            enableSorting: true,
-            enableHiding: true
-        },
-        {
-            accessorKey: 'activeLoans',
-            header: ({ column }) => <DataTableColumnHeader column={column} title='Active Loans' />,
-            cell: ({ row }) => <div className='text-center text-blue-600'>{row.getValue('activeLoans')}</div>,
-            enableSorting: true,
-            enableHiding: true
-        },
-        {
-            accessorKey: 'averageInterestRate',
-            header: ({ column }) => <DataTableColumnHeader column={column} title='Avg. Interest Rate' />,
-            cell: ({ row }) => <div>{row.getValue('averageInterestRate')}%</div>,
-            enableSorting: true,
-            enableHiding: true
-        },
-        {
-            accessorKey: 'totalInterest',
-            header: ({ column }) => <DataTableColumnHeader column={column} title='Total Interest' />,
-            cell: ({ row }) => <div className='text-purple-600'>₹{(row.getValue('totalInterest') as number).toLocaleString()}</div>,
-            enableSorting: true,
-            enableHiding: true
-        }
-    ];
 
     return (
         <div className='space-y-6'>
@@ -727,201 +509,19 @@ export default function LoanReportPage() {
             </div>
 
             {/* Report Configuration Section */}
-            <CollapsibleSection
-                title='EMPLOYEE LOAN REPORT'
-                description='Configure filters to generate comprehensive employee loan analysis and tracking reports'
-                defaultOpen={true}
-                variant='default'
-                size='lg'
-                className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
-                {/* Report Scope Selection */}
-                <div className='flex justify-center'>
-                    <RadioGroup
-                        value={filters.reportScope}
-                        onValueChange={(value) => handleFilterChange('reportScope', value)}
-                        className='flex gap-6'>
-                        <div className='flex items-center space-x-2'>
-                            <RadioGroupItem value='all' id='all' />
-                            <label htmlFor='all' className='cursor-pointer text-sm'>
-                                All
-                            </label>
-                        </div>
-                        <div className='flex items-center space-x-2'>
-                            <RadioGroupItem value='individual' id='individual' />
-                            <label htmlFor='individual' className='cursor-pointer text-sm'>
-                                Individual
-                            </label>
-                        </div>
-                    </RadioGroup>
-                </div>
-
-                {/* Filter Sections */}
-                <div className='grid grid-cols-1 gap-6 lg:grid-cols-3'>
-                    {/* Group Type Section */}
-                    <div className='space-y-2'>
-                        <span className='font-medium text-foreground text-sm'>
-                            Group Type: <span className='text-red-500'>*</span>
-                        </span>
-                        <MultiSelect
-                            options={groupTypes.map((gt) => ({
-                                label: gt.HRMGT_EmployeeGroupType,
-                                value: gt.HRMGT_Id.toString()
-                            }))}
-                            defaultValue={filters.selectedGroupTypes.map((id) => id.toString())}
-                            onValueChange={(values) => {
-                                setFilters((prev) => ({
-                                    ...prev,
-                                    selectedGroupTypes: values.map((v) => Number.parseInt(v)),
-                                    selectedEmployee: '' // Reset employee when filters change
-                                }));
-                            }}
-                            placeholder='Select group types'
-                        />
-                    </div>
-
-                    {/* Department Section */}
-                    <div className='space-y-2'>
-                        <span className='font-medium text-foreground text-sm'>
-                            Department: <span className='text-red-500'>*</span>
-                        </span>
-                        <MultiSelect
-                            options={departments.map((dept) => ({
-                                label: dept.HRMD_DepartmentName,
-                                value: dept.HRMD_Id.toString()
-                            }))}
-                            defaultValue={filters.selectedDepartments.map((id) => id.toString())}
-                            onValueChange={(values) => {
-                                setFilters((prev) => ({
-                                    ...prev,
-                                    selectedDepartments: values.map((v) => Number.parseInt(v)),
-                                    selectedEmployee: '' // Reset employee when filters change
-                                }));
-                            }}
-                            placeholder='Select departments'
-                        />
-                    </div>
-
-                    {/* Designation Section */}
-                    <div className='space-y-2'>
-                        <span className='font-medium text-foreground text-sm'>
-                            Designation: <span className='text-red-500'>*</span>
-                        </span>
-                        <MultiSelect
-                            options={designations.map((desg) => ({
-                                label: desg.HRMDES_DesignationName,
-                                value: desg.HRMDES_Id.toString()
-                            }))}
-                            defaultValue={filters.selectedDesignations.map((id) => id.toString())}
-                            onValueChange={(values) => {
-                                setFilters((prev) => ({
-                                    ...prev,
-                                    selectedDesignations: values.map((v) => Number.parseInt(v)),
-                                    selectedEmployee: '' // Reset employee when filters change
-                                }));
-                            }}
-                            placeholder='Select designations'
-                        />
-                    </div>
-                </div>
-
-                {/* Employee Selection - Only show when Individual is selected */}
-                {filters.reportScope === 'individual' && (
-                    <div className='flex items-center justify-center pt-4'>
-                        <div className='space-y-2 w-80'>
-                            <span className='font-medium text-foreground text-sm'>
-                                Employee: <span className='text-red-500'>*</span>
-                            </span>
-                            <Select
-                                value={filters.selectedEmployee}
-                                onValueChange={(value) => handleFilterChange('selectedEmployee', value)}
-                                disabled={employees.length === 0}>
-                                <SelectTrigger>
-                                    <SelectValue placeholder={employees.length === 0 ? 'Select filters first' : 'Select Employee'} />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {employees.map((emp) => (
-                                        <SelectItem key={emp.HRME_Id} value={emp.HRME_Id.toString()}>
-                                            {`${emp.HRME_EmployeeFirstName} ${emp.HRME_EmployeeMiddleName || ''} ${emp.HRME_EmployeeLastName || ''}`.trim()} ({emp.HRME_EmployeeCode})
-                                        </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
-                        </div>
-                    </div>
-                )}
-
-                {/* Additional Filters - Only show when All is selected */}
-                {filters.reportScope === 'all' && (
-                    <div className='flex items-center justify-center gap-6 pt-4'>
-                        {/* Month Filter */}
-                        <div className='space-y-2'>
-                            <span className='font-medium text-foreground text-sm'>
-                                Month: <span className='text-red-500'>*</span>
-                            </span>
-                            <Select value={filters.month} onValueChange={(value) => handleFilterChange('month', value)}>
-                                <SelectTrigger className='w-40'>
-                                    <SelectValue placeholder='Select' />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {months.map((month: any) => (
-                                        <SelectItem key={month.IVRM_Month_Id || month.IVRM_Month_Name} value={month.IVRM_Month_Name || month.IVRM_Month_Id?.toString() || ''}>
-                                            {month.IVRM_Month_Name || month.IVRM_Month_Id}
-                                        </SelectItem>
-                                    ))}
-                                    {months.length === 0 && (
-                                        ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'].map((month) => (
-                                            <SelectItem key={month} value={month}>
-                                                {month}
-                                            </SelectItem>
-                                        ))
-                                    )}
-                                </SelectContent>
-                            </Select>
-                        </div>
-
-                        {/* Year Filter */}
-                        <div className='space-y-2'>
-                            <span className='font-medium text-foreground text-sm'>
-                                Year: <span className='text-red-500'>*</span>
-                            </span>
-                            <Select value={filters.year} onValueChange={(value) => handleFilterChange('year', value)}>
-                                <SelectTrigger className='w-32'>
-                                    <SelectValue placeholder='Select' />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {years.map((year: any) => (
-                                        <SelectItem key={year.HRMLY_Id || year.HRMLY_LeaveYear} value={year.HRMLY_LeaveYear || year.HRMLY_Id?.toString() || ''}>
-                                            {year.HRMLY_LeaveYear || year.HRMLY_Id}
-                                        </SelectItem>
-                                    ))}
-                                    {years.length === 0 && (
-                                        Array.from({ length: 5 }, (_, i) => {
-                                            const year = new Date().getFullYear() - 2 + i;
-                                            return (
-                                                <SelectItem key={`year-${year}`} value={year.toString()}>
-                                                    {year}
-                                                </SelectItem>
-                                            );
-                                        })
-                                    )}
-                                </SelectContent>
-                            </Select>
-                        </div>
-                    </div>
-                )}
-
-                {/* Action Buttons */}
-                <div className='flex justify-center gap-2 pt-4'>
-                    <Button onClick={handleSearch} disabled={isLoading}>
-                        <Search className='mr-2 h-4 w-4' />
-                        SEARCH
-                    </Button>
-                    <Button variant='outline' onClick={handleCancel} disabled={isLoading}>
-                        <X className='mr-2 h-4 w-4' />
-                        CANCEL
-                    </Button>
-                </div>
-            </CollapsibleSection>
+            <LoanReportFilters
+                filters={filters}
+                groupTypes={groupTypes}
+                departments={departments}
+                designations={designations}
+                months={months}
+                years={years}
+                employees={employees}
+                isLoading={isLoading}
+                onFilterChange={handleFilterChange}
+                onSearch={handleSearch}
+                onCancel={handleCancel}
+            />
 
             {/* Report Results */}
             {showReport && (
@@ -1006,7 +606,7 @@ export default function LoanReportPage() {
                         <CardContent>
                             <DataTable
                                 isLoading={isLoading}
-                                columns={typeColumns}
+                                columns={loanTypeSummaryColumns}
                                 data={loanTypeSummaries}
                                 totalItems={loanTypeSummaries.length}
                                 showViewOptions={true}
@@ -1097,7 +697,7 @@ export default function LoanReportPage() {
                         <CardContent>
                             <DataTable
                                 isLoading={isLoading}
-                                columns={columns}
+                                columns={loanReportColumns}
                                 data={filteredRecords}
                                 totalItems={filteredRecords.length}
                                 showViewOptions={true}

@@ -1,12 +1,10 @@
 'use client';
 
-import { Button } from '@/components/ui/button';
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
+import { type BaseEntity } from '@/lib/localdb';
 import type { ColumnDef } from '@tanstack/react-table';
-import { Edit, Trash2 } from 'lucide-react';
 
-export interface YearRow {
-    id: number;
+export interface YearRow extends BaseEntity {
     employeeCode: string;
     employeeName: string;
     designation: string;
@@ -14,38 +12,23 @@ export interface YearRow {
     january: number;
     totalPresent: number;
     totalWorkedOnHolidays: number;
-
-    createdAt: string;
 }
 
-interface YearRowColumnsProps {
-    onEdit: (row: YearRow) => void;
-    onDelete: (row: YearRow) => void;
-}
-
-export const getYearRowColumns = ({ onEdit, onDelete }: YearRowColumnsProps): ColumnDef<YearRow>[] => [
+export const employeeYearlyReportColumns: ColumnDef<YearRow>[] = [
     {
         id: 'sl',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='SL.NO' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='SL.No' />,
         cell: ({ row }) => <div className='font-medium'>{row.index + 1}</div>,
         enableSorting: false
     },
-    // TODO: Add other columns based on the entity fields
+    { accessorKey: 'employeeCode', header: ({ column }) => <DataTableColumnHeader column={column} title='Employee Code' /> },
+    { accessorKey: 'employeeName', header: ({ column }) => <DataTableColumnHeader column={column} title='Employee Name' /> },
+    { accessorKey: 'designation', header: ({ column }) => <DataTableColumnHeader column={column} title='Employee Designation' /> },
+    { accessorKey: 'dateOfJoining', header: ({ column }) => <DataTableColumnHeader column={column} title='Date of Joining' /> },
+    { accessorKey: 'january', header: ({ column }) => <DataTableColumnHeader column={column} title='January 2023' /> },
+    { accessorKey: 'totalPresent', header: ({ column }) => <DataTableColumnHeader column={column} title='Total Present' /> },
     {
-        id: 'actions',
-        header: 'Action',
-        cell: ({ row }) => {
-            const entity = row.original;
-            return (
-                <div className='flex items-center gap-2'>
-                    <Button variant='outline' size='sm' onClick={() => onEdit(entity)}>
-                        <Edit className='h-4 w-4' />
-                    </Button>
-                    <Button variant='outline' size='sm' className='text-red-600' onClick={() => onDelete(entity)}>
-                        <Trash2 className='h-4 w-4' />
-                    </Button>
-                </div>
-            );
-        }
+        accessorKey: 'totalWorkedOnHolidays',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Total Worked on Holidays' />
     }
 ];

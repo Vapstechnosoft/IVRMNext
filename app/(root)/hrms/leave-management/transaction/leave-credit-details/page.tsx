@@ -1,66 +1,21 @@
-// Refactored by automation script on 2025-10-28T15:40:35.811Z
-// TODO: Complete refactoring by:
-// 1. Import columns from _components/columns.tsx
-// 2. Import form from _components/leave-credit-details-form.tsx
-// 3. Extract column definitions and form to the respective files
-// 4. Update handlers to use the new structure
-
 'use client';
 
 import { Heading } from '@/components/layout/heading';
 import { Button } from '@/components/ui/button';
-import { Checkbox } from '@/components/ui/checkbox';
 import { GenericDataTable } from '@/components/ui/data-table/generic-data-table';
-import { InputText } from '@/components/ui/extension/input-text';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
-import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { type BaseEntity, createLocalCrud } from '@/lib/localdb';
+import { createLocalCrud } from '@/lib/localdb';
 import { useEffect, useMemo, useState } from 'react';
-import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
-
-interface LeaveCreditDetail extends BaseEntity {
-    type: string[];
-    department: string[];
-    designation: string[];
-    leaveName: string;
-    leaveCode?: string;
-    months: Record<string, number>;
-}
+import { getLeaveCreditDetailColumns, type LeaveCreditDetail } from './_components/columns';
+import { LeaveCreditDetailsForm } from './_components/leave-credit-details-form';
 
 const detailDB = createLocalCrud<LeaveCreditDetail>('leaveCreditDetails');
-
-const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
 
 export default function LeaveCreditDetailsPage() {
     const [data, setData] = useState<LeaveCreditDetail[]>([]);
     const [isFormOpen, setIsFormOpen] = useState(false);
     const [editingRow, setEditingRow] = useState<LeaveCreditDetail | null>(null);
-
-    const {
-        register,
-        handleSubmit,
-        reset,
-        setValue,
-        watch,
-        formState: { errors }
-    } = useForm<LeaveCreditDetail>({
-        defaultValues: {
-            type: [],
-            department: [],
-            designation: [],
-            leaveName: '',
-            leaveCode: '',
-            months: MONTHS.reduce(
-                (acc, m) => {
-                    acc[m] = 0;
-                    return acc;
-                },
-                {} as Record<string, number>
-            )
-        }
-    });
 
     const loadData = () => {
         try {
@@ -79,43 +34,15 @@ export default function LeaveCreditDetailsPage() {
     const handleAddClick = () => {
         setIsFormOpen(true);
         setEditingRow(null);
-        reset({
-            type: [],
-            department: [],
-            designation: [],
-            leaveName: '',
-            leaveCode: '',
-            months: MONTHS.reduce(
-                (acc, m) => {
-                    acc[m] = 0;
-                    return acc;
-                },
-                {} as Record<string, number>
-            )
-        });
         setTimeout(() => document.getElementById('leave-credit-details-form')?.scrollIntoView({ behavior: 'smooth' }), 100);
     };
 
     const handleFormClose = () => {
         setIsFormOpen(false);
         setEditingRow(null);
-        reset({
-            type: [],
-            department: [],
-            designation: [],
-            leaveName: '',
-            leaveCode: '',
-            months: MONTHS.reduce(
-                (acc, m) => {
-                    acc[m] = 0;
-                    return acc;
-                },
-                {} as Record<string, number>
-            )
-        });
     };
 
-    const onSubmit = (formData: LeaveCreditDetail) => {
+    const handleFormSubmit = (formData: LeaveCreditDetail) => {
         try {
             if (editingRow) {
                 detailDB.update(editingRow.id, formData);
@@ -134,12 +61,6 @@ export default function LeaveCreditDetailsPage() {
     const handleEdit = (row: LeaveCreditDetail) => {
         setEditingRow(row);
         setIsFormOpen(true);
-        setValue('type', row.type);
-        setValue('department', row.department);
-        setValue('designation', row.designation);
-        setValue('leaveName', row.leaveName);
-        setValue('leaveCode', row.leaveCode);
-        setValue('months', row.months);
         setTimeout(() => document.getElementById('leave-credit-details-form')?.scrollIntoView({ behavior: 'smooth' }), 100);
     };
 
@@ -151,48 +72,9 @@ export default function LeaveCreditDetailsPage() {
     };
 
     const columns = useMemo(
-        () => [
-            { accessorKey: 'leaveName', header: 'Leave Name' },
-            { accessorKey: 'leaveCode', header: 'Leave Code' },
-            ...MONTHS.map((m) => ({ accessorKey: `months.${m}`, header: m })),
-            {
-                id: 'actions',
-                header: 'Actions',
-                cell: ({ row }: { row: any }) => (
-                    <div className='flex gap-2'>
-                        <Button variant='outline' size='sm' onClick={() => handleEdit(row.original)}>
-                            Edit
-                        </Button>
-                        <Button variant='outline' size='sm' onClick={() => handleDelete(row.original.id)}>
-                            Delete
-                        </Button>
-                    </div>
-                )
-            }
-        ],
-        []
+        () => getLeaveCreditDetailColumns({ onEdit: handleEdit, onDelete: handleDelete }),
+        [handleEdit, handleDelete]
     );
-
-    const typeOptions = ['VKS', 'Permanent', 'ELearning', 'Robotic', 'Internship', 'Management Admin'];
-    const departmentOptions = ['Hardware and Network', 'Sales', 'Human Resource', 'Admin', 'LEGAL', 'IT Team'];
-    const designationOptions = [
-        'Computer Faculty',
-        'E-learning coordinator',
-        'Accounts and Finance Executive',
-        'Client acquisition manager',
-        'Sr HR Executive',
-        'Manager HR'
-    ];
-
-    const toggleMulti = (field: 'type' | 'department' | 'designation', value: string, checked: boolean) => {
-        const current = watch(field);
-        if (checked) setValue(field, [...current, value]);
-        else
-            setValue(
-                field,
-                current.filter((v: string) => v !== value)
-            );
-    };
 
     return (
         <div className='min-h-screen'>
@@ -225,120 +107,7 @@ export default function LeaveCreditDetailsPage() {
                             variant='default'
                             size='lg'
                             className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
-                            <form onSubmit={handleSubmit(onSubmit)} className='space-y-4'>
-                                <div className='grid grid-cols-1 gap-6 xl:grid-cols-3'>
-                                    <div className='space-y-4'>
-                                        <div>
-                                            <label htmlFor='type-checkboxes' className='font-medium text-sm'>
-                                                Type
-                                            </label>
-                                            <div id='type-checkboxes' className='max-h-40 overflow-y-auto rounded-md border p-2'>
-                                                {typeOptions.map((t) => (
-                                                    <div key={t} className='flex items-center gap-2 text-sm'>
-                                                        <Checkbox
-                                                            id={`type-${t}`}
-                                                            checked={watch('type').includes(t)}
-                                                            onCheckedChange={(c) => toggleMulti('type', t, c as boolean)}
-                                                        />
-                                                        <Label htmlFor={`type-${t}`}>{t}</Label>
-                                                    </div>
-                                                ))}
-                                            </div>
-                                        </div>
-                                        <div>
-                                            <label htmlFor='department-checkboxes' className='font-medium text-sm'>
-                                                Department
-                                            </label>
-                                            <div id='department-checkboxes' className='max-h-40 overflow-y-auto rounded-md border p-2'>
-                                                {departmentOptions.map((t) => (
-                                                    <div key={t} className='flex items-center gap-2 text-sm'>
-                                                        <Checkbox
-                                                            id={`dept-${t}`}
-                                                            checked={watch('department').includes(t)}
-                                                            onCheckedChange={(c) => toggleMulti('department', t, c as boolean)}
-                                                        />
-                                                        <Label htmlFor={`dept-${t}`}>{t}</Label>
-                                                    </div>
-                                                ))}
-                                            </div>
-                                        </div>
-                                        <div>
-                                            <label htmlFor='designation-checkboxes' className='font-medium text-sm'>
-                                                Designation
-                                            </label>
-                                            <div id='designation-checkboxes' className='max-h-40 overflow-y-auto rounded-md border p-2'>
-                                                {designationOptions.map((t) => (
-                                                    <div key={t} className='flex items-center gap-2 text-sm'>
-                                                        <Checkbox
-                                                            id={`desig-${t}`}
-                                                            checked={watch('designation').includes(t)}
-                                                            onCheckedChange={(c) => toggleMulti('designation', t, c as boolean)}
-                                                        />
-                                                        <Label htmlFor={`desig-${t}`}>{t}</Label>
-                                                    </div>
-                                                ))}
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    <div className='space-y-4'>
-                                        <div>
-                                            <label htmlFor='leave-name-select' className='font-medium text-sm'>
-                                                Leave Name *
-                                            </label>
-                                            <Select value={watch('leaveName')} onValueChange={(v) => setValue('leaveName', v)}>
-                                                <SelectTrigger id='leave-name-select' className={errors.leaveName ? 'border-red-500' : ''}>
-                                                    <SelectValue placeholder='Select Leave' />
-                                                </SelectTrigger>
-                                                <SelectContent>
-                                                    <SelectItem value='Casual Leave'>Casual Leave</SelectItem>
-                                                    <SelectItem value='Sick Leave'>Sick Leave</SelectItem>
-                                                    <SelectItem value='Privilege Leave'>Privilege Leave</SelectItem>
-                                                    <SelectItem value='Comp Off'>Comp Off</SelectItem>
-                                                </SelectContent>
-                                            </Select>
-                                        </div>
-                                        <div>
-                                            <label htmlFor='leave-code-input' className='font-medium text-sm'>
-                                                Leave Code
-                                            </label>
-                                            <InputText id='leave-code-input' {...register('leaveCode')} placeholder='Enter leave code' />
-                                        </div>
-                                    </div>
-
-                                    <div className='space-y-2'>
-                                        <div className='grid grid-cols-2 gap-3 md:grid-cols-3'>
-                                            {MONTHS.map((m) => (
-                                                <div key={m} className='flex items-center gap-2'>
-                                                    <label htmlFor={`month-${m}`} className='w-24 text-sm'>
-                                                        {m}
-                                                    </label>
-                                                    <InputText
-                                                        id={`month-${m}`}
-                                                        type='number'
-                                                        step='0.5'
-                                                        value={watch('months')[m] ?? 0}
-                                                        onChange={(e) =>
-                                                            setValue('months', {
-                                                                ...watch('months'),
-                                                                [m]: Number.parseFloat(e.target.value || '0')
-                                                            })
-                                                        }
-                                                    />
-                                                </div>
-                                            ))}
-                                        </div>
-                                    </div>
-                                </div>
-                                <div className='flex gap-2'>
-                                    <Button type='submit' className='bg-blue-600 hover:bg-blue-700'>
-                                        {editingRow ? 'Update' : 'Save'}
-                                    </Button>
-                                    <Button type='button' variant='outline' onClick={handleFormClose}>
-                                        Clear
-                                    </Button>
-                                </div>
-                            </form>
+                            <LeaveCreditDetailsForm editingRow={editingRow} onSubmit={handleFormSubmit} onCancel={handleFormClose} />
                         </CollapsibleSection>
                     </div>
                 )}

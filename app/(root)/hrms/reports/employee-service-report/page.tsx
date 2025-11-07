@@ -1,20 +1,15 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
-import { CalendarYear } from '@/components/ui/calendar_year';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
 import { DataTable } from '@/components/ui/data-table/data-table';
-import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { type BaseEntity, createLocalCrud } from '@/lib/localdb';
-import { cn } from '@/lib/utils';
-import type { ColumnDef } from '@tanstack/react-table';
 import { format } from 'date-fns';
-import { CalendarIcon, Download, FileText, Printer, Search, X } from 'lucide-react';
+import { Download, FileText, Printer } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';
+import { EmployeeServiceFilters, type ServiceReportFilters } from './_components/filters';
+import { serviceReportColumns, type ServiceHistoryRecord } from './_components/columns';
 
 // Data interfaces
 interface GroupType extends BaseEntity {
@@ -72,15 +67,6 @@ interface EmployeeServiceRecord extends BaseEntity {
     reportingManager: string;
 }
 
-// Report filters
-interface ServiceReportFilters {
-    type: string;
-    department: string;
-    designation: string;
-    selectedEmployee: string;
-    currentDate: Date;
-    reportType: 'Experience Certificate';
-}
 
 export default function EmployeeServiceReportPage() {
     // Database instances
@@ -422,37 +408,9 @@ export default function EmployeeServiceReportPage() {
         return { employee, serviceRecord };
     }, [filters.selectedEmployee, employees, serviceRecords]);
 
-    // Table columns for service history
-    const columns: ColumnDef<any>[] = [
-        {
-            accessorKey: 'period',
-            header: ({ column }) => <DataTableColumnHeader column={column} title='Service Period' />,
-            cell: ({ row }) => <div className='font-medium'>{row.getValue('period')}</div>
-        },
-        {
-            accessorKey: 'designation',
-            header: ({ column }) => <DataTableColumnHeader column={column} title='Designation' />,
-            cell: ({ row }) => <div>{row.getValue('designation')}</div>
-        },
-        {
-            accessorKey: 'department',
-            header: ({ column }) => <DataTableColumnHeader column={column} title='Department' />,
-            cell: ({ row }) => <div>{row.getValue('department')}</div>
-        },
-        {
-            accessorKey: 'salary',
-            header: ({ column }) => <DataTableColumnHeader column={column} title='Salary' />,
-            cell: ({ row }) => <div>₹{(row.getValue('salary') as number).toLocaleString()}</div>
-        },
-        {
-            accessorKey: 'performance',
-            header: ({ column }) => <DataTableColumnHeader column={column} title='Performance' />,
-            cell: ({ row }) => <div>{row.getValue('performance')}</div>
-        }
-    ];
 
     // Mock service history data
-    const serviceHistoryData = selectedEmployeeDetails
+    const serviceHistoryData: ServiceHistoryRecord[] = selectedEmployeeDetails
         ? [
               {
                   period: `${selectedEmployeeDetails.employee.dateOfJoining} - ${
@@ -469,173 +427,17 @@ export default function EmployeeServiceReportPage() {
     return (
         <div className='space-y-6'>
             {/* Report Configuration Section */}
-            <CollapsibleSection
-                title='EMPLOYEE OFFER AND EXPERIENCE REPORT'
-                description='Configure filters to generate service certificates and experience reports'
-                defaultOpen={true}
-                variant='default'
-                size='lg'
-                className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
-                <div className='space-y-6'>
-                    <div className='grid grid-cols-1 gap-6 lg:grid-cols-2'>
-                        {/* Left Column */}
-                        <div className='space-y-4'>
-                            {/* Type Selection */}
-                            <div className='space-y-2'>
-                                <span className='font-medium text-foreground text-sm'>
-                                    Type: <span className='text-red-500'>*</span>
-                                </span>
-                                <Select value={filters.type} onValueChange={(value) => handleFilterChange('type', value)}>
-                                    <SelectTrigger>
-                                        <SelectValue placeholder='Select' />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        {groupTypes.map((type) => (
-                                            <SelectItem key={type.id} value={type.groupType}>
-                                                {type.groupType}
-                                            </SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                </Select>
-                            </div>
-
-                            {/* Department Selection */}
-                            <div className='space-y-2'>
-                                <span className='font-medium text-foreground text-sm'>
-                                    Department: <span className='text-red-500'>*</span>
-                                </span>
-                                <Select value={filters.department} onValueChange={(value) => handleFilterChange('department', value)}>
-                                    <SelectTrigger>
-                                        <SelectValue placeholder='Select' />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        {departments.map((dept) => (
-                                            <SelectItem key={dept.id} value={dept.departmentName}>
-                                                {dept.departmentName}
-                                            </SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                </Select>
-                            </div>
-
-                            {/* Designation Selection */}
-                            <div className='space-y-2'>
-                                <span className='font-medium text-foreground text-sm'>
-                                    Designation: <span className='text-red-500'>*</span>
-                                </span>
-                                <Select value={filters.designation} onValueChange={(value) => handleFilterChange('designation', value)}>
-                                    <SelectTrigger>
-                                        <SelectValue placeholder='Select' />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        {designations.map((desig) => (
-                                            <SelectItem key={desig.id} value={desig.designationName}>
-                                                {desig.designationName}
-                                            </SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                </Select>
-                            </div>
-
-                            {/* Employee Selection */}
-                            <div className='space-y-2'>
-                                <span className='font-medium text-foreground text-sm'>
-                                    Employee: <span className='text-red-500'>*</span>
-                                </span>
-                                <Select
-                                    value={filters.selectedEmployee}
-                                    onValueChange={(value) => handleFilterChange('selectedEmployee', value)}>
-                                    <SelectTrigger>
-                                        <SelectValue placeholder='Select or search Employee' />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        {filteredEmployees.map((emp) => (
-                                            <SelectItem key={emp.id} value={emp.id.toString()}>
-                                                {emp.employeeName} ({emp.employeeCode})
-                                            </SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                </Select>
-                            </div>
-                        </div>
-
-                        {/* Right Column */}
-                        <div className='space-y-4'>
-                            {/* Current Date */}
-                            <div className='space-y-2'>
-                                <span className='font-medium text-foreground text-sm'>
-                                    Current Date: <span className='text-red-500'>*</span>
-                                </span>
-                                <Popover>
-                                    <PopoverTrigger asChild>
-                                        <Button
-                                            variant='outline'
-                                            className={cn(
-                                                'w-full justify-start text-left font-normal',
-                                                !filters.currentDate && 'text-muted-foreground'
-                                            )}>
-                                            <CalendarIcon className='mr-2 h-4 w-4' />
-                                            {filters.currentDate ? format(filters.currentDate, 'dd-MM-yyyy') : <span>17-09-2025</span>}
-                                        </Button>
-                                    </PopoverTrigger>
-                                    <PopoverContent className='w-auto p-0'>
-                                        <CalendarYear
-                                            mode='single'
-                                            selected={filters.currentDate}
-                                            onDayClick={(day) => handleFilterChange('currentDate', day)}
-                                            initialFocus
-                                        />
-                                    </PopoverContent>
-                                </Popover>
-                            </div>
-
-                            {/* Report Type */}
-                            <div className='space-y-3'>
-                                <span className='font-medium text-foreground text-sm'>Report Type:</span>
-                                <div className='flex items-center gap-2'>
-                                    <label className='flex cursor-pointer items-center gap-2 text-sm'>
-                                        <input
-                                            type='radio'
-                                            name='reportType'
-                                            value='Experience Certificate'
-                                            checked={filters.reportType === 'Experience Certificate'}
-                                            onChange={(e) => handleFilterChange('reportType', e.target.value)}
-                                            className='text-primary focus:ring-primary'
-                                        />
-                                        Experience Certificate
-                                    </label>
-                                </div>
-                            </div>
-
-                            {/* Selected Employee Info */}
-                            {selectedEmployeeDetails && (
-                                <div className='space-y-2 rounded-md border bg-background p-3'>
-                                    <div className='font-medium text-foreground text-sm'>Selected Employee:</div>
-                                    <div className='text-muted-foreground text-sm'>
-                                        <div>{selectedEmployeeDetails.employee.employeeName}</div>
-                                        <div>{selectedEmployeeDetails.employee.employeeCode}</div>
-                                        <div>
-                                            {selectedEmployeeDetails.employee.departmentName} -{' '}
-                                            {selectedEmployeeDetails.employee.designationName}
-                                        </div>
-                                    </div>
-                                </div>
-                            )}
-                        </div>
-                    </div>
-
-                    {/* Action Buttons */}
-                    <div className='flex gap-2 pt-4'>
-                        <Button onClick={handleSearch}>
-                            <Search className='mr-2 h-4 w-4' />
-                            SEARCH
-                        </Button>
-                        <Button variant='outline' onClick={handleCancel} prefix={<X className='size-4' />}>
-                            CANCEL
-                        </Button>
-                    </div>
-                </div>
-            </CollapsibleSection>
+            <EmployeeServiceFilters
+                filters={filters}
+                groupTypes={groupTypes}
+                departments={departments}
+                designations={designations}
+                filteredEmployees={filteredEmployees}
+                selectedEmployeeDetails={selectedEmployeeDetails}
+                onFilterChange={handleFilterChange}
+                onSearch={handleSearch}
+                onCancel={handleCancel}
+            />
 
             {/* Report Results */}
             {showReport && selectedEmployeeDetails && (
@@ -712,7 +514,7 @@ export default function EmployeeServiceReportPage() {
 
                         <DataTable
                             isLoading={false}
-                            columns={columns}
+                            columns={serviceReportColumns}
                             data={serviceHistoryData}
                             totalItems={serviceHistoryData.length}
                             showViewOptions={false}

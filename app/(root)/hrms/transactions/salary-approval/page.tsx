@@ -98,6 +98,16 @@ export default function SalaryApprovalPage() {
     };
 
     const onSubmit: SubmitHandler<SearchForm> = async (data: SearchForm) => {
+        console.log('🟢 [SALARY APPROVAL - FRONTEND] onSubmit - START');
+        console.log('📝 [SALARY APPROVAL - FRONTEND] Form data:', JSON.stringify(data, null, 2));
+        console.log('📊 [SALARY APPROVAL - FRONTEND] Form summary:', {
+            groupTypeCount: data.groupType?.length || 0,
+            departmentCount: data.department?.length || 0,
+            designationCount: data.designation?.length || 0,
+            salaryMonth: data.salaryMonth,
+            salaryYear: data.salaryYear
+        });
+
         const payload: SalaryApprovalSearchRequest = {
             MI_Id: 30,
             HRES_Year: data.salaryYear || '',
@@ -123,9 +133,22 @@ export default function SalaryApprovalPage() {
             LogInUserId: 0
         };
 
+        console.log('📤 [SALARY APPROVAL - FRONTEND] Prepared payload:', JSON.stringify(payload, null, 2));
+        console.log('📊 [SALARY APPROVAL - FRONTEND] Payload summary:', {
+            MI_Id: payload.MI_Id,
+            HRES_Year: payload.HRES_Year,
+            HRES_Month: payload.HRES_Month,
+            groupTypeIdsCount: payload.groupTypeIdList.length,
+            departmentIdsCount: payload.hrmD_IdList.length,
+            designationIdsCount: payload.hrmdeS_IdList.length,
+            LogInUserId: payload.LogInUserId
+        });
+
         searchMutation.mutate(payload, {
             onSuccess: (responseData) => {
+                console.log('✅ [SALARY APPROVAL - FRONTEND] onSubmit - onSuccess');
                 const employeeList = responseData.ReportData || [];
+                console.log('📊 [SALARY APPROVAL - FRONTEND] Employees received:', employeeList.length);
 
                 setEmployees(employeeList);
                 setFilteredEmployees(employeeList);
@@ -141,18 +164,21 @@ export default function SalaryApprovalPage() {
                         const fromDate = new Date(year, monthIndex, 1);
                         const toDate = new Date(year, monthIndex + 1, 0);
 
-                        setFromDate(
-                            `${String(fromDate.getDate()).padStart(2, '0')}/${String(fromDate.getMonth() + 1).padStart(2, '0')}/${fromDate.getFullYear()}`
-                        );
-                        setToDate(
-                            `${String(toDate.getDate()).padStart(2, '0')}/${String(toDate.getMonth() + 1).padStart(2, '0')}/${toDate.getFullYear()}`
-                        );
+                        const fromDateStr = `${String(fromDate.getDate()).padStart(2, '0')}/${String(fromDate.getMonth() + 1).padStart(2, '0')}/${fromDate.getFullYear()}`;
+                        const toDateStr = `${String(toDate.getDate()).padStart(2, '0')}/${String(toDate.getMonth() + 1).padStart(2, '0')}/${toDate.getFullYear()}`;
+                        
+                        setFromDate(fromDateStr);
+                        setToDate(toDateStr);
+                        console.log('📅 [SALARY APPROVAL - FRONTEND] Date range set:', { fromDate: fromDateStr, toDate: toDateStr });
                     }
                 }
 
+                console.log('🟢 [SALARY APPROVAL - FRONTEND] onSubmit - END (Success)');
                 toast.success(`Search completed successfully. Found ${employeeList.length} employees`);
             },
-            onError: () => {
+            onError: (error) => {
+                console.error('❌ [SALARY APPROVAL - FRONTEND] onSubmit - onError');
+                console.error('💥 [SALARY APPROVAL - FRONTEND] Error:', error);
                 setEmployees([]);
                 setFilteredEmployees([]);
                 setHasSearched(true);
@@ -177,12 +203,18 @@ export default function SalaryApprovalPage() {
     };
 
     const handleApprove = async () => {
+        console.log('🟢 [SALARY APPROVAL - FRONTEND] handleApprove - START');
+        console.log('📊 [SALARY APPROVAL - FRONTEND] Selected employees:', selectedEmployees.length);
+        console.log('📋 [SALARY APPROVAL - FRONTEND] Selected employee IDs:', selectedEmployees);
+
         if (selectedEmployees.length === 0) {
+            console.warn('⚠️ [SALARY APPROVAL - FRONTEND] No employees selected');
             toast.error('Please select at least one employee to approve');
             return;
         }
 
         if (!currentSearchData) {
+            console.warn('⚠️ [SALARY APPROVAL - FRONTEND] No search data available');
             toast.error('Please perform a search first before approving');
             return;
         }
@@ -196,26 +228,50 @@ export default function SalaryApprovalPage() {
             approvalStatus: 'Approved'
         };
 
+        console.log('📤 [SALARY APPROVAL - FRONTEND] Approval payload:', JSON.stringify(payload, null, 2));
+        console.log('📊 [SALARY APPROVAL - FRONTEND] Approval details:', {
+            MI_Id: payload.MI_Id,
+            HRES_Year: payload.HRES_Year,
+            HRES_Month: payload.HRES_Month,
+            employeeCount: payload.employeeIdList.length,
+            approvalStatus: payload.approvalStatus
+        });
+
         approveMutation.mutate(payload, {
             onSuccess: (data) => {
+                console.log('✅ [SALARY APPROVAL - FRONTEND] handleApprove - onSuccess');
+                console.log('📊 [SALARY APPROVAL - FRONTEND] Approval result:', {
+                    approvedCount: data.approvedCount,
+                    failedCount: data.failedCount,
+                    message: data.message
+                });
                 if (data.approvedCount > 0) {
                     toast.success(`Successfully approved ${data.approvedCount} employee(s)`);
                 }
                 setSelectedEmployees([]);
+                console.log('🟢 [SALARY APPROVAL - FRONTEND] handleApprove - END (Success)');
             },
-            onError: () => {
+            onError: (error) => {
+                console.error('❌ [SALARY APPROVAL - FRONTEND] handleApprove - onError');
+                console.error('💥 [SALARY APPROVAL - FRONTEND] Error:', error);
                 toast.error('Failed to approve employees');
             }
         });
     };
 
     const handleReject = async () => {
+        console.log('🟢 [SALARY APPROVAL - FRONTEND] handleReject - START');
+        console.log('📊 [SALARY APPROVAL - FRONTEND] Selected employees:', selectedEmployees.length);
+        console.log('📋 [SALARY APPROVAL - FRONTEND] Selected employee IDs:', selectedEmployees);
+
         if (selectedEmployees.length === 0) {
+            console.warn('⚠️ [SALARY APPROVAL - FRONTEND] No employees selected');
             toast.error('Please select at least one employee to reject');
             return;
         }
 
         if (!currentSearchData) {
+            console.warn('⚠️ [SALARY APPROVAL - FRONTEND] No search data available');
             toast.error('Please perform a search first before rejecting');
             return;
         }
@@ -229,14 +285,32 @@ export default function SalaryApprovalPage() {
             approvalStatus: 'Rejected'
         };
 
+        console.log('📤 [SALARY APPROVAL - FRONTEND] Rejection payload:', JSON.stringify(payload, null, 2));
+        console.log('📊 [SALARY APPROVAL - FRONTEND] Rejection details:', {
+            MI_Id: payload.MI_Id,
+            HRES_Year: payload.HRES_Year,
+            HRES_Month: payload.HRES_Month,
+            employeeCount: payload.employeeIdList.length,
+            approvalStatus: payload.approvalStatus
+        });
+
         approveMutation.mutate(payload, {
             onSuccess: (data) => {
+                console.log('✅ [SALARY APPROVAL - FRONTEND] handleReject - onSuccess');
+                console.log('📊 [SALARY APPROVAL - FRONTEND] Rejection result:', {
+                    approvedCount: data.approvedCount,
+                    failedCount: data.failedCount,
+                    message: data.message
+                });
                 if (data.approvedCount > 0) {
                     toast.success(`Successfully rejected ${data.approvedCount} employee(s)`);
                 }
                 setSelectedEmployees([]);
+                console.log('🟢 [SALARY APPROVAL - FRONTEND] handleReject - END (Success)');
             },
-            onError: () => {
+            onError: (error) => {
+                console.error('❌ [SALARY APPROVAL - FRONTEND] handleReject - onError');
+                console.error('💥 [SALARY APPROVAL - FRONTEND] Error:', error);
                 toast.error('Failed to reject employees');
             }
         });

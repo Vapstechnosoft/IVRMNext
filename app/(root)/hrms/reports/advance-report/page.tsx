@@ -1,45 +1,20 @@
 'use client';
 
 import { Heading } from '@/components/layout/heading';
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Checkbox } from '@/components/ui/checkbox';
-import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
 import { DataTable } from '@/components/ui/data-table/data-table';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { type BaseEntity, createLocalCrud } from '@/lib/localdb';
-import type { ColumnDef } from '@tanstack/react-table';
-import { Calculator, CreditCard, DollarSign, Download, FileText, Printer, Search, TrendingUp, Users } from 'lucide-react';
+import { Calculator, CreditCard, DollarSign, Download, FileText, Printer, TrendingUp, Users } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';
-
-// Employee Advance Report data structure
-interface EmployeeAdvanceRecord extends BaseEntity {
-    employeeCode: string;
-    employeeName: string;
-    groupType: string;
-    department: string;
-    designation: string;
-    advanceRequestDate: string;
-    advanceType: 'Salary Advance' | 'Festival Advance' | 'Medical Advance' | 'Emergency Advance' | 'Travel Advance';
-    advanceAmount: number;
-    approvedAmount: number;
-    advanceReason: string;
-    approvalDate: string;
-    approvedBy: string;
-    recoveryStartDate: string;
-    recoveryEndDate: string;
-    totalInstallments: number;
-    installmentAmount: number;
-    recoveredAmount: number;
-    remainingAmount: number;
-    status: 'Pending' | 'Approved' | 'Rejected' | 'Partially Recovered' | 'Fully Recovered';
-    month: string;
-    year: string;
-    basicSalary: number;
-    advancePercentage: number;
-}
+import { AdvanceReportFilters, type AdvanceFilters, type FilterOptions } from './_components/filters';
+import {
+    advanceReportColumns,
+    advanceTypeSummaryColumns,
+    type AdvanceTypeSummary as AdvanceTypeSummaryColumn,
+    type EmployeeAdvanceRecord
+} from './_components/columns';
 
 // Advance Summary
 interface AdvanceSummary {
@@ -67,21 +42,6 @@ interface AdvanceTypeSummary {
     remainingAmount: number;
 }
 
-// Filter options
-interface FilterOptions {
-    groupTypes: string[];
-    departments: string[];
-    designations: string[];
-}
-
-// Report filters
-interface AdvanceFilters {
-    selectedGroupTypes: string[];
-    selectedDepartments: string[];
-    selectedDesignations: string[];
-    month: string;
-    year: string;
-}
 
 export default function AdvanceReportPage() {
     // Database instances
@@ -315,42 +275,6 @@ export default function AdvanceReportPage() {
         setFilteredRecords(filtered);
     }, [filters, advanceRecords]);
 
-    const handleCheckboxChange = (
-        category: 'selectedGroupTypes' | 'selectedDepartments' | 'selectedDesignations',
-        value: string,
-        checked: boolean
-    ) => {
-        setFilters((prev) => ({
-            ...prev,
-            [category]: checked ? [...prev[category], value] : prev[category].filter((item) => item !== value)
-        }));
-    };
-
-    const handleSelectAllChange = (category: 'selectedGroupTypes' | 'selectedDepartments' | 'selectedDesignations', checked: boolean) => {
-        let allOptions: string[] = [];
-
-        switch (category) {
-            case 'selectedGroupTypes':
-                allOptions = filterOptions.groupTypes;
-                break;
-            case 'selectedDepartments':
-                allOptions = filterOptions.departments;
-                break;
-            case 'selectedDesignations':
-                allOptions = filterOptions.designations;
-                break;
-        }
-
-        setFilters((prev) => ({
-            ...prev,
-            [category]: checked ? allOptions : []
-        }));
-    };
-
-    const handleFilterChange = (key: keyof AdvanceFilters, value: string) => {
-        setFilters((prev) => ({ ...prev, [key]: value }));
-    };
-
     const handleSearch = () => {
         setShowReport(true);
         toast.success('Employee Advance Report generated');
@@ -366,6 +290,10 @@ export default function AdvanceReportPage() {
         });
         setShowReport(false);
         toast.info('Filters cleared');
+    };
+
+    const handleFilterChange = (newFilters: AdvanceFilters) => {
+        setFilters(newFilters);
     };
 
     const handleExport = () => {
@@ -449,158 +377,6 @@ export default function AdvanceReportPage() {
             .sort((a, b) => b.totalAmount - a.totalAmount);
     }, [filteredRecords]);
 
-    // Table columns
-    const columns: ColumnDef<EmployeeAdvanceRecord>[] = [
-        {
-            accessorKey: 'id',
-            header: ({ column }) => <DataTableColumnHeader column={column} title='SL.No.' />,
-            cell: ({ row, table }) => {
-                const pageIndex = table.getState().pagination.pageIndex;
-                const pageSize = table.getState().pagination.pageSize;
-                const continuousIndex = pageIndex * pageSize + row.index + 1;
-                return <div className='text-center'>{continuousIndex}</div>;
-            },
-            enableSorting: false,
-            enableHiding: false,
-            size: 80
-        },
-        {
-            accessorKey: 'employeeCode',
-            header: ({ column }) => <DataTableColumnHeader column={column} title='Employee Code' />,
-            cell: ({ row }) => <div className='font-medium'>{row.getValue('employeeCode')}</div>,
-            enableSorting: true,
-            enableHiding: true
-        },
-        {
-            accessorKey: 'employeeName',
-            header: ({ column }) => <DataTableColumnHeader column={column} title='Employee Name' />,
-            cell: ({ row }) => <div>{row.getValue('employeeName')}</div>,
-            enableSorting: true,
-            enableHiding: true
-        },
-        {
-            accessorKey: 'department',
-            header: ({ column }) => <DataTableColumnHeader column={column} title='Department' />,
-            cell: ({ row }) => <div className='text-sm'>{row.getValue('department')}</div>,
-            enableSorting: true,
-            enableHiding: true
-        },
-        {
-            accessorKey: 'advanceType',
-            header: ({ column }) => <DataTableColumnHeader column={column} title='Advance Type' />,
-            cell: ({ row }) => {
-                const type = row.getValue('advanceType') as string;
-                return (
-                    <Badge variant='outline' className='text-xs'>
-                        {type}
-                    </Badge>
-                );
-            },
-            enableSorting: true,
-            enableHiding: true
-        },
-        {
-            accessorKey: 'advanceAmount',
-            header: ({ column }) => <DataTableColumnHeader column={column} title='Advance Amount' />,
-            cell: ({ row }) => <div>₹{(row.getValue('advanceAmount') as number).toLocaleString()}</div>,
-            enableSorting: true,
-            enableHiding: true
-        },
-        {
-            accessorKey: 'approvedAmount',
-            header: ({ column }) => <DataTableColumnHeader column={column} title='Approved Amount' />,
-            cell: ({ row }) => <div className='text-green-600'>₹{(row.getValue('approvedAmount') as number).toLocaleString()}</div>,
-            enableSorting: true,
-            enableHiding: true
-        },
-        {
-            accessorKey: 'recoveredAmount',
-            header: ({ column }) => <DataTableColumnHeader column={column} title='Recovered Amount' />,
-            cell: ({ row }) => <div className='text-blue-600'>₹{(row.getValue('recoveredAmount') as number).toLocaleString()}</div>,
-            enableSorting: true,
-            enableHiding: true
-        },
-        {
-            accessorKey: 'remainingAmount',
-            header: ({ column }) => <DataTableColumnHeader column={column} title='Remaining Amount' />,
-            cell: ({ row }) => <div className='text-orange-600'>₹{(row.getValue('remainingAmount') as number).toLocaleString()}</div>,
-            enableSorting: true,
-            enableHiding: true
-        },
-        {
-            accessorKey: 'status',
-            header: ({ column }) => <DataTableColumnHeader column={column} title='Status' />,
-            cell: ({ row }) => {
-                const status = row.getValue('status') as string;
-                const variant =
-                    status === 'Approved'
-                        ? 'default'
-                        : status === 'Pending'
-                          ? 'secondary'
-                          : status === 'Rejected'
-                            ? 'destructive'
-                            : status === 'Fully Recovered'
-                              ? 'default'
-                              : 'outline';
-                return <Badge variant={variant}>{status}</Badge>;
-            },
-            enableSorting: true,
-            enableHiding: true
-        }
-    ];
-
-    // Advance type summary columns
-    const typeColumns: ColumnDef<AdvanceTypeSummary>[] = [
-        {
-            accessorKey: 'advanceType',
-            header: ({ column }) => <DataTableColumnHeader column={column} title='Advance Type' />,
-            cell: ({ row }) => <div className='font-semibold'>{row.getValue('advanceType')}</div>,
-            enableSorting: true,
-            enableHiding: false
-        },
-        {
-            accessorKey: 'totalRequests',
-            header: ({ column }) => <DataTableColumnHeader column={column} title='Total Requests' />,
-            cell: ({ row }) => <div className='text-center'>{row.getValue('totalRequests')}</div>,
-            enableSorting: true,
-            enableHiding: true
-        },
-        {
-            accessorKey: 'totalAmount',
-            header: ({ column }) => <DataTableColumnHeader column={column} title='Total Amount' />,
-            cell: ({ row }) => <div>₹{(row.getValue('totalAmount') as number).toLocaleString()}</div>,
-            enableSorting: true,
-            enableHiding: true
-        },
-        {
-            accessorKey: 'approvedRequests',
-            header: ({ column }) => <DataTableColumnHeader column={column} title='Approved Requests' />,
-            cell: ({ row }) => <div className='text-center text-green-600'>{row.getValue('approvedRequests')}</div>,
-            enableSorting: true,
-            enableHiding: true
-        },
-        {
-            accessorKey: 'approvedAmount',
-            header: ({ column }) => <DataTableColumnHeader column={column} title='Approved Amount' />,
-            cell: ({ row }) => <div className='text-green-600'>₹{(row.getValue('approvedAmount') as number).toLocaleString()}</div>,
-            enableSorting: true,
-            enableHiding: true
-        },
-        {
-            accessorKey: 'recoveredAmount',
-            header: ({ column }) => <DataTableColumnHeader column={column} title='Recovered Amount' />,
-            cell: ({ row }) => <div className='text-blue-600'>₹{(row.getValue('recoveredAmount') as number).toLocaleString()}</div>,
-            enableSorting: true,
-            enableHiding: true
-        },
-        {
-            accessorKey: 'remainingAmount',
-            header: ({ column }) => <DataTableColumnHeader column={column} title='Remaining Amount' />,
-            cell: ({ row }) => <div className='text-orange-600'>₹{(row.getValue('remainingAmount') as number).toLocaleString()}</div>,
-            enableSorting: true,
-            enableHiding: true
-        }
-    ];
 
     return (
         <div className='space-y-6'>
@@ -612,185 +388,13 @@ export default function AdvanceReportPage() {
             </div>
 
             {/* Report Configuration Section */}
-            <div className='space-y-4 rounded-lg border bg-card p-4'>
-                <div className='flex items-center gap-2 font-semibold text-foreground text-lg'>
-                    <FileText className='h-5 w-5' />
-                    EMPLOYEE ADVANCE REPORT
-                </div>
-
-                {/* Filter Sections */}
-                <div className='grid grid-cols-1 gap-6 lg:grid-cols-3'>
-                    {/* Group Type Section */}
-                    <div className='space-y-3'>
-                        <div className='flex items-center gap-2'>
-                            <span className='font-medium text-foreground text-sm'>Group Type:</span>
-                            <span className='text-red-500'>*</span>
-                            <div className='flex items-center gap-2'>
-                                <Checkbox
-                                    id='all-groups'
-                                    checked={filters.selectedGroupTypes.length === filterOptions.groupTypes.length}
-                                    onCheckedChange={(checked) => handleSelectAllChange('selectedGroupTypes', checked as boolean)}
-                                />
-                                <label htmlFor='all-groups' className='cursor-pointer text-sm'>
-                                    All
-                                </label>
-                            </div>
-                        </div>
-                        <div className='h-32 space-y-2 overflow-y-auto rounded-lg border p-3'>
-                            {filterOptions.groupTypes.map((groupType) => (
-                                <div key={groupType} className='flex items-center gap-2'>
-                                    <Checkbox
-                                        id={`group-${groupType}`}
-                                        checked={filters.selectedGroupTypes.includes(groupType)}
-                                        onCheckedChange={(checked) =>
-                                            handleCheckboxChange('selectedGroupTypes', groupType, checked as boolean)
-                                        }
-                                    />
-                                    <label htmlFor={`group-${groupType}`} className='cursor-pointer text-sm'>
-                                        {groupType}
-                                    </label>
-                                </div>
-                            ))}
-                        </div>
-                    </div>
-
-                    {/* Department Section */}
-                    <div className='space-y-3'>
-                        <div className='flex items-center gap-2'>
-                            <span className='font-medium text-foreground text-sm'>Department:</span>
-                            <span className='text-red-500'>*</span>
-                            <div className='flex items-center gap-2'>
-                                <Checkbox
-                                    id='all-departments'
-                                    checked={filters.selectedDepartments.length === filterOptions.departments.length}
-                                    onCheckedChange={(checked) => handleSelectAllChange('selectedDepartments', checked as boolean)}
-                                />
-                                <label htmlFor='all-departments' className='cursor-pointer text-sm'>
-                                    All
-                                </label>
-                            </div>
-                        </div>
-                        <div className='h-32 space-y-2 overflow-y-auto rounded-lg border p-3'>
-                            {filterOptions.departments.map((department) => (
-                                <div key={department} className='flex items-center gap-2'>
-                                    <Checkbox
-                                        id={`dept-${department}`}
-                                        checked={filters.selectedDepartments.includes(department)}
-                                        onCheckedChange={(checked) =>
-                                            handleCheckboxChange('selectedDepartments', department, checked as boolean)
-                                        }
-                                    />
-                                    <label htmlFor={`dept-${department}`} className='cursor-pointer text-sm'>
-                                        {department}
-                                    </label>
-                                </div>
-                            ))}
-                        </div>
-                    </div>
-
-                    {/* Designation Section */}
-                    <div className='space-y-3'>
-                        <div className='flex items-center gap-2'>
-                            <span className='font-medium text-foreground text-sm'>Designation:</span>
-                            <span className='text-red-500'>*</span>
-                            <div className='flex items-center gap-2'>
-                                <Checkbox
-                                    id='all-designations'
-                                    checked={filters.selectedDesignations.length === filterOptions.designations.length}
-                                    onCheckedChange={(checked) => handleSelectAllChange('selectedDesignations', checked as boolean)}
-                                />
-                                <label htmlFor='all-designations' className='cursor-pointer text-sm'>
-                                    All
-                                </label>
-                            </div>
-                        </div>
-                        <div className='h-32 space-y-2 overflow-y-auto rounded-lg border p-3'>
-                            {filterOptions.designations.map((designation) => (
-                                <div key={designation} className='flex items-center gap-2'>
-                                    <Checkbox
-                                        id={`desig-${designation}`}
-                                        checked={filters.selectedDesignations.includes(designation)}
-                                        onCheckedChange={(checked) =>
-                                            handleCheckboxChange('selectedDesignations', designation, checked as boolean)
-                                        }
-                                    />
-                                    <label htmlFor={`desig-${designation}`} className='cursor-pointer text-sm'>
-                                        {designation}
-                                    </label>
-                                </div>
-                            ))}
-                        </div>
-                    </div>
-                </div>
-
-                {/* Additional Filters */}
-                <div className='flex items-center justify-center gap-6 pt-4'>
-                    {/* Month Filter */}
-                    <div className='space-y-2'>
-                        <span className='font-medium text-foreground text-sm'>
-                            Month: <span className='text-red-500'>*</span>
-                        </span>
-                        <Select value={filters.month} onValueChange={(value) => handleFilterChange('month', value)}>
-                            <SelectTrigger className='w-40'>
-                                <SelectValue placeholder='Select' />
-                            </SelectTrigger>
-                            <SelectContent>
-                                {[
-                                    'January',
-                                    'February',
-                                    'March',
-                                    'April',
-                                    'May',
-                                    'June',
-                                    'July',
-                                    'August',
-                                    'September',
-                                    'October',
-                                    'November',
-                                    'December'
-                                ].map((month) => (
-                                    <SelectItem key={month} value={month}>
-                                        {month}
-                                    </SelectItem>
-                                ))}
-                            </SelectContent>
-                        </Select>
-                    </div>
-
-                    {/* Year Filter */}
-                    <div className='space-y-2'>
-                        <span className='font-medium text-foreground text-sm'>
-                            Year: <span className='text-red-500'>*</span>
-                        </span>
-                        <Select value={filters.year} onValueChange={(value) => handleFilterChange('year', value)}>
-                            <SelectTrigger className='w-32'>
-                                <SelectValue placeholder='Select' />
-                            </SelectTrigger>
-                            <SelectContent>
-                                {Array.from({ length: 5 }, (_, i) => {
-                                    const year = new Date().getFullYear() - 2 + i;
-                                    return (
-                                        <SelectItem key={`year-${year}`} value={year.toString()}>
-                                            {year}
-                                        </SelectItem>
-                                    );
-                                })}
-                            </SelectContent>
-                        </Select>
-                    </div>
-                </div>
-
-                {/* Action Buttons */}
-                <div className='flex justify-center gap-2 pt-4'>
-                    <Button onClick={handleSearch}>
-                        <Search className='mr-2 h-4 w-4' />
-                        SEARCH
-                    </Button>
-                    <Button variant='outline' onClick={handleCancel}>
-                        CANCEL
-                    </Button>
-                </div>
-            </div>
+            <AdvanceReportFilters
+                filters={filters}
+                filterOptions={filterOptions}
+                onFilterChange={handleFilterChange}
+                onSearch={handleSearch}
+                onCancel={handleCancel}
+            />
 
             {/* Report Results */}
             {showReport && (
@@ -879,7 +483,7 @@ export default function AdvanceReportPage() {
                         <CardContent>
                             <DataTable
                                 isLoading={isLoading}
-                                columns={typeColumns}
+                                columns={advanceTypeSummaryColumns}
                                 data={advanceTypeSummaries}
                                 totalItems={advanceTypeSummaries.length}
                                 showViewOptions={true}
@@ -974,7 +578,7 @@ export default function AdvanceReportPage() {
                         <CardContent>
                             <DataTable
                                 isLoading={isLoading}
-                                columns={columns}
+                                columns={advanceReportColumns}
                                 data={filteredRecords}
                                 totalItems={filteredRecords.length}
                                 showViewOptions={true}

@@ -8,6 +8,7 @@ import { DataTable } from '@/components/ui/data-table/data-table';
 import { Label } from '@/components/ui/extension/field';
 import { InputText } from '@/components/ui/extension/input-text';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
+import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { cn } from '@/lib/utils';
@@ -15,10 +16,11 @@ import { useDeleteSalaryIncrement, useSalaryIncrementOnload, useSaveSalaryIncrem
 import type { EarningDeductionType, SalaryIncrementDeleteRequest, SalaryIncrementGridItem } from '@/types/hrms/salary-increment';
 import type { ColumnDef } from '@tanstack/react-table';
 import { format } from 'date-fns';
-import { CalendarIcon, RefreshCw, TrendingUp, X } from 'lucide-react';
+import { CalendarIcon, Plus, RefreshCw, TrendingUp, X } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
+import FormSections from './_components/form-sections';
 
 interface Employee {
     HRME_Id: number;
@@ -55,6 +57,26 @@ interface IncrementForm {
 }
 
 export default function SalaryIncrementProcessPage() {
+    const { data: onloadData, isLoading } = useSalaryIncrementOnload({
+        MI_Id: 30,
+        roleId: 0
+    });
+
+    return (
+        <FormProvider<SalaryIncrementGridItem>>
+            <SalaryIncrementProcessPageContent onloadData={onloadData} isLoading={isLoading} />
+        </FormProvider>
+    );
+}
+
+function SalaryIncrementProcessPageContent({
+    onloadData,
+    isLoading
+}: {
+    onloadData: any;
+    isLoading: boolean;
+}) {
+    const { openAddForm } = useFormContext<SalaryIncrementGridItem>();
     const [isFormOpen, setIsFormOpen] = useState(false);
     const [employees, setEmployees] = useState<Employee[]>([]);
     const [filteredEmployees, setFilteredEmployees] = useState<Employee[]>([]);
@@ -82,10 +104,6 @@ export default function SalaryIncrementProcessPage() {
 
     const watchedIncrementType = watch('incrementType');
 
-    const { data: onloadData, isLoading } = useSalaryIncrementOnload({
-        MI_Id: 30,
-        roleId: 0
-    });
     const saveMutation = useSaveSalaryIncrement();
     const deleteMutation = useDeleteSalaryIncrement();
 
@@ -223,7 +241,7 @@ export default function SalaryIncrementProcessPage() {
             return;
         }
 
-        const earningHead = earningHeads.find((head) => head.HRMED_Name === data.earningHead);
+        const earningHead = earningHeads.find((head: any) => head.HRMED_Name === data.earningHead);
         if (!earningHead) {
             toast.error('Selected earning head not found');
             return;
@@ -321,10 +339,25 @@ export default function SalaryIncrementProcessPage() {
         deleteMutation.mutate(payload);
     };
 
+    const handleRefetch = () => {
+        // Refetch logic if needed
+    };
+
     return (
         <div className='min-h-screen'>
             <div className='container space-y-4 p-1'>
-                <div className='flex justify-end'>
+                {/* Forms Section */}
+                <FormSections onloadData={onloadData} onSuccess={handleRefetch} />
+
+                <div className='flex justify-end gap-2'>
+                    <Button
+                        type='button'
+                        onClick={openAddForm}
+                        size='lg'
+                        className='w-fit shadow-md transition-all duration-200 hover:scale-105 hover:shadow-lg'>
+                        <Plus className='h-4 w-4' />
+                        Add Salary Increment
+                    </Button>
                     <Button
                         type='button'
                         onClick={handleIncrementClick}
@@ -450,7 +483,7 @@ export default function SalaryIncrementProcessPage() {
                                                                 <SelectValue placeholder='Select Head' />
                                                             </SelectTrigger>
                                                             <SelectContent>
-                                                                {earningHeads.map((head) => (
+                                                                {earningHeads.map((head: any) => (
                                                                     <SelectItem key={head.HRMED_Id} value={head.HRMED_Name}>
                                                                         {head.HRMED_Name}
                                                                     </SelectItem>

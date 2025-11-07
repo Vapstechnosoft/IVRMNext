@@ -1,31 +1,12 @@
-// Refactored by automation script on 2025-10-28T15:40:35.787Z
-// TODO: Complete refactoring by:
-// 1. Import columns from _components/columns.tsx
-// 2. Import form from _components/comp-off-approval-form.tsx
-// 3. Extract column definitions and form to the respective files
-// 4. Update handlers to use the new structure
-
 'use client';
 
 import { Heading } from '@/components/layout/heading';
-import { Button } from '@/components/ui/button';
 import { GenericDataTable } from '@/components/ui/data-table/generic-data-table';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
-import { type BaseEntity, createLocalCrud } from '@/lib/localdb';
-import { Check, X } from 'lucide-react';
+import { createLocalCrud } from '@/lib/localdb';
 import { useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';
-
-interface CompOffApproval extends BaseEntity {
-    employeeName: string;
-    date: string;
-    time: string;
-    compOffToBeCredit: number;
-    reason: string;
-    hrStatus: 'Pending' | 'Approved' | 'Rejected';
-    approverRemarks?: string;
-    remark?: string;
-}
+import { getCompOffApprovalColumns, type CompOffApproval } from './_components/columns';
 
 const compOffDB = createLocalCrud<CompOffApproval>('compOffApproval');
 
@@ -53,35 +34,8 @@ export default function CompOffApprovalPage() {
     };
 
     const columns = useMemo(
-        () => [
-            { accessorKey: 'employeeName', header: 'Employee Name' },
-            { accessorKey: 'date', header: 'Date' },
-            { accessorKey: 'time', header: 'Time' },
-            { accessorKey: 'compOffToBeCredit', header: 'Comp Off to be Credit' },
-            { accessorKey: 'reason', header: 'Reason' },
-            { accessorKey: 'hrStatus', header: 'HR Status' },
-            { accessorKey: 'approverRemarks', header: 'Approver Remarks' },
-            { accessorKey: 'remark', header: 'Remark' },
-            {
-                id: 'actions',
-                header: 'Actions',
-                cell: ({ row }: { row: any }) => (
-                    <div className='flex gap-2'>
-                        <Button size='sm' onClick={() => handleApprove(row.original)} disabled={row.original.hrStatus === 'Approved'}>
-                            <Check className='mr-1 h-4 w-4' /> Approve
-                        </Button>
-                        <Button
-                            size='sm'
-                            variant='destructive'
-                            onClick={() => handleReject(row.original)}
-                            disabled={row.original.hrStatus === 'Rejected'}>
-                            <X className='mr-1 h-4 w-4' /> Reject
-                        </Button>
-                    </div>
-                )
-            }
-        ],
-        []
+        () => getCompOffApprovalColumns({ onApprove: handleApprove, onReject: handleReject }),
+        [handleApprove, handleReject]
     );
 
     return (

@@ -1,19 +1,15 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
-import { CalendarYear } from '@/components/ui/calendar_year';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
 import { DataTable } from '@/components/ui/data-table/data-table';
-import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { type BaseEntity, createLocalCrud } from '@/lib/localdb';
-import { cn } from '@/lib/utils';
-import type { ColumnDef } from '@tanstack/react-table';
-import { format } from 'date-fns';
-import { Calculator, CalendarIcon, Download, FileText, Printer, TrendingUp, Users } from 'lucide-react';
+import { Calculator, Download, FileText, Printer, TrendingUp, Users } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
+import { format } from 'date-fns';
 import { toast } from 'sonner';
+import { PFForm6AFilters, type Form6AFilters } from './_components/filters';
+import { form6AColumns, type Form6ARecord as Form6ARecordColumn } from './_components/columns';
 
 // Form 6A data structure (Annual Return of PF Contributions)
 interface Form6ARecord extends BaseEntity {
@@ -55,11 +51,6 @@ interface Form6ASummary {
     netContribution: number;
 }
 
-// Report filters
-interface Form6AFilters {
-    fromDate: Date | undefined;
-    toDate: Date | undefined;
-}
 
 export default function PFForm6APage() {
     // Database instances
@@ -99,7 +90,7 @@ export default function PFForm6APage() {
     };
 
     // Generate mock Form 6A data
-    const generateMockForm6AData = (): Omit<Form6ARecord, 'id' | 'createdAt'>[] => {
+    const generateMockForm6AData = (referenceYear: number = 2024): Omit<Form6ARecord, 'id' | 'createdAt'>[] => {
         const employees = [
             {
                 code: 'EMP001',
@@ -154,7 +145,7 @@ export default function PFForm6APage() {
         const mockRecords: Omit<Form6ARecord, 'id' | 'createdAt'>[] = [];
 
         employees.forEach((emp, empIndex) => {
-            const yearsOfService = new Date().getFullYear() - new Date(emp.joining).getFullYear();
+            const yearsOfService = referenceYear - new Date(emp.joining).getFullYear();
             const openingBalance = Math.max(0, (yearsOfService - 1) * 30000 + empIndex * 15000);
             const monthlyContribution = 2000 + empIndex * 300;
             const contributionMonths = 12; // Full year
@@ -290,161 +281,11 @@ export default function PFForm6APage() {
         return summary;
     }, [filteredRecords]);
 
-    // Table columns
-    const columns: ColumnDef<Form6ARecord>[] = [
-        {
-            accessorKey: 'id',
-            header: ({ column }) => <DataTableColumnHeader column={column} title='SL.No.' />,
-            cell: ({ row, table }) => {
-                const pageIndex = table.getState().pagination.pageIndex;
-                const pageSize = table.getState().pagination.pageSize;
-                const continuousIndex = pageIndex * pageSize + row.index + 1;
-                return <div className='text-center'>{continuousIndex}</div>;
-            },
-            enableSorting: false,
-            enableHiding: false,
-            size: 80
-        },
-        {
-            accessorKey: 'employeeCode',
-            header: ({ column }) => <DataTableColumnHeader column={column} title='Employee Code' />,
-            cell: ({ row }) => <div className='font-medium'>{row.getValue('employeeCode')}</div>,
-            enableSorting: true,
-            enableHiding: true
-        },
-        {
-            accessorKey: 'employeeName',
-            header: ({ column }) => <DataTableColumnHeader column={column} title='Employee Name' />,
-            cell: ({ row }) => <div>{row.getValue('employeeName')}</div>,
-            enableSorting: true,
-            enableHiding: true
-        },
-        {
-            accessorKey: 'pfNumber',
-            header: ({ column }) => <DataTableColumnHeader column={column} title='PF Number' />,
-            cell: ({ row }) => <div className='font-mono text-xs'>{row.getValue('pfNumber')}</div>,
-            enableSorting: true,
-            enableHiding: true
-        },
-        {
-            accessorKey: 'openingBalance',
-            header: ({ column }) => <DataTableColumnHeader column={column} title='Opening Balance' />,
-            cell: ({ row }) => <div>₹{(row.getValue('openingBalance') as number).toLocaleString()}</div>,
-            enableSorting: true,
-            enableHiding: true
-        },
-        {
-            accessorKey: 'employeeContribution',
-            header: ({ column }) => <DataTableColumnHeader column={column} title='Employee Contribution' />,
-            cell: ({ row }) => <div>₹{(row.getValue('employeeContribution') as number).toLocaleString()}</div>,
-            enableSorting: true,
-            enableHiding: true
-        },
-        {
-            accessorKey: 'employerContribution',
-            header: ({ column }) => <DataTableColumnHeader column={column} title='Employer Contribution' />,
-            cell: ({ row }) => <div>₹{(row.getValue('employerContribution') as number).toLocaleString()}</div>,
-            enableSorting: true,
-            enableHiding: true
-        },
-        {
-            accessorKey: 'interestEarned',
-            header: ({ column }) => <DataTableColumnHeader column={column} title='Interest Earned' />,
-            cell: ({ row }) => <div>₹{(row.getValue('interestEarned') as number).toLocaleString()}</div>,
-            enableSorting: true,
-            enableHiding: true
-        },
-        {
-            accessorKey: 'withdrawalAmount',
-            header: ({ column }) => <DataTableColumnHeader column={column} title='Withdrawals' />,
-            cell: ({ row }) => <div>₹{(row.getValue('withdrawalAmount') as number).toLocaleString()}</div>,
-            enableSorting: true,
-            enableHiding: true
-        },
-        {
-            accessorKey: 'closingBalance',
-            header: ({ column }) => <DataTableColumnHeader column={column} title='Closing Balance' />,
-            cell: ({ row }) => <div className='font-semibold'>₹{(row.getValue('closingBalance') as number).toLocaleString()}</div>,
-            enableSorting: true,
-            enableHiding: true
-        }
-    ];
 
     return (
         <div className='space-y-6'>
             {/* Report Configuration Section */}
-            <CollapsibleSection
-                title='PF FORM 6A'
-                description='Generate annual return of PF contributions for the specified period'
-                defaultOpen={true}
-                variant='default'
-                size='lg'
-                className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
-                {/* Date Range Selection */}
-                <div className='flex items-center justify-center gap-6'>
-                    {/* From Date */}
-                    <div className='space-y-2'>
-                        <span className='font-medium text-foreground text-sm'>From :</span>
-                        <Popover>
-                            <PopoverTrigger asChild>
-                                <Button
-                                    variant='outline'
-                                    className={cn(
-                                        'w-[200px] justify-start text-left font-normal',
-                                        !filters.fromDate && 'text-muted-foreground'
-                                    )}>
-                                    <CalendarIcon className='mr-2 h-4 w-4' />
-                                    {filters.fromDate ? format(filters.fromDate, 'dd-MM-yyyy') : '17-09-2025'}
-                                </Button>
-                            </PopoverTrigger>
-                            <PopoverContent className='w-auto p-0'>
-                                <CalendarYear
-                                    mode='single'
-                                    selected={filters.fromDate}
-                                    onDayClick={(day) => handleDateChange('fromDate', day)}
-                                    initialFocus
-                                />
-                            </PopoverContent>
-                        </Popover>
-                    </div>
-
-                    {/* To Date */}
-                    <div className='space-y-2'>
-                        <span className='font-medium text-foreground text-sm'>To :</span>
-                        <Popover>
-                            <PopoverTrigger asChild>
-                                <Button
-                                    variant='outline'
-                                    className={cn(
-                                        'w-[200px] justify-start text-left font-normal',
-                                        !filters.toDate && 'text-muted-foreground'
-                                    )}>
-                                    <CalendarIcon className='mr-2 h-4 w-4' />
-                                    {filters.toDate ? format(filters.toDate, 'dd-MM-yyyy') : '17-09-2025'}
-                                </Button>
-                            </PopoverTrigger>
-                            <PopoverContent className='w-auto p-0'>
-                                <CalendarYear
-                                    mode='single'
-                                    selected={filters.toDate}
-                                    onDayClick={(day) => handleDateChange('toDate', day)}
-                                    initialFocus
-                                />
-                            </PopoverContent>
-                        </Popover>
-                    </div>
-                </div>
-
-                {/* Action Buttons */}
-                <div className='flex justify-center gap-2 pt-4'>
-                    <Button onClick={handleGenerate} className='bg-blue-600 hover:bg-blue-700'>
-                        GENERATE
-                    </Button>
-                    <Button variant='outline' onClick={handleCancel}>
-                        CANCEL
-                    </Button>
-                </div>
-            </CollapsibleSection>
+            <PFForm6AFilters filters={filters} onDateChange={handleDateChange} onGenerate={handleGenerate} onCancel={handleCancel} />
 
             {/* Form 6A Results */}
             {showForm && (
@@ -599,8 +440,8 @@ export default function PFForm6APage() {
                     {/* Data Table */}
                     <DataTable
                         isLoading={isLoading}
-                        columns={columns}
-                        data={filteredRecords}
+                        columns={form6AColumns}
+                        data={filteredRecords as unknown as Form6ARecordColumn[]}
                         totalItems={filteredRecords.length}
                         showViewOptions={true}
                         columnPinning={{ left: ['id'] }}

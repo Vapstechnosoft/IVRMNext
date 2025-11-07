@@ -249,13 +249,39 @@ export function useToggleSalaryAdvanceStatus() {
 export function useSalaryApprovalOnload(payload: SalaryApprovalOnloadRequest) {
     return useQuery<SalaryApprovalOnloadResponse, Error>({
         queryKey: [HRMS_QUERY_KEYS.SALARY_APPROVAL_ONLOAD, payload],
-        queryFn: () =>
-            getSalaryApprovalOnload(payload).then((res) => {
+        queryFn: () => {
+            console.log('🟢 [SALARY APPROVAL - FRONTEND] useSalaryApprovalOnload - START');
+            console.log('📥 [SALARY APPROVAL - FRONTEND] Request payload:', JSON.stringify(payload, null, 2));
+            return getSalaryApprovalOnload(payload).then((res) => {
+                console.log('✅ [SALARY APPROVAL - FRONTEND] API Response received');
+                console.log('📤 [SALARY APPROVAL - FRONTEND] Response:', {
+                    success: res.success,
+                    message: res.message,
+                    hasData: !!res.data
+                });
                 if (!res.success) {
+                    console.error('❌ [SALARY APPROVAL - FRONTEND] API returned error:', res.message);
                     throw new Error(res.message);
                 }
+                console.log('📊 [SALARY APPROVAL - FRONTEND] Response data summary:', {
+                    hasGroupTypes: !!(res.data?.groupTypedropdownlist?.length),
+                    groupTypesCount: res.data?.groupTypedropdownlist?.length || 0,
+                    hasDepartments: !!(res.data?.departmentdropdownlist?.length),
+                    departmentsCount: res.data?.departmentdropdownlist?.length || 0,
+                    hasDesignations: !!(res.data?.designationdropdownlist?.length),
+                    designationsCount: res.data?.designationdropdownlist?.length || 0,
+                    hasMonths: !!(res.data?.monthdropdown),
+                    hasLeaveYears: !!(res.data?.leaveyeardropdown?.length),
+                    leaveYearsCount: res.data?.leaveyeardropdown?.length || 0
+                });
+                console.log('🟢 [SALARY APPROVAL - FRONTEND] useSalaryApprovalOnload - END (Success)');
                 return res.data!;
-            }),
+            }).catch((error) => {
+                console.error('❌ [SALARY APPROVAL - FRONTEND] useSalaryApprovalOnload - ERROR');
+                console.error('💥 [SALARY APPROVAL - FRONTEND] Error:', error);
+                throw error;
+            });
+        },
         staleTime: 1000 * 60 * 5,
         enabled: !!payload.MI_Id
     });
@@ -263,14 +289,45 @@ export function useSalaryApprovalOnload(payload: SalaryApprovalOnloadRequest) {
 
 export function useSearchSalaryApproval() {
     return useMutation<SalaryApprovalSearchResponse, Error, SalaryApprovalSearchRequest>({
-        mutationFn: (data: SalaryApprovalSearchRequest) =>
-            searchSalaryApprovalEmployees(data).then((res) => {
+        mutationFn: (data: SalaryApprovalSearchRequest) => {
+            console.log('🟢 [SALARY APPROVAL - FRONTEND] useSearchSalaryApproval - START');
+            console.log('📥 [SALARY APPROVAL - FRONTEND] Search request:', JSON.stringify(data, null, 2));
+            console.log('📊 [SALARY APPROVAL - FRONTEND] Search criteria:', {
+                MI_Id: data.MI_Id,
+                HRES_Year: data.HRES_Year,
+                HRES_Month: data.HRES_Month,
+                designationIdsCount: data.hrmdeS_IdList?.length || 0,
+                departmentIdsCount: data.hrmD_IdList?.length || 0,
+                groupTypeIdsCount: data.groupTypeIdList?.length || 0,
+                LogInUserId: data.LogInUserId
+            });
+            return searchSalaryApprovalEmployees(data).then((res) => {
+                console.log('✅ [SALARY APPROVAL - FRONTEND] Search response received');
+                console.log('📤 [SALARY APPROVAL - FRONTEND] Response:', {
+                    success: res.success,
+                    message: res.message,
+                    hasData: !!res.data
+                });
                 if (!res.success) {
+                    console.error('❌ [SALARY APPROVAL - FRONTEND] Search failed:', res.message);
                     throw new Error(res.message);
                 }
+                const employeeCount = res.data?.ReportData?.length || 0;
+                console.log('📊 [SALARY APPROVAL - FRONTEND] Employees found:', employeeCount);
+                if (employeeCount > 0) {
+                    console.log('📋 [SALARY APPROVAL - FRONTEND] First employee sample:', res.data?.ReportData?.[0]);
+                }
+                console.log('🟢 [SALARY APPROVAL - FRONTEND] useSearchSalaryApproval - END (Success)');
                 return res.data!;
-            }),
+            }).catch((error) => {
+                console.error('❌ [SALARY APPROVAL - FRONTEND] useSearchSalaryApproval - ERROR');
+                console.error('💥 [SALARY APPROVAL - FRONTEND] Error:', error);
+                throw error;
+            });
+        },
         onError: (error) => {
+            console.error('❌ [SALARY APPROVAL - FRONTEND] useSearchSalaryApproval - onError callback');
+            console.error('💥 [SALARY APPROVAL - FRONTEND] Error message:', error.message);
             toast.error(error.message || 'Failed to search employees for approval.');
         }
     });
@@ -280,14 +337,47 @@ export function useApproveSalaries() {
     const queryClient = useQueryClient();
 
     return useMutation<SalaryApprovalResponse, Error, SalaryApprovalRequest>({
-        mutationFn: (data: SalaryApprovalRequest) =>
-            approveSalaries(data).then((res) => {
+        mutationFn: (data: SalaryApprovalRequest) => {
+            console.log('🟢 [SALARY APPROVAL - FRONTEND] useApproveSalaries - START');
+            console.log('📥 [SALARY APPROVAL - FRONTEND] Approval request:', JSON.stringify(data, null, 2));
+            console.log('📊 [SALARY APPROVAL - FRONTEND] Approval details:', {
+                MI_Id: data.MI_Id,
+                HRES_Year: data.HRES_Year,
+                HRES_Month: data.HRES_Month,
+                approvalStatus: data.approvalStatus,
+                employeeCount: data.employeeIdList?.length || 0,
+                employeeIds: data.employeeIdList,
+                LogInUserId: data.LogInUserId,
+                remarks: data.remarks || 'N/A'
+            });
+            return approveSalaries(data).then((res) => {
+                console.log('✅ [SALARY APPROVAL - FRONTEND] Approval response received');
+                console.log('📤 [SALARY APPROVAL - FRONTEND] Response:', {
+                    success: res.success,
+                    message: res.message,
+                    approvedCount: res.approvedCount || 0,
+                    failedCount: res.failedCount || 0
+                });
                 if (!res.success) {
+                    console.error('❌ [SALARY APPROVAL - FRONTEND] Approval failed:', res.message);
                     throw new Error(res.message);
                 }
+                console.log('🟢 [SALARY APPROVAL - FRONTEND] useApproveSalaries - END (Success)');
                 return res.data!;
-            }),
+            }).catch((error) => {
+                console.error('❌ [SALARY APPROVAL - FRONTEND] useApproveSalaries - ERROR');
+                console.error('💥 [SALARY APPROVAL - FRONTEND] Error:', error);
+                throw error;
+            });
+        },
         onSuccess: (data, variables) => {
+            console.log('✅ [SALARY APPROVAL - FRONTEND] useApproveSalaries - onSuccess callback');
+            console.log('📊 [SALARY APPROVAL - FRONTEND] Success data:', {
+                approvedCount: data.approvedCount,
+                failedCount: data.failedCount,
+                message: data.message,
+                approvalStatus: variables.approvalStatus
+            });
             if (data.approvedCount > 0) {
                 toast.success(
                     data.message || `${data.approvedCount} salary record(s) ${variables.approvalStatus.toLowerCase()} successfully!`
@@ -301,6 +391,8 @@ export function useApproveSalaries() {
             });
         },
         onError: (error) => {
+            console.error('❌ [SALARY APPROVAL - FRONTEND] useApproveSalaries - onError callback');
+            console.error('💥 [SALARY APPROVAL - FRONTEND] Error message:', error.message);
             toast.error(error.message || 'Failed to process salary approval.');
         }
     });

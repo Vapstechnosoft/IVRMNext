@@ -1,111 +1,36 @@
-// Refactored by automation script on 2025-10-28T15:40:35.622Z
-// TODO: Complete refactoring by:
-// 1. Import columns from _components/columns.tsx
-// 2. Import form from _components/holiday-form.tsx
-// 3. Extract column definitions and form to the respective files
-// 4. Update handlers to use the new structure
-
 'use client';
 
 import { Heading } from '@/components/layout/heading';
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Checkbox } from '@/components/ui/checkbox';
-import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
 import { GenericDataTable } from '@/components/ui/data-table/generic-data-table';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuLabel, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { FormError } from '@/components/ui/extension/field';
-import { InputText } from '@/components/ui/extension/input-text';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { type BaseEntity, createLocalCrud } from '@/lib/localdb';
-import type { ColumnDef } from '@tanstack/react-table';
-import { Edit, MoreHorizontal, Plus, RefreshCw, Save, Trash2, X } from 'lucide-react';
+import { createLocalCrud } from '@/lib/localdb';
+import { Plus, X } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
-import { type SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
-
-interface MasterHoliday extends BaseEntity {
-    calendarYear: string;
-    department: string;
-    holidayType: string;
-    name: string;
-    selectedDays: string[];
-    fromDate: string;
-    toDate: string;
-    isActive: boolean;
-}
-
-type MasterHolidayForm = {
-    calendarYear: string;
-    department: string;
-    holidayType: string;
-    name: string;
-    selectDay: boolean;
-    selectedDays: string[];
-    fromDate: string;
-    toDate: string;
-    isActive: boolean;
-};
-
-// Generate calendar years starting from current year
-const getCalendarYears = () => {
-    const currentYear = new Date().getFullYear();
-    const years = [];
-    // Include current year and next 5 years
-    for (let i = 0; i <= 5; i++) {
-        years.push((currentYear + i).toString());
-    }
-    return years;
-};
-
-const calendarYears = getCalendarYears();
-
-const departments = ['All', 'Teaching', 'Non Teaching', 'Administrative', 'JUNIOR SCHOOL', 'SENIOR SCHOOL', 'OFFICE STAFF'];
-
-const holidayTypes = ['WEEK DAY', 'WEEK END', 'NATIONAL HOLIDAY', 'FESTIVAL', 'OPTIONAL HOLIDAY'];
-
-const weekDays = [
-    { value: 'SUN', label: 'SUN' },
-    { value: 'MON', label: 'MON' },
-    { value: 'TUE', label: 'TUE' },
-    { value: 'WED', label: 'WED' },
-    { value: 'THU', label: 'THU' },
-    { value: 'FRI', label: 'FRI' },
-    { value: 'SAT', label: 'SAT' }
-];
+import { type MasterHoliday, getMasterHolidayColumns } from './_components/columns';
+import { type MasterHolidayForm, HolidayForm } from './_components/holiday-form';
 
 export default function MasterHolidayPage() {
     const [isFormOpen, setIsFormOpen] = useState(false);
     const [editingId, setEditingId] = useState<number | null>(null);
     const [holidays, setHolidays] = useState<MasterHoliday[]>([]);
     const [isLoading, setIsLoading] = useState(true);
+    const [currentYear, setCurrentYear] = useState<number | null>(null);
     const formRef = useRef<HTMLDivElement>(null);
 
+    // Set current year client-side only to prevent hydration mismatch
+    useEffect(() => {
+        setCurrentYear(new Date().getFullYear());
+    }, []);
+
+    // Generate calendar years starting from current year
+    const calendarYears = currentYear
+        ? Array.from({ length: 6 }, (_, i) => (currentYear + i).toString())
+        : [];
+
     const holidayDB = createLocalCrud<MasterHoliday>('master:holiday');
-
-    const {
-        register,
-        handleSubmit,
-        reset,
-        setValue,
-        watch,
-        formState: { errors, isSubmitting }
-    } = useForm<MasterHolidayForm>({
-        mode: 'onChange',
-        defaultValues: {
-            isActive: true,
-            selectedDays: [],
-            selectDay: false
-        }
-    });
-
-    const calendarYear = watch('calendarYear');
-    const department = watch('department');
-    const holidayType = watch('holidayType');
-    const selectDay = watch('selectDay');
-    const selectedDays = watch('selectedDays');
-    const fromDate = watch('fromDate');
+    const [editingHoliday, setEditingHoliday] = useState<MasterHolidayForm | null>(null);
 
     // Load data on component mount
     useEffect(() => {
@@ -125,13 +50,7 @@ export default function MasterHolidayPage() {
     const handleAddClick = () => {
         setIsFormOpen(true);
         setEditingId(null);
-        reset({
-            isActive: true,
-            selectedDays: [],
-            selectDay: false,
-            fromDate: new Date().toISOString().split('T')[0],
-            toDate: new Date().toISOString().split('T')[0]
-        });
+        setEditingHoliday(null);
         // Scroll to form after state update
         setTimeout(() => {
             formRef.current?.scrollIntoView({
@@ -144,16 +63,10 @@ export default function MasterHolidayPage() {
     const handleFormClose = () => {
         setIsFormOpen(false);
         setEditingId(null);
-        reset({
-            isActive: true,
-            selectedDays: [],
-            selectDay: false,
-            fromDate: new Date().toISOString().split('T')[0],
-            toDate: new Date().toISOString().split('T')[0]
-        });
+        setEditingHoliday(null);
     };
 
-    const onSubmit: SubmitHandler<MasterHolidayForm> = async (data: MasterHolidayForm) => {
+    const handleFormSubmit = (data: MasterHolidayForm) => {
         try {
             // Date validation
             const today = new Date();
@@ -208,15 +121,17 @@ export default function MasterHolidayPage() {
 
     const handleEdit = (holiday: MasterHoliday) => {
         setEditingId(holiday.id);
-        setValue('calendarYear', holiday.calendarYear);
-        setValue('department', holiday.department);
-        setValue('holidayType', holiday.holidayType);
-        setValue('name', holiday.name);
-        setValue('selectedDays', holiday.selectedDays || []);
-        setValue('selectDay', (holiday.selectedDays || []).length > 0);
-        setValue('fromDate', holiday.fromDate);
-        setValue('toDate', holiday.toDate);
-        setValue('isActive', holiday.isActive);
+        setEditingHoliday({
+            calendarYear: holiday.calendarYear,
+            department: holiday.department,
+            holidayType: holiday.holidayType,
+            name: holiday.name,
+            selectedDays: holiday.selectedDays || [],
+            selectDay: (holiday.selectedDays || []).length > 0,
+            fromDate: holiday.fromDate,
+            toDate: holiday.toDate,
+            isActive: holiday.isActive
+        });
         setIsFormOpen(true);
 
         // Scroll to form after state update
@@ -236,12 +151,6 @@ export default function MasterHolidayPage() {
         } catch (_error: any) {
             toast.error('Failed to delete holiday');
         }
-    };
-
-    const handleDayToggle = (day: string) => {
-        const currentDays = selectedDays || [];
-        const newDays = currentDays.includes(day) ? currentDays.filter((d) => d !== day) : [...currentDays, day];
-        setValue('selectedDays', newDays);
     };
 
     return (
@@ -274,7 +183,13 @@ export default function MasterHolidayPage() {
                     size='lg'
                     className='shadow-lg transition-shadow duration-300 hover:shadow-xl'
                     headerClassName=''>
-                    <HolidayTable holidays={holidays} isLoading={isLoading} onEdit={handleEdit} onDelete={handleDelete} />
+                    <GenericDataTable
+                        isLoading={isLoading}
+                        columns={getMasterHolidayColumns({ onEdit: handleEdit, onDelete: handleDelete })}
+                        data={holidays}
+                        totalItems={holidays.length}
+                        showViewOptions={true}
+                    />
                 </CollapsibleSection>
 
                 {/* Add Form Section - Conditionally Rendered */}
@@ -296,319 +211,17 @@ export default function MasterHolidayPage() {
                                     className='-top-[4rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
                                     <X className='h-4 w-4 text-destructive' /> Close
                                 </Button>
-                                <form onSubmit={handleSubmit(onSubmit)} className='max-w-full space-y-6'>
-                                    {/* Primary Information Section */}
-                                    <div className='space-y-4'>
-                                        <div className='grid grid-cols-1 gap-4 lg:grid-cols-3'>
-                                            <div className='space-y-2'>
-                                                <label className='font-medium text-sm' htmlFor='calendarYear'>
-                                                    Calendar Year <span className='text-red-500'>*</span>
-                                                </label>
-                                                <Select
-                                                    value={calendarYear || ''}
-                                                    onValueChange={(value) => setValue('calendarYear', value)}>
-                                                    <SelectTrigger
-                                                        id='calendarYear'
-                                                        className={errors.calendarYear ? 'border-red-500' : ''}>
-                                                        <SelectValue placeholder='--Select--' />
-                                                    </SelectTrigger>
-                                                    <SelectContent>
-                                                        {calendarYears.map((year) => (
-                                                            <SelectItem key={year} value={year}>
-                                                                {year}
-                                                            </SelectItem>
-                                                        ))}
-                                                    </SelectContent>
-                                                </Select>
-                                                {!calendarYear && (
-                                                    <input
-                                                        type='hidden'
-                                                        {...register('calendarYear', {
-                                                            required: 'Calendar Year is required'
-                                                        })}
-                                                    />
-                                                )}
-                                                {errors.calendarYear && <FormError>{errors.calendarYear.message}</FormError>}
-                                            </div>
-
-                                            <div className='space-y-2'>
-                                                <label className='font-medium text-sm' htmlFor='department'>
-                                                    Department <span className='text-red-500'>*</span>
-                                                </label>
-                                                <Select value={department || ''} onValueChange={(value) => setValue('department', value)}>
-                                                    <SelectTrigger id='department' className={errors.department ? 'border-red-500' : ''}>
-                                                        <SelectValue placeholder='--Select--' />
-                                                    </SelectTrigger>
-                                                    <SelectContent>
-                                                        {departments.map((dept) => (
-                                                            <SelectItem key={dept} value={dept}>
-                                                                {dept}
-                                                            </SelectItem>
-                                                        ))}
-                                                    </SelectContent>
-                                                </Select>
-                                                {!department && (
-                                                    <input
-                                                        type='hidden'
-                                                        {...register('department', {
-                                                            required: 'Department is required'
-                                                        })}
-                                                    />
-                                                )}
-                                                {errors.department && <FormError>{errors.department.message}</FormError>}
-                                            </div>
-
-                                            <div className='space-y-2'>
-                                                <label className='font-medium text-sm' htmlFor='holidayType'>
-                                                    Holiday Type <span className='text-red-500'>*</span>
-                                                </label>
-                                                <Select value={holidayType || ''} onValueChange={(value) => setValue('holidayType', value)}>
-                                                    <SelectTrigger id='holidayType' className={errors.holidayType ? 'border-red-500' : ''}>
-                                                        <SelectValue placeholder='--Select--' />
-                                                    </SelectTrigger>
-                                                    <SelectContent>
-                                                        {holidayTypes.map((type) => (
-                                                            <SelectItem key={type} value={type}>
-                                                                {type}
-                                                            </SelectItem>
-                                                        ))}
-                                                    </SelectContent>
-                                                </Select>
-                                                {!holidayType && (
-                                                    <input
-                                                        type='hidden'
-                                                        {...register('holidayType', {
-                                                            required: 'Holiday Type is required'
-                                                        })}
-                                                    />
-                                                )}
-                                                {errors.holidayType && <FormError>{errors.holidayType.message}</FormError>}
-                                            </div>
-                                        </div>
-
-                                        <div className='grid grid-cols-1 gap-4 lg:grid-cols-2'>
-                                            <InputText
-                                                label='Holiday Name'
-                                                required
-                                                id='name'
-                                                {...register('name', {
-                                                    required: 'Holiday Name is required'
-                                                })}
-                                                error={errors.name?.message}
-                                                className='transition-colors focus:ring-2 focus:ring-primary/20'
-                                            />
-
-                                            <div className='flex items-center space-y-2 pt-6'>
-                                                <Checkbox
-                                                    id='selectDay'
-                                                    checked={selectDay}
-                                                    onCheckedChange={(checked) => setValue('selectDay', !!checked)}
-                                                />
-                                                <label htmlFor='selectDay' className='ml-2 font-medium text-foreground text-sm'>
-                                                    Select Day
-                                                </label>
-                                            </div>
-                                        </div>
-
-                                        {/* Day Selection */}
-                                        {selectDay && (
-                                            <div className='space-y-2'>
-                                                <span className='font-medium text-sm'>Select Days:</span>
-                                                <div className='max-h-32 overflow-y-auto rounded-md border bg-background p-3'>
-                                                    <div className='grid grid-cols-4 gap-2'>
-                                                        {weekDays.map((day) => (
-                                                            <div key={day.value} className='flex cursor-pointer items-center gap-2 text-sm'>
-                                                                <Checkbox
-                                                                    checked={selectedDays?.includes(day.value) || false}
-                                                                    onCheckedChange={() => handleDayToggle(day.value)}
-                                                                />
-                                                                <span>{day.label}</span>
-                                                            </div>
-                                                        ))}
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        )}
-
-                                        <div className='grid grid-cols-1 gap-4 lg:grid-cols-3'>
-                                            <div className='space-y-2'>
-                                                <label className='font-medium text-sm' htmlFor='fromDate'>
-                                                    From Date <span className='text-red-500'>*</span>
-                                                </label>
-                                                <input
-                                                    id='fromDate'
-                                                    type='date'
-                                                    {...register('fromDate', {
-                                                        required: 'From Date is required'
-                                                    })}
-                                                    min={new Date().toISOString().split('T')[0]}
-                                                    className={`w-full rounded-md border px-3 py-2 ${
-                                                        errors.fromDate ? 'border-red-500' : 'border-input'
-                                                    }`}
-                                                />
-                                                {errors.fromDate && <FormError>{errors.fromDate.message}</FormError>}
-                                            </div>
-
-                                            <div className='space-y-2'>
-                                                <label className='font-medium text-sm' htmlFor='toDate'>
-                                                    To Date <span className='text-red-500'>*</span>
-                                                </label>
-                                                <input
-                                                    id='toDate'
-                                                    type='date'
-                                                    {...register('toDate', {
-                                                        required: 'To Date is required'
-                                                    })}
-                                                    min={fromDate || new Date().toISOString().split('T')[0]}
-                                                    className={`w-full rounded-md border px-3 py-2 ${
-                                                        errors.toDate ? 'border-red-500' : 'border-input'
-                                                    }`}
-                                                />
-                                                {errors.toDate && <FormError>{errors.toDate.message}</FormError>}
-                                            </div>
-
-                                            <div className='flex items-center space-y-2 pt-6'>
-                                                <input
-                                                    type='checkbox'
-                                                    id='isActive'
-                                                    {...register('isActive')}
-                                                    className='mr-2 border-border text-primary focus:ring-primary'
-                                                />
-                                                <label htmlFor='isActive' className='font-medium text-foreground text-sm'>
-                                                    Active
-                                                </label>
-                                            </div>
-                                        </div>
-
-                                        {/* Root Error */}
-                                        {errors.root && <FormError>{errors.root.message}</FormError>}
-                                    </div>
-
-                                    {/* Action Buttons */}
-                                    <div className='flex flex-col gap-3 border-t pt-4 sm:flex-row sm:justify-start'>
-                                        <Button
-                                            type='button'
-                                            variant='outline'
-                                            onClick={handleFormClose}
-                                            disabled={isSubmitting}
-                                            className='order-2 w-fit transition-all duration-200 hover:scale-105 sm:order-1'>
-                                            Cancel
-                                        </Button>
-                                        <Button
-                                            type='submit'
-                                            disabled={isSubmitting}
-                                            className='order-1 w-fit transition-all duration-200 hover:scale-105 sm:order-2'>
-                                            {isSubmitting ? (
-                                                <div className='flex items-center'>
-                                                    <RefreshCw className='mr-2 h-4 w-4 animate-spin' />
-                                                    Saving...
-                                                </div>
-                                            ) : (
-                                                <div className='flex items-center'>
-                                                    <Save className='mr-2 h-4 w-4' />
-                                                    {editingId ? 'Update Master Holiday' : 'Save Master Holiday'}
-                                                </div>
-                                            )}
-                                        </Button>
-                                    </div>
-                                </form>
+                                <HolidayForm
+                                    editingHoliday={editingHoliday}
+                                    calendarYears={calendarYears}
+                                    onSubmit={handleFormSubmit}
+                                    onCancel={handleFormClose}
+                                />
                             </div>
                         </CollapsibleSection>
                     </div>
                 )}
             </div>
         </div>
-    );
-}
-
-interface HolidayTableProps {
-    holidays: MasterHoliday[];
-    isLoading: boolean;
-    onEdit: (holiday: MasterHoliday) => void;
-    onDelete: (id: number) => void;
-}
-
-function HolidayTable({ holidays, isLoading, onEdit, onDelete }: HolidayTableProps) {
-    const holidayColumns: ColumnDef<MasterHoliday>[] = [
-        {
-            id: 'serialNumber',
-            header: ({ column }) => <DataTableColumnHeader column={column} title='SL. NO.' />,
-            cell: ({ row }) => <div className='font-medium'>{row.index + 1}</div>,
-            enableSorting: false
-        },
-        {
-            accessorKey: 'name',
-            header: ({ column }) => <DataTableColumnHeader column={column} title='Name' />,
-            cell: ({ row }) => <div className='font-medium'>{row.getValue('name')}</div>
-        },
-        {
-            accessorKey: 'holidayType',
-            header: ({ column }) => <DataTableColumnHeader column={column} title='Type' />,
-            cell: ({ row }) => <div>{row.getValue('holidayType')}</div>
-        },
-        {
-            accessorKey: 'department',
-            header: ({ column }) => <DataTableColumnHeader column={column} title='Department' />,
-            cell: ({ row }) => <div>{row.getValue('department')}</div>
-        },
-        {
-            accessorKey: 'fromDate',
-            header: ({ column }) => <DataTableColumnHeader column={column} title='From Date' />,
-            cell: ({ row }) => <div>{new Date(row.getValue('fromDate')).toLocaleDateString()}</div>
-        },
-        {
-            accessorKey: 'toDate',
-            header: ({ column }) => <DataTableColumnHeader column={column} title='To Date' />,
-            cell: ({ row }) => <div>{new Date(row.getValue('toDate')).toLocaleDateString()}</div>
-        },
-        {
-            accessorKey: 'isActive',
-            header: ({ column }) => <DataTableColumnHeader column={column} title='Status' />,
-            cell: ({ row }) => {
-                const isActive = row.getValue('isActive') as boolean;
-                return <Badge variant={isActive ? 'default' : 'secondary'}>{isActive ? 'Active' : 'Inactive'}</Badge>;
-            }
-        },
-        {
-            id: 'actions',
-            header: 'Action',
-            cell: ({ row }) => {
-                const holiday = row.original;
-                return (
-                    <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                            <Button variant='ghost' className='h-8 w-8 p-0'>
-                                <MoreHorizontal className='h-4 w-4' />
-                            </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align='end'>
-                            <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                            <Button variant='ghost' size='sm' onClick={() => onEdit(holiday)} className='w-full justify-start'>
-                                <Edit className='mr-2 h-4 w-4' />
-                                Edit
-                            </Button>
-                            <Button
-                                variant='ghost'
-                                size='sm'
-                                onClick={() => onDelete(holiday.id)}
-                                className='w-full justify-start text-red-600 hover:text-red-900'>
-                                <Trash2 className='mr-2 h-4 w-4' />
-                                Delete
-                            </Button>
-                        </DropdownMenuContent>
-                    </DropdownMenu>
-                );
-            }
-        }
-    ];
-
-    return (
-        <GenericDataTable
-            isLoading={isLoading}
-            columns={holidayColumns}
-            data={holidays}
-            totalItems={holidays.length}
-            showViewOptions={true}
-        />
     );
 }

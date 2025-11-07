@@ -1,12 +1,10 @@
 'use client';
 
-import { Button } from '@/components/ui/button';
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
+import { type BaseEntity } from '@/lib/localdb';
 import type { ColumnDef } from '@tanstack/react-table';
-import { Edit, Trash2 } from 'lucide-react';
 
-export interface InOutRow {
-    id: number;
+export interface InOutRow extends BaseEntity {
     branch: string;
     type: string;
     department: string;
@@ -16,38 +14,21 @@ export interface InOutRow {
     date: string;
     timeIn?: string;
     timeOut?: string;
-
-    createdAt: string;
 }
 
-interface InOutRowColumnsProps {
-    onEdit: (row: InOutRow) => void;
-    onDelete: (row: InOutRow) => void;
-}
-
-export const getInOutRowColumns = ({ onEdit, onDelete }: InOutRowColumnsProps): ColumnDef<InOutRow>[] => [
+export const employeeInOutReportColumns: ColumnDef<InOutRow>[] = [
     {
         id: 'sl',
         header: ({ column }) => <DataTableColumnHeader column={column} title='SL.NO' />,
         cell: ({ row }) => <div className='font-medium'>{row.index + 1}</div>,
         enableSorting: false
     },
-    // TODO: Add other columns based on the entity fields
-    {
-        id: 'actions',
-        header: 'Action',
-        cell: ({ row }) => {
-            const entity = row.original;
-            return (
-                <div className='flex items-center gap-2'>
-                    <Button variant='outline' size='sm' onClick={() => onEdit(entity)}>
-                        <Edit className='h-4 w-4' />
-                    </Button>
-                    <Button variant='outline' size='sm' className='text-red-600' onClick={() => onDelete(entity)}>
-                        <Trash2 className='h-4 w-4' />
-                    </Button>
-                </div>
-            );
-        }
-    }
+    { accessorKey: 'employeeName', header: ({ column }) => <DataTableColumnHeader column={column} title='Employee Name' /> },
+    { accessorKey: 'employeeCode', header: ({ column }) => <DataTableColumnHeader column={column} title='Code' /> },
+    { accessorKey: 'date', header: ({ column }) => <DataTableColumnHeader column={column} title='Date' /> },
+    { accessorKey: 'timeIn', header: ({ column }) => <DataTableColumnHeader column={column} title='Time In' /> },
+    { accessorKey: 'timeOut', header: ({ column }) => <DataTableColumnHeader column={column} title='Time Out' /> },
+    { accessorKey: 'branch', header: ({ column }) => <DataTableColumnHeader column={column} title='Branch' /> },
+    { accessorKey: 'department', header: ({ column }) => <DataTableColumnHeader column={column} title='Department' /> },
+    { accessorKey: 'designation', header: ({ column }) => <DataTableColumnHeader column={column} title='Designation' /> }
 ];

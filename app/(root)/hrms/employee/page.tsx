@@ -18,31 +18,50 @@ type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 export default function EmployeeRegisterPage(props: {
     searchParams: SearchParams;
 }) {
+    // Safely unwrap searchParams - React's use() hook must be called unconditionally
     const searchParams = use(props.searchParams);
+    
     const { data: employeeList, isLoading, error } = useEmployeeRegisterList();
 
-    // Transform employee list to match EmployeeListItem type
-    const transformedData: EmployeeListItem[] = (employeeList || []).map((emp: any, index: number) => {
-        return {
-            HRME_Id: emp.HRME_Id || emp.hrmE_Id || 0,
-            MI_Id: emp.MI_Id || emp.mI_Id || 0,
-            HRME_EmployeeFirstName: emp.HRME_EmployeeFirstName || emp.hrmE_EmployeeFirstName || '',
-            HRME_EmployeeMiddleName: emp.HRME_EmployeeMiddleName || emp.hrmE_EmployeeMiddleName || '',
-            HRME_EmployeeLastName: emp.HRME_EmployeeLastName || emp.hrmE_EmployeeLastName || '',
-            HRME_EmployeeCode: emp.HRME_EmployeeCode || emp.hrmE_EmployeeCode || '',
-            HRME_EmployeeOrder: emp.HRME_EmployeeOrder || emp.hrmE_EmployeeOrder || (index + 1),
-            HRME_Photo: emp.HRME_Photo || emp.hrmE_Photo || '',
-            HRMET_EmployeeType: emp.HRMET_EmployeeType || emp.hrmET_EmployeeType || '',
-            HRMGT_EmployeeGroupType: emp.HRMGT_EmployeeGroupType || emp.hrmGT_EmployeeGroupType || '',
-            HRMD_DepartmentName: emp.HRMD_DepartmentName || emp.hrmD_DepartmentName || '',
-            HRMDES_DesignationName: emp.HRMDES_DesignationName || emp.hrmDES_DesignationName || '',
-            HRME_MobileNo: emp.HRME_MobileNo || emp.hrmE_MobileNo || 0,
-            HRME_EmailId: emp.HRME_EmailId || emp.hrmE_EmailId || '',
-            HRME_ActiveFlag: emp.HRME_ActiveFlag ?? emp.hrmE_ActiveFlag ?? true,
-            HRME_DOJ: emp.HRME_DOJ || emp.hrmE_DOJ || '',
-            HRME_DOB: emp.HRME_DOB || emp.hrmE_DOB || ''
-        };
-    });
+    // Transform employee list to match EmployeeListItem type - use useMemo for safety
+    const transformedData: EmployeeListItem[] = useMemo(() => {
+        if (!employeeList || !Array.isArray(employeeList)) {
+            return [];
+        }
+        
+        try {
+            return employeeList
+                .map((emp: any, index: number): EmployeeListItem | null => {
+                    if (!emp || typeof emp !== 'object') {
+                        return null;
+                    }
+                    
+                    return {
+                        HRME_Id: emp.HRME_Id || emp.hrmE_Id || 0,
+                        MI_Id: emp.MI_Id || emp.mI_Id || 0,
+                        HRME_EmployeeFirstName: emp.HRME_EmployeeFirstName || emp.hrmE_EmployeeFirstName || '',
+                        HRME_EmployeeMiddleName: emp.HRME_EmployeeMiddleName || emp.hrmE_EmployeeMiddleName,
+                        HRME_EmployeeLastName: emp.HRME_EmployeeLastName || emp.hrmE_EmployeeLastName || '',
+                        HRME_EmployeeCode: emp.HRME_EmployeeCode || emp.hrmE_EmployeeCode || '',
+                        HRME_EmployeeOrder: emp.HRME_EmployeeOrder || emp.hrmE_EmployeeOrder || (index + 1),
+                        HRME_Photo: emp.HRME_Photo || emp.hrmE_Photo || '',
+                        HRMET_EmployeeType: emp.HRMET_EmployeeType || emp.hrmET_EmployeeType || '',
+                        HRMGT_EmployeeGroupType: emp.HRMGT_EmployeeGroupType || emp.hrmGT_EmployeeGroupType || '',
+                        HRMD_DepartmentName: emp.HRMD_DepartmentName || emp.hrmD_DepartmentName || '',
+                        HRMDES_DesignationName: emp.HRMDES_DesignationName || emp.hrmDES_DesignationName || '',
+                        HRME_MobileNo: emp.HRME_MobileNo || emp.hrmE_MobileNo || 0,
+                        HRME_EmailId: emp.HRME_EmailId || emp.hrmE_EmailId || '',
+                        HRME_ActiveFlag: emp.HRME_ActiveFlag ?? emp.hrmE_ActiveFlag ?? true,
+                        HRME_DOJ: emp.HRME_DOJ || emp.hrmE_DOJ || '',
+                        HRME_DOB: emp.HRME_DOB || emp.hrmE_DOB || ''
+                    };
+                })
+                .filter((item): item is EmployeeListItem => item !== null);
+        } catch (transformError) {
+            console.error('Error transforming employee list:', transformError);
+            return [];
+        }
+    }, [employeeList]);
 
     return (
         <FormProvider<EmployeeListItem>>
@@ -134,25 +153,26 @@ function EmployeeRegisterPageContent({
                     size='lg'
                     className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
                     {/* Search Input */}
-                    <div className='mb-4 flex items-center gap-2'>
+                    <div className='mb-4'>
                         <div className='relative flex-1'>
                             <Search className='absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground' />
                             <Input
                                 placeholder='Search by name, employee code, email, or mobile...'
                                 value={searchQuery}
                                 onChange={(e) => handleSearch(e.target.value)}
-                                className='pl-10'
+                                className={searchQuery ? 'pl-10 pr-20' : 'pl-10'}
                             />
+                            {searchQuery && (
+                                <Button
+                                    variant='ghost'
+                                    size='sm'
+                                    onClick={() => handleSearch('')}
+                                    className='absolute right-1 top-1/2 h-7 -translate-y-1/2 px-2 text-xs hover:bg-muted'
+                                >
+                                    Clear
+                                </Button>
+                            )}
                         </div>
-                        {searchQuery && (
-                            <Button
-                                variant='ghost'
-                                size='sm'
-                                onClick={() => handleSearch('')}
-                            >
-                                Clear
-                            </Button>
-                        )}
                     </div>
 
                     {/* Pagination Info */}

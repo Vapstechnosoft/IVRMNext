@@ -5,7 +5,6 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Checkbox } from '@/components/ui/checkbox';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Plus } from 'lucide-react';
 import type { EmployeeSalaryDetailItem } from '@/types/hrms/employee-register';
 import { useMemo, useState, useEffect } from 'react';
 import { toast } from 'sonner';
@@ -348,11 +347,8 @@ export function PayrollTab({ employeeId, employeeCode }: PayrollTabProps) {
         <div className='space-y-6'>
             {/* Earning Details */}
             <div className='rounded-md border'>
-                <div className='border-b bg-muted px-4 py-2 flex items-center justify-between'>
+                <div className='border-b bg-muted px-4 py-2'>
                     <h3 className='font-semibold'>Earning Details</h3>
-                    <Button size='sm' variant='secondary'>
-                        <Plus className='mr-1 h-4 w-4' /> Add Earning
-                    </Button>
                 </div>
                 <div className='overflow-x-auto'>
                     <Table>
@@ -434,11 +430,8 @@ export function PayrollTab({ employeeId, employeeCode }: PayrollTabProps) {
 
             {/* Deduction Details */}
             <div className='rounded-md border'>
-                <div className='border-b bg-muted px-4 py-2 flex items-center justify-between'>
+                <div className='border-b bg-muted px-4 py-2'>
                     <h3 className='font-semibold'>Deduction Details</h3>
-                    <Button size='sm' variant='secondary'>
-                        <Plus className='mr-1 h-4 w-4' /> Add Deduction
-                    </Button>
                 </div>
                 <div className='overflow-x-auto'>
                     <Table>
@@ -520,11 +513,8 @@ export function PayrollTab({ employeeId, employeeCode }: PayrollTabProps) {
 
             {/* Arrear Details */}
             <div className='rounded-md border'>
-                <div className='border-b bg-muted px-4 py-2 flex items-center justify-between'>
+                <div className='border-b bg-muted px-4 py-2'>
                     <h3 className='font-semibold'>Arrear Details</h3>
-                    <Button size='sm' variant='secondary'>
-                        <Plus className='mr-1 h-4 w-4' /> Add Arrear
-                    </Button>
                 </div>
                 <div className='overflow-x-auto'>
                     <Table>

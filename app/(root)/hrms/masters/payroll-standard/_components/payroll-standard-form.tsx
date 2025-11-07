@@ -11,7 +11,7 @@ import { useMasterPayrollStandard } from '@/hooks/hrms/useMasters';
 import type { PayrollStandardDetail } from '@/types/hrms/master-payroll-standard';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Save } from 'lucide-react';
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import * as z from 'zod';
@@ -84,7 +84,8 @@ export default function PayrollStandardForm({ existingData, className = '' }: Pa
         handleSubmit,
         reset,
         watch,
-        formState: { errors, isSubmitting }
+        setValue,
+        formState: { errors, isSubmitting, isDirty }
     } = useForm<FormFields>({
         resolver: zodResolver(payrollStandardSchema),
         mode: 'onBlur', // Changed from 'onChange' to prevent validation before data loads
@@ -361,221 +362,725 @@ export default function PayrollStandardForm({ existingData, className = '' }: Pa
                         <Controller
                             name='HRC_PFMaxAmt'
                             control={control}
-                            render={({ field }) => (
-                                <InputNumber
-                                    label='PF Max Amount'
-                                    required
-                                    id='HRC_PFMaxAmt'
-                                    value={field.value}
-                                    onChange={field.onChange}
-                                    error={errors.HRC_PFMaxAmt?.message}
-                                    className='transition-colors focus:ring-2 focus:ring-primary/20'
-                                />
-                            )}
+                            render={({ field }) => {
+                                const containerRefCallback = (containerElement: HTMLDivElement | null) => {
+                                    if (!containerElement) return;
+                                    const findInput = () => containerElement.querySelector('input[type="text"], input[type="number"]') as HTMLInputElement;
+                                    const attachListener = () => {
+                                        const inputElement = findInput();
+                                        if (!inputElement) {
+                                            setTimeout(attachListener, 50);
+                                            return;
+                                        }
+                                        if ((inputElement as any).__dirtyHandlerAttached) return;
+                                        const handleInput = (e: Event) => {
+                                            const target = e.target as HTMLInputElement;
+                                            const inputValue = target.value.trim();
+                                            if (inputValue !== '' && !isNaN(Number(inputValue))) {
+                                                const numValue = Number(inputValue);
+                                                const currentValue = field.value || 0;
+                                                if (Math.abs(numValue - currentValue) > 0.0001) {
+                                                    field.onChange(numValue);
+                                                    setValue('HRC_PFMaxAmt', numValue, { shouldDirty: true, shouldValidate: true });
+                                                }
+                                            }
+                                        };
+                                        inputElement.addEventListener('input', handleInput, { passive: true });
+                                        (inputElement as any).__dirtyHandlerAttached = true;
+                                    };
+                                    attachListener();
+                                };
+                                return (
+                                    <div ref={containerRefCallback}>
+                                        <InputNumber
+                                            label='PF Max Amount'
+                                            required
+                                            id='HRC_PFMaxAmt'
+                                            value={field.value}
+                                            onChange={(value) => {
+                                                const numValue = value !== null && value !== undefined ? Number(value) : 0;
+                                                field.onChange(numValue);
+                                                setValue('HRC_PFMaxAmt', numValue, { shouldDirty: true, shouldValidate: true });
+                                            }}
+                                            onBlur={field.onBlur}
+                                            error={errors.HRC_PFMaxAmt?.message}
+                                            className='transition-colors focus:ring-2 focus:ring-primary/20'
+                                        />
+                                    </div>
+                                );
+                            }}
                         />
 
                         <Controller
                             name='HRC_FPFPer'
                             control={control}
-                            render={({ field }) => (
-                                <InputNumber
-                                    label='FPF %'
-                                    required
-                                    id='HRC_FPFPer'
-                                    step={0.01}
-                                    value={field.value}
-                                    onChange={field.onChange}
-                                    error={errors.HRC_FPFPer?.message}
-                                    className='transition-colors focus:ring-2 focus:ring-primary/20'
-                                />
-                            )}
+                            render={({ field }) => {
+                                const containerRefCallback = (containerElement: HTMLDivElement | null) => {
+                                    if (!containerElement) return;
+                                    const findInput = () => containerElement.querySelector('input[type="text"], input[type="number"]') as HTMLInputElement;
+                                    const attachListener = () => {
+                                        const inputElement = findInput();
+                                        if (!inputElement) {
+                                            setTimeout(attachListener, 50);
+                                            return;
+                                        }
+                                        if ((inputElement as any).__dirtyHandlerAttached) return;
+                                        const handleInput = (e: Event) => {
+                                            const target = e.target as HTMLInputElement;
+                                            const inputValue = target.value.trim();
+                                            if (inputValue !== '' && !isNaN(Number(inputValue))) {
+                                                const numValue = Number(inputValue);
+                                                const currentValue = field.value || 0;
+                                                if (Math.abs(numValue - currentValue) > 0.0001) {
+                                                    field.onChange(numValue);
+                                                    setValue('HRC_FPFPer', numValue, { shouldDirty: true, shouldValidate: true });
+                                                }
+                                            }
+                                        };
+                                        inputElement.addEventListener('input', handleInput, { passive: true });
+                                        (inputElement as any).__dirtyHandlerAttached = true;
+                                    };
+                                    attachListener();
+                                };
+                                return (
+                                    <div ref={containerRefCallback}>
+                                        <InputNumber
+                                            label='FPF %'
+                                            required
+                                            id='HRC_FPFPer'
+                                            step={0.01}
+                                            value={field.value}
+                                            onChange={(value) => {
+                                                const numValue = value !== null && value !== undefined ? Number(value) : 0;
+                                                field.onChange(numValue);
+                                                setValue('HRC_FPFPer', numValue, { shouldDirty: true, shouldValidate: true });
+                                            }}
+                                            onBlur={field.onBlur}
+                                            error={errors.HRC_FPFPer?.message}
+                                            className='transition-colors focus:ring-2 focus:ring-primary/20'
+                                        />
+                                    </div>
+                                );
+                            }}
                         />
 
                         <Controller
                             name='HRC_EPFPer'
                             control={control}
-                            render={({ field }) => (
-                                <InputNumber
-                                    label='EPF %'
-                                    required
-                                    id='HRC_EPFPer'
-                                    step={0.01}
-                                    value={field.value}
-                                    onChange={field.onChange}
-                                    error={errors.HRC_EPFPer?.message}
-                                    className='transition-colors focus:ring-2 focus:ring-primary/20'
-                                />
-                            )}
+                            render={({ field }) => {
+                                const containerRefCallback = (containerElement: HTMLDivElement | null) => {
+                                    if (!containerElement) return;
+                                    const findInput = () => containerElement.querySelector('input[type="text"], input[type="number"]') as HTMLInputElement;
+                                    const attachListener = () => {
+                                        const inputElement = findInput();
+                                        if (!inputElement) {
+                                            setTimeout(attachListener, 50);
+                                            return;
+                                        }
+                                        if ((inputElement as any).__dirtyHandlerAttached) return;
+                                        const handleInput = (e: Event) => {
+                                            const target = e.target as HTMLInputElement;
+                                            const inputValue = target.value.trim();
+                                            if (inputValue !== '' && !isNaN(Number(inputValue))) {
+                                                const numValue = Number(inputValue);
+                                                const currentValue = field.value || 0;
+                                                if (Math.abs(numValue - currentValue) > 0.0001) {
+                                                    field.onChange(numValue);
+                                                    setValue('HRC_EPFPer', numValue, { shouldDirty: true, shouldValidate: true });
+                                                }
+                                            }
+                                        };
+                                        inputElement.addEventListener('input', handleInput, { passive: true });
+                                        (inputElement as any).__dirtyHandlerAttached = true;
+                                    };
+                                    attachListener();
+                                };
+                                return (
+                                    <div ref={containerRefCallback}>
+                                        <InputNumber
+                                            label='EPF %'
+                                            required
+                                            id='HRC_EPFPer'
+                                            step={0.01}
+                                            value={field.value}
+                                            onChange={(value) => {
+                                                const numValue = value !== null && value !== undefined ? Number(value) : 0;
+                                                field.onChange(numValue);
+                                                setValue('HRC_EPFPer', numValue, { shouldDirty: true, shouldValidate: true });
+                                            }}
+                                            onBlur={field.onBlur}
+                                            error={errors.HRC_EPFPer?.message}
+                                            className='transition-colors focus:ring-2 focus:ring-primary/20'
+                                        />
+                                    </div>
+                                );
+                            }}
                         />
 
                         <Controller
                             name='HRC_EPFPerAfterRetirement'
                             control={control}
-                            render={({ field }) => (
-                                <InputNumber
-                                    label='EPF % After Retirement'
-                                    id='HRC_EPFPerAfterRetirement'
-                                    step={0.01}
-                                    value={field.value}
-                                    onChange={field.onChange}
-                                    error={errors.HRC_EPFPerAfterRetirement?.message}
-                                    className='transition-colors focus:ring-2 focus:ring-primary/20'
-                                />
-                            )}
+                            render={({ field }) => {
+                                const containerRefCallback = (containerElement: HTMLDivElement | null) => {
+                                    if (!containerElement) return;
+                                    const findInput = () => containerElement.querySelector('input[type="text"], input[type="number"]') as HTMLInputElement;
+                                    const attachListener = () => {
+                                        const inputElement = findInput();
+                                        if (!inputElement) {
+                                            setTimeout(attachListener, 50);
+                                            return;
+                                        }
+                                        if ((inputElement as any).__dirtyHandlerAttached) return;
+                                        const handleInput = (e: Event) => {
+                                            const target = e.target as HTMLInputElement;
+                                            const inputValue = target.value.trim();
+                                            if (inputValue !== '' && !isNaN(Number(inputValue))) {
+                                                const numValue = Number(inputValue);
+                                                const currentValue = field.value || 0;
+                                                if (Math.abs(numValue - currentValue) > 0.0001) {
+                                                    field.onChange(numValue);
+                                                    setValue('HRC_EPFPerAfterRetirement', numValue, { shouldDirty: true, shouldValidate: true });
+                                                }
+                                            }
+                                        };
+                                        inputElement.addEventListener('input', handleInput, { passive: true });
+                                        (inputElement as any).__dirtyHandlerAttached = true;
+                                    };
+                                    attachListener();
+                                };
+                                return (
+                                    <div ref={containerRefCallback}>
+                                        <InputNumber
+                                            label='EPF % After Retirement'
+                                            id='HRC_EPFPerAfterRetirement'
+                                            step={0.01}
+                                            value={field.value}
+                                            onChange={(value) => {
+                                                const numValue = value !== null && value !== undefined ? Number(value) : 0;
+                                                field.onChange(numValue);
+                                                setValue('HRC_EPFPerAfterRetirement', numValue, { shouldDirty: true, shouldValidate: true });
+                                            }}
+                                            onBlur={field.onBlur}
+                                            error={errors.HRC_EPFPerAfterRetirement?.message}
+                                            className='transition-colors focus:ring-2 focus:ring-primary/20'
+                                        />
+                                    </div>
+                                );
+                            }}
                         />
 
                         <Controller
                             name='HRC_EPFPerAfterRetirement2'
                             control={control}
-                            render={({ field }) => (
-                                <InputNumber
-                                    label='EPF % After Retirement (2)'
-                                    id='HRC_EPFPerAfterRetirement2'
-                                    step={0.01}
-                                    value={field.value}
-                                    onChange={field.onChange}
-                                    error={errors.HRC_EPFPerAfterRetirement2?.message}
-                                    className='transition-colors focus:ring-2 focus:ring-primary/20'
-                                />
-                            )}
+                            render={({ field }) => {
+                                const containerRefCallback = (containerElement: HTMLDivElement | null) => {
+                                    if (!containerElement) return;
+                                    const findInput = () => containerElement.querySelector('input[type="text"], input[type="number"]') as HTMLInputElement;
+                                    const attachListener = () => {
+                                        const inputElement = findInput();
+                                        if (!inputElement) {
+                                            setTimeout(attachListener, 50);
+                                            return;
+                                        }
+                                        if ((inputElement as any).__dirtyHandlerAttached) return;
+                                        const handleInput = (e: Event) => {
+                                            const target = e.target as HTMLInputElement;
+                                            const inputValue = target.value.trim();
+                                            if (inputValue !== '' && !isNaN(Number(inputValue))) {
+                                                const numValue = Number(inputValue);
+                                                const currentValue = field.value || 0;
+                                                if (Math.abs(numValue - currentValue) > 0.0001) {
+                                                    field.onChange(numValue);
+                                                    setValue('HRC_EPFPerAfterRetirement2', numValue, { shouldDirty: true, shouldValidate: true });
+                                                }
+                                            }
+                                        };
+                                        inputElement.addEventListener('input', handleInput, { passive: true });
+                                        (inputElement as any).__dirtyHandlerAttached = true;
+                                    };
+                                    attachListener();
+                                };
+                                return (
+                                    <div ref={containerRefCallback}>
+                                        <InputNumber
+                                            label='EPF % After Retirement (2)'
+                                            id='HRC_EPFPerAfterRetirement2'
+                                            step={0.01}
+                                            value={field.value}
+                                            onChange={(value) => {
+                                                const numValue = value !== null && value !== undefined ? Number(value) : 0;
+                                                field.onChange(numValue);
+                                                setValue('HRC_EPFPerAfterRetirement2', numValue, { shouldDirty: true, shouldValidate: true });
+                                            }}
+                                            onBlur={field.onBlur}
+                                            error={errors.HRC_EPFPerAfterRetirement2?.message}
+                                            className='transition-colors focus:ring-2 focus:ring-primary/20'
+                                        />
+                                    </div>
+                                );
+                            }}
                         />
 
                         <Controller
                             name='HRC_AccNo2Per'
                             control={control}
-                            render={({ field }) => (
-                                <InputNumber
-                                    label='Acc No. 2 %'
-                                    id='HRC_AccNo2Per'
-                                    step={0.01}
-                                    value={field.value}
-                                    onChange={field.onChange}
-                                    error={errors.HRC_AccNo2Per?.message}
-                                    className='transition-colors focus:ring-2 focus:ring-primary/20'
-                                />
-                            )}
+                            render={({ field }) => {
+                                const containerRefCallback = (containerElement: HTMLDivElement | null) => {
+                                    if (!containerElement) return;
+                                    const findInput = () => containerElement.querySelector('input[type="text"], input[type="number"]') as HTMLInputElement;
+                                    const attachListener = () => {
+                                        const inputElement = findInput();
+                                        if (!inputElement) {
+                                            setTimeout(attachListener, 50);
+                                            return;
+                                        }
+                                        if ((inputElement as any).__dirtyHandlerAttached) return;
+                                        const handleInput = (e: Event) => {
+                                            const target = e.target as HTMLInputElement;
+                                            const inputValue = target.value.trim();
+                                            if (inputValue !== '' && !isNaN(Number(inputValue))) {
+                                                const numValue = Number(inputValue);
+                                                const currentValue = field.value || 0;
+                                                if (Math.abs(numValue - currentValue) > 0.0001) {
+                                                    field.onChange(numValue);
+                                                    setValue('HRC_AccNo2Per', numValue, { shouldDirty: true, shouldValidate: true });
+                                                }
+                                            }
+                                        };
+                                        inputElement.addEventListener('input', handleInput, { passive: true });
+                                        (inputElement as any).__dirtyHandlerAttached = true;
+                                    };
+                                    attachListener();
+                                };
+                                return (
+                                    <div ref={containerRefCallback}>
+                                        <InputNumber
+                                            label='Acc No. 2 %'
+                                            id='HRC_AccNo2Per'
+                                            step={0.01}
+                                            value={field.value}
+                                            onChange={(value) => {
+                                                const numValue = value !== null && value !== undefined ? Number(value) : 0;
+                                                field.onChange(numValue);
+                                                setValue('HRC_AccNo2Per', numValue, { shouldDirty: true, shouldValidate: true });
+                                            }}
+                                            onBlur={field.onBlur}
+                                            error={errors.HRC_AccNo2Per?.message}
+                                            className='transition-colors focus:ring-2 focus:ring-primary/20'
+                                        />
+                                    </div>
+                                );
+                            }}
                         />
 
                         <Controller
                             name='HRC_AC2MinAmt'
                             control={control}
-                            render={({ field }) => (
-                                <InputNumber
-                                    label='A/C2 Min Amount'
-                                    id='HRC_AC2MinAmt'
-                                    value={field.value}
-                                    onChange={field.onChange}
-                                    error={errors.HRC_AC2MinAmt?.message}
-                                    className='transition-colors focus:ring-2 focus:ring-primary/20'
-                                />
-                            )}
+                            render={({ field }) => {
+                                const containerRefCallback = (containerElement: HTMLDivElement | null) => {
+                                    if (!containerElement) return;
+                                    const findInput = () => containerElement.querySelector('input[type="text"], input[type="number"]') as HTMLInputElement;
+                                    const attachListener = () => {
+                                        const inputElement = findInput();
+                                        if (!inputElement) {
+                                            setTimeout(attachListener, 50);
+                                            return;
+                                        }
+                                        if ((inputElement as any).__dirtyHandlerAttached) return;
+                                        const handleInput = (e: Event) => {
+                                            const target = e.target as HTMLInputElement;
+                                            const inputValue = target.value.trim();
+                                            if (inputValue !== '' && !isNaN(Number(inputValue))) {
+                                                const numValue = Number(inputValue);
+                                                const currentValue = field.value || 0;
+                                                if (Math.abs(numValue - currentValue) > 0.0001) {
+                                                    field.onChange(numValue);
+                                                    setValue('HRC_AC2MinAmt', numValue, { shouldDirty: true, shouldValidate: true });
+                                                }
+                                            }
+                                        };
+                                        inputElement.addEventListener('input', handleInput, { passive: true });
+                                        (inputElement as any).__dirtyHandlerAttached = true;
+                                    };
+                                    attachListener();
+                                };
+                                return (
+                                    <div ref={containerRefCallback}>
+                                        <InputNumber
+                                            label='A/C2 Min Amount'
+                                            id='HRC_AC2MinAmt'
+                                            value={field.value}
+                                            onChange={(value) => {
+                                                const numValue = value !== null && value !== undefined ? Number(value) : 0;
+                                                field.onChange(numValue);
+                                                setValue('HRC_AC2MinAmt', numValue, { shouldDirty: true, shouldValidate: true });
+                                            }}
+                                            onBlur={field.onBlur}
+                                            error={errors.HRC_AC2MinAmt?.message}
+                                            className='transition-colors focus:ring-2 focus:ring-primary/20'
+                                        />
+                                    </div>
+                                );
+                            }}
                         />
 
                         <Controller
                             name='HRC_AccNo21Per'
                             control={control}
-                            render={({ field }) => (
-                                <InputNumber
-                                    label='Acc No. 21 %'
-                                    id='HRC_AccNo21Per'
-                                    step={0.01}
-                                    value={field.value}
-                                    onChange={field.onChange}
-                                    error={errors.HRC_AccNo21Per?.message}
-                                    className='transition-colors focus:ring-2 focus:ring-primary/20'
-                                />
-                            )}
+                            render={({ field }) => {
+                                const containerRefCallback = (containerElement: HTMLDivElement | null) => {
+                                    if (!containerElement) return;
+                                    const findInput = () => containerElement.querySelector('input[type="text"], input[type="number"]') as HTMLInputElement;
+                                    const attachListener = () => {
+                                        const inputElement = findInput();
+                                        if (!inputElement) {
+                                            setTimeout(attachListener, 50);
+                                            return;
+                                        }
+                                        if ((inputElement as any).__dirtyHandlerAttached) return;
+                                        const handleInput = (e: Event) => {
+                                            const target = e.target as HTMLInputElement;
+                                            const inputValue = target.value.trim();
+                                            if (inputValue !== '' && !isNaN(Number(inputValue))) {
+                                                const numValue = Number(inputValue);
+                                                const currentValue = field.value || 0;
+                                                if (Math.abs(numValue - currentValue) > 0.0001) {
+                                                    field.onChange(numValue);
+                                                    setValue('HRC_AccNo21Per', numValue, { shouldDirty: true, shouldValidate: true });
+                                                }
+                                            }
+                                        };
+                                        inputElement.addEventListener('input', handleInput, { passive: true });
+                                        (inputElement as any).__dirtyHandlerAttached = true;
+                                    };
+                                    attachListener();
+                                };
+                                return (
+                                    <div ref={containerRefCallback}>
+                                        <InputNumber
+                                            label='Acc No. 21 %'
+                                            id='HRC_AccNo21Per'
+                                            step={0.01}
+                                            value={field.value}
+                                            onChange={(value) => {
+                                                const numValue = value !== null && value !== undefined ? Number(value) : 0;
+                                                field.onChange(numValue);
+                                                setValue('HRC_AccNo21Per', numValue, { shouldDirty: true, shouldValidate: true });
+                                            }}
+                                            onBlur={field.onBlur}
+                                            error={errors.HRC_AccNo21Per?.message}
+                                            className='transition-colors focus:ring-2 focus:ring-primary/20'
+                                        />
+                                    </div>
+                                );
+                            }}
                         />
 
                         <Controller
                             name='HRC_AC21MinAmt'
                             control={control}
-                            render={({ field }) => (
-                                <InputNumber
-                                    label='A/C21 Min Amount'
-                                    id='HRC_AC21MinAmt'
-                                    value={field.value}
-                                    onChange={field.onChange}
-                                    error={errors.HRC_AC21MinAmt?.message}
-                                    className='transition-colors focus:ring-2 focus:ring-primary/20'
-                                />
-                            )}
+                            render={({ field }) => {
+                                const containerRefCallback = (containerElement: HTMLDivElement | null) => {
+                                    if (!containerElement) return;
+                                    const findInput = () => containerElement.querySelector('input[type="text"], input[type="number"]') as HTMLInputElement;
+                                    const attachListener = () => {
+                                        const inputElement = findInput();
+                                        if (!inputElement) {
+                                            setTimeout(attachListener, 50);
+                                            return;
+                                        }
+                                        if ((inputElement as any).__dirtyHandlerAttached) return;
+                                        const handleInput = (e: Event) => {
+                                            const target = e.target as HTMLInputElement;
+                                            const inputValue = target.value.trim();
+                                            if (inputValue !== '' && !isNaN(Number(inputValue))) {
+                                                const numValue = Number(inputValue);
+                                                const currentValue = field.value || 0;
+                                                if (Math.abs(numValue - currentValue) > 0.0001) {
+                                                    field.onChange(numValue);
+                                                    setValue('HRC_AC21MinAmt', numValue, { shouldDirty: true, shouldValidate: true });
+                                                }
+                                            }
+                                        };
+                                        inputElement.addEventListener('input', handleInput, { passive: true });
+                                        (inputElement as any).__dirtyHandlerAttached = true;
+                                    };
+                                    attachListener();
+                                };
+                                return (
+                                    <div ref={containerRefCallback}>
+                                        <InputNumber
+                                            label='A/C21 Min Amount'
+                                            id='HRC_AC21MinAmt'
+                                            value={field.value}
+                                            onChange={(value) => {
+                                                const numValue = value !== null && value !== undefined ? Number(value) : 0;
+                                                field.onChange(numValue);
+                                                setValue('HRC_AC21MinAmt', numValue, { shouldDirty: true, shouldValidate: true });
+                                            }}
+                                            onBlur={field.onBlur}
+                                            error={errors.HRC_AC21MinAmt?.message}
+                                            className='transition-colors focus:ring-2 focus:ring-primary/20'
+                                        />
+                                    </div>
+                                );
+                            }}
                         />
 
                         <Controller
                             name='HRC_AccNo22Per'
                             control={control}
-                            render={({ field }) => (
-                                <InputNumber
-                                    label='Acc No. 22 %'
-                                    id='HRC_AccNo22Per'
-                                    step={0.01}
-                                    value={field.value}
-                                    onChange={field.onChange}
-                                    error={errors.HRC_AccNo22Per?.message}
-                                    className='transition-colors focus:ring-2 focus:ring-primary/20'
-                                />
-                            )}
+                            render={({ field }) => {
+                                const containerRefCallback = (containerElement: HTMLDivElement | null) => {
+                                    if (!containerElement) return;
+                                    const findInput = () => containerElement.querySelector('input[type="text"], input[type="number"]') as HTMLInputElement;
+                                    const attachListener = () => {
+                                        const inputElement = findInput();
+                                        if (!inputElement) {
+                                            setTimeout(attachListener, 50);
+                                            return;
+                                        }
+                                        if ((inputElement as any).__dirtyHandlerAttached) return;
+                                        const handleInput = (e: Event) => {
+                                            const target = e.target as HTMLInputElement;
+                                            const inputValue = target.value.trim();
+                                            if (inputValue !== '' && !isNaN(Number(inputValue))) {
+                                                const numValue = Number(inputValue);
+                                                const currentValue = field.value || 0;
+                                                if (Math.abs(numValue - currentValue) > 0.0001) {
+                                                    field.onChange(numValue);
+                                                    setValue('HRC_AccNo22Per', numValue, { shouldDirty: true, shouldValidate: true });
+                                                }
+                                            }
+                                        };
+                                        inputElement.addEventListener('input', handleInput, { passive: true });
+                                        (inputElement as any).__dirtyHandlerAttached = true;
+                                    };
+                                    attachListener();
+                                };
+                                return (
+                                    <div ref={containerRefCallback}>
+                                        <InputNumber
+                                            label='Acc No. 22 %'
+                                            id='HRC_AccNo22Per'
+                                            step={0.01}
+                                            value={field.value}
+                                            onChange={(value) => {
+                                                const numValue = value !== null && value !== undefined ? Number(value) : 0;
+                                                field.onChange(numValue);
+                                                setValue('HRC_AccNo22Per', numValue, { shouldDirty: true, shouldValidate: true });
+                                            }}
+                                            onBlur={field.onBlur}
+                                            error={errors.HRC_AccNo22Per?.message}
+                                            className='transition-colors focus:ring-2 focus:ring-primary/20'
+                                        />
+                                    </div>
+                                );
+                            }}
                         />
 
                         <Controller
                             name='HRC_AC22MinAmt'
                             control={control}
-                            render={({ field }) => (
-                                <InputNumber
-                                    label='A/C22 Min Amount'
-                                    id='HRC_AC22MinAmt'
-                                    value={field.value}
-                                    onChange={field.onChange}
-                                    error={errors.HRC_AC22MinAmt?.message}
-                                    className='transition-colors focus:ring-2 focus:ring-primary/20'
-                                />
-                            )}
+                            render={({ field }) => {
+                                const containerRefCallback = (containerElement: HTMLDivElement | null) => {
+                                    if (!containerElement) return;
+                                    const findInput = () => containerElement.querySelector('input[type="text"], input[type="number"]') as HTMLInputElement;
+                                    const attachListener = () => {
+                                        const inputElement = findInput();
+                                        if (!inputElement) {
+                                            setTimeout(attachListener, 50);
+                                            return;
+                                        }
+                                        if ((inputElement as any).__dirtyHandlerAttached) return;
+                                        const handleInput = (e: Event) => {
+                                            const target = e.target as HTMLInputElement;
+                                            const inputValue = target.value.trim();
+                                            if (inputValue !== '' && !isNaN(Number(inputValue))) {
+                                                const numValue = Number(inputValue);
+                                                const currentValue = field.value || 0;
+                                                if (Math.abs(numValue - currentValue) > 0.0001) {
+                                                    field.onChange(numValue);
+                                                    setValue('HRC_AC22MinAmt', numValue, { shouldDirty: true, shouldValidate: true });
+                                                }
+                                            }
+                                        };
+                                        inputElement.addEventListener('input', handleInput, { passive: true });
+                                        (inputElement as any).__dirtyHandlerAttached = true;
+                                    };
+                                    attachListener();
+                                };
+                                return (
+                                    <div ref={containerRefCallback}>
+                                        <InputNumber
+                                            label='A/C22 Min Amount'
+                                            id='HRC_AC22MinAmt'
+                                            value={field.value}
+                                            onChange={(value) => {
+                                                const numValue = value !== null && value !== undefined ? Number(value) : 0;
+                                                field.onChange(numValue);
+                                                setValue('HRC_AC22MinAmt', numValue, { shouldDirty: true, shouldValidate: true });
+                                            }}
+                                            onBlur={field.onBlur}
+                                            error={errors.HRC_AC22MinAmt?.message}
+                                            className='transition-colors focus:ring-2 focus:ring-primary/20'
+                                        />
+                                    </div>
+                                );
+                            }}
                         />
 
                         <Controller
                             name='HRC_EducationCess'
                             control={control}
-                            render={({ field }) => (
-                                <InputNumber
-                                    label='Education Cess'
-                                    id='HRC_EducationCess'
-                                    value={field.value}
-                                    onChange={field.onChange}
-                                    error={errors.HRC_EducationCess?.message}
-                                    className='transition-colors focus:ring-2 focus:ring-primary/20'
-                                />
-                            )}
+                            render={({ field }) => {
+                                const containerRefCallback = (containerElement: HTMLDivElement | null) => {
+                                    if (!containerElement) return;
+                                    const findInput = () => containerElement.querySelector('input[type="text"], input[type="number"]') as HTMLInputElement;
+                                    const attachListener = () => {
+                                        const inputElement = findInput();
+                                        if (!inputElement) {
+                                            setTimeout(attachListener, 50);
+                                            return;
+                                        }
+                                        if ((inputElement as any).__dirtyHandlerAttached) return;
+                                        const handleInput = (e: Event) => {
+                                            const target = e.target as HTMLInputElement;
+                                            const inputValue = target.value.trim();
+                                            if (inputValue !== '' && !isNaN(Number(inputValue))) {
+                                                const numValue = Number(inputValue);
+                                                const currentValue = field.value || 0;
+                                                if (Math.abs(numValue - currentValue) > 0.0001) {
+                                                    field.onChange(numValue);
+                                                    setValue('HRC_EducationCess', numValue, { shouldDirty: true, shouldValidate: true });
+                                                }
+                                            }
+                                        };
+                                        inputElement.addEventListener('input', handleInput, { passive: true });
+                                        (inputElement as any).__dirtyHandlerAttached = true;
+                                    };
+                                    attachListener();
+                                };
+                                return (
+                                    <div ref={containerRefCallback}>
+                                        <InputNumber
+                                            label='Education Cess'
+                                            id='HRC_EducationCess'
+                                            value={field.value}
+                                            onChange={(value) => {
+                                                const numValue = value !== null && value !== undefined ? Number(value) : 0;
+                                                field.onChange(numValue);
+                                                setValue('HRC_EducationCess', numValue, { shouldDirty: true, shouldValidate: true });
+                                            }}
+                                            onBlur={field.onBlur}
+                                            error={errors.HRC_EducationCess?.message}
+                                            className='transition-colors focus:ring-2 focus:ring-primary/20'
+                                        />
+                                    </div>
+                                );
+                            }}
                         />
 
                         <Controller
                             name='HRC_PartAMaxLimit'
                             control={control}
-                            render={({ field }) => (
-                                <InputNumber
-                                    label='Part A Max Limit'
-                                    id='HRC_PartAMaxLimit'
-                                    value={field.value}
-                                    onChange={field.onChange}
-                                    error={errors.HRC_PartAMaxLimit?.message}
-                                    className='transition-colors focus:ring-2 focus:ring-primary/20'
-                                />
-                            )}
+                            render={({ field }) => {
+                                const containerRefCallback = (containerElement: HTMLDivElement | null) => {
+                                    if (!containerElement) return;
+                                    const findInput = () => containerElement.querySelector('input[type="text"], input[type="number"]') as HTMLInputElement;
+                                    const attachListener = () => {
+                                        const inputElement = findInput();
+                                        if (!inputElement) {
+                                            setTimeout(attachListener, 50);
+                                            return;
+                                        }
+                                        if ((inputElement as any).__dirtyHandlerAttached) return;
+                                        const handleInput = (e: Event) => {
+                                            const target = e.target as HTMLInputElement;
+                                            const inputValue = target.value.trim();
+                                            if (inputValue !== '' && !isNaN(Number(inputValue))) {
+                                                const numValue = Number(inputValue);
+                                                const currentValue = field.value || 0;
+                                                if (Math.abs(numValue - currentValue) > 0.0001) {
+                                                    field.onChange(numValue);
+                                                    setValue('HRC_PartAMaxLimit', numValue, { shouldDirty: true, shouldValidate: true });
+                                                }
+                                            }
+                                        };
+                                        inputElement.addEventListener('input', handleInput, { passive: true });
+                                        (inputElement as any).__dirtyHandlerAttached = true;
+                                    };
+                                    attachListener();
+                                };
+                                return (
+                                    <div ref={containerRefCallback}>
+                                        <InputNumber
+                                            label='Part A Max Limit'
+                                            id='HRC_PartAMaxLimit'
+                                            value={field.value}
+                                            onChange={(value) => {
+                                                const numValue = value !== null && value !== undefined ? Number(value) : 0;
+                                                field.onChange(numValue);
+                                                setValue('HRC_PartAMaxLimit', numValue, { shouldDirty: true, shouldValidate: true });
+                                            }}
+                                            onBlur={field.onBlur}
+                                            error={errors.HRC_PartAMaxLimit?.message}
+                                            className='transition-colors focus:ring-2 focus:ring-primary/20'
+                                        />
+                                    </div>
+                                );
+                            }}
                         />
 
                         <Controller
                             name='HRC_PartBMaxLimit'
                             control={control}
-                            render={({ field }) => (
-                                <InputNumber
-                                    label='Part B Max Limit'
-                                    id='HRC_PartBMaxLimit'
-                                    value={field.value}
-                                    onChange={field.onChange}
-                                    error={errors.HRC_PartBMaxLimit?.message}
-                                    className='transition-colors focus:ring-2 focus:ring-primary/20'
-                                />
-                            )}
+                            render={({ field }) => {
+                                const containerRefCallback = (containerElement: HTMLDivElement | null) => {
+                                    if (!containerElement) return;
+                                    const findInput = () => containerElement.querySelector('input[type="text"], input[type="number"]') as HTMLInputElement;
+                                    const attachListener = () => {
+                                        const inputElement = findInput();
+                                        if (!inputElement) {
+                                            setTimeout(attachListener, 50);
+                                            return;
+                                        }
+                                        if ((inputElement as any).__dirtyHandlerAttached) return;
+                                        const handleInput = (e: Event) => {
+                                            const target = e.target as HTMLInputElement;
+                                            const inputValue = target.value.trim();
+                                            if (inputValue !== '' && !isNaN(Number(inputValue))) {
+                                                const numValue = Number(inputValue);
+                                                const currentValue = field.value || 0;
+                                                if (Math.abs(numValue - currentValue) > 0.0001) {
+                                                    field.onChange(numValue);
+                                                    setValue('HRC_PartBMaxLimit', numValue, { shouldDirty: true, shouldValidate: true });
+                                                }
+                                            }
+                                        };
+                                        inputElement.addEventListener('input', handleInput, { passive: true });
+                                        (inputElement as any).__dirtyHandlerAttached = true;
+                                    };
+                                    attachListener();
+                                };
+                                return (
+                                    <div ref={containerRefCallback}>
+                                        <InputNumber
+                                            label='Part B Max Limit'
+                                            id='HRC_PartBMaxLimit'
+                                            value={field.value}
+                                            onChange={(value) => {
+                                                const numValue = value !== null && value !== undefined ? Number(value) : 0;
+                                                field.onChange(numValue);
+                                                setValue('HRC_PartBMaxLimit', numValue, { shouldDirty: true, shouldValidate: true });
+                                            }}
+                                            onBlur={field.onBlur}
+                                            error={errors.HRC_PartBMaxLimit?.message}
+                                            className='transition-colors focus:ring-2 focus:ring-primary/20'
+                                        />
+                                    </div>
+                                );
+                            }}
                         />
 
                         <div className='flex items-center space-x-3'>
@@ -594,17 +1099,53 @@ export default function PayrollStandardForm({ existingData, className = '' }: Pa
                         <Controller
                             name='HRC_RetirementYrs'
                             control={control}
-                            render={({ field }) => (
-                                <InputNumber
-                                    label='Retirement Years'
-                                    required
-                                    id='HRC_RetirementYrs'
-                                    value={field.value}
-                                    onChange={field.onChange}
-                                    error={errors.HRC_RetirementYrs?.message}
-                                    className='transition-colors focus:ring-2 focus:ring-primary/20'
-                                />
-                            )}
+                            render={({ field }) => {
+                                const containerRefCallback = (containerElement: HTMLDivElement | null) => {
+                                    if (!containerElement) return;
+                                    const findInput = () => containerElement.querySelector('input[type="text"], input[type="number"]') as HTMLInputElement;
+                                    const attachListener = () => {
+                                        const inputElement = findInput();
+                                        if (!inputElement) {
+                                            setTimeout(attachListener, 50);
+                                            return;
+                                        }
+                                        if ((inputElement as any).__dirtyHandlerAttached) return;
+                                        const handleInput = (e: Event) => {
+                                            const target = e.target as HTMLInputElement;
+                                            const inputValue = target.value.trim();
+                                            if (inputValue !== '' && !isNaN(Number(inputValue))) {
+                                                const numValue = Number(inputValue);
+                                                const currentValue = field.value || 0;
+                                                if (Math.abs(numValue - currentValue) > 0.0001) {
+                                                    field.onChange(numValue);
+                                                    setValue('HRC_RetirementYrs', numValue, { shouldDirty: true, shouldValidate: true });
+                                                }
+                                            }
+                                        };
+                                        inputElement.addEventListener('input', handleInput, { passive: true });
+                                        (inputElement as any).__dirtyHandlerAttached = true;
+                                    };
+                                    attachListener();
+                                };
+                                return (
+                                    <div ref={containerRefCallback}>
+                                        <InputNumber
+                                            label='Retirement Years'
+                                            required
+                                            id='HRC_RetirementYrs'
+                                            value={field.value}
+                                            onChange={(value) => {
+                                                const numValue = value !== null && value !== undefined ? Number(value) : 0;
+                                                field.onChange(numValue);
+                                                setValue('HRC_RetirementYrs', numValue, { shouldDirty: true, shouldValidate: true });
+                                            }}
+                                            onBlur={field.onBlur}
+                                            error={errors.HRC_RetirementYrs?.message}
+                                            className='transition-colors focus:ring-2 focus:ring-primary/20'
+                                        />
+                                    </div>
+                                );
+                            }}
                         />
                     </div>
                 </div>
@@ -626,49 +1167,157 @@ export default function PayrollStandardForm({ existingData, className = '' }: Pa
                         <Controller
                             name='HRC_ESIMax'
                             control={control}
-                            render={({ field }) => (
-                                <InputNumber
-                                    label='ESI Max (₹)'
-                                    required
-                                    id='HRC_ESIMax'
-                                    value={field.value}
-                                    onChange={field.onChange}
-                                    error={errors.HRC_ESIMax?.message}
-                                    className='transition-colors focus:ring-2 focus:ring-primary/20'
-                                />
-                            )}
+                            render={({ field }) => {
+                                const containerRefCallback = (containerElement: HTMLDivElement | null) => {
+                                    if (!containerElement) return;
+                                    const findInput = () => containerElement.querySelector('input[type="text"], input[type="number"]') as HTMLInputElement;
+                                    const attachListener = () => {
+                                        const inputElement = findInput();
+                                        if (!inputElement) {
+                                            setTimeout(attachListener, 50);
+                                            return;
+                                        }
+                                        if ((inputElement as any).__dirtyHandlerAttached) return;
+                                        const handleInput = (e: Event) => {
+                                            const target = e.target as HTMLInputElement;
+                                            const inputValue = target.value.trim();
+                                            if (inputValue !== '' && !isNaN(Number(inputValue))) {
+                                                const numValue = Number(inputValue);
+                                                const currentValue = field.value || 0;
+                                                if (Math.abs(numValue - currentValue) > 0.0001) {
+                                                    field.onChange(numValue);
+                                                    setValue('HRC_ESIMax', numValue, { shouldDirty: true, shouldValidate: true });
+                                                }
+                                            }
+                                        };
+                                        inputElement.addEventListener('input', handleInput, { passive: true });
+                                        (inputElement as any).__dirtyHandlerAttached = true;
+                                    };
+                                    attachListener();
+                                };
+                                return (
+                                    <div ref={containerRefCallback}>
+                                        <InputNumber
+                                            label='ESI Max (₹)'
+                                            required
+                                            id='HRC_ESIMax'
+                                            value={field.value}
+                                            onChange={(value) => {
+                                                const numValue = value !== null && value !== undefined ? Number(value) : 0;
+                                                field.onChange(numValue);
+                                                setValue('HRC_ESIMax', numValue, { shouldDirty: true, shouldValidate: true });
+                                            }}
+                                            onBlur={field.onBlur}
+                                            error={errors.HRC_ESIMax?.message}
+                                            className='transition-colors focus:ring-2 focus:ring-primary/20'
+                                        />
+                                    </div>
+                                );
+                            }}
                         />
 
                         <Controller
                             name='HRC_ESIMax'
                             control={control}
-                            render={({ field }) => (
-                                <InputNumber
-                                    label='ESI Max Amount'
-                                    id='HRC_ESIMax2'
-                                    value={field.value}
-                                    onChange={field.onChange}
-                                    error={errors.HRC_ESIMax?.message}
-                                    className='transition-colors focus:ring-2 focus:ring-primary/20'
-                                />
-                            )}
+                            render={({ field }) => {
+                                const containerRefCallback = (containerElement: HTMLDivElement | null) => {
+                                    if (!containerElement) return;
+                                    const findInput = () => containerElement.querySelector('input[type="text"], input[type="number"]') as HTMLInputElement;
+                                    const attachListener = () => {
+                                        const inputElement = findInput();
+                                        if (!inputElement) {
+                                            setTimeout(attachListener, 50);
+                                            return;
+                                        }
+                                        if ((inputElement as any).__dirtyHandlerAttached) return;
+                                        const handleInput = (e: Event) => {
+                                            const target = e.target as HTMLInputElement;
+                                            const inputValue = target.value.trim();
+                                            if (inputValue !== '' && !isNaN(Number(inputValue))) {
+                                                const numValue = Number(inputValue);
+                                                const currentValue = field.value || 0;
+                                                if (Math.abs(numValue - currentValue) > 0.0001) {
+                                                    field.onChange(numValue);
+                                                    setValue('HRC_ESIMax', numValue, { shouldDirty: true, shouldValidate: true });
+                                                }
+                                            }
+                                        };
+                                        inputElement.addEventListener('input', handleInput, { passive: true });
+                                        (inputElement as any).__dirtyHandlerAttached = true;
+                                    };
+                                    attachListener();
+                                };
+                                return (
+                                    <div ref={containerRefCallback}>
+                                        <InputNumber
+                                            label='ESI Max Amount'
+                                            id='HRC_ESIMax2'
+                                            value={field.value}
+                                            onChange={(value) => {
+                                                const numValue = value !== null && value !== undefined ? Number(value) : 0;
+                                                field.onChange(numValue);
+                                                setValue('HRC_ESIMax', numValue, { shouldDirty: true, shouldValidate: true });
+                                            }}
+                                            onBlur={field.onBlur}
+                                            error={errors.HRC_ESIMax?.message}
+                                            className='transition-colors focus:ring-2 focus:ring-primary/20'
+                                        />
+                                    </div>
+                                );
+                            }}
                         />
 
                         <Controller
                             name='HRC_ESIEmplrCont'
                             control={control}
-                            render={({ field }) => (
-                                <InputNumber
-                                    label='Employer Contribution (%)'
-                                    required
-                                    id='HRC_ESIEmplrCont'
-                                    step={0.01}
-                                    value={field.value}
-                                    onChange={field.onChange}
-                                    error={errors.HRC_ESIEmplrCont?.message}
-                                    className='transition-colors focus:ring-2 focus:ring-primary/20'
-                                />
-                            )}
+                            render={({ field }) => {
+                                const containerRefCallback = (containerElement: HTMLDivElement | null) => {
+                                    if (!containerElement) return;
+                                    const findInput = () => containerElement.querySelector('input[type="text"], input[type="number"]') as HTMLInputElement;
+                                    const attachListener = () => {
+                                        const inputElement = findInput();
+                                        if (!inputElement) {
+                                            setTimeout(attachListener, 50);
+                                            return;
+                                        }
+                                        if ((inputElement as any).__dirtyHandlerAttached) return;
+                                        const handleInput = (e: Event) => {
+                                            const target = e.target as HTMLInputElement;
+                                            const inputValue = target.value.trim();
+                                            if (inputValue !== '' && !isNaN(Number(inputValue))) {
+                                                const numValue = Number(inputValue);
+                                                const currentValue = field.value || 0;
+                                                if (Math.abs(numValue - currentValue) > 0.0001) {
+                                                    field.onChange(numValue);
+                                                    setValue('HRC_ESIEmplrCont', numValue, { shouldDirty: true, shouldValidate: true });
+                                                }
+                                            }
+                                        };
+                                        inputElement.addEventListener('input', handleInput, { passive: true });
+                                        (inputElement as any).__dirtyHandlerAttached = true;
+                                    };
+                                    attachListener();
+                                };
+                                return (
+                                    <div ref={containerRefCallback}>
+                                        <InputNumber
+                                            label='Employer Contribution (%)'
+                                            required
+                                            id='HRC_ESIEmplrCont'
+                                            step={0.01}
+                                            value={field.value}
+                                            onChange={(value) => {
+                                                const numValue = value !== null && value !== undefined ? Number(value) : 0;
+                                                field.onChange(numValue);
+                                                setValue('HRC_ESIEmplrCont', numValue, { shouldDirty: true, shouldValidate: true });
+                                            }}
+                                            onBlur={field.onBlur}
+                                            error={errors.HRC_ESIEmplrCont?.message}
+                                            className='transition-colors focus:ring-2 focus:ring-primary/20'
+                                        />
+                                    </div>
+                                );
+                            }}
                         />
                     </div>
                 </div>
@@ -891,16 +1540,52 @@ export default function PayrollStandardForm({ existingData, className = '' }: Pa
                         <Controller
                             name='HRC_OptionalHolidays'
                             control={control}
-                            render={({ field }) => (
-                                <InputNumber
-                                    label='Optional Holidays'
-                                    id='HRC_OptionalHolidays'
-                                    value={field.value}
-                                    onChange={field.onChange}
-                                    error={errors.HRC_OptionalHolidays?.message}
-                                    className='transition-colors focus:ring-2 focus:ring-primary/20'
-                                />
-                            )}
+                            render={({ field }) => {
+                                const containerRefCallback = (containerElement: HTMLDivElement | null) => {
+                                    if (!containerElement) return;
+                                    const findInput = () => containerElement.querySelector('input[type="text"], input[type="number"]') as HTMLInputElement;
+                                    const attachListener = () => {
+                                        const inputElement = findInput();
+                                        if (!inputElement) {
+                                            setTimeout(attachListener, 50);
+                                            return;
+                                        }
+                                        if ((inputElement as any).__dirtyHandlerAttached) return;
+                                        const handleInput = (e: Event) => {
+                                            const target = e.target as HTMLInputElement;
+                                            const inputValue = target.value.trim();
+                                            if (inputValue !== '' && !isNaN(Number(inputValue))) {
+                                                const numValue = Number(inputValue);
+                                                const currentValue = field.value || 0;
+                                                if (Math.abs(numValue - currentValue) > 0.0001) {
+                                                    field.onChange(numValue);
+                                                    setValue('HRC_OptionalHolidays', numValue, { shouldDirty: true, shouldValidate: true });
+                                                }
+                                            }
+                                        };
+                                        inputElement.addEventListener('input', handleInput, { passive: true });
+                                        (inputElement as any).__dirtyHandlerAttached = true;
+                                    };
+                                    attachListener();
+                                };
+                                return (
+                                    <div ref={containerRefCallback}>
+                                        <InputNumber
+                                            label='Optional Holidays'
+                                            id='HRC_OptionalHolidays'
+                                            value={field.value}
+                                            onChange={(value) => {
+                                                const numValue = value !== null && value !== undefined ? Number(value) : 0;
+                                                field.onChange(numValue);
+                                                setValue('HRC_OptionalHolidays', numValue, { shouldDirty: true, shouldValidate: true });
+                                            }}
+                                            onBlur={field.onBlur}
+                                            error={errors.HRC_OptionalHolidays?.message}
+                                            className='transition-colors focus:ring-2 focus:ring-primary/20'
+                                        />
+                                    </div>
+                                );
+                            }}
                         />
 
                         <div className='flex items-center space-x-3 pt-6'>
@@ -919,16 +1604,52 @@ export default function PayrollStandardForm({ existingData, className = '' }: Pa
                         <Controller
                             name='HRC_MinimumPeriods'
                             control={control}
-                            render={({ field }) => (
-                                <InputNumber
-                                    label='Minimum Periods'
-                                    id='HRC_MinimumPeriods'
-                                    value={field.value}
-                                    onChange={field.onChange}
-                                    error={errors.HRC_MinimumPeriods?.message}
-                                    className='transition-colors focus:ring-2 focus:ring-primary/20'
-                                />
-                            )}
+                            render={({ field }) => {
+                                const containerRefCallback = (containerElement: HTMLDivElement | null) => {
+                                    if (!containerElement) return;
+                                    const findInput = () => containerElement.querySelector('input[type="text"], input[type="number"]') as HTMLInputElement;
+                                    const attachListener = () => {
+                                        const inputElement = findInput();
+                                        if (!inputElement) {
+                                            setTimeout(attachListener, 50);
+                                            return;
+                                        }
+                                        if ((inputElement as any).__dirtyHandlerAttached) return;
+                                        const handleInput = (e: Event) => {
+                                            const target = e.target as HTMLInputElement;
+                                            const inputValue = target.value.trim();
+                                            if (inputValue !== '' && !isNaN(Number(inputValue))) {
+                                                const numValue = Number(inputValue);
+                                                const currentValue = field.value || 0;
+                                                if (Math.abs(numValue - currentValue) > 0.0001) {
+                                                    field.onChange(numValue);
+                                                    setValue('HRC_MinimumPeriods', numValue, { shouldDirty: true, shouldValidate: true });
+                                                }
+                                            }
+                                        };
+                                        inputElement.addEventListener('input', handleInput, { passive: true });
+                                        (inputElement as any).__dirtyHandlerAttached = true;
+                                    };
+                                    attachListener();
+                                };
+                                return (
+                                    <div ref={containerRefCallback}>
+                                        <InputNumber
+                                            label='Minimum Periods'
+                                            id='HRC_MinimumPeriods'
+                                            value={field.value}
+                                            onChange={(value) => {
+                                                const numValue = value !== null && value !== undefined ? Number(value) : 0;
+                                                field.onChange(numValue);
+                                                setValue('HRC_MinimumPeriods', numValue, { shouldDirty: true, shouldValidate: true });
+                                            }}
+                                            onBlur={field.onBlur}
+                                            error={errors.HRC_MinimumPeriods?.message}
+                                            className='transition-colors focus:ring-2 focus:ring-primary/20'
+                                        />
+                                    </div>
+                                );
+                            }}
                         />
 
                         <div className='group flex flex-col gap-1.5'>
@@ -959,31 +1680,103 @@ export default function PayrollStandardForm({ existingData, className = '' }: Pa
                         <Controller
                             name='HRC_IncrementOnceInMonths'
                             control={control}
-                            render={({ field }) => (
-                                <InputNumber
-                                    label='Increment Once In Months'
-                                    id='HRC_IncrementOnceInMonths'
-                                    value={field.value}
-                                    onChange={field.onChange}
-                                    error={errors.HRC_IncrementOnceInMonths?.message}
-                                    className='transition-colors focus:ring-2 focus:ring-primary/20'
-                                />
-                            )}
+                            render={({ field }) => {
+                                const containerRefCallback = (containerElement: HTMLDivElement | null) => {
+                                    if (!containerElement) return;
+                                    const findInput = () => containerElement.querySelector('input[type="text"], input[type="number"]') as HTMLInputElement;
+                                    const attachListener = () => {
+                                        const inputElement = findInput();
+                                        if (!inputElement) {
+                                            setTimeout(attachListener, 50);
+                                            return;
+                                        }
+                                        if ((inputElement as any).__dirtyHandlerAttached) return;
+                                        const handleInput = (e: Event) => {
+                                            const target = e.target as HTMLInputElement;
+                                            const inputValue = target.value.trim();
+                                            if (inputValue !== '' && !isNaN(Number(inputValue))) {
+                                                const numValue = Number(inputValue);
+                                                const currentValue = field.value || 0;
+                                                if (Math.abs(numValue - currentValue) > 0.0001) {
+                                                    field.onChange(numValue);
+                                                    setValue('HRC_IncrementOnceInMonths', numValue, { shouldDirty: true, shouldValidate: true });
+                                                }
+                                            }
+                                        };
+                                        inputElement.addEventListener('input', handleInput, { passive: true });
+                                        (inputElement as any).__dirtyHandlerAttached = true;
+                                    };
+                                    attachListener();
+                                };
+                                return (
+                                    <div ref={containerRefCallback}>
+                                        <InputNumber
+                                            label='Increment Once In Months'
+                                            id='HRC_IncrementOnceInMonths'
+                                            value={field.value}
+                                            onChange={(value) => {
+                                                const numValue = value !== null && value !== undefined ? Number(value) : 0;
+                                                field.onChange(numValue);
+                                                setValue('HRC_IncrementOnceInMonths', numValue, { shouldDirty: true, shouldValidate: true });
+                                            }}
+                                            onBlur={field.onBlur}
+                                            error={errors.HRC_IncrementOnceInMonths?.message}
+                                            className='transition-colors focus:ring-2 focus:ring-primary/20'
+                                        />
+                                    </div>
+                                );
+                            }}
                         />
 
                         <Controller
                             name='HRC_AlertDays'
                             control={control}
-                            render={({ field }) => (
-                                <InputNumber
-                                    label='Alert Days'
-                                    id='HRC_AlertDays'
-                                    value={field.value}
-                                    onChange={field.onChange}
-                                    error={errors.HRC_AlertDays?.message}
-                                    className='transition-colors focus:ring-2 focus:ring-primary/20'
-                                />
-                            )}
+                            render={({ field }) => {
+                                const containerRefCallback = (containerElement: HTMLDivElement | null) => {
+                                    if (!containerElement) return;
+                                    const findInput = () => containerElement.querySelector('input[type="text"], input[type="number"]') as HTMLInputElement;
+                                    const attachListener = () => {
+                                        const inputElement = findInput();
+                                        if (!inputElement) {
+                                            setTimeout(attachListener, 50);
+                                            return;
+                                        }
+                                        if ((inputElement as any).__dirtyHandlerAttached) return;
+                                        const handleInput = (e: Event) => {
+                                            const target = e.target as HTMLInputElement;
+                                            const inputValue = target.value.trim();
+                                            if (inputValue !== '' && !isNaN(Number(inputValue))) {
+                                                const numValue = Number(inputValue);
+                                                const currentValue = field.value || 0;
+                                                if (Math.abs(numValue - currentValue) > 0.0001) {
+                                                    field.onChange(numValue);
+                                                    setValue('HRC_AlertDays', numValue, { shouldDirty: true, shouldValidate: true });
+                                                }
+                                            }
+                                        };
+                                        inputElement.addEventListener('input', handleInput, { passive: true });
+                                        (inputElement as any).__dirtyHandlerAttached = true;
+                                    };
+                                    attachListener();
+                                };
+                                return (
+                                    <div ref={containerRefCallback}>
+                                        <InputNumber
+                                            label='Alert Days'
+                                            id='HRC_AlertDays'
+                                            value={field.value}
+                                            onChange={(value) => {
+                                                const numValue = value !== null && value !== undefined ? Number(value) : 0;
+                                                field.onChange(numValue);
+                                                setValue('HRC_AlertDays', numValue, { shouldDirty: true, shouldValidate: true });
+                                            }}
+                                            onBlur={field.onBlur}
+                                            error={errors.HRC_AlertDays?.message}
+                                            className='transition-colors focus:ring-2 focus:ring-primary/20'
+                                        />
+                                    </div>
+                                );
+                            }}
                         />
                     </div>
                 </div>
@@ -1056,7 +1849,7 @@ export default function PayrollStandardForm({ existingData, className = '' }: Pa
                 <div className='flex flex-col gap-3 border-t pt-4 sm:flex-row sm:justify-start'>
                     <Button
                         type='submit'
-                        disabled={isSubmitting || saveMutation.isPending}
+                        disabled={isSubmitting || saveMutation.isPending || !isDirty}
                         className='order-1 w-fit bg-purple-600 transition-all duration-200 hover:scale-105 hover:bg-purple-700'
                         isLoading={isSubmitting || saveMutation.isPending}
                         loadingText='Saving...'
@@ -1081,6 +1874,11 @@ export default function PayrollStandardForm({ existingData, className = '' }: Pa
                         className='order-2 w-fit transition-all duration-200 hover:scale-105'>
                         CANCEL
                     </Button>
+                    {!isDirty && (
+                        <span className='order-3 flex items-center text-sm text-muted-foreground sm:order-3'>
+                            No changes made
+                        </span>
+                    )}
                 </div>
             </form>
         </div>

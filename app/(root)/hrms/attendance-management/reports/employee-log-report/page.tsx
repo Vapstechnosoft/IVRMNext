@@ -1,98 +1,60 @@
-// Refactored by automation script on 2025-10-28T15:40:35.656Z
-// TODO: Complete refactoring by:
-// 1. Import columns from _components/columns.tsx
-// 2. Import form from _components/filters.tsx
-// 3. Extract column definitions and form to the respective files
-// 4. Update handlers to use the new structure
-
 'use client';
 
 import { Heading } from '@/components/layout/heading';
-import { Button } from '@/components/ui/button';
-import { Checkbox } from '@/components/ui/checkbox';
-import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
 import { GenericDataTable } from '@/components/ui/data-table/generic-data-table';
-import { InputText } from '@/components/ui/extension/input-text';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { type BaseEntity, createLocalCrud } from '@/lib/localdb';
-import type { ColumnDef } from '@tanstack/react-table';
-import { FileDown, Printer, RefreshCw } from 'lucide-react';
 import { useMemo, useState } from 'react';
-
-interface LogRow extends BaseEntity {
-    type: string;
-    department: string;
-    designation: string;
-    employeeCode: string;
-    employeeName: string;
-    date: string;
-    punchTime?: string;
-    lateIn?: string;
-    earlyOut?: string;
-}
+import { LogReportFilters, type LogReportFiltersState } from './_components/filters';
+import { logReportColumns, type LogRow } from './_components/columns';
 
 export default function EmployeeLogReportPage() {
-    const db = createLocalCrud<LogRow>('attendance:log');
+    const db = createLocalCrud<LogRow & BaseEntity>('attendance:log');
 
-    const [type, setType] = useState<string>('');
-    const [department, setDepartment] = useState<string>('');
-    const [designation, setDesignation] = useState<string>('');
-    const [allOrIndividual, setAllOrIndividual] = useState<'All' | 'Individual'>('All');
-    const [codeOrName, setCodeOrName] = useState<'Code' | 'Name'>('Code');
-    const [query, setQuery] = useState<string>('');
-    const [dateMode, setDateMode] = useState<'Date' | 'Monthly' | 'From Date'>('Date');
-    const [date, setDate] = useState<string>('');
-    const [month, setMonth] = useState<string>('');
-    const [fromDate, setFromDate] = useState<string>('');
-    const [toDate, setToDate] = useState<string>('');
-    const [metric, setMetric] = useState<'Punch Time' | 'Late In' | 'Early Out'>('Punch Time');
+    const [filters, setFilters] = useState<LogReportFiltersState>({
+        type: '',
+        department: '',
+        designation: '',
+        allOrIndividual: 'All',
+        codeOrName: 'Code',
+        query: '',
+        dateMode: 'Date',
+        date: '',
+        month: '',
+        fromDate: '',
+        toDate: '',
+        metric: 'Punch Time'
+    });
 
     const data = useMemo(() => db.list(), []);
 
     const filtered = useMemo(() => {
         return data.filter((r) => {
-            const okType = type ? r.type === type : true;
-            const okDept = department ? r.department === department : true;
-            const okDesg = designation ? r.designation === designation : true;
+            const okType = filters.type ? r.type === filters.type : true;
+            const okDept = filters.department ? r.department === filters.department : true;
+            const okDesg = filters.designation ? r.designation === filters.designation : true;
             const okQuery =
-                allOrIndividual === 'Individual' && query
-                    ? codeOrName === 'Code'
-                        ? r.employeeCode.includes(query)
-                        : r.employeeName.toLowerCase().includes(query.toLowerCase())
+                filters.allOrIndividual === 'Individual' && filters.query
+                    ? filters.codeOrName === 'Code'
+                        ? r.employeeCode.includes(filters.query)
+                        : r.employeeName.toLowerCase().includes(filters.query.toLowerCase())
                     : true;
             const okDate =
-                dateMode === 'Date'
-                    ? date
-                        ? r.date === date
+                filters.dateMode === 'Date'
+                    ? filters.date
+                        ? r.date === filters.date
                         : true
-                    : dateMode === 'Monthly'
-                      ? month
-                          ? r.date.startsWith(month)
+                    : filters.dateMode === 'Monthly'
+                      ? filters.month
+                          ? r.date.startsWith(filters.month)
                           : true
-                      : (fromDate ? new Date(r.date) >= new Date(fromDate) : true) &&
-                        (toDate ? new Date(r.date) <= new Date(toDate) : true);
-            const okMetric = metric === 'Punch Time' ? r.punchTime : metric === 'Late In' ? r.lateIn : r.earlyOut;
+                      : (filters.fromDate ? new Date(r.date) >= new Date(filters.fromDate) : true) &&
+                        (filters.toDate ? new Date(r.date) <= new Date(filters.toDate) : true);
+            const okMetric =
+                filters.metric === 'Punch Time' ? r.punchTime : filters.metric === 'Late In' ? r.lateIn : r.earlyOut;
             return okType && okDept && okDesg && okQuery && okDate && okMetric;
         });
-    }, [data, type, department, designation, allOrIndividual, codeOrName, query, dateMode, date, month, fromDate, toDate, metric]);
-
-    const columns: ColumnDef<LogRow>[] = [
-        {
-            id: 'sl',
-            header: ({ column }) => <DataTableColumnHeader column={column} title='SL.NO' />,
-            cell: ({ row }) => <div className='font-medium'>{row.index + 1}</div>,
-            enableSorting: false
-        },
-        { accessorKey: 'employeeName', header: ({ column }) => <DataTableColumnHeader column={column} title='Employee Name' /> },
-        { accessorKey: 'employeeCode', header: ({ column }) => <DataTableColumnHeader column={column} title='Code' /> },
-        { accessorKey: 'date', header: ({ column }) => <DataTableColumnHeader column={column} title='Date' /> },
-        { accessorKey: 'punchTime', header: ({ column }) => <DataTableColumnHeader column={column} title='Punch Time' /> },
-        { accessorKey: 'lateIn', header: ({ column }) => <DataTableColumnHeader column={column} title='Late In' /> },
-        { accessorKey: 'earlyOut', header: ({ column }) => <DataTableColumnHeader column={column} title='Early Out' /> },
-        { accessorKey: 'department', header: ({ column }) => <DataTableColumnHeader column={column} title='Department' /> },
-        { accessorKey: 'designation', header: ({ column }) => <DataTableColumnHeader column={column} title='Designation' /> }
-    ];
+    }, [data, filters]);
 
     const handleReport = () => {
         /* TODO: implement */
@@ -111,152 +73,14 @@ export default function EmployeeLogReportPage() {
                     </div>
                 </div>
 
-                <CollapsibleSection
-                    title=''
-                    description=''
-                    defaultOpen={true}
-                    variant='default'
-                    size='lg'
-                    className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
-                    <div className='grid grid-cols-1 gap-4 md:grid-cols-12'>
-                        <div className='md:col-span-3'>
-                            <label className='font-medium text-sm' htmlFor='type'>
-                                Type
-                            </label>
-                            <Select onValueChange={setType}>
-                                <SelectTrigger id='type'>
-                                    <SelectValue placeholder='Type' />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value='Permanent'>Permanent</SelectItem>
-                                    <SelectItem value='Contract'>Contract</SelectItem>
-                                </SelectContent>
-                            </Select>
-                        </div>
-                        <div className='md:col-span-3'>
-                            <label className='font-medium text-sm' htmlFor='department'>
-                                Department
-                            </label>
-                            <Select onValueChange={setDepartment}>
-                                <SelectTrigger id='department'>
-                                    <SelectValue placeholder='Department' />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {[...new Set(data.map((d) => d.department))].map((v) => (
-                                        <SelectItem key={v} value={v}>
-                                            {v}
-                                        </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
-                        </div>
-                        <div className='md:col-span-3'>
-                            <label className='font-medium text-sm' htmlFor='designation'>
-                                Designation
-                            </label>
-                            <Select onValueChange={setDesignation}>
-                                <SelectTrigger id='designation'>
-                                    <SelectValue placeholder='Designation' />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {[...new Set(data.map((d) => d.designation))].map((v) => (
-                                        <SelectItem key={v} value={v}>
-                                            {v}
-                                        </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
-                        </div>
-
-                        <div className='flex items-center gap-4 pt-2 md:col-span-3'>
-                            <div className='flex items-center gap-2 text-sm'>
-                                <Checkbox checked={allOrIndividual === 'All'} onCheckedChange={() => setAllOrIndividual('All')} />
-                                <span>All</span>
-                            </div>
-                            <div className='flex items-center gap-2 text-sm'>
-                                <Checkbox
-                                    checked={allOrIndividual === 'Individual'}
-                                    onCheckedChange={() => setAllOrIndividual('Individual')}
-                                />
-                                <span>Individual</span>
-                            </div>
-                        </div>
-
-                        <div className='flex gap-4 md:col-span-6'>
-                            <div className='flex items-center gap-2 text-sm'>
-                                <Checkbox checked={codeOrName === 'Code'} onCheckedChange={() => setCodeOrName('Code')} />
-                                <span>Code</span>
-                            </div>
-                            <div className='flex items-center gap-2 text-sm'>
-                                <Checkbox checked={codeOrName === 'Name'} onCheckedChange={() => setCodeOrName('Name')} />
-                                <span>Name</span>
-                            </div>
-                            <InputText
-                                placeholder={codeOrName === 'Code' ? 'Code' : 'Name'}
-                                value={query}
-                                onChange={(e) => setQuery(e.target.value)}
-                            />
-                        </div>
-
-                        <div className='flex items-center gap-4 md:col-span-12'>
-                            <div className='flex items-center gap-2 text-sm'>
-                                <Checkbox checked={dateMode === 'Date'} onCheckedChange={() => setDateMode('Date')} />
-                                <span>Date</span>
-                            </div>
-                            <InputText type='date' value={date} onChange={(e) => setDate(e.target.value)} />
-                            <div className='flex items-center gap-2 text-sm'>
-                                <Checkbox checked={dateMode === 'Monthly'} onCheckedChange={() => setDateMode('Monthly')} />
-                                <span>Monthly</span>
-                            </div>
-                            <Select onValueChange={setMonth}>
-                                <SelectTrigger className='w-40'>
-                                    <SelectValue placeholder='--Select--' />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {['01', '02', '03', '04', '05', '06', '07', '08', '09', '10', '11', '12'].map((m) => (
-                                        <SelectItem key={m} value={m}>
-                                            {m}
-                                        </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
-                            <div className='flex items-center gap-2 text-sm'>
-                                <Checkbox checked={dateMode === 'From Date'} onCheckedChange={() => setDateMode('From Date')} />
-                                <span>From Date</span>
-                            </div>
-                            <InputText type='date' value={fromDate} onChange={(e) => setFromDate(e.target.value)} />
-                            <span>To Date :</span>
-                            <InputText type='date' value={toDate} onChange={(e) => setToDate(e.target.value)} />
-                        </div>
-
-                        <div className='md:col-span-3'>
-                            <label htmlFor='mode-select' className='font-medium text-sm'>
-                                Mode
-                            </label>
-                            <Select onValueChange={(v) => setMetric(v as any)}>
-                                <SelectTrigger id='mode-select'>
-                                    <SelectValue placeholder='Mode' />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value='Punch Time'>Punch Time</SelectItem>
-                                    <SelectItem value='Late In'>Late In</SelectItem>
-                                    <SelectItem value='Early Out'>Early Out</SelectItem>
-                                </SelectContent>
-                            </Select>
-                        </div>
-                        <div className='flex items-end gap-2 md:col-span-9'>
-                            <Button onClick={handleReport}>
-                                <RefreshCw className='mr-2 h-4 w-4' /> Report
-                            </Button>
-                            <Button variant='outline' onClick={handleExport}>
-                                <FileDown className='mr-2 h-4 w-4' /> Export to Excel
-                            </Button>
-                            <Button variant='outline' onClick={handlePrint}>
-                                <Printer className='mr-2 h-4 w-4' /> Print
-                            </Button>
-                        </div>
-                    </div>
-                </CollapsibleSection>
+                <LogReportFilters
+                    filters={filters}
+                    data={data}
+                    onFilterChange={setFilters}
+                    onReport={handleReport}
+                    onExport={handleExport}
+                    onPrint={handlePrint}
+                />
 
                 <CollapsibleSection
                     title='Employee Log Report'
@@ -265,7 +89,7 @@ export default function EmployeeLogReportPage() {
                     variant='default'
                     size='lg'
                     className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
-                    <GenericDataTable isLoading={false} columns={columns} data={filtered} totalItems={filtered.length} showViewOptions />
+                    <GenericDataTable isLoading={false} columns={logReportColumns} data={filtered} totalItems={filtered.length} showViewOptions />
                 </CollapsibleSection>
             </div>
         </div>

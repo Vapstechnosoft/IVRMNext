@@ -118,20 +118,62 @@ class ApiService {
         data?: unknown
     ): Promise<ApiResponse<T>> {
         try {
-            console.info('request', {
-                baseUrlKey,
-                url
-            });
             const instance = this.getOrCreateInstance(baseUrlKey);
+            const baseURL = instance.defaults.baseURL;
+            const fullUrl = `${baseURL}${url}`;
+            
+            console.log('🌐 [API SERVICE] Request initiated');
+            console.log('📤 [API SERVICE] Request details:', {
+                method,
+                baseUrlKey,
+                url,
+                fullUrl,
+                hasData: !!data,
+                dataSize: data ? JSON.stringify(data).length : 0
+            });
+            
+            if (data && method === 'POST') {
+                console.log('📦 [API SERVICE] Request payload:', JSON.stringify(data, null, 2));
+            }
 
+            const startTime = Date.now();
             const response = await instance.request<ApiResponse<T>>({
                 method,
                 url,
                 data,
                 ...config
             });
+            const duration = Date.now() - startTime;
+            
+            console.log('✅ [API SERVICE] Response received');
+            console.log('📥 [API SERVICE] Response details:', {
+                status: response.status,
+                statusText: response.statusText,
+                duration: `${duration}ms`,
+                hasData: !!response.data,
+                success: response.data?.success,
+                message: response.data?.message
+            });
+            
+            if (response.data) {
+                console.log('📊 [API SERVICE] Response data structure:', {
+                    hasSuccess: 'success' in response.data,
+                    hasMessage: 'message' in response.data,
+                    hasData: 'data' in response.data,
+                    keys: Object.keys(response.data || {})
+                });
+            }
+            
             return response.data;
-        } catch (error) {
+        } catch (error: any) {
+            console.error('❌ [API SERVICE] Request failed');
+            console.error('💥 [API SERVICE] Error details:', {
+                message: error?.message,
+                status: error?.response?.status,
+                statusText: error?.response?.statusText,
+                data: error?.response?.data,
+                url: error?.config?.url
+            });
             throw this.handleError(error);
         }
     }

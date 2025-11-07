@@ -1,31 +1,16 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
-import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
 import { DataTable } from '@/components/ui/data-table/data-table';
-import { Label } from '@/components/ui/extension/field';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
-import { MultiSelect } from '@/components/ui/multi-select';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useCumulativeSalaryReportOnload, useSearchCumulativeSalaryReport } from '@/hooks/hrms/useReports';
-import type { CumulativeSalaryReportSearchRequest, SalaryReportRecord } from '@/types/hrms/reports/cumulative-salary-report';
-import type { ColumnDef } from '@tanstack/react-table';
-import { Download, Printer, RefreshCw, X } from 'lucide-react';
+import type { CumulativeSalaryReportSearchRequest } from '@/types/hrms/reports/cumulative-salary-report';
+import { Download, Printer } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
-import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
+import { type SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
-
-// Use API types directly
-type CumulativeSalaryRecord = SalaryReportRecord;
-
-// Report filters
-interface ReportFilters {
-    groupType: string[]; // multi-select of Group Types (store ids as strings)
-    department: string[]; // multi-select of Departments (store ids as strings)
-    designation: string[]; // multi-select of Designations (store ids as strings)
-    month: string;
-    year: string;
-}
+import { CumulativeSalaryReportFilters, type ReportFilters } from './_components/filters';
+import { cumulativeSalaryColumns, type CumulativeSalaryRecord } from './_components/columns';
 
 export default function CumulativeSalaryReportPage() {
     const MI_Id = 30; // Default MI_Id
@@ -216,305 +201,21 @@ export default function CumulativeSalaryReportPage() {
         );
     }, [filteredRecords]);
 
-    // Table columns - Matching the exact structure from the image
-    const columns: ColumnDef<CumulativeSalaryRecord>[] = [
-        {
-            accessorKey: 'slNo',
-            header: ({ column }) => <DataTableColumnHeader column={column} title='Sl.No' />,
-            cell: ({ row, table }) => {
-                const pageIndex = table.getState().pagination.pageIndex;
-                const pageSize = table.getState().pagination.pageSize;
-                const continuousIndex = pageIndex * pageSize + row.index + 1;
-                return <div className='text-center'>{continuousIndex}</div>;
-            },
-            enableSorting: false,
-            enableHiding: false,
-            size: 60
-        },
-        {
-            accessorKey: 'employeeName',
-            header: ({ column }) => <DataTableColumnHeader column={column} title='Employee Name' />,
-            cell: ({ row }) => {
-                const record = row.original;
-                const fullName = `${record.HRME_EmployeeFirstName || ''} ${
-                    record.HRME_EmployeeMiddleName || ''
-                } ${record.HRME_EmployeeLastName || ''}`.trim();
-                return <div className='font-medium'>{fullName}</div>;
-            },
-            enableSorting: true,
-            enableHiding: true
-        },
-        {
-            accessorKey: 'designation',
-            header: ({ column }) => <DataTableColumnHeader column={column} title='Designation' />,
-            cell: ({ row }) => <div>{row.getValue('designation')}</div>,
-            enableSorting: true,
-            enableHiding: true
-        },
-        // Earnings Section
-        {
-            accessorKey: 'basic',
-            header: ({ column }) => <DataTableColumnHeader column={column} title='BASIC' />,
-            cell: ({ row }) => <div className='text-right'>₹{(row.getValue('basic') as number).toLocaleString()}</div>,
-            enableSorting: true,
-            enableHiding: true
-        },
-        {
-            accessorKey: 'da',
-            header: ({ column }) => <DataTableColumnHeader column={column} title='DA' />,
-            cell: ({ row }) => <div className='text-right'>₹{(row.getValue('da') as number).toLocaleString()}</div>,
-            enableSorting: true,
-            enableHiding: true
-        },
-        {
-            accessorKey: 'hra',
-            header: ({ column }) => <DataTableColumnHeader column={column} title='HRA' />,
-            cell: ({ row }) => <div className='text-right'>₹{(row.getValue('hra') as number).toLocaleString()}</div>,
-            enableSorting: true,
-            enableHiding: true
-        },
-        {
-            accessorKey: 'conveyance',
-            header: ({ column }) => <DataTableColumnHeader column={column} title='Conveyance' />,
-            cell: ({ row }) => <div className='text-right'>₹{(row.getValue('conveyance') as number).toLocaleString()}</div>,
-            enableSorting: true,
-            enableHiding: true
-        },
-        {
-            accessorKey: 'medical',
-            header: ({ column }) => <DataTableColumnHeader column={column} title='Medical' />,
-            cell: ({ row }) => <div className='text-right'>₹{(row.getValue('medical') as number).toLocaleString()}</div>,
-            enableSorting: true,
-            enableHiding: true
-        },
-        {
-            accessorKey: 'splAllowance',
-            header: ({ column }) => <DataTableColumnHeader column={column} title='Spl Allowance' />,
-            cell: ({ row }) => <div className='text-right'>₹{(row.getValue('splAllowance') as number).toLocaleString()}</div>,
-            enableSorting: true,
-            enableHiding: true
-        },
-        {
-            accessorKey: 'grossEarning',
-            header: ({ column }) => <DataTableColumnHeader column={column} title='Gross Earning' />,
-            cell: ({ row }) => <div className='text-right font-semibold'>₹{(row.getValue('grossEarning') as number).toLocaleString()}</div>,
-            enableSorting: true,
-            enableHiding: true
-        },
-        // Deductions Section
-        {
-            accessorKey: 'pf',
-            header: ({ column }) => <DataTableColumnHeader column={column} title='PF' />,
-            cell: ({ row }) => <div className='text-right'>₹{(row.getValue('pf') as number).toLocaleString()}</div>,
-            enableSorting: true,
-            enableHiding: true
-        },
-        {
-            accessorKey: 'esi',
-            header: ({ column }) => <DataTableColumnHeader column={column} title='ESI' />,
-            cell: ({ row }) => <div className='text-right'>₹{(row.getValue('esi') as number).toLocaleString()}</div>,
-            enableSorting: true,
-            enableHiding: true
-        },
-        {
-            accessorKey: 'others',
-            header: ({ column }) => <DataTableColumnHeader column={column} title='Others (C.D)' />,
-            cell: ({ row }) => <div className='text-right'>₹{(row.getValue('others') as number).toLocaleString()}</div>,
-            enableSorting: true,
-            enableHiding: true
-        },
-        {
-            accessorKey: 'pt',
-            header: ({ column }) => <DataTableColumnHeader column={column} title='PT' />,
-            cell: ({ row }) => <div className='text-right'>₹{(row.getValue('pt') as number).toLocaleString()}</div>,
-            enableSorting: true,
-            enableHiding: true
-        },
-        {
-            accessorKey: 'grossDeduction',
-            header: ({ column }) => <DataTableColumnHeader column={column} title='Gross Deduction' />,
-            cell: ({ row }) => (
-                <div className='text-right font-semibold'>₹{(row.getValue('grossDeduction') as number).toLocaleString()}</div>
-            ),
-            enableSorting: true,
-            enableHiding: true
-        },
-        {
-            accessorKey: 'leaveDedDays',
-            header: ({ column }) => <DataTableColumnHeader column={column} title='Leave Ded.No.of days' />,
-            cell: ({ row }) => <div className='text-center'>{row.getValue('leaveDedDays') || 0}</div>,
-            enableSorting: true,
-            enableHiding: true
-        },
-        {
-            accessorKey: 'leaveDedPrevDays',
-            header: ({ column }) => <DataTableColumnHeader column={column} title='Leave Ded.days of previous' />,
-            cell: ({ row }) => <div className='text-center'>{row.getValue('leaveDedPrevDays') || 0}</div>,
-            enableSorting: true,
-            enableHiding: true
-        },
-        {
-            accessorKey: 'netSalary',
-            header: ({ column }) => <DataTableColumnHeader column={column} title='Net Salary' />,
-            cell: ({ row }) => (
-                <div className='text-right font-semibold text-green-600'>₹{(row.getValue('netSalary') as number).toLocaleString()}</div>
-            ),
-            enableSorting: true,
-            enableHiding: true
-        },
-        {
-            accessorKey: 'signature',
-            header: ({ column }) => <DataTableColumnHeader column={column} title='Signature' />,
-            cell: () => <div className='text-center text-muted-foreground'>-</div>,
-            enableSorting: false,
-            enableHiding: true
-        }
-    ];
 
     return (
         <div className='min-h-screen'>
             <div className='container space-y-4 p-1'>
                 {/* Search Form */}
-                <CollapsibleSection
-                    title='CUMULATIVE SALARY REPORT'
-                    description='Search and filter employee salary records'
-                    defaultOpen={true}
-                    variant='outline'
-                    size='lg'
-                    className='shadow-lg'
-                    headerClassName=''>
-                    <form onSubmit={handleSubmit(onSubmit)} className='space-y-6'>
-                        <div className='grid grid-cols-1 gap-6 lg:grid-cols-5'>
-                            {/* Group Type (MultiSelect) */}
-                            <div className='space-y-3'>
-                                <Label className='font-semibold'>Group Type</Label>
-                                <Controller
-                                    name='groupType'
-                                    control={control}
-                                    render={({ field }) => (
-                                        <MultiSelect
-                                            options={groupTypes.map((g) => ({
-                                                label: g.HRMGT_EmployeeGroupType,
-                                                value: String(g.HRMGT_Id)
-                                            }))}
-                                            onValueChange={field.onChange}
-                                            defaultValue={field.value}
-                                            placeholder='Select Group Types'
-                                            className='w-full'
-                                            maxHeight={240}
-                                        />
-                                    )}
-                                />
-                            </div>
-
-                            {/* Department (MultiSelect) */}
-                            <div className='space-y-3'>
-                                <Label className='font-semibold'>Department</Label>
-                                <Controller
-                                    name='department'
-                                    control={control}
-                                    render={({ field }) => (
-                                        <MultiSelect
-                                            options={departments.map((d) => ({
-                                                label: d.HRMD_DepartmentName,
-                                                value: String(d.HRMD_Id)
-                                            }))}
-                                            onValueChange={field.onChange}
-                                            defaultValue={field.value}
-                                            placeholder='Select Departments'
-                                            className='w-full'
-                                            maxHeight={240}
-                                        />
-                                    )}
-                                />
-                            </div>
-
-                            {/* Designation (MultiSelect) */}
-                            <div className='space-y-3'>
-                                <Label className='font-semibold'>Designation</Label>
-                                <Controller
-                                    name='designation'
-                                    control={control}
-                                    render={({ field }) => (
-                                        <MultiSelect
-                                            options={designations.map((d) => ({
-                                                label: d.HRMDES_DesignationName,
-                                                value: String(d.HRMDES_Id)
-                                            }))}
-                                            onValueChange={field.onChange}
-                                            defaultValue={field.value}
-                                            placeholder='Select Designations'
-                                            className='w-full'
-                                            maxHeight={240}
-                                        />
-                                    )}
-                                />
-                            </div>
-
-                            {/* Month */}
-                            <div className='space-y-3'>
-                                <Label className='font-semibold'>Month</Label>
-                                <Controller
-                                    name='month'
-                                    control={control}
-                                    render={({ field }) => (
-                                        <Select onValueChange={field.onChange} value={field.value}>
-                                            <SelectTrigger>
-                                                <SelectValue placeholder='Select Month' />
-                                            </SelectTrigger>
-                                            <SelectContent>
-                                                {months.map((month) => (
-                                                    <SelectItem key={month.IVRM_Month_Id} value={month.IVRM_Month_Name.trim()}>
-                                                        {month.IVRM_Month_Name.trim()}
-                                                    </SelectItem>
-                                                ))}
-                                            </SelectContent>
-                                        </Select>
-                                    )}
-                                />
-                            </div>
-
-                            {/* Year */}
-                            <div className='space-y-3'>
-                                <Label className='font-semibold'>Year</Label>
-                                <Controller
-                                    name='year'
-                                    control={control}
-                                    render={({ field }) => (
-                                        <Select onValueChange={field.onChange} value={field.value}>
-                                            <SelectTrigger>
-                                                <SelectValue placeholder='Select Year' />
-                                            </SelectTrigger>
-                                            <SelectContent>
-                                                {years.map((year) => (
-                                                    <SelectItem key={year.HRMLY_Id} value={year.HRMLY_LeaveYear}>
-                                                        {year.HRMLY_LeaveYear}
-                                                    </SelectItem>
-                                                ))}
-                                            </SelectContent>
-                                        </Select>
-                                    )}
-                                />
-                            </div>
-                        </div>
-
-                        {/* Search and Cancel Buttons */}
-                        <div className='flex gap-2 pt-4'>
-                            <Button type='submit' className='w-fit transition-all duration-200 hover:scale-105'>
-                                <RefreshCw className='mr-2 h-4 w-4' />
-                                SEARCH
-                            </Button>
-                            <Button
-                                type='button'
-                                variant='outline'
-                                className='w-fit transition-all duration-200 hover:scale-105'
-                                onClick={handleCancel}>
-                                <X className='mr-2 h-4 w-4' />
-                                CANCEL
-                            </Button>
-                        </div>
-                    </form>
-                </CollapsibleSection>
+                <CumulativeSalaryReportFilters
+                    control={control}
+                    groupTypes={groupTypes}
+                    departments={departments}
+                    designations={designations}
+                    months={months}
+                    years={years}
+                    onSubmit={handleSubmit(onSubmit)}
+                    onCancel={handleCancel}
+                />
 
                 {/* Report Results - Only show after search */}
                 {showReport ? (
@@ -549,7 +250,7 @@ export default function CumulativeSalaryReportPage() {
                             <div className='overflow-hidden rounded-lg bg-card'>
                                 <DataTable
                                     isLoading={searchMutation.isPending}
-                                    columns={columns}
+                                    columns={cumulativeSalaryColumns}
                                     data={filteredRecords}
                                     totalItems={filteredRecords.length}
                                     showViewOptions={true}

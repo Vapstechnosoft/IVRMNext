@@ -2,17 +2,13 @@
 
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Checkbox } from '@/components/ui/checkbox';
-import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
 import { DataTable } from '@/components/ui/data-table/data-table';
-import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { type BaseEntity, createLocalCrud } from '@/lib/localdb';
-import { cn } from '@/lib/utils';
-import type { ColumnDef } from '@tanstack/react-table';
-import { Calculator, Download, Printer, Search, X } from 'lucide-react';
+import { Calculator, Download, Printer } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';
+import { HeadWiseReportFilters, type HeadWiseReportFilters as HeadWiseFilters } from './_components/filters';
+import { headWiseReportColumns, type HeadWiseRecord as HeadWiseRecordColumn } from './_components/columns';
 
 // Data interfaces from employee-category masters
 interface GroupType extends BaseEntity {
@@ -37,12 +33,6 @@ interface HeadWiseRecord extends BaseEntity {
     year: string;
 }
 
-// Report filters
-interface HeadWiseReportFilters {
-    selectedGroupTypes: string[];
-    month: string;
-    year: string;
-}
 
 export default function HeadWiseReportPage() {
     // Database instances
@@ -56,7 +46,7 @@ export default function HeadWiseReportPage() {
     const [isLoading, setIsLoading] = useState(true);
     const [showReport, setShowReport] = useState(false);
 
-    const [filters, setFilters] = useState<HeadWiseReportFilters>({
+    const [filters, setFilters] = useState<HeadWiseFilters>({
         selectedGroupTypes: [],
         month: '',
         year: ''
@@ -235,8 +225,8 @@ export default function HeadWiseReportPage() {
         }));
     };
 
-    const handleFilterChange = (key: keyof Omit<HeadWiseReportFilters, 'selectedGroupTypes'>, value: string) => {
-        setFilters((prev) => ({ ...prev, [key]: value }));
+    const handleFilterChange = (newFilters: HeadWiseFilters) => {
+        setFilters(newFilters);
     };
 
     const handleSearch = () => {
@@ -281,228 +271,19 @@ export default function HeadWiseReportPage() {
         };
     }, [filteredRecords]);
 
-    // Table columns
-    const columns: ColumnDef<HeadWiseRecord>[] = [
-        {
-            accessorKey: 'id',
-            header: ({ column }) => <DataTableColumnHeader column={column} title='SL.No.' />,
-            cell: ({ row, table }) => {
-                const pageIndex = table.getState().pagination.pageIndex;
-                const pageSize = table.getState().pagination.pageSize;
-                const continuousIndex = pageIndex * pageSize + row.index + 1;
-                return <div className='text-center'>{continuousIndex}</div>;
-            },
-            enableSorting: false,
-            enableHiding: false,
-            size: 80
-        },
-        {
-            accessorKey: 'salaryHead',
-            header: ({ column }) => <DataTableColumnHeader column={column} title='Salary Head' />,
-            cell: ({ row }) => <div className='font-medium'>{row.getValue('salaryHead')}</div>,
-            enableSorting: true,
-            enableHiding: true
-        },
-        {
-            accessorKey: 'headType',
-            header: ({ column }) => <DataTableColumnHeader column={column} title='Type' />,
-            cell: ({ row }) => {
-                const type = row.getValue('headType') as string;
-                return (
-                    <span
-                        className={cn(
-                            'rounded-full px-2 py-1 font-medium text-xs',
-                            type === 'Earning' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
-                        )}>
-                        {type}
-                    </span>
-                );
-            },
-            enableSorting: true,
-            enableHiding: true
-        },
-        {
-            accessorKey: 'groupType',
-            header: ({ column }) => <DataTableColumnHeader column={column} title='Group Type' />,
-            cell: ({ row }) => <div>{row.getValue('groupType')}</div>,
-            enableSorting: true,
-            enableHiding: true
-        },
-        {
-            accessorKey: 'departmentName',
-            header: ({ column }) => <DataTableColumnHeader column={column} title='Department' />,
-            cell: ({ row }) => <div>{row.getValue('departmentName')}</div>,
-            enableSorting: true,
-            enableHiding: true
-        },
-        {
-            accessorKey: 'totalEmployees',
-            header: ({ column }) => <DataTableColumnHeader column={column} title='Employees' />,
-            cell: ({ row }) => <div className='text-center'>{row.getValue('totalEmployees')}</div>,
-            enableSorting: true,
-            enableHiding: true
-        },
-        {
-            accessorKey: 'totalAmount',
-            header: ({ column }) => <DataTableColumnHeader column={column} title='Total Amount' />,
-            cell: ({ row }) => <div className='font-semibold'>₹{(row.getValue('totalAmount') as number).toLocaleString()}</div>,
-            enableSorting: true,
-            enableHiding: true
-        },
-        {
-            accessorKey: 'averageAmount',
-            header: ({ column }) => <DataTableColumnHeader column={column} title='Average Amount' />,
-            cell: ({ row }) => <div>₹{(row.getValue('averageAmount') as number).toLocaleString()}</div>,
-            enableSorting: true,
-            enableHiding: true
-        },
-        {
-            accessorKey: 'maxAmount',
-            header: ({ column }) => <DataTableColumnHeader column={column} title='Max Amount' />,
-            cell: ({ row }) => <div className='text-green-600'>₹{(row.getValue('maxAmount') as number).toLocaleString()}</div>,
-            enableSorting: true,
-            enableHiding: true
-        },
-        {
-            accessorKey: 'minAmount',
-            header: ({ column }) => <DataTableColumnHeader column={column} title='Min Amount' />,
-            cell: ({ row }) => <div className='text-orange-600'>₹{(row.getValue('minAmount') as number).toLocaleString()}</div>,
-            enableSorting: true,
-            enableHiding: true
-        }
-    ];
 
     return (
         <div className='space-y-6'>
             {/* Report Configuration Section */}
-            <CollapsibleSection
-                title='HEAD WISE REPORT'
-                description='Configure filters to generate salary head wise analysis and reports'
-                defaultOpen={true}
-                variant='default'
-                size='lg'
-                className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
-                <div className='grid grid-cols-1 gap-6 lg:grid-cols-2'>
-                    {/* Left Column - Group Type Selection */}
-                    <div className='space-y-4'>
-                        <div className='space-y-3'>
-                            <div className='flex items-center justify-between'>
-                                <span className='font-medium text-foreground text-sm'>
-                                    Group Type: <span className='text-red-500'>*</span>
-                                </span>
-                                <Button variant='outline' size='sm' onClick={handleSelectAllGroupTypes} className='text-xs'>
-                                    {filters.selectedGroupTypes.length === groupTypes.length ? 'Deselect All' : 'Select All'}
-                                </Button>
-                            </div>
-
-                            <div className='max-h-48 overflow-y-auto rounded-md border bg-background p-3'>
-                                <div className='space-y-2'>
-                                    <div className='flex items-center gap-2 font-medium text-sm'>
-                                        <Checkbox
-                                            id='all-group-types'
-                                            checked={filters.selectedGroupTypes.length === groupTypes.length}
-                                            onCheckedChange={handleSelectAllGroupTypes}
-                                        />
-                                        <label htmlFor='all-group-types' className='cursor-pointer'>
-                                            All
-                                        </label>
-                                    </div>
-                                    {groupTypes.map((group) => (
-                                        <div key={group.id} className='flex items-center gap-2 text-sm'>
-                                            <Checkbox
-                                                id={`group-${group.id}`}
-                                                checked={filters.selectedGroupTypes.includes(group.groupType)}
-                                                onCheckedChange={() => handleGroupTypeToggle(group.groupType)}
-                                            />
-                                            <label htmlFor={`group-${group.id}`} className='cursor-pointer'>
-                                                {group.groupType}
-                                            </label>
-                                        </div>
-                                    ))}
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* Right Column - Month and Year */}
-                    <div className='space-y-4'>
-                        {/* Month Selection */}
-                        <div className='space-y-2'>
-                            <span className='font-medium text-foreground text-sm'>
-                                Month: <span className='text-red-500'>*</span>
-                            </span>
-                            <Select value={filters.month} onValueChange={(value) => handleFilterChange('month', value)}>
-                                <SelectTrigger>
-                                    <SelectValue placeholder='Select' />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {[
-                                        'January',
-                                        'February',
-                                        'March',
-                                        'April',
-                                        'May',
-                                        'June',
-                                        'July',
-                                        'August',
-                                        'September',
-                                        'October',
-                                        'November',
-                                        'December'
-                                    ].map((month) => (
-                                        <SelectItem key={month} value={month}>
-                                            {month}
-                                        </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
-                        </div>
-
-                        {/* Year Selection */}
-                        <div className='space-y-2'>
-                            <span className='font-medium text-foreground text-sm'>
-                                Year: <span className='text-red-500'>*</span>
-                            </span>
-                            <Select value={filters.year} onValueChange={(value) => handleFilterChange('year', value)}>
-                                <SelectTrigger>
-                                    <SelectValue placeholder='Select' />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {Array.from({ length: 5 }, (_, i) => {
-                                        const year = new Date().getFullYear() - 2 + i;
-                                        return (
-                                            <SelectItem key={year} value={year.toString()}>
-                                                {year}
-                                            </SelectItem>
-                                        );
-                                    })}
-                                </SelectContent>
-                            </Select>
-                        </div>
-
-                        {/* Selected Group Types Display */}
-                        {filters.selectedGroupTypes.length > 0 && (
-                            <div className='space-y-2'>
-                                <span className='font-medium text-foreground text-sm'>Selected Group Types:</span>
-                                <div className='text-muted-foreground text-sm'>
-                                    {filters.selectedGroupTypes.length} group type(s) selected
-                                </div>
-                            </div>
-                        )}
-                    </div>
-                </div>
-
-                {/* Action Buttons */}
-                <div className='flex gap-2 pt-4'>
-                    <Button onClick={handleSearch}>
-                        <Search className='mr-2 h-4 w-4' />
-                        SEARCH
-                    </Button>
-                    <Button variant='outline' onClick={handleCancel} prefix={<X className='size-4' />}>
-                        CANCEL
-                    </Button>
-                </div>
-            </CollapsibleSection>
+            <HeadWiseReportFilters
+                filters={filters}
+                groupTypes={groupTypes}
+                onFilterChange={handleFilterChange}
+                onSearch={handleSearch}
+                onCancel={handleCancel}
+                onSelectAllGroupTypes={handleSelectAllGroupTypes}
+                onGroupTypeToggle={handleGroupTypeToggle}
+            />
 
             {/* Report Results */}
             {showReport && (
@@ -576,8 +357,8 @@ export default function HeadWiseReportPage() {
                     {/* Data Table */}
                     <DataTable
                         isLoading={isLoading}
-                        columns={columns}
-                        data={filteredRecords}
+                        columns={headWiseReportColumns}
+                        data={filteredRecords as unknown as HeadWiseRecordColumn[]}
                         totalItems={filteredRecords.length}
                         showViewOptions={true}
                         columnPinning={{ left: ['id'] }}

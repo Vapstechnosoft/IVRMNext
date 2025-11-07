@@ -12,7 +12,7 @@ import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
 import { CalendarIcon } from 'lucide-react';
 import { useEffect, useState } from 'react';
-import { Controller, useForm } from 'react-hook-form';
+import { Controller, useForm, useWatch } from 'react-hook-form';
 import { toast } from 'sonner';
 
 interface LeaveYearFormProps {
@@ -33,6 +33,9 @@ export default function LeaveYearForm({ selectedRow, onSuccess }: LeaveYearFormP
         handleSubmit,
         control,
         reset,
+        watch,
+        setValue,
+        trigger,
         formState: { errors, isDirty }
     } = useForm<MasterLeaveYearInput>({
         defaultValues: {
@@ -44,6 +47,31 @@ export default function LeaveYearForm({ selectedRow, onSuccess }: LeaveYearFormP
             HRMLY_LeaveYearOrder: 1
         }
     });
+
+    // Watch From Date to validate To Date
+    const fromDate = useWatch({
+        control,
+        name: 'HRMLY_FromDate'
+    });
+
+    // Watch To Date to validate From Date
+    const toDate = useWatch({
+        control,
+        name: 'HRMLY_ToDate'
+    });
+
+    // Trigger validation when dates change
+    useEffect(() => {
+        if (fromDate) {
+            trigger('HRMLY_ToDate');
+        }
+    }, [fromDate, trigger]);
+
+    useEffect(() => {
+        if (toDate) {
+            trigger('HRMLY_FromDate');
+        }
+    }, [toDate, trigger]);
 
     useEffect(() => {
         if (selectedRow) {
@@ -147,7 +175,22 @@ export default function LeaveYearForm({ selectedRow, onSuccess }: LeaveYearFormP
                 <Controller
                     name='HRMLY_FromDate'
                     control={control}
-                    rules={{ required: 'From Date is required' }}
+                    rules={{
+                        required: 'From Date is required',
+                        validate: (value) => {
+                            if (!value) return true;
+                            if (!toDate) return true;
+                            // Normalize dates to start of day for accurate comparison
+                            const from = new Date(value);
+                            from.setHours(0, 0, 0, 0);
+                            const to = new Date(toDate);
+                            to.setHours(0, 0, 0, 0);
+                            if (from >= to) {
+                                return 'From Date must be less than To Date';
+                            }
+                            return true;
+                        }
+                    }}
                     render={({ field }) => (
                         <Popover open={fromDateOpen} onOpenChange={setFromDateOpen}>
                             <PopoverTrigger asChild>
@@ -166,8 +209,35 @@ export default function LeaveYearForm({ selectedRow, onSuccess }: LeaveYearFormP
                                     mode='single'
                                     selected={field.value ? new Date(field.value) : undefined}
                                     onSelect={(date) => {
-                                        field.onChange(date ? format(date, 'yyyy-MM-dd') : '');
+                                        if (date) {
+                                            const dateStr = format(date, 'yyyy-MM-dd');
+                                            field.onChange(dateStr);
+                                            // If To Date exists and is less than or equal to selected date, clear it
+                                            if (toDate) {
+                                                const to = new Date(toDate);
+                                                to.setHours(0, 0, 0, 0);
+                                                const selected = new Date(date);
+                                                selected.setHours(0, 0, 0, 0);
+                                                if (to <= selected) {
+                                                    setValue('HRMLY_ToDate', '', { shouldValidate: true });
+                                                }
+                                            }
+                                            setValue('HRMLY_FromDate', dateStr, { shouldValidate: true });
+                                        } else {
+                                            field.onChange('');
+                                        }
                                         setFromDateOpen(false);
+                                    }}
+                                    disabled={(date) => {
+                                        // Disable dates that are greater than or equal to To Date (if To Date is selected)
+                                        if (toDate) {
+                                            const to = new Date(toDate);
+                                            to.setHours(0, 0, 0, 0);
+                                            const checkDate = new Date(date);
+                                            checkDate.setHours(0, 0, 0, 0);
+                                            return checkDate >= to;
+                                        }
+                                        return false;
                                     }}
                                     initialFocus
                                 />
@@ -185,7 +255,22 @@ export default function LeaveYearForm({ selectedRow, onSuccess }: LeaveYearFormP
                 <Controller
                     name='HRMLY_ToDate'
                     control={control}
-                    rules={{ required: 'To Date is required' }}
+                    rules={{
+                        required: 'To Date is required',
+                        validate: (value) => {
+                            if (!value) return true;
+                            if (!fromDate) return true;
+                            // Normalize dates to start of day for accurate comparison
+                            const from = new Date(fromDate);
+                            from.setHours(0, 0, 0, 0);
+                            const to = new Date(value);
+                            to.setHours(0, 0, 0, 0);
+                            if (to <= from) {
+                                return 'To Date must be greater than From Date';
+                            }
+                            return true;
+                        }
+                    }}
                     render={({ field }) => (
                         <Popover open={toDateOpen} onOpenChange={setToDateOpen}>
                             <PopoverTrigger asChild>
@@ -204,8 +289,25 @@ export default function LeaveYearForm({ selectedRow, onSuccess }: LeaveYearFormP
                                     mode='single'
                                     selected={field.value ? new Date(field.value) : undefined}
                                     onSelect={(date) => {
-                                        field.onChange(date ? format(date, 'yyyy-MM-dd') : '');
+                                        if (date) {
+                                            const dateStr = format(date, 'yyyy-MM-dd');
+                                            field.onChange(dateStr);
+                                            setValue('HRMLY_ToDate', dateStr, { shouldValidate: true });
+                                        } else {
+                                            field.onChange('');
+                                        }
                                         setToDateOpen(false);
+                                    }}
+                                    disabled={(date) => {
+                                        // Disable dates that are less than or equal to From Date
+                                        if (fromDate) {
+                                            const from = new Date(fromDate);
+                                            from.setHours(0, 0, 0, 0);
+                                            const checkDate = new Date(date);
+                                            checkDate.setHours(0, 0, 0, 0);
+                                            return checkDate <= from;
+                                        }
+                                        return false;
                                     }}
                                     initialFocus
                                 />

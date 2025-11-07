@@ -356,21 +356,41 @@ export function useMasterBank(roleId: number) {
 
     const saveMutation = useMutation({
         mutationFn: (data: MasterBankInput) => {
-            console.log('🟣 [HOOK] Bank saveMutation.mutationFn called with data:', JSON.stringify(data, null, 2));
+            const isEditMode = !!data.HRMBD_Id;
+            if (isEditMode) {
+                console.log('🟣 [HOOK] Bank edit - ID:', data.HRMBD_Id, 'IFSC:', data.HRMBD_IFSCCode);
+            } else {
+                console.log('🟣 [HOOK] Bank save - Mode: ADD, IFSC:', data.HRMBD_IFSCCode);
+            }
             return saveMasterBank(data, roleId);
         },
-        onSuccess: (response) => {
-            console.log('🟣 [HOOK] Bank saveMutation.onSuccess - Response:', JSON.stringify(response, null, 2));
-            console.log('🟣 [HOOK] Invalidating bank queries...');
-            queryClient.invalidateQueries({
-                queryKey: [HRMS_QUERY_KEYS.MASTER_BANK]
-            });
-            console.log('🟣 [HOOK] Bank queries invalidated - table should refresh');
+        onSuccess: (response, variables) => {
+            const isEditMode = !!variables.HRMBD_Id;
+            if (isEditMode) {
+                console.log('🟣 [HOOK] Edit response - success:', response?.success, 'message:', response?.message);
+                if (response?.data) {
+                    // For edit, check top-level first, then find by ID in list
+                    const topLevelIFSC = response.data.HRMBD_IFSCCode;
+                    const topLevelId = response.data.HRMBD_Id;
+                    const updatedBankInList = response.data.bankdetailList?.find((bank: any) => bank.HRMBD_Id === variables.HRMBD_Id);
+                    const responseBank = updatedBankInList || (topLevelId === variables.HRMBD_Id ? response.data : response.data.bankdetailList?.[0] || response.data);
+                    
+                    console.log('🟣 [HOOK] Top-level IFSC:', topLevelIFSC, 'ID:', topLevelId);
+                    console.log('🟣 [HOOK] Response Bank IFSC:', responseBank.HRMBD_IFSCCode, 'ID:', responseBank.HRMBD_Id);
+                    console.log('🟣 [HOOK] Submitted IFSC:', variables.HRMBD_IFSCCode, 'ID:', variables.HRMBD_Id);
+                    console.log('🟣 [HOOK] IFSC Updated:', responseBank.HRMBD_IFSCCode === variables.HRMBD_IFSCCode);
+                }
+            } else {
+                console.log('🟣 [HOOK] Bank save success:', response?.success, response?.message);
+            }
+            if (response?.success) {
+                queryClient.invalidateQueries({
+                    queryKey: [HRMS_QUERY_KEYS.MASTER_BANK]
+                });
+            }
         },
         onError: (error: any) => {
-            console.log('🔴 [HOOK] Bank saveMutation.onError - Error:', error);
-            console.log('🔴 [HOOK] Error message:', error?.message);
-            console.log('🔴 [HOOK] Error response:', error?.response);
+            console.error('🔴 [HOOK] Bank save error:', error?.message || error);
         }
     });
 
@@ -399,9 +419,11 @@ export function useMasterBank(roleId: number) {
     });
 
     const refetchAll = () => {
-        console.log('🔄 [HOOK] Bank refetchAll called - Invalidating queries');
         queryClient.invalidateQueries({
             queryKey: [HRMS_QUERY_KEYS.MASTER_BANK]
+        });
+        queryClient.refetchQueries({
+            queryKey: [HRMS_QUERY_KEYS.MASTER_BANK, roleId]
         });
     };
 

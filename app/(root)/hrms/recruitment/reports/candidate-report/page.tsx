@@ -1,20 +1,11 @@
-// Refactored by automation script on 2025-10-28T15:40:36.169Z
-// TODO: Complete refactoring by:
-// 1. Import columns from _components/columns.tsx
-// 2. Import form from _components/filters.tsx
-// 3. Extract column definitions and form to the respective files
-// 4. Update handlers to use the new structure
-
 'use client';
 
 import { Heading } from '@/components/layout/heading';
-import { Button } from '@/components/ui/button';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { type BaseEntity, createLocalCrud } from '@/lib/localdb';
-import { Printer, RefreshCw } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';
+import { CandidateReportFilters, type CandidateReportFilters as CandidateFilters } from './_components/filters';
 
 interface Candidate extends BaseEntity {
     firstName: string;
@@ -30,19 +21,23 @@ interface Candidate extends BaseEntity {
 
 export default function CandidateReportPage() {
     const [institutions] = useState<string[]>(['Global Quality Training & Assessors Pvt LTD', 'VAPS Technologies', 'ANI Technologies']);
-    const [institution, setInstitution] = useState<string>('');
-    const [candidateId, setCandidateId] = useState<string>('');
+    const [filters, setFilters] = useState<CandidateFilters>({
+        institution: '',
+        candidateId: ''
+    });
 
     const candidateDB = createLocalCrud<Candidate>('recruitment:candidate');
     const candidates = useMemo(() => candidateDB.list(), []);
-    const selected = useMemo(() => candidates.find((c) => c.id.toString() === candidateId), [candidates, candidateId]);
+    const selected = useMemo(() => candidates.find((c) => c.id.toString() === filters.candidateId), [candidates, filters.candidateId]);
 
     useEffect(() => {
-        if (!candidateId && candidates.length > 0) setCandidateId(candidates[0].id.toString());
-    }, [candidates, candidateId]);
+        if (!filters.candidateId && candidates.length > 0) {
+            setFilters((prev) => ({ ...prev, candidateId: candidates[0].id.toString() }));
+        }
+    }, [candidates, filters.candidateId]);
 
     const handleReport = () => {
-        if (!institution || !selected) {
+        if (!filters.institution || !selected) {
             toast.error('Please select institution and candidate');
             return;
         }
@@ -62,60 +57,14 @@ export default function CandidateReportPage() {
                     </div>
                 </div>
 
-                <CollapsibleSection
-                    title='Candidate Report Generation'
-                    description=''
-                    defaultOpen={true}
-                    variant='default'
-                    size='lg'
-                    className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
-                    <div className='grid grid-cols-1 gap-6 md:grid-cols-3'>
-                        <div className='space-y-2'>
-                            <span className='font-medium text-sm'>
-                                Institution <span className='text-red-500'>*</span>
-                            </span>
-                            <Select onValueChange={setInstitution}>
-                                <SelectTrigger>
-                                    <SelectValue placeholder='--Select--' />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {institutions.map((i) => (
-                                        <SelectItem key={i} value={i}>
-                                            {i}
-                                        </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
-                        </div>
-                        <div className='space-y-2 md:col-span-2'>
-                            <span className='font-medium text-sm'>
-                                Candidate Name <span className='text-red-500'>*</span>
-                            </span>
-                            <Select onValueChange={setCandidateId} value={candidateId}>
-                                <SelectTrigger>
-                                    <SelectValue placeholder='Select Candidate' />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {candidates.map((c) => (
-                                        <SelectItem key={c.id} value={c.id.toString()}>
-                                            {`${c.firstName} ${c.middleName || ''} ${c.lastName}`.trim()}
-                                        </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
-                        </div>
-                    </div>
-                    <div className='mt-4 flex gap-3'>
-                        <Button type='button' onClick={handleReport}>
-                            <RefreshCw className='mr-2 h-4 w-4' />
-                            Report
-                        </Button>
-                        <Button type='button' variant='outline' onClick={handlePrint}>
-                            <Printer className='mr-2 h-4 w-4' />
-                            Print
-                        </Button>
-                    </div>
-                </CollapsibleSection>
+                <CandidateReportFilters
+                    filters={filters}
+                    institutions={institutions}
+                    candidates={candidates}
+                    onFilterChange={setFilters}
+                    onReport={handleReport}
+                    onPrint={handlePrint}
+                />
 
                 <CollapsibleSection
                     title='Candidate Details View'

@@ -10,7 +10,7 @@ import { departmentSchema } from '@/schemas/hrms/employee-category-schemas';
 import type { DepartmentDetail } from '@/types/hrms/master-department';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Save } from 'lucide-react';
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import type { z } from 'zod';
@@ -33,6 +33,7 @@ export default function DepartmentForm({ selectedRow, onSuccess, className = '' 
         handleSubmit,
         reset,
         control,
+        setValue,
         formState: { errors, isSubmitting, isDirty }
     } = useForm<FormFields>({
         resolver: zodResolver(departmentSchema.addOrUpdate),
@@ -112,36 +113,144 @@ export default function DepartmentForm({ selectedRow, onSuccess, className = '' 
                         <Controller
                             name='HRMD_Order'
                             control={control}
-                            render={({ field }) => (
-                                <InputNumber
-                                    label='Order'
-                                    id='HRMD_Order'
-                                    value={field.value}
-                                    onChange={(value) => {
-                                        console.log('📝 [DEPARTMENT FORM] Order field changed to:', value);
-                                        field.onChange(value);
-                                    }}
-                                    error={errors.HRMD_Order?.message}
-                                    className='transition-colors focus:ring-2 focus:ring-primary/20'
-                                />
-                            )}
+                            render={({ field }) => {
+                                // Callback ref to attach input listener when element is mounted
+                                const containerRefCallback = (containerElement: HTMLDivElement | null) => {
+                                    if (!containerElement) return;
+                                    
+                                    // Find the actual input element inside the NumberField
+                                    const findInput = () => {
+                                        return containerElement.querySelector('input[type="text"], input[type="number"]') as HTMLInputElement;
+                                    };
+                                    
+                                    // Try to find input immediately, or after a short delay for React Aria rendering
+                                    const attachListener = () => {
+                                        const inputElement = findInput();
+                                        if (!inputElement) {
+                                            setTimeout(attachListener, 50);
+                                            return;
+                                        }
+                                        
+                                        // Check if listener is already attached to avoid duplicates
+                                        if ((inputElement as any).__dirtyHandlerAttached) {
+                                            return;
+                                        }
+                                        
+                                        const handleInput = (e: Event) => {
+                                            const target = e.target as HTMLInputElement;
+                                            const inputValue = target.value.trim();
+                                            
+                                            // Only process if there's a valid number
+                                            if (inputValue !== '' && !isNaN(Number(inputValue))) {
+                                                const numValue = Number(inputValue);
+                                                // Get current value from the field to compare
+                                                const currentValue = field.value || 0;
+                                                // Check if value actually changed to avoid unnecessary updates
+                                                if (Math.abs(numValue - currentValue) > 0.0001) {
+                                                    field.onChange(numValue);
+                                                    setValue('HRMD_Order', numValue, { shouldDirty: true, shouldValidate: true });
+                                                }
+                                            }
+                                        };
+                                        
+                                        inputElement.addEventListener('input', handleInput, { passive: true });
+                                        (inputElement as any).__dirtyHandlerAttached = true;
+                                    };
+                                    
+                                    attachListener();
+                                };
+                                
+                                return (
+                                    <div ref={containerRefCallback}>
+                                        <InputNumber
+                                            label='Order'
+                                            id='HRMD_Order'
+                                            value={field.value}
+                                            onChange={(value) => {
+                                                console.log('📝 [DEPARTMENT FORM] Order field changed to:', value);
+                                                const numValue = value !== null && value !== undefined ? Number(value) : 0;
+                                                field.onChange(numValue);
+                                                // Explicitly mark field as dirty
+                                                setValue('HRMD_Order', numValue, { shouldDirty: true, shouldValidate: true });
+                                            }}
+                                            onBlur={field.onBlur}
+                                            error={errors.HRMD_Order?.message}
+                                            className='transition-colors focus:ring-2 focus:ring-primary/20'
+                                        />
+                                    </div>
+                                );
+                            }}
                         />
                         <Controller
                             name='HRMD_InternalTrainingMinimumHrs'
                             control={control}
-                            render={({ field }) => (
-                                <InputNumber
-                                    label='Internal Training Min. Hours'
-                                    id='HRMD_InternalTrainingMinimumHrs'
-                                    value={field.value}
-                                    onChange={(value) => {
-                                        console.log('📝 [DEPARTMENT FORM] Training hours field changed to:', value);
-                                        field.onChange(value);
-                                    }}
-                                    error={errors.HRMD_InternalTrainingMinimumHrs?.message}
-                                    className='transition-colors focus:ring-2 focus:ring-primary/20'
-                                />
-                            )}
+                            render={({ field }) => {
+                                // Callback ref to attach input listener when element is mounted
+                                const containerRefCallback = (containerElement: HTMLDivElement | null) => {
+                                    if (!containerElement) return;
+                                    
+                                    // Find the actual input element inside the NumberField
+                                    const findInput = () => {
+                                        return containerElement.querySelector('input[type="text"], input[type="number"]') as HTMLInputElement;
+                                    };
+                                    
+                                    // Try to find input immediately, or after a short delay for React Aria rendering
+                                    const attachListener = () => {
+                                        const inputElement = findInput();
+                                        if (!inputElement) {
+                                            setTimeout(attachListener, 50);
+                                            return;
+                                        }
+                                        
+                                        // Check if listener is already attached to avoid duplicates
+                                        if ((inputElement as any).__dirtyHandlerAttached) {
+                                            return;
+                                        }
+                                        
+                                        const handleInput = (e: Event) => {
+                                            const target = e.target as HTMLInputElement;
+                                            const inputValue = target.value.trim();
+                                            
+                                            // Only process if there's a valid number
+                                            if (inputValue !== '' && !isNaN(Number(inputValue))) {
+                                                const numValue = Number(inputValue);
+                                                // Get current value from the field to compare
+                                                const currentValue = field.value || 0;
+                                                // Check if value actually changed to avoid unnecessary updates
+                                                if (Math.abs(numValue - currentValue) > 0.0001) {
+                                                    field.onChange(numValue);
+                                                    setValue('HRMD_InternalTrainingMinimumHrs', numValue, { shouldDirty: true, shouldValidate: true });
+                                                }
+                                            }
+                                        };
+                                        
+                                        inputElement.addEventListener('input', handleInput, { passive: true });
+                                        (inputElement as any).__dirtyHandlerAttached = true;
+                                    };
+                                    
+                                    attachListener();
+                                };
+                                
+                                return (
+                                    <div ref={containerRefCallback}>
+                                        <InputNumber
+                                            label='Internal Training Min. Hours'
+                                            id='HRMD_InternalTrainingMinimumHrs'
+                                            value={field.value}
+                                            onChange={(value) => {
+                                                console.log('📝 [DEPARTMENT FORM] Training hours field changed to:', value);
+                                                const numValue = value !== null && value !== undefined ? Number(value) : 0;
+                                                field.onChange(numValue);
+                                                // Explicitly mark field as dirty
+                                                setValue('HRMD_InternalTrainingMinimumHrs', numValue, { shouldDirty: true, shouldValidate: true });
+                                            }}
+                                            onBlur={field.onBlur}
+                                            error={errors.HRMD_InternalTrainingMinimumHrs?.message}
+                                            className='transition-colors focus:ring-2 focus:ring-primary/20'
+                                        />
+                                    </div>
+                                );
+                            }}
                         />
                     </div>
 

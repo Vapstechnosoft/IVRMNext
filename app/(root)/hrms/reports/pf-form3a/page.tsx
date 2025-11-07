@@ -3,15 +3,13 @@
 import { Heading } from '@/components/layout/heading';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
 import { DataTable } from '@/components/ui/data-table/data-table';
-import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { type BaseEntity, createLocalCrud } from '@/lib/localdb';
-import type { ColumnDef } from '@tanstack/react-table';
 import { Calculator, Calendar, DollarSign, Download, Printer, TrendingUp, User } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
+import { PFForm3AFilters, type Form3AFilters } from './_components/filters';
+import { form3AColumns, type MonthlyTransaction as MonthlyTransactionColumn } from './_components/columns';
 
 // Form 3A data structure (Individual Employee Account Card)
 interface Form3ARecord extends BaseEntity {
@@ -59,11 +57,6 @@ interface Employee {
     pfNumber: string;
 }
 
-// Report filters
-interface Form3AFilters {
-    year: string;
-    employeeCode: string;
-}
 
 export default function PFForm3APage() {
     // Database instances
@@ -262,8 +255,8 @@ export default function PFForm3APage() {
         }
     }, [filters, form3ARecords]);
 
-    const handleFilterChange = (key: keyof Form3AFilters, value: string) => {
-        setFilters((prev) => ({ ...prev, [key]: value }));
+    const handleFilterChange = (newFilters: Form3AFilters) => {
+        setFilters(newFilters);
     };
 
     const handleGenerate = () => {
@@ -294,73 +287,6 @@ export default function PFForm3APage() {
         toast.success('Print dialog opened');
     };
 
-    // Table columns for monthly transactions
-    const columns: ColumnDef<MonthlyTransaction>[] = [
-        {
-            accessorKey: 'month',
-            header: ({ column }) => <DataTableColumnHeader column={column} title='Month' />,
-            cell: ({ row }) => <div className='font-medium'>{row.getValue('month')}</div>,
-            enableSorting: false,
-            enableHiding: false,
-            size: 100
-        },
-        {
-            accessorKey: 'basicSalary',
-            header: ({ column }) => <DataTableColumnHeader column={column} title='Basic Salary' />,
-            cell: ({ row }) => <div>₹{(row.getValue('basicSalary') as number).toLocaleString()}</div>,
-            enableSorting: true,
-            enableHiding: true
-        },
-        {
-            accessorKey: 'pfEligibleSalary',
-            header: ({ column }) => <DataTableColumnHeader column={column} title='PF Eligible Salary' />,
-            cell: ({ row }) => <div>₹{(row.getValue('pfEligibleSalary') as number).toLocaleString()}</div>,
-            enableSorting: true,
-            enableHiding: true
-        },
-        {
-            accessorKey: 'employeeContribution',
-            header: ({ column }) => <DataTableColumnHeader column={column} title='Employee PF (12%)' />,
-            cell: ({ row }) => <div>₹{(row.getValue('employeeContribution') as number).toLocaleString()}</div>,
-            enableSorting: true,
-            enableHiding: true
-        },
-        {
-            accessorKey: 'employerContribution',
-            header: ({ column }) => <DataTableColumnHeader column={column} title='Employer PF (12%)' />,
-            cell: ({ row }) => <div>₹{(row.getValue('employerContribution') as number).toLocaleString()}</div>,
-            enableSorting: true,
-            enableHiding: true
-        },
-        {
-            accessorKey: 'vpfContribution',
-            header: ({ column }) => <DataTableColumnHeader column={column} title='VPF' />,
-            cell: ({ row }) => <div>₹{(row.getValue('vpfContribution') as number).toLocaleString()}</div>,
-            enableSorting: true,
-            enableHiding: true
-        },
-        {
-            accessorKey: 'interestEarned',
-            header: ({ column }) => <DataTableColumnHeader column={column} title='Interest Earned' />,
-            cell: ({ row }) => <div>₹{(row.getValue('interestEarned') as number).toLocaleString()}</div>,
-            enableSorting: true,
-            enableHiding: true
-        },
-        {
-            accessorKey: 'withdrawalAmount',
-            header: ({ column }) => <DataTableColumnHeader column={column} title='Withdrawals' />,
-            cell: ({ row }) => <div>₹{(row.getValue('withdrawalAmount') as number).toLocaleString()}</div>,
-            enableSorting: true,
-            enableHiding: true
-        },
-        {
-            accessorKey: 'runningBalance',
-            header: ({ column }) => <DataTableColumnHeader column={column} title='Running Balance' />,
-            cell: ({ row }) => <div className='font-semibold'>₹{(row.getValue('runningBalance') as number).toLocaleString()}</div>,
-            enableSorting: true,
-            enableHiding: true
-        }
-    ];
 
     return (
         <div className='space-y-6'>
@@ -369,64 +295,7 @@ export default function PFForm3APage() {
             </div>
 
             {/* Report Configuration Section */}
-            <CollapsibleSection
-                title='PF FORM 3A'
-                description='Generate individual employee account card for Provident Fund'
-                defaultOpen={true}
-                variant='default'
-                size='lg'
-                className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
-                {/* Year and Employee Selection */}
-                <div className='flex items-center justify-center gap-6'>
-                    {/* Year Filter */}
-                    <div className='space-y-2'>
-                        <label htmlFor='year-select' className='font-medium text-foreground text-sm'>
-                            Year: <span className='text-red-500'>*</span>
-                        </label>
-                        <Select value={filters.year} onValueChange={(value) => handleFilterChange('year', value)}>
-                            <SelectTrigger id='year-select' className='w-40'>
-                                <SelectValue placeholder='Select' />
-                            </SelectTrigger>
-                            <SelectContent>
-                                {['2023', '2024', '2025'].map((year) => (
-                                    <SelectItem key={year} value={year}>
-                                        {year}
-                                    </SelectItem>
-                                ))}
-                            </SelectContent>
-                        </Select>
-                    </div>
-
-                    {/* Employee Filter */}
-                    <div className='space-y-2'>
-                        <label htmlFor='employee-select' className='font-medium text-foreground text-sm'>
-                            Employee: <span className='text-red-500'>*</span>
-                        </label>
-                        <Select value={filters.employeeCode} onValueChange={(value) => handleFilterChange('employeeCode', value)}>
-                            <SelectTrigger id='employee-select' className='w-80'>
-                                <SelectValue placeholder='Select' />
-                            </SelectTrigger>
-                            <SelectContent>
-                                {employees.map((employee) => (
-                                    <SelectItem key={employee.code} value={employee.code}>
-                                        {employee.name} ({employee.code})
-                                    </SelectItem>
-                                ))}
-                            </SelectContent>
-                        </Select>
-                    </div>
-                </div>
-
-                {/* Action Buttons */}
-                <div className='flex justify-center gap-2 pt-4'>
-                    <Button onClick={handleGenerate} className='bg-blue-600 hover:bg-blue-700'>
-                        GENERATE
-                    </Button>
-                    <Button variant='outline' onClick={handleCancel}>
-                        CANCEL
-                    </Button>
-                </div>
-            </CollapsibleSection>
+            <PFForm3AFilters filters={filters} employees={employees} onFilterChange={handleFilterChange} onGenerate={handleGenerate} onCancel={handleCancel} />
 
             {/* Form 3A Results */}
             {showForm && selectedRecord && (
@@ -601,7 +470,7 @@ export default function PFForm3APage() {
                         <CardContent>
                             <DataTable
                                 isLoading={isLoading}
-                                columns={columns}
+                                columns={form3AColumns}
                                 data={selectedRecord.monthlyTransactions}
                                 totalItems={selectedRecord.monthlyTransactions.length}
                                 showViewOptions={true}

@@ -2,155 +2,46 @@
 
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { CalendarYear } from '@/components/ui/calendar_year';
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
 import { DataTable } from '@/components/ui/data-table/data-table';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuLabel, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { Label } from '@/components/ui/extension/field';
-import { InputText } from '@/components/ui/extension/input-text';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { cn } from '@/lib/utils';
-import { EMPLOYEE_LOAN_VALIDATION } from '@/lib/validation/hrms-transaction-validation';
-import { useActivateDeactivateEmployeeLoan, useEmployeeLoanList, useSaveEmployeeLoan } from '@/hooks/hrms/useTransactions';
-import type { EmployeeDropdown, EmployeeLoanItem, EmployeeLoanSaveRequest, MasterLoanDropdown, ModeOfPaymentDropdown } from '@/types/hrms/employee-loan';
+import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
+import { useActivateDeactivateEmployeeLoan, useEmployeeLoanList } from '@/hooks/hrms/useTransactions';
+import type { EmployeeDropdown, EmployeeLoanItem, MasterLoanDropdown, ModeOfPaymentDropdown } from '@/types/hrms/employee-loan';
 import type { ColumnDef } from '@tanstack/react-table';
 import { format } from 'date-fns';
-import { CalendarIcon, Edit, MoreHorizontal, Plus, Power, X } from 'lucide-react';
-import { useRef, useState } from 'react';
-import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
+import { Plus } from 'lucide-react';
 import { toast } from 'sonner';
-
-interface EmployeeLoanForm {
-    employeeId: number;
-    loanTypeId: number;
-    amount: number;
-    installments: number;
-    startDate: string;
-    modeOfPayment?: string;
-    referenceNo?: string;
-    loanInterest?: number;
-    loanEMI?: number;
-}
+import { ActionsCell } from './_components/actions-cell';
+import FormSections from './_components/form-sections';
 
 export default function EmployeeLoanPage() {
-    const [isFormOpen, setIsFormOpen] = useState(false);
-    const [editingId, setEditingId] = useState<number | null>(null);
-    const formRef = useRef<HTMLDivElement>(null);
-
     const roleId = 2;
     const { data: loanData, isLoading, refetch } = useEmployeeLoanList({ roleId });
-    const saveMutation = useSaveEmployeeLoan();
+
+    return (
+        <FormProvider<EmployeeLoanItem>>
+            <EmployeeLoanPageContent loanData={loanData} isLoading={isLoading} refetch={refetch} />
+        </FormProvider>
+    );
+}
+
+function EmployeeLoanPageContent({
+    loanData,
+    isLoading,
+    refetch
+}: {
+    loanData: any;
+    isLoading: boolean;
+    refetch: () => void;
+}) {
+    const { openAddForm } = useFormContext<EmployeeLoanItem>();
     const toggleMutation = useActivateDeactivateEmployeeLoan();
 
     const loans = loanData?.emploanList || [];
     const employees = loanData?.employeedropdown || [];
     const loanTypes = loanData?.masterloandropdown || [];
     const paymentModes = loanData?.modeOfPaymentdropdown || [];
-
-    const {
-        register,
-        handleSubmit,
-        reset,
-        // setValue,
-        control,
-        formState: { errors, isSubmitting }
-    } = useForm<EmployeeLoanForm>({
-        mode: 'onChange',
-        defaultValues: {
-            employeeId: 0,
-            loanTypeId: 0,
-            amount: 0,
-            installments: 0,
-            startDate: '',
-            modeOfPayment: '',
-            referenceNo: '',
-            loanInterest: 0,
-            loanEMI: 0
-        }
-    });
-
-
-    const handleAddClick = () => {
-        setIsFormOpen(true);
-        setEditingId(null);
-        reset({
-            employeeId: 0,
-            loanTypeId: 0,
-            amount: 0,
-            installments: 0,
-            startDate: format(new Date(), 'yyyy-MM-dd'),
-            modeOfPayment: '',
-            referenceNo: '',
-            loanInterest: 0,
-            loanEMI: 0
-        });
-        setTimeout(() => {
-            formRef.current?.scrollIntoView({
-                behavior: 'smooth',
-                block: 'end'
-            });
-        }, 100);
-    };
-
-    const handleFormClose = () => {
-        setIsFormOpen(false);
-        setEditingId(null);
-        reset();
-    };
-
-    const onSubmit: SubmitHandler<EmployeeLoanForm> = async (data: EmployeeLoanForm) => {
-        const loanData: EmployeeLoanSaveRequest = {
-            HREL_Id: editingId || 0,
-            MI_Id: 30,
-            HRME_Id: data.employeeId,
-            roleId: 2,
-            HRMLN_Id: data.loanTypeId,
-            HREL_AppliedDate: data.startDate,
-            HREL_LoanAmount: data.amount,
-            HREL_LoanInsallments: data.installments,
-            HREL_LoanStatus: 'Applied',
-            HREL_SanctionedAmount: 0,
-            HREL_TotalPrincipalPaid: 0,
-            HREL_TotalInterestPaid: 0,
-            HREL_TotalPending: 0,
-            HREL_LoanInterest: data.loanInterest || 0,
-            HREL_LaonEMI: data.loanEMI || 0,
-            HREL_ModeOfPayment: data.modeOfPayment || '',
-            HREL_ReferenceNo: data.referenceNo || '',
-            HREL_ActiveFlag: true,
-            HREL_NoofInstallment: data.installments
-        };
-
-        saveMutation.mutate(loanData, {
-            onSuccess: () => {
-                handleFormClose();
-            }
-        });
-    };
-
-    const handleEdit = (item: EmployeeLoanItem) => {
-        setEditingId(item.HREL_Id);
-        reset({
-            employeeId: item.HRME_Id,
-            loanTypeId: item.HRMLN_Id,
-            amount: item.HREL_LoanAmount,
-            installments: item.HREL_LoanInsallments,
-            startDate: item.HREL_AppliedDate ? format(new Date(item.HREL_AppliedDate), 'yyyy-MM-dd') : '',
-            modeOfPayment: item.HREL_ModeOfPayment || '',
-            referenceNo: item.HREL_ReferenceNo || '',
-            loanInterest: item.HREL_LoanInterest || 0,
-            loanEMI: item.HREL_LaonEMI || 0
-        });
-        setIsFormOpen(true);
-        setTimeout(() => {
-            formRef.current?.scrollIntoView({
-                behavior: 'smooth',
-                block: 'end'
-            });
-        }, 100);
-    };
 
     const handleToggleActive = async (id: number, currentStatus: boolean) => {
         toggleMutation.mutate(
@@ -168,7 +59,7 @@ export default function EmployeeLoanPage() {
     };
 
     const getEmployeeName = (employeeId: number) => {
-        const employee = employees.find((emp) => emp?.HRME_Id === employeeId);
+        const employee = employees.find((emp: EmployeeDropdown) => emp?.HRME_Id === employeeId);
         if (!employee) return 'Unknown Employee';
 
         const firstName = employee.HRME_EmployeeFirstName || '';
@@ -179,22 +70,25 @@ export default function EmployeeLoanPage() {
     };
 
     const getEmployeeCode = (employeeId: number) => {
-        const employee = employees.find((emp) => emp?.HRME_Id === employeeId);
+        const employee = employees.find((emp: EmployeeDropdown) => emp?.HRME_Id === employeeId);
         return employee?.HRME_EmployeeCode || 'Unknown';
     };
 
     const getLoanTypeName = (loanTypeId: number) => {
-        const loanType = loanTypes.find((type) => type?.HRMLN_Id === loanTypeId);
+        const loanType = loanTypes.find((type: MasterLoanDropdown) => type?.HRMLN_Id === loanTypeId);
         return loanType?.HRML_LoanType || 'Unknown Loan Type';
     };
 
     return (
         <div className='min-h-screen'>
             <div className='container space-y-4 p-1'>
+                {/* Forms Section */}
+                <FormSections onloadData={loanData} onSuccess={refetch} />
+
                 <div className='flex justify-end'>
                     <Button
                         type='button'
-                        onClick={handleAddClick}
+                        onClick={openAddForm}
                         size='lg'
                         className='w-fit shadow-md transition-all duration-200 hover:scale-105 hover:shadow-lg'>
                         <Plus className='h-4 w-4' />
@@ -212,249 +106,12 @@ export default function EmployeeLoanPage() {
                     <EmployeeLoanTable
                         loans={loans}
                         isLoading={isLoading}
-                        onEdit={handleEdit}
                         onToggleActive={handleToggleActive}
                         getEmployeeName={getEmployeeName}
                         getEmployeeCode={getEmployeeCode}
                         getLoanTypeName={getLoanTypeName}
                     />
                 </CollapsibleSection>
-
-                {isFormOpen && (
-                    <div ref={formRef} className='slide-in-from-top-4 animate-in duration-300'>
-                        <CollapsibleSection
-                            title={editingId ? 'Update Employee Loan' : 'Add Employee Loan'}
-                            description='Fill in the employee loan details'
-                            defaultOpen={true}
-                            variant='outline'
-                            size='lg'
-                            className='shadow-lg'>
-                            <div className='relative'>
-                                <Button
-                                    onClick={handleFormClose}
-                                    variant='ghost'
-                                    size='sm'
-                                    className='-top-[4rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
-                                    <X className='h-4 w-4 text-destructive' /> Close
-                                </Button>
-
-                                <form onSubmit={handleSubmit(onSubmit)} className='space-y-6'>
-                                    <div className='grid grid-cols-1 gap-4 lg:grid-cols-2'>
-                                        <Controller
-                                            name='employeeId'
-                                            control={control}
-                                            rules={EMPLOYEE_LOAN_VALIDATION.employeeId}
-                                            render={({ field }) => (
-                                                <div className='space-y-2'>
-                                                    <Label>Employee *</Label>
-                                                    <Select
-                                                        onValueChange={(value) => field.onChange(Number(value))}
-                                                        value={field.value?.toString()}>
-                                                        <SelectTrigger
-                                                            className={cn(
-                                                                'transition-colors focus:ring-2 focus:ring-primary/20',
-                                                                errors.employeeId && 'border-destructive'
-                                                            )}>
-                                                            <SelectValue placeholder='Select or search Employee in the list' />
-                                                        </SelectTrigger>
-                                                        <SelectContent>
-                                                            {employees.length > 0 ? (
-                                                                employees
-                                                                    .filter((emp) => emp?.HRME_Id != null)
-                                                                    .map((employee) => (
-                                                                        <SelectItem
-                                                                            key={employee.HRME_Id}
-                                                                            value={employee.HRME_Id.toString()}>
-                                                                            {employee.HRME_EmployeeCode} - {employee.HRME_EmployeeFirstName}{' '}
-                                                                            {employee.HRME_EmployeeMiddleName || ''}{' '}
-                                                                            {employee.HRME_EmployeeLastName || ''}
-                                                                        </SelectItem>
-                                                                    ))
-                                                            ) : (
-                                                                <div className='p-2 text-muted-foreground text-sm'>
-                                                                    No employees available
-                                                                </div>
-                                                            )}
-                                                        </SelectContent>
-                                                    </Select>
-                                                    {errors.employeeId && (
-                                                        <p className='text-destructive text-sm'>{errors.employeeId.message}</p>
-                                                    )}
-                                                </div>
-                                            )}
-                                        />
-
-                                        <div className='space-y-2'>
-                                            <Label>Applied Date *</Label>
-                                            <Controller
-                                                name='startDate'
-                                                control={control}
-                                                rules={EMPLOYEE_LOAN_VALIDATION.appliedDate}
-                                                render={({ field }) => (
-                                                    <Popover>
-                                                        <PopoverTrigger asChild>
-                                                            <Button
-                                                                variant='outline'
-                                                                className={cn(
-                                                                    'w-full justify-start text-left font-normal',
-                                                                    !field.value && 'text-muted-foreground'
-                                                                )}>
-                                                                <CalendarIcon className='mr-2 h-4 w-4' />
-                                                                {field.value ? format(new Date(field.value), 'PPP') : 'Select Date'}
-                                                            </Button>
-                                                        </PopoverTrigger>
-                                                        <PopoverContent className='w-auto p-0' align='start'>
-                                                            <CalendarYear
-                                                                mode='single'
-                                                                selected={field.value ? new Date(field.value) : undefined}
-                                                                onDayClick={(day) => field.onChange(format(day, 'yyyy-MM-dd'))}
-                                                                initialFocus
-                                                            />
-                                                        </PopoverContent>
-                                                    </Popover>
-                                                )}
-                                            />
-                                            {errors.startDate && <p className='text-destructive text-sm'>{errors.startDate.message}</p>}
-                                        </div>
-                                    </div>
-
-                                    <div className='grid grid-cols-1 gap-4 lg:grid-cols-2'>
-                                        <Controller
-                                            name='loanTypeId'
-                                            control={control}
-                                            rules={EMPLOYEE_LOAN_VALIDATION.loanTypeId}
-                                            render={({ field }) => (
-                                                <div className='space-y-2'>
-                                                    <Label>Loan Type *</Label>
-                                                    <Select
-                                                        onValueChange={(value) => field.onChange(Number(value))}
-                                                        value={field.value?.toString()}>
-                                                        <SelectTrigger>
-                                                            <SelectValue placeholder='Select' />
-                                                        </SelectTrigger>
-                                                        <SelectContent>
-                                                            {loanTypes
-                                                                .filter((type) => type?.HRMLN_Id != null)
-                                                                .map((loanType) => (
-                                                                    <SelectItem
-                                                                        key={loanType.HRMLN_Id}
-                                                                        value={loanType.HRMLN_Id.toString()}>
-                                                                        {loanType.HRML_LoanType} (Max: ₹
-                                                                        {loanType.HRML_Max?.toLocaleString() || 0})
-                                                                    </SelectItem>
-                                                                ))}
-                                                        </SelectContent>
-                                                    </Select>
-                                                    {errors.loanTypeId && (
-                                                        <p className='text-destructive text-sm'>{errors.loanTypeId.message}</p>
-                                                    )}
-                                                </div>
-                                            )}
-                                        />
-
-                                        <Controller
-                                            name='modeOfPayment'
-                                            control={control}
-                                            rules={EMPLOYEE_LOAN_VALIDATION.modeOfPayment}
-                                            render={({ field }) => (
-                                                <div className='space-y-2'>
-                                                    <Label>Mode Of Payment *</Label>
-                                                    <Select onValueChange={field.onChange} value={field.value}>
-                                                        <SelectTrigger>
-                                                            <SelectValue placeholder='--Select--' />
-                                                        </SelectTrigger>
-                                                        <SelectContent>
-                                                            {paymentModes
-                                                                .filter((mode) => mode?.IVRMMOD_Id != null && mode?.IVRMMOD_ModeOfPayment)
-                                                                .map((mode) => (
-                                                                    <SelectItem key={mode.IVRMMOD_Id} value={mode.IVRMMOD_ModeOfPayment}>
-                                                                        {mode.IVRMMOD_ModeOfPayment}
-                                                                    </SelectItem>
-                                                                ))}
-                                                        </SelectContent>
-                                                    </Select>
-                                                </div>
-                                            )}
-                                        />
-                                    </div>
-
-                                    <div className='grid grid-cols-1 gap-4 lg:grid-cols-2'>
-                                        <Controller
-                                            name='referenceNo'
-                                            control={control}
-                                            rules={EMPLOYEE_LOAN_VALIDATION.referenceNo}
-                                            render={({ field }) => (
-                                                <div className='space-y-2'>
-                                                    <Label>Reference No.</Label>
-                                                    <InputText
-                                                        label='Reference No.'
-                                                        id='referenceNo'
-                                                        placeholder='Enter reference number (max 20 characters, numbers only)'
-                                                        {...field}
-                                                        error={errors.referenceNo?.message}
-                                                        className='transition-colors focus:ring-2 focus:ring-primary/20'
-                                                    />
-                                                </div>
-                                            )}
-                                        />
-                                    </div>
-
-                                    <div className='grid grid-cols-1 gap-4 lg:grid-cols-2'>
-                                        <InputText
-                                            label='Loan Amount *'
-                                            type='number'
-                                            id='amount'
-                                            step='0.01'
-                                            placeholder='Enter loan amount (max 10 digits including decimals)'
-                                            {...register('amount', EMPLOYEE_LOAN_VALIDATION.loanAmount)}
-                                            className='transition-colors focus:ring-2 focus:ring-primary/20'
-                                        />
-
-                                        <InputText
-                                            label='Loan Interest *'
-                                            type='number'
-                                            id='loanInterest'
-                                            step='0.01'
-                                            placeholder='Enter loan interest (max 5 digits including decimals)'
-                                            {...register('loanInterest', EMPLOYEE_LOAN_VALIDATION.loanInterest)}
-                                            className='transition-colors focus:ring-2 focus:ring-primary/20'
-                                        />
-                                    </div>
-
-                                    <div className='grid grid-cols-1 gap-4 lg:grid-cols-2'>
-                                        <InputText
-                                            label='Loan Installments (IN MONTHS) *'
-                                            type='number'
-                                            id='installments'
-                                            placeholder='Enter loan installments (max 4 digits)'
-                                            {...register('installments', EMPLOYEE_LOAN_VALIDATION.loanInstallments)}
-                                            className='transition-colors focus:ring-2 focus:ring-primary/20'
-                                        />
-
-                                        <InputText
-                                            label='Loan EMI *'
-                                            type='number'
-                                            id='loanEMI'
-                                            step='0.01'
-                                            placeholder='Enter loan EMI (max 10 digits including decimals)'
-                                            {...register('loanEMI', EMPLOYEE_LOAN_VALIDATION.loanEMI)}
-                                            className='transition-colors focus:ring-2 focus:ring-primary/20'
-                                        />
-                                    </div>
-
-                                    <div className='flex flex-col gap-3 border-t pt-4 sm:flex-row sm:justify-end'>
-                                        <Button type='button' variant='outline' onClick={handleFormClose}>
-                                            Cancel
-                                        </Button>
-                                        <Button type='submit' disabled={saveMutation.isPending}>
-                                            {saveMutation.isPending ? 'Saving...' : editingId ? 'Update' : 'Save'}
-                                        </Button>
-                                    </div>
-                                </form>
-                            </div>
-                        </CollapsibleSection>
-                    </div>
-                )}
             </div>
         </div>
     );
@@ -463,7 +120,6 @@ export default function EmployeeLoanPage() {
 interface EmployeeLoanTableProps {
     loans: EmployeeLoanItem[];
     isLoading: boolean;
-    onEdit: (loan: EmployeeLoanItem) => void;
     onToggleActive: (id: number, currentStatus: boolean) => void;
     getEmployeeName: (employeeId: number) => string;
     getEmployeeCode: (employeeId: number) => string;
@@ -473,7 +129,6 @@ interface EmployeeLoanTableProps {
 function EmployeeLoanTable({
     loans,
     isLoading,
-    onEdit,
     onToggleActive,
     getEmployeeName,
     getEmployeeCode,
@@ -579,36 +234,7 @@ function EmployeeLoanTable({
         {
             id: 'actions',
             header: 'Actions',
-            cell: ({ row }) => {
-                const loan = row.original;
-                const isActive = loan.HREL_ActiveFlag === true;
-
-                return (
-                    <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                            <Button variant='ghost' className='h-8 w-8 p-0'>
-                                <MoreHorizontal className='h-4 w-4' />
-                            </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent>
-                            <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                            <div className='flex-justify-between flex-wrap gap-2'>
-                                <Button variant='ghost' onClick={() => onEdit(loan)} className='w-full justify-start'>
-                                    <Edit className='mr-2 h-4 w-4' />
-                                    Edit
-                                </Button>
-                                <Button
-                                    variant='ghost'
-                                    onClick={() => onToggleActive(loan.HREL_Id, isActive)}
-                                    className={`w-full justify-start ${isActive ? 'text-orange-600' : 'text-green-600'}`}>
-                                    <Power className='mr-2 h-4 w-4' />
-                                    {isActive ? 'Deactivate' : 'Activate'}
-                                </Button>
-                            </div>
-                        </DropdownMenuContent>
-                    </DropdownMenu>
-                );
-            },
+            cell: ({ row }) => <ActionsCell row={row} onToggleActive={onToggleActive} />,
             enableSorting: false,
             enableHiding: false
         }

@@ -1,93 +1,77 @@
-// Refactored by automation script on 2025-10-28T15:40:35.635Z
-// TODO: Complete refactoring by:
-// 1. Import columns from _components/columns.tsx
-// 2. Import form from _components/filters.tsx
-// 3. Extract column definitions and form to the respective files
-// 4. Update handlers to use the new structure
-
 'use client';
 
 import { Heading } from '@/components/layout/heading';
-import { Button } from '@/components/ui/button';
-import { Checkbox } from '@/components/ui/checkbox';
-import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
 import { GenericDataTable } from '@/components/ui/data-table/generic-data-table';
-import { InputText } from '@/components/ui/extension/input-text';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { type BaseEntity, createLocalCrud } from '@/lib/localdb';
-import type { ColumnDef } from '@tanstack/react-table';
-import { FileDown, Printer, RefreshCw } from 'lucide-react';
+import { createLocalCrud } from '@/lib/localdb';
 import { useMemo, useState } from 'react';
-
-interface InOutRow extends BaseEntity {
-    branch: string;
-    type: string;
-    department: string;
-    designation: string;
-    employeeCode: string;
-    employeeName: string;
-    date: string;
-    timeIn?: string;
-    timeOut?: string;
-}
+import { type InOutRow, employeeInOutReportColumns } from './_components/columns';
+import {
+    type EmployeeInOutReportFilters,
+    EmployeeInOutReportFilters as EmployeeInOutReportFiltersComponent
+} from './_components/filters';
 
 export default function EmployeeInOutReportPage() {
     const db = createLocalCrud<InOutRow>('attendance:inout');
 
-    const [branch, setBranch] = useState<string>('');
-    const [type, setType] = useState<string>('');
-    const [department, setDepartment] = useState<string>('');
-    const [designation, setDesignation] = useState<string>('');
-    const [allOrIndividual, setAllOrIndividual] = useState<'All' | 'Individual'>('All');
-    const [codeOrName, setCodeOrName] = useState<'Code' | 'Name'>('Code');
-    const [query, setQuery] = useState<string>('');
-    const [fromDate, setFromDate] = useState<string>('');
-    const [toDate, setToDate] = useState<string>('');
+    const [filters, setFilters] = useState<EmployeeInOutReportFilters>({
+        branch: '',
+        type: '',
+        department: '',
+        designation: '',
+        allOrIndividual: 'All',
+        codeOrName: 'Code',
+        query: '',
+        fromDate: '',
+        toDate: ''
+    });
 
     const data = useMemo(() => db.list(), []);
 
+    const branches = useMemo(() => [...new Set(data.map((d) => d.branch))], [data]);
+    const departments = useMemo(() => [...new Set(data.map((d) => d.department))], [data]);
+    const designations = useMemo(() => [...new Set(data.map((d) => d.designation))], [data]);
+
     const filtered = useMemo(() => {
         return data.filter((r) => {
-            const okBranch = branch ? r.branch === branch : true;
-            const okType = type ? r.type === type : true;
-            const okDept = department ? r.department === department : true;
-            const okDesg = designation ? r.designation === designation : true;
-            const okDateFrom = fromDate ? new Date(r.date) >= new Date(fromDate) : true;
-            const okDateTo = toDate ? new Date(r.date) <= new Date(toDate) : true;
+            const okBranch = filters.branch ? r.branch === filters.branch : true;
+            const okType = filters.type ? r.type === filters.type : true;
+            const okDept = filters.department ? r.department === filters.department : true;
+            const okDesg = filters.designation ? r.designation === filters.designation : true;
+            const okDateFrom = filters.fromDate ? new Date(r.date) >= new Date(filters.fromDate) : true;
+            const okDateTo = filters.toDate ? new Date(r.date) <= new Date(filters.toDate) : true;
             const okQuery =
-                allOrIndividual === 'Individual' && query
-                    ? codeOrName === 'Code'
-                        ? r.employeeCode.includes(query)
-                        : r.employeeName.toLowerCase().includes(query.toLowerCase())
+                filters.allOrIndividual === 'Individual' && filters.query
+                    ? filters.codeOrName === 'Code'
+                        ? r.employeeCode.includes(filters.query)
+                        : r.employeeName.toLowerCase().includes(filters.query.toLowerCase())
                     : true;
             return okBranch && okType && okDept && okDesg && okDateFrom && okDateTo && okQuery;
         });
-    }, [data, branch, type, department, designation, allOrIndividual, codeOrName, query, fromDate, toDate]);
+    }, [data, filters]);
 
-    const columns: ColumnDef<InOutRow>[] = [
-        {
-            id: 'sl',
-            header: ({ column }) => <DataTableColumnHeader column={column} title='SL.NO' />,
-            cell: ({ row }) => <div className='font-medium'>{row.index + 1}</div>,
-            enableSorting: false
-        },
-        { accessorKey: 'employeeName', header: ({ column }) => <DataTableColumnHeader column={column} title='Employee Name' /> },
-        { accessorKey: 'employeeCode', header: ({ column }) => <DataTableColumnHeader column={column} title='Code' /> },
-        { accessorKey: 'date', header: ({ column }) => <DataTableColumnHeader column={column} title='Date' /> },
-        { accessorKey: 'timeIn', header: ({ column }) => <DataTableColumnHeader column={column} title='Time In' /> },
-        { accessorKey: 'timeOut', header: ({ column }) => <DataTableColumnHeader column={column} title='Time Out' /> },
-        { accessorKey: 'branch', header: ({ column }) => <DataTableColumnHeader column={column} title='Branch' /> },
-        { accessorKey: 'department', header: ({ column }) => <DataTableColumnHeader column={column} title='Department' /> },
-        { accessorKey: 'designation', header: ({ column }) => <DataTableColumnHeader column={column} title='Designation' /> }
-    ];
-
-    const handleReport = () => {
+    const handleSearch = () => {
         /* TODO: implement */
     };
+
+    const handleCancel = () => {
+        setFilters({
+            branch: '',
+            type: '',
+            department: '',
+            designation: '',
+            allOrIndividual: 'All',
+            codeOrName: 'Code',
+            query: '',
+            fromDate: '',
+            toDate: ''
+        });
+    };
+
     const handleExport = () => {
         /* TODO: implement */
     };
+
     const handlePrint = () => window.print();
 
     return (
@@ -99,134 +83,17 @@ export default function EmployeeInOutReportPage() {
                     </div>
                 </div>
 
-                <CollapsibleSection
-                    title=''
-                    description=''
-                    defaultOpen={true}
-                    variant='default'
-                    size='lg'
-                    className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
-                    <div className='grid grid-cols-1 gap-4 md:grid-cols-12'>
-                        <div className='md:col-span-3'>
-                            <label className='font-medium text-sm' htmlFor='branch'>
-                                Branch
-                            </label>
-                            <Select onValueChange={setBranch}>
-                                <SelectTrigger id='branch'>
-                                    <SelectValue placeholder='Select Branch' />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {[...new Set(data.map((d) => d.branch))].map((b) => (
-                                        <SelectItem key={b} value={b}>
-                                            {b}
-                                        </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
-                        </div>
-                        <div className='md:col-span-3'>
-                            <label className='font-medium text-sm' htmlFor='type'>
-                                Type
-                            </label>
-                            <Select onValueChange={setType}>
-                                <SelectTrigger id='type'>
-                                    <SelectValue placeholder='Type' />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value='Permanent'>Permanent</SelectItem>
-                                    <SelectItem value='Contract'>Contract</SelectItem>
-                                </SelectContent>
-                            </Select>
-                        </div>
-                        <div className='md:col-span-3'>
-                            <label className='font-medium text-sm' htmlFor='department'>
-                                Department
-                            </label>
-                            <Select onValueChange={setDepartment}>
-                                <SelectTrigger id='department'>
-                                    <SelectValue placeholder='Department' />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {[...new Set(data.map((d) => d.department))].map((b) => (
-                                        <SelectItem key={b} value={b}>
-                                            {b}
-                                        </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
-                        </div>
-                        <div className='md:col-span-3'>
-                            <label className='font-medium text-sm' htmlFor='designation'>
-                                Designation
-                            </label>
-                            <Select onValueChange={setDesignation}>
-                                <SelectTrigger id='designation'>
-                                    <SelectValue placeholder='Designation' />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {[...new Set(data.map((d) => d.designation))].map((b) => (
-                                        <SelectItem key={b} value={b}>
-                                            {b}
-                                        </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
-                        </div>
-
-                        <div className='flex items-center gap-4 pt-2 md:col-span-12'>
-                            <div className='flex items-center gap-2 text-sm'>
-                                <Checkbox checked={allOrIndividual === 'All'} onCheckedChange={(_v) => setAllOrIndividual('All')} />
-                                <span>All</span>
-                            </div>
-                            <div className='flex items-center gap-2 text-sm'>
-                                <Checkbox
-                                    checked={allOrIndividual === 'Individual'}
-                                    onCheckedChange={(_v) => setAllOrIndividual('Individual')}
-                                />
-                                <span>Individual</span>
-                            </div>
-                            <div className='flex items-center gap-4'>
-                                <div className='flex items-center gap-2 text-sm'>
-                                    <Checkbox checked={codeOrName === 'Code'} onCheckedChange={(_v) => setCodeOrName('Code')} />
-                                    <span>Code</span>
-                                </div>
-                                <div className='flex items-center gap-2 text-sm'>
-                                    <Checkbox checked={codeOrName === 'Name'} onCheckedChange={(_v) => setCodeOrName('Name')} />
-                                    <span>Name</span>
-                                </div>
-                                <InputText
-                                    placeholder={codeOrName === 'Code' ? 'Code' : 'Name'}
-                                    value={query}
-                                    onChange={(e) => setQuery(e.target.value)}
-                                />
-                            </div>
-                        </div>
-
-                        <div className='md:col-span-3'>
-                            <label className='font-medium text-sm' htmlFor='fromDate'>
-                                From Date
-                            </label>
-                            <InputText id='fromDate' type='date' value={fromDate} onChange={(e) => setFromDate(e.target.value)} />
-                        </div>
-                        <div className='md:col-span-3'>
-                            <label className='font-medium text-sm' htmlFor='toDate'>
-                                To Date
-                            </label>
-                            <InputText id='toDate' type='date' value={toDate} onChange={(e) => setToDate(e.target.value)} />
-                        </div>
-                        <div className='flex items-end gap-2 md:col-span-6'>
-                            <Button onClick={handleReport}>
-                                <RefreshCw className='mr-2 h-4 w-4' /> Report
-                            </Button>
-                            <Button variant='outline' onClick={handleExport}>
-                                <FileDown className='mr-2 h-4 w-4' /> Export to Excel
-                            </Button>
-                            <Button variant='outline' onClick={handlePrint}>
-                                <Printer className='mr-2 h-4 w-4' /> Print
-                            </Button>
-                        </div>
-                    </div>
-                </CollapsibleSection>
+                <EmployeeInOutReportFiltersComponent
+                    filters={filters}
+                    branches={branches}
+                    departments={departments}
+                    designations={designations}
+                    onFilterChange={setFilters}
+                    onSearch={handleSearch}
+                    onCancel={handleCancel}
+                    onExport={handleExport}
+                    onPrint={handlePrint}
+                />
 
                 <CollapsibleSection
                     title='Employee In/Out Report'
@@ -235,7 +102,13 @@ export default function EmployeeInOutReportPage() {
                     variant='default'
                     size='lg'
                     className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
-                    <GenericDataTable isLoading={false} columns={columns} data={filtered} totalItems={filtered.length} showViewOptions />
+                    <GenericDataTable
+                        isLoading={false}
+                        columns={employeeInOutReportColumns}
+                        data={filtered}
+                        totalItems={filtered.length}
+                        showViewOptions
+                    />
                 </CollapsibleSection>
             </div>
         </div>

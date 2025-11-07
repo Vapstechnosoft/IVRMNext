@@ -7,10 +7,30 @@ import { getIconByName } from '@/lib/lucide-icon-registry';
 import { cn } from '@/lib/utils';
 import type { IUserAccessibleModules } from '@/types';
 import { AnimatePresence, motion } from 'framer-motion';
-import { ChevronDown, X } from 'lucide-react';
+import { ChevronDown, X, Settings, BarChart3, ReceiptText } from 'lucide-react';
 import { usePathname, useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { setNavigationContext } from './navigation-context';
+
+// Helper function to get icon with fallback for known module names
+const getIconWithFallback = (iconName: string | null | undefined, moduleName: string): any => {
+    if (iconName) {
+        const icon = getIconByName(iconName);
+        if (icon) return icon;
+    }
+    
+    // Fallback icons for known modules
+    const fallbackIcons: Record<string, any> = {
+        'HRMS Config': Settings,
+        'HRMS Config Report': Settings,
+        'Reports': BarChart3,
+        'Report': BarChart3,
+        'Transactions': ReceiptText,
+        'Transaction': ReceiptText
+    };
+    
+    return fallbackIcons[moduleName] || null;
+};
 
 interface SubMenu {
     id: number;
@@ -186,45 +206,42 @@ export function NavigationSystem() {
                                                 <Card key={menu.id} className='transition-shadow duration-200 hover:shadow-md'>
                                                     <CardContent className='p-4'>
                                                         <div className='mb-3 flex items-center gap-3'>
-                                                            {getIconByName(menu.icon) && (
-                                                                <div className='rounded-lg bg-primary/10 p-2'>
-                                                                    {(() => {
-                                                                        const IconComp = getIconByName(menu.icon);
-                                                                        return IconComp ? (
-                                                                            <IconComp className='h-4 w-4 text-primary' />
-                                                                        ) : null;
-                                                                    })()}
-                                                                </div>
-                                                            )}
+                                                            {(() => {
+                                                                const MenuIcon = getIconWithFallback(menu.icon, menu.name);
+                                                                return MenuIcon ? (
+                                                                    <div className='rounded-lg bg-primary/10 p-2'>
+                                                                        <MenuIcon className='h-4 w-4 text-primary' />
+                                                                    </div>
+                                                                ) : null;
+                                                            })()}
                                                             <h4 className='font-medium text-foreground'>{menu.name}</h4>
                                                         </div>
 
                                                         <div className='space-y-2'>
-                                                            {menu.sub_menu.map((subMenu) => (
-                                                                <Button
-                                                                    key={subMenu.id}
-                                                                    variant='ghost'
-                                                                    className='h-auto w-full justify-start p-2 text-sm hover:bg-accent/50'
-                                                                    onClick={() =>
-                                                                        handleSubMenuClick(
-                                                                            accessibleModule?.data?.find((m) => m.name === activeDrawer)!,
-                                                                            menu,
-                                                                            subMenu
-                                                                        )
-                                                                    }>
-                                                                    <div className='flex items-center gap-2'>
-                                                                        {getIconByName(subMenu.icon) &&
-                                                                            (() => {
-                                                                                const IconComp = getIconByName(subMenu.icon);
-                                                                                return IconComp ? <IconComp className='h-3 w-3' /> : null;
-                                                                            })()}
-                                                                        <span>{subMenu.name}</span>
-                                                                        <span className='ml-auto text-muted-foreground text-xs'>
-                                                                            ({subMenu.pages.length} pages)
-                                                                        </span>
-                                                                    </div>
-                                                                </Button>
-                                                            ))}
+                                                            {menu.sub_menu.map((subMenu) => {
+                                                                const SubMenuIcon = getIconWithFallback(subMenu.icon, subMenu.name);
+                                                                return (
+                                                                    <Button
+                                                                        key={subMenu.id}
+                                                                        variant='ghost'
+                                                                        className='h-auto w-full justify-start p-2 text-sm hover:bg-accent/50'
+                                                                        onClick={() =>
+                                                                            handleSubMenuClick(
+                                                                                accessibleModule?.data?.find((m) => m.name === activeDrawer)!,
+                                                                                menu,
+                                                                                subMenu
+                                                                            )
+                                                                        }>
+                                                                        <div className='flex items-center gap-2'>
+                                                                            {SubMenuIcon && <SubMenuIcon className='h-3 w-3' />}
+                                                                            <span>{subMenu.name}</span>
+                                                                            <span className='ml-auto text-muted-foreground text-xs'>
+                                                                                ({subMenu.pages.length} pages)
+                                                                            </span>
+                                                                        </div>
+                                                                    </Button>
+                                                                );
+                                                            })}
                                                         </div>
                                                     </CardContent>
                                                 </Card>

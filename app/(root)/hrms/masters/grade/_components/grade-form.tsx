@@ -10,7 +10,7 @@ import { gradeSchema } from '@/schemas/hrms/employee-category-schemas';
 import type { GradeDetail } from '@/types/hrms/master-grade';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Save } from 'lucide-react';
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import type { z } from 'zod';
@@ -34,6 +34,7 @@ export default function GradeForm({ selectedRow, onSuccess, className = '' }: Gr
         reset,
         control,
         watch,
+        setValue,
         formState: { errors, isSubmitting, isDirty }
     } = useForm<FormFields>({
         resolver: zodResolver(gradeSchema.addOrUpdate),
@@ -152,58 +153,202 @@ export default function GradeForm({ selectedRow, onSuccess, className = '' }: Gr
                         <Controller
                             name='HRMG_PayScaleFrom'
                             control={control}
-                            render={({ field }) => (
-                                <InputNumber
-                                    label='Pay Scale From'
-                                    id='HRMG_PayScaleFrom'
-                                    value={field.value}
-                                    onChange={field.onChange}
-                                    error={errors.HRMG_PayScaleFrom?.message}
-                                    className='transition-colors focus:ring-2 focus:ring-primary/20'
-                                />
-                            )}
+                            render={({ field }) => {
+                                const containerRefCallback = (containerElement: HTMLDivElement | null) => {
+                                    if (!containerElement) return;
+                                    const findInput = () => containerElement.querySelector('input[type="text"], input[type="number"]') as HTMLInputElement;
+                                    const attachListener = () => {
+                                        const inputElement = findInput();
+                                        if (!inputElement) {
+                                            setTimeout(attachListener, 50);
+                                            return;
+                                        }
+                                        if ((inputElement as any).__dirtyHandlerAttached) return;
+                                        const handleInput = (e: Event) => {
+                                            const target = e.target as HTMLInputElement;
+                                            const inputValue = target.value.trim();
+                                            if (inputValue !== '' && !isNaN(Number(inputValue))) {
+                                                const numValue = Number(inputValue);
+                                                const currentValue = field.value || 0;
+                                                if (Math.abs(numValue - currentValue) > 0.0001) {
+                                                    field.onChange(numValue);
+                                                    setValue('HRMG_PayScaleFrom', numValue, { shouldDirty: true, shouldValidate: true });
+                                                }
+                                            }
+                                        };
+                                        inputElement.addEventListener('input', handleInput, { passive: true });
+                                        (inputElement as any).__dirtyHandlerAttached = true;
+                                    };
+                                    attachListener();
+                                };
+                                return (
+                                    <div ref={containerRefCallback}>
+                                        <InputNumber
+                                            label='Pay Scale From'
+                                            id='HRMG_PayScaleFrom'
+                                            value={field.value}
+                                            onChange={(value) => {
+                                                const numValue = value !== null && value !== undefined ? Number(value) : 0;
+                                                field.onChange(numValue);
+                                                setValue('HRMG_PayScaleFrom', numValue, { shouldDirty: true, shouldValidate: true });
+                                            }}
+                                            onBlur={field.onBlur}
+                                            error={errors.HRMG_PayScaleFrom?.message}
+                                            className='transition-colors focus:ring-2 focus:ring-primary/20'
+                                        />
+                                    </div>
+                                );
+                            }}
                         />
                         <Controller
                             name='HRMG_IncrementOf'
                             control={control}
-                            render={({ field }) => (
-                                <InputNumber
-                                    label='Increment Of'
-                                    id='HRMG_IncrementOf'
-                                    value={field.value}
-                                    onChange={field.onChange}
-                                    error={errors.HRMG_IncrementOf?.message}
-                                    className='transition-colors focus:ring-2 focus:ring-primary/20'
-                                />
-                            )}
+                            render={({ field }) => {
+                                const containerRefCallback = (containerElement: HTMLDivElement | null) => {
+                                    if (!containerElement) return;
+                                    const findInput = () => containerElement.querySelector('input[type="text"], input[type="number"]') as HTMLInputElement;
+                                    const attachListener = () => {
+                                        const inputElement = findInput();
+                                        if (!inputElement) {
+                                            setTimeout(attachListener, 50);
+                                            return;
+                                        }
+                                        if ((inputElement as any).__dirtyHandlerAttached) return;
+                                        const handleInput = (e: Event) => {
+                                            const target = e.target as HTMLInputElement;
+                                            const inputValue = target.value.trim();
+                                            if (inputValue !== '' && !isNaN(Number(inputValue))) {
+                                                const numValue = Number(inputValue);
+                                                const currentValue = field.value || 0;
+                                                if (Math.abs(numValue - currentValue) > 0.0001) {
+                                                    field.onChange(numValue);
+                                                    setValue('HRMG_IncrementOf', numValue, { shouldDirty: true, shouldValidate: true });
+                                                }
+                                            }
+                                        };
+                                        inputElement.addEventListener('input', handleInput, { passive: true });
+                                        (inputElement as any).__dirtyHandlerAttached = true;
+                                    };
+                                    attachListener();
+                                };
+                                return (
+                                    <div ref={containerRefCallback}>
+                                        <InputNumber
+                                            label='Increment Of'
+                                            id='HRMG_IncrementOf'
+                                            value={field.value}
+                                            onChange={(value) => {
+                                                const numValue = value !== null && value !== undefined ? Number(value) : 0;
+                                                field.onChange(numValue);
+                                                setValue('HRMG_IncrementOf', numValue, { shouldDirty: true, shouldValidate: true });
+                                            }}
+                                            onBlur={field.onBlur}
+                                            error={errors.HRMG_IncrementOf?.message}
+                                            className='transition-colors focus:ring-2 focus:ring-primary/20'
+                                        />
+                                    </div>
+                                );
+                            }}
                         />
                         <Controller
                             name='HRMG_PayScaleTo'
                             control={control}
-                            render={({ field }) => (
-                                <InputNumber
-                                    label='Pay Scale To'
-                                    id='HRMG_PayScaleTo'
-                                    value={field.value}
-                                    onChange={field.onChange}
-                                    error={errors.HRMG_PayScaleTo?.message}
-                                    className='transition-colors focus:ring-2 focus:ring-primary/20'
-                                />
-                            )}
+                            render={({ field }) => {
+                                const containerRefCallback = (containerElement: HTMLDivElement | null) => {
+                                    if (!containerElement) return;
+                                    const findInput = () => containerElement.querySelector('input[type="text"], input[type="number"]') as HTMLInputElement;
+                                    const attachListener = () => {
+                                        const inputElement = findInput();
+                                        if (!inputElement) {
+                                            setTimeout(attachListener, 50);
+                                            return;
+                                        }
+                                        if ((inputElement as any).__dirtyHandlerAttached) return;
+                                        const handleInput = (e: Event) => {
+                                            const target = e.target as HTMLInputElement;
+                                            const inputValue = target.value.trim();
+                                            if (inputValue !== '' && !isNaN(Number(inputValue))) {
+                                                const numValue = Number(inputValue);
+                                                const currentValue = field.value || 0;
+                                                if (Math.abs(numValue - currentValue) > 0.0001) {
+                                                    field.onChange(numValue);
+                                                    setValue('HRMG_PayScaleTo', numValue, { shouldDirty: true, shouldValidate: true });
+                                                }
+                                            }
+                                        };
+                                        inputElement.addEventListener('input', handleInput, { passive: true });
+                                        (inputElement as any).__dirtyHandlerAttached = true;
+                                    };
+                                    attachListener();
+                                };
+                                return (
+                                    <div ref={containerRefCallback}>
+                                        <InputNumber
+                                            label='Pay Scale To'
+                                            id='HRMG_PayScaleTo'
+                                            value={field.value}
+                                            onChange={(value) => {
+                                                const numValue = value !== null && value !== undefined ? Number(value) : 0;
+                                                field.onChange(numValue);
+                                                setValue('HRMG_PayScaleTo', numValue, { shouldDirty: true, shouldValidate: true });
+                                            }}
+                                            onBlur={field.onBlur}
+                                            error={errors.HRMG_PayScaleTo?.message}
+                                            className='transition-colors focus:ring-2 focus:ring-primary/20'
+                                        />
+                                    </div>
+                                );
+                            }}
                         />
                         <Controller
                             name='HRMG_Order'
                             control={control}
-                            render={({ field }) => (
-                                <InputNumber
-                                    label='Order'
-                                    id='HRMG_Order'
-                                    value={field.value}
-                                    onChange={field.onChange}
-                                    error={errors.HRMG_Order?.message}
-                                    className='transition-colors focus:ring-2 focus:ring-primary/20'
-                                />
-                            )}
+                            render={({ field }) => {
+                                const containerRefCallback = (containerElement: HTMLDivElement | null) => {
+                                    if (!containerElement) return;
+                                    const findInput = () => containerElement.querySelector('input[type="text"], input[type="number"]') as HTMLInputElement;
+                                    const attachListener = () => {
+                                        const inputElement = findInput();
+                                        if (!inputElement) {
+                                            setTimeout(attachListener, 50);
+                                            return;
+                                        }
+                                        if ((inputElement as any).__dirtyHandlerAttached) return;
+                                        const handleInput = (e: Event) => {
+                                            const target = e.target as HTMLInputElement;
+                                            const inputValue = target.value.trim();
+                                            if (inputValue !== '' && !isNaN(Number(inputValue))) {
+                                                const numValue = Number(inputValue);
+                                                const currentValue = field.value || 0;
+                                                if (Math.abs(numValue - currentValue) > 0.0001) {
+                                                    field.onChange(numValue);
+                                                    setValue('HRMG_Order', numValue, { shouldDirty: true, shouldValidate: true });
+                                                }
+                                            }
+                                        };
+                                        inputElement.addEventListener('input', handleInput, { passive: true });
+                                        (inputElement as any).__dirtyHandlerAttached = true;
+                                    };
+                                    attachListener();
+                                };
+                                return (
+                                    <div ref={containerRefCallback}>
+                                        <InputNumber
+                                            label='Order'
+                                            id='HRMG_Order'
+                                            value={field.value}
+                                            onChange={(value) => {
+                                                const numValue = value !== null && value !== undefined ? Number(value) : 0;
+                                                field.onChange(numValue);
+                                                setValue('HRMG_Order', numValue, { shouldDirty: true, shouldValidate: true });
+                                            }}
+                                            onBlur={field.onBlur}
+                                            error={errors.HRMG_Order?.message}
+                                            className='transition-colors focus:ring-2 focus:ring-primary/20'
+                                        />
+                                    </div>
+                                );
+                            }}
                         />
                     </div>
 

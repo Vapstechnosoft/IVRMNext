@@ -7,7 +7,7 @@ import { useMasterLoan } from '@/hooks/hrms/useMasters';
 import { LOAN_TYPE_VALIDATION } from '@/lib/validation/hrms-master-validation';
 import type { MasterLoanDetail, MasterLoanInput } from '@/types/hrms/master-loan';
 import { Save } from 'lucide-react';
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 
@@ -26,6 +26,7 @@ export default function LoanForm({ selectedRow, onSuccess }: LoanFormProps) {
         control,
         handleSubmit,
         reset,
+        setValue,
         formState: { errors, isSubmitting, isDirty }
     } = useForm<MasterLoanInput>({
         defaultValues: {
@@ -115,17 +116,72 @@ export default function LoanForm({ selectedRow, onSuccess }: LoanFormProps) {
                         name='HRML_Max'
                         control={control}
                         rules={LOAN_TYPE_VALIDATION.maxLoanAmount}
-                        render={({ field }) => (
-                            <InputNumber
-                                label='Maximum Amount'
-                                required
-                                id='HRML_Max'
-                                value={field.value}
-                                onChange={field.onChange}
-                                error={errors.HRML_Max?.message}
-                                className='transition-colors focus:ring-2 focus:ring-primary/20'
-                            />
-                        )}
+                        render={({ field }) => {
+                            // Callback ref to attach input listener when element is mounted
+                            const containerRefCallback = (containerElement: HTMLDivElement | null) => {
+                                if (!containerElement) return;
+                                
+                                // Find the actual input element inside the NumberField
+                                const findInput = () => {
+                                    return containerElement.querySelector('input[type="text"], input[type="number"]') as HTMLInputElement;
+                                };
+                                
+                                // Try to find input immediately, or after a short delay for React Aria rendering
+                                const attachListener = () => {
+                                    const inputElement = findInput();
+                                    if (!inputElement) {
+                                        setTimeout(attachListener, 50);
+                                        return;
+                                    }
+                                    
+                                    // Check if listener is already attached to avoid duplicates
+                                    if ((inputElement as any).__dirtyHandlerAttached) {
+                                        return;
+                                    }
+                                    
+                                    const handleInput = (e: Event) => {
+                                        const target = e.target as HTMLInputElement;
+                                        const inputValue = target.value.trim();
+                                        
+                                        // Only process if there's a valid number
+                                        if (inputValue !== '' && !isNaN(Number(inputValue))) {
+                                            const numValue = Number(inputValue);
+                                            // Get current value from the field to compare
+                                            const currentValue = field.value || 0;
+                                            // Check if value actually changed to avoid unnecessary updates
+                                            if (Math.abs(numValue - currentValue) > 0.0001) {
+                                                field.onChange(numValue);
+                                                setValue('HRML_Max', numValue, { shouldDirty: true, shouldValidate: true });
+                                            }
+                                        }
+                                    };
+                                    
+                                    inputElement.addEventListener('input', handleInput, { passive: true });
+                                    (inputElement as any).__dirtyHandlerAttached = true;
+                                };
+                                
+                                attachListener();
+                            };
+                            
+                            return (
+                                <div ref={containerRefCallback}>
+                                    <InputNumber
+                                        label='Maximum Amount'
+                                        required
+                                        id='HRML_Max'
+                                        value={field.value}
+                                        onChange={(value) => {
+                                            const numValue = value !== null && value !== undefined ? Number(value) : 0;
+                                            field.onChange(numValue);
+                                            setValue('HRML_Max', numValue, { shouldDirty: true, shouldValidate: true });
+                                        }}
+                                        onBlur={field.onBlur}
+                                        error={errors.HRML_Max?.message}
+                                        className='transition-colors focus:ring-2 focus:ring-primary/20'
+                                    />
+                                </div>
+                            );
+                        }}
                     />
                 </div>
 

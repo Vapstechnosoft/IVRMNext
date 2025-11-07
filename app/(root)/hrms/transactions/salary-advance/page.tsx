@@ -1,19 +1,13 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
-import { Calendar } from '@/components/ui/calendar';
-import { DatePickerWithYear } from '@/components/ui/date-picker-year';
 import { Checkbox } from '@/components/ui/checkbox';
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
 import { DataTable } from '@/components/ui/data-table/data-table';
-import { ActionButtons } from '@/components/ui/form/action-buttons';
-import { Label } from '@/components/ui/extension/field';
-import { InputText } from '@/components/ui/extension/input-text';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
 import { cn } from '@/lib/utils';
-import { useSalaryAdvanceList, useSaveSalaryAdvance, useToggleSalaryAdvanceStatus } from '@/hooks/hrms/useTransactions';
+import { useSalaryAdvanceList, useToggleSalaryAdvanceStatus } from '@/hooks/hrms/useTransactions';
 import type {
     EmployeeDropdown,
     LeaveYearDropdown,
@@ -22,37 +16,38 @@ import type {
     SalaryAdvanceItem
 } from '@/types/hrms/salary-advance';
 import type { ColumnDef } from '@tanstack/react-table';
-import { format } from 'date-fns';
-import { CalendarIcon, Edit, Plus, RefreshCw, Save, X } from 'lucide-react';
-import { useRef, useState } from 'react';
-import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
+import { Plus } from 'lucide-react';
+import { useState } from 'react';
 import { toast } from 'sonner';
+import { ActionsCell } from './_components/actions-cell';
+import FormSections from './_components/form-sections';
 
 interface SalaryAdvance extends SalaryAdvanceItem {
     selected?: boolean;
 }
 
-interface SalaryAdvanceForm {
-    employeeId: string;
-    entryDate: string;
-    advanceYear: string;
-    advanceMonth: string;
-    appliedAmount: number;
-    remarks: string;
-    modeOfPayment: string;
-    referenceNo: number;
+export default function SalaryAdvancePage() {
+    const roleId = 2;
+    const { data: advanceData, isLoading, refetch } = useSalaryAdvanceList({ roleId });
+
+    return (
+        <FormProvider<SalaryAdvanceItem>>
+            <SalaryAdvancePageContent advanceData={advanceData} isLoading={isLoading} refetch={refetch} />
+        </FormProvider>
+    );
 }
 
-export default function SalaryAdvancePage() {
+function SalaryAdvancePageContent({
+    advanceData,
+    isLoading,
+    refetch
+}: {
+    advanceData: any;
+    isLoading: boolean;
+    refetch: () => void;
+}) {
+    const { openAddForm } = useFormContext<SalaryAdvanceItem>();
     const [selectedAdvances, setSelectedAdvances] = useState<number[]>([]);
-    const [editingId, setEditingId] = useState<number | null>(null);
-    const [showForm, setShowForm] = useState(false);
-    const _formRef = useRef<HTMLDivElement>(null);
-
-    const roleId = 2;
-    const { data: advanceData, isLoading } = useSalaryAdvanceList({ roleId });
-    const saveMutation = useSaveSalaryAdvance();
-    const toggleMutation = useToggleSalaryAdvanceStatus();
 
     const _salaryAdvances: SalaryAdvance[] = (advanceData?.empadvaList || []).map((advance: any) => ({
         ...advance,
@@ -63,89 +58,6 @@ export default function SalaryAdvancePage() {
     const leaveYears = advanceData?.leaveyeardropdown || [];
     const months = advanceData?.monthdropdown || [];
     const modeOfPayments = advanceData?.modeOfPaymentdropdown || [];
-
-    const {
-        register,
-        handleSubmit,
-        reset,
-        control,
-        setValue,
-        formState: { errors, isSubmitting: formIsSubmitting }
-    } = useForm<SalaryAdvanceForm>({
-        mode: 'onChange',
-        defaultValues: {
-            employeeId: '',
-            entryDate: '',
-            advanceYear: '',
-            advanceMonth: '',
-            appliedAmount: 0,
-            remarks: '',
-            modeOfPayment: '',
-            referenceNo: 0
-        }
-    });
-
-
-    const onSubmit: SubmitHandler<SalaryAdvanceForm> = async (data: SalaryAdvanceForm) => {
-        const payload = {
-            HRESA_Id: editingId || 0,
-            MI_Id: 30,
-            HRME_Id: Number(data.employeeId),
-            HRESA_EntryDate: data.entryDate,
-            HRESA_AdvYear: Number(data.advanceYear),
-            HRESA_AdvMonth: data.advanceMonth,
-            HRESA_AppliedAmount: data.appliedAmount,
-            HRESA_Remarks: data.remarks,
-            HRESA_ActiveFlag: true,
-            HRESA_AdvStatus: 'Pending',
-            HRESA_SanctinedAmount: 0,
-            HRESA_ModeOfPayment: data.modeOfPayment,
-            HRESA_ReferenceNo: data.referenceNo,
-            roleId: 2
-        };
-
-        saveMutation.mutate(payload, {
-            onSuccess: () => {
-                reset();
-                setEditingId(null);
-                setShowForm(false);
-            }
-        });
-    };
-
-    const handleEdit = (advance: SalaryAdvance) => {
-        setEditingId(advance.HRESA_Id);
-        setShowForm(true);
-        setValue('employeeId', advance.HRME_Id.toString());
-        setValue('entryDate', advance.HRESA_EntryDate ? format(new Date(advance.HRESA_EntryDate), 'yyyy-MM-dd') : '');
-        setValue('advanceYear', advance.HRESA_AdvYear.toString());
-        setValue('advanceMonth', advance.HRESA_AdvMonth);
-        setValue('appliedAmount', advance.HRESA_AppliedAmount);
-        setValue('remarks', advance.HRESA_Remarks);
-        setValue('modeOfPayment', advance.HRESA_ModeOfPayment);
-        setValue('referenceNo', advance.HRESA_ReferenceNo);
-        setTimeout(() => {
-            _formRef.current?.scrollIntoView({
-                behavior: 'smooth',
-                block: 'end'
-            });
-        }, 100);
-    };
-
-    const handleToggleActive = async (advanceId: number, currentStatus: boolean) => {
-        const newStatus = !currentStatus;
-        toggleMutation.mutate(
-            {
-                hresaId: advanceId,
-                activeFlag: newStatus
-            },
-            {
-                onSuccess: () => {
-                    toast.success(`Successfully ${newStatus ? 'activated' : 'deactivated'} the salary advance record`);
-                }
-            }
-        );
-    };
 
     const handleSelectAll = (selected: boolean) => {
         if (selected) {
@@ -170,17 +82,17 @@ export default function SalaryAdvancePage() {
     };
 
     const getEmployeeCode = (employeeId: number) => {
-        const employee = employees.find((emp) => emp.HRME_Id === employeeId);
+        const employee = employees.find((emp: EmployeeDropdown) => emp.HRME_Id === employeeId);
         return employee?.HRME_EmployeeCode || `EMP${employeeId}`;
     };
 
     const getLeaveYearName = (yearId: number) => {
-        const year = leaveYears.find((y) => y.HRMLY_Id === yearId);
+        const year = leaveYears.find((y: LeaveYearDropdown) => y.HRMLY_Id === yearId);
         return year?.HRMLY_LeaveYear || `Year ${yearId}`;
     };
 
     const getMonthName = (monthId: number) => {
-        const month = months.find((m) => m.IVRM_Month_Id === monthId);
+        const month = months.find((m: MonthDropdown) => m.IVRM_Month_Id === monthId);
         return month?.IVRM_Month_Name || `Month ${monthId}`;
     };
 
@@ -189,8 +101,6 @@ export default function SalaryAdvancePage() {
         isLoading,
         onSelectAll,
         onAdvanceSelect,
-        onEdit,
-        onToggleActive,
         getEmployeeCode,
         getEmployeeName,
         getLeaveYearName,
@@ -200,8 +110,6 @@ export default function SalaryAdvancePage() {
         isLoading: boolean;
         onSelectAll: (selected: boolean) => void;
         onAdvanceSelect: (advanceId: number, selected: boolean) => void;
-        onEdit: (advance: SalaryAdvance) => void;
-        onToggleActive: (advanceId: number, currentStatus: boolean) => void;
         getEmployeeCode: (employeeId: number) => string;
         getEmployeeName: (employee: EmployeeDropdown) => string;
         getLeaveYearName: (yearId: number) => string;
@@ -300,34 +208,10 @@ export default function SalaryAdvancePage() {
             {
                 id: 'actions',
                 header: 'Actions',
-                accessorFn: (row: any) => {
-                    return row;
-                },
                 enableSorting: false,
-                cell: ({ cell }: { cell: any }) => {
-                    const advance = cell.getValue() as SalaryAdvance;
-                    return (
-                        <ActionButtons
-                            rowData={advance}
-                            buttons={{ edit: true, toggle: true, delete: false }}
-                            onEdit={onEdit}
-                            onToggle={(data: SalaryAdvance, newState: boolean) => {
-                                // newState is the desired state from the toggle switch
-                                toggleMutation.mutate(
-                                    {
-                                        hresaId: data.HRESA_Id,
-                                        activeFlag: newState
-                                    },
-                                    {
-                                        onSuccess: () => {
-                                            toast.success(`Successfully ${newState ? 'activated' : 'deactivated'} the salary advance record`);
-                                        }
-                                    }
-                                );
-                            }}
-                            toggleConditionKey='HRESA_ActiveFlag'
-                        />
-                    );
+                cell: ({ row }) => {
+                    const advance = row.original;
+                    return <ActionsCell rowData={advance} />;
                 }
             }
         ];
@@ -342,20 +226,13 @@ export default function SalaryAdvancePage() {
     return (
         <div className='min-h-screen'>
             <div className='container space-y-4 p-1'>
+                {/* Forms Section */}
+                <FormSections onloadData={advanceData} onSuccess={refetch} />
+
                 <div className='flex justify-end'>
                     <Button
                         type='button'
-                        onClick={() => {
-                            setShowForm(true);
-                            setEditingId(null);
-                            reset();
-                            setTimeout(() => {
-                                _formRef.current?.scrollIntoView({
-                                    behavior: 'smooth',
-                                    block: 'end'
-                                });
-                            }, 100);
-                        }}
+                        onClick={openAddForm}
                         size='lg'
                         className='w-fit shadow-md transition-all duration-200 hover:scale-105 hover:shadow-lg'>
                         <Plus className='h-4 w-4' />
@@ -390,8 +267,6 @@ export default function SalaryAdvancePage() {
                             isLoading={isLoading}
                             onSelectAll={handleSelectAll}
                             onAdvanceSelect={handleAdvanceSelect}
-                            onEdit={handleEdit}
-                            onToggleActive={handleToggleActive}
                             getEmployeeCode={getEmployeeCode}
                             getEmployeeName={getEmployeeName}
                             getLeaveYearName={getLeaveYearName}
@@ -399,227 +274,6 @@ export default function SalaryAdvancePage() {
                         />
                     </div>
                 </CollapsibleSection>
-
-                {showForm && (
-                    <div ref={_formRef} className='slide-in-from-top-4 animate-in duration-300'>
-                        <CollapsibleSection
-                            title={editingId ? 'Edit Salary Advance' : 'Add New Salary Advance'}
-                            description='Enter salary advance details'
-                            defaultOpen={true}
-                            variant='outline'
-                            size='lg'
-                            className='shadow-lg'>
-                            <div className='relative'>
-                                <Button
-                                    onClick={() => {
-                                        reset();
-                                        setEditingId(null);
-                                        setShowForm(false);
-                                    }}
-                                    variant='ghost'
-                                    size='sm'
-                                    className='absolute -top-[4rem] right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
-                                    <X className='h-4 w-4 text-destructive' /> Close
-                                </Button>
-
-                                <form onSubmit={handleSubmit(onSubmit)} className='space-y-6'>
-                                    <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
-                                        <div className='space-y-2'>
-                                            <Label>Employee *</Label>
-                                            <Controller
-                                                name='employeeId'
-                                                control={control}
-                                                rules={{ required: 'Please select an employee' }}
-                                                render={({ field }) => (
-                                                    <Select value={field.value} onValueChange={field.onChange}>
-                                                        <SelectTrigger>
-                                                            <SelectValue placeholder='Select Employee' />
-                                                        </SelectTrigger>
-                                                        <SelectContent>
-                                                            {employees.map((emp) => (
-                                                                <SelectItem key={emp.HRME_Id} value={emp.HRME_Id.toString()}>
-                                                                    {emp.HRME_EmployeeCode} - {getEmployeeName(emp)}
-                                                                </SelectItem>
-                                                            ))}
-                                                        </SelectContent>
-                                                    </Select>
-                                                )}
-                                            />
-                                            {errors.employeeId && <p className='text-red-500 text-sm'>{errors.employeeId.message}</p>}
-                                        </div>
-
-                                        <div className='space-y-2'>
-                                            <Label>Entry Date *</Label>
-                                            <Controller
-                                                name='entryDate'
-                                                control={control}
-                                                rules={{ required: 'Please select entry date' }}
-                                                render={({ field }) => (
-                                                    <Popover>
-                                                        <PopoverTrigger asChild>
-                                                            <Button
-                                                                variant='outline'
-                                                                className={cn(
-                                                                    'w-full justify-start text-left font-normal',
-                                                                    !field.value && 'text-muted-foreground'
-                                                                )}>
-                                                                <CalendarIcon className='mr-2 h-4 w-4' />
-                                                                {field.value ? format(new Date(field.value), 'dd/MM/yyyy') : 'Select date'}
-                                                            </Button>
-                                                        </PopoverTrigger>
-                                                        <PopoverContent className='w-auto p-0'>
-                                                            <Calendar
-                                                                mode='single'
-                                                                selected={field.value ? new Date(field.value) : undefined}
-                                                                onSelect={(date: Date | undefined) => field.onChange(date ? format(date, 'yyyy-MM-dd') : '')}
-                                                                initialFocus
-                                                            />
-                                                        </PopoverContent>
-                                                    </Popover>
-                                                )}
-                                            />
-                                            {errors.entryDate && <p className='text-red-500 text-sm'>{errors.entryDate.message}</p>}
-                                        </div>
-
-                                        <div className='space-y-2'>
-                                            <Label>Advance Year *</Label>
-                                            <Controller
-                                                name='advanceYear'
-                                                control={control}
-                                                rules={{ required: 'Please select advance year' }}
-                                                render={({ field }) => (
-                                                    <Select value={field.value} onValueChange={field.onChange}>
-                                                        <SelectTrigger>
-                                                            <SelectValue placeholder='Select Year' />
-                                                        </SelectTrigger>
-                                                        <SelectContent>
-                                                            {leaveYears.map((year) => (
-                                                                <SelectItem key={year.HRMLY_Id} value={year.HRMLY_Id.toString()}>
-                                                                    {year.HRMLY_LeaveYear}
-                                                                </SelectItem>
-                                                            ))}
-                                                        </SelectContent>
-                                                    </Select>
-                                                )}
-                                            />
-                                            {errors.advanceYear && <p className='text-red-500 text-sm'>{errors.advanceYear.message}</p>}
-                                        </div>
-
-                                        <div className='space-y-2'>
-                                            <Label>Advance Month *</Label>
-                                            <Controller
-                                                name='advanceMonth'
-                                                control={control}
-                                                rules={{ required: 'Please select advance month' }}
-                                                render={({ field }) => (
-                                                    <Select value={field.value} onValueChange={field.onChange}>
-                                                        <SelectTrigger>
-                                                            <SelectValue placeholder='Select Month' />
-                                                        </SelectTrigger>
-                                                        <SelectContent>
-                                                            {months.map((month) => (
-                                                                <SelectItem key={month.IVRM_Month_Id} value={month.IVRM_Month_Id.toString()}>
-                                                                    {month.IVRM_Month_Name}
-                                                                </SelectItem>
-                                                            ))}
-                                                        </SelectContent>
-                                                    </Select>
-                                                )}
-                                            />
-                                            {errors.advanceMonth && <p className='text-red-500 text-sm'>{errors.advanceMonth.message}</p>}
-                                        </div>
-
-                                        <div className='space-y-2'>
-                                            <Label>Applied Amount *</Label>
-                                            <InputText
-                                                type='number'
-                                                step='any'
-                                                placeholder='Enter amount'
-                                                {...register('appliedAmount', {
-                                                    required: 'Please enter applied amount',
-                                                    min: {
-                                                        value: 1,
-                                                        message: 'Amount must be greater than 0'
-                                                    }
-                                                })}
-                                            />
-                                            {errors.appliedAmount && <p className='text-red-500 text-sm'>{errors.appliedAmount.message}</p>}
-                                        </div>
-
-                                        <div className='space-y-2'>
-                                            <Label>Mode of Payment *</Label>
-                                            <Controller
-                                                name='modeOfPayment'
-                                                control={control}
-                                                rules={{ required: 'Please select mode of payment' }}
-                                                render={({ field }) => (
-                                                    <Select value={field.value} onValueChange={field.onChange}>
-                                                        <SelectTrigger>
-                                                            <SelectValue placeholder='Select Payment Mode' />
-                                                        </SelectTrigger>
-                                                        <SelectContent>
-                                                            {modeOfPayments.map((mode) => (
-                                                                <SelectItem key={mode.IVRMMOD_Id} value={mode.IVRMMOD_Id.toString()}>
-                                                                    {mode.IVRMMOD_ModeOfPayment}
-                                                                </SelectItem>
-                                                            ))}
-                                                        </SelectContent>
-                                                    </Select>
-                                                )}
-                                            />
-                                            {errors.modeOfPayment && <p className='text-red-500 text-sm'>{errors.modeOfPayment.message}</p>}
-                                        </div>
-
-                                        <div className='space-y-2'>
-                                            <Label>Reference No</Label>
-                                            <InputText
-                                                type='number'
-                                                placeholder='Enter reference number'
-                                                {...register('referenceNo', { valueAsNumber: true })}
-                                            />
-                                        </div>
-                                    </div>
-
-                                    <div className='space-y-2'>
-                                        <Label>Remarks</Label>
-                                        <InputText placeholder='Enter remarks' {...register('remarks')} />
-                                    </div>
-
-                                    <div className='flex flex-col gap-3 border-t pt-4 sm:flex-row sm:justify-start'>
-                                        <Button
-                                            type='button'
-                                            variant='outline'
-                                            onClick={() => {
-                                                reset();
-                                                setEditingId(null);
-                                                setShowForm(false);
-                                            }}
-                                            disabled={saveMutation.isPending || formIsSubmitting}
-                                            className='order-2 w-fit transition-all duration-200 hover:scale-105 sm:order-1'>
-                                            Cancel
-                                        </Button>
-                                        <Button
-                                            type='submit'
-                                            disabled={saveMutation.isPending || formIsSubmitting}
-                                            className='order-1 w-fit transition-all duration-200 hover:scale-105 sm:order-2'>
-                                            {saveMutation.isPending || formIsSubmitting ? (
-                                                <div className='flex items-center'>
-                                                    <RefreshCw className='mr-2 h-4 w-4 animate-spin' />
-                                                    Saving...
-                                                </div>
-                                            ) : (
-                                                <div className='flex items-center'>
-                                                    <Save className='mr-2 h-4 w-4' />
-                                                    {editingId ? 'Update Salary Advance' : 'Save Salary Advance'}
-                                                </div>
-                                            )}
-                                        </Button>
-                                    </div>
-                                </form>
-                            </div>
-                        </CollapsibleSection>
-                    </div>
-                )}
             </div>
         </div>
     );

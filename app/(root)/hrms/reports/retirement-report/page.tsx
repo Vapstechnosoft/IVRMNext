@@ -1,22 +1,16 @@
 'use client';
 
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { DatePickerWithYear } from '@/components/ui/date-picker-year';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Checkbox } from '@/components/ui/checkbox';
-import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
 import { DataTable } from '@/components/ui/data-table/data-table';
-import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { type BaseEntity, createLocalCrud } from '@/lib/localdb';
-import { cn } from '@/lib/utils';
-import type { ColumnDef } from '@tanstack/react-table';
-import { differenceInYears, format } from 'date-fns';
-import { Calculator, Calendar as CalendarIcon, Clock, Download, Printer, Search, UserCheck, Users } from 'lucide-react';
+import { differenceInYears } from 'date-fns';
+import { format } from 'date-fns';
+import { Calculator, CalendarIcon, Clock, Download, Printer, UserCheck, Users } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';
+import { RetirementReportFilters, type RetirementFilters } from './_components/filters';
+import { getRetirementColumns, headerFields, type RetirementRecord as RetirementRecordColumn } from './_components/columns';
 
 // Retirement Report data structure
 interface RetirementRecord extends BaseEntity {
@@ -56,36 +50,6 @@ interface RetirementSummary {
     averageServiceYears: number;
 }
 
-// Header fields for selection
-const headerFields = [
-    'Employee Code',
-    'Employee Name',
-    'Father Name',
-    'Mobile No.',
-    'Email Id',
-    'Date Of Birth',
-    'Employee Type',
-    'Department',
-    'Designation',
-    'Date of Joining',
-    'Date of Leaving',
-    'Service Years',
-    'Current Age',
-    'Retirement Date',
-    'PF Balance',
-    'Gratuity Amount'
-];
-
-// Report filters
-interface RetirementFilters {
-    selectedHeaders: string[];
-    format: 'format1' | 'format2';
-    dateFilter: 'dateOfBirth' | 'dateOfJoining' | 'dateOfLeaving';
-    fromDate: Date | undefined;
-    toDate: Date | undefined;
-    employeeStatus: 'working' | 'left';
-    reportScope: 'all' | 'individual';
-}
 
 export default function RetirementReportPage() {
     // Database instances
@@ -395,385 +359,20 @@ export default function RetirementReportPage() {
     }, [filteredRecords]);
 
     // Dynamic table columns based on selected headers
-    const columns: ColumnDef<RetirementRecord>[] = useMemo(() => {
-        const baseColumns: ColumnDef<RetirementRecord>[] = [
-            {
-                accessorKey: 'id',
-                header: ({ column }) => <DataTableColumnHeader column={column} title='SL.No.' />,
-                cell: ({ row, table }) => {
-                    const pageIndex = table.getState().pagination.pageIndex;
-                    const pageSize = table.getState().pagination.pageSize;
-                    const continuousIndex = pageIndex * pageSize + row.index + 1;
-                    return <div className='text-center'>{continuousIndex}</div>;
-                },
-                enableSorting: false,
-                enableHiding: false,
-                size: 80
-            }
-        ];
-
-        // Add selected header columns
-        filters.selectedHeaders.forEach((header) => {
-            switch (header) {
-                case 'Employee Code':
-                    baseColumns.push({
-                        accessorKey: 'employeeCode',
-                        header: ({ column }) => <DataTableColumnHeader column={column} title='Employee Code' />,
-                        cell: ({ row }) => <div className='font-medium'>{row.getValue('employeeCode')}</div>,
-                        enableSorting: true,
-                        enableHiding: true
-                    });
-                    break;
-                case 'Employee Name':
-                    baseColumns.push({
-                        accessorKey: 'employeeName',
-                        header: ({ column }) => <DataTableColumnHeader column={column} title='Employee Name' />,
-                        cell: ({ row }) => <div>{row.getValue('employeeName')}</div>,
-                        enableSorting: true,
-                        enableHiding: true
-                    });
-                    break;
-                case 'Father Name':
-                    baseColumns.push({
-                        accessorKey: 'fatherName',
-                        header: ({ column }) => <DataTableColumnHeader column={column} title="Father's Name" />,
-                        cell: ({ row }) => <div className='text-sm'>{row.getValue('fatherName')}</div>,
-                        enableSorting: true,
-                        enableHiding: true
-                    });
-                    break;
-                case 'Mobile No.':
-                    baseColumns.push({
-                        accessorKey: 'mobileNo',
-                        header: ({ column }) => <DataTableColumnHeader column={column} title='Mobile No.' />,
-                        cell: ({ row }) => <div className='font-mono text-sm'>{row.getValue('mobileNo')}</div>,
-                        enableSorting: true,
-                        enableHiding: true
-                    });
-                    break;
-                case 'Email Id':
-                    baseColumns.push({
-                        accessorKey: 'emailId',
-                        header: ({ column }) => <DataTableColumnHeader column={column} title='Email Id' />,
-                        cell: ({ row }) => <div className='text-sm'>{row.getValue('emailId')}</div>,
-                        enableSorting: true,
-                        enableHiding: true
-                    });
-                    break;
-                case 'Date Of Birth':
-                    baseColumns.push({
-                        accessorKey: 'dateOfBirth',
-                        header: ({ column }) => <DataTableColumnHeader column={column} title='Date of Birth' />,
-                        cell: ({ row }) => <div className='text-sm'>{new Date(row.getValue('dateOfBirth')).toLocaleDateString()}</div>,
-                        enableSorting: true,
-                        enableHiding: true
-                    });
-                    break;
-                case 'Date of Joining':
-                    baseColumns.push({
-                        accessorKey: 'dateOfJoining',
-                        header: ({ column }) => <DataTableColumnHeader column={column} title='Date of Joining' />,
-                        cell: ({ row }) => <div className='text-sm'>{new Date(row.getValue('dateOfJoining')).toLocaleDateString()}</div>,
-                        enableSorting: true,
-                        enableHiding: true
-                    });
-                    break;
-                case 'Current Age':
-                    baseColumns.push({
-                        accessorKey: 'currentAge',
-                        header: ({ column }) => <DataTableColumnHeader column={column} title='Current Age' />,
-                        cell: ({ row }) => <div className='text-center'>{row.getValue('currentAge')} years</div>,
-                        enableSorting: true,
-                        enableHiding: true
-                    });
-                    break;
-                case 'Service Years':
-                    baseColumns.push({
-                        accessorKey: 'serviceYears',
-                        header: ({ column }) => <DataTableColumnHeader column={column} title='Service Years' />,
-                        cell: ({ row }) => <div className='text-center'>{row.getValue('serviceYears')} years</div>,
-                        enableSorting: true,
-                        enableHiding: true
-                    });
-                    break;
-                case 'Retirement Date':
-                    baseColumns.push({
-                        accessorKey: 'retirementDate',
-                        header: ({ column }) => <DataTableColumnHeader column={column} title='Retirement Date' />,
-                        cell: ({ row }) => <div className='text-sm'>{new Date(row.getValue('retirementDate')).toLocaleDateString()}</div>,
-                        enableSorting: true,
-                        enableHiding: true
-                    });
-                    break;
-                case 'PF Balance':
-                    baseColumns.push({
-                        accessorKey: 'pfBalance',
-                        header: ({ column }) => <DataTableColumnHeader column={column} title='PF Balance' />,
-                        cell: ({ row }) => <div>₹{(row.getValue('pfBalance') as number).toLocaleString()}</div>,
-                        enableSorting: true,
-                        enableHiding: true
-                    });
-                    break;
-                case 'Gratuity Amount':
-                    baseColumns.push({
-                        accessorKey: 'gratuityAmount',
-                        header: ({ column }) => <DataTableColumnHeader column={column} title='Gratuity Amount' />,
-                        cell: ({ row }) => <div>₹{(row.getValue('gratuityAmount') as number).toLocaleString()}</div>,
-                        enableSorting: true,
-                        enableHiding: true
-                    });
-                    break;
-                case 'Department':
-                    baseColumns.push({
-                        accessorKey: 'department',
-                        header: ({ column }) => <DataTableColumnHeader column={column} title='Department' />,
-                        cell: ({ row }) => <div className='text-sm'>{row.getValue('department')}</div>,
-                        enableSorting: true,
-                        enableHiding: true
-                    });
-                    break;
-                case 'Designation':
-                    baseColumns.push({
-                        accessorKey: 'designation',
-                        header: ({ column }) => <DataTableColumnHeader column={column} title='Designation' />,
-                        cell: ({ row }) => <div className='text-sm'>{row.getValue('designation')}</div>,
-                        enableSorting: true,
-                        enableHiding: true
-                    });
-                    break;
-            }
-        });
-
-        // Always add status column
-        baseColumns.push({
-            accessorKey: 'status',
-            header: ({ column }) => <DataTableColumnHeader column={column} title='Status' />,
-            cell: ({ row }) => {
-                const status = row.getValue('status') as string;
-                const variant = status === 'Working' ? 'default' : status === 'Retired' ? 'secondary' : 'destructive';
-                return <Badge variant={variant}>{status}</Badge>;
-            },
-            enableSorting: true,
-            enableHiding: true
-        });
-
-        return baseColumns;
-    }, [filters.selectedHeaders]);
+    const columns = useMemo(() => getRetirementColumns(filters.selectedHeaders), [filters.selectedHeaders]);
 
     return (
         <div className='space-y-6'>
             {/* Report Configuration Section */}
-            <CollapsibleSection
-                title='EMPLOYEE RETIREMENT REPORT'
-                description='Configure filters to analyze employee retirement data and projections'
-                defaultOpen={true}
-                variant='default'
-                size='lg'
-                className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
-                <div className='grid grid-cols-1 gap-6 lg:grid-cols-2'>
-                    {/* Left Column */}
-                    <div className='space-y-4'>
-                        {/* Header Selection */}
-                        <div className='space-y-3'>
-                            <div className='flex items-center gap-2'>
-                                <span className='font-medium text-foreground text-sm'>Header:</span>
-                                <span className='text-red-500'>*</span>
-                                <div className='flex items-center gap-2'>
-                                    <Checkbox
-                                        id='all-headers'
-                                        checked={filters.selectedHeaders.length === headerFields.length}
-                                        onCheckedChange={(checked) => handleHeaderSelectAll(checked as boolean)}
-                                    />
-                                    <label htmlFor='all-headers' className='cursor-pointer text-sm'>
-                                        All
-                                    </label>
-                                </div>
-                            </div>
-                            <div className='h-40 space-y-2 overflow-y-auto rounded-lg border p-3'>
-                                {headerFields.map((header) => (
-                                    <div key={header} className='flex items-center gap-2'>
-                                        <Checkbox
-                                            id={`header-${header}`}
-                                            checked={filters.selectedHeaders.includes(header)}
-                                            onCheckedChange={(checked) => handleHeaderChange(header, checked as boolean)}
-                                        />
-                                        <label htmlFor={`header-${header}`} className='cursor-pointer text-sm'>
-                                            {header}
-                                        </label>
-                                    </div>
-                                ))}
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* Right Column */}
-                    <div className='space-y-4'>
-                        {/* Format Selection */}
-                        <div className='space-y-3'>
-                            <span className='font-medium text-foreground text-sm'>Format:</span>
-                            <RadioGroup
-                                value={filters.format}
-                                onValueChange={(value) => handleFilterChange('format', value)}
-                                className='flex gap-4'>
-                                <div className='flex items-center space-x-2'>
-                                    <RadioGroupItem value='format1' id='format1' />
-                                    <label htmlFor='format1' className='cursor-pointer text-sm'>
-                                        Format 1
-                                    </label>
-                                </div>
-                                <div className='flex items-center space-x-2'>
-                                    <RadioGroupItem value='format2' id='format2' />
-                                    <label htmlFor='format2' className='cursor-pointer text-sm'>
-                                        Format 2
-                                    </label>
-                                </div>
-                            </RadioGroup>
-                        </div>
-
-                        {/* Date Filter Selection */}
-                        <div className='space-y-3'>
-                            <span className='font-medium text-foreground text-sm'>Date Filter:</span>
-                            <RadioGroup
-                                value={filters.dateFilter}
-                                onValueChange={(value) => handleFilterChange('dateFilter', value)}
-                                className='flex gap-4'>
-                                <div className='flex items-center space-x-2'>
-                                    <RadioGroupItem value='dateOfBirth' id='dateOfBirth' />
-                                    <label htmlFor='dateOfBirth' className='cursor-pointer text-sm'>
-                                        Date of Birth
-                                    </label>
-                                </div>
-                                <div className='flex items-center space-x-2'>
-                                    <RadioGroupItem value='dateOfJoining' id='dateOfJoining' />
-                                    <label htmlFor='dateOfJoining' className='cursor-pointer text-sm'>
-                                        Date of Joining
-                                    </label>
-                                </div>
-                                <div className='flex items-center space-x-2'>
-                                    <RadioGroupItem value='dateOfLeaving' id='dateOfLeaving' />
-                                    <label htmlFor='dateOfLeaving' className='cursor-pointer text-sm'>
-                                        Date of Leaving
-                                    </label>
-                                </div>
-                            </RadioGroup>
-                        </div>
-
-                        {/* Date Range Selection */}
-                        <div className='flex items-center gap-4'>
-                            <div className='space-y-2'>
-                                <span className='font-medium text-foreground text-sm'>From:</span>
-                                <span className='text-red-500'>*</span>
-                                <Popover>
-                                    <PopoverTrigger asChild>
-                                        <Button
-                                            variant='outline'
-                                            className={cn(
-                                                'w-[140px] justify-start text-left font-normal',
-                                                !filters.fromDate && 'text-muted-foreground'
-                                            )}>
-                                            <CalendarIcon className='mr-2 h-4 w-4' />
-                                            {filters.fromDate ? format(filters.fromDate, 'dd-MM-yyyy') : '17-09-2025'}
-                                        </Button>
-                                    </PopoverTrigger>
-                                    <PopoverContent className='w-auto p-0'>
-                                        <DatePickerWithYear
-                                            mode='single'
-                                            selected={filters.fromDate}
-                                            onDayClick={(day) => handleDateChange('fromDate', day)}
-                                            initialFocus
-                                        />
-                                    </PopoverContent>
-                                </Popover>
-                            </div>
-
-                            <div className='space-y-2'>
-                                <span className='font-medium text-foreground text-sm'>To:</span>
-                                <span className='text-red-500'>*</span>
-                                <Popover>
-                                    <PopoverTrigger asChild>
-                                        <Button
-                                            variant='outline'
-                                            className={cn(
-                                                'w-[140px] justify-start text-left font-normal',
-                                                !filters.toDate && 'text-muted-foreground'
-                                            )}>
-                                            <CalendarIcon className='mr-2 h-4 w-4' />
-                                            {filters.toDate ? format(filters.toDate, 'dd-MM-yyyy') : '17-09-2025'}
-                                        </Button>
-                                    </PopoverTrigger>
-                                    <PopoverContent className='w-auto p-0'>
-                                        <DatePickerWithYear
-                                            mode='single'
-                                            selected={filters.toDate}
-                                            onDayClick={(day) => handleDateChange('toDate', day)}
-                                            initialFocus
-                                        />
-                                    </PopoverContent>
-                                </Popover>
-                            </div>
-                        </div>
-
-                        {/* Employee Status */}
-                        <div className='space-y-3'>
-                            <div className='flex items-center gap-4'>
-                                <div className='flex items-center space-x-2'>
-                                    <Checkbox
-                                        id='working'
-                                        checked={filters.employeeStatus === 'working'}
-                                        onCheckedChange={(checked) => checked && handleFilterChange('employeeStatus', 'working')}
-                                    />
-                                    <label htmlFor='working' className='cursor-pointer text-sm'>
-                                        Working
-                                    </label>
-                                </div>
-                                <div className='flex items-center space-x-2'>
-                                    <Checkbox
-                                        id='left'
-                                        checked={filters.employeeStatus === 'left'}
-                                        onCheckedChange={(checked) => checked && handleFilterChange('employeeStatus', 'left')}
-                                    />
-                                    <label htmlFor='left' className='cursor-pointer text-sm'>
-                                        Left
-                                    </label>
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* Report Scope */}
-                        <div className='space-y-3'>
-                            <span className='font-medium text-foreground text-sm'>Report Scope:</span>
-                            <RadioGroup
-                                value={filters.reportScope}
-                                onValueChange={(value) => handleFilterChange('reportScope', value)}
-                                className='flex gap-4'>
-                                <div className='flex items-center space-x-2'>
-                                    <RadioGroupItem value='all' id='all' />
-                                    <label htmlFor='all' className='cursor-pointer text-sm'>
-                                        All
-                                    </label>
-                                </div>
-                                <div className='flex items-center space-x-2'>
-                                    <RadioGroupItem value='individual' id='individual' />
-                                    <label htmlFor='individual' className='cursor-pointer text-sm'>
-                                        Individual
-                                    </label>
-                                </div>
-                            </RadioGroup>
-                        </div>
-                    </div>
-                </div>
-
-                {/* Action Buttons */}
-                <div className='flex justify-center gap-2 pt-4'>
-                    <Button onClick={handleSearch}>
-                        <Search className='mr-2 h-4 w-4' />
-                        SEARCH
-                    </Button>
-                    <Button variant='outline' onClick={handleCancel}>
-                        CANCEL
-                    </Button>
-                </div>
-            </CollapsibleSection>
+            <RetirementReportFilters
+                filters={filters}
+                onFilterChange={handleFilterChange}
+                onHeaderChange={handleHeaderChange}
+                onHeaderSelectAll={handleHeaderSelectAll}
+                onDateChange={handleDateChange}
+                onSearch={handleSearch}
+                onCancel={handleCancel}
+            />
 
             {/* Report Results */}
             {showReport && (
@@ -911,7 +510,7 @@ export default function RetirementReportPage() {
                     <DataTable
                         isLoading={isLoading}
                         columns={columns}
-                        data={filteredRecords}
+                        data={filteredRecords as unknown as RetirementRecordColumn[]}
                         totalItems={filteredRecords.length}
                         showViewOptions={true}
                         columnPinning={{ left: ['id'] }}

@@ -1,22 +1,15 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
-import { DatePickerWithYear } from '@/components/ui/date-picker-year';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Checkbox } from '@/components/ui/checkbox';
-import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
 import { DataTable } from '@/components/ui/data-table/data-table';
-import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
-import { Label } from '@/components/ui/label';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { type BaseEntity, createLocalCrud } from '@/lib/localdb';
-import { cn } from '@/lib/utils';
-import type { ColumnDef } from '@tanstack/react-table';
 import { format } from 'date-fns';
-import { BarChart3, CalendarIcon, Download, Printer, Search, X } from 'lucide-react';
+import { BarChart3, Download, Printer } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';
+import { EmployeeStrengthFilters, type StrengthReportFilters } from './_components/filters';
+import { employeeStrengthColumns, type EmployeeStrengthRecord as EmployeeStrengthRecordColumn } from './_components/columns';
 
 // Data interfaces from employee-category masters
 interface GroupType extends BaseEntity {
@@ -56,19 +49,6 @@ interface EmployeeStrengthRecord extends BaseEntity {
     dateRange: string;
 }
 
-// Report filters
-interface StrengthReportFilters {
-    groupType: string;
-    department: string;
-    designation: string;
-    employeeCategories: {
-        allEmployee: boolean;
-        departmentWise: boolean;
-        leftEmployee: boolean;
-    };
-    fromDate: Date | null;
-    toDate: Date | null;
-}
 
 export default function EmployeeStrengthReportPage() {
     // Database instances
@@ -235,6 +215,13 @@ export default function EmployeeStrengthReportPage() {
         setFilters(newFilters);
     };
 
+    const handleDateChange = (key: 'fromDate' | 'toDate', date: Date | null) => {
+        setFilters((prev) => ({
+            ...prev,
+            [key]: date
+        }));
+    };
+
     const handleCategoryChange = (category: keyof StrengthReportFilters['employeeCategories'], checked: boolean) => {
         setFilters((prev) => ({
             ...prev,
@@ -302,264 +289,23 @@ export default function EmployeeStrengthReportPage() {
         );
     }, [filteredRecords]);
 
-    // Table columns
-    const columns: ColumnDef<EmployeeStrengthRecord>[] = [
-        {
-            accessorKey: 'id',
-            header: ({ column }) => <DataTableColumnHeader column={column} title='SL.No.' />,
-            cell: ({ row, table }) => {
-                const pageIndex = table.getState().pagination.pageIndex;
-                const pageSize = table.getState().pagination.pageSize;
-                const continuousIndex = pageIndex * pageSize + row.index + 1;
-                return <div className='text-center'>{continuousIndex}</div>;
-            },
-            enableSorting: false,
-            enableHiding: false,
-            size: 80
-        },
-        {
-            accessorKey: 'departmentName',
-            header: ({ column }) => <DataTableColumnHeader column={column} title='Department' />,
-            cell: ({ row }) => <div className='font-medium'>{row.getValue('departmentName')}</div>,
-            enableSorting: true,
-            enableHiding: true
-        },
-        {
-            accessorKey: 'designationName',
-            header: ({ column }) => <DataTableColumnHeader column={column} title='Designation' />,
-            cell: ({ row }) => <div>{row.getValue('designationName')}</div>,
-            enableSorting: true,
-            enableHiding: true
-        },
-        {
-            accessorKey: 'groupType',
-            header: ({ column }) => <DataTableColumnHeader column={column} title='Group Type' />,
-            cell: ({ row }) => <div>{row.getValue('groupType')}</div>,
-            enableSorting: true,
-            enableHiding: true
-        },
-        {
-            accessorKey: 'totalEmployees',
-            header: ({ column }) => <DataTableColumnHeader column={column} title='Total' />,
-            cell: ({ row }) => <div className='font-semibold'>{row.getValue('totalEmployees')}</div>,
-            enableSorting: true,
-            enableHiding: true
-        },
-        {
-            accessorKey: 'activeEmployees',
-            header: ({ column }) => <DataTableColumnHeader column={column} title='Active' />,
-            cell: ({ row }) => <div className='font-medium text-green-600'>{row.getValue('activeEmployees')}</div>,
-            enableSorting: true,
-            enableHiding: true
-        },
-        {
-            accessorKey: 'leftEmployees',
-            header: ({ column }) => <DataTableColumnHeader column={column} title='Left' />,
-            cell: ({ row }) => <div className='font-medium text-red-600'>{row.getValue('leftEmployees')}</div>,
-            enableSorting: true,
-            enableHiding: true
-        },
-        {
-            accessorKey: 'newJoinees',
-            header: ({ column }) => <DataTableColumnHeader column={column} title='New Joinees' />,
-            cell: ({ row }) => <div className='font-medium text-blue-600'>{row.getValue('newJoinees')}</div>,
-            enableSorting: true,
-            enableHiding: true
-        },
-        {
-            accessorKey: 'maleEmployees',
-            header: ({ column }) => <DataTableColumnHeader column={column} title='Male' />,
-            cell: ({ row }) => <div>{row.getValue('maleEmployees')}</div>,
-            enableSorting: true,
-            enableHiding: true
-        },
-        {
-            accessorKey: 'femaleEmployees',
-            header: ({ column }) => <DataTableColumnHeader column={column} title='Female' />,
-            cell: ({ row }) => <div>{row.getValue('femaleEmployees')}</div>,
-            enableSorting: true,
-            enableHiding: true
-        }
-    ];
 
     return (
         <div className='space-y-6'>
             {/* Report Configuration Section */}
-            <CollapsibleSection
-                title='EMPLOYEE STRENGTH REPORT'
-                description='Configure filters to analyze employee strength distribution'
-                defaultOpen={true}
-                variant='default'
-                size='lg'
-                className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
-                <div className='space-y-6'>
-                    {/* Filter Section - Row 1: Cascading Dropdowns */}
-                    <div className='grid grid-cols-1 gap-4 md:grid-cols-3'>
-                        {/* Group Type Filter */}
-                        <div className='space-y-2'>
-                            <Label htmlFor='groupType' className='font-medium text-foreground text-sm'>
-                                Group Type: <span className='text-red-500'>*</span>
-                            </Label>
-                            <Select value={filters.groupType} onValueChange={(value) => handleFilterChange('groupType', value)}>
-                                <SelectTrigger id='groupType'>
-                                    <SelectValue />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value='All'>All</SelectItem>
-                                    {groupTypes.map((group) => (
-                                        <SelectItem key={group.id} value={group.groupType}>
-                                            {group.groupType}
-                                        </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
-                        </div>
-
-                        {/* Department Filter */}
-                        <div className='space-y-2'>
-                            <Label htmlFor='department' className='font-medium text-foreground text-sm'>
-                                Department: <span className='text-red-500'>*</span>
-                            </Label>
-                            <Select value={filters.department} onValueChange={(value) => handleFilterChange('department', value)}>
-                                <SelectTrigger id='department'>
-                                    <SelectValue />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value='All'>All</SelectItem>
-                                    {availableDepartments.map((dept) => (
-                                        <SelectItem key={dept.id} value={dept.departmentName}>
-                                            {dept.departmentName}
-                                        </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
-                        </div>
-
-                        {/* Designation Filter */}
-                        <div className='space-y-2'>
-                            <Label htmlFor='designation' className='font-medium text-foreground text-sm'>
-                                Designation: <span className='text-red-500'>*</span>
-                            </Label>
-                            <Select value={filters.designation} onValueChange={(value) => handleFilterChange('designation', value)}>
-                                <SelectTrigger id='designation'>
-                                    <SelectValue />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value='All'>All</SelectItem>
-                                    {availableDesignations.map((desig) => (
-                                        <SelectItem key={desig.id} value={desig.designationName}>
-                                            {desig.designationName}
-                                        </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
-                        </div>
-                    </div>
-
-                    {/* Filter Section - Row 2: Employee Categories */}
-                    <div className='grid grid-cols-1 gap-4 md:grid-cols-3'>
-                        <div className='flex items-center gap-2 text-sm'>
-                            <Checkbox
-                                id='employeeCategoryAll'
-                                checked={filters.employeeCategories.allEmployee}
-                                onCheckedChange={(checked) => handleCategoryChange('allEmployee', !!checked)}
-                            />
-                            <Label htmlFor='employeeCategoryAll' className='cursor-pointer'>
-                                All Employee
-                            </Label>
-                        </div>
-                        <div className='flex items-center gap-2 text-sm'>
-                            <Checkbox
-                                id='employeeCategoryDeptWise'
-                                checked={filters.employeeCategories.departmentWise}
-                                onCheckedChange={(checked) => handleCategoryChange('departmentWise', !!checked)}
-                            />
-                            <Label htmlFor='employeeCategoryDeptWise' className='cursor-pointer'>
-                                Department wise
-                            </Label>
-                        </div>
-                        <div className='flex items-center gap-2 text-sm'>
-                            <Checkbox
-                                id='employeeCategoryLeft'
-                                checked={filters.employeeCategories.leftEmployee}
-                                onCheckedChange={(checked) => handleCategoryChange('leftEmployee', !!checked)}
-                            />
-                            <Label htmlFor='employeeCategoryLeft' className='cursor-pointer'>
-                                Left Employee
-                            </Label>
-                        </div>
-                    </div>
-
-                    {/* Date Range Selection */}
-                    <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
-                        <div className='space-y-2'>
-                            <span className='font-medium text-foreground text-sm'>From :</span>
-                            <Popover>
-                                <PopoverTrigger asChild>
-                                    <Button
-                                        variant='outline'
-                                        className={cn(
-                                            'w-full justify-start text-left font-normal',
-                                            !filters.fromDate && 'text-muted-foreground'
-                                        )}>
-                                        <CalendarIcon className='mr-2 h-4 w-4' />
-                                        {filters.fromDate ? format(filters.fromDate, 'dd-MM-yyyy') : <span>17-09-2025</span>}
-                                    </Button>
-                                </PopoverTrigger>
-                                <PopoverContent className='w-auto p-0'>
-                                    <DatePickerWithYear
-                                        mode='single'
-                                        selected={filters.fromDate || undefined}
-                                        onDayClick={(day) =>
-                                            setFilters((prev) => ({
-                                                ...prev,
-                                                fromDate: day
-                                            }))
-                                        }
-                                        initialFocus
-                                    />
-                                </PopoverContent>
-                            </Popover>
-                        </div>
-
-                        <div className='space-y-2'>
-                            <span className='font-medium text-foreground text-sm'>To :</span>
-                            <Popover>
-                                <PopoverTrigger asChild>
-                                    <Button
-                                        variant='outline'
-                                        className={cn(
-                                            'w-full justify-start text-left font-normal',
-                                            !filters.toDate && 'text-muted-foreground'
-                                        )}>
-                                        <CalendarIcon className='mr-2 h-4 w-4' />
-                                        {filters.toDate ? format(filters.toDate, 'dd-MM-yyyy') : <span>17-09-2025</span>}
-                                    </Button>
-                                </PopoverTrigger>
-                                <PopoverContent className='w-auto p-0'>
-                                    <DatePickerWithYear
-                                        mode='single'
-                                        selected={filters.toDate || undefined}
-                                        onDayClick={(day) => setFilters((prev) => ({ ...prev, toDate: day }))}
-                                        initialFocus
-                                    />
-                                </PopoverContent>
-                            </Popover>
-                        </div>
-                    </div>
-
-                    {/* Action Buttons */}
-                    <div className='flex gap-2 pt-4'>
-                        <Button onClick={handleSearch}>
-                            <Search className='mr-2 h-4 w-4' />
-                            SEARCH
-                        </Button>
-                        <Button variant='outline' onClick={handleCancel} prefix={<X className='size-4' />}>
-                            CANCEL
-                        </Button>
-                    </div>
-                </div>
-            </CollapsibleSection>
+            <EmployeeStrengthFilters
+                filters={filters}
+                groupTypes={groupTypes}
+                availableDepartments={availableDepartments}
+                availableDesignations={availableDesignations}
+                onFilterChange={handleFilterChange}
+                onCategoryChange={handleCategoryChange}
+                onDateChange={handleDateChange}
+                onSearch={handleSearch}
+                onCancel={handleCancel}
+                onExport={handleExport}
+                onPrint={handlePrint}
+            />
 
             {/* Report Results */}
             {showReport && (
@@ -638,8 +384,8 @@ export default function EmployeeStrengthReportPage() {
                     {/* Data Table */}
                     <DataTable
                         isLoading={isLoading}
-                        columns={columns}
-                        data={filteredRecords}
+                        columns={employeeStrengthColumns}
+                        data={filteredRecords as unknown as EmployeeStrengthRecordColumn[]}
                         totalItems={filteredRecords.length}
                         showViewOptions={true}
                         columnPinning={{ left: ['id'] }}

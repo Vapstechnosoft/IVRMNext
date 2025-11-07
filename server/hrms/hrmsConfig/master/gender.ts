@@ -66,25 +66,48 @@ export async function saveMasterGender(data: MasterGenderInput) {
         
         // Handle the response format
         const responseData = response as any;
-        const retrunMsg = responseData?.retrunMsg || '';
+        // Check retrunMsg in both top level and nested data
+        const retrunMsg = responseData?.retrunMsg || (responseData?.data as any)?.retrunMsg || '';
         const genderId = responseData?.IVRMMG_Id || (responseData?.data as any)?.IVRMMG_Id || 0;
         const hasGenderList = !!(responseData?.genderList || responseData?.data?.genderList);
         
         console.log('🟢 [API] Parsed - genderId:', genderId, 'retrunMsg:', retrunMsg, 'hasGenderList:', hasGenderList);
+        console.log('🟢 [API] Full responseData.retrunMsg:', responseData?.retrunMsg);
+        console.log('🟢 [API] Full responseData.data.retrunMsg:', (responseData?.data as any)?.retrunMsg);
+        
+        // Check for duplicate FIRST (this takes precedence over everything else)
+        const isDuplicate = retrunMsg === 'Duplicate' || (retrunMsg && retrunMsg.toLowerCase().includes('duplicate'));
+        
+        console.log('🟢 [API] Duplicate check - retrunMsg:', retrunMsg, 'isDuplicate:', isDuplicate);
+        
+        // If duplicate, immediately return error (don't check for success)
+        if (isDuplicate) {
+            console.log('❌ [API] Duplicate detected - returning error response');
+            return {
+                success: false,
+                message: 'Gender with this name already exists',
+                data: responseData
+            };
+        }
         
         // Check if "Update" or "Saved" message indicates success
-        const isUpdateSuccess = retrunMsg === 'Update' || retrunMsg === 'Saved';
+        const isUpdateSuccess = retrunMsg === 'Update' || retrunMsg === 'Saved' || retrunMsg === 'Add';
         
         // Success if we have a gender ID, genderList, or success message
         const isSuccess = genderId > 0 || hasGenderList || isUpdateSuccess;
         
         console.log('🟢 [API] isSuccess:', isSuccess);
         
+        let message = 'Failed to save gender';
+        if (isSuccess) {
+            message = isEdit ? 'Gender updated successfully' : 'Gender added successfully';
+        } else {
+            message = retrunMsg || 'Failed to save gender';
+        }
+        
         const formattedResponse = {
             success: isSuccess,
-            message: isSuccess 
-                ? (isEdit ? 'Gender updated successfully' : 'Gender added successfully')
-                : (retrunMsg || 'Failed to save gender'),
+            message: message,
             data: responseData
         };
         

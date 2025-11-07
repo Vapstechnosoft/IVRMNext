@@ -10,7 +10,7 @@ import { groupTypeSchema } from '@/schemas/hrms/employee-category-schemas';
 import type { GroupTypeDetail } from '@/types/hrms/master-group-type';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Save } from 'lucide-react';
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import type { z } from 'zod';
@@ -33,7 +33,8 @@ export default function GroupTypeForm({ selectedRow, onSuccess, className = '' }
         control,
         handleSubmit,
         reset,
-        formState: { errors, isSubmitting }
+        setValue,
+        formState: { errors, isSubmitting, isDirty }
     } = useForm<FormFields>({
         resolver: zodResolver(groupTypeSchema.addOrUpdate),
         mode: 'onChange',
@@ -128,19 +129,72 @@ export default function GroupTypeForm({ selectedRow, onSuccess, className = '' }
                         <Controller
                             name='HRMGT_Order'
                             control={control}
-                            render={({ field }) => (
-                                <InputNumber
-                                    label='Order'
-                                    id='HRMGT_Order'
-                                    value={field.value}
-                                    onChange={(value) => {
-                                        console.log('📝 [GROUP TYPE FORM] Order field changed to:', value);
-                                        field.onChange(value);
-                                    }}
-                                    error={errors.HRMGT_Order?.message}
-                                    className='transition-colors focus:ring-2 focus:ring-primary/20'
-                                />
-                            )}
+                            render={({ field }) => {
+                                // Callback ref to attach input listener when element is mounted
+                                const containerRefCallback = (containerElement: HTMLDivElement | null) => {
+                                    if (!containerElement) return;
+                                    
+                                    // Find the actual input element inside the NumberField
+                                    const findInput = () => {
+                                        return containerElement.querySelector('input[type="text"], input[type="number"]') as HTMLInputElement;
+                                    };
+                                    
+                                    // Try to find input immediately, or after a short delay for React Aria rendering
+                                    const attachListener = () => {
+                                        const inputElement = findInput();
+                                        if (!inputElement) {
+                                            setTimeout(attachListener, 50);
+                                            return;
+                                        }
+                                        
+                                        // Check if listener is already attached to avoid duplicates
+                                        if ((inputElement as any).__dirtyHandlerAttached) {
+                                            return;
+                                        }
+                                        
+                                        const handleInput = (e: Event) => {
+                                            const target = e.target as HTMLInputElement;
+                                            const inputValue = target.value.trim();
+                                            
+                                            // Only process if there's a valid number
+                                            if (inputValue !== '' && !isNaN(Number(inputValue))) {
+                                                const numValue = Number(inputValue);
+                                                // Get current value from the field to compare
+                                                const currentValue = field.value || 0;
+                                                // Check if value actually changed to avoid unnecessary updates
+                                                if (Math.abs(numValue - currentValue) > 0.0001) {
+                                                    field.onChange(numValue);
+                                                    setValue('HRMGT_Order', numValue, { shouldDirty: true, shouldValidate: true });
+                                                }
+                                            }
+                                        };
+                                        
+                                        inputElement.addEventListener('input', handleInput, { passive: true });
+                                        (inputElement as any).__dirtyHandlerAttached = true;
+                                    };
+                                    
+                                    attachListener();
+                                };
+                                
+                                return (
+                                    <div ref={containerRefCallback}>
+                                        <InputNumber
+                                            label='Order'
+                                            id='HRMGT_Order'
+                                            value={field.value}
+                                            onChange={(value) => {
+                                                console.log('📝 [GROUP TYPE FORM] Order field changed to:', value);
+                                                const numValue = value !== null && value !== undefined ? Number(value) : 0;
+                                                field.onChange(numValue);
+                                                setValue('HRMGT_Order', numValue, { shouldDirty: true, shouldValidate: true });
+                                            }}
+                                            onBlur={field.onBlur}
+                                            error={errors.HRMGT_Order?.message}
+                                            className='transition-colors focus:ring-2 focus:ring-primary/20'
+                                        />
+                                    </div>
+                                );
+                            }}
                         />
                     </div>
 
@@ -158,7 +212,7 @@ export default function GroupTypeForm({ selectedRow, onSuccess, className = '' }
                     </Button>
                     <Button
                         type='submit'
-                        disabled={isSubmitting}
+                        disabled={isSubmitting || (isEditMode && !isDirty)}
                         className='order-1 w-fit transition-all duration-200 hover:scale-105 sm:order-2'
                         isLoading={isSubmitting}
                         loadingText={isEditMode ? 'Updating...' : 'Saving...'}>
@@ -167,6 +221,11 @@ export default function GroupTypeForm({ selectedRow, onSuccess, className = '' }
                             {isEditMode ? 'Update Group Type' : 'Save Group Type'}
                         </div>
                     </Button>
+                    {isEditMode && !isDirty && (
+                        <span className='order-3 flex items-center text-sm text-muted-foreground sm:order-3'>
+                            No changes made
+                        </span>
+                    )}
                 </div>
             </form>
         </div>

@@ -2,16 +2,13 @@
 
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
 import { DataTable } from '@/components/ui/data-table/data-table';
-import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { type BaseEntity, createLocalCrud } from '@/lib/localdb';
-import { cn } from '@/lib/utils';
-import type { ColumnDef } from '@tanstack/react-table';
-import { Download, Printer, Search, X } from 'lucide-react';
+import { Download, Printer } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';
+import { ESIReportFilters, type ESIReportFilters as ESIFilters } from './_components/filters';
+import { esiReportColumns, type ESIRecord as ESIRecordColumn } from './_components/columns';
 
 // Data interfaces from employee-category masters
 interface GroupType extends BaseEntity {
@@ -59,14 +56,6 @@ interface ESIRecord extends BaseEntity {
     esiStatus: 'Active' | 'Inactive' | 'Exempted';
 }
 
-// Report filters
-interface ESIReportFilters {
-    groupType: string;
-    department: string;
-    designation: string;
-    month: string;
-    year: string;
-}
 
 export default function ESIReportPage() {
     // Database instances
@@ -84,7 +73,7 @@ export default function ESIReportPage() {
     const [isLoading, setIsLoading] = useState(true);
     const [showReport, setShowReport] = useState(false);
 
-    const [filters, setFilters] = useState<ESIReportFilters>({
+    const [filters, setFilters] = useState<ESIFilters>({
         groupType: 'All',
         department: 'All',
         designation: 'All',
@@ -267,17 +256,7 @@ export default function ESIReportPage() {
         setFilteredRecords(filtered);
     }, [filters, esiRecords, groupTypes, departments, designations]);
 
-    const handleFilterChange = (key: keyof ESIReportFilters, value: string) => {
-        const newFilters = { ...filters, [key]: value };
-
-        // Reset dependent filters when parent changes
-        if (key === 'groupType') {
-            newFilters.department = 'All';
-            newFilters.designation = 'All';
-        } else if (key === 'department') {
-            newFilters.designation = 'All';
-        }
-
+    const handleFilterChange = (newFilters: ESIFilters) => {
         setFilters(newFilters);
     };
 
@@ -331,258 +310,19 @@ export default function ESIReportPage() {
         );
     }, [filteredRecords]);
 
-    // Table columns
-    const columns: ColumnDef<ESIRecord>[] = [
-        {
-            accessorKey: 'id',
-            header: ({ column }) => <DataTableColumnHeader column={column} title='SL.No.' />,
-            cell: ({ row, table }) => {
-                const pageIndex = table.getState().pagination.pageIndex;
-                const pageSize = table.getState().pagination.pageSize;
-                const continuousIndex = pageIndex * pageSize + row.index + 1;
-                return <div className='text-center'>{continuousIndex}</div>;
-            },
-            enableSorting: false,
-            enableHiding: false,
-            size: 80
-        },
-        {
-            accessorKey: 'employeeCode',
-            header: ({ column }) => <DataTableColumnHeader column={column} title='Employee Code' />,
-            cell: ({ row }) => <div className='font-medium'>{row.getValue('employeeCode')}</div>,
-            enableSorting: true,
-            enableHiding: true
-        },
-        {
-            accessorKey: 'employeeName',
-            header: ({ column }) => <DataTableColumnHeader column={column} title='Employee Name' />,
-            cell: ({ row }) => <div>{row.getValue('employeeName')}</div>,
-            enableSorting: true,
-            enableHiding: true
-        },
-        {
-            accessorKey: 'departmentName',
-            header: ({ column }) => <DataTableColumnHeader column={column} title='Department' />,
-            cell: ({ row }) => <div>{row.getValue('departmentName')}</div>,
-            enableSorting: true,
-            enableHiding: true
-        },
-        {
-            accessorKey: 'designationName',
-            header: ({ column }) => <DataTableColumnHeader column={column} title='Designation' />,
-            cell: ({ row }) => <div>{row.getValue('designationName')}</div>,
-            enableSorting: true,
-            enableHiding: true
-        },
-        {
-            accessorKey: 'esiNumber',
-            header: ({ column }) => <DataTableColumnHeader column={column} title='ESI Number' />,
-            cell: ({ row }) => <div className='font-mono'>{row.getValue('esiNumber')}</div>,
-            enableSorting: true,
-            enableHiding: true
-        },
-        {
-            accessorKey: 'grossSalary',
-            header: ({ column }) => <DataTableColumnHeader column={column} title='Gross Salary' />,
-            cell: ({ row }) => <div>₹{(row.getValue('grossSalary') as number).toLocaleString()}</div>,
-            enableSorting: true,
-            enableHiding: true
-        },
-        {
-            accessorKey: 'esiEligibleSalary',
-            header: ({ column }) => <DataTableColumnHeader column={column} title='ESI Eligible Salary' />,
-            cell: ({ row }) => <div>₹{(row.getValue('esiEligibleSalary') as number).toLocaleString()}</div>,
-            enableSorting: true,
-            enableHiding: true
-        },
-        {
-            accessorKey: 'employeeESI',
-            header: ({ column }) => <DataTableColumnHeader column={column} title='Employee ESI (0.75%)' />,
-            cell: ({ row }) => <div>₹{(row.getValue('employeeESI') as number).toLocaleString()}</div>,
-            enableSorting: true,
-            enableHiding: true
-        },
-        {
-            accessorKey: 'employerESI',
-            header: ({ column }) => <DataTableColumnHeader column={column} title='Employer ESI (3.25%)' />,
-            cell: ({ row }) => <div>₹{(row.getValue('employerESI') as number).toLocaleString()}</div>,
-            enableSorting: true,
-            enableHiding: true
-        },
-        {
-            accessorKey: 'totalESI',
-            header: ({ column }) => <DataTableColumnHeader column={column} title='Total ESI' />,
-            cell: ({ row }) => <div className='font-semibold'>₹{(row.getValue('totalESI') as number).toLocaleString()}</div>,
-            enableSorting: true,
-            enableHiding: true
-        },
-        {
-            accessorKey: 'esiStatus',
-            header: ({ column }) => <DataTableColumnHeader column={column} title='ESI Status' />,
-            cell: ({ row }) => {
-                const status = row.getValue('esiStatus') as string;
-                return (
-                    <span
-                        className={cn(
-                            'rounded-full px-2 py-1 font-medium text-xs',
-                            status === 'Active'
-                                ? 'bg-green-100 text-green-800'
-                                : status === 'Inactive'
-                                  ? 'bg-red-100 text-red-800'
-                                  : 'bg-gray-100 text-gray-800'
-                        )}>
-                        {status}
-                    </span>
-                );
-            },
-            enableSorting: true,
-            enableHiding: true
-        }
-    ];
 
     return (
         <div className='space-y-6'>
             {/* Report Configuration Section */}
-            <CollapsibleSection
-                title='ESI REPORT'
-                description='Configure filters to generate ESI contribution analysis'
-                defaultOpen={true}
-                variant='default'
-                size='lg'
-                className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
-                <div className='space-y-6'>
-                    {/* Filter Section - Row 1: Cascading Dropdowns */}
-                    <div className='grid grid-cols-1 gap-4 md:grid-cols-3'>
-                        {/* Group Type Filter */}
-                        <div className='space-y-2'>
-                            <span className='font-medium text-foreground text-sm'>
-                                Group Type: <span className='text-red-500'>*</span>
-                            </span>
-                            <Select value={filters.groupType} onValueChange={(value) => handleFilterChange('groupType', value)}>
-                                <SelectTrigger>
-                                    <SelectValue />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value='All'>All</SelectItem>
-                                    {groupTypes.map((group) => (
-                                        <SelectItem key={group.id} value={group.groupType}>
-                                            {group.groupType}
-                                        </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
-                        </div>
-
-                        {/* Department Filter */}
-                        <div className='space-y-2'>
-                            <span className='font-medium text-foreground text-sm'>
-                                Department: <span className='text-red-500'>*</span>
-                            </span>
-                            <Select value={filters.department} onValueChange={(value) => handleFilterChange('department', value)}>
-                                <SelectTrigger>
-                                    <SelectValue />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value='All'>All</SelectItem>
-                                    {availableDepartments.map((dept) => (
-                                        <SelectItem key={dept.id} value={dept.departmentName}>
-                                            {dept.departmentName}
-                                        </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
-                        </div>
-
-                        {/* Designation Filter */}
-                        <div className='space-y-2'>
-                            <span className='font-medium text-foreground text-sm'>
-                                Designation: <span className='text-red-500'>*</span>
-                            </span>
-                            <Select value={filters.designation} onValueChange={(value) => handleFilterChange('designation', value)}>
-                                <SelectTrigger>
-                                    <SelectValue />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value='All'>All</SelectItem>
-                                    {availableDesignations.map((desig) => (
-                                        <SelectItem key={desig.id} value={desig.designationName}>
-                                            {desig.designationName}
-                                        </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
-                        </div>
-                    </div>
-
-                    {/* Filter Section - Row 2: Month and Year */}
-                    <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
-                        {/* Month Filter */}
-                        <div className='space-y-2'>
-                            <span className='font-medium text-foreground text-sm'>
-                                Month: <span className='text-red-500'>*</span>
-                            </span>
-                            <Select value={filters.month} onValueChange={(value) => handleFilterChange('month', value)}>
-                                <SelectTrigger>
-                                    <SelectValue placeholder='Select' />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {[
-                                        'January',
-                                        'February',
-                                        'March',
-                                        'April',
-                                        'May',
-                                        'June',
-                                        'July',
-                                        'August',
-                                        'September',
-                                        'October',
-                                        'November',
-                                        'December'
-                                    ].map((month) => (
-                                        <SelectItem key={month} value={month}>
-                                            {month}
-                                        </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
-                        </div>
-
-                        {/* Year Filter */}
-                        <div className='space-y-2'>
-                            <span className='font-medium text-foreground text-sm'>
-                                Year: <span className='text-red-500'>*</span>
-                            </span>
-                            <Select value={filters.year} onValueChange={(value) => handleFilterChange('year', value)}>
-                                <SelectTrigger>
-                                    <SelectValue placeholder='Select' />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {Array.from({ length: 5 }, (_, i) => {
-                                        const year = new Date().getFullYear() - 2 + i;
-                                        return (
-                                            <SelectItem key={year} value={year.toString()}>
-                                                {year}
-                                            </SelectItem>
-                                        );
-                                    })}
-                                </SelectContent>
-                            </Select>
-                        </div>
-                    </div>
-
-                    {/* Action Buttons */}
-                    <div className='flex gap-2 pt-4'>
-                        <Button onClick={handleSearch}>
-                            <Search className='mr-2 h-4 w-4' />
-                            SEARCH
-                        </Button>
-                        <Button variant='outline' onClick={handleCancel} prefix={<X className='size-4' />}>
-                            CANCEL
-                        </Button>
-                    </div>
-                </div>
-            </CollapsibleSection>
+            <ESIReportFilters
+                filters={filters}
+                groupTypes={groupTypes}
+                availableDepartments={availableDepartments}
+                availableDesignations={availableDesignations}
+                onFilterChange={handleFilterChange}
+                onSearch={handleSearch}
+                onCancel={handleCancel}
+            />
 
             {/* Report Results */}
             {showReport && (
@@ -689,8 +429,8 @@ export default function ESIReportPage() {
                     {/* Data Table */}
                     <DataTable
                         isLoading={isLoading}
-                        columns={columns}
-                        data={filteredRecords}
+                        columns={esiReportColumns}
+                        data={filteredRecords as unknown as ESIRecordColumn[]}
                         totalItems={filteredRecords.length}
                         showViewOptions={true}
                         columnPinning={{ left: ['id'] }}

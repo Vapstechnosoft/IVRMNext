@@ -1,20 +1,15 @@
 'use client';
 
 import { Heading } from '@/components/layout/heading';
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Checkbox } from '@/components/ui/checkbox';
-import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
 import { DataTable } from '@/components/ui/data-table/data-table';
-import { InputText } from '@/components/ui/extension/input-text';
-import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { type BaseEntity, createLocalCrud } from '@/lib/localdb';
-import type { ColumnDef } from '@tanstack/react-table';
-import { Building, Calculator, Download, Printer, Search, TrendingUp, UserCheck, Users } from 'lucide-react';
+import { Building, Calculator, Download, Printer, TrendingUp, UserCheck, Users } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';
+import { HRMSMonthEndFilters, type FilterOptions, type MonthEndFilters } from './_components/filters';
+import { monthEndReportColumns, type MonthEndRecord as MonthEndRecordColumn } from './_components/columns';
 
 // Month End Report data structure
 interface MonthEndRecord extends BaseEntity {
@@ -56,22 +51,6 @@ interface MonthEndSummary {
     averageNetSalary: number;
 }
 
-// Filter options
-interface FilterOptions {
-    groupTypes: string[];
-    departments: string[];
-    designations: string[];
-}
-
-// Report filters
-interface MonthEndFilters {
-    selectedGroupTypes: string[];
-    selectedDepartments: string[];
-    selectedDesignations: string[];
-    month: string;
-    year: string;
-    ieName: string;
-}
 
 export default function HRMSMonthEndReportPage() {
     // Database instances
@@ -309,8 +288,8 @@ export default function HRMSMonthEndReportPage() {
         }));
     };
 
-    const handleFilterChange = (key: keyof MonthEndFilters, value: string) => {
-        setFilters((prev) => ({ ...prev, [key]: value }));
+    const handleFilterChange = (newFilters: MonthEndFilters) => {
+        setFilters(newFilters);
     };
 
     const handleSearch = () => {
@@ -376,97 +355,6 @@ export default function HRMSMonthEndReportPage() {
         return summary;
     }, [filteredRecords]);
 
-    // Table columns
-    const columns: ColumnDef<MonthEndRecord>[] = [
-        {
-            accessorKey: 'id',
-            header: ({ column }) => <DataTableColumnHeader column={column} title='SL.No.' />,
-            cell: ({ row, table }) => {
-                const pageIndex = table.getState().pagination.pageIndex;
-                const pageSize = table.getState().pagination.pageSize;
-                const continuousIndex = pageIndex * pageSize + row.index + 1;
-                return <div className='text-center'>{continuousIndex}</div>;
-            },
-            enableSorting: false,
-            enableHiding: false,
-            size: 80
-        },
-        {
-            accessorKey: 'employeeCode',
-            header: ({ column }) => <DataTableColumnHeader column={column} title='Employee Code' />,
-            cell: ({ row }) => <div className='font-medium'>{row.getValue('employeeCode')}</div>,
-            enableSorting: true,
-            enableHiding: true
-        },
-        {
-            accessorKey: 'employeeName',
-            header: ({ column }) => <DataTableColumnHeader column={column} title='Employee Name' />,
-            cell: ({ row }) => <div>{row.getValue('employeeName')}</div>,
-            enableSorting: true,
-            enableHiding: true
-        },
-        {
-            accessorKey: 'department',
-            header: ({ column }) => <DataTableColumnHeader column={column} title='Department' />,
-            cell: ({ row }) => <div className='text-sm'>{row.getValue('department')}</div>,
-            enableSorting: true,
-            enableHiding: true
-        },
-        {
-            accessorKey: 'designation',
-            header: ({ column }) => <DataTableColumnHeader column={column} title='Designation' />,
-            cell: ({ row }) => <div className='text-sm'>{row.getValue('designation')}</div>,
-            enableSorting: true,
-            enableHiding: true
-        },
-        {
-            accessorKey: 'basicSalary',
-            header: ({ column }) => <DataTableColumnHeader column={column} title='Basic Salary' />,
-            cell: ({ row }) => <div>₹{(row.getValue('basicSalary') as number).toLocaleString()}</div>,
-            enableSorting: true,
-            enableHiding: true
-        },
-        {
-            accessorKey: 'grossSalary',
-            header: ({ column }) => <DataTableColumnHeader column={column} title='Gross Salary' />,
-            cell: ({ row }) => <div>₹{(row.getValue('grossSalary') as number).toLocaleString()}</div>,
-            enableSorting: true,
-            enableHiding: true
-        },
-        {
-            accessorKey: 'totalDeductions',
-            header: ({ column }) => <DataTableColumnHeader column={column} title='Total Deductions' />,
-            cell: ({ row }) => <div>₹{(row.getValue('totalDeductions') as number).toLocaleString()}</div>,
-            enableSorting: true,
-            enableHiding: true
-        },
-        {
-            accessorKey: 'netSalary',
-            header: ({ column }) => <DataTableColumnHeader column={column} title='Net Salary' />,
-            cell: ({ row }) => <div className='font-semibold'>₹{(row.getValue('netSalary') as number).toLocaleString()}</div>,
-            enableSorting: true,
-            enableHiding: true
-        },
-        {
-            accessorKey: 'presentDays',
-            header: ({ column }) => <DataTableColumnHeader column={column} title='Present Days' />,
-            cell: ({ row }) => <div className='text-center'>{row.getValue('presentDays')}</div>,
-            enableSorting: true,
-            enableHiding: true
-        },
-        {
-            accessorKey: 'status',
-            header: ({ column }) => <DataTableColumnHeader column={column} title='Status' />,
-            cell: ({ row }) => {
-                const status = row.getValue('status') as string;
-                const variant =
-                    status === 'Active' ? 'default' : status === 'On Leave' ? 'secondary' : status === 'Absent' ? 'destructive' : 'outline';
-                return <Badge variant={variant}>{status}</Badge>;
-            },
-            enableSorting: true,
-            enableHiding: true
-        }
-    ];
 
     return (
         <div className='space-y-6'>
@@ -478,199 +366,15 @@ export default function HRMSMonthEndReportPage() {
             </div>
 
             {/* Report Configuration Section */}
-            <CollapsibleSection
-                title='HRMS MONTH END REPORT'
-                description='Configure filters to generate comprehensive monthly employee attendance and salary reports'
-                defaultOpen={true}
-                variant='default'
-                size='lg'
-                className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
-                {/* Filter Sections */}
-                <div className='grid grid-cols-1 gap-6 lg:grid-cols-3'>
-                    {/* Group Type Section */}
-                    <div className='space-y-3'>
-                        <div className='flex items-center gap-2'>
-                            <span className='font-medium text-foreground text-sm'>Group Type:</span>
-                            <span className='text-red-500'>*</span>
-                            <div className='flex items-center gap-2'>
-                                <Checkbox
-                                    id='all-groups'
-                                    checked={filters.selectedGroupTypes.length === filterOptions.groupTypes.length}
-                                    onCheckedChange={(checked) => handleSelectAllChange('selectedGroupTypes', checked as boolean)}
-                                />
-                                <label htmlFor='all-groups' className='cursor-pointer text-sm'>
-                                    All
-                                </label>
-                            </div>
-                        </div>
-                        <div className='h-32 space-y-2 overflow-y-auto rounded-lg border p-3'>
-                            {filterOptions.groupTypes.map((groupType) => (
-                                <div key={groupType} className='flex items-center gap-2'>
-                                    <Checkbox
-                                        id={`group-${groupType}`}
-                                        checked={filters.selectedGroupTypes.includes(groupType)}
-                                        onCheckedChange={(checked) =>
-                                            handleCheckboxChange('selectedGroupTypes', groupType, checked as boolean)
-                                        }
-                                    />
-                                    <label htmlFor={`group-${groupType}`} className='cursor-pointer text-sm'>
-                                        {groupType}
-                                    </label>
-                                </div>
-                            ))}
-                        </div>
-                    </div>
-
-                    {/* Department Section */}
-                    <div className='space-y-3'>
-                        <div className='flex items-center gap-2'>
-                            <span className='font-medium text-foreground text-sm'>Department:</span>
-                            <span className='text-red-500'>*</span>
-                            <div className='flex items-center gap-2'>
-                                <Checkbox
-                                    id='all-departments'
-                                    checked={filters.selectedDepartments.length === filterOptions.departments.length}
-                                    onCheckedChange={(checked) => handleSelectAllChange('selectedDepartments', checked as boolean)}
-                                />
-                                <label htmlFor='all-departments' className='cursor-pointer text-sm'>
-                                    All
-                                </label>
-                            </div>
-                        </div>
-                        <div className='h-32 space-y-2 overflow-y-auto rounded-lg border p-3'>
-                            {filterOptions.departments.map((department) => (
-                                <div key={department} className='flex items-center gap-2'>
-                                    <Checkbox
-                                        id={`dept-${department}`}
-                                        checked={filters.selectedDepartments.includes(department)}
-                                        onCheckedChange={(checked) =>
-                                            handleCheckboxChange('selectedDepartments', department, checked as boolean)
-                                        }
-                                    />
-                                    <label htmlFor={`dept-${department}`} className='cursor-pointer text-sm'>
-                                        {department}
-                                    </label>
-                                </div>
-                            ))}
-                        </div>
-                    </div>
-
-                    {/* Designation Section */}
-                    <div className='space-y-3'>
-                        <div className='flex items-center gap-2'>
-                            <span className='font-medium text-foreground text-sm'>Designation:</span>
-                            <span className='text-red-500'>*</span>
-                            <div className='flex items-center gap-2'>
-                                <Checkbox
-                                    id='all-designations'
-                                    checked={filters.selectedDesignations.length === filterOptions.designations.length}
-                                    onCheckedChange={(checked) => handleSelectAllChange('selectedDesignations', checked as boolean)}
-                                />
-                                <label htmlFor='all-designations' className='cursor-pointer text-sm'>
-                                    All
-                                </label>
-                            </div>
-                        </div>
-                        <div className='h-32 space-y-2 overflow-y-auto rounded-lg border p-3'>
-                            {filterOptions.designations.map((designation) => (
-                                <div key={designation} className='flex items-center gap-2'>
-                                    <Checkbox
-                                        id={`desig-${designation}`}
-                                        checked={filters.selectedDesignations.includes(designation)}
-                                        onCheckedChange={(checked) =>
-                                            handleCheckboxChange('selectedDesignations', designation, checked as boolean)
-                                        }
-                                    />
-                                    <label htmlFor={`desig-${designation}`} className='cursor-pointer text-sm'>
-                                        {designation}
-                                    </label>
-                                </div>
-                            ))}
-                        </div>
-                    </div>
-                </div>
-
-                {/* Additional Filters */}
-                <div className='flex items-center justify-center gap-6 pt-4'>
-                    {/* Month Filter */}
-                    <div className='space-y-2'>
-                        <span className='font-medium text-foreground text-sm'>
-                            Month: <span className='text-red-500'>*</span>
-                        </span>
-                        <Select value={filters.month} onValueChange={(value) => handleFilterChange('month', value)}>
-                            <SelectTrigger className='w-40'>
-                                <SelectValue placeholder='Select' />
-                            </SelectTrigger>
-                            <SelectContent>
-                                {[
-                                    'January',
-                                    'February',
-                                    'March',
-                                    'April',
-                                    'May',
-                                    'June',
-                                    'July',
-                                    'August',
-                                    'September',
-                                    'October',
-                                    'November',
-                                    'December'
-                                ].map((month) => (
-                                    <SelectItem key={month} value={month}>
-                                        {month}
-                                    </SelectItem>
-                                ))}
-                            </SelectContent>
-                        </Select>
-                    </div>
-
-                    {/* Year Filter */}
-                    <div className='space-y-2'>
-                        <span className='font-medium text-foreground text-sm'>
-                            Year: <span className='text-red-500'>*</span>
-                        </span>
-                        <Select value={filters.year} onValueChange={(value) => handleFilterChange('year', value)}>
-                            <SelectTrigger className='w-32'>
-                                <SelectValue placeholder='Select' />
-                            </SelectTrigger>
-                            <SelectContent>
-                                {Array.from({ length: 5 }, (_, i) => {
-                                    const year = new Date().getFullYear() - 2 + i;
-                                    return (
-                                        <SelectItem key={`year-${year}`} value={year.toString()}>
-                                            {year}
-                                        </SelectItem>
-                                    );
-                                })}
-                            </SelectContent>
-                        </Select>
-                    </div>
-
-                    {/* IE Name Filter */}
-                    <div className='space-y-2'>
-                        <span className='font-medium text-foreground text-sm'>
-                            IE Name: <span className='text-red-500'>*</span>
-                        </span>
-                        <InputText
-                            placeholder='Enter name'
-                            value={filters.ieName}
-                            onChange={(e) => handleFilterChange('ieName', e.target.value)}
-                            className='w-60'
-                        />
-                    </div>
-                </div>
-
-                {/* Action Buttons */}
-                <div className='flex justify-center gap-2 pt-4'>
-                    <Button onClick={handleSearch}>
-                        <Search className='mr-2 h-4 w-4' />
-                        SEARCH
-                    </Button>
-                    <Button variant='outline' onClick={handleCancel}>
-                        CANCEL
-                    </Button>
-                </div>
-            </CollapsibleSection>
+            <HRMSMonthEndFilters
+                filters={filters}
+                filterOptions={filterOptions}
+                onFilterChange={handleFilterChange}
+                onSearch={handleSearch}
+                onCancel={handleCancel}
+                onCheckboxChange={handleCheckboxChange}
+                onSelectAllChange={handleSelectAllChange}
+            />
 
             {/* Report Results */}
             {showReport && (
@@ -817,8 +521,8 @@ export default function HRMSMonthEndReportPage() {
                     {/* Data Table */}
                     <DataTable
                         isLoading={isLoading}
-                        columns={columns}
-                        data={filteredRecords}
+                        columns={monthEndReportColumns}
+                        data={filteredRecords as unknown as MonthEndRecordColumn[]}
                         totalItems={filteredRecords.length}
                         showViewOptions={true}
                         columnPinning={{ left: ['id'] }}

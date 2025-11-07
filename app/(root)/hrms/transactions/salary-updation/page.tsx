@@ -9,11 +9,12 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { HRMS_MI_ID } from '@/constants/hrms-config';
 import { useSalaryUpdationList } from '@/hooks/hrms/useTransactions';
 import type { SalaryUpdationItem } from '@/types/hrms/salary-updation';
-import { RefreshCw, X } from 'lucide-react';
+import { Plus, RefreshCw, X } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import { salaryUpdationColumns } from './_components/columns';
+import FormSections from './_components/form-sections';
 
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 
@@ -25,7 +26,8 @@ export default function SalaryUpdationPage(_props: { searchParams: SearchParams 
             <SalaryUpdationPageContent 
                 response={listQuery.data} 
                 isLoading={listQuery.isLoading} 
-                error={listQuery.error} 
+                error={listQuery.error}
+                refetch={listQuery.refetch}
             />
         </FormProvider>
     );
@@ -34,16 +36,20 @@ export default function SalaryUpdationPage(_props: { searchParams: SearchParams 
 function SalaryUpdationPageContent({
     response,
     isLoading,
-    error
+    error,
+    refetch
 }: {
     response: any;
     isLoading: boolean;
     error: any;
+    refetch: () => void;
 }) {
+    const { openAddForm } = useFormContext<SalaryUpdationItem>();
     const [hasSearched, setHasSearched] = useState(false);
     const [filteredEmployees, setFilteredEmployees] = useState<SalaryUpdationItem[]>([]);
     const [selectedEmployees, setSelectedEmployees] = useState<number[]>([]);
     
+    // Safely extract data with proper defaults to prevent hydration mismatches
     const groupTypes = response?.groupTypedropdownlist || [];
     const departments = response?.departmentdropdownlist || [];
     const designations = response?.designationdropdownlist || [];
@@ -52,18 +58,45 @@ function SalaryUpdationPageContent({
     const monthOptions = response?.monthdropdown || [];
     const leaveYearOptions = response?.leaveyeardropdown || [];
 
+    // Initialize date values client-side only to prevent hydration mismatches
+    const [isClient, setIsClient] = useState(false);
+    
+    useEffect(() => {
+        setIsClient(true);
+    }, []);
+
     const { control, handleSubmit, reset, watch } = useForm({
         defaultValues: {
             groupType: 'All',
             department: 'All',
             designation: 'All',
-            year: new Date().getFullYear().toString(),
-            month: (new Date().getMonth() + 1).toString(),
+            year: '',
+            month: '',
             earningDeduction: 'All Earning & Deduction',
             amountType: 'All',
             heads: 'All'
         }
     });
+
+    // Set date values only on client side after hydration
+    useEffect(() => {
+        if (isClient) {
+            const now = new Date();
+            const year = now.getFullYear().toString();
+            const month = (now.getMonth() + 1).toString();
+            
+            reset({
+                groupType: 'All',
+                department: 'All',
+                designation: 'All',
+                year,
+                month,
+                earningDeduction: 'All Earning & Deduction',
+                amountType: 'All',
+                heads: 'All'
+            }, { keepDefaultValues: false });
+        }
+    }, [isClient, reset]);
 
     const watchedGroupType = watch('groupType');
     const watchedDepartment = watch('department');
@@ -123,6 +156,10 @@ function SalaryUpdationPageContent({
     return (
         <div className='min-h-screen'>
             <div className='container space-y-4 p-1'>
+                {/* Forms Section */}
+                <FormSections onloadData={response} onSuccess={refetch} />
+
+                {/* Search Form */}
                 <CollapsibleSection
                     title='SALARY UPDATION'
                     description='Search and filter employee salary records'
@@ -299,6 +336,17 @@ function SalaryUpdationPageContent({
                         size='lg'
                         className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
                         <div className='space-y-4'>
+                            {/* Add Button */}
+                            <div className='flex justify-end'>
+                                <Button
+                                    type='button'
+                                    onClick={openAddForm}
+                                    className='w-fit shadow-md transition-all duration-200 hover:scale-105 hover:shadow-lg'>
+                                    <Plus className='h-4 w-4' />
+                                    Add Salary Updation
+                                </Button>
+                            </div>
+
                             <GenericDataTable<SalaryUpdationItem>
                                 data={filteredEmployees}
                                 totalItems={filteredEmployees.length}

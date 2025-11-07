@@ -1,45 +1,29 @@
 'use client';
 
 import { Heading } from '@/components/layout/heading';
-import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
 import { DataTable } from '@/components/ui/data-table/data-table';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { type BaseEntity, createLocalCrud } from '@/lib/localdb';
-import type { ColumnDef } from '@tanstack/react-table';
-import { BarChart3, Eye } from 'lucide-react';
-import { useEffect, useMemo, useState } from 'react';
+import { BarChart3 } from 'lucide-react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';
-
-// Monthly salary data structure
-interface MonthlySalaryDetail extends BaseEntity {
-    month: string;
-    year: string;
-    basicSalary: number;
-    allowances: number;
-    deductions: number;
-    grossSalary: number;
-    netSalary: number;
-    workingDays: number;
-    presentDays: number;
-    absentDays: number;
-    overtimeHours: number;
-    overtimeAmount: number;
-    bonuses: number;
-    pfDeduction: number;
-    esiDeduction: number;
-    professionalTax: number;
-}
+import { EmployeeSalaryDetailsFilters } from './_components/filters';
+import { getMonthlySalaryDetailColumns, type MonthlySalaryDetail } from './_components/columns';
 
 export default function EmployeeSalaryDetailsReportPage() {
     // Database instances
     const salaryDetailsDB = createLocalCrud<MonthlySalaryDetail>('report:employee-salary-details');
 
     // State
+    const [currentYear, setCurrentYear] = useState<number | null>(null);
     const [salaryDetails, setSalaryDetails] = useState<MonthlySalaryDetail[]>([]);
+
+    useEffect(() => {
+        setCurrentYear(new Date().getFullYear());
+    }, []);
     const [filteredDetails, setFilteredDetails] = useState<MonthlySalaryDetail[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
@@ -123,9 +107,9 @@ export default function EmployeeSalaryDetailsReportPage() {
         setFilteredDetails(filtered);
     }, [searchTerm, selectedFinancialYear, salaryDetails]);
 
-    const handleViewDetails = (monthData: MonthlySalaryDetail) => {
+    const handleViewDetails = useCallback((monthData: MonthlySalaryDetail) => {
         toast.info(`Viewing details for ${monthData.month} ${monthData.year}`);
-    };
+    }, []);
 
     // Calculate yearly totals
     const yearlyTotals = useMemo(() => {
@@ -164,50 +148,7 @@ export default function EmployeeSalaryDetailsReportPage() {
     }, [filteredDetails]);
 
     // Table columns
-    const columns: ColumnDef<MonthlySalaryDetail>[] = [
-        {
-            accessorKey: 'id',
-            header: ({ column }) => <DataTableColumnHeader column={column} title='SL. No.' />,
-            cell: ({ row, table }) => {
-                const pageIndex = table.getState().pagination.pageIndex;
-                const pageSize = table.getState().pagination.pageSize;
-                const continuousIndex = pageIndex * pageSize + row.index + 1;
-                return <div className='text-center'>{continuousIndex}</div>;
-            },
-            enableSorting: false,
-            enableHiding: false,
-            size: 80
-        },
-        {
-            accessorKey: 'month',
-            header: ({ column }) => <DataTableColumnHeader column={column} title='Month' />,
-            cell: ({ row }) => <div className='font-medium'>{row.getValue('month')}</div>,
-            enableSorting: true,
-            enableHiding: true
-        },
-        {
-            accessorKey: 'netSalary',
-            header: ({ column }) => <DataTableColumnHeader column={column} title='Net Salary' />,
-            cell: ({ row }) => <div className='font-semibold'>₹{(row.getValue('netSalary') as number).toLocaleString()}</div>,
-            enableSorting: true,
-            enableHiding: true
-        },
-        {
-            id: 'viewDetails',
-            header: 'View Details',
-            cell: ({ row }) => (
-                <Button
-                    variant='ghost'
-                    size='sm'
-                    onClick={() => handleViewDetails(row.original)}
-                    className='text-blue-600 hover:text-blue-700'>
-                    <Eye className='h-4 w-4' />
-                </Button>
-            ),
-            enableSorting: false,
-            enableHiding: false
-        }
-    ];
+    const columns = useMemo(() => getMonthlySalaryDetailColumns(handleViewDetails), [handleViewDetails]);
 
     return (
         <div className='space-y-6'>
@@ -232,14 +173,15 @@ export default function EmployeeSalaryDetailsReportPage() {
                                 <SelectValue />
                             </SelectTrigger>
                             <SelectContent>
-                                {Array.from({ length: 10 }, (_, i) => {
-                                    const year = new Date().getFullYear() + 5 - i;
-                                    return (
-                                        <SelectItem key={year} value={year.toString()}>
-                                            {year}
-                                        </SelectItem>
-                                    );
-                                })}
+                                {currentYear &&
+                                    Array.from({ length: 10 }, (_, i) => {
+                                        const year = currentYear + 5 - i;
+                                        return (
+                                            <SelectItem key={year} value={year.toString()}>
+                                                {year}
+                                            </SelectItem>
+                                        );
+                                    })}
                             </SelectContent>
                         </Select>
                     </div>
@@ -259,7 +201,7 @@ export default function EmployeeSalaryDetailsReportPage() {
                         <Input
                             placeholder='search here...'
                             value={searchTerm}
-                            onChange={(e) => setSearchTerm(e.target.value)}
+                            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearchTerm(e.target.value)}
                             className='w-64'
                         />
                     </div>

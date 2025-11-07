@@ -39,7 +39,7 @@ export default function BankForm({ selectedRow, onSuccess }: BankFormProps) {
     // Populate form when in edit mode
     useEffect(() => {
         if (selectedRow) {
-            console.log('📝 [BANK FORM] Edit mode - Loading selectedRow:', JSON.stringify(selectedRow, null, 2));
+            console.log('📝 [BROWSER] Edit mode - ID:', selectedRow.HRMBD_Id, 'IFSC:', selectedRow.HRMBD_IFSCCode);
             reset({
                 HRMBD_Id: selectedRow.HRMBD_Id,
                 MI_Id: selectedRow.MI_Id,
@@ -50,77 +50,78 @@ export default function BankForm({ selectedRow, onSuccess }: BankFormProps) {
                 HRMBD_BankAddress: selectedRow.HRMBD_BankAddress,
                 HRMBD_ActiveFlag: selectedRow.HRMBD_ActiveFlag
             });
-            console.log('📝 [BANK FORM] Form reset with edit data');
-        } else {
-            console.log('📝 [BANK FORM] Add mode - No selectedRow');
         }
     }, [selectedRow, reset]);
 
     const onSubmit = async (data: MasterBankInput) => {
-        console.log('🔵 ========== BANK FORM SUBMIT ==========');
-        console.log('🔵 Form Data:', JSON.stringify(data, null, 2));
-        console.log('🔵 Is Edit Mode:', isEditMode);
-        console.log('🔵 HRMBD_Id in data:', data.HRMBD_Id);
-        console.log('🔵 Role ID:', roleId);
-        console.log('🔵 Form Errors:', errors);
+        if (isEditMode) {
+            console.log('🔵 [BROWSER] ========== EDIT BANK ==========');
+            console.log('🔵 [BROWSER] Original Row:', JSON.stringify(selectedRow, null, 2));
+            console.log('🔵 [BROWSER] Form Data:', JSON.stringify(data, null, 2));
+            console.log('🔵 [BROWSER] HRMBD_Id:', data.HRMBD_Id);
+            console.log('🔵 [BROWSER] Original IFSC:', selectedRow?.HRMBD_IFSCCode);
+            console.log('🔵 [BROWSER] New IFSC:', data.HRMBD_IFSCCode);
+            console.log('🔵 [BROWSER] IFSC Changed:', selectedRow?.HRMBD_IFSCCode !== data.HRMBD_IFSCCode);
+        } else {
+            console.log('🔵 [BROWSER] Bank submit - Mode: ADD, IFSC:', data.HRMBD_IFSCCode);
+        }
         
         if (isEditMode && !data.HRMBD_Id) {
-            console.log('⚠️ WARNING: Edit mode but no HRMBD_Id in form data!');
+            console.warn('⚠️ [BROWSER] Edit mode but no HRMBD_Id!');
         }
         
         try {
-            console.log('🟡 Calling saveMutation.mutateAsync...');
             const res = await saveMutation.mutateAsync(data);
             
-            console.log('🟢 ========== API RESPONSE ==========');
-            console.log('🟢 Response:', JSON.stringify(res, null, 2));
-            console.log('🟢 Response success:', res?.success);
-            console.log('🟢 Response message:', res?.message);
-            console.log('🟢 ====================================');
+            if (isEditMode) {
+                console.log('🟢 [BROWSER] Edit Response:', JSON.stringify(res, null, 2));
+                console.log('🟢 [BROWSER] Response success:', res?.success);
+                console.log('🟢 [BROWSER] Response data:', res?.data);
+                
+                // Check if IFSC was updated in response
+                // For edit, check top-level response first (contains updated record)
+                if (res?.data) {
+                    const topLevelIFSC = res.data.HRMBD_IFSCCode;
+                    const topLevelId = res.data.HRMBD_Id;
+                    
+                    // Try to find the updated bank in the list by ID
+                    const updatedBankInList = res.data.bankdetailList?.find((bank: any) => bank.HRMBD_Id === data.HRMBD_Id);
+                    const responseBank = updatedBankInList || (topLevelId === data.HRMBD_Id ? res.data : res.data.bankdetailList?.[0] || res.data);
+                    
+                    console.log('🟢 [BROWSER] Top-level IFSC:', topLevelIFSC);
+                    console.log('🟢 [BROWSER] Top-level ID:', topLevelId);
+                    console.log('🟢 [BROWSER] Response Bank IFSC:', responseBank.HRMBD_IFSCCode);
+                    console.log('🟢 [BROWSER] Response Bank ID:', responseBank.HRMBD_Id);
+                    console.log('🟢 [BROWSER] IFSC Match:', responseBank.HRMBD_IFSCCode === data.HRMBD_IFSCCode);
+                    console.log('🟢 [BROWSER] ID Match:', responseBank.HRMBD_Id === data.HRMBD_Id);
+                }
+            }
             
             if (res?.success) {
-                const successMsg = res?.message || 'Bank saved successfully';
-                console.log('✅ Success! Showing toast:', successMsg);
-                toast.success(successMsg);
-                
-                // Reset form if in add mode
+                toast.success(res?.message || 'Bank saved successfully');
                 if (!isEditMode) {
-                    console.log('✅ Resetting form (add mode)');
                     reset();
                 }
-                
-                // Refetch the list to update table
-                console.log('✅ Refetching bank list');
                 refetchAll();
-                
-                // Call success callback (closes the form)
                 if (onSuccess) {
-                    console.log('✅ Calling onSuccess callback');
                     onSuccess();
                 }
             } else {
-                const errorMsg = res?.message || 'Failed to save bank';
-                console.log('❌ API returned success=false. Message:', errorMsg);
-                toast.error(errorMsg);
+                console.error('❌ [BROWSER] Save failed:', res?.message);
+                toast.error(res?.message || 'Failed to save bank');
+            }
+            
+            if (isEditMode) {
+                console.log('🔵 [BROWSER] ============================');
             }
         } catch (error: any) {
-            console.log('🔴 ========== ERROR CAUGHT ==========');
-            console.error('🔴 Error object:', error);
-            console.error('🔴 Error message:', error?.message);
-            console.error('🔴 Error response:', error?.response);
-            console.error('🔴 Error data:', error?.response?.data);
-            console.log('🔴 ====================================');
-            
             const errorMsg = error?.response?.data?.message 
                 || error?.message 
                 || error?.data?.message
                 || 'Failed to save bank';
-            
-            console.log('🔴 Showing error toast:', errorMsg);
+            console.error('🔴 [BROWSER] Error:', errorMsg);
             toast.error(errorMsg);
         }
-        
-        console.log('🔵 ========== FORM SUBMIT END ==========');
     };
 
     return (

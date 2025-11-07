@@ -3,15 +3,13 @@
 import { Heading } from '@/components/layout/heading';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
 import { DataTable } from '@/components/ui/data-table/data-table';
-import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { type BaseEntity, createLocalCrud } from '@/lib/localdb';
-import type { ColumnDef } from '@tanstack/react-table';
 import { Calculator, Download, FileText, Printer } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';
+import { PFChallanFilters, type PFChallanFilters as PFChallanFiltersType } from './_components/filters';
+import { pfChallanColumns, type PFChallanRecord as PFChallanRecordColumn } from './_components/columns';
 
 // PF challan data structure
 interface PFChallanRecord extends BaseEntity {
@@ -42,11 +40,6 @@ interface PFChallanSummary {
     grandTotal: number;
 }
 
-// Report filters
-interface PFChallanFilters {
-    month: string;
-    year: string;
-}
 
 export default function PFChallanPage() {
     // Database instances
@@ -58,7 +51,7 @@ export default function PFChallanPage() {
     const [isLoading, setIsLoading] = useState(true);
     const [showChallan, setShowChallan] = useState(false);
 
-    const [filters, setFilters] = useState<PFChallanFilters>({
+    const [filters, setFilters] = useState<PFChallanFiltersType>({
         month: '',
         year: ''
     });
@@ -161,8 +154,8 @@ export default function PFChallanPage() {
         setFilteredRecords(filtered);
     }, [filters, pfRecords]);
 
-    const handleFilterChange = (key: keyof PFChallanFilters, value: string) => {
-        setFilters((prev) => ({ ...prev, [key]: value }));
+    const handleFilterChange = (newFilters: PFChallanFiltersType) => {
+        setFilters(newFilters);
     };
 
     const handleGenerate = () => {
@@ -218,85 +211,6 @@ export default function PFChallanPage() {
         );
     }, [filteredRecords]);
 
-    // Table columns
-    const columns: ColumnDef<PFChallanRecord>[] = [
-        {
-            accessorKey: 'id',
-            header: ({ column }) => <DataTableColumnHeader column={column} title='SL.No.' />,
-            cell: ({ row, table }) => {
-                const pageIndex = table.getState().pagination.pageIndex;
-                const pageSize = table.getState().pagination.pageSize;
-                const continuousIndex = pageIndex * pageSize + row.index + 1;
-                return <div className='text-center'>{continuousIndex}</div>;
-            },
-            enableSorting: false,
-            enableHiding: false,
-            size: 80
-        },
-        {
-            accessorKey: 'employeeCode',
-            header: ({ column }) => <DataTableColumnHeader column={column} title='Employee Code' />,
-            cell: ({ row }) => <div className='font-medium'>{row.getValue('employeeCode')}</div>,
-            enableSorting: true,
-            enableHiding: true
-        },
-        {
-            accessorKey: 'employeeName',
-            header: ({ column }) => <DataTableColumnHeader column={column} title='Employee Name' />,
-            cell: ({ row }) => <div>{row.getValue('employeeName')}</div>,
-            enableSorting: true,
-            enableHiding: true
-        },
-        {
-            accessorKey: 'pfNumber',
-            header: ({ column }) => <DataTableColumnHeader column={column} title='PF Number' />,
-            cell: ({ row }) => <div className='font-mono'>{row.getValue('pfNumber')}</div>,
-            enableSorting: true,
-            enableHiding: true
-        },
-        {
-            accessorKey: 'pfEligibleSalary',
-            header: ({ column }) => <DataTableColumnHeader column={column} title='PF Eligible Salary' />,
-            cell: ({ row }) => <div>₹{(row.getValue('pfEligibleSalary') as number).toLocaleString()}</div>,
-            enableSorting: true,
-            enableHiding: true
-        },
-        {
-            accessorKey: 'employeePF',
-            header: ({ column }) => <DataTableColumnHeader column={column} title='Employee PF (12%)' />,
-            cell: ({ row }) => <div>₹{(row.getValue('employeePF') as number).toLocaleString()}</div>,
-            enableSorting: true,
-            enableHiding: true
-        },
-        {
-            accessorKey: 'employerPF',
-            header: ({ column }) => <DataTableColumnHeader column={column} title='Employer PF (12%)' />,
-            cell: ({ row }) => <div>₹{(row.getValue('employerPF') as number).toLocaleString()}</div>,
-            enableSorting: true,
-            enableHiding: true
-        },
-        {
-            accessorKey: 'vpfContribution',
-            header: ({ column }) => <DataTableColumnHeader column={column} title='VPF' />,
-            cell: ({ row }) => <div>₹{(row.getValue('vpfContribution') as number).toLocaleString()}</div>,
-            enableSorting: true,
-            enableHiding: true
-        },
-        {
-            accessorKey: 'pensionContribution',
-            header: ({ column }) => <DataTableColumnHeader column={column} title='Pension (8.33%)' />,
-            cell: ({ row }) => <div>₹{(row.getValue('pensionContribution') as number).toLocaleString()}</div>,
-            enableSorting: true,
-            enableHiding: true
-        },
-        {
-            accessorKey: 'totalPF',
-            header: ({ column }) => <DataTableColumnHeader column={column} title='Total PF' />,
-            cell: ({ row }) => <div className='font-semibold'>₹{(row.getValue('totalPF') as number).toLocaleString()}</div>,
-            enableSorting: true,
-            enableHiding: true
-        }
-    ];
 
     return (
         <div className='space-y-6'>
@@ -305,80 +219,7 @@ export default function PFChallanPage() {
             </div>
 
             {/* Report Configuration Section */}
-            <CollapsibleSection
-                title='PF CHALLAN'
-                description='Generate Provident Fund challan for employee and employer contributions'
-                defaultOpen={true}
-                variant='default'
-                size='lg'
-                className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
-                {/* Simple Month/Year Selection */}
-                <div className='flex items-center justify-center gap-6'>
-                    {/* Month Filter */}
-                    <div className='space-y-2'>
-                        <span className='font-medium text-foreground text-sm'>
-                            Month: <span className='text-red-500'>*</span>
-                        </span>
-                        <Select value={filters.month} onValueChange={(value) => handleFilterChange('month', value)}>
-                            <SelectTrigger className='w-40'>
-                                <SelectValue placeholder='Select' />
-                            </SelectTrigger>
-                            <SelectContent>
-                                {[
-                                    'January',
-                                    'February',
-                                    'March',
-                                    'April',
-                                    'May',
-                                    'June',
-                                    'July',
-                                    'August',
-                                    'September',
-                                    'October',
-                                    'November',
-                                    'December'
-                                ].map((month) => (
-                                    <SelectItem key={month} value={month}>
-                                        {month}
-                                    </SelectItem>
-                                ))}
-                            </SelectContent>
-                        </Select>
-                    </div>
-
-                    {/* Year Filter */}
-                    <div className='space-y-2'>
-                        <span className='font-medium text-foreground text-sm'>
-                            Year: <span className='text-red-500'>*</span>
-                        </span>
-                        <Select value={filters.year} onValueChange={(value) => handleFilterChange('year', value)}>
-                            <SelectTrigger className='w-32'>
-                                <SelectValue placeholder='Select' />
-                            </SelectTrigger>
-                            <SelectContent>
-                                {Array.from({ length: 5 }, (_, i) => {
-                                    const year = new Date().getFullYear() - 2 + i;
-                                    return (
-                                        <SelectItem key={`year-${year}`} value={year.toString()}>
-                                            {year}
-                                        </SelectItem>
-                                    );
-                                })}
-                            </SelectContent>
-                        </Select>
-                    </div>
-                </div>
-
-                {/* Action Buttons */}
-                <div className='flex justify-center gap-2 pt-4'>
-                    <Button onClick={handleGenerate} className='bg-blue-600 hover:bg-blue-700'>
-                        GENERATE
-                    </Button>
-                    <Button variant='outline' onClick={handleCancel}>
-                        CANCEL
-                    </Button>
-                </div>
-            </CollapsibleSection>
+            <PFChallanFilters filters={filters} onFilterChange={handleFilterChange} onGenerate={handleGenerate} onCancel={handleCancel} />
 
             {/* Challan Results */}
             {showChallan && (
@@ -513,8 +354,8 @@ export default function PFChallanPage() {
                     {/* Data Table */}
                     <DataTable
                         isLoading={isLoading}
-                        columns={columns}
-                        data={filteredRecords}
+                        columns={pfChallanColumns}
+                        data={filteredRecords as unknown as PFChallanRecordColumn[]}
                         totalItems={filteredRecords.length}
                         showViewOptions={true}
                         columnPinning={{ left: ['id'] }}

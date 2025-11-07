@@ -19,10 +19,13 @@
         "build-uat": "cp .env.uat .env.local && next build",
         "build-uat1": "cp .env.uat1 .env.local && next build",
         "build-uat2": "cp .env.uat2 .env.local && next build",
+        "test:production": "next build && next start -p 3001",
+        "test:build": "next build",
         "lint-fix": "biome check --fix --unsafe",
         "precommit": "lint-staged",
         "prepare": "husky install",
         "check:hrms": "powershell -ExecutionPolicy Bypass -File scripts/check-hrms.ps1",
+        "check:hydration": "node scripts/check-hydration.js",
         "fix:hrms": "npx biome check app/(root)/hrms --write --unsafe"
     },
     "dependencies": {

@@ -1,30 +1,16 @@
-// Refactored by automation script on 2025-10-28T15:40:35.762Z
-// TODO: Complete refactoring by:
-// 1. Import columns from _components/columns.tsx
-// 2. Import form from _components/leave-year-form.tsx
-// 3. Extract column definitions and form to the respective files
-// 4. Update handlers to use the new structure
-
 'use client';
 
 import { Heading } from '@/components/layout/heading';
 import { Button } from '@/components/ui/button';
-import { Checkbox } from '@/components/ui/checkbox';
 import { GenericDataTable } from '@/components/ui/data-table/generic-data-table';
-import { InputText } from '@/components/ui/extension/input-text';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
-import { type BaseEntity, createLocalCrud } from '@/lib/localdb';
-import { Edit, Plus, Trash2 } from 'lucide-react';
-import { useEffect, useMemo, useState } from 'react';
-import { useForm } from 'react-hook-form';
+import { createLocalCrud } from '@/lib/localdb';
+import { Plus } from 'lucide-react';
+import { useMemo, useState } from 'react';
+import { useEffect } from 'react';
 import { toast } from 'sonner';
-
-interface LeaveYear extends BaseEntity {
-    leaveYear: string;
-    fromDate: string;
-    toDate: string;
-    isActive: boolean;
-}
+import { getLeaveYearColumns, type LeaveYear } from './_components/columns';
+import { LeaveYearForm } from './_components/leave-year-form';
 
 const leaveYearDB = createLocalCrud<LeaveYear>('leaveYear');
 
@@ -32,22 +18,6 @@ export default function MasterLeaveYearPage() {
     const [data, setData] = useState<LeaveYear[]>([]);
     const [isFormOpen, setIsFormOpen] = useState(false);
     const [editingLeaveYear, setEditingLeaveYear] = useState<LeaveYear | null>(null);
-
-    const {
-        register,
-        handleSubmit,
-        reset,
-        setValue,
-        watch,
-        formState: { errors }
-    } = useForm<LeaveYear>({
-        defaultValues: {
-            leaveYear: '',
-            fromDate: '',
-            toDate: '',
-            isActive: true
-        }
-    });
 
     const loadData = () => {
         try {
@@ -66,12 +36,6 @@ export default function MasterLeaveYearPage() {
     const handleAddClick = () => {
         setIsFormOpen(true);
         setEditingLeaveYear(null);
-        reset({
-            leaveYear: '',
-            fromDate: '',
-            toDate: '',
-            isActive: true
-        });
         // Scroll to form
         setTimeout(() => {
             const formElement = document.getElementById('leave-year-form');
@@ -84,15 +48,9 @@ export default function MasterLeaveYearPage() {
     const handleFormClose = () => {
         setIsFormOpen(false);
         setEditingLeaveYear(null);
-        reset({
-            leaveYear: '',
-            fromDate: '',
-            toDate: '',
-            isActive: true
-        });
     };
 
-    const onSubmit = (formData: LeaveYear) => {
+    const handleFormSubmit = (formData: LeaveYear) => {
         try {
             if (editingLeaveYear) {
                 leaveYearDB.update(editingLeaveYear.id, formData);
@@ -112,10 +70,6 @@ export default function MasterLeaveYearPage() {
     const handleEdit = (leaveYear: LeaveYear) => {
         setEditingLeaveYear(leaveYear);
         setIsFormOpen(true);
-        setValue('leaveYear', leaveYear.leaveYear);
-        setValue('fromDate', leaveYear.fromDate);
-        setValue('toDate', leaveYear.toDate);
-        setValue('isActive', leaveYear.isActive);
         // Scroll to form
         setTimeout(() => {
             const formElement = document.getElementById('leave-year-form');
@@ -138,50 +92,7 @@ export default function MasterLeaveYearPage() {
         }
     };
 
-    const handleClear = () => {
-        handleFormClose();
-    };
-
-    const columns = useMemo(
-        () => [
-            {
-                accessorKey: 'leaveYear',
-                header: 'Leave Year'
-            },
-            {
-                accessorKey: 'fromDate',
-                header: 'From Date'
-            },
-            {
-                accessorKey: 'toDate',
-                header: 'To Date'
-            },
-            {
-                accessorKey: 'isActive',
-                header: 'Status',
-                cell: ({ row }: { row: any }) => (
-                    <span className={row.original.isActive ? 'text-green-600' : 'text-red-600'}>
-                        {row.original.isActive ? 'Active' : 'Inactive'}
-                    </span>
-                )
-            },
-            {
-                id: 'actions',
-                header: 'Actions',
-                cell: ({ row }: { row: any }) => (
-                    <div className='flex gap-2'>
-                        <Button variant='outline' size='sm' onClick={() => handleEdit(row.original)}>
-                            <Edit className='h-4 w-4' />
-                        </Button>
-                        <Button variant='outline' size='sm' onClick={() => handleDelete(row.original.id)}>
-                            <Trash2 className='h-4 w-4' />
-                        </Button>
-                    </div>
-                )
-            }
-        ],
-        []
-    );
+    const columns = useMemo(() => getLeaveYearColumns({ onEdit: handleEdit, onDelete: handleDelete }), [handleEdit, handleDelete]);
 
     return (
         <div className='min-h-screen'>
@@ -217,68 +128,11 @@ export default function MasterLeaveYearPage() {
                             variant='default'
                             size='lg'
                             className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
-                            <form onSubmit={handleSubmit(onSubmit)} className='space-y-4'>
-                                <div className='grid grid-cols-1 gap-4 md:grid-cols-3'>
-                                    <div>
-                                        <label htmlFor='leave-year-input' className='font-medium text-sm'>
-                                            Leave Year *
-                                        </label>
-                                        <InputText
-                                            id='leave-year-input'
-                                            {...register('leaveYear', { required: 'Leave year is required' })}
-                                            placeholder='Enter leave year'
-                                            className={errors.leaveYear ? 'border-red-500' : ''}
-                                        />
-                                        {errors.leaveYear && <p className='mt-1 text-red-500 text-xs'>{errors.leaveYear.message}</p>}
-                                    </div>
-
-                                    <div>
-                                        <label htmlFor='from-date-input' className='font-medium text-sm'>
-                                            From Date *
-                                        </label>
-                                        <InputText
-                                            id='from-date-input'
-                                            type='date'
-                                            {...register('fromDate', { required: 'From date is required' })}
-                                            className={errors.fromDate ? 'border-red-500' : ''}
-                                        />
-                                        {errors.fromDate && <p className='mt-1 text-red-500 text-xs'>{errors.fromDate.message}</p>}
-                                    </div>
-
-                                    <div>
-                                        <label htmlFor='to-date-input' className='font-medium text-sm'>
-                                            To Date *
-                                        </label>
-                                        <InputText
-                                            id='to-date-input'
-                                            type='date'
-                                            {...register('toDate', { required: 'To date is required' })}
-                                            className={errors.toDate ? 'border-red-500' : ''}
-                                        />
-                                        {errors.toDate && <p className='mt-1 text-red-500 text-xs'>{errors.toDate.message}</p>}
-                                    </div>
-                                </div>
-
-                                <div className='flex items-center space-x-2'>
-                                    <Checkbox
-                                        id='isActive'
-                                        checked={watch('isActive')}
-                                        onCheckedChange={(checked) => setValue('isActive', checked as boolean)}
-                                    />
-                                    <label htmlFor='isActive' className='font-medium text-sm'>
-                                        Active
-                                    </label>
-                                </div>
-
-                                <div className='flex gap-2'>
-                                    <Button type='submit' className='bg-blue-600 hover:bg-blue-700'>
-                                        {editingLeaveYear ? 'Update' : 'Save'}
-                                    </Button>
-                                    <Button type='button' variant='outline' onClick={handleClear}>
-                                        Cancel
-                                    </Button>
-                                </div>
-                            </form>
+                            <LeaveYearForm
+                                editingLeaveYear={editingLeaveYear}
+                                onSubmit={handleFormSubmit}
+                                onCancel={handleFormClose}
+                            />
                         </CollapsibleSection>
                     </div>
                 )}

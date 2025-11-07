@@ -3,15 +3,13 @@
 import { Heading } from '@/components/layout/heading';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
 import { DataTable } from '@/components/ui/data-table/data-table';
-import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { type BaseEntity, createLocalCrud } from '@/lib/localdb';
-import type { ColumnDef } from '@tanstack/react-table';
 import { Calculator, Download, FileText, Printer } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';
+import { PFForm10Filters, type Form10Filters } from './_components/filters';
+import { form10Columns, type Form10Record as Form10RecordColumn } from './_components/columns';
 
 // Form 10 data structure (Annual PF Statement)
 interface Form10Record extends BaseEntity {
@@ -46,11 +44,6 @@ interface Form10Summary {
     totalClosingBalance: number;
 }
 
-// Report filters
-interface Form10Filters {
-    month: string;
-    year: string;
-}
 
 export default function Form10Page() {
     // Database instances
@@ -90,7 +83,7 @@ export default function Form10Page() {
     };
 
     // Generate mock Form 10 data
-    const generateMockForm10Data = (): Omit<Form10Record, 'id' | 'createdAt'>[] => {
+    const generateMockForm10Data = (referenceYear: number = 2024): Omit<Form10Record, 'id' | 'createdAt'>[] => {
         const employees = [
             {
                 code: 'EMP001',
@@ -147,7 +140,7 @@ export default function Form10Page() {
 
         employees.forEach((emp, empIndex) => {
             months.forEach((month) => {
-                const yearsOfService = new Date().getFullYear() - new Date(emp.joining).getFullYear();
+                const yearsOfService = referenceYear - new Date(emp.joining).getFullYear();
                 const openingBalance = Math.max(0, (yearsOfService - 1) * 25000 + empIndex * 10000);
                 const monthlyContribution = 1800 + empIndex * 200;
                 const employeeContribution = monthlyContribution * 12;
@@ -198,8 +191,8 @@ export default function Form10Page() {
         setFilteredRecords(filtered);
     }, [filters, form10Records]);
 
-    const handleFilterChange = (key: keyof Form10Filters, value: string) => {
-        setFilters((prev) => ({ ...prev, [key]: value }));
+    const handleFilterChange = (newFilters: Form10Filters) => {
+        setFilters(newFilters);
     };
 
     const handleGenerate = () => {
@@ -255,85 +248,6 @@ export default function Form10Page() {
         );
     }, [filteredRecords]);
 
-    // Table columns
-    const columns: ColumnDef<Form10Record>[] = [
-        {
-            accessorKey: 'id',
-            header: ({ column }) => <DataTableColumnHeader column={column} title='SL.No.' />,
-            cell: ({ row, table }) => {
-                const pageIndex = table.getState().pagination.pageIndex;
-                const pageSize = table.getState().pagination.pageSize;
-                const continuousIndex = pageIndex * pageSize + row.index + 1;
-                return <div className='text-center'>{continuousIndex}</div>;
-            },
-            enableSorting: false,
-            enableHiding: false,
-            size: 80
-        },
-        {
-            accessorKey: 'employeeCode',
-            header: ({ column }) => <DataTableColumnHeader column={column} title='Employee Code' />,
-            cell: ({ row }) => <div className='font-medium'>{row.getValue('employeeCode')}</div>,
-            enableSorting: true,
-            enableHiding: true
-        },
-        {
-            accessorKey: 'employeeName',
-            header: ({ column }) => <DataTableColumnHeader column={column} title='Employee Name' />,
-            cell: ({ row }) => <div>{row.getValue('employeeName')}</div>,
-            enableSorting: true,
-            enableHiding: true
-        },
-        {
-            accessorKey: 'pfNumber',
-            header: ({ column }) => <DataTableColumnHeader column={column} title='PF Number' />,
-            cell: ({ row }) => <div className='font-mono'>{row.getValue('pfNumber')}</div>,
-            enableSorting: true,
-            enableHiding: true
-        },
-        {
-            accessorKey: 'fatherName',
-            header: ({ column }) => <DataTableColumnHeader column={column} title="Father's Name" />,
-            cell: ({ row }) => <div>{row.getValue('fatherName')}</div>,
-            enableSorting: true,
-            enableHiding: true
-        },
-        {
-            accessorKey: 'openingBalance',
-            header: ({ column }) => <DataTableColumnHeader column={column} title='Opening Balance' />,
-            cell: ({ row }) => <div>₹{(row.getValue('openingBalance') as number).toLocaleString()}</div>,
-            enableSorting: true,
-            enableHiding: true
-        },
-        {
-            accessorKey: 'employeeContribution',
-            header: ({ column }) => <DataTableColumnHeader column={column} title='Employee Contribution' />,
-            cell: ({ row }) => <div>₹{(row.getValue('employeeContribution') as number).toLocaleString()}</div>,
-            enableSorting: true,
-            enableHiding: true
-        },
-        {
-            accessorKey: 'employerContribution',
-            header: ({ column }) => <DataTableColumnHeader column={column} title='Employer Contribution' />,
-            cell: ({ row }) => <div>₹{(row.getValue('employerContribution') as number).toLocaleString()}</div>,
-            enableSorting: true,
-            enableHiding: true
-        },
-        {
-            accessorKey: 'interestEarned',
-            header: ({ column }) => <DataTableColumnHeader column={column} title='Interest Earned' />,
-            cell: ({ row }) => <div>₹{(row.getValue('interestEarned') as number).toLocaleString()}</div>,
-            enableSorting: true,
-            enableHiding: true
-        },
-        {
-            accessorKey: 'closingBalance',
-            header: ({ column }) => <DataTableColumnHeader column={column} title='Closing Balance' />,
-            cell: ({ row }) => <div className='font-semibold'>₹{(row.getValue('closingBalance') as number).toLocaleString()}</div>,
-            enableSorting: true,
-            enableHiding: true
-        }
-    ];
 
     return (
         <div className='space-y-6'>
@@ -342,80 +256,7 @@ export default function Form10Page() {
             </div>
 
             {/* Report Configuration Section */}
-            <CollapsibleSection
-                title='PF FORM 10'
-                description='Generate annual PF statement for employee accounts'
-                defaultOpen={true}
-                variant='default'
-                size='lg'
-                className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
-                {/* Simple Month/Year Selection */}
-                <div className='flex items-center justify-center gap-6'>
-                    {/* Month Filter */}
-                    <div className='space-y-2'>
-                        <span className='font-medium text-foreground text-sm'>
-                            Month: <span className='text-red-500'>*</span>
-                        </span>
-                        <Select value={filters.month} onValueChange={(value) => handleFilterChange('month', value)}>
-                            <SelectTrigger className='w-40'>
-                                <SelectValue placeholder='Select' />
-                            </SelectTrigger>
-                            <SelectContent>
-                                {[
-                                    'January',
-                                    'February',
-                                    'March',
-                                    'April',
-                                    'May',
-                                    'June',
-                                    'July',
-                                    'August',
-                                    'September',
-                                    'October',
-                                    'November',
-                                    'December'
-                                ].map((month) => (
-                                    <SelectItem key={month} value={month}>
-                                        {month}
-                                    </SelectItem>
-                                ))}
-                            </SelectContent>
-                        </Select>
-                    </div>
-
-                    {/* Year Filter */}
-                    <div className='space-y-2'>
-                        <span className='font-medium text-foreground text-sm'>
-                            Year: <span className='text-red-500'>*</span>
-                        </span>
-                        <Select value={filters.year} onValueChange={(value) => handleFilterChange('year', value)}>
-                            <SelectTrigger className='w-32'>
-                                <SelectValue placeholder='Select' />
-                            </SelectTrigger>
-                            <SelectContent>
-                                {Array.from({ length: 5 }, (_, i) => {
-                                    const year = new Date().getFullYear() - 2 + i;
-                                    return (
-                                        <SelectItem key={`year-${year}`} value={year.toString()}>
-                                            {year}
-                                        </SelectItem>
-                                    );
-                                })}
-                            </SelectContent>
-                        </Select>
-                    </div>
-                </div>
-
-                {/* Action Buttons */}
-                <div className='flex justify-center gap-2 pt-4'>
-                    <Button onClick={handleGenerate} className='bg-blue-600 hover:bg-blue-700'>
-                        GENERATE
-                    </Button>
-                    <Button variant='outline' onClick={handleCancel}>
-                        CANCEL
-                    </Button>
-                </div>
-            </CollapsibleSection>
+            <PFForm10Filters filters={filters} onFilterChange={handleFilterChange} onGenerate={handleGenerate} onCancel={handleCancel} />
 
             {/* Form 10 Results */}
             {showForm && (
@@ -570,8 +411,8 @@ export default function Form10Page() {
                     {/* Data Table */}
                     <DataTable
                         isLoading={isLoading}
-                        columns={columns}
-                        data={filteredRecords}
+                        columns={form10Columns}
+                        data={filteredRecords as unknown as Form10RecordColumn[]}
                         totalItems={filteredRecords.length}
                         showViewOptions={true}
                         columnPinning={{ left: ['id'] }}

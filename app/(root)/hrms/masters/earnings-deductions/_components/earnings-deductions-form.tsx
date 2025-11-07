@@ -7,7 +7,7 @@ import { useMasterEarningsDeductions } from '@/hooks/hrms/useMasters';
 import { EARNING_DEDUCTION_VALIDATION } from '@/lib/validation/hrms-master-validation';
 import type { EarningsDeductionDetail, MasterEarningsDeductionsInput } from '@/types/hrms/master-earnings-deductions';
 import { useEffect } from 'react';
-import { useForm } from 'react-hook-form';
+import { useForm, useWatch } from 'react-hook-form';
 import { toast } from 'sonner';
 
 interface EarningsDeductionsFormProps {
@@ -27,6 +27,9 @@ export default function EarningsDeductionsForm({ selectedRow, onSuccess, typeDro
         register,
         handleSubmit,
         reset,
+        control,
+        getValues,
+        trigger,
         formState: { errors, isDirty }
     } = useForm<MasterEarningsDeductionsInput>({
         defaultValues: {
@@ -42,6 +45,18 @@ export default function EarningsDeductionsForm({ selectedRow, onSuccess, typeDro
             HRMED_ReviseFlg: false
         }
     });
+
+    // Watch the calculation type to dynamically update label and validation
+    const calculationType = useWatch({
+        control,
+        name: 'HRMED_AmountPercentFlag',
+        defaultValue: 'Amount'
+    });
+
+    // Re-validate value field when calculation type changes
+    useEffect(() => {
+        trigger('HRMED_AmountPercent');
+    }, [calculationType, trigger]);
 
     useEffect(() => {
         if (selectedRow) {
@@ -207,19 +222,48 @@ export default function EarningsDeductionsForm({ selectedRow, onSuccess, typeDro
                 <select
                     id='HRMED_AmountPercentFlag'
                     className='flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm'
-                    {...register('HRMED_AmountPercentFlag')}>
+                    {...register('HRMED_AmountPercentFlag', {
+                        onChange: (e) => {
+                            // Re-validate the value field when calculation type changes
+                            trigger('HRMED_AmountPercent');
+                        }
+                    })}>
                     <option value='Amount'>Amount</option>
                     <option value='Percentage'>Percentage</option>
                 </select>
             </div>
             <div className='group flex flex-col gap-1.5'>
                 <Label htmlFor='HRMED_AmountPercent'>
-                    Value <span className='text-destructive'>*</span>
+                    {calculationType === 'Percentage' ? 'Percentage' : 'Amount'} <span className='text-destructive'>*</span>
                 </Label>
                 <InputText
                     id='HRMED_AmountPercent'
-                    placeholder='Enter value'
-                    {...register('HRMED_AmountPercent', EARNING_DEDUCTION_VALIDATION.value)}
+                    placeholder={`Enter ${calculationType === 'Percentage' ? 'percentage' : 'amount'}`}
+                    {...register('HRMED_AmountPercent', {
+                        required: EARNING_DEDUCTION_VALIDATION.value.required,
+                        pattern: EARNING_DEDUCTION_VALIDATION.value.pattern,
+                        min: EARNING_DEDUCTION_VALIDATION.value.min,
+                        validate: (value) => {
+                            const numValue = parseFloat(value);
+                            if (isNaN(numValue)) {
+                                return EARNING_DEDUCTION_VALIDATION.value.pattern.message;
+                            }
+                            // Get current calculation type from form values
+                            const currentCalculationType = getValues('HRMED_AmountPercentFlag') || calculationType;
+                            if (currentCalculationType === 'Percentage') {
+                                if (numValue > 100) {
+                                    return 'Percentage must not exceed 100';
+                                }
+                            } else {
+                                // For Amount: check if it's more than 10 digits
+                                const maxAmount = 9999999999; // 10 digits
+                                if (numValue > maxAmount) {
+                                    return `Amount must not exceed ${maxAmount.toLocaleString()}`;
+                                }
+                            }
+                            return true;
+                        }
+                    })}
                 />
                 {errors.HRMED_AmountPercent && <FormError>{errors.HRMED_AmountPercent.message}</FormError>}
             </div>

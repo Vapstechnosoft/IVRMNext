@@ -1,18 +1,15 @@
 'use client';
 
 import { Heading } from '@/components/layout/heading';
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
 import { DataTable } from '@/components/ui/data-table/data-table';
-import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { type BaseEntity, createLocalCrud } from '@/lib/localdb';
-import type { ColumnDef } from '@tanstack/react-table';
 import { Calculator, Download, FileText, Printer, UserMinus, UserPlus } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';
+import { PFForm5Filters, type Form5Filters } from './_components/filters';
+import { form5Columns, type Form5Record as Form5RecordColumn } from './_components/columns';
 
 // Form 5 data structure (Register of Employees)
 interface Form5Record extends BaseEntity {
@@ -48,11 +45,6 @@ interface Form5Summary {
     averageSalary: number;
 }
 
-// Report filters
-interface Form5Filters {
-    month: string;
-    year: string;
-}
 
 export default function Form5Page() {
     // Database instances
@@ -243,8 +235,8 @@ export default function Form5Page() {
         setFilteredRecords(filtered);
     }, [filters, form5Records]);
 
-    const handleFilterChange = (key: keyof Form5Filters, value: string) => {
-        setFilters((prev) => ({ ...prev, [key]: value }));
+    const handleFilterChange = (newFilters: Form5Filters) => {
+        setFilters(newFilters);
     };
 
     const handleGenerate = () => {
@@ -310,83 +302,6 @@ export default function Form5Page() {
     // Calculate average salary
     form5Summary.averageSalary = filteredRecords.length > 0 ? Math.round(form5Summary.totalBasicSalary / filteredRecords.length) : 0;
 
-    // Table columns
-    const columns: ColumnDef<Form5Record>[] = [
-        {
-            accessorKey: 'serialNo',
-            header: ({ column }) => <DataTableColumnHeader column={column} title='Serial No.' />,
-            cell: ({ row }) => <div className='text-center'>{row.getValue('serialNo')}</div>,
-            enableSorting: false,
-            enableHiding: false,
-            size: 80
-        },
-        {
-            accessorKey: 'employeeCode',
-            header: ({ column }) => <DataTableColumnHeader column={column} title='Employee Code' />,
-            cell: ({ row }) => <div className='font-medium'>{row.getValue('employeeCode')}</div>,
-            enableSorting: true,
-            enableHiding: true
-        },
-        {
-            accessorKey: 'employeeName',
-            header: ({ column }) => <DataTableColumnHeader column={column} title='Employee Name' />,
-            cell: ({ row }) => <div>{row.getValue('employeeName')}</div>,
-            enableSorting: true,
-            enableHiding: true
-        },
-        {
-            accessorKey: 'fatherName',
-            header: ({ column }) => <DataTableColumnHeader column={column} title="Father's Name" />,
-            cell: ({ row }) => <div className='text-sm'>{row.getValue('fatherName')}</div>,
-            enableSorting: true,
-            enableHiding: true
-        },
-        {
-            accessorKey: 'dateOfBirth',
-            header: ({ column }) => <DataTableColumnHeader column={column} title='Date of Birth' />,
-            cell: ({ row }) => <div className='text-sm'>{new Date(row.getValue('dateOfBirth')).toLocaleDateString()}</div>,
-            enableSorting: true,
-            enableHiding: true
-        },
-        {
-            accessorKey: 'dateOfJoining',
-            header: ({ column }) => <DataTableColumnHeader column={column} title='Date of Joining' />,
-            cell: ({ row }) => <div className='text-sm'>{new Date(row.getValue('dateOfJoining')).toLocaleDateString()}</div>,
-            enableSorting: true,
-            enableHiding: true
-        },
-        {
-            accessorKey: 'pfNumber',
-            header: ({ column }) => <DataTableColumnHeader column={column} title='PF Number' />,
-            cell: ({ row }) => <div className='font-mono text-xs'>{row.getValue('pfNumber')}</div>,
-            enableSorting: true,
-            enableHiding: true
-        },
-        {
-            accessorKey: 'designation',
-            header: ({ column }) => <DataTableColumnHeader column={column} title='Designation' />,
-            cell: ({ row }) => <div className='text-sm'>{row.getValue('designation')}</div>,
-            enableSorting: true,
-            enableHiding: true
-        },
-        {
-            accessorKey: 'basicSalary',
-            header: ({ column }) => <DataTableColumnHeader column={column} title='Basic Salary' />,
-            cell: ({ row }) => <div>₹{(row.getValue('basicSalary') as number).toLocaleString()}</div>,
-            enableSorting: true,
-            enableHiding: true
-        },
-        {
-            accessorKey: 'status',
-            header: ({ column }) => <DataTableColumnHeader column={column} title='Status' />,
-            cell: ({ row }) => {
-                const status = row.getValue('status') as string;
-                return <Badge variant={status === 'Active' ? 'default' : 'secondary'}>{status}</Badge>;
-            },
-            enableSorting: true,
-            enableHiding: true
-        }
-    ];
 
     return (
         <div className='space-y-6'>
@@ -395,80 +310,7 @@ export default function Form5Page() {
             </div>
 
             {/* Report Configuration Section */}
-            <CollapsibleSection
-                title='PF FORM 5'
-                description='Generate register of employees for Provident Fund'
-                defaultOpen={true}
-                variant='default'
-                size='lg'
-                className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
-                {/* Simple Month/Year Selection */}
-                <div className='flex items-center justify-center gap-6'>
-                    {/* Month Filter */}
-                    <div className='space-y-2'>
-                        <span className='font-medium text-foreground text-sm'>
-                            Month: <span className='text-red-500'>*</span>
-                        </span>
-                        <Select value={filters.month} onValueChange={(value) => handleFilterChange('month', value)}>
-                            <SelectTrigger className='w-40'>
-                                <SelectValue placeholder='Select' />
-                            </SelectTrigger>
-                            <SelectContent>
-                                {[
-                                    'January',
-                                    'February',
-                                    'March',
-                                    'April',
-                                    'May',
-                                    'June',
-                                    'July',
-                                    'August',
-                                    'September',
-                                    'October',
-                                    'November',
-                                    'December'
-                                ].map((month) => (
-                                    <SelectItem key={month} value={month}>
-                                        {month}
-                                    </SelectItem>
-                                ))}
-                            </SelectContent>
-                        </Select>
-                    </div>
-
-                    {/* Year Filter */}
-                    <div className='space-y-2'>
-                        <span className='font-medium text-foreground text-sm'>
-                            Year: <span className='text-red-500'>*</span>
-                        </span>
-                        <Select value={filters.year} onValueChange={(value) => handleFilterChange('year', value)}>
-                            <SelectTrigger className='w-32'>
-                                <SelectValue placeholder='Select' />
-                            </SelectTrigger>
-                            <SelectContent>
-                                {Array.from({ length: 5 }, (_, i) => {
-                                    const year = new Date().getFullYear() - 2 + i;
-                                    return (
-                                        <SelectItem key={`year-${year}`} value={year.toString()}>
-                                            {year}
-                                        </SelectItem>
-                                    );
-                                })}
-                            </SelectContent>
-                        </Select>
-                    </div>
-                </div>
-
-                {/* Action Buttons */}
-                <div className='flex justify-center gap-2 pt-4'>
-                    <Button onClick={handleGenerate} className='bg-blue-600 hover:bg-blue-700'>
-                        GENERATE
-                    </Button>
-                    <Button variant='outline' onClick={handleCancel}>
-                        CANCEL
-                    </Button>
-                </div>
-            </CollapsibleSection>
+            <PFForm5Filters filters={filters} onFilterChange={handleFilterChange} onGenerate={handleGenerate} onCancel={handleCancel} />
 
             {/* Form 5 Results */}
             {showForm && (
@@ -598,8 +440,8 @@ export default function Form5Page() {
                     {/* Data Table */}
                     <DataTable
                         isLoading={isLoading}
-                        columns={columns}
-                        data={filteredRecords}
+                        columns={form5Columns}
+                        data={filteredRecords as unknown as Form5RecordColumn[]}
                         totalItems={filteredRecords.length}
                         showViewOptions={true}
                         columnPinning={{ left: ['serialNo'] }}
