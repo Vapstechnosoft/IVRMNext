@@ -2,6 +2,7 @@ import { FEES_QUERY_KEYS } from '@/constants/query-keys';
 import { getModeOfPayment } from '@/server/fees/masters/modeOfPayment';
 
 import { getAcademicYearDropdownData, getAmountEntry } from '@/server/fees/trasactions/feeAmountEntry';
+import { getFeePreadmissionTransactionList, getPreadmissionStudentDropdownData } from '@/server/fees/trasactions/feepreadmissiontrasaction';
 import {
     getThirdPartyTrasaction,
     getThirdPartyTrasactionBankDropDown,
@@ -138,6 +139,40 @@ export const useBankdropdowndatathirdpartytransaction = (searchParams?: ApiSearc
         refetchAll: () => {
             return queryClient.invalidateQueries({
                 queryKey: [FEES_QUERY_KEYS.FEE_THIRDPARTY_BANKDROPDOWN]
+            });
+        }
+    };
+};
+
+export const useFeePreadmissionTransactionList = (searchParams?: ApiSearchparams) => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [FEES_QUERY_KEYS.FEE_PREADMISSION_TRANSACTION_DETAILS, searchParams ?? {}],
+            queryFn: async () => getFeePreadmissionTransactionList(searchParams),
+            staleTime: 0
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [FEES_QUERY_KEYS.FEE_PREADMISSION_TRANSACTION_DETAILS]
+            });
+        }
+    };
+};
+
+export const usePreadmissionStudentDropdownData = (searchText: string, radiovalue: string) => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [FEES_QUERY_KEYS.FEE_PREADMISSION_STUDENT_DROPDOWN, {}],
+            queryFn: async () => getPreadmissionStudentDropdownData(searchText, radiovalue),
+            staleTime: 0
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [FEES_QUERY_KEYS.FEE_PREADMISSION_STUDENT_DROPDOWN]
             });
         }
     };

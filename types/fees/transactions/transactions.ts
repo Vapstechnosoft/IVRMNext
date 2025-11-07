@@ -114,3 +114,71 @@ export interface IFeeBankDetails {
     fmbanK_CreatedBy: number;
     fmbanK_UpdatedBy: number;
 }
+
+export interface IFeePreAdmissionTransactionDetails {
+    pasR_Id: number;
+    slno: number;
+    fyP_Id: number;
+    studentName: string;
+    studentRegNo: string;
+    studentMobile: number;
+    paidAmount: number;
+    studentEmail: string;
+    receiptNo: string;
+    paidDate: string;
+    modeOfPayment: string;
+}
+
+export interface IFeePreAdmissionStudentsDropDownList {
+    amsT_Id: number;
+    studentName: string;
+}
+
+export interface IFeePreAdmissionStudentInformation {
+    studentId: number;
+    studentName: string;
+    regNo: string;
+    className: string;
+    mobileNo: string;
+    emailId: string;
+    fatherName: string;
+    academicYear: string;
+    filterType: string;
+}
+
+export interface IFeePreAdmissionStudentTermsDetails {
+    fmT_Id: number;
+    fmT_Name: string;
+}
+
+export interface IFeePreAdmissionTransactionDetails {
+    mI_Id: number;
+    asmaY_Id: number;
+    amsT_Id: number;
+    pasR_Id: number;
+    fmG_Id: number;
+    fmH_Id: number;
+    ftI_Id: number;
+    fmA_Id: number;
+    fyP_Id: number;
+    termId: number;
+    installment: string;
+    feeHead: string;
+    feeGroup: string;
+    feeType: string;
+    currentCharges: number;
+    totalCharges: number;
+    concession: number;
+    fine: number;
+    payableAmount: number;
+    netAmount: number;
+}
+
+export interface IFeeTransactionApiResponse {
+    success: boolean;
+    message: string;
+    total: number;
+    data: {
+        feeTransactions: IFeePreAdmissionTransactionDetails[];
+    };
+}
