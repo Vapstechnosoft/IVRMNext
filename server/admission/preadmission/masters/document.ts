@@ -19,3 +19,8 @@ export async function toggleMasterDocument(id: number) {
     const url = `/master_document/toggle/${id}`;
     return await api.put('admission', url);
 }
+
+export async function deleteMasterDocument(id: number) {
+    const url = `/master_document/delete/${id}`;
+    return await api.delete<any>('admission', url);
+}

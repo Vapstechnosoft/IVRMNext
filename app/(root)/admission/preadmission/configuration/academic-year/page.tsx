@@ -8,13 +8,11 @@ import { usePreAdmissionAcademicYear, usePreAdmissionAcademicYearSetOrder } from
 import type { IMasterAcademicYearMasterList, IMasterSetOrderList } from '@/types/admission/preadmission/configaration';
 import { Plus, X } from 'lucide-react';
 import { use, useEffect } from 'react';
+import { useState } from 'react';
 import AddAcademicYearMasterForm from './_components/add-form';
 import { masterAcademicYearColumns } from './_components/columns';
-import UpdateMasterAcademicYearForm from './_components/update-form';
-
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { useState } from 'react';
 import TogglePreAdmissionAcademicYearForm from './_components/toggle-form';
+import UpdateMasterAcademicYearForm from './_components/update-form';
 
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 
@@ -85,7 +83,7 @@ function MasterAcademicYearPageContent({
                     variant='default'
                     size='lg'
                     className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
-                    <div className='mb-4 flex justify-end'>
+                    {/* <div className='mb-4 flex justify-end'>
                         <Dialog open={openOrderModal} onOpenChange={setOpenOrderModal}>
                             <DialogTrigger asChild>
                                 <Button type='button' variant='secondary' className='w-fit transition-all duration-200 hover:scale-105'>
@@ -115,7 +113,7 @@ function MasterAcademicYearPageContent({
                                 </div>
                             </DialogContent>
                         </Dialog>
-                    </div>
+                    </div> */}
 
                     <GenericDataTable<IMasterAcademicYearMasterList>
                         {...tableProps}
