@@ -2,17 +2,14 @@
 
 import { zodResolver } from '@hookform/resolvers/zod';
 import { format, parse } from 'date-fns';
-import { Calendar as CalendarIcon, Save } from 'lucide-react';
+import { Save } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import type { z } from 'zod';
 
 import { Button } from '@/components/ui/button';
-import { CalendarYear } from '@/components/ui/calendar_year';
 import { FormError, Label } from '@/components/ui/extension/field';
-import { InputText } from '@/components/ui/extension/input-text';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useAcademicYearDropdown } from '@/hooks/fees/useMasters';
 import { cn } from '@/lib/utils';
@@ -75,36 +72,36 @@ export default function AddMasterInstallmentDueDateForm({ onSuccess }: AddMaster
     // Convert installments to form data format
     const convertInstallmentsToFormData = (rows: IMasterFeesInstallmentDueDateList[]) => {
         return rows.map((row) => ({
-            sno: row.sno,
-            ftI_Name: row.ftI_Name,
-            fdate: row.fdate,
-            tdate: row.tdate,
-            aplc: row.aplc1,
-            ddate: row.ddate
+            // sno: row.sno,
+            // ftI_Name: row.ftI_Name,
+            // fdate: row.fdate,
+            // tdate: row.tdate,
+            // aplc: row.aplc1,
+            // ddate: row.ddate
         }));
     };
 
     const handleTypeChange = (value: string) => {
         const selected = INSTALLMENT_TYPES.find((t) => t.value === value);
         if (value !== 'general') {
-            const count = selected?.count || 0;
-            const newInstallments: IMasterFeesInstallmentDueDateList[] = Array.from({ length: count }, (_, i) => ({
-                sno: i + 1,
-                ftI_Id: 0,
-                fmI_Id: 0,
-                fmI_Name: '',
-                fmI_No_Of_Installments: count,
-                fmI_Installment_Type: value,
-                ftI_Name: '',
-                mI_ID: 30,
-                fmI_ActiveFlag: true,
-                fdate: '',
-                tdate: '',
-                aplc: '',
-                ddate: ''
-            }));
-            setInstallments(newInstallments);
-            setValue('installments', convertInstallmentsToFormData(newInstallments));
+            // const count = selected?.count || 0;
+            // const newInstallments: IMasterFeesInstallmentDueDateList[] = Array.from({ length: count }, (_, i) => ({
+            //     sno: i + 1,
+            //     ftI_Id: 0,
+            //     fmI_Id: 0,
+            //     fmI_Name: '',
+            //     fmI_No_Of_Installments: count,
+            //     fmI_Installment_Type: value,
+            //     ftI_Name: '',
+            //     mI_ID: 30,
+            //     fmI_ActiveFlag: true,
+            //     fdate: '',
+            //     tdate: '',
+            //     aplc: '',
+            //     ddate: ''
+            // }));
+            // setInstallments(newInstallments);
+            // setValue('installments', convertInstallmentsToFormData(newInstallments));
         } else {
             setInstallments([]);
             setValue('installments', []);
@@ -114,23 +111,23 @@ export default function AddMasterInstallmentDueDateForm({ onSuccess }: AddMaster
 
     const handleGeneralCountChange = (num: number) => {
         if (!Number.isNaN(num) && num > 0) {
-            const newInstallments: IMasterFeesInstallmentDueDateList[] = Array.from({ length: num }, (_, i) => ({
-                sno: i + 1,
-                ftI_Id: 0,
-                fmI_Id: 0,
-                fmI_Name: '',
-                fmI_No_Of_Installments: num,
-                fmI_Installment_Type: 'general',
-                ftI_Name: '',
-                mI_ID: 30,
-                fmI_ActiveFlag: true,
-                fdate: '',
-                tdate: '',
-                aplc: '',
-                ddate: ''
-            }));
-            setInstallments(newInstallments);
-            setValue('installments', convertInstallmentsToFormData(newInstallments));
+            // const newInstallments: IMasterFeesInstallmentDueDateList[] = Array.from({ length: num }, (_, i) => ({
+            //     sno: i + 1,
+            //     ftI_Id: 0,
+            //     fmI_Id: 0,
+            //     fmI_Name: '',
+            //     fmI_No_Of_Installments: num,
+            //     fmI_Installment_Type: 'general',
+            //     ftI_Name: '',
+            //     mI_ID: 30,
+            //     fmI_ActiveFlag: true,
+            //     fdate: '',
+            //     tdate: '',
+            //     aplc: '',
+            //     ddate: ''
+            // }));
+            // setInstallments(newInstallments);
+            // setValue('installments', convertInstallmentsToFormData(newInstallments));
         } else {
             setInstallments([]);
             setValue('installments', []);
@@ -141,7 +138,7 @@ export default function AddMasterInstallmentDueDateForm({ onSuccess }: AddMaster
         const updated = [...installments];
         updated[index] = { ...updated[index], [field]: value };
         setInstallments(updated);
-        setValue('installments', convertInstallmentsToFormData(updated));
+        //setValue('installments', convertInstallmentsToFormData(updated));
     };
 
     // Helper to convert Date to string format
@@ -173,14 +170,14 @@ export default function AddMasterInstallmentDueDateForm({ onSuccess }: AddMaster
                     }
                 ],
                 inTData: installments.map((row) => ({
-                    mI_ID: 30,
-                    ftI_Name: row.ftI_Name || `Installment ${row.sno}`,
-                    fdate: row.fdate,
-                    tdate: row.tdate,
-                    aplc: row.aplc,
-                    ddate: row.ddate,
-                    createdDate: new Date().toISOString(),
-                    updatedDate: new Date().toISOString()
+                    // mI_ID: 30,
+                    // ftI_Name: row.ftI_Name || `Installment ${row.sno}`,
+                    // fdate: row.fdate,
+                    // tdate: row.tdate,
+                    // aplc: row.aplc,
+                    // ddate: row.ddate,
+                    // createdDate: new Date().toISOString(),
+                    // updatedDate: new Date().toISOString()
                 }))
             };
 
@@ -313,7 +310,7 @@ export default function AddMasterInstallmentDueDateForm({ onSuccess }: AddMaster
                                 </tr>
                             </thead>
                             <tbody>
-                                {installments.map((row, index) => (
+                                {/* {installments.map((row, index) => (
                                     <tr key={row.sno} className='text-gray-800 text-sm hover:bg-gray-50'>
                                         <td className='border border-gray-200 px-4 py-2 text-center font-medium'>{row.sno}</td>
                                         <td className='border border-gray-200 px-4 py-2'>
@@ -358,7 +355,7 @@ export default function AddMasterInstallmentDueDateForm({ onSuccess }: AddMaster
                                             </td>
                                         ))}
                                     </tr>
-                                ))}
+                                ))} */}
                             </tbody>
                         </table>
                     </div>
