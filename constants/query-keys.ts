@@ -50,7 +50,8 @@ export const PREADMISSION_QUERY_KEYS = {
     MASTER_CONFIGURATION: 'master_configuration',
     DOCUMENT_DOWNLOAD: 'document_download',
     REGISTRATION_NUMBERING: 'registration_Numbering',
-    PRE_REGISTRATION_NUMBERING: 'Pre_Registration_Numbering'
+    PRE_REGISTRATION_NUMBERING: 'Pre_Registration_Numbering',
+    STUDENT_APPLICATION_FORM: 'student_application_form'
 };
 
 export const FEES_QUERY_KEYS = {

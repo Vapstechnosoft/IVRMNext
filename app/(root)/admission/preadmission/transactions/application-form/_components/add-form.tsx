@@ -309,6 +309,7 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
                 pasR_PerCountry,
                 pasR_ConPincode,
                 pasR_PerPincode,
+                pasA_WillingToContributeFlg,
                 ...filteredData
             } = data;
             const payload = {
@@ -316,6 +317,8 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
                 pasR_DOB: format(pasR_DOB, 'yyyy-MM-dd'),
                 pasR_Age: calculatedAgeDetails.ageInYears,
                 pasR_Student_Pic_Path: studentPhoto?.pasR_Student_Pic_Path || '',
+                pasR_FatherPhoto: fatherPhoto?.pasR_FatherPhoto || '',
+                pasR_MotherPhoto: motherPhoto?.pasR_MotherPhoto || '',
                 PASR_PerState: pasR_PerState?.toString() ?? '',
                 PASR_ConCountry: pasR_ConCountry?.toString() ?? '',
                 PASR_PerCountry: pasR_PerCountry?.toString() ?? '',
@@ -362,6 +365,7 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
                     document_Path: doc.document_Path
                 })),
                 PASR_RegistrationNo: '',
+                pasA_WillingToContributeFlg: pasA_WillingToContributeFlg === 1,
                 pasP_Id: 0
             };
 
@@ -802,7 +806,7 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
                                             <div className='flex flex-col items-center'>
                                                 <button
                                                     type='button'
-                                                    onClick={() => goToStep(step.id)}
+                                                    // onClick={() => goToStep(step.id)}
                                                     disabled={isSubmitting}
                                                     className={cn(
                                                         'flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full border-2 font-semibold transition-all duration-300 hover:scale-110 disabled:cursor-not-allowed disabled:opacity-50',
@@ -849,7 +853,7 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
                     {/* Form Content */}
                     <div className='min-w-0 flex-1 space-y-6'>
                         <div className='overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm'>
-                            <div className='p-6 md:p-8'>
+                            <div className='max-h-[calc(100vh-2rem)] overflow-y-auto p-6 md:p-8'>
                                 {/* Step 1: Student Information */}
                                 {currentStep === 1 && (
                                     <div className='space-y-6'>
@@ -2263,7 +2267,6 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
                                                             <FormError>{errors.pasR_MotherIncome.message}</FormError>
                                                         )}
                                                     </div>
-
                                                     <InputText
                                                         label={`Mother's Institution Attended`}
                                                         id='pasA_MotherInstitution'

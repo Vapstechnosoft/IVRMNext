@@ -74,7 +74,7 @@ export const DocumentViewColoumn: ColumnDef<IPreadmissionDocumentView>[] = [
         cell: ({ row }) => {
             const appId = row.original.pasr_id;
             const [showPdfModal, setShowPdfModal] = useState(false);
-            const { data: pdfData, isLoading } = useDocumentDownload(appId, {});
+            const { data: pdfData, isLoading } = useDocumentDownload(appId);
             const [iframeLoading, setIframeLoading] = useState(false);
 
             const pdfBase64: string | null | undefined =
