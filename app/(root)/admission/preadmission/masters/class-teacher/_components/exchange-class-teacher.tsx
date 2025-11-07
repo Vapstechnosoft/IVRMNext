@@ -284,7 +284,7 @@ export default function ExchangeClassTeacherForm({ isOpen, onClose }: ExchangeCl
                                                     </SelectItem>
                                                 ) : !employeeDataA?.data || employeeDataA.data.length === 0 ? (
                                                     <SelectItem value='empty' disabled>
-                                                        No staff found
+                                                        No Employee found
                                                     </SelectItem>
                                                 ) : (
                                                     employeeDataA.data.map((e: any) => (
@@ -383,7 +383,7 @@ export default function ExchangeClassTeacherForm({ isOpen, onClose }: ExchangeCl
                                                     </SelectItem>
                                                 ) : !employeeDataB?.data || employeeDataB.data.length === 0 ? (
                                                     <SelectItem value='empty' disabled>
-                                                        No staff found
+                                                        No Employee found
                                                     </SelectItem>
                                                 ) : (
                                                     employeeDataB.data.map((e: any) => (

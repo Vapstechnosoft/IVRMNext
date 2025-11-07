@@ -18,7 +18,7 @@ export async function addOrUpdateMasterClassTeacher(data: any) {
     return await api.post<any>('admission', url, data);
 }
 export async function getEmployeeDrowpDown(id: number) {
-    const url = '/class_teacher_mapping/get_academic_teacher_drop_down_list/${id}';
+    const url = `/class_teacher_mapping/get_academic_teacher_drop_down_list/${id}`;
     return await api.get('admission', url);
 }
 export async function getTeacherClassSection(asmaY_Id: number, hrmE_Id: number) {

@@ -33,6 +33,16 @@ export default function AddMasterClassTeacherForm({ onSuccess, className = '' }:
     const [showExchangeModal, setShowExchangeModal] = useState(false);
 
     const {
+        watch,
+        control,
+        handleSubmit,
+        reset,
+        formState: { errors, isSubmitting }
+    } = useForm<FormFields>({
+        resolver: zodResolver(masterClassTeacherSchema.addOrUpdate),
+        mode: 'onChange'
+    });
+    const {
         data: academicYear,
         isLoading: academicYearLoading,
         error: academicYearError,
@@ -50,24 +60,12 @@ export default function AddMasterClassTeacherForm({ onSuccess, className = '' }:
         error: masterSectionError,
         refetchAll: refetchMasterSection
     } = useMasterSectionDropdown();
-
-    // Add the useClassTeacherEmployee hook with the selected academic year
     const {
         data: employeeData,
         isLoading: employeeLoading,
         error: employeeError,
         refetchAll: refetchEmployee
-    } = useClassTeacherEmployee(selectedAcademicYearId);
-
-    const {
-        control,
-        handleSubmit,
-        reset,
-        formState: { errors, isSubmitting }
-    } = useForm<FormFields>({
-        resolver: zodResolver(masterClassTeacherSchema.addOrUpdate),
-        mode: 'onChange'
-    });
+    } = useClassTeacherEmployee(watch('asmaY_Id'));
 
     const onSubmit: SubmitHandler<FormFields> = async (data) => {
         try {
@@ -243,8 +241,7 @@ export default function AddMasterClassTeacherForm({ onSuccess, className = '' }:
                                             field.onChange(Number(value));
                                         }}
                                         value={field.value?.toString() || ''}
-                                        disabled={!selectedAcademicYearId} // Disable if no academic year selected
-                                    >
+                                        disabled={!selectedAcademicYearId}>
                                         <SelectTrigger className='w-full'>
                                             <SelectValue placeholder='Select a Employee' />
                                         </SelectTrigger>
