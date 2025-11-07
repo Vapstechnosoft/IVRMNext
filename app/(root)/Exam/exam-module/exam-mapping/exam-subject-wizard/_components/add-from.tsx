@@ -13,11 +13,11 @@ import { ExamSubjectWizardSchema, SubSubjectSubExamSchema } from '@/schemas/exam
 import { getCategoryDropDownByAcademicYearlist } from '@/server/exam/exam-module/exam-mapping/exam-subject-group-mapping';
 import {
     addOrUpdateExamSubjectWizard,
-    getSubExamList,
-    getSubSubjectList,
+    getSubSubjectSubExamList,
     getSubjectsByCategory
 } from '@/server/exam/exam-module/exam-mapping/exam-subject-wizard';
 import { getExamsByCategoryandAcademicYear } from '@/server/exam/exam-module/masters/exam';
+import { getMasterSubExamDropdownList } from '@/server/exam/exam-module/masters/sub-exam';
 import type { IAcademicYearDropDown } from '@/types/admission/preadmission/masters';
 import type { ICategory, IMasterGrade } from '@/types/exam/exam-module/masters';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -28,6 +28,7 @@ import type { z } from 'zod';
 import SubExamModal from './subexam-model';
 import SubjectTable from './subject-table';
 import SubSubjectModal from './subsubject-modal';
+import SubSubjectSubExamModal from './subsubject-subexam-model';
 
 type FormFields = z.infer<typeof ExamSubjectWizardSchema.addOrUpdate>;
 
@@ -81,6 +82,9 @@ export default function AddExamSubjectWizard({ onSuccess }: { onSuccess?: () => 
     // modals
     const [subExamModalState, setSubExamModalState] = useState<{ open: boolean; subject?: any }>({ open: false });
     const [subSubjectModalState, setSubSubjectModalState] = useState<{ open: boolean; subject?: any }>({
+        open: false
+    });
+    const [subSubjectSubExamModalState, setSubSubjectSubExamModalState] = useState<{ open: boolean; subject?: any }>({
         open: false
     });
 
@@ -208,7 +212,7 @@ export default function AddExamSubjectWizard({ onSuccess }: { onSuccess?: () => 
     // ------------------- Modal Handlers -------------------
     const onOpenSubExamModal = async (subject: any) => {
         try {
-            const { data: list } = await getSubExamList(30, subject.ISMS_Id);
+            const { data: list } = await getMasterSubExamDropdownList(30);
             setSubExamModalState({ open: true, subject: { ...subject, list } });
         } catch {
             setSubExamModalState({
@@ -226,7 +230,7 @@ export default function AddExamSubjectWizard({ onSuccess }: { onSuccess?: () => 
 
     const onOpenSubSubjectModal = async (subject: any) => {
         try {
-            const { data: list } = await getSubSubjectList(30, subject.ISMS_Id);
+            const { data: list } = await getMasterSubExamDropdownList(30);
             console.log(list);
             setSubSubjectModalState({ open: true, subject: { ...subject, list } });
         } catch {
@@ -237,6 +241,24 @@ export default function AddExamSubjectWizard({ onSuccess }: { onSuccess?: () => 
                     list: [
                         { EMSS_Id: 1, EMSS_SubSubjectName: 'Theory' },
                         { EMSS_Id: 2, EMSS_SubSubjectName: 'Practical' }
+                    ]
+                }
+            });
+        }
+    };
+
+    const onOpenSubSubjectSubExamModal = async (subject: any) => {
+        try {
+            const { data: list } = await getSubSubjectSubExamList(30);
+            setSubSubjectSubExamModalState({ open: true, subject: { ...subject, list } });
+        } catch {
+            setSubSubjectSubExamModalState({
+                open: true,
+                subject: {
+                    ...subject,
+                    list: [
+                        { EMSE_Id: 1, EMSE_SubExamName: 'Internal Test' },
+                        { EMSE_Id: 2, EMSE_SubExamName: 'Viva' }
                     ]
                 }
             });
@@ -260,6 +282,15 @@ export default function AddExamSubjectWizard({ onSuccess }: { onSuccess?: () => 
             )
         );
         setSubSubjectModalState({ open: false });
+    };
+
+    const handleSaveSubSubjectSubExam = (subjectId: number, selectedList: any[]) => {
+        setSubjects((prev) =>
+            prev.map((s) =>
+                s.ISMS_Id === subjectId ? { ...s, subSubjectSubExamConfig: selectedList, EYCES_SubSubjectFlg: selectedList.length > 0 } : s
+            )
+        );
+        setSubSubjectSubExamModalState({ open: false });
     };
 
     // ------------------- Submit Handler -------------------
@@ -514,6 +545,7 @@ export default function AddExamSubjectWizard({ onSuccess }: { onSuccess?: () => 
                             showSubSubjectColumn={watchSubSubject ?? false}
                             onOpenSubExamModal={onOpenSubExamModal}
                             onOpenSubSubjectModal={onOpenSubSubjectModal}
+                            onOpenSubSubjectSubExamModal={onOpenSubSubjectSubExamModal}
                             gradeList={gradeList}
                         />
                     </div>
@@ -542,6 +574,14 @@ export default function AddExamSubjectWizard({ onSuccess }: { onSuccess?: () => 
                     subject={subSubjectModalState.subject}
                     onClose={() => setSubSubjectModalState({ open: false })}
                     onSave={handleSaveSubSubject}
+                    gradeList={gradeList}
+                    schema={SubSubjectSubExamSchema}
+                />
+                <SubSubjectSubExamModal
+                    open={subSubjectSubExamModalState.open}
+                    subject={subSubjectSubExamModalState.subject}
+                    onClose={() => setSubSubjectSubExamModalState({ open: false })}
+                    onSave={handleSaveSubSubjectSubExam}
                     gradeList={gradeList}
                     schema={SubSubjectSubExamSchema}
                 />

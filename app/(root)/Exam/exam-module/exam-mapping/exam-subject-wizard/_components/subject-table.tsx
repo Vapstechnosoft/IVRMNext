@@ -24,6 +24,7 @@ export default function SubjectTable({
     showSubSubjectColumn,
     onOpenSubExamModal,
     onOpenSubSubjectModal,
+    onOpenSubSubjectSubExamModal,
     gradeList
 }: {
     subjects: any[];
@@ -32,6 +33,7 @@ export default function SubjectTable({
     showSubSubjectColumn: boolean;
     onOpenSubExamModal: (subject: any) => void;
     onOpenSubSubjectModal: (subject: any) => void;
+    onOpenSubSubjectSubExamModal: (subject: any) => void;
     gradeList: IMasterGrade[];
 }) {
     // Validation state
@@ -130,9 +132,8 @@ export default function SubjectTable({
             onOpenSubExamModal(subject);
         } else if (showSubSubjectColumn && subject.ECYSES_SubSubjectFlg) {
             onOpenSubSubjectModal(subject);
-        } else {
-            if (showSubExamColumn) onOpenSubExamModal(subject);
-            else if (showSubSubjectColumn) onOpenSubSubjectModal(subject);
+        } else if (showSubExamColumn && showSubSubjectColumn && subject.ECYSES_SubSubjectFlg && subject.ECYSES_SubSubjectFlg) {
+            onOpenSubSubjectSubExamModal(subject);
         }
     };
 
