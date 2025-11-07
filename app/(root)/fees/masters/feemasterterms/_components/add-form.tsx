@@ -69,7 +69,7 @@ export default function AddAddFeeTermsForm({ onSuccess, feeterms = '' }: AddFeeT
     return (
         <div className={`${feeterms}`}>
             <form onSubmit={handleSubmit(onSubmit)} className='flex w-full flex-col items-center justify-center space-y-6'>
-                <div className='flex items-center space-x-2'>
+                {/* <div className='flex items-center space-x-2'>
                     <InputText
                         label='Term Name'
                         required
@@ -78,7 +78,24 @@ export default function AddAddFeeTermsForm({ onSuccess, feeterms = '' }: AddFeeT
                         error={errors.fmT_Name?.message}
                         className='transition-colors focus:ring-2 focus:ring-primary/20'
                     />
+                </div> */}
+
+                <div className='flex items-center space-x-2'>
+                    <InputText
+                        label='Term Name'
+                        required
+                        id='fmT_Name'
+                        {...register('fmT_Name', {
+                            onChange: (e) => {
+                                // Allow only letters, numbers, and spaces
+                                e.target.value = e.target.value.replace(/[^a-zA-Z0-9\s]/g, '');
+                            }
+                        })}
+                        error={errors.fmT_Name?.message}
+                        className='transition-colors focus:ring-2 focus:ring-primary/20'
+                    />
                 </div>
+
                 <Controller
                     name='fmT_IncludeArrearFeeFlg'
                     control={control}

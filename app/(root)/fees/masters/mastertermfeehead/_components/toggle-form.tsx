@@ -41,6 +41,8 @@ export default function ToggleMasterTermFeeHeadForm({ rowData, onClose }: Toggle
     const onSubmit: SubmitHandler<FormFields | any> = async () => {
         try {
             const response = await deleteFeeTermHead(30, Number(rowData.idforedt));
+
+            console.log(response);
             if (response?.success) {
                 toast.success(response.message || 'Deleted successfully');
                 refetchAll();
@@ -59,7 +61,7 @@ export default function ToggleMasterTermFeeHeadForm({ rowData, onClose }: Toggle
                 <AdaptiveBody className='flex flex-col gap-5'>
                     <input type='hidden' {...register('idforedt')} defaultValue={rowData.idforedt} />
                     <p>
-                        Are you sure you want to <strong>permanently delete</strong> the group-<strong>{rowData.idforedt}</strong>?
+                        Are you sure you want to <strong>permanently delete</strong> the selected Row
                     </p>
                     <FormError>{errors.idforedt?.message}</FormError>
                     <FormError>{errors.root?.message}</FormError>

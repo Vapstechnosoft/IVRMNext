@@ -5,7 +5,7 @@ import type { ApiSearchparams } from '@/types';
 import type { IMasterConcessionList } from '@/types/fees/masters';
 
 export async function getMasterConcession(searchParams?: ApiSearchparams) {
-    const urlParams = getSearchParamsUrl(searchParams ?? {}, 'fmcC_ConcessionName');
+    const urlParams = getSearchParamsUrl(searchParams ?? {}, 'fmcC_ConcessionName,fmcC_ConcessionApplLimit');
     const url = `FeeMasterConcession/FeeMasterConcessionList/30?${urlParams}`;
     return await api.get<IMasterConcessionList[]>('fees', url);
 }

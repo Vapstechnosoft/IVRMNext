@@ -7,7 +7,7 @@ export const loginSchema = z.object({
 export const masterFeeheadSchema = {
     addOrUpdate: z.object({
         fmH_Id: z.number().optional(),
-        fmH_FeeName: createStringSchema('Fee Head Name', 1, 100),
+        fmH_FeeName: createStringSchema('Fee Head Name', 3, 100),
         fmH_Order: z.number().int({ message: 'fmH_Order is required' }),
         //fmH_Flag: createStringSchema('fmH_Flag', 1, 100),
 
