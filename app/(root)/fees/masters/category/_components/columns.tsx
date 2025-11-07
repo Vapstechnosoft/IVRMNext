@@ -50,33 +50,17 @@ export const masterClassYearlyCategoryColumns: ColumnDef<IMasterClassYearlyList>
         accessorKey: 'asmcL_ClassName',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Class Name' />,
         cell: ({ row }) => {
-            const classNames = row.getValue('asmcL_ClassName') as string;
+            const classNames = row.getValue('asmcL_ClassName');
             try {
-                const parsed = JSON.parse(classNames);
-                const displayText = Array.isArray(parsed) ? parsed.join(', ') : classNames;
+                const parsed = typeof classNames === 'string' ? JSON.parse(classNames) : classNames;
+                const classArray = Array.isArray(parsed) ? parsed : [parsed];
+                const displayText = classArray.join(', ');
                 return <div>{displayText}</div>;
             } catch {
-                return <div>{classNames}</div>;
+                return <div>{String(classNames)}</div>;
             }
         }
     },
-    // {
-    //     accessorKey: 'fycC_ActiveFlag',
-    //     header: ({ column }) => <DataTableColumnHeader column={column} title='Active' className='pl-6 text-left' />,
-    //     cell: ({ row }) => {
-    //         const isActive = row.getValue('fycC_ActiveFlag');
-    //         return (
-    //             <div className='flex items-center justify-start pl-6'>
-    //                 <span className={`font-medium ${isActive ? 'text-green-600' : 'text-red-500'}`}>
-    //                     {isActive ? 'Active' : 'Inactive'}
-    //                 </span>
-    //             </div>
-    //         );
-    //     },
-    //     enableSorting: true,
-    //     enableHiding: true,
-    //     size: 100
-    // },
     {
         id: 'actions',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Actions' className='text-start' />,
@@ -86,17 +70,14 @@ export const masterClassYearlyCategoryColumns: ColumnDef<IMasterClassYearlyList>
 ];
 
 function ActionButtonsCell({ rowData }: { rowData: IMasterClassYearlyList }) {
-    const { openToggleForm, openEditForm } = useFormContext<IMasterClassYearlyList>();
+    const { openToggleForm } = useFormContext<IMasterClassYearlyList>();
 
     const handleToggle = useCallback((data: IMasterClassYearlyList) => openToggleForm(data), [openToggleForm]);
-
-    const handleEdit = useCallback((data: IMasterClassYearlyList) => openEditForm(data), [openEditForm]);
 
     return (
         <ActionButtons
             rowData={rowData}
-            buttons={{ edit: true, toggle: true, delete: false }}
-            onEdit={handleEdit}
+            buttons={{ edit: false, toggle: true, delete: false }}
             onToggle={handleToggle}
             toggleConditionKey='fycC_ActiveFlag'
         />

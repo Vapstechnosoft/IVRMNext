@@ -11,7 +11,7 @@ import { addOrUpdatepaymentgatewaydetails } from '@/server/fees/masters/fee_paym
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Minus, Plus, Save } from 'lucide-react';
 import { useState } from 'react';
-import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
+import { Controller, type SubmitHandler, useFieldArray, useForm } from 'react-hook-form';
 
 import { toast } from 'sonner';
 import type { z } from 'zod';
@@ -45,13 +45,20 @@ export default function AddAddpaymentgatewaydetailsPropsForm({ onSuccess, gatewa
         resolver: zodResolver(paymentgatewaydetailsSchema.addOrUpdate),
         mode: 'onChange',
         defaultValues: {
-            fpgD_MobileActiveFlag: false
+            fpgD_MobileActiveFlag: false,
+            submerchantIds: [{ id: '' }]
         }
+    });
+
+    const { fields, append, remove, replace } = useFieldArray({
+        control,
+        name: 'submerchantIds'
     });
 
     function OnReset() {
         reset();
         refetchgateway();
+        replace([{ id: '' }]);
     }
 
     const onSubmit: SubmitHandler<FormFields | any> = async (data: FormFields) => {
@@ -71,7 +78,11 @@ export default function AddAddpaymentgatewaydetailsPropsForm({ onSuccess, gatewa
                 //     })),
                 // submerchantIds: submerchantIds.filter((item) => item.id.trim() !== '').map((item) => Number.parseInt(item.id, 10)),
 
-                submerchantIds: submerchantIds.filter(({ id }) => id.trim()).map(({ id }) => String(id)),
+                // submerchantIds: submerchantIds
+                //   .filter(({ id }) => id.trim())
+                //   .map(({ id }) => String(id)),
+
+                submerchantIds: data.submerchantIds?.filter((item) => item.id.trim() !== '').map((item) => item.id) ?? [],
 
                 fpgD_MerchantKey: data.fpgD_MerchantKey,
 
@@ -96,7 +107,18 @@ export default function AddAddpaymentgatewaydetailsPropsForm({ onSuccess, gatewa
     };
 
     const handleReset = () => {
-        reset();
+        reset({
+            fpgD_MerchantId: '',
+            fpgD_SaltKey: '',
+            fpgD_Image: '',
+            fpgD_URL: '',
+            fpgD_AccNo: '',
+            fpgD_MerchantKey: '',
+            impG_Id: 0,
+            fpgD_MobileActiveFlag: false
+        });
+
+        replace([{ id: '' }]);
     };
 
     const [submerchantIds, setSubmerchantIds] = useState([{ id: '' }]);
@@ -113,11 +135,11 @@ export default function AddAddpaymentgatewaydetailsPropsForm({ onSuccess, gatewa
         }
     };
 
-    const remove = (index: number) => {
-        const updated = [...submerchantIds];
-        updated.splice(index, 1);
-        setSubmerchantIds(updated);
-    };
+    // const remove = (index: number) => {
+    //     const updated = [...submerchantIds];
+    //     updated.splice(index, 1);
+    //     setSubmerchantIds(updated);
+    // };
 
     return (
         <div className={`${gatewaydetails}`}>
@@ -136,6 +158,7 @@ export default function AddAddpaymentgatewaydetailsPropsForm({ onSuccess, gatewa
                         <div className='group flex flex-col gap-1.5'>
                             <InputText
                                 label='Salt Key'
+                                required
                                 id='fpgD_SaltKey'
                                 {...register('fpgD_SaltKey')}
                                 error={errors.fpgD_SaltKey?.message}
@@ -146,6 +169,7 @@ export default function AddAddpaymentgatewaydetailsPropsForm({ onSuccess, gatewa
                         <div className='group flex flex-col gap-1.5'>
                             <InputText
                                 label='Image'
+                                required
                                 id='fpgD_Image'
                                 {...register('fpgD_Image')}
                                 error={errors.fpgD_Image?.message}
@@ -156,12 +180,13 @@ export default function AddAddpaymentgatewaydetailsPropsForm({ onSuccess, gatewa
                         <div className='group flex flex-col gap-1.5'>
                             <InputText
                                 label='URL'
+                                required
                                 id='fpgD_URL'
                                 {...register('fpgD_URL')}
                                 error={errors.fpgD_URL?.message}
                                 className='transition-colors focus:ring-2 focus:ring-primary/20'
                             />
-                            {errors.fpgD_URL && <FormError>{errors.fpgD_URL.message}</FormError>}
+                            {/* {errors.fpgD_URL && <FormError>{errors.fpgD_URL.message}</FormError>} */}
                         </div>
                     </div>
 
@@ -194,12 +219,14 @@ export default function AddAddpaymentgatewaydetailsPropsForm({ onSuccess, gatewa
                                 name='impG_Id'
                                 rules={{ required: true }}
                                 control={control}
+                                // defaultValue={0}
+
                                 render={({ field }) => (
                                     <Select
                                         onValueChange={(value) => {
                                             field.onChange(Number(value));
                                         }}
-                                        value={field.value?.toString() || undefined}>
+                                        value={field.value ? String(field.value) : ''}>
                                         <SelectTrigger className='w-full'>
                                             <SelectValue placeholder='Select Gateway' />
                                         </SelectTrigger>
@@ -226,7 +253,7 @@ export default function AddAddpaymentgatewaydetailsPropsForm({ onSuccess, gatewa
                             {errors.impG_Id && <FormError>{errors.impG_Id.message}</FormError>}
                         </div>
 
-                        <div className='col-span-6'>
+                        {/* <div className='col-span-6'>
                             {submerchantIds.map((item, index) => (
                                 <div key={index} className='mb-4 flex flex-col gap-2 md:flex-row md:items-center'>
                                     <label htmlFor={`submrchntId-${index}`} className='font-medium text-gray-700 text-sm md:w-1/4'>
@@ -254,7 +281,7 @@ export default function AddAddpaymentgatewaydetailsPropsForm({ onSuccess, gatewa
                                             </button>
                                         )}
 
-                                        {/* Remove Button (minus) */}
+                                       
                                         {submerchantIds.length > 1 && (
                                             <button
                                                 type='button'
@@ -264,6 +291,49 @@ export default function AddAddpaymentgatewaydetailsPropsForm({ onSuccess, gatewa
                                             </button>
                                         )}
                                     </div>
+                                </div>
+                            ))}
+                        </div> */}
+
+                        <div className='col-span-6'>
+                            {fields.map((field, index) => (
+                                <div key={field.id} className='mb-4 flex flex-col gap-2 md:flex-row md:items-center'>
+                                    <label htmlFor={`submerchantIds.${index}.id`} className='font-medium text-gray-700 text-sm md:w-1/4'>
+                                        Sub Merchant Id<span className='ml-1 text-red-500'>*</span>
+                                    </label>
+
+                                    <div className='flex w-full items-center gap-2 md:w-3/4'>
+                                        <input
+                                            id={`submerchantIds.${index}.id`}
+                                            type='text'
+                                            {...register(`submerchantIds.${index}.id`)}
+                                            className={`w-full rounded-md border px-3 py-2 text-sm shadow-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary ${
+                                                errors.submerchantIds?.[index]?.id ? '' : ''
+                                            }`}
+                                        />
+
+                                        {index === fields.length - 1 && fields.length < 5 && (
+                                            <button
+                                                type='button'
+                                                onClick={() => append({ id: '' })}
+                                                className='rounded-md border p-2 transition hover:bg-gray-100'>
+                                                <Plus className='h-4 w-4 text-gray-600' />
+                                            </button>
+                                        )}
+
+                                        {fields.length > 1 && (
+                                            <button
+                                                type='button'
+                                                onClick={() => remove(index)}
+                                                className='rounded-md border p-2 transition hover:bg-gray-100'>
+                                                <Minus className='h-4 w-4 text-gray-600' />
+                                            </button>
+                                        )}
+                                    </div>
+
+                                    {errors.submerchantIds?.[index]?.id && (
+                                        <p className='text-red-500 text-xs'>{errors.submerchantIds[index]?.id?.message}</p>
+                                    )}
                                 </div>
                             ))}
                         </div>

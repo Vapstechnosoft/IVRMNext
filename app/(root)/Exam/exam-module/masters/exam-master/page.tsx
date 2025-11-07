@@ -8,7 +8,7 @@ import { use, useState } from 'react';
 
 import { MasterViewDetails } from '@/components/ui/set-order/generic-seto-order';
 import { useMasterExam } from '@/hooks/exam/exammodule/usemasters';
-import { addOrUpdateMasterExam, getMasterExamOrderData } from '@/server/exam/exam-module/masters/exam';
+import { UpdatedOrderdExams, getMasterExamOrderData } from '@/server/exam/exam-module/masters/exam';
 import type { IMasterExam, IMasterExamOrder } from '@/types/exam/exam-module/masters';
 import { toast } from 'sonner';
 import AddMasterExamForm from './_components/add-form';
@@ -45,16 +45,20 @@ function MasterExamPageContent({
     const [orderModalOpen, setOrderModalOpen] = useState(false);
     const [orderData, setOrderData] = useState<(IMasterExamOrder & { id: number })[]>([]);
     const [isOrderSaving, setIsOrderSaving] = useState(false);
+    const [isOrderloading, setIsOrderloading] = useState(true);
+
     // Fetch and open order modal
     const handleSetOrder = async () => {
         try {
+            setOrderModalOpen(true);
             const data = await getMasterExamOrderData();
             const examOrders: IMasterExamOrder[] = Array.isArray(data?.data) ? data.data : [];
             const mappedData = examOrders.map((d) => ({ ...d, id: d.emE_Id }));
             setOrderData(mappedData);
-            setOrderModalOpen(true);
+            setIsOrderloading(false);
         } catch (error: any) {
             toast.error(error.message);
+            setIsOrderloading(false);
         }
     };
 
@@ -70,7 +74,7 @@ function MasterExamPageContent({
                     emE_ExamOrder: index + 1
                 }))
             };
-            const response = await addOrUpdateMasterExam(payload);
+            const response = await UpdatedOrderdExams(payload);
             if (response.success) {
                 toast.success(response.message);
                 refetchAll();
@@ -135,7 +139,8 @@ function MasterExamPageContent({
                         isOpen={orderModalOpen}
                         onClose={() => setOrderModalOpen(false)}
                         data={orderData}
-                        isLoading={isOrderSaving}
+                        isLoading={isOrderloading}
+                        isSaving={isOrderSaving}
                         columns={[
                             { key: 'id', label: 'SLNO', className: 'text-center w-12' },
                             { key: 'emE_ExamName', label: 'Exam Name', className: 'text-left' },

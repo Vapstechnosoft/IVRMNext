@@ -49,7 +49,7 @@ function MasterClassCategoryPageContent({
                 {/* Header */}
                 <div className='flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between'>
                     <div className='space-y-1'>
-                        <Heading title='Class Category Master' />
+                        <Heading title='Master Class Category ' />
                     </div>
                     <Button
                         type='button'

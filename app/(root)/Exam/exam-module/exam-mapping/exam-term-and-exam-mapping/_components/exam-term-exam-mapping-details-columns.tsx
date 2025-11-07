@@ -15,27 +15,37 @@ export const ExamTermAndExamMappingDetailsColumns: ColumnDef<IExamTermAndExamMap
             const pageIndex = table.getState().pagination.pageIndex;
             const pageSize = table.getState().pagination.pageSize;
             return <div>{pageIndex * pageSize + row.index + 1}</div>;
-        }
+        },
+        enableSorting: false,
+        enableHiding: true
     },
     {
         accessorKey: 'emE_ExamName',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Exam Name' />,
-        cell: ({ row }) => <div>{row.getValue('emE_ExamName')}</div>
+        cell: ({ row }) => <div>{row.getValue('emE_ExamName')}</div>,
+        enableSorting: false,
+        enableHiding: true
     },
     {
         accessorKey: 'ecteX_MarksPerFlag',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Marks / Percentage' />,
-        cell: ({ row }) => <div>{row.getValue('ecteX_MarksPerFlag')}</div>
+        cell: ({ row }) => <div>{row.getValue('ecteX_MarksPerFlag')}</div>,
+        enableSorting: false,
+        enableHiding: true
     },
     {
         accessorKey: 'ecteX_MarksPercentValue',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Marks / Percentage Value' />,
-        cell: ({ row }) => <div>{row.getValue('ecteX_MarksPercentValue')}</div>
+        cell: ({ row }) => <div>{row.getValue('ecteX_MarksPercentValue')}</div>,
+        enableSorting: false,
+        enableHiding: true
     },
     {
         accessorKey: 'ecteX_RoundOffReqFlg',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Round Off Required' />,
-        cell: ({ row }) => <div>{row.getValue('ecteX_RoundOffReqFlg') ? 'Yes' : 'No'}</div>
+        cell: ({ row }) => <div>{row.getValue('ecteX_RoundOffReqFlg') ? 'Yes' : 'No'}</div>,
+        enableSorting: false,
+        enableHiding: true
     },
     {
         accessorKey: 'ecteX_ConversionReqFlg',
@@ -45,14 +55,17 @@ export const ExamTermAndExamMappingDetailsColumns: ColumnDef<IExamTermAndExamMap
     {
         accessorKey: 'ecteX_NotApplToTotalFlg',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Not Applicable To Total' />,
-        cell: ({ row }) => <div>{row.getValue('ecteX_NotApplToTotalFlg') ? 'Yes' : 'No'}</div>
+        cell: ({ row }) => <div>{row.getValue('ecteX_NotApplToTotalFlg') ? 'Yes' : 'No'}</div>,
+        enableSorting: false,
+        enableHiding: true
     },
     {
         id: 'actions',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Action' className='text-center' />,
         accessorFn: (row) => row,
+        cell: ({ row }) => <ActionButtonsCell rowData={row.original} />,
         enableSorting: false,
-        cell: ({ row }) => <ActionButtonsCell rowData={row.original} />
+        enableHiding: true
     }
 ];
 

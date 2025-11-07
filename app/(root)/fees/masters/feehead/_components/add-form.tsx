@@ -96,12 +96,7 @@ export default function AddMasterFeeHeadForm({ onSuccess, headname = '' }: AddMa
                                 name='fmH_Flag'
                                 control={control}
                                 render={({ field }) => (
-                                    <Select
-                                        onValueChange={(value) => {
-                                            field.onChange(value); // <-- pass string value directly
-                                        }}
-                                        value={field.value || undefined} // <-- value must be string or undefined
-                                    >
+                                    <Select onValueChange={field.onChange} value={field.value || ''}>
                                         <SelectTrigger className='w-full'>
                                             <SelectValue placeholder='Select Fee Head Type' />
                                         </SelectTrigger>

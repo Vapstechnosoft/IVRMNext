@@ -72,31 +72,34 @@ export default function AddMasterConcessionForm({ onSuccess, concession = '' }: 
                 <div className='space-y-4'>
                     <div className='grid grid-cols-1 gap-4 md:grid-cols-4'>
                         <InputText
-                            label='Concession'
+                            label='Concession Name'
                             required
                             id='fmcC_ConcessionName'
                             {...register('fmcC_ConcessionName')}
                             error={errors.fmcC_ConcessionName?.message}
                             className='transition-colors focus:ring-2 focus:ring-primary/20'
                         />
+
                         <Controller
                             name='fmcC_ConcessionApplLimit'
                             control={control}
                             rules={{ required: 'Concession Limit is required' }}
                             render={({ field }) => (
-                                <InputNumber
-                                    label='Concession Limit'
-                                    required
-                                    id='fmcC_ConcessionApplLimit'
-                                    value={field.value ?? 0}
-                                    onChange={(value: number) => {
-                                        field.onChange(value);
-                                    }}
-                                    className='transition-colors focus:ring-2 focus:ring-primary/20'
-                                />
+                                <div className='flex flex-col'>
+                                    <InputNumber
+                                        label='Concession Limit'
+                                        required
+                                        id='fmcC_ConcessionApplLimit'
+                                        value={field.value ?? 0}
+                                        onChange={(value: number) => {
+                                            field.onChange(value);
+                                        }}
+                                        className='transition-colors focus:ring-2 focus:ring-primary/20'
+                                    />
+                                    {errors.fmcC_ConcessionApplLimit && <FormError>{errors.fmcC_ConcessionApplLimit.message}</FormError>}
+                                </div>
                             )}
                         />
-                        {errors.fmcC_ConcessionApplLimit && <FormError>{errors.fmcC_ConcessionApplLimit.message}</FormError>}
                     </div>
 
                     {errors.root && <FormError>{errors.root.message}</FormError>}

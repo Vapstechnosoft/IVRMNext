@@ -104,18 +104,23 @@ export default function UpdateMasterSubExamForm({ onSuccess, className = '', sel
 
                 {/* Buttons */}
                 <div className='flex flex-col gap-3 border-t pt-4 sm:flex-row sm:justify-start'>
-                    <Button type='button' variant='outline' onClick={handleReset} disabled={isSubmitting} className='order-2 w-fit'>
+                    <Button
+                        type='button'
+                        variant='outline'
+                        onClick={handleReset}
+                        disabled={isSubmitting}
+                        className='order-2 w-fit transition-all duration-200 hover:scale-105 sm:order-1'>
                         Reset
                     </Button>
                     <Button
                         type='submit'
                         disabled={isSubmitting}
+                        className='order-1 w-fit transition-all duration-200 hover:scale-105 sm:order-2'
                         isLoading={isSubmitting}
-                        loadingText='Saving...'
-                        className='order-1 w-fit'>
+                        loadingText='Saving...'>
                         <div className='flex items-center'>
                             <Save className='mr-2 h-4 w-4' />
-                            Save Sub Exam
+                            Update Sub exam
                         </div>
                     </Button>
                 </div>

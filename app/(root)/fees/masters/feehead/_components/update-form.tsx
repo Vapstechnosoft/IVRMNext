@@ -107,12 +107,9 @@ export default function UpdateMasterFeeheadForm({ onSuccess, feeheadname = '', s
                             <Controller
                                 name='fmH_Flag'
                                 control={control}
+                                defaultValue={row?.fmH_Flag ?? ''}
                                 render={({ field }) => (
-                                    <Select
-                                        onValueChange={(value) => {
-                                            field.onChange(value);
-                                        }}
-                                        value={field.value || undefined}>
+                                    <Select onValueChange={field.onChange} value={field.value || ''}>
                                         <SelectTrigger className='w-full'>
                                             <SelectValue placeholder='Select Fee Head Type' />
                                         </SelectTrigger>
@@ -214,7 +211,7 @@ export default function UpdateMasterFeeheadForm({ onSuccess, feeheadname = '', s
                         loadingText='Saving...'>
                         <div className='flex items-center'>
                             <Save className='mr-2 h-4 w-4' />
-                            Save Master Fee Head
+                            Update Master Fee Head
                         </div>
                     </Button>
                 </div>

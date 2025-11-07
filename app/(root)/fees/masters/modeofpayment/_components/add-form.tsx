@@ -67,6 +67,7 @@ export default function AddMasterModeOfPaymentForm({ onSuccess, className = '' }
                     <div className='grid grid-cols-1 gap-4 md:grid-cols-4'>
                         <InputText
                             label='Mode Of Payment'
+                            required
                             id='ivrmmoD_ModeOfPayment'
                             {...register('ivrmmoD_ModeOfPayment')}
                             error={errors.ivrmmoD_ModeOfPayment?.message}
@@ -75,6 +76,7 @@ export default function AddMasterModeOfPaymentForm({ onSuccess, className = '' }
                         <div className='group flex flex-col gap-1.5'>
                             <InputText
                                 label='Mode Of Payment Code'
+                                required
                                 id='IVRMMOD_ModeOfPayment_Code'
                                 {...register('ivrmmoD_ModeOfPayment_Code')}
                                 error={errors.ivrmmoD_ModeOfPayment_Code?.message}

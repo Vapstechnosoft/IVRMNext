@@ -571,11 +571,11 @@ export async function getUserAccessibleModules() {
                                     pages: [
                                         {
                                             id: 53,
-                                            name: 'Category Subject Mapping',
+                                            name: 'Exam Subject Wizard',
                                             icon: 'BookOpen',
-                                            url: '/Exam/exam-module/exam-mapping/yearly-category-subject-mapping',
-                                            title: 'Yearly Category Subject Mapping',
-                                            description: 'Manage Yearly Category Subject Mapping Details'
+                                            url: '/Exam/exam-module/exam-mapping/exam-subject-wizard',
+                                            title: 'Exam Subject Wizard',
+                                            description: 'Manage Exam Subject Wizard Details'
                                         },
                                         {
                                             id: 54,

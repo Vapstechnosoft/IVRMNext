@@ -5,7 +5,7 @@ import type { ApiSearchparams } from '@/types';
 import type { IMasterCasteCategoryList } from '@/types/admission/preadmission/masters';
 
 export async function getMasterClassCategory(searchParams?: ApiSearchparams) {
-    const urlParams = getSearchParamsUrl(searchParams ?? {});
+    const urlParams = getSearchParamsUrl(searchParams ?? {}, 'fmcC_ClassCategoryName,fmcC_ClassCategoryCode');
     const url = `/fee_class_category/30?${urlParams}`;
 
     return await api.get<IMasterCasteCategoryList[]>('fees', url);
@@ -17,6 +17,6 @@ export async function addOrUpdateMasterClassCategory(data: any) {
 }
 
 export async function toggleMasterclassCategory(id: number) {
-    const url = `/api/fee_class_category/deactivate/${id}`;
+    const url = `/fee_class_category/deactivate/${id}`;
     return await api.put('fees', url);
 }

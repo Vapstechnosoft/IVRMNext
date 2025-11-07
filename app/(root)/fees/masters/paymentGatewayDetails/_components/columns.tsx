@@ -105,9 +105,15 @@ function ActionButtonsCell({ rowData }: { rowData: IMasterPaymentGatewayList }) 
         [openToggleForm]
     );
 
+    const convertedRowData = {
+        ...rowData,
+        fpgD_PGActiveFlag: rowData.fpgD_PGActiveFlag === '1' // true if '1', false if '0'
+    };
+
     return (
         <ActionButtons
-            rowData={rowData}
+            // rowData={rowData}
+            rowData={convertedRowData}
             buttons={{ edit: true, toggle: true, delete: false }}
             onEdit={handleEdit}
             onToggle={handleToggle}

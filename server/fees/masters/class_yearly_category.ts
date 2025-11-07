@@ -20,23 +20,18 @@ export async function getClassCategory() {
     return await api.get<IMasterClassYearlyList[]>('fees', url);
 }
 
-export async function getGroupListCategory(searchParams?: ApiSearchparams) {
-    const _urlParams = getSearchParamsUrl(searchParams ?? {});
-    const url = '/fee_yearly_group/getgrouplist/30';
-    return await api.get<IMasterClassYearlyList[]>('fees', url);
-}
+export async function getGroupListCategory(mi_id: number, asmay_id: number, data: any) {
+    const url = `/fee_class_category/class_drop_down_list?mi_id=${mi_id}&asmay_id=${asmay_id}`;
 
-export async function MasterClassYearlyCategory(data: any) {
-    const url = '/api/fee_class_category/classcategorylist';
     return await api.post<any>('fees', url, data);
 }
 
 export async function addOrUpdateMasterClassYearlyCategory(data: any) {
-    const url = '/demo';
+    const url = '/fee_class_category/AddOrUpdateYearlyClassCategory';
     return await api.post<any>('fees', url, data);
 }
 
-export async function toggleMasterclassYearlyCategory(mi_id: number, id: number) {
-    const url = `/demo/${mi_id}/${id}`;
+export async function toggleMasterclassYearlyCategory(id: number) {
+    const url = `/fee_class_category/AddOrUpdateYearlyClassCategory/${id}`;
     return await api.put('fees', url);
 }

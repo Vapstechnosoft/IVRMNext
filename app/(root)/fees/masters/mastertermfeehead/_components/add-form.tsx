@@ -55,6 +55,7 @@ export default function AddFeeTermsHeadFormForm({ onSuccess, termname = '' }: Fe
         refetchterms();
         refetchmasterInstallment();
         refetchMasterHeads();
+        setSelectedHeadsItems([]); // Reset the selectedHeadsItems state to an empty array of { fmH_Id: string }[]
     }
 
     const onSubmit: SubmitHandler<FormFields | any> = async (data: FormFields) => {
@@ -120,8 +121,9 @@ export default function AddFeeTermsHeadFormForm({ onSuccess, termname = '' }: Fe
                                 control={control}
                                 render={({ field }) => (
                                     <Select
+                                        key={field.value || 'empty'}
                                         onValueChange={(value) => {
-                                            field.onChange(Number(value));
+                                            field.onChange(Number(value) || '');
                                         }}
                                         value={field.value?.toString() || undefined}>
                                         <SelectTrigger className='w-full'>
@@ -179,6 +181,8 @@ export default function AddFeeTermsHeadFormForm({ onSuccess, termname = '' }: Fe
                                     />
                                 )}
                             />
+
+                            {errors.heads && <FormError>{errors.heads.message}</FormError>}
                         </div>
 
                         <div className='group flex flex-col gap-1.5'>
@@ -212,6 +216,7 @@ export default function AddFeeTermsHeadFormForm({ onSuccess, termname = '' }: Fe
                                     />
                                 )}
                             />
+                            {errors.installments && <FormError>{errors.installments.message}</FormError>}
                         </div>
                     </div>
 

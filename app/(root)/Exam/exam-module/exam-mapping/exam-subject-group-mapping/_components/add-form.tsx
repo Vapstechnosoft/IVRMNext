@@ -7,6 +7,7 @@ import { FormError, Label } from '@/components/ui/extension/field';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useExamSubjectGroupMapping } from '@/hooks/exam/exammodule/exam-mapping';
+import { useAcademicYearDropdown } from '@/hooks/fees/useMasters';
 import { ExamSubjectGroupSchema } from '@/schemas/exam/exam-module/exam-mapping';
 import {
     addOrUpdateYearlyCategoryDatesMapping,
@@ -15,7 +16,7 @@ import {
     getSubjectsForIndividualExam,
     getSubjectsForPromotionalExam
 } from '@/server/exam/exam-module/exam-mapping/exam-subject-group-mapping';
-import { getAcademicYears } from '@/server/exam/exam-module/masters/category-class-mapping';
+import type { IAcademicYearDropDown } from '@/types/admission/preadmission/masters';
 import type { IESubject } from '@/types/exam/exam-module/exam-mapping';
 import type { IAcademicYear, ICategory } from '@/types/exam/exam-module/masters';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -54,7 +55,7 @@ export default function AddExamSubjectGroup({ mI_Id = 30, onSuccess }: { mI_Id?:
     const [categories, setCategories] = useState<ICategory[]>([]);
     const [exams, setExams] = useState<{ emE_Id: number; emE_ExamName: string }[]>([]);
     const [subjects, setSubjects] = useState<IESubject[]>([]);
-
+    const { data: academicData, isLoading: loadingAcademic, error: academicError } = useAcademicYearDropdown();
     const esG_ExamPromotionFlag = useWatch({ control, name: 'esG_ExamPromotionFlag' });
     const asmaY_Id = useWatch({ control, name: 'asmaY_Id' });
     const emcA_Id = useWatch({ control, name: 'emcA_Id' });
@@ -62,16 +63,21 @@ export default function AddExamSubjectGroup({ mI_Id = 30, onSuccess }: { mI_Id?:
 
     // Fetch Academic Years
     useEffect(() => {
-        async function fetchYears() {
-            try {
-                const response = await getAcademicYears();
-                setAcademicYears(response ?? []);
-            } catch (err: any) {
-                toast.error(err?.message ?? 'Failed to load academic years');
-            }
+        // Academic Years
+        if (academicError) {
+            toast.error(academicError.message || 'Error fetching academic years');
+            setAcademicYears([]);
+        } else if (academicData?.data && Array.isArray(academicData.data)) {
+            const formattedYears: IAcademicYearDropDown[] = academicData.data.map((item: any) => ({
+                asmaY_Id: item.asmaY_Id?.toString() ?? '',
+                asmaY_Year: item.asmaY_Year ?? '',
+                asmaY_Order: item.asmaY_Order ?? 0
+            }));
+            setAcademicYears(formattedYears);
+        } else {
+            setAcademicYears([]);
         }
-        fetchYears();
-    }, []);
+    }, [academicData, academicError]);
 
     // Fetch Categories
     useEffect(() => {
@@ -150,10 +156,10 @@ export default function AddExamSubjectGroup({ mI_Id = 30, onSuccess }: { mI_Id?:
                 <form onSubmit={handleSubmit(onSubmit)} className='flex flex-col gap-6 rounded-2xl bg-white p-6 shadow-md' noValidate>
                     <Tabs value={esG_ExamPromotionFlag} onValueChange={(val) => setValue('esG_ExamPromotionFlag', val as 'IE' | 'PE')}>
                         <TabsList className='mb-8 grid w-full max-w-md grid-cols-2'>
-                            <TabsTrigger value='IE' className='data-[state=active]:bg-[#c475f5] data-[state=active]:text-white'>
+                            <TabsTrigger value='IE' className='data-[state=active]:bg-[#a937f0] data-[state=active]:text-white'>
                                 Individual Exam
                             </TabsTrigger>
-                            <TabsTrigger value='PE' className='data-[state=active]:bg-[#c475f5] data-[state=active]:text-white'>
+                            <TabsTrigger value='PE' className='data-[state=active]:bg-[#ae44f0] data-[state=active]:text-white'>
                                 Promotional Exam
                             </TabsTrigger>
                         </TabsList>

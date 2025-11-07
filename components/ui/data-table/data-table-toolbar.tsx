@@ -66,6 +66,7 @@ export function DataTableToolbar<TData>({ table, data, showExportOptions = true,
         table.resetColumnFilters();
         table.resetColumnVisibility();
         table.resetSorting();
+        setSearchColumns(tableSearchVariables.search_columns, parseAsString.withOptions({ shallow: false }).withDefault(allCols));
     };
 
     //find if any column is hiding
@@ -138,7 +139,7 @@ export function DataTableToolbar<TData>({ table, data, showExportOptions = true,
             setSearchColumns(allSearchableColumns.join(','));
         }
     };
-    const [isSearchColumnModalOpen, setIsSearchColumnModalOpen] = useState(false);
+    const [isSearchColumnModalOpen, setIsSearchColumnModalOpen] = useState(true);
 
     return (
         <div className='flex w-full items-center justify-between gap-2 overflow-auto p-0.5'>

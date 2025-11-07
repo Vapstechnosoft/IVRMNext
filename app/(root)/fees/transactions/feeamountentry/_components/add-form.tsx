@@ -1,6 +1,6 @@
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Label } from '@/components/ui/extension/field';
+import { FormError, Label } from '@/components/ui/extension/field';
 import { InputText } from '@/components/ui/extension/input-text';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useFeeAmountEntry, useacademicyerdropdowndatafee } from '@/hooks/fees/useTrasactions';
@@ -135,6 +135,13 @@ export default function AddAmountEntryForm({ onSuccess, headname = '' }: AddAmou
 
     // 🔹 Submit Handler
     const onSubmit: SubmitHandler<FormFields> = async (data) => {
+        const invalidRows = feeGridData.filter((item) => !item.fmA_Amount || Number(item.fmA_Amount) <= 0);
+
+        if (invalidRows.length > 0) {
+            toast.error('Amount Is Required');
+            return;
+        }
+
         try {
             const payload = {
                 mI_Id: 30,
@@ -180,7 +187,11 @@ export default function AddAmountEntryForm({ onSuccess, headname = '' }: AddAmou
     };
 
     const handleReset = () => {
-        reset();
+        reset({
+            asmaY_Id: undefined,
+            categoryId: undefined,
+            feeGroupId: undefined
+        });
         setSelectedFeeGroup(null);
         setSelectedCategoryId(null);
         setFeeGridData([]);
@@ -190,121 +201,135 @@ export default function AddAmountEntryForm({ onSuccess, headname = '' }: AddAmou
         <div className={`${headname}`}>
             <form onSubmit={handleSubmit(onSubmit)} className='flex w-full flex-col items-center justify-center space-y-6'>
                 {/* Academic Year */}
-                <div className='flex items-center gap-4'>
+                <div className='flex items-center gap-6'>
                     <Label className='min-w-[150px] text-right'>
                         Academic Year:<span className='ml-1 text-red-500'>*</span>
                     </Label>
-                    <Controller
-                        name='asmaY_Id'
-                        control={control}
-                        render={({ field }) => (
-                            <Select
-                                onValueChange={(val) => {
-                                    const id = Number(val);
-                                    field.onChange(id);
-                                    setSelectedAcademicYear(id);
-                                }}
-                                value={field.value ? String(field.value) : undefined}
-                                disabled={academicYearLoading}>
-                                <SelectTrigger className='min-w-[400px] text-center'>
-                                    <SelectValue placeholder='--Select Academic Year--' />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {academicYearLoading ? (
-                                        <SelectItem value='loading' disabled>
-                                            Loading...
-                                        </SelectItem>
-                                    ) : academicYearError ? (
-                                        <SelectItem value='error' disabled>
-                                            Error loading
-                                        </SelectItem>
-                                    ) : (
-                                        academicYear?.data?.map((item: any, index: number) => (
-                                            <SelectItem key={`${item.asmaY_Id}-${index}`} value={item.asmaY_Id.toString()}>
-                                                {item.asmaY_Year}
+                    <div className='flex w-full max-w-[400px] flex-col'>
+                        <Controller
+                            name='asmaY_Id'
+                            control={control}
+                            render={({ field }) => (
+                                <Select
+                                    key={field.value || 'empty'}
+                                    onValueChange={(val) => {
+                                        const id = Number(val);
+                                        field.onChange(id);
+                                        setSelectedAcademicYear(id);
+                                    }}
+                                    value={field.value?.toString() || ''}
+                                    // value={field.value ? String(field.value) || ''}
+                                    disabled={academicYearLoading}
+                                >
+                                    <SelectTrigger className='min-w-[400px] text-center'>
+                                        <SelectValue placeholder='--Select Academic Year--' />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {academicYearLoading ? (
+                                            <SelectItem value='loading' disabled>
+                                                Loading...
                                             </SelectItem>
-                                        ))
-                                    )}
-                                </SelectContent>
-                            </Select>
-                        )}
-                    />
+                                        ) : academicYearError ? (
+                                            <SelectItem value='error' disabled>
+                                                Error loading
+                                            </SelectItem>
+                                        ) : (
+                                            academicYear?.data?.map((item: any, index: number) => (
+                                                <SelectItem key={`${item.asmaY_Id}-${index}`} value={item.asmaY_Id.toString()}>
+                                                    {item.asmaY_Year}
+                                                </SelectItem>
+                                            ))
+                                        )}
+                                    </SelectContent>
+                                </Select>
+                            )}
+                        />
+                        {errors.asmaY_Id && <FormError>{errors.asmaY_Id.message}</FormError>}
+                    </div>
                 </div>
 
                 {/* Category */}
-                <div className='flex items-center gap-4'>
+                <div className='flex items-center gap-6'>
                     <Label className='min-w-[150px] text-right'>
                         Category:<span className='ml-1 text-red-500'>*</span>
                     </Label>
-                    <Controller
-                        name='categoryId'
-                        control={control}
-                        render={({ field }) => (
-                            <Select
-                                onValueChange={(val) => {
-                                    const id = Number(val);
-                                    field.onChange(id);
-                                    setSelectedCategoryId(id);
-                                }}
-                                value={field.value ? String(field.value) : undefined}
-                                disabled={loadingCategory || !selectedAcademicYear}>
-                                <SelectTrigger className='min-w-[400px] text-center'>
-                                    <SelectValue placeholder='--Select Category--' />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {loadingCategory ? (
-                                        <SelectItem value='loading' disabled>
-                                            Loading categories...
-                                        </SelectItem>
-                                    ) : (
-                                        categoryData.map((item, index) => (
-                                            <SelectItem key={`${item.fmcC_Id}-${index}`} value={item.fmcC_Id.toString()}>
-                                                {item.fmcC_ClassCategoryName}
+                    <div className='flex w-full max-w-[400px] flex-col'>
+                        <Controller
+                            name='categoryId'
+                            control={control}
+                            render={({ field }) => (
+                                <Select
+                                    onValueChange={(val) => {
+                                        const id = Number(val);
+                                        field.onChange(id);
+                                        setSelectedCategoryId(id);
+                                    }}
+                                    //value={field.value ? String(field.value) : undefined}
+                                    value={field.value?.toString() || ''}
+                                    disabled={loadingCategory || !selectedAcademicYear}>
+                                    <SelectTrigger className='min-w-[400px] text-center'>
+                                        <SelectValue placeholder='--Select Category--' />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {loadingCategory ? (
+                                            <SelectItem value='loading' disabled>
+                                                Loading categories...
                                             </SelectItem>
-                                        ))
-                                    )}
-                                </SelectContent>
-                            </Select>
-                        )}
-                    />
+                                        ) : (
+                                            categoryData.map((item, index) => (
+                                                <SelectItem key={`${item.fmcC_Id}-${index}`} value={item.fmcC_Id.toString()}>
+                                                    {item.fmcC_ClassCategoryName}
+                                                </SelectItem>
+                                            ))
+                                        )}
+                                    </SelectContent>
+                                </Select>
+                            )}
+                        />
+                        {errors.categoryId && <FormError>{errors.categoryId.message}</FormError>}
+                    </div>
                 </div>
 
                 {/* Fee Group */}
-                <div className='flex items-center gap-4'>
+                <div className='flex items-center gap-6'>
                     <Label className='min-w-[150px] text-right'>
                         Fee Group:<span className='ml-1 text-red-500'>*</span>
                     </Label>
-                    <Controller
-                        name='feeGroupId'
-                        control={control}
-                        render={({ field }) => (
-                            <Select
-                                onValueChange={(val) => {
-                                    const id = Number(val);
-                                    field.onChange(id);
-                                    setSelectedFeeGroup(id);
-                                }}
-                                value={field.value ? String(field.value) : undefined}
-                                disabled={loadingGroup || !selectedAcademicYear}>
-                                <SelectTrigger className='min-w-[400px] text-center'>
-                                    <SelectValue placeholder='--Select Fee Group--' />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {loadingGroup ? (
-                                        <SelectItem value='loading' disabled>
-                                            Loading groups...
-                                        </SelectItem>
-                                    ) : (
-                                        groupData.map((item, index) => (
-                                            <SelectItem key={`${item.fmG_Id}-${index}`} value={item.fmG_Id.toString()}>
-                                                {item.fmG_GroupName ?? `Group ${item.fmG_Id}`}
+                    <div className='flex w-full max-w-[400px] flex-col'>
+                        <Controller
+                            name='feeGroupId'
+                            control={control}
+                            render={({ field }) => (
+                                <Select
+                                    onValueChange={(val) => {
+                                        const id = Number(val);
+                                        field.onChange(id);
+                                        setSelectedFeeGroup(id);
+                                    }}
+                                    //value={field.value ? String(field.value) : undefined}
+                                    value={field.value?.toString() || ''}
+                                    disabled={loadingGroup || !selectedAcademicYear}>
+                                    <SelectTrigger className='min-w-[400px] text-center'>
+                                        <SelectValue placeholder='--Select Fee Group--' />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {loadingGroup ? (
+                                            <SelectItem value='loading' disabled>
+                                                Loading groups...
                                             </SelectItem>
-                                        ))
-                                    )}
-                                </SelectContent>
-                            </Select>
-                        )}
-                    />
+                                        ) : (
+                                            groupData.map((item, index) => (
+                                                <SelectItem key={`${item.fmG_Id}-${index}`} value={item.fmG_Id.toString()}>
+                                                    {item.fmG_GroupName ?? `Group ${item.fmG_Id}`}
+                                                </SelectItem>
+                                            ))
+                                        )}
+                                    </SelectContent>
+                                </Select>
+                            )}
+                        />
+                        {errors.feeGroupId && <FormError>{errors.feeGroupId.message}</FormError>}
+                    </div>
                 </div>
 
                 {/* Fee Grid */}
@@ -328,13 +353,44 @@ export default function AddAmountEntryForm({ onSuccess, headname = '' }: AddAmou
                                         <td>{index + 1}</td>
                                         <td>{row.fmH_FeeName}</td>
                                         <td>{row.fmI_Name}</td>
+                                        {/* <td>
+                      <InputText
+                        type="number"
+                        value={row.fmA_Amount}
+                        onChange={(e) =>
+                          handleGridChange(index, "fmA_Amount", e.target.value)
+                        }
+                      />
+                    </td> */}
+
                                         <td>
                                             <InputText
-                                                type='number'
-                                                value={row.fmA_Amount}
-                                                onChange={(e) => handleGridChange(index, 'fmA_Amount', e.target.value)}
+                                                type='text'
+                                                inputMode='numeric' // brings up number keyboard on mobile
+                                                value={row.fmA_Amount && Number(row.fmA_Amount) !== 0 ? row.fmA_Amount : ''} // 👈 Convert 0 → ''
+                                                onChange={(e) => {
+                                                    const value = e.target.value.trim();
+
+                                                    // Allow empty (for editing)
+                                                    if (value === '') {
+                                                        handleGridChange(index, 'fmA_Amount', '');
+                                                        return;
+                                                    }
+
+                                                    // ✅ Accept only digits (no letters, symbols, or negatives)
+                                                    if (/^\d+$/.test(value)) {
+                                                        // ❌ If value is "0" or starts with "0" (like "01"), clear it
+                                                        if (Number(value) === 0) {
+                                                            handleGridChange(index, 'fmA_Amount', '');
+                                                        } else {
+                                                            handleGridChange(index, 'fmA_Amount', value);
+                                                        }
+                                                    }
+                                                    // ❌ Ignore anything else
+                                                }}
                                             />
                                         </td>
+
                                         <td>
                                             <input
                                                 type='date'
@@ -392,7 +448,7 @@ export default function AddAmountEntryForm({ onSuccess, headname = '' }: AddAmou
                 )}
 
                 {/* Buttons */}
-                <div className='flex gap-3 border-t pt-4'>
+                <div className='flex gap-3 pt-4'>
                     <Button type='button' variant='outline' onClick={handleReset}>
                         Reset
                     </Button>
