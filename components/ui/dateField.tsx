@@ -1,9 +1,13 @@
 'use client';
 
-import { Label } from '@/components/ui/label';
-import { useEffect, useRef, useState } from 'react';
-import { CalendarYear } from './calendar_year';
-import { FormError } from './extension/field';
+import { Button } from '@/components/ui/button';
+import { CalendarYear } from '@/components/ui/calendar_year';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { cn } from '@/lib/utils';
+import { format } from 'date-fns';
+import { Calendar } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { FormError, Label } from './extension/field';
 
 interface DateFieldProps {
     field: any;
@@ -11,63 +15,56 @@ interface DateFieldProps {
     label: string;
     placeholder?: string;
     fromDate?: Date;
+    toDate?: Date;
 }
 
-export const DateField: React.FC<DateFieldProps> = ({ field, fieldState, label, placeholder, fromDate }) => {
-    const [open, setOpen] = useState(false);
+export const DateField: React.FC<DateFieldProps> = ({ field, fieldState, label, placeholder = 'Pick a date', fromDate, toDate }) => {
+    const [isOpen, setIsOpen] = useState(false);
     const [selectedDate, setSelectedDate] = useState<Date | null>(field.value ? new Date(field.value) : null);
-    const ref = useRef<HTMLDivElement | null>(null);
 
-    // ✅ Format date without timezone issue
-    const formatDateLocal = (date: Date) => {
-        const y = date.getFullYear();
-        const m = String(date.getMonth() + 1).padStart(2, '0');
-        const d = String(date.getDate()).padStart(2, '0');
-        return `${y}-${m}-${d}`;
-    };
-
-    // ✅ Keep local state synced with field value
     useEffect(() => {
         if (field.value) {
             setSelectedDate(new Date(field.value));
         }
     }, [field.value]);
 
-    // ✅ Close on outside click
-    useEffect(() => {
-        const handleClickOutside = (e: MouseEvent) => {
-            if (ref.current && !ref.current.contains(e.target as Node)) {
-                setOpen(false);
-            }
-        };
-        document.addEventListener('mousedown', handleClickOutside);
-        return () => document.removeEventListener('mousedown', handleClickOutside);
-    }, []);
-
-    const handleDayClick = (day: Date) => {
-        if (fromDate && day < fromDate) return; // restrict earlier dates
-        setSelectedDate(day);
-        field.onChange(formatDateLocal(day));
-        setOpen(false);
+    const handleSelect = (date: Date | undefined) => {
+        if (!date) return;
+        if (fromDate && date < fromDate) return; // ✅ Prevent selecting dates before `fromDate`
+        setSelectedDate(date);
+        field.onChange(date.toISOString());
+        setIsOpen(false);
     };
 
     return (
-        <div className='relative mt-4' ref={ref}>
-            <Label>
-                {label} <span className='text-red-500'>*</span>
+        <div className='mt-5 flex flex-col gap-1.5'>
+            <Label htmlFor={field.name}>
+                {label}
+                <span className='ml-1 text-red-500'>*</span>
             </Label>
-            <input
-                readOnly
-                value={selectedDate ? formatDateLocal(selectedDate) : ''}
-                placeholder={placeholder}
-                onClick={() => setOpen(true)}
-                className='w-full cursor-pointer rounded-md border px-3 py-2 text-sm shadow-sm'
-            />
-            {open && (
-                <div className='absolute z-50 mt-2 rounded-md bg-white shadow-lg'>
-                    <CalendarYear selected={selectedDate ?? undefined} onDayClick={handleDayClick} fromDate={fromDate} />
-                </div>
-            )}
+
+            <Popover open={isOpen} onOpenChange={setIsOpen}>
+                <PopoverTrigger asChild>
+                    <Button
+                        variant='outline'
+                        className={cn('w-full justify-between font-normal', !selectedDate && 'text-muted-foreground')}>
+                        {selectedDate ? format(selectedDate, 'dd-MM-yyyy') : <span>{placeholder}</span>}
+                        <Calendar className='ml-auto h-4 w-4 opacity-50' />
+                    </Button>
+                </PopoverTrigger>
+
+                <PopoverContent className='flex w-auto items-start p-0' align='start'>
+                    <CalendarYear
+                        mode='single'
+                        captionLayout='buttons'
+                        selected={selectedDate ?? undefined}
+                        onSelect={handleSelect}
+                        onDayClick={() => setIsOpen(false)}
+                        fromDate={fromDate}
+                    />
+                </PopoverContent>
+            </Popover>
+
             {fieldState?.error && <FormError>{fieldState.error.message}</FormError>}
         </div>
     );

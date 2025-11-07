@@ -130,7 +130,6 @@ export default function AddExamSubjectWizard({ onSuccess }: { onSuccess?: () => 
             try {
                 const { data: cats } = await getCategoryDropDownByAcademicYearlist(30, Number(watchYear));
                 setCategories(Array.isArray(cats) ? cats : []);
-                setValue('EYC_Id', 0);
             } catch (err: any) {
                 toast.error(err?.message ?? 'Failed to load categories');
             }
@@ -266,17 +265,86 @@ export default function AddExamSubjectWizard({ onSuccess }: { onSuccess?: () => 
     // ------------------- Submit Handler -------------------
     const onSubmit = async (values: FormFields) => {
         try {
+            const subExamList: any[] = [];
+            const subSubjectList: any[] = [];
+            const subSubjectSubExamList: any[] = [];
+
+            subjects.forEach((s) => {
+                // ----- SubExam list -----
+                if (s.subExamConfig?.length) {
+                    subExamList.push({
+                        ISMS_Id: s.ISMS_Id,
+                        sub_exam_list: s.subExamConfig.map((se: any) => ({
+                            EYCESSE_Id: se.EYCESSE_Id ?? 0,
+                            EYCES_Id: se.EYCES_Id ?? 0,
+                            ISMS_Id: s.ISMS_Id,
+                            EMSE_Id: se.EMSE_Id,
+                            EMGR_Id: se.EMGR_Id ?? s.EMGR_Id ?? 0,
+                            EYCESSE_MaxMarks: se.EYCESSE_MaxMarks ?? 0,
+                            EYCESSE_MinMarks: se.EYCESSE_MinMarks ?? 0,
+                            EYCESSE_ActiveFlg: true
+                        }))
+                    });
+                }
+
+                // ----- SubSubject list -----
+                if (s.subSubjectConfig?.length) {
+                    subSubjectList.push({
+                        ISMS_Id: s.ISMS_Id,
+                        sub_subject_list: s.subSubjectConfig.map((ss: any) => ({
+                            EYCESSS_Id: ss.EYCESSS_Id ?? 0,
+                            EYCES_Id: ss.EYCES_Id ?? 0,
+                            ISMS_Id: s.ISMS_Id,
+                            EMSS_Id: ss.EMSS_Id,
+                            EMGR_Id: ss.EMGR_Id ?? s.EMGR_Id ?? 0,
+                            EYCESSS_MaxMarks: ss.EYCESSS_MaxMarks ?? 0,
+                            EYCESSS_MinMarks: ss.EYCESSS_MinMarks ?? 0,
+                            EYCESSS_ExemptedFlg: ss.EYCESSS_ExemptedFlg ?? true,
+                            EYCESSS_ExemptedPer: ss.EYCESSS_ExemptedPer ?? 35,
+                            EYCESSS_ActiveFlg: true,
+                            EYCESSS_SubSubjectOrder: ss.EYCESSS_SubSubjectOrder ?? 0
+                        }))
+                    });
+                }
+
+                // ----- SubSubject + SubExam combined -----
+                if (s.subSubjectConfig?.length) {
+                    subSubjectSubExamList.push({
+                        ISMS_Id: s.ISMS_Id,
+                        sub_subject_sub_exam_list: s.subSubjectConfig.map((ss: any) => ({
+                            EYCESSS_Id: ss.EYCESSS_Id ?? 0,
+                            EYCES_Id: ss.EYCES_Id ?? 0,
+                            EMSS_Id: ss.EMSS_Id,
+                            EMSE_Id: ss.EMSE_Id,
+                            EMGR_Id: ss.EMGR_Id ?? s.EMGR_Id ?? 0,
+                            EYCESSS_MaxMarks: ss.EYCESSS_MaxMarks ?? 25,
+                            EYCESSS_MinMarks: ss.EYCESSS_MinMarks ?? 10,
+                            EYCESSS_ExemptedFlg: ss.EYCESSS_ExemptedFlg ?? true,
+                            EYCESSS_ExemptedPer: ss.EYCESSS_ExemptedPer ?? 35,
+                            EYCESSS_ActiveFlg: true,
+                            EYCESSS_SubSubjectOrder: ss.EYCESSS_SubSubjectOrder ?? 0
+                        }))
+                    });
+                }
+            });
+
             const payload: FormFields = {
                 ...values,
+                UserId: 0,
+                MI_Id: 0,
+                ASMAY_Id: Number(values.ASMAY_Id) ?? 0,
+                ASMAY_Year: '',
+                EYCE_BestOfApplicableFlg: values.EYCE_BestOfApplicableFlg ?? true,
+                EYCE_BestOf: values.EYCE_BestOf ?? 5,
                 exams_list: exams.filter((e) => e.checked),
                 yearly_category_exam_subjects: subjects,
-                exm_subject_subsubjects_subexam: subjects.map((s) => ({
-                    ISMS_Id: s.ISMS_Id,
-                    sub_subject_sub_exam_list: s.subSubjectConfig ?? []
-                })),
+                exm_subject_subexams_list: subExamList,
+                exm_subject_subsubjects_list: subSubjectList,
+                exm_subject_subsubjects_subexam: subSubjectSubExamList,
                 Temp_Subject_Order: []
             };
 
+            console.log('🚀 Final Payload:', payload);
             await addOrUpdateExamSubjectWizard(payload);
             toast.success('Exam Subject Wizard saved successfully');
             onSuccess?.();
@@ -389,6 +457,7 @@ export default function AddExamSubjectWizard({ onSuccess }: { onSuccess?: () => 
                                             fieldState={fieldState}
                                             label='Attendance From'
                                             placeholder='Select Attendance From Date'
+                                            fromDate={new Date()}
                                         />
                                     )}
                                 />
@@ -402,6 +471,7 @@ export default function AddExamSubjectWizard({ onSuccess }: { onSuccess?: () => 
                                             fieldState={fieldState}
                                             label='Attendance To'
                                             placeholder='Select Attendance To Date'
+                                            fromDate={new Date(watch('EYCE_AttendanceFromDate'))}
                                         />
                                     )}
                                 />

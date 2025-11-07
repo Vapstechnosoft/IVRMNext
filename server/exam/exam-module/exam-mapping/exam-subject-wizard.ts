@@ -46,7 +46,7 @@ export async function UpdateOrderedSubjectDetails(data: any) {
 // Add or Update Exam Subject Wizard Record
 // --------------------------------------------
 export async function addOrUpdateExamSubjectWizard(data: any) {
-    const url = 'exam_subject_wizard';
+    const url = 'exam_subject_mapping';
     return await api.post<any>('exam', url, data);
 }
 

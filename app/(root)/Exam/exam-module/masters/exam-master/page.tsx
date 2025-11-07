@@ -178,7 +178,7 @@ function FormSections() {
             {isAddFormOpen && (
                 <div ref={addFormRef}>
                     <CollapsibleSection
-                        title='Add New Master Subject'
+                        title='Add New Master Exam'
                         description='Fill in the details below to create a new master subject'
                         defaultOpen={true}
                         variant='outline'
@@ -203,7 +203,7 @@ function FormSections() {
             {isEditFormOpen && selectedRow && (
                 <div ref={editFormRef}>
                     <CollapsibleSection
-                        title='Edit Master Subject'
+                        title='Edit Master Exam'
                         defaultOpen={true}
                         variant='outline'
                         size='md'

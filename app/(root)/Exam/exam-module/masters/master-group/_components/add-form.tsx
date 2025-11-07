@@ -121,8 +121,8 @@ export default function MasterSubjectGroupForm({ onSuccess, className = '', init
             return;
         }
 
-        if (selectedSubjects.length === 0) {
-            toast.error('Please select at least one subject');
+        if (selectedSubjects.length < data.emG_TotSubjects) {
+            toast.error(`Please select at least ${data.emG_TotSubjects} subjects`);
             return;
         }
 

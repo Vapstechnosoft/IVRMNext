@@ -264,7 +264,6 @@ export default function AddExamSubjectGroup({ mI_Id = 30, onSuccess }: { mI_Id?:
                                             </div>
                                         )}
                                     />
-
                                     {/* Min Marks */}
                                     <Controller
                                         control={control}
@@ -277,8 +276,19 @@ export default function AddExamSubjectGroup({ mI_Id = 30, onSuccess }: { mI_Id?:
                                                 <input
                                                     type='number'
                                                     className='w-full rounded-md border px-3 py-2'
-                                                    value={field.value}
-                                                    onChange={(e) => field.onChange(Number(e.target.value))} // convert string to number
+                                                    value={field.value ?? ''}
+                                                    onChange={(e) => {
+                                                        let val = e.target.value;
+
+                                                        // Remove all leading zeros except for "0"
+                                                        if (val.length > 1) {
+                                                            val = val.replace(/^0+/, '');
+                                                        }
+
+                                                        // Update UI immediately
+                                                        e.target.value = val;
+                                                        field.onChange(val === '' ? 0 : Number(val));
+                                                    }}
                                                 />
                                                 {fieldState.error && <FormError>{fieldState.error.message}</FormError>}
                                             </div>
@@ -297,8 +307,17 @@ export default function AddExamSubjectGroup({ mI_Id = 30, onSuccess }: { mI_Id?:
                                                 <input
                                                     type='number'
                                                     className='w-full rounded-md border px-3 py-2'
-                                                    value={field.value}
-                                                    onChange={(e) => field.onChange(Number(e.target.value))} // convert string to number
+                                                    value={field.value ?? ''}
+                                                    onChange={(e) => {
+                                                        let val = e.target.value;
+
+                                                        if (val.length > 1) {
+                                                            val = val.replace(/^0+/, '');
+                                                        }
+
+                                                        e.target.value = val;
+                                                        field.onChange(val === '' ? 0 : Number(val));
+                                                    }}
                                                 />
                                                 {fieldState.error && <FormError>{fieldState.error.message}</FormError>}
                                             </div>

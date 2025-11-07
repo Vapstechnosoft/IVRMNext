@@ -7,6 +7,7 @@ import { FormError, Label } from '@/components/ui/extension/field';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useExamSubjectGroupMapping } from '@/hooks/exam/exammodule/exam-mapping';
+import { useAcademicYearDropdown } from '@/hooks/fees/useMasters';
 import { ExamSubjectGroupSchema } from '@/schemas/exam/exam-module/exam-mapping';
 import {
     addOrUpdateYearlyCategoryDatesMapping,
@@ -16,9 +17,9 @@ import {
     getSubjectsForIndividualExam,
     getSubjectsForPromotionalExam
 } from '@/server/exam/exam-module/exam-mapping/exam-subject-group-mapping';
-import { getAcademicYears } from '@/server/exam/exam-module/masters/category-class-mapping';
-import type { IESubject, IExamSubjectGroupMapping } from '@/types/exam/exam-module/exam-mapping';
-import type { IAcademicYear, ICategory } from '@/types/exam/exam-module/masters';
+import type { IAcademicYearDropDown } from '@/types/admission/preadmission/masters';
+import type { IESubject, IExamSubjectGroupMapping, IExamSubjectGroupingDetails } from '@/types/exam/exam-module/exam-mapping';
+import type { ICategory } from '@/types/exam/exam-module/masters';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useEffect, useState } from 'react';
 import { Controller, FormProvider, useForm, useWatch } from 'react-hook-form';
@@ -29,7 +30,7 @@ type FormFields = z.infer<typeof ExamSubjectGroupSchema.addOrUpdate>;
 
 interface EditExamSubjectGroupProps {
     mI_Id?: number;
-    selectedRow: IExamSubjectGroupMapping; // contains the row data array (like your sample JSON)
+    selectedRow: IExamSubjectGroupMapping;
     onSuccess?: () => void;
 }
 
@@ -43,7 +44,7 @@ export default function UpdateExamSubjectGroup({ mI_Id = 30, selectedRow, onSucc
             asmaY_Id: 0,
             emcA_Id: 0,
             esG_SubjectGroupName: '',
-            esG_ExamPromotionFlag: selectedRow.eysgR_PromotionType ?? 'IE',
+            esG_ExamPromotionFlag: selectedRow.esG_ExamPromotionFlag ?? 'IE',
             emE_Id: 0,
             esG_GroupMinMarks: 0,
             esG_GroupMaxMarks: 0,
@@ -53,147 +54,177 @@ export default function UpdateExamSubjectGroup({ mI_Id = 30, selectedRow, onSucc
         }
     });
 
-    const { control, handleSubmit, reset, setValue, watch, formState } = methods;
+    const { control, handleSubmit, reset, setValue, trigger, formState } = methods;
     const { isSubmitting } = formState;
     const { refetchAll } = useExamSubjectGroupMapping();
 
-    const [academicYears, setAcademicYears] = useState<IAcademicYear[]>([]);
+    const [academicYears, setAcademicYears] = useState<IAcademicYearDropDown[]>([]);
     const [categories, setCategories] = useState<ICategory[]>([]);
     const [exams, setExams] = useState<{ emE_Id: number; emE_ExamName: string }[]>([]);
     const [subjects, setSubjects] = useState<IESubject[]>([]);
+    const [detail, setDetail] = useState<IExamSubjectGroupingDetails | null>(null);
+
+    const { data: academicData, error: academicError } = useAcademicYearDropdown();
 
     const esG_ExamPromotionFlag = useWatch({ control, name: 'esG_ExamPromotionFlag' });
     const asmaY_Id = useWatch({ control, name: 'asmaY_Id' });
     const emcA_Id = useWatch({ control, name: 'emcA_Id' });
     const emE_Id = useWatch({ control, name: 'emE_Id' });
 
-    // Prefill form when selectedRowData changes
+    // Step 1: Load Academic Years
     useEffect(() => {
-        async function fetchMappingDetails() {
-            if (!selectedRow) return;
+        if (academicError) {
+            toast.error(academicError.message || 'Error fetching academic years');
+            setAcademicYears([]);
+        } else if (academicData?.data && Array.isArray(academicData.data)) {
+            const formattedYears: IAcademicYearDropDown[] = academicData.data.map((item: any) => ({
+                asmaY_Id: item.asmaY_Id?.toString() ?? '',
+                asmaY_Year: item.asmaY_Year ?? '',
+                asmaY_Order: item.asmaY_Order ?? 0
+            }));
+            setAcademicYears(formattedYears);
+        } else {
+            setAcademicYears([]);
+        }
+    }, [academicData, academicError]);
 
-            // Step 1️⃣ — reset form with existing selectedRow
-            methods.reset({
-                mI_Id: 30,
-                asmaY_Id: selectedRow.asmaY_Id,
-                esG_ExamPromotionFlag: selectedRow.eysgR_PromotionType
-            });
-
+    // Step 2: Load Mapping Details + Pre-fill
+    useEffect(() => {
+        if (!selectedRow) return;
+        const loadDetails = async () => {
             try {
-                // Step 2️⃣ — Fetch subject mapping details
                 const res = await getExamSubjectGroupMappingDetails(
-                    30, // orgId
+                    mI_Id,
                     selectedRow.esG_CompulsoryFlag,
                     selectedRow.asmaY_Id,
                     selectedRow.esG_Id
                 );
 
-                const subjectList = Array.isArray(res?.data) ? res.data : [];
-                const sub_mapped_list = Array.isArray(res?.data) ? res.data.map((s) => ({ ismS_Id: s.ismS_Id })) : [];
-                setValue('subjects_list', sub_mapped_list);
+                const list = Array.isArray(res?.data) ? res.data : [];
+                if (list.length === 0) return;
 
-                // Step 3️⃣ — If some IDs are missing, get from first mapped subject
-                if (subjectList?.length > 0) {
-                    const first = subjectList[0];
-                    const patchedRow = {
-                        ...selectedRow,
-                        emE_Id: first.emE_Id,
-                        emcA_Id: first.emcA_Id,
-                        asmaY_Id: selectedRow.asmaY_Id || first.asmaY_Id
-                    };
+                const first = list[0];
+                setDetail(first);
+                // Set all known values
+                setValue('asmaY_Id', first.asmaY_Id);
+                setValue('emcA_Id', first.emcA_Id);
+                setValue('emE_Id', first.emE_Id);
+                setValue('esG_SubjectGroupName', first.esG_SubjectGroupName);
+                setValue('esG_GroupMinMarks', first.esG_GroupMinMarks);
+                setValue('esG_GroupMaxMarks', first.esG_GroupMaxMarks);
+                setValue('esG_CompulsoryFlag', first.esG_CompulsoryFlag);
+                setValue('esG_ExamPromotionFlag', selectedRow.esG_ExamPromotionFlag);
 
-                    // re-patch missing fields
-                    methods.reset({
-                        ...methods.getValues(),
-                        ...patchedRow
+                // Subjects
+                const mappedSubjects = list.map((s: any) => ({ ismS_Id: s.ismS_Id }));
+                setValue('subjects_list', mappedSubjects);
+                // Trigger re-render for Selects
+                setTimeout(() => {
+                    trigger(['asmaY_Id', 'emcA_Id', 'emE_Id']);
+                }, 0);
+            } catch (err: any) {
+                toast.error('Failed to load group details');
+            }
+        };
+
+        loadDetails();
+    }, [selectedRow, mI_Id, setValue, trigger]);
+
+    // Step 3: Load Categories when Academic Year is set
+    useEffect(() => {
+        if (!asmaY_Id || !detail) return;
+
+        const loadCategories = async () => {
+            try {
+                const { data } = await getCategoryDropDownByAcademicYearlist(mI_Id, asmaY_Id);
+                const cats = Array.isArray(data) ? data : [];
+                setCategories(cats);
+
+                // Re-select category after loading
+                const matched = cats.find((c: any) => c.emcA_Id === detail.emcA_Id);
+                if (matched) {
+                    setValue('emcA_Id', matched.emcA_Id, {
+                        shouldValidate: true,
+                        shouldDirty: true,
+                        shouldTouch: true
                     });
+                    setTimeout(() => trigger('emcA_Id'), 0);
                 }
-                if (subjects.length === 0) return;
             } catch (err: any) {
-                console.error('Error fetching mapping details:', err);
+                toast.error('Failed to load categories');
             }
-        }
+        };
 
-        fetchMappingDetails();
-    }, [selectedRow, methods, setValue]);
+        loadCategories();
+    }, [asmaY_Id, detail, mI_Id, setValue, trigger]);
 
-    // Fetch Academic Years
+    // Step 4: Load Exams (Individual Exam only)
     useEffect(() => {
-        async function fetchYears() {
+        if (!emcA_Id || esG_ExamPromotionFlag !== 'IE' || !detail) return;
+
+        const loadExams = async () => {
             try {
-                const response = await getAcademicYears();
-                setAcademicYears(response ?? []);
-            } catch (err: any) {
-                toast.error(err?.message ?? 'Failed to load academic years');
-            }
-        }
-        fetchYears();
-    }, []);
+                const { data } = await getExamGroupsByCategory(asmaY_Id, emcA_Id);
+                const examList = Array.isArray(data) ? data : [];
+                setExams(examList);
+                setValue('emcA_Id', detail.emcA_Id, {
+                    shouldValidate: true,
+                    shouldDirty: true,
+                    shouldTouch: true
+                });
 
-    // Fetch Categories
-    useEffect(() => {
-        if (!asmaY_Id) return;
-        async function fetchCategories() {
-            try {
-                const { data: response } = await getCategoryDropDownByAcademicYearlist(mI_Id, asmaY_Id);
-                setCategories((response ?? []) as ICategory[]);
-            } catch (err: any) {
-                toast.error(err?.message ?? 'Failed to load categories');
-            }
-        }
-        fetchCategories();
-    }, [asmaY_Id]);
-
-    // Fetch Exams (for Individual Exam)
-    useEffect(() => {
-        if (!emcA_Id) return;
-        async function fetchExams() {
-            if (esG_ExamPromotionFlag === 'IE') {
-                try {
-                    const { data } = await getExamGroupsByCategory(asmaY_Id, emcA_Id);
-                    setExams(data ?? []);
-                } catch (err: any) {
-                    toast.error(err?.message ?? 'Failed to load exams');
+                const matched = examList.find((e: any) => e.emE_Id === detail.emE_Id);
+                if (matched) {
+                    setValue('emE_Id', matched.emE_Id, {
+                        shouldTouch: true,
+                        shouldDirty: true
+                    });
+                    setTimeout(() => trigger('emE_Id'), 0);
                 }
+            } catch (err: any) {
+                toast.error('Failed to load exams');
             }
-        }
-        fetchExams();
-    }, [emcA_Id, esG_ExamPromotionFlag]);
+        };
 
-    // Fetch Subjects
+        loadExams();
+    }, [emcA_Id, esG_ExamPromotionFlag, asmaY_Id, detail, setValue, trigger]);
+
+    // Step 5: Load Subjects
     useEffect(() => {
-        async function fetchSubjects() {
-            if (!emcA_Id || !asmaY_Id) return;
+        if (!emcA_Id || !asmaY_Id) return;
+
+        const loadSubjects = async () => {
+            if (asmaY_Id === 0 || emcA_Id === 0) return;
             try {
                 if (esG_ExamPromotionFlag === 'IE') {
                     if (!emE_Id) return;
-                    const { data: response } = await getSubjectsForIndividualExam(mI_Id, emE_Id, asmaY_Id, emcA_Id);
-                    setSubjects((response ?? []) as IESubject[]);
+                    const response = await getSubjectsForIndividualExam(mI_Id, emE_Id, asmaY_Id, emcA_Id);
+                    setSubjects((response?.data || []) as IESubject[]);
                 } else {
-                    const { data } = await getSubjectsForPromotionalExam(mI_Id, asmaY_Id, emcA_Id);
-                    setSubjects((data ?? []) as IESubject[]);
+                    const response_ = await getSubjectsForPromotionalExam(mI_Id, asmaY_Id, emcA_Id);
+                    setSubjects((response_?.data || []) as IESubject[]);
                 }
             } catch (err: any) {
-                toast.error(err?.message ?? 'Failed to load subjects');
+                toast.error('Failed to load subjects');
             }
-        }
-        fetchSubjects();
-    }, [emE_Id, emcA_Id, asmaY_Id, esG_ExamPromotionFlag]);
+        };
+
+        loadSubjects();
+    }, [emE_Id, emcA_Id, asmaY_Id, esG_ExamPromotionFlag, mI_Id]);
 
     const onSubmit = async (data: FormFields) => {
         try {
-            const payload = { ...data, mI_Id, esG_Id: data.esG_Id || 0 };
+            const payload = { ...data, mI_Id, esG_Id: selectedRow.esG_Id || 0 };
             const res = await addOrUpdateYearlyCategoryDatesMapping(payload);
             if (res?.success) {
-                toast.success('Exam subject group updated successfully');
-                reset();
+                toast.success('Updated successfully');
                 onSuccess?.();
                 refetchAll();
             } else {
-                toast.error(res?.message ?? 'Update failed');
+                toast.error(res?.message || 'Update failed');
             }
         } catch (err: any) {
-            toast.error(err?.message ?? 'Failed to update');
+            toast.error(err?.message || 'Something went wrong');
         }
     };
 
@@ -201,35 +232,30 @@ export default function UpdateExamSubjectGroup({ mI_Id = 30, selectedRow, onSucc
         <div className='flex w-full flex-col gap-6'>
             <FormProvider {...methods}>
                 <form onSubmit={handleSubmit(onSubmit)} className='flex flex-col gap-6 rounded-2xl bg-white p-6 shadow-md' noValidate>
-                    <Tabs value={esG_ExamPromotionFlag} onValueChange={(val) => setValue('esG_ExamPromotionFlag', val as 'IE' | 'PE')}>
+                    <Tabs value={esG_ExamPromotionFlag} onValueChange={(v) => setValue('esG_ExamPromotionFlag', v as 'IE' | 'PE')}>
                         <TabsList className='mb-8 grid w-full max-w-md grid-cols-2'>
-                            <TabsTrigger value='IE' className='data-[state=active]:bg-[#a937f0] data-[state=active]:text-white'>
-                                Individual Exam
-                            </TabsTrigger>
-                            <TabsTrigger value='PE' className='data-[state=active]:bg-[#ae44f0] data-[state=active]:text-white'>
-                                Promotional Exam
-                            </TabsTrigger>
+                            <TabsTrigger value='IE'>Individual Exam</TabsTrigger>
+                            <TabsTrigger value='PE'>Promotional Exam</TabsTrigger>
                         </TabsList>
 
-                        <TabsContent value='IE'>
-                            <div className='grid grid-cols-2 gap-6'>
-                                <div className='space-y-4'>
-                                    {/* Academic Year */}
+                        <TabsContent value='IE' className='mt-6'>
+                            <div className='grid grid-cols-2 gap-8'>
+                                <div className='space-y-5'>
                                     <Controller
-                                        control={control}
                                         name='asmaY_Id'
+                                        control={control}
                                         render={({ field, fieldState }) => (
                                             <div>
                                                 <Label>
                                                     Academic Year <span className='text-red-500'>*</span>
                                                 </Label>
-                                                <Select value={String(field.value)} onValueChange={(val) => field.onChange(Number(val))}>
+                                                <Select value={String(field.value)} onValueChange={(v) => field.onChange(Number(v))}>
                                                     <SelectTrigger>
-                                                        <SelectValue placeholder='Select Academic Year' />
+                                                        <SelectValue placeholder='Select Year' />
                                                     </SelectTrigger>
                                                     <SelectContent>
                                                         {academicYears.map((y) => (
-                                                            <SelectItem key={y.asmaY_Id} value={String(y.asmaY_Id)}>
+                                                            <SelectItem key={y.asmaY_Id} value={y.asmaY_Id.toString()}>
                                                                 {y.asmaY_Year}
                                                             </SelectItem>
                                                         ))}
@@ -240,16 +266,15 @@ export default function UpdateExamSubjectGroup({ mI_Id = 30, selectedRow, onSucc
                                         )}
                                     />
 
-                                    {/* Category */}
                                     <Controller
-                                        control={control}
                                         name='emcA_Id'
+                                        control={control}
                                         render={({ field, fieldState }) => (
                                             <div>
                                                 <Label>
                                                     Exam Category <span className='text-red-500'>*</span>
                                                 </Label>
-                                                <Select value={String(field.value)} onValueChange={(val) => field.onChange(Number(val))}>
+                                                <Select value={String(field.value)} onValueChange={(v) => field.onChange(Number(v))}>
                                                     <SelectTrigger>
                                                         <SelectValue placeholder='Select Category' />
                                                     </SelectTrigger>
@@ -266,16 +291,15 @@ export default function UpdateExamSubjectGroup({ mI_Id = 30, selectedRow, onSucc
                                         )}
                                     />
 
-                                    {/* Exam */}
                                     <Controller
-                                        control={control}
                                         name='emE_Id'
+                                        control={control}
                                         render={({ field, fieldState }) => (
                                             <div>
                                                 <Label>
                                                     Exam <span className='text-red-500'>*</span>
                                                 </Label>
-                                                <Select value={String(field.value)} onValueChange={(val) => field.onChange(Number(val))}>
+                                                <Select value={String(field.value)} onValueChange={(v) => field.onChange(Number(v))}>
                                                     <SelectTrigger>
                                                         <SelectValue placeholder='Select Exam' />
                                                     </SelectTrigger>
@@ -292,28 +316,20 @@ export default function UpdateExamSubjectGroup({ mI_Id = 30, selectedRow, onSucc
                                         )}
                                     />
 
-                                    {/* Group Name */}
                                     <Controller
-                                        control={control}
                                         name='esG_SubjectGroupName'
                                         render={({ field, fieldState }) => (
                                             <div>
                                                 <Label>
                                                     Group Name <span className='text-red-500'>*</span>
                                                 </Label>
-                                                <input
-                                                    {...field}
-                                                    className='w-full rounded-md border px-3 py-2'
-                                                    placeholder='Enter Group Name'
-                                                />
+                                                <input {...field} className='w-full rounded-md border px-3 py-2' placeholder='Enter name' />
                                                 {fieldState.error && <FormError>{fieldState.error.message}</FormError>}
                                             </div>
                                         )}
                                     />
 
-                                    {/* Min Marks */}
                                     <Controller
-                                        control={control}
                                         name='esG_GroupMinMarks'
                                         render={({ field, fieldState }) => (
                                             <div>
@@ -322,18 +338,16 @@ export default function UpdateExamSubjectGroup({ mI_Id = 30, selectedRow, onSucc
                                                 </Label>
                                                 <input
                                                     type='number'
-                                                    className='w-full rounded-md border px-3 py-2'
-                                                    value={field.value}
+                                                    {...field}
                                                     onChange={(e) => field.onChange(Number(e.target.value))}
+                                                    className='w-full rounded-md border px-3 py-2'
                                                 />
                                                 {fieldState.error && <FormError>{fieldState.error.message}</FormError>}
                                             </div>
                                         )}
                                     />
 
-                                    {/* Max Marks */}
                                     <Controller
-                                        control={control}
                                         name='esG_GroupMaxMarks'
                                         render={({ field, fieldState }) => (
                                             <div>
@@ -342,9 +356,9 @@ export default function UpdateExamSubjectGroup({ mI_Id = 30, selectedRow, onSucc
                                                 </Label>
                                                 <input
                                                     type='number'
-                                                    className='w-full rounded-md border px-3 py-2'
-                                                    value={field.value}
+                                                    {...field}
                                                     onChange={(e) => field.onChange(Number(e.target.value))}
+                                                    className='w-full rounded-md border px-3 py-2'
                                                 />
                                                 {fieldState.error && <FormError>{fieldState.error.message}</FormError>}
                                             </div>
@@ -352,15 +366,14 @@ export default function UpdateExamSubjectGroup({ mI_Id = 30, selectedRow, onSucc
                                     />
                                 </div>
 
-                                <div className='space-y-4'>
+                                <div className='space-y-5'>
                                     <Controller
-                                        control={control}
                                         name='subjects_list'
                                         render={({ field, fieldState }) => (
                                             <CustomMultiSelectBox
                                                 label='Subjects'
                                                 options={subjects.map((s) => ({ label: s.ismS_SubjectName, value: String(s.ismS_Id) }))}
-                                                value={field.value?.map((v) => String(v.ismS_Id)) || []}
+                                                value={field.value?.map((s: { ismS_Id: any }) => String(s.ismS_Id)) || []}
                                                 onChange={(vals) => field.onChange(vals.map((id) => ({ ismS_Id: Number(id) })))}
                                                 isSearchRequired
                                                 height='220px'
@@ -370,40 +383,39 @@ export default function UpdateExamSubjectGroup({ mI_Id = 30, selectedRow, onSucc
                                     />
 
                                     <Controller
-                                        control={control}
                                         name='esG_CompulsoryFlag'
                                         render={({ field }) => (
-                                            <div className='flex items-center space-x-2'>
+                                            <div className='flex items-center gap-3'>
                                                 <Checkbox
                                                     checked={field.value === 'Y'}
-                                                    onCheckedChange={(checked) => field.onChange(checked ? 'Y' : 'N')}
+                                                    onCheckedChange={(c) => field.onChange(c ? 'Y' : 'N')}
                                                 />
-                                                <Label>Compulsory</Label>
+                                                <Label>Compulsory Group</Label>
                                             </div>
                                         )}
                                     />
                                 </div>
                             </div>
                         </TabsContent>
+
                         <TabsContent value='PE'>
-                            <div className='grid grid-cols-2 gap-6'>
-                                <div className='space-y-4'>
-                                    {/* Academic Year */}
+                            <div className='grid grid-cols-2 gap-8'>
+                                <div className='space-y-5'>
                                     <Controller
-                                        control={control}
                                         name='asmaY_Id'
+                                        control={control}
                                         render={({ field, fieldState }) => (
                                             <div>
                                                 <Label>
                                                     Academic Year <span className='text-red-500'>*</span>
                                                 </Label>
-                                                <Select value={String(field.value)} onValueChange={(val) => field.onChange(Number(val))}>
+                                                <Select value={String(field.value)} onValueChange={(v) => field.onChange(Number(v))}>
                                                     <SelectTrigger>
-                                                        <SelectValue placeholder='Select Academic Year' />
+                                                        <SelectValue placeholder='Select Year' />
                                                     </SelectTrigger>
                                                     <SelectContent>
                                                         {academicYears.map((y) => (
-                                                            <SelectItem key={y.asmaY_Id} value={String(y.asmaY_Id)}>
+                                                            <SelectItem key={y.asmaY_Id} value={y.asmaY_Id.toString()}>
                                                                 {y.asmaY_Year}
                                                             </SelectItem>
                                                         ))}
@@ -414,16 +426,15 @@ export default function UpdateExamSubjectGroup({ mI_Id = 30, selectedRow, onSucc
                                         )}
                                     />
 
-                                    {/* Category */}
                                     <Controller
-                                        control={control}
                                         name='emcA_Id'
+                                        control={control}
                                         render={({ field, fieldState }) => (
                                             <div>
                                                 <Label>
                                                     Exam Category <span className='text-red-500'>*</span>
                                                 </Label>
-                                                <Select value={String(field.value)} onValueChange={(val) => field.onChange(Number(val))}>
+                                                <Select value={String(field.value)} onValueChange={(v) => field.onChange(Number(v))}>
                                                     <SelectTrigger>
                                                         <SelectValue placeholder='Select Category' />
                                                     </SelectTrigger>
@@ -440,28 +451,20 @@ export default function UpdateExamSubjectGroup({ mI_Id = 30, selectedRow, onSucc
                                         )}
                                     />
 
-                                    {/* Group Name */}
                                     <Controller
-                                        control={control}
                                         name='esG_SubjectGroupName'
                                         render={({ field, fieldState }) => (
                                             <div>
                                                 <Label>
                                                     Group Name <span className='text-red-500'>*</span>
                                                 </Label>
-                                                <input
-                                                    {...field}
-                                                    className='w-full rounded-md border px-3 py-2'
-                                                    placeholder='Enter Group Name'
-                                                />
+                                                <input {...field} className='w-full rounded-md border px-3 py-2' placeholder='Enter name' />
                                                 {fieldState.error && <FormError>{fieldState.error.message}</FormError>}
                                             </div>
                                         )}
                                     />
 
-                                    {/* Min Marks */}
                                     <Controller
-                                        control={control}
                                         name='esG_GroupMinMarks'
                                         render={({ field, fieldState }) => (
                                             <div>
@@ -470,18 +473,16 @@ export default function UpdateExamSubjectGroup({ mI_Id = 30, selectedRow, onSucc
                                                 </Label>
                                                 <input
                                                     type='number'
-                                                    className='w-full rounded-md border px-3 py-2'
-                                                    value={field.value}
+                                                    {...field}
                                                     onChange={(e) => field.onChange(Number(e.target.value))}
+                                                    className='w-full rounded-md border px-3 py-2'
                                                 />
                                                 {fieldState.error && <FormError>{fieldState.error.message}</FormError>}
                                             </div>
                                         )}
                                     />
 
-                                    {/* Max Marks */}
                                     <Controller
-                                        control={control}
                                         name='esG_GroupMaxMarks'
                                         render={({ field, fieldState }) => (
                                             <div>
@@ -490,9 +491,9 @@ export default function UpdateExamSubjectGroup({ mI_Id = 30, selectedRow, onSucc
                                                 </Label>
                                                 <input
                                                     type='number'
-                                                    className='w-full rounded-md border px-3 py-2'
-                                                    value={field.value}
+                                                    {...field}
                                                     onChange={(e) => field.onChange(Number(e.target.value))}
+                                                    className='w-full rounded-md border px-3 py-2'
                                                 />
                                                 {fieldState.error && <FormError>{fieldState.error.message}</FormError>}
                                             </div>
@@ -500,15 +501,14 @@ export default function UpdateExamSubjectGroup({ mI_Id = 30, selectedRow, onSucc
                                     />
                                 </div>
 
-                                <div className='space-y-4'>
+                                <div className='space-y-5'>
                                     <Controller
-                                        control={control}
                                         name='subjects_list'
                                         render={({ field, fieldState }) => (
                                             <CustomMultiSelectBox
                                                 label='Subjects'
                                                 options={subjects.map((s) => ({ label: s.ismS_SubjectName, value: String(s.ismS_Id) }))}
-                                                value={field.value?.map((v) => String(v.ismS_Id)) || []}
+                                                value={field.value?.map((s: { ismS_Id: any }) => String(s.ismS_Id)) || []}
                                                 onChange={(vals) => field.onChange(vals.map((id) => ({ ismS_Id: Number(id) })))}
                                                 isSearchRequired
                                                 height='220px'
@@ -518,15 +518,14 @@ export default function UpdateExamSubjectGroup({ mI_Id = 30, selectedRow, onSucc
                                     />
 
                                     <Controller
-                                        control={control}
                                         name='esG_CompulsoryFlag'
                                         render={({ field }) => (
-                                            <div className='flex items-center space-x-2'>
+                                            <div className='flex items-center gap-3'>
                                                 <Checkbox
                                                     checked={field.value === 'Y'}
-                                                    onCheckedChange={(checked) => field.onChange(checked ? 'Y' : 'N')}
+                                                    onCheckedChange={(c) => field.onChange(c ? 'Y' : 'N')}
                                                 />
-                                                <Label>Compulsory</Label>
+                                                <Label>Compulsory Group</Label>
                                             </div>
                                         )}
                                     />
@@ -535,9 +534,9 @@ export default function UpdateExamSubjectGroup({ mI_Id = 30, selectedRow, onSucc
                         </TabsContent>
                     </Tabs>
 
-                    <div className='mt-4 flex w-fit justify-start gap-4'>
+                    <div className='mt-6 flex gap-3'>
                         <Button type='submit' disabled={isSubmitting}>
-                            {isSubmitting ? 'Saving...' : 'Update'}
+                            {isSubmitting ? 'Saving...' : 'Update Group'}
                         </Button>
                         <Button type='button' variant='outline' onClick={() => reset()}>
                             Reset
