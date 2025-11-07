@@ -67,6 +67,13 @@ export interface IMasterClassDropDown {
     asmcL_ClassName: string;
     asmcL_Order: number;
 }
+export interface IMasterClassSectionDropDown {
+    imcT_Id: number;
+    asmcL_Id: number;
+    asmcL_ClassName: string;
+    asmS_Id: number;
+    asmC_SectionName: string;
+}
 export interface IMasterSectionDropDown {
     asmS_Id: number;
     asmC_SectionCode: string;
@@ -188,4 +195,14 @@ export interface IMasterConfiguration {
     ispaC_OfflineFee_Flag: 0 | 1;
     ispaC_ApplNoIncrementFlg: boolean;
     ispaC_ApplNoIncrementBy: number;
+}
+
+export interface IMasterClassTeacherList {
+    imcT_Id: number;
+    asmaY_Year: string;
+    asmcL_ClassName: string;
+    asmC_SectionName: string;
+    employee_code: string;
+    employee_name: string;
+    imcT_ActiveFlag: boolean;
 }

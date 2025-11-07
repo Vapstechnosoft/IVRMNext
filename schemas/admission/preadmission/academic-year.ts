@@ -66,10 +66,6 @@ export const PreAdmissionAcademicYearSchema = {
             .union([z.number(), z.boolean()])
             .transform((val) => (typeof val === 'boolean' ? (val ? 1 : 0) : val))
             .default(0),
-        asmaY_Pre_ActiveFlag: z
-            .union([z.number(), z.boolean()])
-            .transform((val) => (typeof val === 'boolean' ? (val ? 1 : 0) : val))
-            .default(0),
 
         asmaY_TransportSDate: dateSchema('Transport Start Date', true).optional(),
         asmaY_TransportEDate: dateSchema('Transport End Date', true).optional(),
@@ -93,6 +89,12 @@ export const PreAdmissionAcademicYearSchema = {
             .optional(),
 
         asmaY_NewAdmissionFlg: z
+            .union([z.boolean(), z.number()])
+            .transform((val) => Boolean(val))
+            .default(false)
+            .optional(),
+
+        asmaY_Pre_ActiveFlag: z
             .union([z.boolean(), z.number()])
             .transform((val) => Boolean(val))
             .default(false)
