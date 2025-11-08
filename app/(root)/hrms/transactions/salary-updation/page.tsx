@@ -10,7 +10,7 @@ import { HRMS_MI_ID } from '@/constants/hrms-config';
 import { useSalaryUpdationList } from '@/hooks/hrms/useTransactions';
 import type { SalaryUpdationItem } from '@/types/hrms/salary-updation';
 import { Plus, RefreshCw, X } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import { salaryUpdationColumns } from './_components/columns';
@@ -50,13 +50,14 @@ function SalaryUpdationPageContent({
     const [selectedEmployees, setSelectedEmployees] = useState<number[]>([]);
     
     // Safely extract data with proper defaults to prevent hydration mismatches
-    const groupTypes = response?.groupTypedropdownlist || [];
-    const departments = response?.departmentdropdownlist || [];
-    const designations = response?.designationdropdownlist || [];
-    const employees = response?.employeedropdown || [];
-    const earningHeads = response?.earningdeductiondetails || [];
-    const monthOptions = response?.monthdropdown || [];
-    const leaveYearOptions = response?.leaveyeardropdown || [];
+    // Use useMemo to prevent unnecessary re-renders and infinite loops
+    const groupTypes = useMemo(() => response?.groupTypedropdownlist || [], [response?.groupTypedropdownlist]);
+    const departments = useMemo(() => response?.departmentdropdownlist || [], [response?.departmentdropdownlist]);
+    const designations = useMemo(() => response?.designationdropdownlist || [], [response?.designationdropdownlist]);
+    const employees = useMemo(() => response?.employeedropdown || [], [response?.employeedropdown]);
+    const earningHeads = useMemo(() => response?.earningdeductiondetails || [], [response?.earningdeductiondetails]);
+    const monthOptions = useMemo(() => response?.monthdropdown || [], [response?.monthdropdown]);
+    const leaveYearOptions = useMemo(() => response?.leaveyeardropdown || [], [response?.leaveyeardropdown]);
 
     // Initialize date values client-side only to prevent hydration mismatches
     const [isClient, setIsClient] = useState(false);
@@ -102,13 +103,8 @@ function SalaryUpdationPageContent({
     const watchedDepartment = watch('department');
     const watchedDesignation = watch('designation');
 
-    useEffect(() => {
-        if (hasSearched) {
-            filterEmployees();
-        }
-    }, [watchedGroupType, watchedDepartment, watchedDesignation, employees, hasSearched]);
-
-    const filterEmployees = () => {
+    // Memoize filterEmployees to prevent infinite loops
+    const filterEmployees = useCallback(() => {
         let filtered = employees;
 
         if (watchedGroupType && watchedGroupType !== 'All') {
@@ -133,7 +129,14 @@ function SalaryUpdationPageContent({
         }
 
         setFilteredEmployees(filtered);
-    };
+    }, [watchedGroupType, watchedDepartment, watchedDesignation, employees, groupTypes, departments, designations]);
+
+    // Only filter when search is triggered or filter criteria change
+    useEffect(() => {
+        if (hasSearched) {
+            filterEmployees();
+        }
+    }, [hasSearched, watchedGroupType, watchedDepartment, watchedDesignation, filterEmployees]);
 
     const onSubmit = async (data: any) => {
         try {

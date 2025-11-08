@@ -1,6 +1,6 @@
 'use server';
 
-import { api } from '@/lib/apiService';
+import { api, type ApiResponse } from '@/lib/apiService';
 import { HRMS_MI_ID } from '@/constants/hrms-config';
 import type {
     EmployeeAddressDetailsRequest,
@@ -54,6 +54,50 @@ import type {
     SavePersonalDetailsResponse
 } from '@/types/hrms/employee-register';
 
+/**
+ * Helper function to properly serialize errors for Next.js server actions
+ * This ensures errors are properly serialized and can be sent to the client
+ */
+function serializeError(error: any, defaultMessage: string = 'An error occurred'): Error {
+    let errorMessage = defaultMessage;
+    
+    // Check if this is an error from using 'in' operator on a string
+    // Preserve the original error message so we can extract the string value from it
+    if (error?.message && error.message.includes("Cannot use 'in' operator")) {
+        // Keep the original message so we can extract the string value (like "Update", "Add", "Duplicate")
+        // The message format is: "Cannot use 'in' operator to search for 'success' in [string]"
+        errorMessage = error.message; // Preserve original message instead of generic message
+    } else if (error?.response?.data) {
+        // Try to extract meaningful error message from API response
+        const apiError = error.response.data;
+        // Check if apiError is an object before using 'in' operator
+        const isObject = typeof apiError === 'object' && apiError !== null;
+        if (typeof apiError === 'string') {
+            errorMessage = apiError;
+        } else if (isObject && apiError?.message) {
+            errorMessage = apiError.message;
+        } else if (isObject && apiError?.error) {
+            errorMessage = apiError.error;
+        } else if (isObject && apiError?.errors && Array.isArray(apiError.errors)) {
+            errorMessage = apiError.errors.map((e: any) => e.message || e).join(', ');
+        } else if (error.response.status) {
+            errorMessage = `Request failed with status ${error.response.status}`;
+        }
+    } else if (error?.message) {
+        errorMessage = error.message;
+    } else if (typeof error === 'string') {
+        errorMessage = error;
+    }
+    
+    // Create a new Error object that is serializable
+    const serializableError = new Error(errorMessage);
+    // Preserve status code if available
+    if (error?.response?.status) {
+        (serializableError as any).status = error.response.status;
+    }
+    return serializableError;
+}
+
 export async function getEmployeeRegisterOnload(payload: EmployeeRegisterOnloadRequest) {
     const url = '/api/EmployeeRegistrationNew/onloadgetdetails';
     
@@ -76,7 +120,7 @@ export async function getEmployeeRegisterOnload(payload: EmployeeRegisterOnloadR
         return wrappedResponse;
     } catch (error: any) {
         console.error('🔍 [SERVER] getEmployeeRegisterOnload ERROR:', error?.message);
-        throw error;
+        throw serializeError(error, 'Failed to load employee registration data');
     }
 }
 
@@ -408,7 +452,7 @@ export async function getEmployeeById(id: number) {
         };
     } catch (error: any) {
         console.error('🔍 [EDIT] ERROR:', error?.message);
-        throw error;
+        throw serializeError(error, 'Failed to fetch employee details');
     }
 }
 
@@ -436,7 +480,7 @@ export async function saveQualification(qualifications: SaveQualificationRequest
             data: response as unknown as SaveQualificationResponse
         };
     } catch (error: any) {
-        throw error;
+        throw serializeError(error, 'Failed to save qualification details');
     }
 }
 
@@ -486,16 +530,33 @@ export async function savePersonalDetails(payload: SavePersonalDetailsRequest) {
             Photo: payload.HRME_Photo ? `${(payload.HRME_Photo.length / 1024).toFixed(0)}KB` : 'No photo'
         });
         
+        // Use api.post like other modules (preadmission, etc.)
+        // Note: This endpoint returns string responses like "Update", "Add", "Duplicate"
+        // The apiService will throw an error when response is a string due to 'in' operator check
+        // We handle this in the outer catch block
         const response = await api.post<SavePersonalDetailsResponse>('hrms', url, payload);
         
         console.log('🔍 [OTHER DETAILS SAVE] Server-side - Response received:', {
-            success: typeof response === 'object' && 'success' in response ? (response as any).success : typeof response === 'string',
-            message: typeof response === 'object' && 'message' in response ? (response as any).message : typeof response === 'string' ? response : 'No message',
+            success: typeof response === 'object' && response !== null && 'success' in response ? (response as any).success : typeof response === 'string',
+            message: typeof response === 'object' && response !== null && 'message' in response ? (response as any).message : typeof response === 'string' ? response : 'No message',
             dataType: typeof response,
-            responseKeys: typeof response === 'object' ? Object.keys(response) : []
+            responseKeys: typeof response === 'object' && response !== null ? Object.keys(response) : []
         });
         
-        // Check if response is directly a string (like "Add", "Update", "Duplicate")
+        // Check if response.data is a string (like "Add", "Update", "Duplicate")
+        // The API might return the string in the data field
+        const responseData = (response as any)?.data;
+        if (typeof responseData === 'string') {
+            const stringResponse = responseData;
+            console.log('🔍 [SAVE] String response in data field:', stringResponse);
+            return {
+                success: stringResponse !== 'Duplicate',
+                message: stringResponse,
+                data: stringResponse as unknown as SavePersonalDetailsResponse
+            };
+        }
+        
+        // Check if response itself is a string (like "Add", "Update", "Duplicate")
         if (typeof response === 'string') {
             console.log('🔍 [SAVE] String response:', response);
             return {
@@ -503,6 +564,11 @@ export async function savePersonalDetails(payload: SavePersonalDetailsRequest) {
                 message: response,
                 data: response as unknown as SavePersonalDetailsResponse
             };
+        }
+        
+        // Check if response has success property and handle accordingly
+        if (typeof response === 'object' && response !== null && 'success' in response) {
+            return response as ApiResponse<SavePersonalDetailsResponse>;
         }
         
         // Wrap response if needed
@@ -513,19 +579,118 @@ export async function savePersonalDetails(payload: SavePersonalDetailsRequest) {
         };
     } catch (error: any) {
         console.error('🔍 [OTHER DETAILS SAVE] Server-side - Error:', {
-            message: error?.message,
+            message: typeof error === 'string' ? error : error?.message,
             status: error?.response?.status,
             statusText: error?.response?.statusText,
             data: error?.response?.data,
             validationErrors: error?.response?.data?.errors,
-            fullError: error
+            fullError: error,
+            errorType: typeof error,
+            errorKeys: typeof error === 'object' && error !== null ? Object.keys(error) : []
         });
-        console.error('🔍 [SAVE] ERROR:', error?.message);
+        console.error('🔍 [SAVE] ERROR:', typeof error === 'string' ? error : error?.message);
         console.error('🔍 [SAVE] Status:', error?.response?.status);
         if (error?.response?.data) {
             console.error('🔍 [SAVE] API Error:', error.response.data);
         }
-        throw error;
+        
+        // Create a proper error message for production
+        let errorMessage = 'Failed to save employee details';
+        let stringResponse: string | null = null;
+        
+        // First, try to extract string response from error message before serialization
+        // The TypeError message contains the actual string value: "Cannot use 'in' operator to search for 'success' in Update"
+        const errorMessageText = typeof error === 'string' ? error : error?.message || '';
+        if (errorMessageText.includes("Cannot use 'in' operator")) {
+            // Try multiple regex patterns to extract the string value from error message
+            const patterns = [
+                /in\s+['"]?([A-Za-z]+)['"]?/i,  // "in 'Update'" or "in Update"  
+                /in\s+([A-Za-z]+)/i,            // "in Update"
+                /'([A-Za-z]+)'/                 // 'Update' in quotes
+            ];
+            
+            for (const pattern of patterns) {
+                const match = errorMessageText.match(pattern);
+                if (match && match[1]) {
+                    const extractedString = match[1];
+                    // Check if it's one of the expected values
+                    if (['Update', 'Add', 'Duplicate'].includes(extractedString)) {
+                        stringResponse = extractedString;
+                        console.log('🔍 [SAVE] Extracted string from error message:', stringResponse);
+                        break;
+                    }
+                }
+            }
+        }
+        
+        // Handle case where error is a string (from apiService.handleError)
+        if (typeof error === 'string') {
+            if (stringResponse) {
+                // We already extracted the string, use it
+                errorMessage = stringResponse;
+            } else if (error.includes("Cannot use 'in' operator")) {
+                errorMessage = 'API returned an unexpected response format. The operation may have succeeded.';
+            } else {
+                errorMessage = error;
+            }
+        } else if (error?.response?.data) {
+            // Try to extract meaningful error message from API response
+            const apiError = error.response.data;
+            // Check if apiError is a string (like "Update", "Add", "Duplicate") - this is actually success!
+            if (typeof apiError === 'string') {
+                stringResponse = apiError;
+            } else if (apiError?.message) {
+                errorMessage = apiError.message;
+            } else if (apiError?.error) {
+                errorMessage = apiError.error;
+            } else if (apiError?.errors && Array.isArray(apiError.errors)) {
+                errorMessage = apiError.errors.map((e: any) => e.message || e).join(', ');
+            }
+        } else if (error?.message) {
+            // Check if error.message contains the 'in' operator error and try to extract string
+            if (error.message.includes("Cannot use 'in' operator")) {
+                // Try multiple regex patterns to extract the string
+                const patterns = [
+                    /in\s+['"]?([A-Za-z]+)['"]?/i,  // "in 'Update'" or "in Update"
+                    /in\s+([A-Za-z]+)/i,            // "in Update"
+                    /'([A-Za-z]+)'/                 // 'Update' in quotes
+                ];
+                
+                for (const pattern of patterns) {
+                    const match = error.message.match(pattern);
+                    if (match && match[1]) {
+                        const extractedString = match[1];
+                        if (['Update', 'Add', 'Duplicate'].includes(extractedString)) {
+                            stringResponse = extractedString;
+                            break;
+                        }
+                    }
+                }
+                
+                if (!stringResponse) {
+                    errorMessage = 'API returned an unexpected response format. The operation may have succeeded.';
+                }
+            } else {
+                errorMessage = error.message;
+            }
+        }
+        
+        // If we found a string response, return it as success
+        if (stringResponse) {
+            console.log('🔍 [SAVE] Extracted string response from error:', stringResponse);
+            return {
+                success: stringResponse !== 'Duplicate',
+                message: stringResponse,
+                data: stringResponse as unknown as SavePersonalDetailsResponse
+            };
+        }
+        
+        // Throw a serialized error (convert string to Error object if needed)
+        if (typeof error === 'string') {
+            throw serializeError(new Error(error), errorMessage);
+        } else {
+            throw serializeError(error, errorMessage);
+        }
     }
 }
 
@@ -587,7 +752,7 @@ export async function saveDocumentDetails(documents: SaveDocumentDetailsRequest[
             data: response as unknown as SaveDocumentDetailsResponse
         };
     } catch (error: any) {
-        throw error;
+        throw serializeError(error, 'Failed to save document details');
     }
 }
 
@@ -663,7 +828,7 @@ export async function saveMedicalDetails(payload: SaveMedicalDetailsRequest) {
             console.error('🔍 [MEDICAL SAVE] Server-side - Validation Errors:', JSON.stringify(validationErrors, null, 2));
         }
         
-        throw error;
+        throw serializeError(error, 'Failed to save medical details');
     }
 }
 
@@ -795,7 +960,7 @@ export async function saveEarningDetails(earnings: SaveEarningDetailsRequest[]) 
             data: error.response?.data,
             fullError: error
         });
-        throw error;
+        throw serializeError(error, 'Failed to save earning details');
     }
 }
 
@@ -849,7 +1014,7 @@ export async function saveArrearDetails(arrears: SaveArrearDetailsRequest[]) {
             data: error.response?.data,
             fullError: error
         });
-        throw error;
+        throw serializeError(error, 'Failed to save arrear details');
     }
 }
 
@@ -903,7 +1068,7 @@ export async function saveDeductionDetails(deductions: SaveDeductionDetailsReque
             data: error.response?.data,
             fullError: error
         });
-        throw error;
+        throw serializeError(error, 'Failed to save deduction details');
     }
 }
 

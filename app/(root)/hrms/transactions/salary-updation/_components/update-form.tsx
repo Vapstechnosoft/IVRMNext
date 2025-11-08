@@ -14,7 +14,7 @@ import type { SalaryUpdationItem, SalaryUpdationOnloadResponse } from '@/types/h
 import { zodResolver } from '@hookform/resolvers/zod';
 import { format } from 'date-fns';
 import { CalendarIcon, Save } from 'lucide-react';
-import { useEffect } from 'react';
+import { useEffect, useMemo } from 'react';
 import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import type { z } from 'zod';
@@ -98,7 +98,8 @@ export default function UpdateSalaryUpdationForm({ selectedRow, onloadData, onSu
         });
     };
 
-    const employees = onloadData?.employeedropdown || [];
+    // Memoize arrays to prevent unnecessary re-renders
+    const employees = useMemo(() => onloadData?.employeedropdown || [], [onloadData?.employeedropdown]);
 
     return (
         <div className={className}>
@@ -121,7 +122,7 @@ export default function UpdateSalaryUpdationForm({ selectedRow, onloadData, onSu
                                             <SelectValue placeholder='Select employee' />
                                         </SelectTrigger>
                                         <SelectContent>
-                                            {employees.map((emp) => (
+                                            {employees.map((emp: any) => (
                                                 <SelectItem key={emp.HRME_Id} value={String(emp.HRME_Id)}>
                                                     {emp.HRME_EmployeeCode} - {emp.HRME_EmployeeFirstName} {emp.HRME_EmployeeLastName}
                                                 </SelectItem>

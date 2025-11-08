@@ -20,7 +20,7 @@ import type {
 } from '@/types/hrms/mass-updation';
 import type { ColumnDef } from '@tanstack/react-table';
 import { Search, Users, X } from 'lucide-react';
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 
@@ -92,17 +92,26 @@ export default function MassUpdationPage() {
     }, [onloadData, isLoading]);
 
     // Handle both field name variants (with and without 'list' suffix)
-    // Check length to properly fallback (empty array [] is truthy, so || won't work)
-    const groupTypes = (onloadData?.groupTypedropdownlist && onloadData.groupTypedropdownlist.length > 0) 
-        ? onloadData.groupTypedropdownlist 
-        : (onloadData?.groupTypedropdown || []);
-    const departments = (onloadData?.departmentdropdownlist && onloadData.departmentdropdownlist.length > 0)
-        ? onloadData.departmentdropdownlist
-        : (onloadData?.departmentdropdown || []);
-    const designations = (onloadData?.designationdropdownlist && onloadData.designationdropdownlist.length > 0)
-        ? onloadData.designationdropdownlist
-        : (onloadData?.designationdropdown || []);
-    const heads = onloadData?.headdropdown || [];
+    // Memoize arrays to prevent unnecessary re-renders
+    const groupTypes = useMemo(() => {
+        return (onloadData?.groupTypedropdownlist && onloadData.groupTypedropdownlist.length > 0) 
+            ? onloadData.groupTypedropdownlist 
+            : (onloadData?.groupTypedropdown || []);
+    }, [onloadData?.groupTypedropdownlist, onloadData?.groupTypedropdown]);
+    
+    const departments = useMemo(() => {
+        return (onloadData?.departmentdropdownlist && onloadData.departmentdropdownlist.length > 0)
+            ? onloadData.departmentdropdownlist
+            : (onloadData?.departmentdropdown || []);
+    }, [onloadData?.departmentdropdownlist, onloadData?.departmentdropdown]);
+    
+    const designations = useMemo(() => {
+        return (onloadData?.designationdropdownlist && onloadData.designationdropdownlist.length > 0)
+            ? onloadData.designationdropdownlist
+            : (onloadData?.designationdropdown || []);
+    }, [onloadData?.designationdropdownlist, onloadData?.designationdropdown]);
+    
+    const heads = useMemo(() => onloadData?.headdropdown || [], [onloadData?.headdropdown]);
 
     // Debug log the final values
     React.useEffect(() => {
@@ -125,26 +134,8 @@ export default function MassUpdationPage() {
         return filtered;
     }, [heads, watchedEarningDeduction, watchedUpdateType]);
 
-    useEffect(() => {
-        if (hasSearched) {
-            filterEmployees();
-        }
-    }, [watchedGroupType, watchedDepartment, watchedDesignation, employees, hasSearched]);
-
-    useEffect(() => {
-        const currentHead = getValues('selectedHead');
-        if (currentHead) {
-            const isValidHead = filteredHeads.some((head) => head.HRMED_Id.toString() === currentHead);
-            if (!isValidHead) {
-                reset({
-                    ...getValues(),
-                    selectedHead: ''
-                });
-            }
-        }
-    }, [filteredHeads, getValues, reset]);
-
-    const filterEmployees = () => {
+    // Memoize filterEmployees to prevent infinite loops
+    const filterEmployees = useCallback(() => {
         let filtered = employees;
 
         if (watchedGroupType && watchedGroupType.length > 0) {
@@ -163,7 +154,13 @@ export default function MassUpdationPage() {
         }
 
         setFilteredEmployees(filtered);
-    };
+    }, [watchedGroupType, watchedDepartment, watchedDesignation, employees]);
+
+    useEffect(() => {
+        if (hasSearched) {
+            filterEmployees();
+        }
+    }, [hasSearched, filterEmployees]);
 
     const onSubmit: SubmitHandler<MassUpdateForm> = async (data: MassUpdateForm) => {
         const searchPayload = {

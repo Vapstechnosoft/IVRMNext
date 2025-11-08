@@ -14,7 +14,7 @@ import type { SalaryIncrementGridItem, SalaryIncrementOnloadResponse } from '@/t
 import { zodResolver } from '@hookform/resolvers/zod';
 import { format } from 'date-fns';
 import { CalendarIcon, Save } from 'lucide-react';
-import { useEffect } from 'react';
+import { useEffect, useMemo } from 'react';
 import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import type { z } from 'zod';
@@ -102,8 +102,9 @@ export default function UpdateSalaryIncrementForm({ selectedRow, onloadData, onS
         });
     };
 
-    const employees = onloadData?.employeelist || [];
-    const _earningDeductions = onloadData?.earningdeductiontype || [];
+    // Memoize arrays to prevent unnecessary re-renders
+    const employees = useMemo(() => onloadData?.employeelist || [], [onloadData?.employeelist]);
+    const _earningDeductions = useMemo(() => onloadData?.earningdeductiontype || [], [onloadData?.earningdeductiontype]);
 
     return (
         <div className={className}>
@@ -126,7 +127,7 @@ export default function UpdateSalaryIncrementForm({ selectedRow, onloadData, onS
                                             <SelectValue placeholder='Select employee' />
                                         </SelectTrigger>
                                         <SelectContent>
-                                            {employees.map((emp) => (
+                                            {employees.map((emp: any) => (
                                                 <SelectItem key={emp.HRME_Id} value={String(emp.HRME_Id)}>
                                                     {emp.HRME_EmployeeCode} - {emp.HRME_EmployeeFirstName} {emp.HRME_EmployeeLastName}
                                                 </SelectItem>

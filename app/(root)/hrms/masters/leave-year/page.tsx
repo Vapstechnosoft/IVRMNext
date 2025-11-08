@@ -8,7 +8,7 @@ import { HRMS_MI_ID } from '@/constants/hrms-config';
 import { useMasterLeaveYear } from '@/hooks/hrms/useMasters';
 import type { LeaveYearDetail } from '@/types/hrms/master-leave-year';
 import { ListOrdered, Plus, Save, X } from 'lucide-react';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { toast } from 'sonner';
 import { columns, getEditableColumns } from './_components/columns';
 import LeaveYearForm from './_components/leave-year-form';
@@ -39,7 +39,8 @@ function MasterLeaveYearPageContent({
 }) {
     const { openAddForm } = useFormContext<LeaveYearDetail>();
     const { saveOrderMutation } = useMasterLeaveYear(HRMS_MI_ID);
-    const rows: LeaveYearDetail[] = response?.leaveYearList ?? [];
+    // Memoize array to prevent unnecessary re-renders
+    const rows: LeaveYearDetail[] = useMemo(() => response?.leaveYearList ?? [], [response?.leaveYearList]);
 
     // Minimal logging - only when data changes
     // console.log('📊 [LEAVE YEAR PAGE] rows count:', rows.length);

@@ -17,7 +17,7 @@ import type { EarningDeductionType, SalaryIncrementDeleteRequest, SalaryIncremen
 import type { ColumnDef } from '@tanstack/react-table';
 import { format } from 'date-fns';
 import { CalendarIcon, Plus, RefreshCw, TrendingUp, X } from 'lucide-react';
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import FormSections from './_components/form-sections';
@@ -107,8 +107,9 @@ function SalaryIncrementProcessPageContent({
     const saveMutation = useSaveSalaryIncrement();
     const deleteMutation = useDeleteSalaryIncrement();
 
-    const earningHeads = onloadData?.earningdeductiontype || [];
-    const gridData = onloadData?.griddata || [];
+    // Memoize arrays to prevent unnecessary re-renders
+    const earningHeads = useMemo(() => onloadData?.earningdeductiontype || [], [onloadData?.earningdeductiontype]);
+    const gridData = useMemo(() => onloadData?.griddata || [], [onloadData?.griddata]);
 
     useEffect(() => {
         console.log('=== Salary Increment Onload Response ===');
@@ -207,13 +208,14 @@ function SalaryIncrementProcessPageContent({
         }
     }, [onloadData]);
 
-    useEffect(() => {
-        filterEmployees();
+    // Memoize filterEmployees to prevent infinite loops
+    const filterEmployees = useCallback(() => {
+        setFilteredEmployees(employees);
     }, [employees]);
 
-    const filterEmployees = () => {
-        setFilteredEmployees(employees);
-    };
+    useEffect(() => {
+        filterEmployees();
+    }, [filterEmployees]);
 
     const handleIncrementClick = () => {
         setIsFormOpen(true);

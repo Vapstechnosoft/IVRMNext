@@ -8,7 +8,7 @@ import { HRMS_MI_ID } from '@/constants/hrms-config';
 import { useMasterEarningsDeductions } from '@/hooks/hrms/useMasters';
 import type { EarningsDeductionDetail } from '@/types/hrms/master-earnings-deductions';
 import { ListOrdered, Plus, Save, X } from 'lucide-react';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { toast } from 'sonner';
 import { columns, getEditableColumns } from './_components/columns';
 import EarningsDeductionsForm from './_components/earnings-deductions-form';
@@ -39,8 +39,9 @@ function MasterEarningsDeductionsPageContent({
 }) {
     const { openAddForm } = useFormContext<EarningsDeductionDetail>();
     const { saveOrderMutation } = useMasterEarningsDeductions(HRMS_MI_ID);
-    const rows: EarningsDeductionDetail[] = response?.earningdetectionList ?? [];
-    const typeDropdown = response?.eardettypeDropdown ?? [];
+    // Memoize arrays to prevent unnecessary re-renders
+    const rows: EarningsDeductionDetail[] = useMemo(() => response?.earningdetectionList ?? [], [response?.earningdetectionList]);
+    const typeDropdown = useMemo(() => response?.eardettypeDropdown ?? [], [response?.eardettypeDropdown]);
 
     const [isEditOrderMode, setIsEditOrderMode] = useState(false);
     const [editedRows, setEditedRows] = useState<EarningsDeductionDetail[]>([]);

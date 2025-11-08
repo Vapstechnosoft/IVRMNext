@@ -25,12 +25,10 @@ export default function EmployeeProfileReportPage() {
     const filterMutation = useFilterEmployeesBySelection();
     const searchMutation = useSearchEmployeeProfileDetails();
 
-    // Extract dropdown data from onload response
-    // onloadData from useQuery is ApiResponse<EmployeeProfileReportResponse>
-    // onloadData.data is EmployeeProfileReportResponse
-    const groupTypes = onloadData?.data?.groupTypedropdown || [];
-    const departments = onloadData?.data?.departmentdropdown || [];
-    const designations = onloadData?.data?.designationdropdown || [];
+    // Memoize arrays to prevent unnecessary re-renders
+    const groupTypes = useMemo(() => onloadData?.data?.groupTypedropdown || [], [onloadData?.data?.groupTypedropdown]);
+    const departments = useMemo(() => onloadData?.data?.departmentdropdown || [], [onloadData?.data?.departmentdropdown]);
+    const designations = useMemo(() => onloadData?.data?.designationdropdown || [], [onloadData?.data?.designationdropdown]);
     
     // Memoize onload employee dropdown to prevent unnecessary re-renders
     const onloadEmployees = useMemo(() => onloadData?.data?.employeedropdown || [], [onloadData?.data?.employeedropdown]);

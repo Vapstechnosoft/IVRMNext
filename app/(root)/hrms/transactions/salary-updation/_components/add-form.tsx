@@ -16,6 +16,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { format } from 'date-fns';
 import { CalendarIcon, Save } from 'lucide-react';
 import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
+import { useMemo } from 'react';
 import { toast } from 'sonner';
 import type { z } from 'zod';
 
@@ -81,7 +82,8 @@ export default function AddSalaryUpdationForm({ onloadData, onSuccess, className
         reset();
     };
 
-    const employees = onloadData?.employeedropdown || [];
+    // Memoize arrays to prevent unnecessary re-renders
+    const employees = useMemo(() => onloadData?.employeedropdown || [], [onloadData?.employeedropdown]);
 
     return (
         <div className={className}>

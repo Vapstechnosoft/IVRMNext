@@ -51,12 +51,12 @@ export default function LoanReportPage() {
     const filterMutation = useFilterEmployeesForLoanReport();
     const searchMutation = useGetEmployeeLoanDetails();
 
-    // Extract dropdown data from onload response
-    const groupTypes = onloadData?.data?.groupTypedropdown || [];
-    const departments = onloadData?.data?.departmentdropdown || [];
-    const designations = onloadData?.data?.designationdropdown || [];
-    const months = onloadData?.data?.monthdropdown || [];
-    const years = onloadData?.data?.leaveyeardropdown || [];
+    // Memoize arrays to prevent unnecessary re-renders
+    const groupTypes = useMemo(() => onloadData?.data?.groupTypedropdown || [], [onloadData?.data?.groupTypedropdown]);
+    const departments = useMemo(() => onloadData?.data?.departmentdropdown || [], [onloadData?.data?.departmentdropdown]);
+    const designations = useMemo(() => onloadData?.data?.designationdropdown || [], [onloadData?.data?.designationdropdown]);
+    const months = useMemo(() => onloadData?.data?.monthdropdown || [], [onloadData?.data?.monthdropdown]);
+    const years = useMemo(() => onloadData?.data?.leaveyeardropdown || [], [onloadData?.data?.leaveyeardropdown]);
 
     // State
     const [loanRecords, setLoanRecords] = useState<EmployeeLoanRecord[]>([]);

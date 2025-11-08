@@ -16,6 +16,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { format } from 'date-fns';
 import { CalendarIcon, Save } from 'lucide-react';
 import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
+import { useMemo } from 'react';
 import { toast } from 'sonner';
 import type { z } from 'zod';
 
@@ -85,8 +86,9 @@ export default function AddSalaryIncrementForm({ onloadData, onSuccess, classNam
         reset();
     };
 
-    const employees = onloadData?.employeelist || [];
-    const _earningDeductions = onloadData?.earningdeductiontype || [];
+    // Memoize arrays to prevent unnecessary re-renders
+    const employees = useMemo(() => onloadData?.employeelist || [], [onloadData?.employeelist]);
+    const _earningDeductions = useMemo(() => onloadData?.earningdeductiontype || [], [onloadData?.earningdeductiontype]);
 
     return (
         <div className={className}>

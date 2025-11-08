@@ -81,13 +81,13 @@ export default function EmployeeDetailsReportPage() {
     const [showReport, setShowReport] = useState(false);
     const [employeeDropdownOptions, setEmployeeDropdownOptions] = useState<any[]>([]);
 
-    // Extract API Data from onload response
-    const _months = onloadData?.data?.monthdropdown || [];
-    const _leaveYears = onloadData?.data?.leaveyeardropdown || [];
-    const departments = onloadData?.data?.departmentdropdown || [];
-    const designations = onloadData?.data?.designationdropdown || [];
-    const employeeTypes = onloadData?.data?.employeeTypedropdown || [];
-    const groupTypes = onloadData?.data?.groupTypedropdown || [];
+    // Memoize arrays to prevent unnecessary re-renders
+    const _months = useMemo(() => onloadData?.data?.monthdropdown || [], [onloadData?.data?.monthdropdown]);
+    const _leaveYears = useMemo(() => onloadData?.data?.leaveyeardropdown || [], [onloadData?.data?.leaveyeardropdown]);
+    const departments = useMemo(() => onloadData?.data?.departmentdropdown || [], [onloadData?.data?.departmentdropdown]);
+    const designations = useMemo(() => onloadData?.data?.designationdropdown || [], [onloadData?.data?.designationdropdown]);
+    const employeeTypes = useMemo(() => onloadData?.data?.employeeTypedropdown || [], [onloadData?.data?.employeeTypedropdown]);
+    const groupTypes = useMemo(() => onloadData?.data?.groupTypedropdown || [], [onloadData?.data?.groupTypedropdown]);
 
     const [filters, setFilters] = useState<EmployeeDetailsFilters>({
         selectedHeaders: [], // Start with no headers selected

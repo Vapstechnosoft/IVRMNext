@@ -8,7 +8,7 @@ import { HRMS_MI_ID } from '@/constants/hrms-config';
 import { useMasterDepartment } from '@/hooks/hrms/useMasters';
 import type { DepartmentDetail } from '@/types/hrms/master-department';
 import { ListOrdered, Plus, Save, X } from 'lucide-react';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { toast } from 'sonner';
 import { columns, getEditableColumns } from '../../department/_components/columns';
 import DepartmentForm from '../../department/_components/department-form';
@@ -35,7 +35,8 @@ function DepartmentTabContent({
 }) {
     const { openAddForm } = useFormContext<DepartmentDetail>();
     const { saveOrderMutation } = useMasterDepartment(HRMS_MI_ID);
-    const rows: DepartmentDetail[] = response?.departmentList ?? [];
+    // Memoize array to prevent unnecessary re-renders
+    const rows: DepartmentDetail[] = useMemo(() => response?.departmentList ?? [], [response?.departmentList]);
 
     const [isEditOrderMode, setIsEditOrderMode] = useState(false);
     const [editedRows, setEditedRows] = useState<DepartmentDetail[]>([]);

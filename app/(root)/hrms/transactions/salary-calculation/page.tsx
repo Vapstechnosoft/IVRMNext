@@ -22,7 +22,7 @@ import type {
 } from '@/types/hrms/salary-calculation';
 import type { ColumnDef } from '@tanstack/react-table';
 import { Calculator, RefreshCw, X } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 
@@ -74,19 +74,15 @@ export default function SalaryCalculationPage() {
     const searchMutation = useSearchSalaryCalculation();
     const generateMutation = useGenerateSalary();
 
-    const monthOptions = onloadData?.monthdropdown || [];
-    const leaveYearOptions = onloadData?.leaveyeardropdown || [];
-    const departmentOptions = onloadData?.departmentdropdown || [];
-    const designationOptions = onloadData?.designationdropdown || [];
-    const groupTypeOptions = onloadData?.groupTypedropdown || [];
+    // Memoize arrays to prevent unnecessary re-renders
+    const monthOptions = useMemo(() => onloadData?.monthdropdown || [], [onloadData?.monthdropdown]);
+    const leaveYearOptions = useMemo(() => onloadData?.leaveyeardropdown || [], [onloadData?.leaveyeardropdown]);
+    const departmentOptions = useMemo(() => onloadData?.departmentdropdown || [], [onloadData?.departmentdropdown]);
+    const designationOptions = useMemo(() => onloadData?.designationdropdown || [], [onloadData?.designationdropdown]);
+    const groupTypeOptions = useMemo(() => onloadData?.groupTypedropdown || [], [onloadData?.groupTypedropdown]);
 
-    useEffect(() => {
-        if (hasSearched) {
-            filterEmployees();
-        }
-    }, [watchedGroupType, watchedDepartment, watchedDesignation, employees, hasSearched]);
-
-    const filterEmployees = () => {
+    // Memoize filterEmployees to prevent infinite loops
+    const filterEmployees = useCallback(() => {
         let filtered = employees;
 
         if (watchedGroupType && watchedGroupType.length > 0) {
@@ -105,7 +101,13 @@ export default function SalaryCalculationPage() {
         }
 
         setFilteredEmployees(filtered);
-    };
+    }, [watchedGroupType, watchedDepartment, watchedDesignation, employees]);
+
+    useEffect(() => {
+        if (hasSearched) {
+            filterEmployees();
+        }
+    }, [hasSearched, filterEmployees]);
 
     const onSubmit: SubmitHandler<SearchForm> = async (data: SearchForm) => {
         const payload: SalaryCalculationSearchRequest = {

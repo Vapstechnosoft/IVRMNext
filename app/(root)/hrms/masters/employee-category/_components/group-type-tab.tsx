@@ -8,7 +8,7 @@ import { HRMS_MI_ID } from '@/constants/hrms-config';
 import { useMasterGroupType } from '@/hooks/hrms/useMasters';
 import type { GroupTypeDetail } from '@/types/hrms/master-group-type';
 import { ListOrdered, Plus, Save, X } from 'lucide-react';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { toast } from 'sonner';
 import { columns, getEditableColumns } from '../../group-type/_components/columns';
 import GroupTypeForm from '../../group-type/_components/group-type-form';
@@ -39,7 +39,8 @@ function GroupTypeTabContent({
 }) {
     const { openAddForm } = useFormContext<GroupTypeDetail>();
     const { saveOrderMutation } = useMasterGroupType(HRMS_MI_ID);
-    const rows: GroupTypeDetail[] = response?.grouptypeList ?? [];
+    // Memoize array to prevent unnecessary re-renders
+    const rows: GroupTypeDetail[] = useMemo(() => response?.grouptypeList ?? [], [response?.grouptypeList]);
 
     console.log('📊 [GROUP TYPE TAB] Component render - rows count:', rows.length);
     console.log('📊 [GROUP TYPE TAB] Sample row orders:', rows.slice(0, 3).map(r => `ID=${r.HRMGT_Id}, Order=${r.HRMGT_Order}`));

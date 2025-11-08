@@ -8,6 +8,7 @@ import { HRMS_MI_ID } from '@/constants/hrms-config';
 import { useMasterSpecialization } from '@/hooks/hrms/useMasters';
 import type { SpecializationItem } from '@/types/hrms/master-specialization';
 import { Plus, X } from 'lucide-react';
+import { useMemo } from 'react';
 import { columns } from './_components/columns';
 import SpecializationForm from './_components/specialization-form';
 
@@ -36,7 +37,8 @@ function MasterSpecializationPageContent({
     error: any;
 }) {
     const { openAddForm } = useFormContext<SpecializationItem>();
-    const rows: SpecializationItem[] = response?.alldata ?? [];
+    // Memoize array to prevent unnecessary re-renders
+    const rows: SpecializationItem[] = useMemo(() => response?.alldata ?? [], [response?.alldata]);
 
     return (
         <div className='min-h-screen'>

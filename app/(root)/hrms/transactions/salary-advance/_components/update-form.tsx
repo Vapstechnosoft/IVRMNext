@@ -12,7 +12,7 @@ import { cn } from '@/lib/utils';
 import type { SalaryAdvanceItem, SalaryAdvanceOnloadResponse } from '@/types/hrms/salary-advance';
 import { format } from 'date-fns';
 import { CalendarIcon, Save } from 'lucide-react';
-import { useEffect } from 'react';
+import { useEffect, useMemo } from 'react';
 import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 
@@ -37,10 +37,11 @@ interface UpdateFormProps {
 export default function UpdateSalaryAdvanceForm({ selectedRow, onloadData, onSuccess, className = '' }: UpdateFormProps) {
     const { mutate: saveAdvance, isPending } = useSaveSalaryAdvance();
 
-    const employees = onloadData?.employeedropdown || [];
-    const leaveYears = onloadData?.leaveyeardropdown || [];
-    const months = onloadData?.monthdropdown || [];
-    const modeOfPayments = onloadData?.modeOfPaymentdropdown || [];
+    // Memoize arrays to prevent unnecessary re-renders
+    const employees = useMemo(() => onloadData?.employeedropdown || [], [onloadData?.employeedropdown]);
+    const leaveYears = useMemo(() => onloadData?.leaveyeardropdown || [], [onloadData?.leaveyeardropdown]);
+    const months = useMemo(() => onloadData?.monthdropdown || [], [onloadData?.monthdropdown]);
+    const modeOfPayments = useMemo(() => onloadData?.modeOfPaymentdropdown || [], [onloadData?.modeOfPaymentdropdown]);
 
     const {
         register,

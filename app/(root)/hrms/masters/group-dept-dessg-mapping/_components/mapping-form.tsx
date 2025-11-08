@@ -271,9 +271,10 @@ export default function MappingForm({
     reset();
   };
 
-  const groupTypes = response?.data?.groupTypedropdown || [];
-  const departments = response?.data?.departmentdropdown || [];
-  const designations = response?.data?.designationdropdown || [];
+  // Memoize arrays to prevent unnecessary re-renders
+  const groupTypes = useMemo(() => response?.data?.groupTypedropdown || [], [response?.data?.groupTypedropdown]);
+  const departments = useMemo(() => response?.data?.departmentdropdown || [], [response?.data?.departmentdropdown]);
+  const designations = useMemo(() => response?.data?.designationdropdown || [], [response?.data?.designationdropdown]);
 
   // Convert designations to MultiSelect format
   // Use index to ensure uniqueness even if there are duplicate IDs

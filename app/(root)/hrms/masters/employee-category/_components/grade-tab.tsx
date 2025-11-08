@@ -8,7 +8,7 @@ import { HRMS_MI_ID } from '@/constants/hrms-config';
 import { useMasterGrade } from '@/hooks/hrms/useMasters';
 import type { GradeDetail } from '@/types/hrms/master-grade';
 import { ListOrdered, Plus, Save, X } from 'lucide-react';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { toast } from 'sonner';
 import { columns, getEditableColumns } from '../../grade/_components/columns';
 import GradeForm from '../../grade/_components/grade-form';
@@ -35,7 +35,8 @@ function GradeTabContent({
 }) {
     const { openAddForm } = useFormContext<GradeDetail>();
     const { saveOrderMutation } = useMasterGrade(HRMS_MI_ID);
-    const rows: GradeDetail[] = response?.gradelList ?? [];
+    // Memoize array to prevent unnecessary re-renders
+    const rows: GradeDetail[] = useMemo(() => response?.gradelList ?? [], [response?.gradelList]);
 
     const [isEditOrderMode, setIsEditOrderMode] = useState(false);
     const [editedRows, setEditedRows] = useState<GradeDetail[]>([]);

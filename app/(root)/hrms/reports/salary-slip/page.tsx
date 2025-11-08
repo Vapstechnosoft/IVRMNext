@@ -9,7 +9,7 @@ import {
 } from '@/hooks/hrms/useReports';
 import type { EmployeeDropdown } from '@/types/hrms/salary-advance';
 import { FileText } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';
 import { SalarySlipFilters, type SalarySlipFilters as SalarySlipFiltersType } from './_components/filters';
 import type { EmployeeSalarySlipDisplay } from './_components/columns';
@@ -23,12 +23,12 @@ export default function SalarySlipReportPage() {
     const filterMutation = useFilterEmployeesByYearMonth();
     const generateMutation = useGenerateSalarySlip();
 
-    // Extract dropdown data from onload response
-    const groupTypes = onloadData?.data?.groupTypedropdownlist || [];
-    const departments = onloadData?.data?.departmentdropdownlist || [];
-    const designations = onloadData?.data?.designationdropdownlist || [];
-    const months = onloadData?.data?.monthdropdown || [];
-    const years = onloadData?.data?.leaveyeardropdown || [];
+    // Memoize arrays to prevent unnecessary re-renders
+    const groupTypes = useMemo(() => onloadData?.data?.groupTypedropdownlist || [], [onloadData?.data?.groupTypedropdownlist]);
+    const departments = useMemo(() => onloadData?.data?.departmentdropdownlist || [], [onloadData?.data?.departmentdropdownlist]);
+    const designations = useMemo(() => onloadData?.data?.designationdropdownlist || [], [onloadData?.data?.designationdropdownlist]);
+    const months = useMemo(() => onloadData?.data?.monthdropdown || [], [onloadData?.data?.monthdropdown]);
+    const years = useMemo(() => onloadData?.data?.leaveyeardropdown || [], [onloadData?.data?.leaveyeardropdown]);
 
     // State
     const [employees, setEmployees] = useState<EmployeeSalarySlipDisplay[]>([]);

@@ -8,7 +8,7 @@ import { HRMS_MI_ID } from '@/constants/hrms-config';
 import { useMasterCourse } from '@/hooks/hrms/useMasters';
 import type { CourseDetail } from '@/types/hrms/master-course';
 import { ListOrdered, Plus, Save, X } from 'lucide-react';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { toast } from 'sonner';
 import { columns, getEditableColumns } from './_components/columns';
 import CourseForm from './_components/course-form';
@@ -39,7 +39,8 @@ function MasterCoursePageContent({
 }) {
     const { openAddForm } = useFormContext<CourseDetail>();
     const { saveOrderMutation } = useMasterCourse(HRMS_MI_ID);
-    const rows: CourseDetail[] = response?.CourseList ?? [];
+    // Memoize array to prevent unnecessary re-renders
+    const rows: CourseDetail[] = useMemo(() => response?.CourseList ?? [], [response?.CourseList]);
 
     const [isEditOrderMode, setIsEditOrderMode] = useState(false);
     const [editedRows, setEditedRows] = useState<CourseDetail[]>([]);

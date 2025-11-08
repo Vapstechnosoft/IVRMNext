@@ -7,6 +7,7 @@ import { FormProvider, useFormContext } from '@/components/ui/form/form-provider
 import { useReligionCategoryMapping } from '@/hooks/hrms/useMasters';
 import type { ReligionCategoryMappingDetail } from '@/types/hrms/religion-category-mapping';
 import { Plus, X } from 'lucide-react';
+import { useMemo } from 'react';
 import { religionCategoryMappingColumns } from './_components/columns';
 import ReligionCategoryMappingForm from './_components/religion-category-mapping-form';
 
@@ -38,7 +39,8 @@ function ReligionCategoryMappingPageContent({
 }) {
     const { openAddForm } = useFormContext<ReligionCategoryMappingDetail>();
     
-    const tableData = response?.data?.get_masterlist ?? [];
+    // Memoize array to prevent unnecessary re-renders
+    const tableData = useMemo(() => response?.data?.get_masterlist ?? [], [response?.data?.get_masterlist]);
     console.log('📊 [PAGE CONTENT] Table data extraction');
     console.log('📊 [PAGE] response?.data?.get_masterlist:', tableData);
     console.log('📊 [PAGE] Table data length:', tableData.length);

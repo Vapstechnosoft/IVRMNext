@@ -8,6 +8,7 @@ import { HRMS_MI_ID } from '@/constants/hrms-config';
 import { useMasterLoan } from '@/hooks/hrms/useMasters';
 import type { MasterLoanDetail } from '@/types/hrms/master-loan';
 import { Plus, X } from 'lucide-react';
+import { useMemo } from 'react';
 import { columns } from './_components/columns';
 import LoanForm from './_components/loan-form';
 
@@ -34,7 +35,8 @@ function MasterLoanPageContent({
     error: any;
 }) {
     const { openAddForm } = useFormContext<MasterLoanDetail>();
-    const rows: MasterLoanDetail[] = response?.gmasterloanList ?? [];
+    // Memoize array to prevent unnecessary re-renders
+    const rows: MasterLoanDetail[] = useMemo(() => response?.gmasterloanList ?? [], [response?.gmasterloanList]);
 
     return (
         <div className='min-h-screen'>

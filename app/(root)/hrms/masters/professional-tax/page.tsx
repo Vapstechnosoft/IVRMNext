@@ -8,6 +8,7 @@ import { HRMS_MI_ID } from '@/constants/hrms-config';
 import { useMasterProfessionalTax } from '@/hooks/hrms/useMasters';
 import type { ProfessionalTaxDetail } from '@/types/hrms/master-professional-tax';
 import { Plus, X } from 'lucide-react';
+import { useMemo } from 'react';
 import { columns } from './_components/columns';
 import ProfessionalTaxForm from './_components/professional-tax-form';
 
@@ -36,7 +37,8 @@ function MasterProfessionalTaxPageContent({
     error: any;
 }) {
     const { openAddForm } = useFormContext<ProfessionalTaxDetail>();
-    const rows: ProfessionalTaxDetail[] = response?.pTaxrList ?? [];
+    // Memoize array to prevent unnecessary re-renders
+    const rows: ProfessionalTaxDetail[] = useMemo(() => response?.pTaxrList ?? [], [response?.pTaxrList]);
 
     return (
         <div className='min-h-screen'>

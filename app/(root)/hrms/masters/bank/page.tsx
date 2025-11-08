@@ -8,6 +8,7 @@ import { HRMS_MI_ID } from '@/constants/hrms-config';
 import { useMasterBank } from '@/hooks/hrms/useMasters';
 import type { BankItem } from '@/types/hrms/master-bank';
 import { Plus, X } from 'lucide-react';
+import { useMemo } from 'react';
 import BankForm from './_components/bank-form';
 import { columns } from './_components/columns';
 
@@ -33,7 +34,8 @@ function MasterBankPageContent({
     error: any;
 }) {
     const { openAddForm } = useFormContext<BankItem>();
-    const rows: BankItem[] = response?.data?.bankdetailList || response?.bankdetailList || [];
+    // Memoize array to prevent unnecessary re-renders
+    const rows: BankItem[] = useMemo(() => response?.data?.bankdetailList || response?.bankdetailList || [], [response?.data?.bankdetailList, response?.bankdetailList]);
 
     return (
         <div className='min-h-screen'>

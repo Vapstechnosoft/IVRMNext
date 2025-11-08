@@ -8,6 +8,7 @@ import { HRMS_MI_ID } from '@/constants/hrms-config';
 import { useMasterGender } from '@/hooks/hrms/useMasters';
 import type { GenderItem } from '@/types/hrms/master-gender';
 import { Plus, X } from 'lucide-react';
+import { useMemo } from 'react';
 import { columns } from './_components/columns';
 import GenderForm from './_components/gender-form';
 
@@ -36,7 +37,8 @@ function MasterGenderPageContent({
     error: any;
 }) {
     const { openAddForm } = useFormContext<GenderItem>();
-    const rows: GenderItem[] = response?.genderList ?? [];
+    // Memoize array to prevent unnecessary re-renders
+    const rows: GenderItem[] = useMemo(() => response?.genderList ?? [], [response?.genderList]);
 
     return (
         <div className='min-h-screen'>

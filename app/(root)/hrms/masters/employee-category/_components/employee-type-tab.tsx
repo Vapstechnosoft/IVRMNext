@@ -8,6 +8,7 @@ import { HRMS_MI_ID } from '@/constants/hrms-config';
 import { useMasterEmployeeType } from '@/hooks/hrms/useMasters';
 import type { EmployeeTypeDetail } from '@/types/hrms/master-employee-type';
 import { Plus, X } from 'lucide-react';
+import { useMemo } from 'react';
 import { columns } from '../../employee-type/_components/columns';
 import EmployeeTypeForm from '../../employee-type/_components/employee-type-form';
 
@@ -32,7 +33,8 @@ function EmployeeTypeTabContent({
     error: any;
 }) {
     const { openAddForm } = useFormContext<EmployeeTypeDetail>();
-    const rows: EmployeeTypeDetail[] = response?.employeeTypeList ?? [];
+    // Memoize array to prevent unnecessary re-renders
+    const rows: EmployeeTypeDetail[] = useMemo(() => response?.employeeTypeList ?? [], [response?.employeeTypeList]);
 
     return (
         <div className='space-y-4'>

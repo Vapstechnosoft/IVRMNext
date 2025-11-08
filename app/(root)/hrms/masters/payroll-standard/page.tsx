@@ -4,6 +4,7 @@ import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { HRMS_MI_ID } from '@/constants/hrms-config';
 import { useMasterPayrollStandard } from '@/hooks/hrms/useMasters';
 import { AlertCircle, Loader2 } from 'lucide-react';
+import { useMemo } from 'react';
 import PayrollStandardForm from './_components/payroll-standard-form';
 
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
@@ -18,7 +19,8 @@ export default function MasterPayrollStandardPage(_props: {
     console.log('📊 [PAGE] listQuery.data:', listQuery.data);
     console.log('📊 [PAGE] listQuery.data?.data:', listQuery.data?.data);
     console.log('📊 [PAGE] listQuery.data?.hrStandardList:', listQuery.data?.hrStandardList);
-    const hrStandardList = (listQuery.data?.hrStandardList || []) as any[];
+    // Memoize array to prevent unnecessary re-renders
+    const hrStandardList = useMemo(() => (listQuery.data?.hrStandardList || []) as any[], [listQuery.data?.hrStandardList]);
     console.log('📊 [PAGE] listQuery.data?.hrStandardList length:', hrStandardList.length || 0);
 
     // Get the first (and only) payroll standard record

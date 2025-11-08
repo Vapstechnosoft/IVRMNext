@@ -8,7 +8,7 @@ import { HRMS_MI_ID } from '@/constants/hrms-config';
 import { useMasterDesignation } from '@/hooks/hrms/useMasters';
 import type { DesignationDetail } from '@/types/hrms/master-designation';
 import { ListOrdered, Plus, Save, X } from 'lucide-react';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { toast } from 'sonner';
 import { columns, getEditableColumns } from '../../designation/_components/columns';
 import DesignationForm from '../../designation/_components/designation-form';
@@ -35,7 +35,8 @@ function DesignationTabContent({
 }) {
     const { openAddForm } = useFormContext<DesignationDetail>();
     const { saveOrderMutation } = useMasterDesignation(HRMS_MI_ID);
-    const rows: DesignationDetail[] = response?.designationlList ?? [];
+    // Memoize array to prevent unnecessary re-renders
+    const rows: DesignationDetail[] = useMemo(() => response?.designationlList ?? [], [response?.designationlList]);
 
     const [isEditOrderMode, setIsEditOrderMode] = useState(false);
     const [editedRows, setEditedRows] = useState<DesignationDetail[]>([]);

@@ -8,6 +8,7 @@ import { HRMS_MI_ID } from '@/constants/hrms-config';
 import { useMasterMaritalStatus } from '@/hooks/hrms/useMasters';
 import type { MaritalStatusDetail } from '@/types/hrms/master-marital-status';
 import { Plus, X } from 'lucide-react';
+import { useMemo } from 'react';
 import { columns } from './_components/columns';
 import MaritalStatusForm from './_components/marital-status-form';
 
@@ -36,7 +37,8 @@ function MasterMaritalStatusPageContent({
     error: any;
 }) {
     const { openAddForm } = useFormContext<MaritalStatusDetail>();
-    const rows: MaritalStatusDetail[] = response?.maritalstatusList ?? [];
+    // Memoize array to prevent unnecessary re-renders
+    const rows: MaritalStatusDetail[] = useMemo(() => response?.maritalstatusList ?? [], [response?.maritalstatusList]);
 
     return (
         <div className='min-h-screen'>

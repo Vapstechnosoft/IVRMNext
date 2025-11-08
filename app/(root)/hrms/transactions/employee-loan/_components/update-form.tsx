@@ -13,7 +13,7 @@ import { EMPLOYEE_LOAN_VALIDATION } from '@/lib/validation/hrms-transaction-vali
 import type { EmployeeLoanItem, EmployeeLoanOnloadResponse } from '@/types/hrms/employee-loan';
 import { format } from 'date-fns';
 import { CalendarIcon, Save } from 'lucide-react';
-import { useEffect } from 'react';
+import { useEffect, useMemo } from 'react';
 import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 
@@ -39,9 +39,10 @@ interface UpdateFormProps {
 export default function UpdateEmployeeLoanForm({ selectedRow, onloadData, onSuccess, className = '' }: UpdateFormProps) {
     const { mutate: saveLoan, isPending } = useSaveEmployeeLoan();
 
-    const employees = onloadData?.employeedropdown || [];
-    const loanTypes = onloadData?.masterloandropdown || [];
-    const paymentModes = onloadData?.modeOfPaymentdropdown || [];
+    // Memoize arrays to prevent unnecessary re-renders
+    const employees = useMemo(() => onloadData?.employeedropdown || [], [onloadData?.employeedropdown]);
+    const loanTypes = useMemo(() => onloadData?.masterloandropdown || [], [onloadData?.masterloandropdown]);
+    const paymentModes = useMemo(() => onloadData?.modeOfPaymentdropdown || [], [onloadData?.modeOfPaymentdropdown]);
 
     const {
         register,

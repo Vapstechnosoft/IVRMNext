@@ -9,6 +9,7 @@ import { HRMS_MI_ID } from '@/constants/hrms-config';
 import { useEmployeeOnload, useSaveEmployee } from '@/hooks/hrms/useEmployee';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Save } from 'lucide-react';
+import { useMemo } from 'react';
 import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import * as z from 'zod';
@@ -114,14 +115,15 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
         reset();
     };
 
-    const employeeTypes = onloadData?.data?.employeeTypedropdownlist || [];
-    const groupTypes = onloadData?.data?.groupTypedropdownlist || [];
-    const departments = onloadData?.data?.departmentdropdownlist || [];
-    const designations = onloadData?.data?.designationdropdownlist || [];
-    const grades = onloadData?.data?.gradedropdownlist || [];
-    const genders = onloadData?.data?.genderdropdownlist || [];
-    const maritalStatuses = onloadData?.data?.maritalStatusdropdownlist || [];
-    const religions = onloadData?.data?.religiondropdownlist || [];
+    // Memoize arrays to prevent unnecessary re-renders
+    const employeeTypes = useMemo(() => onloadData?.data?.employeeTypedropdownlist || [], [onloadData?.data?.employeeTypedropdownlist]);
+    const groupTypes = useMemo(() => onloadData?.data?.groupTypedropdownlist || [], [onloadData?.data?.groupTypedropdownlist]);
+    const departments = useMemo(() => onloadData?.data?.departmentdropdownlist || [], [onloadData?.data?.departmentdropdownlist]);
+    const designations = useMemo(() => onloadData?.data?.designationdropdownlist || [], [onloadData?.data?.designationdropdownlist]);
+    const grades = useMemo(() => onloadData?.data?.gradedropdownlist || [], [onloadData?.data?.gradedropdownlist]);
+    const genders = useMemo(() => onloadData?.data?.genderdropdownlist || [], [onloadData?.data?.genderdropdownlist]);
+    const maritalStatuses = useMemo(() => onloadData?.data?.maritalStatusdropdownlist || [], [onloadData?.data?.maritalStatusdropdownlist]);
+    const religions = useMemo(() => onloadData?.data?.religiondropdownlist || [], [onloadData?.data?.religiondropdownlist]);
 
     return (
         <div className={className}>

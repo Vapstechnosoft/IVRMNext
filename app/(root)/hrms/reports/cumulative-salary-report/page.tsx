@@ -24,12 +24,12 @@ export default function CumulativeSalaryReportPage() {
     const [filteredRecords, setFilteredRecords] = useState<CumulativeSalaryRecord[]>([]);
     const [showReport, setShowReport] = useState(false);
 
-    // Extract data from onload response
-    const groupTypes = onloadData?.data?.groupTypedropdownlist || [];
-    const departments = onloadData?.data?.departmentdropdownlist || [];
-    const designations = onloadData?.data?.designationdropdownlist || [];
-    const months = onloadData?.data?.monthdropdown || [];
-    const years = onloadData?.data?.leaveyeardropdown || [];
+    // Memoize arrays to prevent unnecessary re-renders
+    const groupTypes = useMemo(() => onloadData?.data?.groupTypedropdownlist || [], [onloadData?.data?.groupTypedropdownlist]);
+    const departments = useMemo(() => onloadData?.data?.departmentdropdownlist || [], [onloadData?.data?.departmentdropdownlist]);
+    const designations = useMemo(() => onloadData?.data?.designationdropdownlist || [], [onloadData?.data?.designationdropdownlist]);
+    const months = useMemo(() => onloadData?.data?.monthdropdown || [], [onloadData?.data?.monthdropdown]);
+    const years = useMemo(() => onloadData?.data?.leaveyeardropdown || [], [onloadData?.data?.leaveyeardropdown]);
 
     const { handleSubmit, reset, watch, control } = useForm<ReportFilters>({
         mode: 'onChange',

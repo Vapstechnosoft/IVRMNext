@@ -14,6 +14,7 @@ import type { EmployeeLoanOnloadResponse } from '@/types/hrms/employee-loan';
 import { format } from 'date-fns';
 import { CalendarIcon, Save } from 'lucide-react';
 import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
+import { useMemo } from 'react';
 import { toast } from 'sonner';
 
 interface EmployeeLoanForm {
@@ -37,9 +38,10 @@ interface AddFormProps {
 export default function AddEmployeeLoanForm({ onloadData, onSuccess, className = '' }: AddFormProps) {
     const { mutate: saveLoan, isPending } = useSaveEmployeeLoan();
 
-    const employees = onloadData?.employeedropdown || [];
-    const loanTypes = onloadData?.masterloandropdown || [];
-    const paymentModes = onloadData?.modeOfPaymentdropdown || [];
+    // Memoize arrays to prevent unnecessary re-renders
+    const employees = useMemo(() => onloadData?.employeedropdown || [], [onloadData?.employeedropdown]);
+    const loanTypes = useMemo(() => onloadData?.masterloandropdown || [], [onloadData?.masterloandropdown]);
+    const paymentModes = useMemo(() => onloadData?.modeOfPaymentdropdown || [], [onloadData?.modeOfPaymentdropdown]);
 
     const {
         register,
