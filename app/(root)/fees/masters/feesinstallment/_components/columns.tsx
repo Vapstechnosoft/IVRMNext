@@ -178,10 +178,11 @@ function ActionButtonsCell({
             } else {
                 const fallback = {
                     ...(anyData as any),
-                    fmI_Id: (fetchId as any) ?? (rowData as any)?.fmI_Id,
+                    fmI_Id: (fetchId as any) ?? (rowData as any)?.fmI_Id ?? (rowData as any)?.id,
                     mI_Id: (rowData as any)?.mI_Id
                 };
-                openEditForm(sanitizeRowForEdit(fallback) as any);
+                const sanitizedData = sanitizeRowForEdit(fallback);
+                openEditForm(sanitizedData as any);
             }
             setFetchId(0);
         }
@@ -207,7 +208,11 @@ function ActionButtonsCell({
         if (id) {
             setFetchId(id);
         } else {
-            openEditForm(sanitizeRowForEdit(data) as any);
+            const sanitizedData = sanitizeRowForEdit({
+                ...data,
+                fmI_Id: sanitize((data as any)?.fmI_Id) ?? sanitize((data as any)?.id)
+            });
+            openEditForm(sanitizedData as any);
         }
     }, []);
 

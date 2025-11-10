@@ -58,7 +58,7 @@ export const YearlyColoumnsColumns: ColumnDef<IMaasterFeesYearlyGrouping>[] = [
         header: ({ column }) => <DataTableColumnHeader column={column} title='Rebate Value' />,
         cell: ({ row }) => {
             const val = row.getValue('fyG_PartialRebateAmtOrPercentageValue');
-            const type = row.getValue('fyG_RebateTypeFlg');
+            const type = (row.original as any)?.fyG_RebateTypeFlg;
 
             if (val === undefined || val === null || val === '') return <div />;
 

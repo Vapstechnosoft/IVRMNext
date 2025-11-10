@@ -74,6 +74,8 @@ export const FEES_QUERY_KEYS = {
     FEE_INSTALLMENT_DUE_DATE: 'fee_installment_due_date',
     FEE_YEARLY_GROUPS: 'fee_yearly_groups',
     FEE_GROUP_LIST_DROPDOWN: 'fee_group_list_dropdown',
+    FEE_MASTER_GROUPWISE_AUTO_RECEIPT: 'fee_master_groupwise_auto_receipt',
+    FEE_MASTER_GROUPWISE_AUTO_RECEIPT_GROUP_DROPDOWN: 'fee_master_groupwise_auto_receipt_group_dropdown',
 
     FEE_MASTER_CONCESSION: 'masterfeeconcession',
     FEE_MASTER_TERMS: 'feemasterterms',

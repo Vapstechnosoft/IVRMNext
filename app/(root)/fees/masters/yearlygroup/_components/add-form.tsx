@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { FEES_QUERY_KEYS } from '@/constants/query-keys';
-import { useAcademicYearDropdown, useMasterFeeYearlyGroup, useMasterGroupListDropDown } from '@/hooks/fees/useMasters';
+import { useAcademicYearDropdown, useMasterGroupListDropDown } from '@/hooks/fees/useMasters';
 import { cn } from '@/lib/utils';
 import { YearlyGroupSchema } from '@/schemas/fees/masters';
 import { addOrUpdateMasterGroupYearlyCategory } from '@/server/fees/masters/fees_yearly_group';
@@ -43,7 +43,6 @@ export default function AddMasterYearlyGroup({ onSuccess }: AddMasterYearlyGroup
     const [isPopoverOpen, setIsPopoverOpen] = useState(false);
     const { data: academicYearOptions } = useAcademicYearDropdown();
     const { data: groupData } = useMasterGroupListDropDown();
-    const { refetchAll } = useMasterFeeYearlyGroup();
     const queryClient = useQueryClient();
 
     const feeGroups: FeeGroup[] =
@@ -109,11 +108,11 @@ export default function AddMasterYearlyGroup({ onSuccess }: AddMasterYearlyGroup
                 } catch (_e) {}
                 try {
                     queryClient.invalidateQueries({
+                        predicate: (query) => Array.isArray(query.queryKey) && query.queryKey[0] === FEES_QUERY_KEYS.FEE_YEARLY_CATEGORY
+                    });
+                    queryClient.invalidateQueries({
                         predicate: (query) => Array.isArray(query.queryKey) && query.queryKey[0] === FEES_QUERY_KEYS.FEE_YEARLY_GROUPS
                     });
-                    try {
-                        refetchAll();
-                    } catch (_e) {}
                 } catch (e) {
                     console.warn('Failed to invalidate queries:', e);
                 }

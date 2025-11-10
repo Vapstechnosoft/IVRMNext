@@ -403,3 +403,31 @@ export interface IMasterAllFeeHeadList {
     userid: number;
     deleteId: number;
 }
+
+export interface IMasterGroupWiseAutoReciptList {
+    fgaR_PrefixFlag: string;
+    fgaR_SuffixFlag: string;
+    fgaR_Name: string;
+    fgaR_Address: string;
+    fgaR_Template_Name: string;
+    asmaY_Id: any;
+    asmcL_Id: number;
+    fmcC_Id: any;
+    fyccC_Id: number;
+    asmaY_Year: string;
+    fmcC_ClassCategoryName: string;
+    asmcL_ClassName: string;
+    prefix: string;
+    suffix: string;
+    startingNumber: string;
+    groups: string;
+    autoGroupName: string;
+    address: string;
+    receiptTemplateFormat: string;
+    fycC_ActiveFlag: boolean;
+    fgaR_PrefixName: string;
+    fgaR_SuffixName: string;
+    academicyear: string;
+    fgaR_Id: number;
+    fgaR_Starting_No: number;
+}

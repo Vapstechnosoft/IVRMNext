@@ -170,6 +170,22 @@ export const masterClassSchema = {
     })
 };
 
+export const masterClassYearlyCategorySchema = {
+    addOrUpdate: z.object({
+        academicYear: z.string().min(1, { message: 'Academic Year is required' }),
+        classCategory: z.string().min(1, { message: 'Class Category is required' }),
+        classes: z.array(z.string()).min(1, { message: 'At least one class is required' })
+    }),
+    delete: z.object({
+        fycC_Id: z
+            .number()
+            .min(1, {
+                message: 'Valid Class Yearly Category ID is required for deletion'
+            })
+            .optional()
+    })
+};
+
 export const masterGroupsGroupingSchema = {
     addOrUpdate: z.object({
         fmgG_GroupName: z.string().min(1, { message: 'Grouping Name is required' }),
@@ -526,5 +542,51 @@ export const masterOnlinePaymentHeadGroupSchema = {
     }),
     delete: z.object({
         fmcC_Id: deleteIdSchema('fmcC_Id')
+    })
+};
+
+export const masterClassFeeMasterGroupwiseAutoReceipt = {
+    addOrUpdate: z
+        .object({
+            academicYear: z.string().min(1, { message: 'Academic Year is required' }),
+            usePrefix: z.boolean().optional(),
+            useSuffix: z.boolean().optional(),
+            prefixValue: z.string().optional(),
+            suffixValue: z.string().optional(),
+            startingNumber: z.string().min(1, { message: 'Starting Number is required' }),
+            groups: z.array(z.string().min(1)).min(1, { message: 'At least one group must be selected' }),
+            autoGroupName: z.string().min(1, { message: 'Auto Group Name is required' }),
+            address: z.string().optional(),
+            receiptTemplateFormat: z.string().optional()
+        })
+        .refine(
+            (data) => {
+                if (data.usePrefix && (!data.prefixValue || data.prefixValue.trim() === '')) {
+                    return false;
+                }
+                return true;
+            },
+            {
+                message: 'Prefix value is required when prefix is selected',
+                path: ['prefixValue']
+            }
+        )
+        .refine(
+            (data) => {
+                if (data.useSuffix && (!data.suffixValue || data.suffixValue.trim() === '')) {
+                    return false;
+                }
+                return true;
+            },
+            {
+                message: 'Suffix value is required when suffix is selected',
+                path: ['suffixValue']
+            }
+        ),
+
+    delete: z.object({
+        fycC_Id: z.number().min(1, {
+            message: 'Valid Class Yearly Category ID is required for deletion'
+        })
     })
 };
