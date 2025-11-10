@@ -404,6 +404,57 @@ export interface IMasterAllFeeHeadList {
     deleteId: number;
 }
 
+
+export interface IMasterTermFeeHeadDueDateList {
+    fmtfhdD_Id: number;
+    termname: string;
+    headnamed: string;
+    yearname: string;
+    fdate1: string;
+    tdate1: string;
+    aplc1: string;
+    ddate1: string;
+    asmaY_Id: number;
+    fmT_Id: number;
+    fmH_Id: number;
+}
+
+export interface IFeeTermFeeHeadDueDateGridList {
+    fmtfH_Id: number;
+    fmT_Id: number;
+    fmH_Id: number;
+    ftI_Id: number;
+    mI_Id: number;
+    fmtP_Id: number;
+    fmT_Year: string | null;
+    feeHeadList: any[] | null;
+    feeTermList: any[] | null;
+    returnval: boolean;
+    returnduplicatestatus: string | null;
+    insname: string;
+    fmtfhdD_FromDate: string; // e.g., "2025-11-08T10:21:29.8886442Z"
+    fmtfhdD_ToDate: string;
+    fmtfhdD_ApplicableDate: string;
+    fmtfhdD_DueDate: string;
+    feetfhddd: any | null;
+    temyrid: number;
+    returnvalue: boolean;
+    mainid: number;
+    status: string | null;
+    asmaY_Id: number;
+    useR_ID: number;
+    fmtP_Year: string;
+    fmtP_FROM_MONTH: string;
+    fmtP_TO_MONTH: string;
+    feeFlag: string;
+    fmtP_CreatedDate: string;
+    fmtP_UpdatedDate: string;
+    fmtP_CreatedBy: number;
+    fmtP_UpdatedBy: number;
+    createdDate: string | null;
+    updatedDate: string | null;
+}
+
 export interface IMasterGroupWiseAutoReciptList {
     fgaR_PrefixFlag: string;
     fgaR_SuffixFlag: string;
@@ -430,4 +481,5 @@ export interface IMasterGroupWiseAutoReciptList {
     academicyear: string;
     fgaR_Id: number;
     fgaR_Starting_No: number;
+
 }

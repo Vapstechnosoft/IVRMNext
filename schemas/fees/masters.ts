@@ -545,6 +545,15 @@ export const masterOnlinePaymentHeadGroupSchema = {
     })
 };
 
+export const masterTermFeeHeadDuedateSchema = {
+    addOrUpdate: z.object({
+        asmay_Id: z.number({ message: 'Academic Year is required' }),
+        fmt_id: z.number({ message: 'Term is required' }),
+        fmh_id: z.number({ message: 'Head is required' })
+    }),
+    delete: z.object({
+        fmtfhdD_Id: deleteIdSchema('fmtfhdD_Id')
+
 export const masterClassFeeMasterGroupwiseAutoReceipt = {
     addOrUpdate: z
         .object({
@@ -588,5 +597,6 @@ export const masterClassFeeMasterGroupwiseAutoReceipt = {
         fycC_Id: z.number().min(1, {
             message: 'Valid Class Yearly Category ID is required for deletion'
         })
+
     })
 };

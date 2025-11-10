@@ -343,6 +343,14 @@ export async function getUserAccessibleModules() {
                                             description: 'Manage Master Term Fee Head Details'
                                         },
                                         {
+                                            id: 601,
+                                            name: 'Master Term Fee Head Due Date',
+                                            icon: 'Settings',
+                                            url: '/fees/masters/mastertermfeeheadduedate',
+                                            title: 'Master Term Fee Head Due Date',
+                                            description: 'Manage Master Term Fee Head Due Date'
+                                        },
+                                        {
                                             id: 29,
                                             name: 'Class Category',
                                             icon: 'Settings',
@@ -476,6 +484,14 @@ export async function getUserAccessibleModules() {
                                             url: '/fees/transactions/waivedoff',
                                             title: 'Fee waivedoff',
                                             description: 'Fee waivedoff'
+                                        },
+                                        {
+                                            id: 500,
+                                            name: 'Fee Preadmission Transaction',
+                                            icon: 'Settings',
+                                            url: '/fees/transactions/feepreadmissiontrasaction',
+                                            title: 'Fee Preadmission Transaction',
+                                            description: 'Fee Preadmission Transaction'
                                         }
                                     ]
                                 }

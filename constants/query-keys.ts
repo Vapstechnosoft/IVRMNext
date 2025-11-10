@@ -111,7 +111,8 @@ export const FEES_QUERY_KEYS = {
     FEE_ONLINE_PAYMENT_HEAD_TABLE: 'fee_online_payment_head_table',
     FEE_ONLINE_PAYMENT_HEAD_GROUP_TERMS: 'fee_online_payment_head_group_terms',
     FEE_PREADMISSION_TRANSACTION_DETAILS: 'fee_preadmission_transaction_details',
-    FEE_PREADMISSION_STUDENT_DROPDOWN: 'fee_preadmission_student_dropdown'
+    FEE_PREADMISSION_STUDENT_DROPDOWN: 'fee_preadmission_student_dropdown',
+    FEE_TERM_HEAD_DUEDATE: 'fee_term_head_duedate'
 };
 
 export const EXAM_QUERY_KEYS = {
