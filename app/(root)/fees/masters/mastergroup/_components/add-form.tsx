@@ -35,11 +35,9 @@ export default function MasterGroups({ onSuccess, className = '' }: MasterGroups
     } = useForm<FormFields>({
         resolver: zodResolver(masterGroupSchema.addOrUpdate),
         mode: 'onChange',
-        // Do not set default values for the radio fields so they start empty (no auto-selection).
-        // Keep only the checkbox default. We'll pass a RadioGroup `defaultValue` when the
-        // controller's field value is undefined so the group remains unselected visually.
         defaultValues: {
-            fmG_CompulsoryFlag: false
+            fmG_CompulsoryFlag: false,
+            studentType: 'regular'
         }
     });
 
@@ -70,7 +68,6 @@ export default function MasterGroups({ onSuccess, className = '' }: MasterGroups
             const response = await addOrUpdateMasterGroup(payload);
             if (response.success) {
                 toast.success(response.message);
-                // Explicitly reset radio fields to empty string so RadioGroup shows no selection
                 reset({
                     transportHostelType: '' as any,
                     studentType: '' as any,

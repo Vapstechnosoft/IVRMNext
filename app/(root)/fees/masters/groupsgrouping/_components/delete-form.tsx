@@ -30,7 +30,10 @@ export default function DeleteMasterFeeGroupGroupingForm({ rowData, onClose }: D
         formState: { errors, isSubmitting }
     } = useForm<FormFields>({
         resolver: zodResolver(masterGroupsGroupingSchema.delete),
-        mode: 'onChange'
+        mode: 'onChange',
+        defaultValues: {
+            fmgG_Id: rowData.fmgG_Id
+        }
     });
 
     function closeDialog() {
@@ -57,7 +60,7 @@ export default function DeleteMasterFeeGroupGroupingForm({ rowData, onClose }: D
         <AdaptiveDialog title='Delete Fee Group Grouping' isOpen={true} onClose={closeDialog}>
             <form onSubmit={handleSubmit(onSubmit)} className='flex flex-col gap-4'>
                 <AdaptiveBody className='flex flex-col gap-5'>
-                    <input type='hidden' {...register('fmgG_Id')} defaultValue={rowData.fmgG_Id} />
+                    <input type='hidden' {...register('fmgG_Id', { value: rowData.fmgG_Id })} />
                     <p>
                         Are you sure you want to <strong>permanently delete</strong> the group <strong>{rowData.fmgG_GroupName}</strong>?
                     </p>
