@@ -75,9 +75,19 @@ export default function UpdateFeeTermsHeadDueDateForm({ onSuccess, termname = ''
 
     function OnReset() {
         reset();
+
+        //     reset({
+        //     asmay_Id: undefined,
+        //     fmt_id: undefined,
+        //     fmh_id: undefined,
+        // });
+
         refetchAll();
 
         setGridData([]);
+        setSelectedAcademicYear(null);
+        setSelectedTerm(null);
+        setSelectedHead(null);
     }
 
     const [initialized, setInitialized] = useState(false);
