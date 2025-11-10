@@ -3,25 +3,25 @@
 import { Button } from '@/components/ui/button';
 import { AdaptiveBody, AdaptiveDialog, AdaptiveFooter } from '@/components/ui/extension/adaptive-dialog';
 import { FormError } from '@/components/ui/extension/field';
-import { useMasterTermsHead } from '@/hooks/fees/useMasters';
-import { masterTermFeeHeadSchema } from '@/schemas/fees/masters';
-import { deleteFeeTermHead } from '@/server/fees/masters/fee-term-heads';
-import type { IMasterTermFeeHeadList } from '@/types/fees/masters/masters';
+import { useMasterTermsHeadDueDate } from '@/hooks/fees/useMasters';
+import { masterTermFeeHeadDuedateSchema } from '@/schemas/fees/masters';
+import { deleteFeeTermHeadDueDate } from '@/server/fees/masters/fee-term-head-duedate';
+import type { IMasterTermFeeHeadDueDateList } from '@/types/fees/masters/masters';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Trash2 } from 'lucide-react';
 import { type SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import type { z } from 'zod';
 
-type FormFields = z.infer<typeof masterTermFeeHeadSchema.delete>;
+type FormFields = z.infer<typeof masterTermFeeHeadDuedateSchema.delete>;
 
-interface ToggleMasterTermFeeHeadFormProps {
-    rowData: IMasterTermFeeHeadList;
+interface ToggleMasterTermFeeHeadDueDateFormProps {
+    rowData: IMasterTermFeeHeadDueDateList;
     onClose: () => void;
 }
 
-export default function ToggleMasterTermFeeHeadForm({ rowData, onClose }: ToggleMasterTermFeeHeadFormProps) {
-    const { refetchAll } = useMasterTermsHead();
+export default function ToggleMasterTermFeeHeadDueDateForm({ rowData, onClose }: ToggleMasterTermFeeHeadDueDateFormProps) {
+    const { refetchAll } = useMasterTermsHeadDueDate();
 
     const {
         register,
@@ -29,7 +29,7 @@ export default function ToggleMasterTermFeeHeadForm({ rowData, onClose }: Toggle
         reset,
         formState: { errors, isSubmitting }
     } = useForm<FormFields>({
-        resolver: zodResolver(masterTermFeeHeadSchema.delete),
+        resolver: zodResolver(masterTermFeeHeadDuedateSchema.delete),
         mode: 'onChange'
     });
 
@@ -40,7 +40,7 @@ export default function ToggleMasterTermFeeHeadForm({ rowData, onClose }: Toggle
 
     const onSubmit: SubmitHandler<FormFields | any> = async () => {
         try {
-            const response = await deleteFeeTermHead(30, Number(rowData.idforedt));
+            const response = await deleteFeeTermHeadDueDate(Number(rowData.fmtfhdD_Id));
             if (response?.success) {
                 toast.success(response.message || 'Deleted successfully');
                 refetchAll();
@@ -57,11 +57,11 @@ export default function ToggleMasterTermFeeHeadForm({ rowData, onClose }: Toggle
         <AdaptiveDialog title='Delete Fee Group Grouping' isOpen={true} onClose={closeDialog}>
             <form onSubmit={handleSubmit(onSubmit)} className='flex flex-col gap-4'>
                 <AdaptiveBody className='flex flex-col gap-5'>
-                    <input type='hidden' {...register('idforedt')} defaultValue={rowData.idforedt} />
+                    <input type='hidden' {...register('fmtfhdD_Id')} defaultValue={rowData.fmtfhdD_Id} />
                     <p>
-                        Are you sure you want to <strong>permanently delete</strong> the group-<strong>{rowData.idforedt}</strong>?
+                        Are you sure you want to <strong>Permanently Delete the Selected Record</strong>?
                     </p>
-                    <FormError>{errors.idforedt?.message}</FormError>
+                    <FormError>{errors.fmtfhdD_Id?.message}</FormError>
                     <FormError>{errors.root?.message}</FormError>
                 </AdaptiveBody>
                 <AdaptiveFooter>

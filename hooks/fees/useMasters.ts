@@ -17,6 +17,7 @@ import { getMasterAllFeeHead, getMasterfeeInstallment, getMasterfeehead } from '
 
 import { getGroupListCategory, getMasterYearlyCategory } from '@/server/fees/masters/fees_yearly_group';
 
+import { getFeeTermHeadDueDateList } from '@/server/fees/masters/fee-term-head-duedate';
 import { getFineSlab } from '@/server/fees/masters/fineSlab';
 import { getFeeGroup, getFeeGroupGrouping } from '@/server/fees/masters/groupsgrouping';
 import { getMasterGroup } from '@/server/fees/masters/master_group';
@@ -719,6 +720,23 @@ export const useMasterAllFeeHead = (searchParams?: ApiSearchparams) => {
         refetchAll: () => {
             return queryClient.invalidateQueries({
                 queryKey: [FEES_QUERY_KEYS.FEE_ALL_HEAD]
+            });
+        }
+    };
+};
+
+export const useMasterTermsHeadDueDate = (searchParams?: ApiSearchparams) => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [FEES_QUERY_KEYS.FEE_TERM_HEAD_DUEDATE, searchParams ?? {}],
+            queryFn: async () => getFeeTermHeadDueDateList(searchParams),
+            staleTime: 0
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [FEES_QUERY_KEYS.FEE_TERM_HEAD_DUEDATE]
             });
         }
     };
