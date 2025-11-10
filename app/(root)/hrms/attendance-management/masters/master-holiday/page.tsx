@@ -72,8 +72,8 @@ export default function MasterHolidayPage() {
             const today = new Date();
             today.setHours(0, 0, 0, 0); // Reset time to start of day
 
-            const fromDate = new Date(data.fromDate);
-            const toDate = new Date(data.toDate);
+            const fromDate = data.fromDate ? new Date(data.fromDate) : new Date();
+            const toDate = data.toDate ? new Date(data.toDate) : new Date();
             const selectedYear = Number.parseInt(data.calendarYear);
 
             // Validate From Date is not in the past

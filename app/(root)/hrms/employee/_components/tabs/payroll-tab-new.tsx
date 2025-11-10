@@ -306,14 +306,26 @@ export function PayrollTab({ employeeId, employeeCode }: PayrollTabProps) {
             console.log('🔍 [PAYROLL SAVE] Form - Waiting for', promises.length, 'API calls to complete');
             const results = await Promise.all(promises);
             
-            console.log('🔍 [PAYROLL SAVE] Form - All API calls completed', {
-                results: results.map((result, index) => ({
-                    index,
+            // Log each result summary (minimal)
+            results.forEach((result, index) => {
+                console.log(`🔍 [PAYROLL SAVE] Form - Result ${index + 1}:`, {
                     success: result?.success,
-                    message: result?.message,
-                    data: result?.data
-                }))
+                    message: result?.message?.substring(0, 50) // First 50 chars only
+                });
             });
+            
+            // Check if any API call failed
+            const failedResults = results.filter(result => !result?.success);
+            if (failedResults.length > 0) {
+                const errorMessages = failedResults
+                    .map(result => result?.message || 'Unknown error')
+                    .filter((msg, index, arr) => arr.indexOf(msg) === index) // Remove duplicates
+                    .join(', ');
+                
+                console.log('🔍 [PAYROLL SAVE] Form - Save failed:', errorMessages);
+                toast.error(`Failed to save payroll details: ${errorMessages}`);
+                return;
+            }
             
             // Refetch payroll data
             console.log('🔍 [PAYROLL SAVE] Form - Refetching payroll data');

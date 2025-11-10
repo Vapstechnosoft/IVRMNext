@@ -42,7 +42,7 @@ export const getMasterShiftColumns = ({ onEdit, onDelete }: MasterShiftColumnsPr
     {
         accessorKey: 'specificDay',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Specific Day' />,
-        cell: ({ row }) => <div>{row.getValue('specificDay') ? 'True' : 'False'}</div>
+        cell: ({ row }) => <div>{row.getValue('specificDay') ? 'Yes' : 'No'}</div>
     },
     {
         accessorKey: 'remarks',

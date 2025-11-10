@@ -345,12 +345,21 @@ export const useMasterGrade = (roleId: number, _searchParams?: ApiSearchparams) 
 // BANK
 // ============================================================================
 
-export function useMasterBank(roleId: number) {
+export function useMasterBank(roleId: number, searchParams?: ApiSearchparams) {
     const queryClient = useQueryClient();
 
+    // Debug logging
+    console.log('🟡 [DEBUG] useMasterBank - Hook called with:');
+    console.log('🟡 [DEBUG] roleId:', roleId);
+    console.log('🟡 [DEBUG] searchParams:', JSON.stringify(searchParams, null, 2));
+    console.log('🟡 [DEBUG] searchParams type:', typeof searchParams);
+
     const listQuery = useQuery({
-        queryKey: [HRMS_QUERY_KEYS.MASTER_BANK, roleId],
-        queryFn: async () => getMasterBankList(roleId),
+        queryKey: [HRMS_QUERY_KEYS.MASTER_BANK, roleId, searchParams ?? {}],
+        queryFn: async () => {
+            console.log('🟡 [DEBUG] useMasterBank - queryFn executing with searchParams:', JSON.stringify(searchParams, null, 2));
+            return getMasterBankList(roleId, searchParams);
+        },
         staleTime: 0
     });
 
@@ -423,7 +432,7 @@ export function useMasterBank(roleId: number) {
             queryKey: [HRMS_QUERY_KEYS.MASTER_BANK]
         });
         queryClient.refetchQueries({
-            queryKey: [HRMS_QUERY_KEYS.MASTER_BANK, roleId]
+            queryKey: [HRMS_QUERY_KEYS.MASTER_BANK, roleId, searchParams ?? {}]
         });
     };
 

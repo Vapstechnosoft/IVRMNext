@@ -75,6 +75,46 @@ export function SalarySlipFilters({
         setCurrentYear(new Date().getFullYear());
     }, []);
 
+    // Hide "Search Columns" button - keep only "View" button
+    useEffect(() => {
+        const hideSearchColumnsButton = () => {
+            const wrapper = document.querySelector('.salary-slip-table-wrapper');
+            if (!wrapper) return;
+
+            const buttons = wrapper.querySelectorAll('button');
+            buttons.forEach((button) => {
+                const buttonText = button.textContent?.trim();
+                if (buttonText === 'Search Columns') {
+                    (button as HTMLElement).style.display = 'none';
+                }
+            });
+        };
+
+        // Run immediately
+        hideSearchColumnsButton();
+
+        // Use MutationObserver to catch dynamically rendered buttons
+        const observer = new MutationObserver(() => {
+            hideSearchColumnsButton();
+        });
+
+        const wrapper = document.querySelector('.salary-slip-table-wrapper');
+        if (wrapper) {
+            observer.observe(wrapper, {
+                childList: true,
+                subtree: true
+            });
+        }
+
+        // Also run after a delay to catch any buttons that render later
+        const timeoutId = setTimeout(hideSearchColumnsButton, 200);
+
+        return () => {
+            observer.disconnect();
+            clearTimeout(timeoutId);
+        };
+    }, [filteredEmployees, isLoading]);
+
     const columns = getSalarySlipColumns({ onSelectAll, onSelectEmployee });
 
     return (
@@ -148,7 +188,7 @@ export function SalarySlipFilters({
             {/* Filter Section - Row 2 */}
             <div className='grid grid-cols-1 gap-4 md:grid-cols-3'>
                 {/* Month Filter */}
-                <div className='space-y-2'>
+                <div className='space-y-2 mt-3 mb-3'>
                     <label htmlFor='month-select' className='font-medium text-foreground text-sm'>
                         Month
                     </label>
@@ -177,7 +217,7 @@ export function SalarySlipFilters({
                 </div>
 
                 {/* Year Filter */}
-                <div className='space-y-2'>
+                <div className='space-y-2 mt-3 mb-3'>
                     <label htmlFor='year-select' className='font-medium text-foreground text-sm'>
                         Year
                     </label>
@@ -207,7 +247,7 @@ export function SalarySlipFilters({
                 </div>
 
                 {/* Slip/page Filter */}
-                <div className='space-y-2'>
+                <div className='space-y-2 mt-3 mb-3'>
                     <Label>Slip/page</Label>
                     <Select value={filters.slipPerPage} onValueChange={(value) => onFilterChange({ ...filters, slipPerPage: value })}>
                         <SelectTrigger>
@@ -233,11 +273,11 @@ export function SalarySlipFilters({
 
             {/* Options Section */}
             <div className='grid grid-cols-2 gap-4 md:grid-cols-4'>
-                <div className='flex cursor-pointer items-center gap-2 text-sm'>
+                <div className='flex cursor-pointer items-center gap-2 text-sm mt-3'>
                     <Checkbox id='lop-days-checkbox' checked={filters.options.lopDays} onCheckedChange={(checked) => onOptionChange('lopDays', !!checked)} />
                     <Label htmlFor='lop-days-checkbox'>LOP Days</Label>
                 </div>
-                <div className='flex cursor-pointer items-center gap-2 text-sm'>
+                <div className='flex cursor-pointer items-center gap-2 text-sm mt-3'>
                     <Checkbox
                         id='leave-details-checkbox'
                         checked={filters.options.leaveDetails}
@@ -245,11 +285,11 @@ export function SalarySlipFilters({
                     />
                     <Label htmlFor='leave-details-checkbox'>Leave Details</Label>
                 </div>
-                <div className='flex cursor-pointer items-center gap-2 text-sm'>
+                <div className='flex cursor-pointer items-center gap-2 text-sm mt-3'>
                     <Checkbox id='pan-card-checkbox' checked={filters.options.panCardNo} onCheckedChange={(checked) => onOptionChange('panCardNo', !!checked)} />
                     <Label htmlFor='pan-card-checkbox'>Pan Card No.</Label>
                 </div>
-                <div className='flex cursor-pointer items-center gap-2 text-sm'>
+                <div className='flex cursor-pointer items-center gap-2 text-sm mt-3'>
                     <Checkbox
                         id='bank-details-checkbox'
                         checked={filters.options.bankDetails}
@@ -261,23 +301,23 @@ export function SalarySlipFilters({
 
             {/* Employee Table with Search */}
             <div className='space-y-4'>
-                <div className='flex items-center justify-between'>
+                <div className='flex items-center justify-between mt-3'>
                     <div className='font-medium text-foreground text-sm'>Employee List ({filteredEmployees.length} employees)</div>
-                    <div className='flex items-center gap-4'>
-                        <Input placeholder='search here...' value={searchTerm} onChange={(e) => onSearchChange(e.target.value)} className='w-64' />
-                        {selectedCount > 0 && <span className='text-muted-foreground text-sm'>{selectedCount} selected</span>}
-                    </div>
+                    {selectedCount > 0 && <span className='text-muted-foreground text-sm'>{selectedCount} selected</span>}
                 </div>
 
                 {/* Data Table */}
-                <DataTable
-                    isLoading={isLoading}
-                    columns={columns}
-                    data={filteredEmployees}
-                    totalItems={filteredEmployees.length}
-                    showViewOptions={true}
-                    columnPinning={{ left: ['select', 'id'] }}
-                />
+                <div className='salary-slip-table-wrapper'>
+                    <DataTable
+                        isLoading={isLoading}
+                        columns={columns}
+                        data={filteredEmployees}
+                        totalItems={filteredEmployees.length}
+                        showViewOptions={true}
+                        isSearchRequired={true}
+                        columnPinning={{ left: ['select', 'id'] }}
+                    />
+                </div>
             </div>
 
             {/* Action Buttons */}

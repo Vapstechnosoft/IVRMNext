@@ -15,6 +15,9 @@ export default function EmployeeYearlyReportPage() {
     const db = createLocalCrud<YearRow>('attendance:year');
 
     const [filters, setFilters] = useState<EmployeeYearlyReportFilters>({
+        type: [],
+        department: [],
+        designation: [],
         allOrIndividual: 'All',
         employee: '',
         fromDate: '',
@@ -24,13 +27,19 @@ export default function EmployeeYearlyReportPage() {
     const data = useMemo(() => db.list(), []);
 
     const employees = useMemo(() => [...new Set(data.map((d) => d.employeeName))], [data]);
+    const types = useMemo(() => [...new Set(data.map((d: any) => d.type).filter(Boolean))], [data]);
+    const departments = useMemo(() => [...new Set(data.map((d: any) => d.department).filter(Boolean))], [data]);
+    const designations = useMemo(() => [...new Set(data.map((d) => d.designation).filter(Boolean))], [data]);
 
     const filtered = useMemo(() => {
-        return data.filter((r) => {
+        return data.filter((r: any) => {
+            const okType = filters.type && filters.type.length > 0 ? filters.type.includes(r.type) : true;
+            const okDept = filters.department && filters.department.length > 0 ? filters.department.includes(r.department) : true;
+            const okDesg = filters.designation && filters.designation.length > 0 ? filters.designation.includes(r.designation) : true;
             const okEmp = filters.allOrIndividual === 'Individual' && filters.employee ? r.employeeName === filters.employee : true;
             const okDateFrom = filters.fromDate ? new Date(r.dateOfJoining) >= new Date(filters.fromDate) : true;
             const okDateTo = filters.toDate ? new Date(r.dateOfJoining) <= new Date(filters.toDate) : true;
-            return okEmp && okDateFrom && okDateTo;
+            return okType && okDept && okDesg && okEmp && okDateFrom && okDateTo;
         });
     }, [data, filters]);
 
@@ -40,6 +49,9 @@ export default function EmployeeYearlyReportPage() {
 
     const handleCancel = () => {
         setFilters({
+            type: [],
+            department: [],
+            designation: [],
             allOrIndividual: 'All',
             employee: '',
             fromDate: '',
@@ -65,6 +77,9 @@ export default function EmployeeYearlyReportPage() {
                 <EmployeeYearlyReportFiltersComponent
                     filters={filters}
                     employees={employees}
+                    types={types}
+                    departments={departments}
+                    designations={designations}
                     onFilterChange={setFilters}
                     onSearch={handleSearch}
                     onCancel={handleCancel}

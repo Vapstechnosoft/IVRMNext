@@ -3,7 +3,6 @@
 import { Button } from '@/components/ui/button';
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
 import type { ColumnDef } from '@tanstack/react-table';
-import { Edit, Trash2 } from 'lucide-react';
 
 export interface MissingLog {
     id: number;
@@ -19,12 +18,7 @@ export interface MissingLog {
     createdAt: Date;
 }
 
-interface MissingLogColumnsProps {
-    onEdit: (row: MissingLog) => void;
-    onDelete: (row: MissingLog) => void;
-}
-
-export const getMissingLogColumns = ({ onEdit, onDelete }: MissingLogColumnsProps): ColumnDef<MissingLog>[] => [
+export const getMissingLogColumns = (): ColumnDef<MissingLog>[] => [
     {
         id: 'sl',
         header: ({ column }) => <DataTableColumnHeader column={column} title='SL.NO' />,
@@ -45,12 +39,25 @@ export const getMissingLogColumns = ({ onEdit, onDelete }: MissingLogColumnsProp
     },
     {
         accessorKey: 'inOut',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Input/Output' />
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Input/Output' />,
+        cell: ({ row }) => {
+            const value = row.getValue('inOut') as string;
+            return <div>{value === 'IN' ? '0' : '1'}</div>;
+        }
     },
     {
         accessorKey: 'file',
         header: ({ column }) => <DataTableColumnHeader column={column} title='File' />,
-        cell: ({ row }) => <div>{row.getValue('file') ? 'view' : '-'}</div>
+        cell: ({ row }) => {
+            const file = row.getValue('file') as string | undefined;
+            return file ? (
+                <Button variant='link' size='sm' className='h-auto p-0 text-destructive hover:text-destructive/80'>
+                    view
+                </Button>
+            ) : (
+                <span className='text-muted-foreground'>-</span>
+            );
+        }
     },
     {
         accessorKey: 'remarks',
@@ -63,22 +70,5 @@ export const getMissingLogColumns = ({ onEdit, onDelete }: MissingLogColumnsProp
     {
         accessorKey: 'status',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Status' />
-    },
-    {
-        id: 'actions',
-        header: 'Actions',
-        cell: ({ row }) => {
-            const entity = row.original;
-            return (
-                <div className='flex items-center gap-2'>
-                    <Button variant='outline' size='sm' onClick={() => onEdit(entity)}>
-                        <Edit className='h-4 w-4' />
-                    </Button>
-                    <Button variant='outline' size='sm' className='text-red-600' onClick={() => onDelete(entity)}>
-                        <Trash2 className='h-4 w-4' />
-                    </Button>
-                </div>
-            );
-        }
     }
 ];

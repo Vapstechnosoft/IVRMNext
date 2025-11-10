@@ -2,27 +2,28 @@
 
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
+import { DatePickerWithYear } from '@/components/ui/date-picker-year';
 import { FormError } from '@/components/ui/extension/field';
 import { InputText } from '@/components/ui/extension/input-text';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { RefreshCw, Save } from 'lucide-react';
+import { cn } from '@/lib/utils';
+import { holidayMasterSchema } from '@/schemas/hrms/attendance-management-schemas';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { format } from 'date-fns';
+import { CalendarIcon, RefreshCw, Save } from 'lucide-react';
 import React from 'react';
-import { type SubmitHandler, useForm } from 'react-hook-form';
+import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
+import type { z } from 'zod';
 
-export type MasterHolidayForm = {
-    calendarYear: string;
-    department: string;
-    holidayType: string;
-    name: string;
+export type MasterHolidayForm = z.infer<typeof holidayMasterSchema.addOrUpdate> & {
     selectDay: boolean;
-    selectedDays: string[];
-    fromDate: string;
-    toDate: string;
+    department: string;
     isActive: boolean;
 };
 
 const departments = ['All', 'Teaching', 'Non Teaching', 'Administrative', 'JUNIOR SCHOOL', 'SENIOR SCHOOL', 'OFFICE STAFF'];
-const holidayTypes = ['WEEK DAY', 'WEEK END', 'NATIONAL HOLIDAY', 'FESTIVAL', 'OPTIONAL HOLIDAY'];
+const holidayTypes = ['PUBLIC HOLIDAY', 'WEEK END', 'WEEK DAY', 'VACATION', 'NATIONAL HOLIDAY', 'FESTIVAL', 'OPTIONAL HOLIDAY'];
 const weekDays = [
     { value: 'SUN', label: 'SUN' },
     { value: 'MON', label: 'MON' },
@@ -44,18 +45,25 @@ export function HolidayForm({ editingHoliday, calendarYears, onSubmit, onCancel 
     const {
         register,
         handleSubmit,
+        control,
         setValue,
         watch,
         reset,
         formState: { errors, isSubmitting }
     } = useForm<MasterHolidayForm>({
+        resolver: zodResolver(holidayMasterSchema.addOrUpdate),
         mode: 'onChange',
         defaultValues: {
             isActive: true,
             selectedDays: [],
             selectDay: false,
             fromDate: new Date().toISOString().split('T')[0],
-            toDate: new Date().toISOString().split('T')[0]
+            toDate: new Date().toISOString().split('T')[0],
+            calendarYear: '',
+            holidayType: '',
+            name: '',
+            department: '',
+            remarks: ''
         }
     });
 
@@ -178,28 +186,16 @@ export function HolidayForm({ editingHoliday, calendarYears, onSubmit, onCancel 
                     </div>
                 </div>
 
-                <div className='grid grid-cols-1 gap-4 lg:grid-cols-2'>
-                    <InputText
-                        label='Holiday Name'
-                        required
-                        id='name'
-                        {...register('name', {
-                            required: 'Holiday Name is required'
-                        })}
-                        error={errors.name?.message}
-                        className='transition-colors focus:ring-2 focus:ring-primary/20'
+                {/* Select Day Checkbox - Always visible */}
+                <div className='flex items-center space-y-2'>
+                    <Checkbox
+                        id='selectDay'
+                        checked={selectDay}
+                        onCheckedChange={(checked) => setValue('selectDay', !!checked)}
                     />
-
-                    <div className='flex items-center space-y-2 pt-6'>
-                        <Checkbox
-                            id='selectDay'
-                            checked={selectDay}
-                            onCheckedChange={(checked) => setValue('selectDay', !!checked)}
-                        />
-                        <label htmlFor='selectDay' className='ml-2 font-medium text-foreground text-sm'>
-                            Select Day
-                        </label>
-                    </div>
+                    <label htmlFor='selectDay' className='ml-2 font-medium text-foreground text-sm'>
+                        Select Day
+                    </label>
                 </div>
 
                 {/* Day Selection */}
@@ -222,51 +218,135 @@ export function HolidayForm({ editingHoliday, calendarYears, onSubmit, onCancel 
                     </div>
                 )}
 
-                <div className='grid grid-cols-1 gap-4 lg:grid-cols-3'>
-                    <div className='space-y-2'>
-                        <label className='font-medium text-sm' htmlFor='fromDate'>
-                            From Date <span className='text-red-500'>*</span>
-                        </label>
-                        <input
-                            id='fromDate'
-                            type='date'
-                            {...register('fromDate', {
-                                required: 'From Date is required'
-                            })}
-                            min={new Date().toISOString().split('T')[0]}
-                            className={`w-full rounded-md border px-3 py-2 ${errors.fromDate ? 'border-red-500' : 'border-input'}`}
-                        />
-                        {errors.fromDate && <FormError>{errors.fromDate.message}</FormError>}
-                    </div>
+                {/* Dynamic Fields - Only show when PUBLIC HOLIDAY or WEEK END is selected */}
+                {(holidayType === 'PUBLIC HOLIDAY' || holidayType === 'WEEK END') && (
+                    <>
+                        <div className='grid grid-cols-1 gap-4 lg:grid-cols-2'>
+                            <div className='space-y-2'>
+                                <label className='font-medium text-sm' htmlFor='fromDate'>
+                                    Start Date <span className='text-red-500'>*</span>
+                                </label>
+                                <Controller
+                                    name='fromDate'
+                                    control={control}
+                                    render={({ field }) => {
+                                        const selectedDate = field.value ? new Date(field.value) : undefined;
+                                        const minDate = new Date();
+                                        minDate.setHours(0, 0, 0, 0);
 
-                    <div className='space-y-2'>
-                        <label className='font-medium text-sm' htmlFor='toDate'>
-                            To Date <span className='text-red-500'>*</span>
-                        </label>
-                        <input
-                            id='toDate'
-                            type='date'
-                            {...register('toDate', {
-                                required: 'To Date is required'
-                            })}
-                            min={fromDate || new Date().toISOString().split('T')[0]}
-                            className={`w-full rounded-md border px-3 py-2 ${errors.toDate ? 'border-red-500' : 'border-input'}`}
-                        />
-                        {errors.toDate && <FormError>{errors.toDate.message}</FormError>}
-                    </div>
+                                        return (
+                                            <Popover>
+                                                <PopoverTrigger asChild>
+                                                    <Button
+                                                        variant='outline'
+                                                        className={cn(
+                                                            'w-full justify-start text-left font-normal',
+                                                            !selectedDate && 'text-muted-foreground',
+                                                            errors.fromDate && 'border-red-500'
+                                                        )}
+                                                        type='button'>
+                                                        <CalendarIcon className='mr-2 h-4 w-4' />
+                                                        {selectedDate ? format(selectedDate, 'dd-MM-yyyy') : 'Enter date'}
+                                                    </Button>
+                                                </PopoverTrigger>
+                                                <PopoverContent className='w-auto p-0' align='start'>
+                                                    <DatePickerWithYear
+                                                        mode='single'
+                                                        selected={selectedDate}
+                                                        onDayClick={(day) => {
+                                                            if (day) {
+                                                                const dateStr = format(day, 'yyyy-MM-dd');
+                                                                field.onChange(dateStr);
+                                                            }
+                                                        }}
+                                                        fromDate={minDate}
+                                                        initialFocus
+                                                    />
+                                                </PopoverContent>
+                                            </Popover>
+                                        );
+                                    }}
+                                />
+                                {errors.fromDate && <FormError>{errors.fromDate.message}</FormError>}
+                            </div>
 
-                    <div className='flex items-center space-y-2 pt-6'>
-                        <input
-                            type='checkbox'
-                            id='isActive'
-                            {...register('isActive')}
-                            className='mr-2 border-border text-primary focus:ring-primary'
-                        />
-                        <label htmlFor='isActive' className='font-medium text-foreground text-sm'>
-                            Active
-                        </label>
-                    </div>
-                </div>
+                            <div className='space-y-2'>
+                                <label className='font-medium text-sm' htmlFor='toDate'>
+                                    End Date <span className='text-red-500'>*</span>
+                                </label>
+                                <Controller
+                                    name='toDate'
+                                    control={control}
+                                    render={({ field }) => {
+                                        const selectedDate = field.value ? new Date(field.value) : undefined;
+                                        const minDate = fromDate ? new Date(fromDate) : new Date();
+                                        minDate.setHours(0, 0, 0, 0);
+
+                                        return (
+                                            <Popover>
+                                                <PopoverTrigger asChild>
+                                                    <Button
+                                                        variant='outline'
+                                                        className={cn(
+                                                            'w-full justify-start text-left font-normal',
+                                                            !selectedDate && 'text-muted-foreground',
+                                                            errors.toDate && 'border-red-500'
+                                                        )}
+                                                        type='button'>
+                                                        <CalendarIcon className='mr-2 h-4 w-4' />
+                                                        {selectedDate ? format(selectedDate, 'dd-MM-yyyy') : 'Enter date'}
+                                                    </Button>
+                                                </PopoverTrigger>
+                                                <PopoverContent className='w-auto p-0' align='start'>
+                                                    <DatePickerWithYear
+                                                        mode='single'
+                                                        selected={selectedDate}
+                                                        onDayClick={(day) => {
+                                                            if (day) {
+                                                                const dateStr = format(day, 'yyyy-MM-dd');
+                                                                field.onChange(dateStr);
+                                                            }
+                                                        }}
+                                                        fromDate={minDate}
+                                                        initialFocus
+                                                    />
+                                                </PopoverContent>
+                                            </Popover>
+                                        );
+                                    }}
+                                />
+                                {errors.toDate && <FormError>{errors.toDate.message}</FormError>}
+                            </div>
+                        </div>
+
+                        <div className='grid grid-cols-1 gap-4'>
+                            <InputText
+                                label='Holiday Name'
+                                required
+                                id='name'
+                                {...register('name')}
+                                error={errors.name?.message}
+                                className='transition-colors focus:ring-2 focus:ring-primary/20'
+                                maxLength={100}
+                            />
+                        </div>
+
+                        <div className='space-y-2'>
+                            <label className='font-medium text-sm' htmlFor='remarks'>
+                                Remarks
+                            </label>
+                            <textarea
+                                id='remarks'
+                                {...register('remarks')}
+                                rows={3}
+                                maxLength={250}
+                                className={`w-full rounded-md border px-3 py-2 ${errors.remarks ? 'border-red-500' : 'border-input'}`}
+                                placeholder='Enter remarks...'
+                            />
+                            {errors.remarks && <FormError>{errors.remarks.message}</FormError>}
+                        </div>
+                    </>
+                )}
 
                 {/* Root Error */}
                 {errors.root && <FormError>{errors.root.message}</FormError>}

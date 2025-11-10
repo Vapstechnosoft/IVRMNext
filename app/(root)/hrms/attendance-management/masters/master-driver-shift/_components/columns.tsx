@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
 import { type BaseEntity } from '@/lib/localdb';
 import type { ColumnDef } from '@tanstack/react-table';
+import { format } from 'date-fns';
 import { Edit, Trash2 } from 'lucide-react';
 
 export interface DriverShift extends BaseEntity {
@@ -14,6 +15,7 @@ export interface DriverShift extends BaseEntity {
     remarks?: string;
     saturdayOff: boolean;
     sundayWorking: boolean;
+    isActive?: boolean;
 }
 
 interface GetDriverShiftColumnsProps {
@@ -31,18 +33,64 @@ export function getDriverShiftColumns({ onEdit, onDelete }: GetDriverShiftColumn
         },
         { accessorKey: 'driver', header: ({ column }) => <DataTableColumnHeader column={column} title='Driver Name' /> },
         { accessorKey: 'shift', header: ({ column }) => <DataTableColumnHeader column={column} title='Shift Name' /> },
-        { accessorKey: 'fromDate', header: ({ column }) => <DataTableColumnHeader column={column} title='From Date' /> },
-        { accessorKey: 'toDate', header: ({ column }) => <DataTableColumnHeader column={column} title='To Date' /> },
+        {
+            accessorKey: 'fromDate',
+            header: ({ column }) => <DataTableColumnHeader column={column} title='From Date' />,
+            cell: ({ row }) => {
+                const date = row.getValue('fromDate') as string;
+                if (!date) return '-';
+                try {
+                    return format(new Date(date), 'dd/MM/yyyy');
+                } catch {
+                    return date;
+                }
+            }
+        },
+        {
+            accessorKey: 'toDate',
+            header: ({ column }) => <DataTableColumnHeader column={column} title='To Date' />,
+            cell: ({ row }) => {
+                const date = row.getValue('toDate') as string;
+                if (!date) return '-';
+                try {
+                    return format(new Date(date), 'dd/MM/yyyy');
+                } catch {
+                    return date;
+                }
+            }
+        },
         { accessorKey: 'remarks', header: ({ column }) => <DataTableColumnHeader column={column} title='Remarks' /> },
         {
             accessorKey: 'sundayWorking',
-            header: ({ column }) => <DataTableColumnHeader column={column} title='Sunday Working Flag' />,
-            cell: ({ row }) => <div>{row.getValue('sundayWorking') ? '✔' : '✖'}</div>
+            header: ({ column }) => <DataTableColumnHeader column={column} title='Sunday_WorkingFlag' />,
+            cell: ({ row }) => {
+                const value = row.getValue('sundayWorking') as boolean;
+                return (
+                    <div className='flex items-center justify-center'>
+                        {value ? (
+                            <span className='text-green-600 font-semibold'>✓</span>
+                        ) : (
+                            <span className='text-red-600 font-semibold'>✗</span>
+                        )}
+                    </div>
+                );
+            }
         },
         {
             accessorKey: 'saturdayOff',
-            header: ({ column }) => <DataTableColumnHeader column={column} title='Saturday Off Flag' />,
-            cell: ({ row }) => <div>{row.getValue('saturdayOff') ? '✔' : '✖'}</div>
+            header: ({ column }) => <DataTableColumnHeader column={column} title='Saturday_OffFlg' />,
+            cell: ({ row }) => {
+                const value = row.getValue('saturdayOff') as boolean;
+                return (
+                    <div className='flex items-center justify-center'>
+                        {value ? (
+                            <span className='text-green-600 font-semibold'>✓</span>
+                        ) : (
+                            <span className='text-red-600 font-semibold'>✗</span>
+                        )}
+                    </div>
+                );
+            }
         },
         {
             id: 'actions',

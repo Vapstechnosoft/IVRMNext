@@ -57,20 +57,22 @@ export default function EmployeeShiftMappingPage() {
 
     const handleFormSubmit = (data: EmployeeShiftMappingForm) => {
         try {
-            // Generate mock data for the mapping based on form inputs
+            // Convert dayType array to string for backward compatibility
+            const dayTypeValue = Array.isArray(data.dayType) ? data.dayType[0] || '' : data.dayType || '';
             const mappingData = {
                 ...data,
-                employee: 'Sample Employee',
-                holidayType: data.dayType,
-                totalWork: '8:00',
-                halfDayWork: '4:00',
-                morningLogin: '8:00',
-                morningLogout: '12:00',
-                afternoonLogin: '13:00',
-                afternoonLogout: '17:00',
-                delayShift: '0:10',
-                earlyShift: '0:10',
-                lunchHour: '1:00'
+                employee: 'Sample Employee', // This should be derived from employees array
+                holidayType: dayTypeValue,
+                // Map timing fields to legacy field names for backward compatibility
+                totalWork: data.totalWorkingHours || '00:00',
+                halfDayWork: data.halfDayWorkingHours || '00:00',
+                morningLogin: data.shiftStartTime || '00:00',
+                morningLogout: data.lunchStartTime || '00:00',
+                afternoonLogin: data.lunchEndTime || '00:00',
+                afternoonLogout: data.shiftEndTime || '00:00',
+                delayShift: data.delayPerShift || '00:00',
+                earlyShift: data.earlyPerShift || '00:00',
+                lunchHour: data.lunchHours || '00:00'
             };
 
             if (editingId) {
@@ -90,17 +92,22 @@ export default function EmployeeShiftMappingPage() {
     const handleEdit = (mapping: EmployeeShiftMapping) => {
         setEditingId(mapping.id);
         setEditingMapping({
-            employeeTypes: mapping.employeeTypes || [],
-            dayTypes: mapping.dayTypes || [],
-            allEmployees: mapping.allEmployees,
-            searchEmployee: mapping.searchEmployee || '',
-            type: mapping.type,
-            department: mapping.department,
-            designation: mapping.designation,
-            dayType: mapping.dayType,
-            shiftName: mapping.shiftName,
-            applicableDate: mapping.applicableDate,
-            isActive: mapping.isActive
+            type: Array.isArray(mapping.type) ? mapping.type : mapping.type ? [mapping.type] : [],
+            department: Array.isArray(mapping.department) ? mapping.department : mapping.department ? [mapping.department] : [],
+            designation: Array.isArray(mapping.designation) ? mapping.designation : mapping.designation ? [mapping.designation] : [],
+            dayType: Array.isArray(mapping.dayType) ? mapping.dayType : mapping.dayType ? [mapping.dayType] : [],
+            shiftName: mapping.shiftName || '',
+            applicableDate: mapping.applicableDate || '',
+            employees: mapping.employees || [],
+            shiftStartTime: mapping.shiftStartTime || '',
+            lunchStartTime: mapping.lunchStartTime || '',
+            shiftEndTime: mapping.shiftEndTime || '',
+            lunchEndTime: mapping.lunchEndTime || '',
+            totalWorkingHours: mapping.totalWorkingHours || '',
+            delayPerShift: mapping.delayPerShift || '',
+            halfDayWorkingHours: mapping.halfDayWorkingHours || '',
+            earlyPerShift: mapping.earlyPerShift || '',
+            lunchHours: mapping.lunchHours || ''
         });
         setIsFormOpen(true);
 
@@ -108,7 +115,7 @@ export default function EmployeeShiftMappingPage() {
         setTimeout(() => {
             formRef.current?.scrollIntoView({
                 behavior: 'smooth',
-                block: 'end'
+                block: 'start'
             });
         }, 100);
     };
@@ -157,21 +164,14 @@ export default function EmployeeShiftMappingPage() {
                     size='lg'
                     className='shadow-lg transition-shadow duration-300 hover:shadow-xl'
                     headerClassName=''>
-                    <div className='space-y-4'>
-                        <div className='flex justify-end'>
-                            <Button onClick={handleExportData} variant='outline' className='gap-2'>
-                                <Download className='h-4 w-4' />
-                                Export Data
-                            </Button>
-                        </div>
-                        <GenericDataTable
-                            isLoading={isLoading}
-                            columns={getEmployeeShiftMappingColumns({ onEdit: handleEdit, onDelete: handleDelete, onExport: handleExportData })}
-                            data={shiftMappings}
-                            totalItems={shiftMappings.length}
-                            showViewOptions={true}
-                        />
-                    </div>
+                    <GenericDataTable
+                        isLoading={isLoading}
+                        columns={getEmployeeShiftMappingColumns({ onEdit: handleEdit, onDelete: handleDelete, onExport: handleExportData })}
+                        data={shiftMappings}
+                        totalItems={shiftMappings.length}
+                        showViewOptions={true}
+                        onExport={handleExportData}
+                    />
                 </CollapsibleSection>
 
                 {/* Add Form Section - Conditionally Rendered */}

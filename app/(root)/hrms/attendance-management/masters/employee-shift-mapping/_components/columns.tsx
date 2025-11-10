@@ -8,16 +8,17 @@ import type { ColumnDef } from '@tanstack/react-table';
 import { Download, Edit, MoreHorizontal, Trash2 } from 'lucide-react';
 
 export interface EmployeeShiftMapping extends BaseEntity {
-    employeeTypes: string[];
-    dayTypes: string[];
-    allEmployees: boolean;
-    searchEmployee: string;
-    type: string;
-    department: string;
-    designation: string;
-    dayType: string;
+    employeeTypes?: string[];
+    dayTypes?: string[];
+    allEmployees?: boolean;
+    searchEmployee?: string;
+    type: string | string[];
+    department: string | string[];
+    designation: string | string[];
+    dayType: string | string[];
     shiftName: string;
     applicableDate: string;
+    employees: string[];
     employee: string;
     holidayType: string;
     totalWork: string;
@@ -30,6 +31,16 @@ export interface EmployeeShiftMapping extends BaseEntity {
     earlyShift: string;
     lunchHour: string;
     isActive: boolean;
+    // Timing fields
+    shiftStartTime?: string;
+    lunchStartTime?: string;
+    shiftEndTime?: string;
+    lunchEndTime?: string;
+    totalWorkingHours?: string;
+    delayPerShift?: string;
+    halfDayWorkingHours?: string;
+    earlyPerShift?: string;
+    lunchHours?: string;
 }
 
 interface GetEmployeeShiftMappingColumnsProps {
@@ -46,7 +57,7 @@ export function getEmployeeShiftMappingColumns({
     return [
         {
             id: 'serialNumber',
-            header: ({ column }) => <DataTableColumnHeader column={column} title='SL' />,
+            header: ({ column }) => <DataTableColumnHeader column={column} title='SL. NO' />,
             cell: ({ row }) => <div className='font-medium'>{row.index + 1}</div>,
             enableSorting: false
         },
@@ -72,12 +83,12 @@ export function getEmployeeShiftMappingColumns({
         },
         {
             accessorKey: 'totalWork',
-            header: ({ column }) => <DataTableColumnHeader column={column} title='Total Work' />,
+            header: ({ column }) => <DataTableColumnHeader column={column} title='Total Work Hour' />,
             cell: ({ row }) => <div>{row.getValue('totalWork')}</div>
         },
         {
             accessorKey: 'halfDayWork',
-            header: ({ column }) => <DataTableColumnHeader column={column} title='Half Day Work' />,
+            header: ({ column }) => <DataTableColumnHeader column={column} title='Half Day Work Hour' />,
             cell: ({ row }) => <div>{row.getValue('halfDayWork')}</div>
         },
         {
@@ -160,7 +171,26 @@ export const employeeTypeOptions = [
 ];
 
 export const dayTypeOptions = ['PUBLIC HOLIDAY', 'WEEK END', 'WEEK DAY', 'VACATION'];
-export const typeOptions = ['All'];
-export const departmentOptions = ['All'];
-export const designationOptions = ['All'];
-export const shiftNames = ['Morning Shift', 'Evening Shift', 'Night Shift', 'General Shift'];
+export const typeOptions = ['Teaching', 'Non Teaching', 'Administrative', 'test', 'assistant teacher', 'Principal', 'Owner of the company'];
+export const departmentOptions = ['Teaching', 'JUNIOR SCHOOL', 'PRIMARY SCHOOL', 'SENIOR SCHOOL', 'Non Teaching', 'OFFICE STAFF'];
+export const designationOptions = ['Assistant Teacher', 'Principal', 'Vice Principal', 'Office Assistant', 'System Manager', 'Teacher Helper', 'Electrician'];
+export const shiftNames = ['Teaching Staff', 'Morning Shift', 'Evening Shift', 'Night Shift', 'General Shift'];
+
+// Mock employee data - replace with actual data source
+export const employeeOptions = [
+    { label: 'abc a a', value: 'abc-a-a' },
+    { label: 'arya a arya', value: 'arya-a-arya' },
+    { label: 'asha a', value: 'asha-a' },
+    { label: 'binod', value: 'binod' },
+    { label: 'BinodA', value: 'binoda' },
+    { label: 'MR ASIM KUMAR RAY', value: 'mr-asim-kumar-ray' },
+    { label: 'MR AVIJIT MUKHERJEE', value: 'mr-avijit-mukherjee' },
+    { label: 'MR DHRUBA GHOSH', value: 'mr-dhruba-ghosh' },
+    { label: 'MR ELVIS MICHAEL JACKSON', value: 'mr-elvis-michael-jackson' },
+    { label: 'MR GLEN EUSTACE NOEL DILLEN', value: 'mr-glen-eustace-noel-dillen' },
+    { label: 'MR IGNASIUS LAL', value: 'mr-ignasius-lal' },
+    { label: 'MR JACOB ABHINAV SARKAR', value: 'mr-jacob-abhinav-sarkar' },
+    { label: 'MR JAY PRAKASH SHAW', value: 'mr-jay-prakash-shaw' },
+    { label: 'MR JOHN JOYDEEP SHARMA', value: 'mr-john-joydeep-sharma' },
+    { label: 'MR JOHN SHAH', value: 'mr-john-shah' }
+];

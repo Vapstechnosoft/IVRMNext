@@ -12,9 +12,9 @@ export default function EmployeeLogReportPage() {
     const db = createLocalCrud<LogRow & BaseEntity>('attendance:log');
 
     const [filters, setFilters] = useState<LogReportFiltersState>({
-        type: '',
-        department: '',
-        designation: '',
+        type: [],
+        department: [],
+        designation: [],
         allOrIndividual: 'All',
         codeOrName: 'Code',
         query: '',
@@ -30,9 +30,9 @@ export default function EmployeeLogReportPage() {
 
     const filtered = useMemo(() => {
         return data.filter((r) => {
-            const okType = filters.type ? r.type === filters.type : true;
-            const okDept = filters.department ? r.department === filters.department : true;
-            const okDesg = filters.designation ? r.designation === filters.designation : true;
+            const okType = filters.type && filters.type.length > 0 ? filters.type.includes(r.type) : true;
+            const okDept = filters.department && filters.department.length > 0 ? filters.department.includes(r.department) : true;
+            const okDesg = filters.designation && filters.designation.length > 0 ? filters.designation.includes(r.designation) : true;
             const okQuery =
                 filters.allOrIndividual === 'Individual' && filters.query
                     ? filters.codeOrName === 'Code'

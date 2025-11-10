@@ -1,11 +1,14 @@
 export interface MasterBankResponse {
     success?: boolean;
     message?: string;
-    data?: {
+    data?: BankItem[] | {
         bankdetailList: BankItem[];
     };
     bankdetailList?: BankItem[];
     retrunMsg?: string;
+    total?: number;
+    page?: number;
+    page_size?: number;
 }
 
 export interface BankItem {

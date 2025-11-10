@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { GenericDataTable } from '@/components/ui/data-table/generic-data-table';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { createLocalCrud } from '@/lib/localdb';
-import { Plus } from 'lucide-react';
+import { Plus, X } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { toast } from 'sonner';
 import { type DriverShift, getDriverShiftColumns } from './_components/columns';
@@ -34,11 +34,17 @@ export default function MasterDriverShiftPage() {
 
     const handleFormSubmit = (data: DriverShiftForm) => {
         try {
+            const shiftData: Omit<DriverShift, 'id' | 'createdAt'> = {
+                ...data,
+                saturdayOff: data.saturdayOff ?? false,
+                sundayWorking: data.sundayWorking ?? false,
+                isActive: true // Always active by default
+            };
             if (editing) {
-                store.update(editing.id, data);
+                store.update(editing.id, shiftData);
                 toast.success('Driver shift updated');
             } else {
-                store.create({ ...data });
+                store.create(shiftData);
                 toast.success('Driver shift added');
             }
             setIsFormOpen(false);
@@ -57,9 +63,9 @@ export default function MasterDriverShiftPage() {
             driver: row.driver,
             fromDate: row.fromDate,
             toDate: row.toDate,
-            remarks: row.remarks,
-            saturdayOff: row.saturdayOff,
-            sundayWorking: row.sundayWorking
+            remarks: row.remarks || '',
+            saturdayOff: row.saturdayOff || false,
+            sundayWorking: row.sundayWorking || false
         });
         setIsFormOpen(true);
         setTimeout(() => formRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 100);
@@ -93,9 +99,10 @@ export default function MasterDriverShiftPage() {
                     </Button>
                 </div>
 
+                {/* Table Section - Always visible */}
                 <CollapsibleSection
-                    title='Total Grid Records'
-                    description=''
+                    title='MASTER DRIVER SHIFT'
+                    description={`Total Grid Records: ${rows.length}`}
                     defaultOpen={true}
                     variant='default'
                     size='lg'
@@ -110,16 +117,27 @@ export default function MasterDriverShiftPage() {
                     />
                 </CollapsibleSection>
 
+                {/* Form Section - Only visible when Add/Edit */}
                 {isFormOpen && (
-                    <div ref={formRef}>
+                    <div ref={formRef} className='slide-in-from-top-4 animate-in duration-300'>
                         <CollapsibleSection
-                            title={editing ? 'Edit Driver Shift' : 'Master Driver Shift'}
-                            description=''
+                            title={editing ? 'Edit Driver Shift' : 'MASTER DRIVER SHIFT'}
+                            description={editing ? 'Update driver shift details below' : 'Fill in the details below to create a new driver shift'}
                             defaultOpen={true}
-                            variant='default'
-                            size='lg'
-                            className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
-                            <DriverShiftFormComponent editingShift={editingShift} onSubmit={handleFormSubmit} onCancel={handleFormCancel} />
+                            variant='outline'
+                            size='md'
+                            className='shadow-lg'>
+                            <div className='relative'>
+                                <Button
+                                    type='button'
+                                    onClick={handleFormCancel}
+                                    variant='ghost'
+                                    size='sm'
+                                    className='-top-[3.5rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
+                                    <X className='h-4 w-4 text-destructive' /> Close
+                                </Button>
+                                <DriverShiftFormComponent editingShift={editingShift} onSubmit={handleFormSubmit} onCancel={handleFormCancel} />
+                            </div>
                         </CollapsibleSection>
                     </div>
                 )}

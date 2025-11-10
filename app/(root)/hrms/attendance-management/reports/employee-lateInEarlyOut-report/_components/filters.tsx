@@ -1,28 +1,24 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
-import { Checkbox } from '@/components/ui/checkbox';
+import { FormError } from '@/components/ui/extension/field';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { InputText } from '@/components/ui/extension/input-text';
+import { MultiSelect } from '@/components/ui/multi-select';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { employeeLateInEarlyOutReportFilterSchema } from '@/schemas/hrms/attendance-management-schemas';
+import { zodResolver } from '@hookform/resolvers/zod';
 import { FileDown, Printer, RefreshCw, X } from 'lucide-react';
+import { useForm } from 'react-hook-form';
+import type { z } from 'zod';
 
-export interface EmployeeLateInEarlyOutReportFilters {
-    type: string;
-    department: string;
-    designation: string;
-    allOrIndividual: 'All' | 'Individual';
-    codeOrName: 'Code' | 'Name';
-    query: string;
-    fromDate: string;
-    toDate: string;
-    mode: 'Late By' | 'Early Out' | 'Late In Early Out';
-}
+export type EmployeeLateInEarlyOutReportFilters = z.infer<typeof employeeLateInEarlyOutReportFilterSchema>;
 
 interface EmployeeLateInEarlyOutReportFiltersProps {
     filters: EmployeeLateInEarlyOutReportFilters;
     departments: string[];
     designations: string[];
+    types: string[];
     onFilterChange: (filters: EmployeeLateInEarlyOutReportFilters) => void;
     onSearch: () => void;
     onCancel: () => void;
@@ -34,14 +30,33 @@ export function EmployeeLateInEarlyOutReportFilters({
     filters,
     departments,
     designations,
+    types,
     onFilterChange,
     onSearch,
     onCancel,
     onExport,
     onPrint
 }: EmployeeLateInEarlyOutReportFiltersProps) {
+    const {
+        handleSubmit,
+        setValue,
+        watch,
+        formState: { errors }
+    } = useForm<EmployeeLateInEarlyOutReportFilters>({
+        resolver: zodResolver(employeeLateInEarlyOutReportFilterSchema),
+        defaultValues: filters,
+        mode: 'onChange'
+    });
+
     const handleFilterChange = (key: keyof EmployeeLateInEarlyOutReportFilters, value: any) => {
-        onFilterChange({ ...filters, [key]: value });
+        const newFilters = { ...filters, [key]: value };
+        setValue(key, value as any);
+        onFilterChange(newFilters);
+    };
+
+    const onSubmit = (data: EmployeeLateInEarlyOutReportFilters) => {
+        onFilterChange(data);
+        onSearch();
     };
 
     return (
@@ -52,122 +67,133 @@ export function EmployeeLateInEarlyOutReportFilters({
             variant='default'
             size='lg'
             className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
+            <form onSubmit={handleSubmit(onSubmit)}>
             <div className='grid grid-cols-1 gap-4 md:grid-cols-12'>
                 <div className='md:col-span-4'>
                     <label className='font-medium text-sm' htmlFor='type'>
-                        Type
+                        Type <span className='text-red-500'>*</span>
                     </label>
-                    <Select onValueChange={(value) => handleFilterChange('type', value)}>
-                        <SelectTrigger id='type'>
-                            <SelectValue placeholder='Type' />
-                        </SelectTrigger>
-                        <SelectContent>
-                            <SelectItem value='Permanent'>Permanent</SelectItem>
-                            <SelectItem value='Contract'>Contract</SelectItem>
-                        </SelectContent>
-                    </Select>
+                    <MultiSelect
+                        options={types.map((t: string) => ({ label: t, value: t }))}
+                        onValueChange={(values) => handleFilterChange('type', values)}
+                        defaultValue={filters.type || []}
+                        placeholder='Select Types'
+                        className={`w-full ${errors.type ? 'border-red-500' : ''}`}
+                        maxHeight={240}
+                    />
+                    {errors.type && <FormError>{errors.type.message}</FormError>}
                 </div>
                 <div className='md:col-span-4'>
                     <label className='font-medium text-sm' htmlFor='department'>
-                        Department
+                        Department <span className='text-red-500'>*</span>
                     </label>
-                    <Select onValueChange={(value) => handleFilterChange('department', value)}>
-                        <SelectTrigger id='department'>
-                            <SelectValue placeholder='Department' />
-                        </SelectTrigger>
-                        <SelectContent>
-                            {departments.map((v) => (
-                                <SelectItem key={v} value={v}>
-                                    {v}
-                                </SelectItem>
-                            ))}
-                        </SelectContent>
-                    </Select>
+                    <MultiSelect
+                        options={departments.map((d) => ({ label: d, value: d }))}
+                        onValueChange={(values) => handleFilterChange('department', values)}
+                        defaultValue={filters.department || []}
+                        placeholder='Select Departments'
+                        className={`w-full ${errors.department ? 'border-red-500' : ''}`}
+                        maxHeight={240}
+                    />
+                    {errors.department && <FormError>{errors.department.message}</FormError>}
                 </div>
                 <div className='md:col-span-4'>
                     <label className='font-medium text-sm' htmlFor='designation'>
-                        Designation
+                        Designation <span className='text-red-500'>*</span>
                     </label>
-                    <Select onValueChange={(value) => handleFilterChange('designation', value)}>
-                        <SelectTrigger id='designation'>
-                            <SelectValue placeholder='Designation' />
-                        </SelectTrigger>
-                        <SelectContent>
-                            {designations.map((v) => (
-                                <SelectItem key={v} value={v}>
-                                    {v}
-                                </SelectItem>
-                            ))}
-                        </SelectContent>
-                    </Select>
-                </div>
-
-                <div className='flex items-center gap-4 pt-2 md:col-span-12'>
-                    <div className='flex items-center gap-2 text-sm'>
-                        <Checkbox
-                            checked={filters.allOrIndividual === 'All'}
-                            onCheckedChange={() => handleFilterChange('allOrIndividual', 'All')}
-                        />
-                        <span>All</span>
-                    </div>
-                    <div className='flex items-center gap-2 text-sm'>
-                        <Checkbox
-                            checked={filters.allOrIndividual === 'Individual'}
-                            onCheckedChange={() => handleFilterChange('allOrIndividual', 'Individual')}
-                        />
-                        <span>Individual</span>
-                    </div>
-                    <div className='flex items-center gap-4'>
-                        <div className='flex items-center gap-2 text-sm'>
-                            <Checkbox
-                                checked={filters.codeOrName === 'Code'}
-                                onCheckedChange={() => handleFilterChange('codeOrName', 'Code')}
-                            />
-                            <span>Code</span>
-                        </div>
-                        <div className='flex items-center gap-2 text-sm'>
-                            <Checkbox
-                                checked={filters.codeOrName === 'Name'}
-                                onCheckedChange={() => handleFilterChange('codeOrName', 'Name')}
-                            />
-                            <span>Name</span>
-                        </div>
-                        <InputText
-                            placeholder={filters.codeOrName === 'Code' ? 'Code' : 'Name'}
-                            value={filters.query}
-                            onChange={(e) => handleFilterChange('query', e.target.value)}
-                        />
-                    </div>
+                    <MultiSelect
+                        options={designations.map((d) => ({ label: d, value: d }))}
+                        onValueChange={(values) => handleFilterChange('designation', values)}
+                        defaultValue={filters.designation || []}
+                        placeholder='Select Designations'
+                        className={`w-full ${errors.designation ? 'border-red-500' : ''}`}
+                        maxHeight={240}
+                    />
+                    {errors.designation && <FormError>{errors.designation.message}</FormError>}
                 </div>
 
                 <div className='md:col-span-3'>
+                    <label className='font-medium text-sm' htmlFor='allOrIndividual'>
+                        All / Individual <span className='text-red-500'>*</span>
+                    </label>
+                    <Select
+                        value={filters.allOrIndividual}
+                        onValueChange={(value) => handleFilterChange('allOrIndividual', value as 'All' | 'Individual')}>
+                        <SelectTrigger id='allOrIndividual' className={errors.allOrIndividual ? 'border-red-500' : ''}>
+                            <SelectValue placeholder='Select' />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value='All'>All</SelectItem>
+                            <SelectItem value='Individual'>Individual</SelectItem>
+                        </SelectContent>
+                    </Select>
+                    {errors.allOrIndividual && <FormError>{errors.allOrIndividual.message}</FormError>}
+                </div>
+                {filters.allOrIndividual === 'Individual' && (
+                    <>
+                        <div className='md:col-span-3'>
+                            <label className='font-medium text-sm' htmlFor='codeOrName'>
+                                Code / Name <span className='text-red-500'>*</span>
+                            </label>
+                            <Select
+                                value={filters.codeOrName}
+                                onValueChange={(value) => handleFilterChange('codeOrName', value as 'Code' | 'Name')}>
+                                <SelectTrigger id='codeOrName' className={errors.codeOrName ? 'border-red-500' : ''}>
+                                    <SelectValue placeholder='Select' />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value='Code'>Code</SelectItem>
+                                    <SelectItem value='Name'>Name</SelectItem>
+                                </SelectContent>
+                            </Select>
+                            {errors.codeOrName && <FormError>{errors.codeOrName.message}</FormError>}
+                        </div>
+                        <div className='md:col-span-6'>
+                            <label className='font-medium text-sm' htmlFor='query'>
+                                Employee {filters.codeOrName === 'Code' ? 'Code' : 'Name'} <span className='text-red-500'>*</span>
+                            </label>
+                            <InputText
+                                id='query'
+                                placeholder={`Enter Employee ${filters.codeOrName === 'Code' ? 'Code' : 'Name'}`}
+                                value={filters.query || ''}
+                                onChange={(e) => handleFilterChange('query', e.target.value)}
+                                error={errors.query?.message}
+                            />
+                        </div>
+                    </>
+                )}
+
+                <div className='md:col-span-3'>
                     <label className='font-medium text-sm' htmlFor='fromDate'>
-                        From Date
+                        From Date <span className='text-red-500'>*</span>
                     </label>
                     <InputText
                         id='fromDate'
                         type='date'
                         value={filters.fromDate}
                         onChange={(e) => handleFilterChange('fromDate', e.target.value)}
+                        error={errors.fromDate?.message}
                     />
                 </div>
                 <div className='md:col-span-3'>
                     <label className='font-medium text-sm' htmlFor='toDate'>
-                        To Date
+                        To Date <span className='text-red-500'>*</span>
                     </label>
                     <InputText
                         id='toDate'
                         type='date'
                         value={filters.toDate}
                         onChange={(e) => handleFilterChange('toDate', e.target.value)}
+                        error={errors.toDate?.message}
+                        min={filters.fromDate || undefined}
                     />
                 </div>
                 <div className='md:col-span-3'>
                     <label className='font-medium text-sm' htmlFor='mode'>
-                        Mode
+                        Mode <span className='text-red-500'>*</span>
                     </label>
-                    <Select onValueChange={(v) => handleFilterChange('mode', v as any)}>
-                        <SelectTrigger id='mode'>
+                    <Select onValueChange={(v) => handleFilterChange('mode', v as any)} value={filters.mode}>
+                        <SelectTrigger id='mode' className={errors.mode ? 'border-red-500' : ''}>
                             <SelectValue placeholder='Mode' />
                         </SelectTrigger>
                         <SelectContent>
@@ -176,22 +202,29 @@ export function EmployeeLateInEarlyOutReportFilters({
                             <SelectItem value='Late In Early Out'>Late In Early Out</SelectItem>
                         </SelectContent>
                     </Select>
+                    {errors.mode && <FormError>{errors.mode.message}</FormError>}
                 </div>
-                <div className='flex items-end gap-2 md:col-span-3'>
-                    <Button onClick={onSearch}>
+                {filters.allOrIndividual === 'Individual' && (
+                    <div className='md:col-span-12'>
+                        {errors.query && <FormError>{errors.query.message}</FormError>}
+                    </div>
+                )}
+                <div className='flex items-end gap-2 md:col-span-12'>
+                    <Button type='submit'>
                         <RefreshCw className='mr-2 h-4 w-4' /> Report
                     </Button>
-                    <Button variant='outline' onClick={onExport}>
+                    <Button type='button' variant='outline' onClick={onExport}>
                         <FileDown className='mr-2 h-4 w-4' /> Export to Excel
                     </Button>
-                    <Button variant='outline' onClick={onPrint}>
+                    <Button type='button' variant='outline' onClick={onPrint}>
                         <Printer className='mr-2 h-4 w-4' /> Print
                     </Button>
-                    <Button variant='outline' onClick={onCancel}>
+                    <Button type='button' variant='outline' onClick={onCancel}>
                         <X className='mr-2 h-4 w-4' /> CANCEL
                     </Button>
                 </div>
             </div>
+            </form>
         </CollapsibleSection>
     );
 }

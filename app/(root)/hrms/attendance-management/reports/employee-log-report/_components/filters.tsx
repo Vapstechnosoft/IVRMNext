@@ -2,26 +2,19 @@
 
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
+import { FormError } from '@/components/ui/extension/field';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { InputText } from '@/components/ui/extension/input-text';
+import { MultiSelect } from '@/components/ui/multi-select';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import type { LogRow } from './columns';
+import { employeeLogReportFilterSchema } from '@/schemas/hrms/attendance-management-schemas';
+import { zodResolver } from '@hookform/resolvers/zod';
 import { FileDown, Printer, RefreshCw } from 'lucide-react';
+import { useForm } from 'react-hook-form';
+import type { z } from 'zod';
+import type { LogRow } from './columns';
 
-export interface LogReportFiltersState {
-    type: string;
-    department: string;
-    designation: string;
-    allOrIndividual: 'All' | 'Individual';
-    codeOrName: 'Code' | 'Name';
-    query: string;
-    dateMode: 'Date' | 'Monthly' | 'From Date';
-    date: string;
-    month: string;
-    fromDate: string;
-    toDate: string;
-    metric: 'Punch Time' | 'Late In' | 'Early Out';
-}
+export type LogReportFiltersState = z.infer<typeof employeeLogReportFilterSchema>;
 
 interface LogReportFiltersProps {
     filters: LogReportFiltersState;
@@ -40,8 +33,30 @@ export function LogReportFilters({
     onExport,
     onPrint
 }: LogReportFiltersProps) {
+    const {
+        handleSubmit,
+        setValue,
+        watch,
+        formState: { errors }
+    } = useForm<LogReportFiltersState>({
+        resolver: zodResolver(employeeLogReportFilterSchema),
+        defaultValues: filters,
+        mode: 'onChange'
+    });
+
     const departments = [...new Set(data.map((d) => d.department))];
     const designations = [...new Set(data.map((d) => d.designation))];
+
+    const handleFilterChange = (key: keyof LogReportFiltersState, value: any) => {
+        const newFilters = { ...filters, [key]: value };
+        setValue(key, value as any);
+        onFilterChange(newFilters);
+    };
+
+    const onSubmit = (data: LogReportFiltersState) => {
+        onFilterChange(data);
+        onReport();
+    };
 
     return (
         <CollapsibleSection
@@ -51,124 +66,127 @@ export function LogReportFilters({
             variant='default'
             size='lg'
             className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
-            <div className='grid grid-cols-1 gap-4 md:grid-cols-12'>
+            <form onSubmit={handleSubmit(onSubmit)}>
+                <div className='grid grid-cols-1 gap-4 md:grid-cols-12'>
                 <div className='md:col-span-3'>
                     <label className='font-medium text-sm' htmlFor='type'>
-                        Type
+                        Type <span className='text-red-500'>*</span>
                     </label>
-                    <Select
-                        value={filters.type}
-                        onValueChange={(value) => onFilterChange({ ...filters, type: value })}>
-                        <SelectTrigger id='type'>
-                            <SelectValue placeholder='Type' />
-                        </SelectTrigger>
-                        <SelectContent>
-                            <SelectItem value='Permanent'>Permanent</SelectItem>
-                            <SelectItem value='Contract'>Contract</SelectItem>
-                        </SelectContent>
-                    </Select>
+                    <MultiSelect
+                        options={[
+                            { label: 'Permanent', value: 'Permanent' },
+                            { label: 'Contract', value: 'Contract' }
+                        ]}
+                        onValueChange={(values) => handleFilterChange('type', values)}
+                        defaultValue={filters.type || []}
+                        placeholder='Select Types'
+                        className={`w-full ${errors.type ? 'border-red-500' : ''}`}
+                        maxHeight={240}
+                    />
+                    {errors.type && <FormError>{errors.type.message}</FormError>}
                 </div>
                 <div className='md:col-span-3'>
                     <label className='font-medium text-sm' htmlFor='department'>
-                        Department
+                        Department <span className='text-red-500'>*</span>
                     </label>
-                    <Select
-                        value={filters.department}
-                        onValueChange={(value) => onFilterChange({ ...filters, department: value })}>
-                        <SelectTrigger id='department'>
-                            <SelectValue placeholder='Department' />
-                        </SelectTrigger>
-                        <SelectContent>
-                            {departments.map((v) => (
-                                <SelectItem key={v} value={v}>
-                                    {v}
-                                </SelectItem>
-                            ))}
-                        </SelectContent>
-                    </Select>
+                    <MultiSelect
+                        options={departments.map((d) => ({ label: d, value: d }))}
+                        onValueChange={(values) => handleFilterChange('department', values)}
+                        defaultValue={filters.department || []}
+                        placeholder='Select Departments'
+                        className={`w-full ${errors.department ? 'border-red-500' : ''}`}
+                        maxHeight={240}
+                    />
+                    {errors.department && <FormError>{errors.department.message}</FormError>}
                 </div>
                 <div className='md:col-span-3'>
                     <label className='font-medium text-sm' htmlFor='designation'>
-                        Designation
+                        Designation <span className='text-red-500'>*</span>
+                    </label>
+                    <MultiSelect
+                        options={designations.map((d) => ({ label: d, value: d }))}
+                        onValueChange={(values) => handleFilterChange('designation', values)}
+                        defaultValue={filters.designation || []}
+                        placeholder='Select Designations'
+                        className={`w-full ${errors.designation ? 'border-red-500' : ''}`}
+                        maxHeight={240}
+                    />
+                    {errors.designation && <FormError>{errors.designation.message}</FormError>}
+                </div>
+
+                <div className='md:col-span-3'>
+                    <label className='font-medium text-sm' htmlFor='allOrIndividual'>
+                        All / Individual <span className='text-red-500'>*</span>
                     </label>
                     <Select
-                        value={filters.designation}
-                        onValueChange={(value) => onFilterChange({ ...filters, designation: value })}>
-                        <SelectTrigger id='designation'>
-                            <SelectValue placeholder='Designation' />
+                        value={filters.allOrIndividual}
+                        onValueChange={(value) => handleFilterChange('allOrIndividual', value as 'All' | 'Individual')}>
+                        <SelectTrigger id='allOrIndividual' className={errors.allOrIndividual ? 'border-red-500' : ''}>
+                            <SelectValue placeholder='Select' />
                         </SelectTrigger>
                         <SelectContent>
-                            {designations.map((v) => (
-                                <SelectItem key={v} value={v}>
-                                    {v}
-                                </SelectItem>
-                            ))}
+                            <SelectItem value='All'>All</SelectItem>
+                            <SelectItem value='Individual'>Individual</SelectItem>
                         </SelectContent>
                     </Select>
+                    {errors.allOrIndividual && <FormError>{errors.allOrIndividual.message}</FormError>}
                 </div>
-
-                <div className='flex items-center gap-4 pt-2 md:col-span-3'>
-                    <div className='flex items-center gap-2 text-sm'>
-                        <Checkbox
-                            checked={filters.allOrIndividual === 'All'}
-                            onCheckedChange={() => onFilterChange({ ...filters, allOrIndividual: 'All' })}
-                        />
-                        <span>All</span>
-                    </div>
-                    <div className='flex items-center gap-2 text-sm'>
-                        <Checkbox
-                            checked={filters.allOrIndividual === 'Individual'}
-                            onCheckedChange={() => onFilterChange({ ...filters, allOrIndividual: 'Individual' })}
-                        />
-                        <span>Individual</span>
-                    </div>
-                </div>
-
-                <div className='flex gap-4 md:col-span-6'>
-                    <div className='flex items-center gap-2 text-sm'>
-                        <Checkbox
-                            checked={filters.codeOrName === 'Code'}
-                            onCheckedChange={() => onFilterChange({ ...filters, codeOrName: 'Code' })}
-                        />
-                        <span>Code</span>
-                    </div>
-                    <div className='flex items-center gap-2 text-sm'>
-                        <Checkbox
-                            checked={filters.codeOrName === 'Name'}
-                            onCheckedChange={() => onFilterChange({ ...filters, codeOrName: 'Name' })}
-                        />
-                        <span>Name</span>
-                    </div>
-                    <InputText
-                        placeholder={filters.codeOrName === 'Code' ? 'Code' : 'Name'}
-                        value={filters.query}
-                        onChange={(e) => onFilterChange({ ...filters, query: e.target.value })}
-                    />
-                </div>
+                {filters.allOrIndividual === 'Individual' && (
+                    <>
+                        <div className='md:col-span-3'>
+                            <label className='font-medium text-sm' htmlFor='codeOrName'>
+                                Code / Name <span className='text-red-500'>*</span>
+                            </label>
+                            <Select
+                                value={filters.codeOrName}
+                                onValueChange={(value) => handleFilterChange('codeOrName', value as 'Code' | 'Name')}>
+                                <SelectTrigger id='codeOrName' className={errors.codeOrName ? 'border-red-500' : ''}>
+                                    <SelectValue placeholder='Select' />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value='Code'>Code</SelectItem>
+                                    <SelectItem value='Name'>Name</SelectItem>
+                                </SelectContent>
+                            </Select>
+                            {errors.codeOrName && <FormError>{errors.codeOrName.message}</FormError>}
+                        </div>
+                        <div className='md:col-span-6'>
+                            <label className='font-medium text-sm' htmlFor='query'>
+                                Employee {filters.codeOrName === 'Code' ? 'Code' : 'Name'} <span className='text-red-500'>*</span>
+                            </label>
+                            <InputText
+                                id='query'
+                                placeholder={`Enter Employee ${filters.codeOrName === 'Code' ? 'Code' : 'Name'}`}
+                                value={filters.query || ''}
+                                onChange={(e) => handleFilterChange('query', e.target.value)}
+                                error={errors.query?.message}
+                            />
+                        </div>
+                    </>
+                )}
 
                 <div className='flex items-center gap-4 md:col-span-12'>
                     <div className='flex items-center gap-2 text-sm'>
                         <Checkbox
                             checked={filters.dateMode === 'Date'}
-                            onCheckedChange={() => onFilterChange({ ...filters, dateMode: 'Date' })}
+                            onCheckedChange={() => handleFilterChange('dateMode', 'Date')}
                         />
                         <span>Date</span>
                     </div>
                     <InputText
                         type='date'
                         value={filters.date}
-                        onChange={(e) => onFilterChange({ ...filters, date: e.target.value })}
+                        onChange={(e) => handleFilterChange('date', e.target.value)}
+                        error={errors.date?.message}
                     />
                     <div className='flex items-center gap-2 text-sm'>
                         <Checkbox
                             checked={filters.dateMode === 'Monthly'}
-                            onCheckedChange={() => onFilterChange({ ...filters, dateMode: 'Monthly' })}
+                            onCheckedChange={() => handleFilterChange('dateMode', 'Monthly')}
                         />
                         <span>Monthly</span>
                     </div>
-                    <Select
-                        value={filters.month}
-                        onValueChange={(value) => onFilterChange({ ...filters, month: value })}>
+                    <Select value={filters.month} onValueChange={(value) => handleFilterChange('month', value)}>
                         <SelectTrigger className='w-40'>
                             <SelectValue placeholder='--Select--' />
                         </SelectTrigger>
@@ -183,31 +201,34 @@ export function LogReportFilters({
                     <div className='flex items-center gap-2 text-sm'>
                         <Checkbox
                             checked={filters.dateMode === 'From Date'}
-                            onCheckedChange={() => onFilterChange({ ...filters, dateMode: 'From Date' })}
+                            onCheckedChange={() => handleFilterChange('dateMode', 'From Date')}
                         />
                         <span>From Date</span>
                     </div>
                     <InputText
                         type='date'
                         value={filters.fromDate}
-                        onChange={(e) => onFilterChange({ ...filters, fromDate: e.target.value })}
+                        onChange={(e) => handleFilterChange('fromDate', e.target.value)}
+                        error={errors.fromDate?.message}
                     />
                     <span>To Date :</span>
                     <InputText
                         type='date'
                         value={filters.toDate}
-                        onChange={(e) => onFilterChange({ ...filters, toDate: e.target.value })}
+                        onChange={(e) => handleFilterChange('toDate', e.target.value)}
+                        error={errors.toDate?.message}
+                        min={filters.fromDate || undefined}
                     />
                 </div>
 
                 <div className='md:col-span-3'>
                     <label htmlFor='mode-select' className='font-medium text-sm'>
-                        Mode
+                        Mode <span className='text-red-500'>*</span>
                     </label>
                     <Select
                         value={filters.metric}
-                        onValueChange={(v) => onFilterChange({ ...filters, metric: v as 'Punch Time' | 'Late In' | 'Early Out' })}>
-                        <SelectTrigger id='mode-select'>
+                        onValueChange={(v) => handleFilterChange('metric', v as 'Punch Time' | 'Late In' | 'Early Out')}>
+                        <SelectTrigger id='mode-select' className={errors.metric ? 'border-red-500' : ''}>
                             <SelectValue placeholder='Mode' />
                         </SelectTrigger>
                         <SelectContent>
@@ -216,19 +237,32 @@ export function LogReportFilters({
                             <SelectItem value='Early Out'>Early Out</SelectItem>
                         </SelectContent>
                     </Select>
+                    {errors.metric && <FormError>{errors.metric.message}</FormError>}
                 </div>
-                <div className='flex items-end gap-2 md:col-span-9'>
-                    <Button onClick={onReport}>
+                {filters.allOrIndividual === 'Individual' && (
+                    <div className='md:col-span-12'>
+                        {errors.query && <FormError>{errors.query.message}</FormError>}
+                    </div>
+                )}
+                {(filters.dateMode === 'Date' || filters.dateMode === 'Monthly' || filters.dateMode === 'From Date') && (
+                    <div className='md:col-span-12'>
+                        {errors.date && <FormError>{errors.date.message}</FormError>}
+                        {errors.toDate && <FormError>{errors.toDate.message}</FormError>}
+                    </div>
+                )}
+                <div className='flex items-end gap-2 md:col-span-12'>
+                    <Button type='submit'>
                         <RefreshCw className='mr-2 h-4 w-4' /> Report
                     </Button>
-                    <Button variant='outline' onClick={onExport}>
+                    <Button type='button' variant='outline' onClick={onExport}>
                         <FileDown className='mr-2 h-4 w-4' /> Export to Excel
                     </Button>
-                    <Button variant='outline' onClick={onPrint}>
+                    <Button type='button' variant='outline' onClick={onPrint}>
                         <Printer className='mr-2 h-4 w-4' /> Print
                     </Button>
                 </div>
-            </div>
+                </div>
+            </form>
         </CollapsibleSection>
     );
 }

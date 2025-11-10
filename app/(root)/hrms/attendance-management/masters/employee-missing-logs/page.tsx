@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { GenericDataTable } from '@/components/ui/data-table/generic-data-table';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { createLocalCrud } from '@/lib/localdb';
-import { Plus } from 'lucide-react';
+import { Plus, X } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { toast } from 'sonner';
 import { type MissingLog, getMissingLogColumns } from './_components/columns';
@@ -33,11 +33,33 @@ export default function EmployeeMissingLogsPage() {
     const handleFormSubmit = (data: MissingLogFormData) => {
         try {
             if (editing) {
-                store.update(editing.id, data);
+                // For editing, update the single entry
+                const entry = data.entries[0];
+                store.update(editing.id, {
+                    ...editing,
+                    employeeName: data.employeeName,
+                    date: data.date,
+                    time: entry.time,
+                    inOut: entry.inOut,
+                    remarks: entry.remarks,
+                    file: entry.file
+                });
                 toast.success('Missing log updated');
             } else {
-                store.create({ ...data, reportedBy: 'SYSTEM', status: 'Approved' });
-                toast.success('Missing log added');
+                // For new entries, create one record per entry
+                data.entries.forEach((entry) => {
+                    store.create({
+                        employeeName: data.employeeName,
+                        date: data.date,
+                        time: entry.time,
+                        inOut: entry.inOut,
+                        remarks: entry.remarks,
+                        file: entry.file,
+                        reportedBy: 'VTSPD',
+                        status: 'Approved' as const
+                    });
+                });
+                toast.success(`Missing log${data.entries.length > 1 ? 's' : ''} added`);
             }
             setIsFormOpen(false);
             setEditing(null);
@@ -52,22 +74,7 @@ export default function EmployeeMissingLogsPage() {
         setEditing(null);
     };
 
-    const handleEdit = (row: MissingLog) => {
-        setEditing(row);
-        setIsFormOpen(true);
-        setTimeout(() => formRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 100);
-    };
-
-    const handleDelete = (row: MissingLog) => {
-        store.remove(row.id);
-        toast.success('Deleted');
-        setRows(store.list());
-    };
-
-    const columns = getMissingLogColumns({
-        onEdit: handleEdit,
-        onDelete: handleDelete
-    });
+    const columns = getMissingLogColumns();
 
     return (
         <div className='min-h-screen'>
@@ -79,10 +86,9 @@ export default function EmployeeMissingLogsPage() {
                     <Button
                         type='button'
                         onClick={handleAdd}
-                        size='lg'
                         className='w-fit shadow-md transition-all duration-200 hover:scale-105 hover:shadow-lg'>
                         <Plus className='h-4 w-4' />
-                        Add Log
+                        Add Employee Missing Log
                     </Button>
                 </div>
 
@@ -98,15 +104,25 @@ export default function EmployeeMissingLogsPage() {
                 </CollapsibleSection>
 
                 {isFormOpen && (
-                    <div ref={formRef}>
+                    <div ref={formRef} className='slide-in-from-top-4 animate-in duration-300'>
                         <CollapsibleSection
-                            title={editing ? 'Edit Missing Log' : 'Employee Missing Log Entry'}
-                            description=''
+                            title={editing ? 'Edit Employee Missing Log' : 'Add New Employee Missing Log'}
+                            description={editing ? 'Update missing log details below' : 'Fill in the details below to create a new missing log entry'}
                             defaultOpen={true}
-                            variant='default'
-                            size='lg'
-                            className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
-                            <MissingLogForm editingMissingLog={editing} onSubmit={handleFormSubmit} onCancel={handleFormCancel} />
+                            variant='outline'
+                            size='md'
+                            className='shadow-lg'>
+                            <div className='relative'>
+                                <Button
+                                    type='button'
+                                    onClick={handleFormCancel}
+                                    variant='ghost'
+                                    size='sm'
+                                    className='-top-[3.5rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
+                                    <X className='h-4 w-4 text-destructive' /> Close
+                                </Button>
+                                <MissingLogForm editingMissingLog={editing} onSubmit={handleFormSubmit} onCancel={handleFormCancel} />
+                            </div>
                         </CollapsibleSection>
                     </div>
                 )}

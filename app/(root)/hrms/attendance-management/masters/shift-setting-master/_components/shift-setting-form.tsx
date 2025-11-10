@@ -3,23 +3,14 @@
 import { Button } from '@/components/ui/button';
 import { FormError } from '@/components/ui/extension/field';
 import { InputText } from '@/components/ui/extension/input-text';
+import { shiftSettingMasterSchema } from '@/schemas/hrms/attendance-management-schemas';
+import { zodResolver } from '@hookform/resolvers/zod';
 import { RefreshCw, Save } from 'lucide-react';
 import React from 'react';
 import { type SubmitHandler, useForm } from 'react-hook-form';
+import type { z } from 'zod';
 
-export type ShiftSettingForm = {
-    shiftName: string;
-    shiftStartTime: string;
-    shiftEndTime: string;
-    lunchStartTime: string;
-    lunchEndTime: string;
-    totalWorkingHours: string;
-    halfDayWorkingHours: string;
-    lunchHours: string;
-    delayPerShift: string;
-    earlyPerShift: string;
-    isActive: boolean;
-};
+export type ShiftSettingForm = z.infer<typeof shiftSettingMasterSchema.addOrUpdate>;
 
 interface ShiftSettingFormProps {
     editingShiftSetting: ShiftSettingForm | null;
@@ -32,8 +23,10 @@ export function ShiftSettingForm({ editingShiftSetting, onSubmit, onCancel }: Sh
         register,
         handleSubmit,
         reset,
+        watch,
         formState: { errors, isSubmitting }
     } = useForm<ShiftSettingForm>({
+        resolver: zodResolver(shiftSettingMasterSchema.addOrUpdate),
         mode: 'onChange',
         defaultValues: {
             isActive: true,
@@ -79,18 +72,21 @@ export function ShiftSettingForm({ editingShiftSetting, onSubmit, onCancel }: Sh
         <form onSubmit={handleSubmit(handleFormSubmit)} className='max-w-full space-y-6'>
             {/* Primary Information Section */}
             <div className='space-y-4'>
-                {/* First Row */}
-                <div className='grid grid-cols-1 gap-4 lg:grid-cols-3'>
+                {/* First Row - Shift Name */}
+                <div className='grid grid-cols-1 gap-4'>
                     <InputText
                         label='Shift Name'
                         required
                         id='shiftName'
                         placeholder='Enter Shift Name'
-                        {...register('shiftName', { required: 'Shift Name is required' })}
+                        {...register('shiftName')}
                         error={errors.shiftName?.message}
                         className='transition-colors focus:ring-2 focus:ring-primary/20'
                     />
+                </div>
 
+                {/* Second Row - Shift Start Time, Shift End Time, Total working hours per shift */}
+                <div className='grid grid-cols-1 gap-4 lg:grid-cols-3'>
                     <div className='space-y-2'>
                         <label className='font-medium text-sm' htmlFor='shiftStartTime'>
                             Shift Start Time <span className='text-red-500'>*</span>
@@ -98,10 +94,24 @@ export function ShiftSettingForm({ editingShiftSetting, onSubmit, onCancel }: Sh
                         <input
                             id='shiftStartTime'
                             type='time'
-                            {...register('shiftStartTime', { required: 'Shift Start Time is required' })}
+                            {...register('shiftStartTime')}
                             className={`w-full rounded-md border px-3 py-2 ${errors.shiftStartTime ? 'border-red-500' : 'border-input'}`}
                         />
                         {errors.shiftStartTime && <FormError>{errors.shiftStartTime.message}</FormError>}
+                    </div>
+
+                    <div className='space-y-2'>
+                        <label className='font-medium text-sm' htmlFor='shiftEndTime'>
+                            Shift End Time <span className='text-red-500'>*</span>
+                        </label>
+                        <input
+                            id='shiftEndTime'
+                            type='time'
+                            {...register('shiftEndTime')}
+                            min={watch('shiftStartTime') || undefined}
+                            className={`w-full rounded-md border px-3 py-2 ${errors.shiftEndTime ? 'border-red-500' : 'border-input'}`}
+                        />
+                        {errors.shiftEndTime && <FormError>{errors.shiftEndTime.message}</FormError>}
                     </div>
 
                     <div className='space-y-2'>
@@ -111,39 +121,40 @@ export function ShiftSettingForm({ editingShiftSetting, onSubmit, onCancel }: Sh
                         <input
                             id='totalWorkingHours'
                             type='time'
-                            {...register('totalWorkingHours', { required: 'Total working hours is required' })}
+                            {...register('totalWorkingHours')}
                             className={`w-full rounded-md border px-3 py-2 ${errors.totalWorkingHours ? 'border-red-500' : 'border-input'}`}
                         />
                         {errors.totalWorkingHours && <FormError>{errors.totalWorkingHours.message}</FormError>}
                     </div>
                 </div>
 
-                {/* Second Row */}
+                {/* Third Row - Lunch start time, Lunch End time, Lunch Hours */}
                 <div className='grid grid-cols-1 gap-4 lg:grid-cols-3'>
                     <div className='space-y-2'>
-                        <label className='font-medium text-sm' htmlFor='shiftEndTime'>
-                            Shift End Time <span className='text-red-500'>*</span>
+                        <label className='font-medium text-sm' htmlFor='lunchStartTime'>
+                            Lunch start time <span className='text-red-500'>*</span>
                         </label>
                         <input
-                            id='shiftEndTime'
+                            id='lunchStartTime'
                             type='time'
-                            {...register('shiftEndTime', { required: 'Shift End Time is required' })}
-                            className={`w-full rounded-md border px-3 py-2 ${errors.shiftEndTime ? 'border-red-500' : 'border-input'}`}
+                            {...register('lunchStartTime')}
+                            className={`w-full rounded-md border px-3 py-2 ${errors.lunchStartTime ? 'border-red-500' : 'border-input'}`}
                         />
-                        {errors.shiftEndTime && <FormError>{errors.shiftEndTime.message}</FormError>}
+                        {errors.lunchStartTime && <FormError>{errors.lunchStartTime.message}</FormError>}
                     </div>
 
                     <div className='space-y-2'>
-                        <label className='font-medium text-sm' htmlFor='halfDayWorkingHours'>
-                            Half day working hours per shift <span className='text-red-500'>*</span>
+                        <label className='font-medium text-sm' htmlFor='lunchEndTime'>
+                            Lunch End time <span className='text-red-500'>*</span>
                         </label>
                         <input
-                            id='halfDayWorkingHours'
+                            id='lunchEndTime'
                             type='time'
-                            {...register('halfDayWorkingHours', { required: 'Half day working hours is required' })}
-                            className={`w-full rounded-md border px-3 py-2 ${errors.halfDayWorkingHours ? 'border-red-500' : 'border-input'}`}
+                            {...register('lunchEndTime')}
+                            min={watch('lunchStartTime') || undefined}
+                            className={`w-full rounded-md border px-3 py-2 ${errors.lunchEndTime ? 'border-red-500' : 'border-input'}`}
                         />
-                        {errors.halfDayWorkingHours && <FormError>{errors.halfDayWorkingHours.message}</FormError>}
+                        {errors.lunchEndTime && <FormError>{errors.lunchEndTime.message}</FormError>}
                     </div>
 
                     <div className='space-y-2'>
@@ -153,26 +164,26 @@ export function ShiftSettingForm({ editingShiftSetting, onSubmit, onCancel }: Sh
                         <input
                             id='lunchHours'
                             type='time'
-                            {...register('lunchHours', { required: 'Lunch Hours is required' })}
+                            {...register('lunchHours')}
                             className={`w-full rounded-md border px-3 py-2 ${errors.lunchHours ? 'border-red-500' : 'border-input'}`}
                         />
                         {errors.lunchHours && <FormError>{errors.lunchHours.message}</FormError>}
                     </div>
                 </div>
 
-                {/* Third Row */}
+                {/* Fourth Row - Early per shift, Delay per shift, Half day working hours per shift */}
                 <div className='grid grid-cols-1 gap-4 lg:grid-cols-3'>
                     <div className='space-y-2'>
-                        <label className='font-medium text-sm' htmlFor='lunchStartTime'>
-                            Lunch start time <span className='text-red-500'>*</span>
+                        <label className='font-medium text-sm' htmlFor='earlyPerShift'>
+                            Early per shift <span className='text-red-500'>*</span>
                         </label>
                         <input
-                            id='lunchStartTime'
+                            id='earlyPerShift'
                             type='time'
-                            {...register('lunchStartTime', { required: 'Lunch start time is required' })}
-                            className={`w-full rounded-md border px-3 py-2 ${errors.lunchStartTime ? 'border-red-500' : 'border-input'}`}
+                            {...register('earlyPerShift')}
+                            className={`w-full rounded-md border px-3 py-2 ${errors.earlyPerShift ? 'border-red-500' : 'border-input'}`}
                         />
-                        {errors.lunchStartTime && <FormError>{errors.lunchStartTime.message}</FormError>}
+                        {errors.earlyPerShift && <FormError>{errors.earlyPerShift.message}</FormError>}
                     </div>
 
                     <div className='space-y-2'>
@@ -182,51 +193,23 @@ export function ShiftSettingForm({ editingShiftSetting, onSubmit, onCancel }: Sh
                         <input
                             id='delayPerShift'
                             type='time'
-                            {...register('delayPerShift', { required: 'Delay per shift is required' })}
+                            {...register('delayPerShift')}
                             className={`w-full rounded-md border px-3 py-2 ${errors.delayPerShift ? 'border-red-500' : 'border-input'}`}
                         />
                         {errors.delayPerShift && <FormError>{errors.delayPerShift.message}</FormError>}
                     </div>
 
                     <div className='space-y-2'>
-                        <label className='font-medium text-sm' htmlFor='earlyPerShift'>
-                            Early per shift <span className='text-red-500'>*</span>
+                        <label className='font-medium text-sm' htmlFor='halfDayWorkingHours'>
+                            Half day working hours per shift <span className='text-red-500'>*</span>
                         </label>
                         <input
-                            id='earlyPerShift'
+                            id='halfDayWorkingHours'
                             type='time'
-                            {...register('earlyPerShift', { required: 'Early per shift is required' })}
-                            className={`w-full rounded-md border px-3 py-2 ${errors.earlyPerShift ? 'border-red-500' : 'border-input'}`}
+                            {...register('halfDayWorkingHours')}
+                            className={`w-full rounded-md border px-3 py-2 ${errors.halfDayWorkingHours ? 'border-red-500' : 'border-input'}`}
                         />
-                        {errors.earlyPerShift && <FormError>{errors.earlyPerShift.message}</FormError>}
-                    </div>
-                </div>
-
-                {/* Fourth Row */}
-                <div className='grid grid-cols-1 gap-4 lg:grid-cols-3'>
-                    <div className='space-y-2'>
-                        <label className='font-medium text-sm' htmlFor='lunchEndTime'>
-                            Lunch End time <span className='text-red-500'>*</span>
-                        </label>
-                        <input
-                            id='lunchEndTime'
-                            type='time'
-                            {...register('lunchEndTime', { required: 'Lunch End time is required' })}
-                            className={`w-full rounded-md border px-3 py-2 ${errors.lunchEndTime ? 'border-red-500' : 'border-input'}`}
-                        />
-                        {errors.lunchEndTime && <FormError>{errors.lunchEndTime.message}</FormError>}
-                    </div>
-
-                    <div className='flex items-center space-y-2 pt-6'>
-                        <input
-                            type='checkbox'
-                            id='isActive'
-                            {...register('isActive')}
-                            className='mr-2 border-border text-primary focus:ring-primary'
-                        />
-                        <label htmlFor='isActive' className='font-medium text-foreground text-sm'>
-                            Active
-                        </label>
+                        {errors.halfDayWorkingHours && <FormError>{errors.halfDayWorkingHours.message}</FormError>}
                     </div>
                 </div>
 

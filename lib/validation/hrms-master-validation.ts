@@ -11,6 +11,9 @@ export const VALIDATION_PATTERNS = {
     // Alphanumeric (letters and numbers)
     ALPHANUMERIC: /^[A-Za-z0-9\s]+$/,
 
+    // Alphanumeric but not purely numeric (must contain at least one letter)
+    ALPHANUMERIC_NOT_NUMERIC_ONLY: /^(?=.*[A-Za-z])[A-Za-z0-9\s]+$/,
+
     // Numeric only
     NUMERIC_ONLY: /^[0-9]+$/,
 
@@ -34,6 +37,7 @@ export const VALIDATION_MESSAGES = {
     MIN_LENGTH: (field: string, min: number) => `${field} must be at least ${min} characters`,
     ALPHABET_ONLY: (field: string) => `${field} must contain only letters and spaces`,
     ALPHANUMERIC: (field: string) => `${field} must contain only letters, numbers, and spaces`,
+    ALPHANUMERIC_NOT_NUMERIC_ONLY: (field: string) => `${field} must contain letters and numbers, but cannot be purely numeric`,
     NUMERIC_ONLY: (field: string) => `${field} must contain only numbers`,
     DECIMAL_NUMERIC: (field: string) => `${field} must be a valid number`,
     MIN_VALUE: (field: string, min: number) => `${field} must be at least ${min}`,
@@ -310,8 +314,8 @@ export const BANK_VALIDATION = {
             message: VALIDATION_MESSAGES.MAX_LENGTH('Branch Name', 50)
         },
         pattern: {
-            value: VALIDATION_PATTERNS.ALPHANUMERIC,
-            message: VALIDATION_MESSAGES.ALPHANUMERIC('Branch Name')
+            value: VALIDATION_PATTERNS.ALPHANUMERIC_NOT_NUMERIC_ONLY,
+            message: VALIDATION_MESSAGES.ALPHANUMERIC_NOT_NUMERIC_ONLY('Branch Name')
         }
     },
     ifscCode: {

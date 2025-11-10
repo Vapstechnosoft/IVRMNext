@@ -13,7 +13,7 @@ import { Button } from '@/components/ui/button';
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
 import { GenericDataTable } from '@/components/ui/data-table/generic-data-table';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuLabel, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { FormError } from '@/components/ui/extension/field';
+import { FormError, Label } from '@/components/ui/extension/field';
 import { InputText } from '@/components/ui/extension/input-text';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -195,7 +195,7 @@ export default function MasterLocationPage() {
                                     {/* Primary Information Section */}
                                     <div className='space-y-4'>
                                         <div className='grid grid-cols-1 gap-4 lg:grid-cols-2'>
-                                            <div className='space-y-2'>
+                                            <div className='flex flex-col gap-1.5'>
                                                 <span className='font-medium text-sm'>
                                                     Institution <span className='text-red-500'>*</span>
                                                 </span>
@@ -232,7 +232,7 @@ export default function MasterLocationPage() {
                                             />
                                         </div>
 
-                                        <div className='grid grid-cols-1 gap-4 lg:grid-cols-2'>
+                                        <div className='grid grid-cols-1 gap-4 lg:grid-cols-2 items-start'>
                                             <InputText
                                                 label='Location Desc.'
                                                 required
@@ -242,16 +242,21 @@ export default function MasterLocationPage() {
                                                 className='transition-colors focus:ring-2 focus:ring-primary/20'
                                             />
 
-                                            <div className='flex items-center space-y-2 pt-6'>
-                                                <input
-                                                    type='checkbox'
-                                                    id='isActive'
-                                                    {...register('isActive')}
-                                                    className='mr-2 border-border text-primary focus:ring-primary'
-                                                />
-                                                <label htmlFor='isActive' className='font-medium text-foreground text-sm'>
-                                                    Active
-                                                </label>
+                                            <div className='group flex flex-col gap-1.5'>
+                                                <Label htmlFor='isActive' className='invisible'>
+                                                    Location Desc. <span className='ml-1 text-red-500'>*</span>
+                                                </Label>
+                                                <div className='flex items-center h-9'>
+                                                    <input
+                                                        type='checkbox'
+                                                        id='isActive'
+                                                        {...register('isActive')}
+                                                        className='mr-2 h-4 w-4 border-border text-primary focus:ring-primary'
+                                                    />
+                                                    <label htmlFor='isActive' className='text-sm font-medium cursor-pointer'>
+                                                        Active
+                                                    </label>
+                                                </div>
                                             </div>
                                         </div>
 

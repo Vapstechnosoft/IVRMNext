@@ -1289,6 +1289,22 @@ export async function getUserAccessibleModules() {
                                         url: '/hrms/attendance-management/reports/gps-location-report',
                                         title: 'GPS Location Report',
                                         description: 'GPS Attendance Report'
+                                    },
+                                    {
+                                        id: 7,
+                                        name: 'Holiday Report',
+                                        icon: 'Calendar',
+                                        url: '/hrms/attendance-management/reports/holiday-report',
+                                        title: 'Holiday Report',
+                                        description: 'Holiday Report'
+                                    },
+                                    {
+                                        id: 8,
+                                        name: 'Employee Absent Report',
+                                        icon: 'UserX',
+                                        url: '/hrms/attendance-management/reports/employee-absent-report',
+                                        title: 'Employee Absent Report',
+                                        description: 'Employee Absent Detail Report'
                                     }
                                 ]
                             }

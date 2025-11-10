@@ -2,21 +2,21 @@
 
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
+import { DatePickerWithYear } from '@/components/ui/date-picker-year';
+import { FormError } from '@/components/ui/extension/field';
 import { InputText } from '@/components/ui/extension/input-text';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { RefreshCw, Save, X } from 'lucide-react';
+import { cn } from '@/lib/utils';
+import { masterDriverShiftSchema } from '@/schemas/hrms/attendance-management-schemas';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { format } from 'date-fns';
+import { CalendarIcon, RefreshCw, Save, X } from 'lucide-react';
 import React from 'react';
-import { type SubmitHandler, useForm } from 'react-hook-form';
+import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
+import type { z } from 'zod';
 
-export type DriverShiftForm = {
-    shift: string;
-    driver: string;
-    fromDate: string;
-    toDate: string;
-    remarks?: string;
-    saturdayOff: boolean;
-    sundayWorking: boolean;
-};
+export type DriverShiftForm = z.infer<typeof masterDriverShiftSchema.addOrUpdate>;
 
 interface DriverShiftFormProps {
     editingShift: DriverShiftForm | null;
@@ -24,25 +24,67 @@ interface DriverShiftFormProps {
     onCancel: () => void;
 }
 
+// Mock data - replace with actual data source
+const shiftOptions = ['Morning Shift', 'Afternoon Shift', 'Evening Shift', 'Night Shift', 'Ghoshala Shift'];
+const driverOptions = ['Arun A', 'Arun R', 'Ashok R', 'Driver 1', 'Driver 2', 'Driver 3'];
+
 export function DriverShiftForm({ editingShift, onSubmit, onCancel }: DriverShiftFormProps) {
     const {
         register,
         handleSubmit,
+        control,
         setValue,
         watch,
         reset,
         formState: { errors, isSubmitting }
     } = useForm<DriverShiftForm>({
+        resolver: zodResolver(masterDriverShiftSchema.addOrUpdate),
         mode: 'onChange',
-        defaultValues: { saturdayOff: false, sundayWorking: false }
+        defaultValues: editingShift
+            ? {
+                  shift: editingShift.shift || '',
+                  driver: editingShift.driver || '',
+                  fromDate: editingShift.fromDate || '',
+                  toDate: editingShift.toDate || '',
+                  remarks: editingShift.remarks || '',
+                  saturdayOff: editingShift.saturdayOff || false,
+                  sundayWorking: editingShift.sundayWorking || false
+              }
+            : {
+                  shift: '',
+                  driver: '',
+                  fromDate: '',
+                  toDate: '',
+                  remarks: '',
+                  saturdayOff: false,
+                  sundayWorking: false
+              }
     });
+
+    const fromDate = watch('fromDate');
 
     // Update form when editingShift changes
     React.useEffect(() => {
         if (editingShift) {
-            reset(editingShift);
+            reset({
+                shift: editingShift.shift || '',
+                driver: editingShift.driver || '',
+                fromDate: editingShift.fromDate || '',
+                toDate: editingShift.toDate || '',
+                remarks: editingShift.remarks || '',
+                saturdayOff: editingShift.saturdayOff || false,
+                sundayWorking: editingShift.sundayWorking || false
+            });
         } else {
-            reset({ saturdayOff: false, sundayWorking: false } as any);
+            reset({
+                shift: '',
+                driver: '',
+                fromDate: '',
+                toDate: '',
+                remarks: '',
+                saturdayOff: false,
+                sundayWorking: false
+            });
         }
     }, [editingShift, reset]);
 
@@ -51,88 +93,200 @@ export function DriverShiftForm({ editingShift, onSubmit, onCancel }: DriverShif
     };
 
     return (
-        <form onSubmit={handleSubmit(handleFormSubmit)} className='grid grid-cols-1 gap-6 md:grid-cols-2'>
-            <div className='space-y-2'>
-                <label className='font-medium text-sm' htmlFor='shift'>
-                    Shift <span className='text-red-500'>*</span>
-                </label>
-                <Select onValueChange={(v) => setValue('shift', v)}>
-                    <SelectTrigger id='shift'>
-                        <SelectValue placeholder='Select Shift' />
-                    </SelectTrigger>
-                    <SelectContent>
-                        <SelectItem value='Morning Shift'>Morning Shift</SelectItem>
-                        <SelectItem value='Afternoon Shift'>Afternoon Shift</SelectItem>
-                        <SelectItem value='Evening Shift'>Evening Shift</SelectItem>
-                        <SelectItem value='Night Shift'>Night Shift</SelectItem>
-                    </SelectContent>
-                </Select>
-            </div>
-            <div className='space-y-2'>
-                <label className='font-medium text-sm' htmlFor='driver'>
-                    Driver <span className='text-red-500'>*</span>
-                </label>
-                <Select onValueChange={(v) => setValue('driver', v)}>
-                    <SelectTrigger id='driver'>
-                        <SelectValue placeholder='Select Driver' />
-                    </SelectTrigger>
-                    <SelectContent>
-                        <SelectItem value='Arun A'>Arun A</SelectItem>
-                        <SelectItem value='Arun R'>Arun R</SelectItem>
-                        <SelectItem value='Ashok R'>Ashok R</SelectItem>
-                    </SelectContent>
-                </Select>
-            </div>
-            <div className='space-y-2'>
-                <label className='font-medium text-sm' htmlFor='fromDate'>
-                    From Date <span className='text-red-500'>*</span>
-                </label>
-                <InputText
-                    id='fromDate'
-                    type='date'
-                    {...register('fromDate', { required: 'Required' })}
-                    error={errors.fromDate?.message}
-                />
-            </div>
-            <div className='space-y-2'>
-                <label className='font-medium text-sm' htmlFor='toDate'>
-                    To Date <span className='text-red-500'>*</span>
-                </label>
-                <InputText id='toDate' type='date' {...register('toDate', { required: 'Required' })} error={errors.toDate?.message} />
-            </div>
-            <div className='space-y-2 md:col-span-2'>
-                <label className='font-medium text-sm' htmlFor='remarks'>
-                    Remarks
-                </label>
-                <InputText id='remarks' placeholder='Enter Remarks' {...register('remarks')} />
-            </div>
-            <div className='flex items-center gap-8'>
-                <div className='flex items-center gap-2 text-sm'>
-                    <Checkbox checked={watch('saturdayOff')} onCheckedChange={(v) => setValue('saturdayOff', Boolean(v))} />
-                    <span>Saturday Off Flag</span>
+        <form onSubmit={handleSubmit(handleFormSubmit)} className='space-y-6'>
+            <div className='grid grid-cols-1 gap-6 md:grid-cols-2'>
+                {/* Left Column */}
+                <div className='space-y-6'>
+                    <div className='space-y-2'>
+                        <label className='font-medium text-sm' htmlFor='shift'>
+                            Shift <span className='text-red-500'>*</span>
+                        </label>
+                        <Select value={watch('shift')} onValueChange={(value) => setValue('shift', value)}>
+                            <SelectTrigger id='shift' className={errors.shift ? 'border-red-500' : ''}>
+                                <SelectValue placeholder='Select Shift' />
+                            </SelectTrigger>
+                            <SelectContent>
+                                {shiftOptions.map((shift) => (
+                                    <SelectItem key={shift} value={shift}>
+                                        {shift}
+                                    </SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
+                        {errors.shift && <FormError>{errors.shift.message}</FormError>}
+                    </div>
+
+                    <div className='space-y-2'>
+                        <label className='font-medium text-sm' htmlFor='fromDate'>
+                            From Date <span className='text-red-500'>*</span>
+                        </label>
+                        <Controller
+                            name='fromDate'
+                            control={control}
+                            render={({ field }) => {
+                                const selectedDate = field.value ? new Date(field.value) : undefined;
+                                const minDate = new Date();
+                                minDate.setHours(0, 0, 0, 0);
+
+                                return (
+                                    <Popover>
+                                        <PopoverTrigger asChild>
+                                            <Button
+                                                variant='outline'
+                                                className={cn(
+                                                    'w-full justify-start text-left font-normal',
+                                                    !selectedDate && 'text-muted-foreground',
+                                                    errors.fromDate && 'border-red-500'
+                                                )}
+                                                type='button'>
+                                                <CalendarIcon className='mr-2 h-4 w-4' />
+                                                {selectedDate ? format(selectedDate, 'dd-MM-yyyy') : 'Select Date'}
+                                            </Button>
+                                        </PopoverTrigger>
+                                        <PopoverContent className='w-auto p-0' align='start'>
+                                            <DatePickerWithYear
+                                                mode='single'
+                                                selected={selectedDate}
+                                                onDayClick={(day) => {
+                                                    if (day) {
+                                                        const dateStr = format(day, 'yyyy-MM-dd');
+                                                        field.onChange(dateStr);
+                                                    }
+                                                }}
+                                                fromDate={minDate}
+                                                initialFocus
+                                            />
+                                        </PopoverContent>
+                                    </Popover>
+                                );
+                            }}
+                        />
+                        {errors.fromDate && <FormError>{errors.fromDate.message}</FormError>}
+                    </div>
+
+                    <div className='space-y-2'>
+                        <label className='font-medium text-sm' htmlFor='remarks'>
+                            Remarks <span className='text-red-500'>*</span>
+                        </label>
+                        <InputText
+                            id='remarks'
+                            placeholder='Enter Remarks'
+                            {...register('remarks')}
+                            error={errors.remarks?.message}
+                            maxLength={250}
+                        />
+                    </div>
                 </div>
-                <div className='flex items-center gap-2 text-sm'>
-                    <Checkbox checked={watch('sundayWorking')} onCheckedChange={(v) => setValue('sundayWorking', Boolean(v))} />
-                    <span>Sunday Working Flag</span>
+
+                {/* Right Column */}
+                <div className='space-y-6'>
+                    <div className='space-y-2'>
+                        <label className='font-medium text-sm' htmlFor='driver'>
+                            Driver <span className='text-red-500'>*</span>
+                        </label>
+                        <Select value={watch('driver')} onValueChange={(value) => setValue('driver', value)}>
+                            <SelectTrigger id='driver' className={errors.driver ? 'border-red-500' : ''}>
+                                <SelectValue placeholder='Select Driver' />
+                            </SelectTrigger>
+                            <SelectContent>
+                                {driverOptions.map((driver) => (
+                                    <SelectItem key={driver} value={driver}>
+                                        {driver}
+                                    </SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
+                        {errors.driver && <FormError>{errors.driver.message}</FormError>}
+                    </div>
+
+                    <div className='space-y-2'>
+                        <label className='font-medium text-sm' htmlFor='toDate'>
+                            To Date <span className='text-red-500'>*</span>
+                        </label>
+                        <Controller
+                            name='toDate'
+                            control={control}
+                            render={({ field }) => {
+                                const selectedDate = field.value ? new Date(field.value) : undefined;
+                                const minDate = fromDate ? new Date(fromDate) : new Date();
+                                minDate.setHours(0, 0, 0, 0);
+
+                                return (
+                                    <Popover>
+                                        <PopoverTrigger asChild>
+                                            <Button
+                                                variant='outline'
+                                                className={cn(
+                                                    'w-full justify-start text-left font-normal',
+                                                    !selectedDate && 'text-muted-foreground',
+                                                    errors.toDate && 'border-red-500'
+                                                )}
+                                                type='button'>
+                                                <CalendarIcon className='mr-2 h-4 w-4' />
+                                                {selectedDate ? format(selectedDate, 'dd-MM-yyyy') : 'Select Date'}
+                                            </Button>
+                                        </PopoverTrigger>
+                                        <PopoverContent className='w-auto p-0' align='start'>
+                                            <DatePickerWithYear
+                                                mode='single'
+                                                selected={selectedDate}
+                                                onDayClick={(day) => {
+                                                    if (day) {
+                                                        const dateStr = format(day, 'yyyy-MM-dd');
+                                                        field.onChange(dateStr);
+                                                    }
+                                                }}
+                                                fromDate={minDate}
+                                                initialFocus
+                                            />
+                                        </PopoverContent>
+                                    </Popover>
+                                );
+                            }}
+                        />
+                        {errors.toDate && <FormError>{errors.toDate.message}</FormError>}
+                    </div>
+
+                    <div className='space-y-4'>
+                        <div className='flex items-center gap-2'>
+                            <Checkbox
+                                id='saturdayOff'
+                                checked={watch('saturdayOff')}
+                                onCheckedChange={(checked) => setValue('saturdayOff', !!checked)}
+                            />
+                            <label htmlFor='saturdayOff' className='text-sm font-medium cursor-pointer'>
+                                Saturday Off Flag
+                            </label>
+                        </div>
+
+                        <div className='flex items-center gap-2'>
+                            <Checkbox
+                                id='sundayWorking'
+                                checked={watch('sundayWorking')}
+                                onCheckedChange={(checked) => setValue('sundayWorking', !!checked)}
+                            />
+                            <label htmlFor='sundayWorking' className='text-sm font-medium cursor-pointer'>
+                                Sunday Working Flag
+                            </label>
+                        </div>
+                    </div>
                 </div>
             </div>
 
-            <div className='flex justify-center gap-4 border-t pt-6 md:col-span-2'>
+            {/* Action Buttons */}
+            <div className='flex justify-end gap-4 border-t pt-6'>
                 <Button type='button' variant='outline' onClick={onCancel}>
-                    <X className='mr-2 h-4 w-4' />
-                    Cancel
+                    <X className='mr-2 h-4 w-4' /> CANCEL
                 </Button>
                 <Button type='submit' disabled={isSubmitting}>
                     {isSubmitting ? (
-                        <div className='flex items-center'>
-                            <RefreshCw className='mr-2 h-4 w-4 animate-spin' />
-                            Saving...
-                        </div>
+                        <>
+                            <RefreshCw className='mr-2 h-4 w-4 animate-spin' /> Saving...
+                        </>
                     ) : (
-                        <div className='flex items-center'>
-                            <Save className='mr-2 h-4 w-4' />
-                            Save
-                        </div>
+                        <>
+                            <Save className='mr-2 h-4 w-4' /> SAVE
+                        </>
                     )}
                 </Button>
             </div>

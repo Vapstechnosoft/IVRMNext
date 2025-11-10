@@ -58,11 +58,15 @@ export default function ShiftSettingMasterPage() {
 
     const handleFormSubmit = (data: ShiftSettingForm) => {
         try {
+            const shiftSettingData = {
+                ...data,
+                isActive: true // Always active by default
+            };
             if (editingId) {
-                shiftSettingDB.update(editingId, data);
+                shiftSettingDB.update(editingId, shiftSettingData);
                 toast.success('Shift setting updated successfully');
             } else {
-                shiftSettingDB.create(data as Omit<ShiftSetting, 'id' | 'createdAt'>);
+                shiftSettingDB.create(shiftSettingData as Omit<ShiftSetting, 'id' | 'createdAt'>);
                 toast.success('Shift setting created successfully');
             }
             loadShiftSettings();

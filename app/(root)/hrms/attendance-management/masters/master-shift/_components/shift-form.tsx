@@ -2,19 +2,18 @@
 
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
+import { FormError } from '@/components/ui/extension/field';
 import { InputText } from '@/components/ui/extension/input-text';
+import { masterShiftSchema } from '@/schemas/hrms/attendance-management-schemas';
+import { zodResolver } from '@hookform/resolvers/zod';
 import { RefreshCw, Save, X } from 'lucide-react';
-import { type SubmitHandler, useForm } from 'react-hook-form';
-import { toast } from 'sonner';
+import React, { useEffect } from 'react';
+import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
+import type { z } from 'zod';
 import type { MasterShift } from './columns';
+import { TimePicker12Hour } from './time-picker-12hour';
 
-export type MasterShiftFormData = {
-    shiftName: string;
-    startTime: string;
-    endTime: string;
-    remarks?: string;
-    specificDay: boolean;
-};
+export type MasterShiftFormData = z.infer<typeof masterShiftSchema.addOrUpdate>;
 
 interface ShiftFormProps {
     editingShift: MasterShift | null;
@@ -28,8 +27,11 @@ export function ShiftForm({ editingShift, onSubmit, onCancel }: ShiftFormProps) 
         handleSubmit,
         watch,
         setValue,
+        reset,
+        control,
         formState: { errors, isSubmitting }
     } = useForm<MasterShiftFormData>({
+        resolver: zodResolver(masterShiftSchema.addOrUpdate),
         mode: 'onChange',
         defaultValues: editingShift
             ? {
@@ -39,24 +41,59 @@ export function ShiftForm({ editingShift, onSubmit, onCancel }: ShiftFormProps) 
                   remarks: editingShift.remarks,
                   specificDay: editingShift.specificDay
               }
-            : { specificDay: false }
+            : {
+                  shiftName: '',
+                  startTime: '00:00',
+                  endTime: '00:00',
+                  remarks: '',
+                  specificDay: false
+              }
     });
 
-    const startTime = watch('startTime');
+    // Reset form when editing changes
+    useEffect(() => {
+        if (editingShift) {
+            reset({
+                shiftName: editingShift.shiftName,
+                startTime: editingShift.startTime,
+                endTime: editingShift.endTime,
+                remarks: editingShift.remarks,
+                specificDay: editingShift.specificDay
+            });
+        } else {
+            reset({
+                shiftName: '',
+                startTime: '00:00',
+                endTime: '00:00',
+                remarks: '',
+                specificDay: false
+            });
+        }
+    }, [editingShift, reset]);
 
     const handleFormSubmit: SubmitHandler<MasterShiftFormData> = async (data) => {
-        // Validate that end time is after start time
-        if (data.startTime && data.endTime) {
-            const start = new Date(`2000-01-01T${data.startTime}:00`);
-            const end = new Date(`2000-01-01T${data.endTime}:00`);
-
-            if (end <= start) {
-                toast.error('End time must be after start time');
-                return;
-            }
-        }
-
         onSubmit(data);
+        // Reset form after submit only if adding new (not editing)
+        if (!editingShift) {
+            reset({
+                shiftName: '',
+                startTime: '00:00',
+                endTime: '00:00',
+                remarks: '',
+                specificDay: false
+            });
+        }
+    };
+
+    const handleCancel = () => {
+        reset({
+            shiftName: '',
+            startTime: '00:00',
+            endTime: '00:00',
+            remarks: '',
+            specificDay: false
+        });
+        onCancel();
     };
 
     return (
@@ -68,72 +105,86 @@ export function ShiftForm({ editingShift, onSubmit, onCancel }: ShiftFormProps) 
                 <InputText
                     id='shiftName'
                     placeholder='Enter Name'
-                    {...register('shiftName', { required: 'Required' })}
+                    {...register('shiftName')}
                     error={errors.shiftName?.message}
+                    maxLength={100}
                 />
             </div>
 
             <div className='space-y-2'>
                 <label className='font-medium text-sm' htmlFor='remarks'>
-                    Remarks
+                    Remark <span className='text-red-500'>*</span>
                 </label>
-                <InputText id='remarks' placeholder='Enter Remarks' {...register('remarks')} />
+                <InputText
+                    id='remarks'
+                    placeholder='Enter Name'
+                    {...register('remarks')}
+                    error={errors.remarks?.message}
+                    maxLength={250}
+                />
             </div>
 
             <div className='space-y-2'>
-                <label className='font-medium text-sm' htmlFor='startTime'>
+                <label className='font-medium text-sm'>
                     Shift Start Time <span className='text-red-500'>*</span>
                 </label>
-                <input
-                    id='startTime'
-                    type='time'
-                    {...register('startTime', {
-                        required: 'Start time is required'
-                    })}
-                    className={`w-full rounded-md border px-3 py-2 ${errors.startTime ? 'border-red-500' : 'border-input'}`}
+                <Controller
+                    name='startTime'
+                    control={control}
+                    render={({ field }) => (
+                        <TimePicker12Hour
+                            value={field.value}
+                            onChange={field.onChange}
+                            name='startTime'
+                            required
+                        />
+                    )}
                 />
-                {errors.startTime && <div className='mt-1 text-red-500 text-sm'>{errors.startTime.message}</div>}
+                {errors.startTime && <FormError>{errors.startTime.message}</FormError>}
             </div>
 
             <div className='space-y-2'>
-                <label className='font-medium text-sm' htmlFor='endTime'>
+                <label className='font-medium text-sm'>
                     Shift End Time <span className='text-red-500'>*</span>
                 </label>
-                <input
-                    id='endTime'
-                    type='time'
-                    {...register('endTime', {
-                        required: 'End time is required'
-                    })}
-                    min={startTime || undefined}
-                    className={`w-full rounded-md border px-3 py-2 ${errors.endTime ? 'border-red-500' : 'border-input'}`}
+                <Controller
+                    name='endTime'
+                    control={control}
+                    render={({ field }) => (
+                        <TimePicker12Hour
+                            value={field.value}
+                            onChange={field.onChange}
+                            name='endTime'
+                            required
+                        />
+                    )}
                 />
-                {errors.endTime && <div className='mt-1 text-red-500 text-sm'>{errors.endTime.message}</div>}
+                {errors.endTime && <FormError>{errors.endTime.message}</FormError>}
             </div>
 
             <div className='flex items-center gap-8'>
                 <div className='flex items-center gap-2 text-sm'>
                     <Checkbox checked={watch('specificDay')} onCheckedChange={(v) => setValue('specificDay', Boolean(v))} />
-                    <span>Specific Day</span>
+                    <span>On Specific Day</span>
                 </div>
             </div>
 
-            <div className='flex justify-center gap-4 border-t pt-6 md:col-span-2'>
-                <Button type='button' variant='outline' onClick={onCancel}>
+            <div className='flex justify-end gap-4 border-t pt-6 md:col-span-2'>
+                <Button type='button' variant='outline' onClick={handleCancel}>
                     <X className='mr-2 h-4 w-4' />
-                    Cancel
+                    CANCEL
                 </Button>
                 <Button type='submit' disabled={isSubmitting}>
                     {isSubmitting ? (
-                        <div className='flex items-center'>
+                        <>
                             <RefreshCw className='mr-2 h-4 w-4 animate-spin' />
                             Saving...
-                        </div>
+                        </>
                     ) : (
-                        <div className='flex items-center'>
+                        <>
                             <Save className='mr-2 h-4 w-4' />
-                            Save
-                        </div>
+                            SAVE
+                        </>
                     )}
                 </Button>
             </div>

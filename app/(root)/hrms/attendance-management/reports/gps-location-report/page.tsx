@@ -11,7 +11,7 @@ import { type GPSLocationReportFilters, GPSLocationReportFilters as GPSLocationR
 export default function GPSLocationReportPage() {
     const db = createLocalCrud<GPSLog>('attendance:gps-location-attendance'); // reuse same storage
     const [filters, setFilters] = useState<GPSLocationReportFilters>({
-        betweenDates: false,
+        filterType: 'Between Date',
         fromDate: '',
         toDate: '',
         employee: ''
@@ -23,10 +23,13 @@ export default function GPSLocationReportPage() {
 
     const filtered = useMemo(() => {
         return data.filter((r) => {
-            const okEmp = filters.employee ? r.employeeName === filters.employee : true;
-            const okFrom = filters.betweenDates && filters.fromDate ? new Date(r.gpsDate) >= new Date(filters.fromDate) : true;
-            const okTo = filters.betweenDates && filters.toDate ? new Date(r.gpsDate) <= new Date(filters.toDate) : true;
-            return okEmp && okFrom && okTo;
+            if (filters.filterType === 'Employee Wise') {
+                return filters.employee ? r.employeeName === filters.employee : false;
+            } else {
+                const okFrom = filters.fromDate ? new Date(r.gpsDate) >= new Date(filters.fromDate) : true;
+                const okTo = filters.toDate ? new Date(r.gpsDate) <= new Date(filters.toDate) : true;
+                return okFrom && okTo;
+            }
         });
     }, [data, filters]);
 
@@ -36,7 +39,7 @@ export default function GPSLocationReportPage() {
 
     const handleCancel = () => {
         setFilters({
-            betweenDates: false,
+            filterType: 'Between Date',
             fromDate: '',
             toDate: '',
             employee: ''

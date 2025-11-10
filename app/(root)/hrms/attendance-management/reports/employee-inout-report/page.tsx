@@ -16,14 +16,15 @@ export default function EmployeeInOutReportPage() {
 
     const [filters, setFilters] = useState<EmployeeInOutReportFilters>({
         branch: '',
-        type: '',
-        department: '',
-        designation: '',
+        type: [],
+        department: [],
+        designation: [],
         allOrIndividual: 'All',
         codeOrName: 'Code',
         query: '',
         fromDate: '',
-        toDate: ''
+        toDate: '',
+        timeInTimeOut: undefined
     });
 
     const data = useMemo(() => db.list(), []);
@@ -35,9 +36,9 @@ export default function EmployeeInOutReportPage() {
     const filtered = useMemo(() => {
         return data.filter((r) => {
             const okBranch = filters.branch ? r.branch === filters.branch : true;
-            const okType = filters.type ? r.type === filters.type : true;
-            const okDept = filters.department ? r.department === filters.department : true;
-            const okDesg = filters.designation ? r.designation === filters.designation : true;
+            const okType = filters.type && filters.type.length > 0 ? filters.type.includes(r.type) : true;
+            const okDept = filters.department && filters.department.length > 0 ? filters.department.includes(r.department) : true;
+            const okDesg = filters.designation && filters.designation.length > 0 ? filters.designation.includes(r.designation) : true;
             const okDateFrom = filters.fromDate ? new Date(r.date) >= new Date(filters.fromDate) : true;
             const okDateTo = filters.toDate ? new Date(r.date) <= new Date(filters.toDate) : true;
             const okQuery =
@@ -46,7 +47,8 @@ export default function EmployeeInOutReportPage() {
                         ? r.employeeCode.includes(filters.query)
                         : r.employeeName.toLowerCase().includes(filters.query.toLowerCase())
                     : true;
-            return okBranch && okType && okDept && okDesg && okDateFrom && okDateTo && okQuery;
+            const okTimeInOut = filters.timeInTimeOut ? (filters.timeInTimeOut === 'Time In' ? r.timeIn : r.timeOut) : true;
+            return okBranch && okType && okDept && okDesg && okDateFrom && okDateTo && okQuery && okTimeInOut;
         });
     }, [data, filters]);
 
@@ -57,14 +59,15 @@ export default function EmployeeInOutReportPage() {
     const handleCancel = () => {
         setFilters({
             branch: '',
-            type: '',
-            department: '',
-            designation: '',
+            type: [],
+            department: [],
+            designation: [],
             allOrIndividual: 'All',
             codeOrName: 'Code',
             query: '',
             fromDate: '',
-            toDate: ''
+            toDate: '',
+            timeInTimeOut: undefined
         });
     };
 

@@ -15,9 +15,9 @@ export default function EmployeeLateInEarlyOutReportPage() {
     const db = createLocalCrud<LIEORow>('attendance:lieo');
 
     const [filters, setFilters] = useState<EmployeeLateInEarlyOutReportFilters>({
-        type: '',
-        department: '',
-        designation: '',
+        type: [],
+        department: [],
+        designation: [],
         allOrIndividual: 'All',
         codeOrName: 'Code',
         query: '',
@@ -28,14 +28,15 @@ export default function EmployeeLateInEarlyOutReportPage() {
 
     const data = useMemo(() => db.list(), []);
 
+    const types = useMemo(() => [...new Set(data.map((d) => d.type).filter(Boolean))], [data]);
     const departments = useMemo(() => [...new Set(data.map((d) => d.department))], [data]);
     const designations = useMemo(() => [...new Set(data.map((d) => d.designation))], [data]);
 
     const filtered = useMemo(() => {
         return data.filter((r) => {
-            const okType = filters.type ? r.type === filters.type : true;
-            const okDept = filters.department ? r.department === filters.department : true;
-            const okDesg = filters.designation ? r.designation === filters.designation : true;
+            const okType = filters.type && filters.type.length > 0 ? filters.type.includes(r.type) : true;
+            const okDept = filters.department && filters.department.length > 0 ? filters.department.includes(r.department) : true;
+            const okDesg = filters.designation && filters.designation.length > 0 ? filters.designation.includes(r.designation) : true;
             const okDateFrom = filters.fromDate ? new Date(r.date) >= new Date(filters.fromDate) : true;
             const okDateTo = filters.toDate ? new Date(r.date) <= new Date(filters.toDate) : true;
             const okQuery =
@@ -56,9 +57,9 @@ export default function EmployeeLateInEarlyOutReportPage() {
 
     const handleCancel = () => {
         setFilters({
-            type: '',
-            department: '',
-            designation: '',
+            type: [],
+            department: [],
+            designation: [],
             allOrIndividual: 'All',
             codeOrName: 'Code',
             query: '',
@@ -87,6 +88,7 @@ export default function EmployeeLateInEarlyOutReportPage() {
                     filters={filters}
                     departments={departments}
                     designations={designations}
+                    types={types}
                     onFilterChange={setFilters}
                     onSearch={handleSearch}
                     onCancel={handleCancel}
