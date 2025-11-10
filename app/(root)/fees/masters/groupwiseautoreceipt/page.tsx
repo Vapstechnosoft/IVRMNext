@@ -1,9 +1,11 @@
 'use client';
+
+import { Heading } from '@/components/layout/heading';
 import { Button } from '@/components/ui/button';
 import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/generic-data-table';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
-import { useMasterYearlyCategory } from '@/hooks/fees/useMasters';
+import { useFeeMasterGroupwiseAutoReceipt } from '@/hooks/fees/useMasters';
 import type { IMasterGroupWiseAutoReciptList } from '@/types/fees/masters/masters';
 import { Plus, X } from 'lucide-react';
 import { use, useEffect } from 'react';
@@ -16,7 +18,7 @@ type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 
 export default function MasterClassPage(props: { searchParams: SearchParams }) {
     const searchParams = use(props.searchParams);
-    const { data: response, isLoading, error, refetch } = useMasterYearlyCategory(searchParams);
+    const { data: response, isLoading, error, refetch } = useFeeMasterGroupwiseAutoReceipt(searchParams);
 
     useEffect(() => {}, [response]);
 
@@ -47,10 +49,7 @@ function MasterClassPageContent({
                 {/* Header */}
                 <div className='flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between'>
                     <div className='space-y-1'>
-                        {/* <Heading
-                            title='Master Group Wise Auto Receipt'
-                            description='Manage group-wise auto receipt settings by academic year'
-                        /> */}
+                        <Heading title='' description='' />
                     </div>
                     <Button
                         type='button'

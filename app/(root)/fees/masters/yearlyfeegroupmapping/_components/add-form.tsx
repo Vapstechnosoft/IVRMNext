@@ -165,11 +165,6 @@ export default function YearlyFeeGroupMapping() {
         }
     }, [academicYear, feeGroup, refetchAll]);
 
-    const handleToggle = (data: any) => {
-        console.log('Toggle:', data);
-        // Add your toggle logic here
-    };
-
     const headInstallmentColumns: ColumnDef<IHeadInstallment>[] = [
         {
             id: 'select',
@@ -434,17 +429,10 @@ export default function YearlyFeeGroupMapping() {
         },
         {
             id: 'actions',
-            header: ({ column }) => <DataTableColumnHeader column={column} title='Actions' className='text-center' />,
+            header: ({ column }) => <DataTableColumnHeader column={column} title='Actions' className='text-start' />,
             accessorFn: (row) => row,
             enableSorting: false,
-            cell: ({ row }) => (
-                <ActionButtons
-                    rowData={row.original}
-                    buttons={{ toggle: true, delete: true }}
-                    onToggle={handleToggle}
-                    toggleConditionKey='returnval'
-                />
-            )
+            cell: ({ row }) => <ActionButtons rowData={row.original} buttons={{ delete: true }} />
         }
     ];
 

@@ -1,22 +1,31 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { FormError, Label } from '@/components/ui/extension/field';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { useAcademicYearDropdown, useClassCategoryDropdown } from '@/hooks/fees/useMasters';
-import { masterClassSchema } from '@/schemas/fees/masters';
-import { addOrUpdateMasterClassYearlyCategory } from '@/server/fees/masters/class_yearly_category';
+import { useAcademicYearDropdown, useFeeMasterGroupwiseAutoReceiptDropDown } from '@/hooks/fees/useMasters';
+import { cn } from '@/lib/utils';
+import { masterClassFeeMasterGroupwiseAutoReceipt } from '@/schemas/fees/masters';
+import { addOrUpdateMasterFeeMasterGroupwiseAutoReceipt } from '@/server/fees/masters/fee_master_groupwise_auto_receipt';
 import type { IMasterGroupWiseAutoReciptList } from '@/types/fees/masters/masters';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Save } from 'lucide-react';
+import { CheckSquare, RotateCcw, Save, Square } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { type SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 
 type FormFields = {
     academicYear: string;
-    classCategory: string;
-    classes: string[];
+    usePrefix: boolean;
+    useSuffix: boolean;
+    prefixValue: string;
+    suffixValue: string;
+    startingNumber: string;
+    groups: string[];
+    autoGroupName: string;
+    address: string;
+    receiptTemplateFormat: string;
 };
 
 interface DropdownOption {
@@ -24,9 +33,9 @@ interface DropdownOption {
     label: string;
 }
 
-interface ClassOption {
-    value: string;
-    label: string;
+interface GroupOption {
+    fmG_Id: number;
+    fmG_GroupName: string;
 }
 
 interface UpdateMasterClassFormProps {
@@ -36,70 +45,76 @@ interface UpdateMasterClassFormProps {
 }
 
 export default function UpdateMasterClassForm({ onSuccess, className = '', selectedRow }: UpdateMasterClassFormProps) {
-    const { data: categoryData, isLoading: loadingCategories, error: categoryError, refetch: refetchAll } = useClassCategoryDropdown();
     const { data: academicData, isLoading: loadingAcademic, error: academicError } = useAcademicYearDropdown();
+
+    console.log('selectedRow', selectedRow);
 
     const {
         handleSubmit,
         reset,
         setValue,
         watch,
+        register,
         formState: { errors, isSubmitting }
     } = useForm<FormFields>({
-        resolver: zodResolver(masterClassSchema.addOrUpdate),
+        resolver: zodResolver(masterClassFeeMasterGroupwiseAutoReceipt.addOrUpdate),
         mode: 'onSubmit',
         defaultValues: {
             academicYear: '',
-            classCategory: '',
-            classes: []
+            usePrefix: false,
+            useSuffix: false,
+            prefixValue: '',
+            suffixValue: '',
+            startingNumber: '',
+            groups: [],
+            autoGroupName: '',
+            address: '',
+            receiptTemplateFormat: ''
         }
     });
 
     const [hasSubmitted, setHasSubmitted] = useState(false);
     const [academicYearOptions, setAcademicYearOptions] = useState<DropdownOption[]>([]);
-    const [classCategoryOptions, setClassCategoryOptions] = useState<DropdownOption[]>([]);
-    const [classOptions, _setClassOptions] = useState<ClassOption[]>([
-        { value: '1', label: 'Class 1' },
-        { value: '2', label: 'Class 2' },
-        { value: '3', label: 'Class 3' },
-        { value: '4', label: 'Class 4' },
-        { value: '5', label: 'Class 5' }
-    ]);
-    const [selectedClasses, setSelectedClasses] = useState<string[]>([]);
+    const [groupOptions, setGroupOptions] = useState<GroupOption[]>([]);
+    const [selectedGroups, setSelectedGroups] = useState<string[]>([]);
     const [searchTerm, setSearchTerm] = useState('');
     const [isLoadingDropdowns, setIsLoadingDropdowns] = useState(false);
+    const [usePrefix, setUsePrefix] = useState(false);
+    const [useSuffix, setUseSuffix] = useState(false);
 
     const academicYear = watch('academicYear');
-    const classCategory = watch('classCategory');
-    const classesValue = watch('classes');
+    const groupsValue = watch('groups');
 
     useEffect(() => {
-        setIsLoadingDropdowns(loadingAcademic || loadingCategories);
-    }, [loadingAcademic, loadingCategories]);
+        if (selectedRow && academicYearOptions.length > 0) {
+            const academicYearOption = academicYearOptions.find((opt) => opt.label === selectedRow.academicyear);
 
-    useEffect(() => {
-        if (selectedRow) {
-            setValue('academicYear', selectedRow.asmaY_Id?.toString() ?? '', {
-                shouldValidate: false
-            });
-            setValue('classCategory', selectedRow.fmcC_Id?.toString() ?? '', {
-                shouldValidate: false
-            });
-
-            try {
-                const classes = selectedRow.asmcL_ClassName ? JSON.parse(selectedRow.asmcL_ClassName) : [];
-                const classArray = Array.isArray(classes) ? classes : [];
-                setSelectedClasses(classArray);
-                setValue('classes', classArray, { shouldValidate: false });
-            } catch (error) {
-                console.error('Error parsing classes:', error);
-                setSelectedClasses([]);
-                setValue('classes', [], { shouldValidate: false });
+            if (academicYearOption) {
+                setValue('academicYear', academicYearOption.value);
             }
-        }
-    }, [selectedRow, setValue]);
 
-    // Academic Year Dropdown
+            setValue('startingNumber', selectedRow.fgaR_Starting_No?.toString() || '');
+
+            const hasPrefix = selectedRow.fgaR_PrefixFlag === '1' && selectedRow.fgaR_PrefixName;
+            const hasSuffix = selectedRow.fgaR_SuffixFlag === '1' && selectedRow.fgaR_SuffixName;
+
+            setUsePrefix(hasPrefix);
+            setUseSuffix(hasSuffix);
+            setValue('usePrefix', hasPrefix);
+            setValue('useSuffix', hasSuffix);
+            setValue('prefixValue', selectedRow.fgaR_PrefixName || '');
+            setValue('suffixValue', selectedRow.fgaR_SuffixName || '');
+
+            setValue('autoGroupName', selectedRow.fgaR_Name || '');
+            setValue('address', selectedRow.fgaR_Address || '');
+            setValue('receiptTemplateFormat', selectedRow.fgaR_Template_Name || '');
+        }
+    }, [selectedRow, academicYearOptions, setValue]);
+
+    useEffect(() => {
+        setIsLoadingDropdowns(loadingAcademic);
+    }, [loadingAcademic]);
+
     useEffect(() => {
         if (academicError) {
             toast.error(academicError.message || 'Error fetching academic years');
@@ -117,77 +132,82 @@ export default function UpdateMasterClassForm({ onSuccess, className = '', selec
         }
     }, [academicData, academicError]);
 
+    const filteredGroupOptions = groupOptions.filter((option) => option.fmG_GroupName.toLowerCase().includes(searchTerm.toLowerCase()));
+
+    const {
+        data: groupData,
+        isLoading: loadingGroupData,
+        error: groupDataError
+    } = useFeeMasterGroupwiseAutoReceiptDropDown(Number(academicYear));
+
     useEffect(() => {
-        if (!academicYear) {
+        if (groupDataError) {
+            toast.error(groupDataError.message || 'Error fetching groups');
+            setGroupOptions([]);
             return;
         }
-
-        if (categoryError) {
-            toast.error(categoryError.message || 'Error fetching class categories');
-            setClassCategoryOptions([]);
-            return;
-        }
-
-        if (categoryData?.data && Array.isArray(categoryData.data)) {
-            const options = categoryData.data.map((item: any) => ({
-                value: item.fmcC_Id.toString(),
-                label: item.fmcC_ClassCategoryName
-            }));
-            setClassCategoryOptions(options);
+        if (groupData?.data && Array.isArray(groupData.data)) {
+            setGroupOptions(groupData.data);
         } else {
-            setClassCategoryOptions([]);
+            setGroupOptions([]);
         }
-    }, [academicYear, categoryData, categoryError]);
+    }, [groupData, groupDataError, academicYear]);
 
-    const filteredClassOptions = classOptions.filter((option) => option.label.toLowerCase().includes(searchTerm.toLowerCase()));
-
-    const handleClassChange = (value: string) => {
-        const currentClasses = classesValue || [];
-        let updatedClasses: string[];
-        if (currentClasses.includes(value)) {
-            updatedClasses = currentClasses.filter((c) => c !== value);
+    const handleGroupChange = (value: string) => {
+        const currentGroups = groupsValue || [];
+        let updatedGroups: string[];
+        if (currentGroups.includes(value)) {
+            updatedGroups = currentGroups.filter((c) => c !== value);
         } else {
-            updatedClasses = [...currentClasses, value];
+            updatedGroups = [...currentGroups, value];
         }
-        setSelectedClasses(updatedClasses);
-        setValue('classes', updatedClasses, { shouldValidate: true });
+        setSelectedGroups(updatedGroups);
+        setValue('groups', updatedGroups, { shouldValidate: hasSubmitted });
+    };
+
+    const handleSelectAll = () => {
+        const currentGroups = groupsValue || [];
+        if (currentGroups.length === groupOptions.length) {
+            setSelectedGroups([]);
+            setValue('groups', [], { shouldValidate: hasSubmitted });
+        } else {
+            const allValues = groupOptions.map((opt) => opt.fmG_Id.toString());
+            setSelectedGroups(allValues);
+            setValue('groups', allValues, { shouldValidate: hasSubmitted });
+        }
     };
 
     const onSubmit: SubmitHandler<FormFields> = async (data) => {
-        if (!selectedRow) {
-            toast.error('No valid row selected for update');
-            return;
-        }
-
-        if (isSubmitting) return;
-
         try {
-            const { academicYear, classCategory, classes } = data;
-            if (!academicYear || !classCategory || classes.length === 0) {
-                toast.error('Please select academic year, class category, and at least one class.');
-                return;
-            }
+            console.log('Form submitted with data:', data);
+
+            const { academicYear, prefixValue, suffixValue, startingNumber, groups, autoGroupName, address, receiptTemplateFormat } = data;
 
             const payload = {
-                fmcC_Id: Number.parseInt(selectedRow.fmcC_Id?.toString(), 10),
-                mI_Id: 30,
-                fmcC_ClassCategoryName: classCategoryOptions.find((opt) => opt.value === classCategory)?.label || '',
-                fmcC_ClassCategoryCode: classCategory,
-                fmcC_ActiveFlag: selectedRow.fycC_ActiveFlag ?? true,
-                asmaY_ID: Number.parseInt(academicYear),
-                asmcL_ID: selectedRow.asmcL_Id || 0,
-                clsYearData: classes,
-                user_id: 21602
+                mi_id: 30,
+                asmaY_Id: Number.parseInt(academicYear),
+                fgaR_Id: selectedRow?.fgaR_Id || 0,
+                fgaR_PrefixFlag: prefixValue ? '1' : '',
+                fgaR_SuffixFlag: suffixValue ? '1' : '',
+                fgaR_PrefixName: prefixValue || '',
+                fgaR_SuffixName: suffixValue || '',
+                fgaR_Name: autoGroupName,
+                userid: 101,
+                roleid: 5,
+                fgaR_Address: address || '',
+                savegroup: groups.map((groupId) => ({
+                    fmG_Id: Number.parseInt(groupId)
+                })),
+                fgaR_Starting_No: startingNumber,
+                fgaR_Template_Name: receiptTemplateFormat || ''
             };
 
-            const response = await addOrUpdateMasterClassYearlyCategory(payload);
+            console.log('Payload being sent:', payload);
+
+            const response = await addOrUpdateMasterFeeMasterGroupwiseAutoReceipt(payload);
 
             if (response.success) {
                 toast.success(response.message || 'Master class updated successfully');
-                reset();
-                setSelectedClasses([]);
-                setSearchTerm('');
-                refetchAll();
                 onSuccess?.();
             } else {
                 toast.error(response.message || 'Failed to update master class');
@@ -199,152 +219,294 @@ export default function UpdateMasterClassForm({ onSuccess, className = '', selec
     };
 
     const handleReset = () => {
-        if (selectedRow) {
-            setValue('academicYear', selectedRow.asmaY_Id?.toString() ?? '', {
-                shouldValidate: false
-            });
-            setValue('classCategory', selectedRow.fmcC_Id?.toString() ?? '', {
-                shouldValidate: false
-            });
-
-            try {
-                const classes = selectedRow.asmcL_ClassName ? JSON.parse(selectedRow.asmcL_ClassName) : [];
-                const classArray = Array.isArray(classes) ? classes : [];
-                setSelectedClasses(classArray);
-                setValue('classes', classArray, { shouldValidate: false });
-            } catch {
-                setSelectedClasses([]);
-                setValue('classes', [], { shouldValidate: false });
-            }
-        }
+        reset();
+        setSelectedGroups([]);
         setSearchTerm('');
+        setUsePrefix(false);
+        setUseSuffix(false);
         setHasSubmitted(false);
     };
 
+    const handleFormSubmit = (e: React.MouseEvent) => {
+        e.preventDefault();
+        setHasSubmitted(true);
+        handleSubmit(onSubmit)();
+    };
+
     return (
-        <div className={`${className}`}>
-            <form
-                onSubmit={(e) => {
-                    setHasSubmitted(true);
-                    handleSubmit(onSubmit)(e);
-                }}
-                className='space-y-6'>
-                <div className='space-y-4'>
-                    <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
-                        {/* Academic Year */}
-                        <div>
-                            <Label htmlFor='academicYear'>
-                                Academic Year <span className='ml-1 text-red-500'>*</span>
-                            </Label>
-                            <Select
-                                onValueChange={(value) => setValue('academicYear', value, { shouldValidate: true })}
-                                value={academicYear}
-                                disabled={isLoadingDropdowns}>
-                                <SelectTrigger
-                                    id='academicYear'
-                                    className={`transition-colors ${errors.academicYear ? 'border-red-500' : ''}`}>
-                                    <SelectValue placeholder='Select Academic Year' />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {academicYearOptions.map((option) => (
-                                        <SelectItem key={option.value} value={option.value}>
-                                            {option.label}
-                                        </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
-                            {hasSubmitted && errors.academicYear && <FormError>{errors.academicYear.message}</FormError>}
-                        </div>
+        <div className={`${className} w-full`}>
+            <Card className='mx-auto w-full max-w-8xl border-gray-200 shadow-md'>
+                <CardHeader className='border-b bg-white p-5'>
+                    <CardTitle className='font-medium text-gray-700 text-sm'>Update Master Class</CardTitle>
+                </CardHeader>
+                <CardContent className='p-6'>
+                    <form
+                        onSubmit={(e) => {
+                            e.preventDefault();
+                            handleFormSubmit(e as any);
+                        }}>
+                        <div className='space-y-6'>
+                            {/* Academic Year */}
+                            <div>
+                                <Label htmlFor='academicYear'>
+                                    Academic Year <span className='text-red-500'>*</span>
+                                </Label>
+                                <Select
+                                    onValueChange={(value) =>
+                                        setValue('academicYear', value, {
+                                            shouldValidate: hasSubmitted
+                                        })
+                                    }
+                                    value={academicYear}
+                                    disabled={isLoadingDropdowns}>
+                                    <SelectTrigger
+                                        id='academicYear'
+                                        className={`mt-1 w-full transition-colors ${
+                                            errors.academicYear ? 'border-red-500' : 'border-gray-300'
+                                        }`}>
+                                        <SelectValue placeholder='Select Academic Year' />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {academicYearOptions.map((option) => (
+                                            <SelectItem key={option.value} value={option.value}>
+                                                {option.label}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                                {hasSubmitted && errors.academicYear && <FormError>{errors.academicYear.message}</FormError>}
+                            </div>
 
-                        {/* Class Category */}
-                        <div>
-                            <Label htmlFor='classCategory'>
-                                Class Category <span className='ml-1 text-red-500'>*</span>
-                            </Label>
-                            <Select
-                                onValueChange={(value) => setValue('classCategory', value, { shouldValidate: true })}
-                                value={classCategory}
-                                disabled={!academicYear || isLoadingDropdowns}>
-                                <SelectTrigger
-                                    id='classCategory'
-                                    className={`transition-colors ${errors.classCategory ? 'border-red-500' : ''}`}>
-                                    <SelectValue placeholder='Select Class Category' />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {classCategoryOptions.map((option) => (
-                                        <SelectItem key={option.value} value={option.value}>
-                                            {option.label}
-                                        </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
-                            {hasSubmitted && errors.classCategory && <FormError>{errors.classCategory.message}</FormError>}
-                        </div>
-
-                        {/* Classes */}
-                        <div className='md:col-span-2'>
-                            <Label htmlFor='classes'>
-                                Classes <span className='ml-1 text-red-500'>*</span>
-                            </Label>
-                            <div className='min-h-[40px] rounded-md border bg-white px-3 py-2'>
+                            <div>
+                                <Label htmlFor='startingNumber'>
+                                    Starting Number <span className='text-red-500'>*</span>
+                                </Label>
                                 <input
+                                    id='startingNumber'
                                     type='text'
-                                    placeholder='Search Classes'
-                                    className='mb-2 w-full rounded border px-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-500'
-                                    value={searchTerm}
-                                    onChange={(e) => setSearchTerm(e.target.value)}
-                                    disabled={!academicYear || !classCategory}
+                                    {...register('startingNumber')}
+                                    placeholder='Enter starting number'
+                                    className='mt-1 w-full rounded-md border border-gray-300 px-3 py-2 transition-colors focus:border-gray-400 focus:ring-0'
                                 />
-                                <div className='flex max-h-40 flex-col gap-2 overflow-y-auto'>
-                                    {filteredClassOptions.length > 0 ? (
-                                        filteredClassOptions.map((option) => (
-                                            <label
-                                                key={option.value}
-                                                className='flex cursor-pointer items-center rounded p-1 hover:bg-gray-50'>
-                                                <input
-                                                    type='checkbox'
-                                                    value={option.value}
-                                                    checked={selectedClasses.includes(option.value)}
-                                                    onChange={() => handleClassChange(option.value)}
-                                                    className='mr-2 h-4 w-4 accent-blue-600'
-                                                />
-                                                <span className='truncate'>{option.label}</span>
-                                            </label>
-                                        ))
-                                    ) : !academicYear || !classCategory ? (
-                                        <span className='text-gray-400 text-sm'>Select Academic Year and Class Category first</span>
-                                    ) : (
-                                        <span className='text-gray-400 text-sm'>No classes found</span>
-                                    )}
+                                {hasSubmitted && errors.startingNumber && <FormError>{errors.startingNumber.message}</FormError>}
+                            </div>
+
+                            <div className='lg:col-span-2'>
+                                <Label>Prefix / Suffix</Label>
+                                <div className='mt-2 flex flex-wrap gap-6'>
+                                    <label className='flex items-center space-x-2'>
+                                        <input
+                                            type='checkbox'
+                                            checked={usePrefix}
+                                            onChange={(e) => {
+                                                const checked = e.target.checked;
+                                                setUsePrefix(checked);
+                                                setValue('usePrefix', checked, {
+                                                    shouldValidate: hasSubmitted
+                                                });
+                                                if (checked) {
+                                                    setUseSuffix(false);
+                                                    setValue('useSuffix', false, {
+                                                        shouldValidate: hasSubmitted
+                                                    });
+                                                    setValue('suffixValue', '', {
+                                                        shouldValidate: hasSubmitted
+                                                    });
+                                                }
+                                                if (!checked) {
+                                                    setValue('prefixValue', '', {
+                                                        shouldValidate: hasSubmitted
+                                                    });
+                                                }
+                                            }}
+                                            className='h-4 w-4 rounded border-gray-300 accent-primary'
+                                        />
+                                        <span>Prefix</span>
+                                    </label>
+                                    <label className='flex items-center space-x-2'>
+                                        <input
+                                            type='checkbox'
+                                            checked={useSuffix}
+                                            onChange={(e) => {
+                                                const checked = e.target.checked;
+                                                setUseSuffix(checked);
+                                                setValue('useSuffix', checked, {
+                                                    shouldValidate: hasSubmitted
+                                                });
+                                                if (checked) {
+                                                    setUsePrefix(false);
+                                                    setValue('usePrefix', false, {
+                                                        shouldValidate: hasSubmitted
+                                                    });
+                                                    setValue('prefixValue', '', {
+                                                        shouldValidate: hasSubmitted
+                                                    });
+                                                }
+                                                if (!checked) {
+                                                    setValue('suffixValue', '', {
+                                                        shouldValidate: hasSubmitted
+                                                    });
+                                                }
+                                            }}
+                                            className='h-4 w-4 rounded border-gray-300 accent-primary'
+                                        />
+                                        <span>Suffix</span>
+                                    </label>
                                 </div>
                             </div>
-                            {hasSubmitted && errors.classes && <FormError>{errors.classes.message}</FormError>}
-                        </div>
-                    </div>
 
-                    {hasSubmitted && errors.root && <FormError>{errors.root.message}</FormError>}
-                </div>
+                            {usePrefix && (
+                                <div>
+                                    <Label htmlFor='prefixValue'>
+                                        Prefix <span className='text-red-500'>*</span>
+                                    </Label>
+                                    <input
+                                        id='prefixValue'
+                                        type='text'
+                                        {...register('prefixValue')}
+                                        placeholder='Enter prefix value'
+                                        className='mt-1 w-full rounded-md border border-gray-300 px-3 py-2 transition-colors focus:border-gray-400 focus:ring-0'
+                                    />
+                                    {hasSubmitted && errors.prefixValue && <FormError>{errors.prefixValue.message}</FormError>}
+                                </div>
+                            )}
 
-                <div className='flex flex-col gap-3 border-t pt-4 sm:flex-row sm:justify-start'>
-                    <Button
-                        type='button'
-                        variant='outline'
-                        onClick={handleReset}
-                        disabled={isSubmitting || isLoadingDropdowns}
-                        className='order-2 w-fit transition-all duration-200 hover:scale-105 sm:order-1'>
-                        Reset
-                    </Button>
-                    <Button
-                        type='submit'
-                        disabled={isSubmitting || isLoadingDropdowns || !academicYear || !classCategory || selectedClasses.length === 0}
-                        className='order-1 w-fit transition-all duration-200 hover:scale-105 sm:order-2'>
-                        <div className='flex items-center'>
-                            <Save className='mr-2 h-4 w-4' />
-                            Update Master Class
+                            {useSuffix && (
+                                <div>
+                                    <Label htmlFor='suffixValue'>
+                                        Suffix <span className='text-red-500'>*</span>
+                                    </Label>
+                                    <input
+                                        id='suffixValue'
+                                        type='text'
+                                        {...register('suffixValue')}
+                                        placeholder='Enter suffix value'
+                                        className='mt-1 w-full rounded-md border border-gray-300 px-3 py-2 transition-colors focus:border-gray-400 focus:ring-0'
+                                    />
+                                    {hasSubmitted && errors.suffixValue && <FormError>{errors.suffixValue.message}</FormError>}
+                                </div>
+                            )}
+
+                            <div className='lg:col-span-2'>
+                                <Label>
+                                    Select Groups <span className='text-red-500'>*</span>
+                                </Label>
+                                <div className='mt-2 rounded-md border border-gray-200 bg-white p-3'>
+                                    <input
+                                        type='text'
+                                        placeholder='Search Groups...'
+                                        value={searchTerm}
+                                        onChange={(e) => setSearchTerm(e.target.value)}
+                                        className='mb-3 w-full rounded-md border border-gray-300 px-3 py-1.5 transition-colors focus:border-gray-400 focus:ring-0'
+                                    />
+                                    <div
+                                        onClick={handleSelectAll}
+                                        className={cn(
+                                            'mb-2 flex cursor-pointer items-center gap-2 rounded-md border px-2 py-1.5 font-medium text-sm transition-all',
+                                            (groupsValue || []).length === groupOptions.length && groupOptions.length > 0
+                                                ? 'border-primary bg-primary/5 text-primary'
+                                                : 'border-gray-200 hover:border-primary/40'
+                                        )}>
+                                        {(groupsValue || []).length === groupOptions.length && groupOptions.length > 0 ? (
+                                            <CheckSquare className='h-4 w-4 text-primary' />
+                                        ) : (
+                                            <Square className='h-4 w-4 text-gray-400' />
+                                        )}
+                                        <span>Select All</span>
+                                    </div>
+
+                                    <div className='mt-2 max-h-40 overflow-y-auto rounded-md border border-gray-200 p-1'>
+                                        {loadingGroupData && (
+                                            <div className='py-4 text-center text-gray-500 text-sm'>Loading groups...</div>
+                                        )}
+                                        {!loadingGroupData && filteredGroupOptions.length === 0 && (
+                                            <div className='py-4 text-center text-gray-500 text-sm'>
+                                                {academicYear ? 'No groups found' : 'Please select an academic year first'}
+                                            </div>
+                                        )}
+                                        {filteredGroupOptions.map((option) => {
+                                            const value = option.fmG_Id.toString();
+                                            const selected = (groupsValue || []).includes(value);
+                                            return (
+                                                <div
+                                                    key={option.fmG_Id}
+                                                    onClick={() => handleGroupChange(value)}
+                                                    className={cn(
+                                                        'mb-1 flex cursor-pointer items-center gap-2 rounded-md border px-2 py-1.5 text-sm transition-all',
+                                                        selected
+                                                            ? 'border-primary bg-primary/5 text-primary'
+                                                            : 'border-gray-200 hover:border-primary/40'
+                                                    )}>
+                                                    {selected ? (
+                                                        <CheckSquare className='h-4 w-4 text-primary' />
+                                                    ) : (
+                                                        <Square className='h-4 w-4 text-gray-400' />
+                                                    )}
+                                                    <span>{option.fmG_GroupName}</span>
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
+                                </div>
+                                {hasSubmitted && errors.groups && <FormError>{errors.groups.message}</FormError>}
+                            </div>
+
+                            <div>
+                                <Label htmlFor='autoGroupName'>
+                                    Auto Group Name <span className='text-red-500'>*</span>
+                                </Label>
+                                <input
+                                    id='autoGroupName'
+                                    type='text'
+                                    {...register('autoGroupName')}
+                                    placeholder='Enter auto group name'
+                                    className='mt-1 w-full rounded-md border border-gray-300 px-3 py-2 transition-colors focus:border-gray-400 focus:ring-0'
+                                />
+                                {hasSubmitted && errors.autoGroupName && <FormError>{errors.autoGroupName.message}</FormError>}
+                            </div>
+
+                            <div className='lg:col-span-2'>
+                                <Label htmlFor='address'>Address</Label>
+                                <textarea
+                                    id='address'
+                                    {...register('address')}
+                                    placeholder='Enter address (optional)'
+                                    className='mt-1 h-24 w-full rounded-md border border-gray-300 px-3 py-2 transition-colors focus:border-gray-400 focus:ring-0'
+                                />
+                            </div>
+
+                            <div className='lg:col-span-2'>
+                                <Label htmlFor='receiptTemplateFormat'>Receipt Template Format</Label>
+                                <textarea
+                                    id='receiptTemplateFormat'
+                                    {...register('receiptTemplateFormat')}
+                                    placeholder='Enter receipt template format (optional)'
+                                    className='mt-1 h-32 w-full rounded-md border border-gray-300 px-3 py-2 transition-colors focus:border-gray-400 focus:ring-0'
+                                />
+                            </div>
+
+                            <div className='mt-3 flex justify-end gap-3 border-t pt-5 lg:col-span-2'>
+                                <Button
+                                    type='button'
+                                    variant='outline'
+                                    onClick={handleReset}
+                                    disabled={isSubmitting}
+                                    className='order-2 flex w-fit items-center gap-2 transition-all duration-200 hover:scale-105 sm:order-1'>
+                                    <RotateCcw className='h-4 w-4' />
+                                    Reset
+                                </Button>
+                                <Button
+                                    type='submit'
+                                    disabled={isSubmitting}
+                                    className='order-1 flex w-fit items-center gap-2 transition-all duration-200 hover:scale-105 sm:order-2'>
+                                    <Save className='h-4 w-4' />
+                                    {isSubmitting ? 'Updating...' : 'Update Master Class'}
+                                </Button>
+                            </div>
                         </div>
-                    </Button>
-                </div>
-            </form>
+                    </form>
+                </CardContent>
+            </Card>
         </div>
     );
 }

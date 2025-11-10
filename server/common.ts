@@ -411,8 +411,8 @@ export async function getUserAccessibleModules() {
                                             name: 'Group wise  Auto Receipt',
                                             icon: 'Settings',
                                             url: '/fees/masters/groupwiseautoreceipt',
-                                            title: 'Yearly Groups Mapping',
-                                            description: 'Manage Yearly Groups Mapping'
+                                            title: 'Group wise  Auto Receipt',
+                                            description: 'Manage Group wise  Auto Receipt'
                                         },
                                         {
                                             id: 38,
@@ -429,6 +429,14 @@ export async function getUserAccessibleModules() {
                                             url: '/fees/masters/feeprevilege',
                                             title: 'Fee Privilege',
                                             description: 'Manage Fee Privilege Details'
+                                        },
+                                        {
+                                            id: 40,
+                                            name: 'Online Payment Head Group',
+                                            icon: 'Settings',
+                                            url: '/fees/masters/onlinepaymentheadgroupmapping',
+                                            title: 'Online Payment Head Group',
+                                            description: 'Manage Online Payment Head Group Mapping Details'
                                         }
                                     ]
                                 },

@@ -16,7 +16,7 @@ interface DeleteMasterClassFormProps {
 }
 
 export default function DeleteMasterClassForm({ rowData, onClose, onSuccess }: DeleteMasterClassFormProps) {
-    const { refetch } = useMasterYearlyCategory();
+    const { refetch, refetchAll } = useMasterYearlyCategory();
     const [isSubmitting, setIsSubmitting] = useState(false);
 
     const closeDialog = () => {
@@ -53,9 +53,10 @@ export default function DeleteMasterClassForm({ rowData, onClose, onSuccess }: D
                 // refetch from local hook and call parent success handler (if provided)
                 try {
                     await refetch();
+                    onSuccess?.(); // Move this inside try block to ensure it only runs after successful refetch
                 } catch (e) {
-                    // ignore refetch errors here; parent onSuccess will trigger a refresh too
                     console.warn('Local refetch failed after delete:', e);
+                    onSuccess?.();
                 }
 
                 onSuccess?.();
