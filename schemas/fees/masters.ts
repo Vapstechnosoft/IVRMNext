@@ -355,7 +355,9 @@ export const masterConcessionSchema = {
 export const masterTermsSchema = {
     addOrUpdate: z.object({
         fmT_Id: z.number().int().optional(),
-        fmT_Name: z.string().min(1, { message: 'Term Name is required' }),
+        fmT_Name: z
+            .string()
+            .min(1, { message: 'Term Name is required and Only letters and numbers allowed (no spaces and special characters)' }),
         fmT_IncludeArrearFeeFlg: z.boolean().optional(),
         fmT_ActiveFlag: z.boolean().optional()
     }),
@@ -542,6 +544,17 @@ export const masterOnlinePaymentHeadGroupSchema = {
     }),
     delete: z.object({
         fmcC_Id: deleteIdSchema('fmcC_Id')
+    })
+};
+
+export const masterTermFeeHeadDuedateSchema = {
+    addOrUpdate: z.object({
+        asmay_Id: z.number({ message: 'Academic Year is required' }),
+        fmt_id: z.number({ message: 'Term is required' }),
+        fmh_id: z.number({ message: 'Head is required' })
+    }),
+    delete: z.object({
+        fmtfhdD_Id: deleteIdSchema('fmtfhdD_Id')
     })
 };
 

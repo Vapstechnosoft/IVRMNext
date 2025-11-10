@@ -23,7 +23,7 @@ export async function addOrUpdateFeeTermHead(data: any) {
 
 export async function deleteFeeTermHead(mi_id: number, id: number) {
     const url = `/FeeMasterTerms/delete_mapped_term_heads?mi_Id=30&fmtfh_Id=${id}`;
-    console.info('FeeMasterTerms/delete_mapped_term_heads', url);
+
     return await api.post('fees', url);
 }
 
@@ -42,5 +42,6 @@ export async function getinstallmentsdropdown(searchParams?: ApiSearchparams) {
 export async function gettermsdropdown(searchParams?: ApiSearchparams) {
     const urlParams = getSearchParamsUrl(searchParams ?? {});
     const url = `/FeeMasterTerms/fee_term_Dropdown/30?${urlParams}`;
+
     return await api.get<IMasterTermDropdownList[]>('fees', url);
 }

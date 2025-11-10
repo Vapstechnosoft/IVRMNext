@@ -7,7 +7,7 @@ import type { IMasterTermsList } from '@/types/fees/masters/masters';
 export async function getFeeTermList(searchParams?: ApiSearchparams) {
     const urlParams = getSearchParamsUrl(searchParams ?? {}, 'fmT_Name');
     const url = `/FeeMasterTerms/fee_terms/30?${urlParams}`;
-    console.info('URL Params:', url);
+
     return await api.get<IMasterTermsList[]>('fees', url);
 }
 

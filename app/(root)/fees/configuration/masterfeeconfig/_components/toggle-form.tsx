@@ -60,7 +60,7 @@ export default function ToggleMasterFeesConfigForm({ rowData, onClose }: ToggleM
                 <AdaptiveBody className='flex flex-col gap-5'>
                     <input type='hidden' {...register('fmC_Id')} defaultValue={rowData.fmC_Id} />
                     <p>
-                        Are you sure you want to {isActive ? 'deactivate' : 'activate'} <strong>{rowData.FMC_RUserNameFlag}</strong>?
+                        Are you sure you want to {isActive ? 'deactivate' : 'activate'} <strong>{rowData.userName}</strong>?
                     </p>
                     <FormError>{errors.fmC_Id?.message}</FormError>
                     <FormError>{errors.root?.message}</FormError>

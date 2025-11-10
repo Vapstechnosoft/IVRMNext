@@ -59,19 +59,25 @@ export default function UpdateMasterOnlinePaymentHeadGroupMappingForm({ onSucces
 
     const { data: academicYearData, isLoading: academicYearLoading, error: academicYearError } = useMasterOnlinePaymentHeadGroup();
 
-    const { data: masterClass, isLoading: masterClassLoading } = useMasterOnlinePaymentHeadGroupClass(academicYear);
+    const { data: masterClass, isLoading: masterClassLoading } = useMasterOnlinePaymentHeadGroupClass(academicYear ?? undefined);
 
-    const { data: masterSubMerchant, isLoading: masterSubMerchantLoading } = useMasterOnlinePaymentHeadGroupSubMerchant(academicYear);
+    const { data: masterSubMerchant, isLoading: masterSubMerchantLoading } = useMasterOnlinePaymentHeadGroupSubMerchant(
+        academicYear ?? undefined
+    );
 
-    const { data: masterGroupName, isLoading: masterGroupNameLoading } = useMasterOnlinePaymentHeadGroupGroupName(academicYear);
+    const { data: masterGroupName, isLoading: masterGroupNameLoading } = useMasterOnlinePaymentHeadGroupGroupName(
+        academicYear ?? undefined
+    );
 
     const {
         data: masterHeadName,
         isLoading: masterHeadNameLoading,
         refetch: refetchHeadNames
-    } = useMasterOnlinePaymentHeadGroupHeadName(academicYear, groupId);
+    } = useMasterOnlinePaymentHeadGroupHeadName(academicYear ?? undefined, groupId ?? undefined);
 
-    const { data: masterInstallment, isLoading: masterInstallmentLoading } = useMasterOnlinePaymentHeadGroupInstallment(academicYear);
+    const { data: masterInstallment, isLoading: masterInstallmentLoading } = useMasterOnlinePaymentHeadGroupInstallment(
+        academicYear ?? undefined
+    );
 
     const { data: masterTerms, isLoading: masterTermsLoading } = useMasterTerms();
 
