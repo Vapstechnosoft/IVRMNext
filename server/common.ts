@@ -360,11 +360,11 @@ export async function getUserAccessibleModules() {
                                         },
                                         {
                                             id: 31,
-                                            name: 'Installment',
+                                            name: 'Fee Installment',
                                             icon: 'Settings',
                                             url: '/fees/masters/feesinstallment',
-                                            title: 'Installment',
-                                            description: ' Manage Installment'
+                                            title: 'Fee Installment',
+                                            description: ' Manage Fee Installment'
                                         },
                                         {
                                             id: 32,

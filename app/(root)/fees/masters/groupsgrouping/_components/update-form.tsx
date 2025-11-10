@@ -15,13 +15,11 @@ import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import type { z } from 'zod';
 
-// API Response Interface
 interface FeeGroup {
     fmG_Id: number;
     feeGroups: string;
 }
 
-// Save Payload Interface
 interface SaveGroupGroupingPayload {
     mI_Id: number;
     fmgG_Id: number;
@@ -39,7 +37,7 @@ type FormFields = z.infer<typeof masterGroupsGroupingSchema.addOrUpdate> & {
 interface UpdateMasterFeeGroupGroupingFormProps {
     onSuccess?: () => void;
     selectedRow: IMasterGroupsGrouping;
-    feeGroups: FeeGroup[]; // Must be passed from parent
+    feeGroups: FeeGroup[];
     className?: string;
 }
 
@@ -68,13 +66,10 @@ export default function UpdateMasterFeeGroupGroupingForm({
         }
     });
 
-    // Watch selected IDs to compute "Select All"
     const selectedIds = watch('selectedFeeGroupIds') || [];
 
-    // Populate form + auto-select existing fee groups
     useEffect(() => {
         if (selectedRow) {
-            // Extract IDs from selectedFeeGroups array
             const selectedIds = selectedRow.selectedFeeGroups?.map((group: { fmG_Id: any }) => group.fmG_Id) || [];
 
             const initialData = {
@@ -89,8 +84,8 @@ export default function UpdateMasterFeeGroupGroupingForm({
     const onSubmit: SubmitHandler<FormFields> = async (data) => {
         try {
             const payload: SaveGroupGroupingPayload = {
-                mI_Id: 30, // Hardcoded as per requirement
-                fmgG_Id: selectedRow.fmgG_Id, // Correct ID from Edit click
+                mI_Id: 30,
+                fmgG_Id: selectedRow.fmgG_Id,
                 fmgG_GroupName: data.fmgG_GroupName?.trim() || '',
                 fmgG_GroupCode: data.fmgG_GroupCode?.trim() || '',
                 selectedFeeGroupIds: data.selectedFeeGroupIds || []
@@ -118,10 +113,8 @@ export default function UpdateMasterFeeGroupGroupingForm({
         });
     };
 
-    // Filter fee groups by search
     const filteredFeeGroups = feeGroups.filter((fg) => fg.feeGroups.toLowerCase().includes(search.toLowerCase().trim()));
 
-    // Select All logic
     const allIds = feeGroups.map((fg) => fg.fmG_Id);
     const isAllSelected = allIds.length > 0 && selectedIds.length === allIds.length;
 

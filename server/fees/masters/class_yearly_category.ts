@@ -31,6 +31,6 @@ export async function addOrUpdateMasterClassYearlyCategory(data: any) {
 }
 
 export async function toggleMasterclassYearlyCategory(id: number) {
-    const url = `/fee_class_category/AddOrUpdateYearlyClassCategory/${id}`;
+    const url = `/fee_class_category/deletedetailsY/${id}`;
     return await api.put('fees', url);
 }

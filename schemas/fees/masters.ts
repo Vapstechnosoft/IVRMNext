@@ -137,9 +137,9 @@ export const masterClassCategorySchema = {
         fmcC_ActiveFlag: z.boolean().optional()
     }),
     delete: z.object({
-        fyccC_Id: z
+        fmcC_Id: z
             .number({
-                required_error: 'Class Category ID (fyccC_Id) is required',
+                required_error: 'Class Category ID (fmcC_Id) is required',
                 invalid_type_error: 'Class Category ID must be a number'
             })
             .positive('Class Category ID must be positive')
