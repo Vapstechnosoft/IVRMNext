@@ -80,15 +80,37 @@ export default function AddAddFeeTermsForm({ onSuccess, feeterms = '' }: AddFeeT
                     />
                 </div> */}
 
-                <div className='flex items-center space-x-2'>
+                {/* <div className='flex items-center space-x-2'>
                     <InputText
                         label='Term Name'
                         required
                         id='fmT_Name'
                         {...register('fmT_Name', {
                             onChange: (e) => {
-                                // Allow only letters, numbers, and spaces
+                                
                                 e.target.value = e.target.value.replace(/[^a-zA-Z0-9\s]/g, '');
+                            }
+                        })}
+                        error={errors.fmT_Name?.message}
+                        className='transition-colors focus:ring-2 focus:ring-primary/20'
+                    />
+                </div> */}
+                <div className='flex items-center space-x-2'>
+                    <InputText
+                        label='Term Name'
+                        required
+                        id='fmT_Name'
+                        {...register('fmT_Name', {
+                            required: 'Term Name is required',
+                            validate: (value) => {
+                                if (!/^[a-zA-Z0-9]+$/.test(value)) {
+                                    return 'Only letters and numbers allowed (no spaces)';
+                                }
+                                return true;
+                            },
+                            onChange: (e) => {
+                                // Strip out anything that's not a letter or number
+                                e.target.value = e.target.value.replace(/[^a-zA-Z0-9]/g, '');
                             }
                         })}
                         error={errors.fmT_Name?.message}

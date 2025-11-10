@@ -355,7 +355,9 @@ export const masterConcessionSchema = {
 export const masterTermsSchema = {
     addOrUpdate: z.object({
         fmT_Id: z.number().int().optional(),
-        fmT_Name: z.string().min(1, { message: 'Term Name is required' }),
+        fmT_Name: z
+            .string()
+            .min(1, { message: 'Term Name is required and Only letters and numbers allowed (no spaces and special characters)' }),
         fmT_IncludeArrearFeeFlg: z.boolean().optional(),
         fmT_ActiveFlag: z.boolean().optional()
     }),
