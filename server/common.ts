@@ -374,14 +374,14 @@ export async function getUserAccessibleModules() {
                                             title: 'Fee Installment',
                                             description: ' Manage Fee Installment'
                                         },
-                                        {
-                                            id: 32,
-                                            name: 'Installment due date',
-                                            icon: 'Settings',
-                                            url: '/fees/masters/feesinstallmentduedate',
-                                            title: 'Installment due date',
-                                            description: 'Installment due date'
-                                        },
+                                        // {
+                                        //     id: 32,
+                                        //     name: 'Installment due date',
+                                        //     icon: 'Settings',
+                                        //     url: '/fees/masters/feesinstallmentduedate',
+                                        //     title: 'Installment due date',
+                                        //     description: 'Installment due date'
+                                        // },
                                         {
                                             id: 33,
                                             name: 'Group Grouping',
@@ -422,22 +422,22 @@ export async function getUserAccessibleModules() {
                                             title: 'Group wise  Auto Receipt',
                                             description: 'Manage Group wise  Auto Receipt'
                                         },
-                                        {
-                                            id: 38,
-                                            name: 'Yearly Rebate Settings',
-                                            icon: 'Settings',
-                                            url: '/fees/masters/yearlyrebatesetting',
-                                            title: 'Yearly Rebate Settings',
-                                            description: 'Manage Yeary Rebate Settings'
-                                        },
-                                        {
-                                            id: 39,
-                                            name: 'Fee Privilege',
-                                            icon: 'Settings',
-                                            url: '/fees/masters/feeprevilege',
-                                            title: 'Fee Privilege',
-                                            description: 'Manage Fee Privilege Details'
-                                        },
+                                        // {
+                                        //     id: 38,
+                                        //     name: 'Yearly Rebate Settings',
+                                        //     icon: 'Settings',
+                                        //     url: '/fees/masters/yearlyrebatesetting',
+                                        //     title: 'Yearly Rebate Settings',
+                                        //     description: 'Manage Yeary Rebate Settings'
+                                        // },
+                                        // {
+                                        //     id: 39,
+                                        //     name: 'Fee Privilege',
+                                        //     icon: 'Settings',
+                                        //     url: '/fees/masters/feeprevilege',
+                                        //     title: 'Fee Privilege',
+                                        //     description: 'Manage Fee Privilege Details'
+                                        // },
                                         {
                                             id: 40,
                                             name: 'Online Payment Head Group',
@@ -460,39 +460,39 @@ export async function getUserAccessibleModules() {
                                             url: '/fees/transactions/feeamountentry',
                                             title: 'Fee Amount Entry',
                                             description: 'Manage Fee Amount Entry Details'
-                                        },
-                                        {
-                                            id: 41,
-                                            name: 'Third Party Transaction',
-                                            icon: 'Settings',
-                                            url: '/fees/transactions/thirdPartyTransaction',
-                                            title: 'Third Party Transaction',
-                                            description: 'Third Party Transaction'
-                                        },
-                                        {
-                                            id: 42,
-                                            name: 'Fee Opening Balance',
-                                            icon: 'Settings',
-                                            url: '/fees/transactions/feeopeningbalance',
-                                            title: 'Fee Opening Balance',
-                                            description: 'Fee Opening Balance'
-                                        },
-                                        {
-                                            id: 43,
-                                            name: 'Fee waivedoff',
-                                            icon: 'Settings',
-                                            url: '/fees/transactions/waivedoff',
-                                            title: 'Fee waivedoff',
-                                            description: 'Fee waivedoff'
-                                        },
-                                        {
-                                            id: 500,
-                                            name: 'Fee Preadmission Transaction',
-                                            icon: 'Settings',
-                                            url: '/fees/transactions/feepreadmissiontrasaction',
-                                            title: 'Fee Preadmission Transaction',
-                                            description: 'Fee Preadmission Transaction'
                                         }
+                                        // {
+                                        //     id: 41,
+                                        //     name: 'Third Party Transaction',
+                                        //     icon: 'Settings',
+                                        //     url: '/fees/transactions/thirdPartyTransaction',
+                                        //     title: 'Third Party Transaction',
+                                        //     description: 'Third Party Transaction'
+                                        // },
+                                        // {
+                                        //     id: 42,
+                                        //     name: 'Fee Opening Balance',
+                                        //     icon: 'Settings',
+                                        //     url: '/fees/transactions/feeopeningbalance',
+                                        //     title: 'Fee Opening Balance',
+                                        //     description: 'Fee Opening Balance'
+                                        // },
+                                        // {
+                                        //     id: 43,
+                                        //     name: 'Fee waivedoff',
+                                        //     icon: 'Settings',
+                                        //     url: '/fees/transactions/waivedoff',
+                                        //     title: 'Fee waivedoff',
+                                        //     description: 'Fee waivedoff'
+                                        // },
+                                        // {
+                                        //     id: 500,
+                                        //     name: 'Fee Preadmission Transaction',
+                                        //     icon: 'Settings',
+                                        //     url: '/fees/transactions/feepreadmissiontrasaction',
+                                        //     title: 'Fee Preadmission Transaction',
+                                        //     description: 'Fee Preadmission Transaction'
+                                        // }
                                     ]
                                 }
                             ]

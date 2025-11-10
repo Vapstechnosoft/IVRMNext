@@ -95,8 +95,8 @@ export default function UpdateMasterClassForm({ onSuccess, className = '', selec
 
             setValue('startingNumber', selectedRow.fgaR_Starting_No?.toString() || '');
 
-            const hasPrefix = selectedRow.fgaR_PrefixFlag === '1' && selectedRow.fgaR_PrefixName;
-            const hasSuffix = selectedRow.fgaR_SuffixFlag === '1' && selectedRow.fgaR_SuffixName;
+            const hasPrefix = selectedRow.fgaR_PrefixFlag === '1' && !!selectedRow.fgaR_PrefixName;
+            const hasSuffix = selectedRow.fgaR_SuffixFlag === '1' && !!selectedRow.fgaR_SuffixName;
 
             setUsePrefix(hasPrefix);
             setUseSuffix(hasSuffix);

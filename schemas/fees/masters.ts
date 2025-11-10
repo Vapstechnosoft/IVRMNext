@@ -553,6 +553,8 @@ export const masterTermFeeHeadDuedateSchema = {
     }),
     delete: z.object({
         fmtfhdD_Id: deleteIdSchema('fmtfhdD_Id')
+    })
+};
 
 export const masterClassFeeMasterGroupwiseAutoReceipt = {
     addOrUpdate: z
@@ -597,6 +599,5 @@ export const masterClassFeeMasterGroupwiseAutoReceipt = {
         fycC_Id: z.number().min(1, {
             message: 'Valid Class Yearly Category ID is required for deletion'
         })
-
     })
 };

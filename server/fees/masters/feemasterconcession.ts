@@ -16,6 +16,6 @@ export async function addOrUpdateMasterConcession(data: any) {
 }
 
 export async function toggleMasterConcession(mi_id: number, id: number) {
-    const url = `FeeMasterConcession/ToggleConcession/${id}`;
+    const url = `FeeMasterConcession/ToggleConcession/${id}/30`;
     return await api.put('fees', url);
 }

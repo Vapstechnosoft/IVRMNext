@@ -61,8 +61,8 @@ export default function ToggleMasterTermFeeHeadDueDateForm({ rowData, onClose }:
                     <p>
                         Are you sure you want to <strong>Permanently Delete the Selected Record</strong>?
                     </p>
-                    <FormError>{errors.fmtfhdD_Id?.message}</FormError>
-                    <FormError>{errors.root?.message}</FormError>
+                    <FormError>{typeof errors.fmtfhdD_Id?.message === 'string' ? errors.fmtfhdD_Id?.message : null}</FormError>
+                    <FormError>{typeof errors.root?.message === 'string' ? errors.root?.message : null}</FormError>
                 </AdaptiveBody>
                 <AdaptiveFooter>
                     <Button variant='secondary' onClick={closeDialog} type='button'>
