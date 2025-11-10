@@ -137,9 +137,9 @@ export const masterClassCategorySchema = {
         fmcC_ActiveFlag: z.boolean().optional()
     }),
     delete: z.object({
-        fyccC_Id: z
+        fmcC_Id: z
             .number({
-                required_error: 'Class Category ID (fyccC_Id) is required',
+                required_error: 'Class Category ID (fmcC_Id) is required',
                 invalid_type_error: 'Class Category ID must be a number'
             })
             .positive('Class Category ID must be positive')
@@ -167,6 +167,22 @@ export const masterClassSchema = {
         fycC_Id: z.number().min(1, {
             message: 'Valid Class Yearly Category ID is required for deletion'
         })
+    })
+};
+
+export const masterClassYearlyCategorySchema = {
+    addOrUpdate: z.object({
+        academicYear: z.string().min(1, { message: 'Academic Year is required' }),
+        classCategory: z.string().min(1, { message: 'Class Category is required' }),
+        classes: z.array(z.string()).min(1, { message: 'At least one class is required' })
+    }),
+    delete: z.object({
+        fycC_Id: z
+            .number()
+            .min(1, {
+                message: 'Valid Class Yearly Category ID is required for deletion'
+            })
+            .optional()
     })
 };
 
@@ -537,5 +553,50 @@ export const masterTermFeeHeadDuedateSchema = {
     }),
     delete: z.object({
         fmtfhdD_Id: deleteIdSchema('fmtfhdD_Id')
+
+export const masterClassFeeMasterGroupwiseAutoReceipt = {
+    addOrUpdate: z
+        .object({
+            academicYear: z.string().min(1, { message: 'Academic Year is required' }),
+            usePrefix: z.boolean().optional(),
+            useSuffix: z.boolean().optional(),
+            prefixValue: z.string().optional(),
+            suffixValue: z.string().optional(),
+            startingNumber: z.string().min(1, { message: 'Starting Number is required' }),
+            groups: z.array(z.string().min(1)).min(1, { message: 'At least one group must be selected' }),
+            autoGroupName: z.string().min(1, { message: 'Auto Group Name is required' }),
+            address: z.string().optional(),
+            receiptTemplateFormat: z.string().optional()
+        })
+        .refine(
+            (data) => {
+                if (data.usePrefix && (!data.prefixValue || data.prefixValue.trim() === '')) {
+                    return false;
+                }
+                return true;
+            },
+            {
+                message: 'Prefix value is required when prefix is selected',
+                path: ['prefixValue']
+            }
+        )
+        .refine(
+            (data) => {
+                if (data.useSuffix && (!data.suffixValue || data.suffixValue.trim() === '')) {
+                    return false;
+                }
+                return true;
+            },
+            {
+                message: 'Suffix value is required when suffix is selected',
+                path: ['suffixValue']
+            }
+        ),
+
+    delete: z.object({
+        fycC_Id: z.number().min(1, {
+            message: 'Valid Class Yearly Category ID is required for deletion'
+        })
+
     })
 };

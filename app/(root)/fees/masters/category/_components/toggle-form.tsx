@@ -16,7 +16,7 @@ interface DeleteMasterClassFormProps {
 }
 
 export default function DeleteMasterClassForm({ rowData, onClose, onSuccess }: DeleteMasterClassFormProps) {
-    const { refetch } = useMasterYearlyCategory();
+    const { refetch, refetchAll } = useMasterYearlyCategory();
     const [isSubmitting, setIsSubmitting] = useState(false);
 
     const closeDialog = () => {
@@ -29,9 +29,13 @@ export default function DeleteMasterClassForm({ rowData, onClose, onSuccess }: D
 
         setIsSubmitting(true);
         try {
-            const idToToggle = Number((rowData as any).fyccC_Id ?? (rowData as any).fycC_Id ?? (rowData as any).fmcC_Id ?? 0);
+            // Prefer the yearly-class category id (fyccC_Id) but accept common variants.
+            // Use the yearly-class category id from the table: prefer `fyccC_Id` (or `FYCC_Id`).
+            // Do NOT fall back to `fmcC_Id` here — the API expects the yearly category id (fyccC_Id).
+            const idToToggle = Number((rowData as any).fyccC_Id ?? (rowData as any).FYCC_Id ?? 0);
 
             if (!idToToggle) {
+                setIsSubmitting(false);
                 toast.error('Invalid record id. Cannot delete.');
                 return;
             }
@@ -39,13 +43,20 @@ export default function DeleteMasterClassForm({ rowData, onClose, onSuccess }: D
             const response = await toggleMasterclassYearlyCategory(idToToggle);
 
             if (response?.success) {
-                toast.success(`${rowData.fmcC_ClassCategoryName} successfully deleted`);
+                // pick a friendly name field from the row for the success message
+                const itemName =
+                    (rowData as any).fmcC_ClassCategoryName ??
+                    (rowData as any).fmcC_ConcessionName ??
+                    (rowData as any).fmcC_ClassCategoryName ??
+                    'Record';
+                toast.success(`${itemName} successfully deleted`);
                 // refetch from local hook and call parent success handler (if provided)
                 try {
                     await refetch();
+                    onSuccess?.(); // Move this inside try block to ensure it only runs after successful refetch
                 } catch (e) {
-                    // ignore refetch errors here; parent onSuccess will trigger a refresh too
                     console.warn('Local refetch failed after delete:', e);
+                    onSuccess?.();
                 }
 
                 onSuccess?.();

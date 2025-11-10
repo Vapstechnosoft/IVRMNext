@@ -17,7 +17,14 @@ import { getMasterAllFeeHead, getMasterfeeInstallment, getMasterfeehead } from '
 
 import { getGroupListCategory, getMasterYearlyCategory } from '@/server/fees/masters/fees_yearly_group';
 
+
 import { getFeeTermHeadDueDateList } from '@/server/fees/masters/fee-term-head-duedate';
+
+import {
+    getFeeMasterGroupwiseAutoReceipt,
+    getFeeMasterGroupwiseAutoReceiptGroupDropDown
+} from '@/server/fees/masters/fee_master_groupwise_auto_receipt';
+
 import { getFineSlab } from '@/server/fees/masters/fineSlab';
 import { getFeeGroup, getFeeGroupGrouping } from '@/server/fees/masters/groupsgrouping';
 import { getMasterGroup } from '@/server/fees/masters/master_group';
@@ -725,6 +732,50 @@ export const useMasterAllFeeHead = (searchParams?: ApiSearchparams) => {
     };
 };
 
+
+
+
+export const useFeeMasterGroupwiseAutoReceipt = (searchParams?: ApiSearchparams) => {
+
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+
+
+
+            queryKey: [FEES_QUERY_KEYS.FEE_MASTER_GROUPWISE_AUTO_RECEIPT, searchParams ?? {}],
+            queryFn: async () => getFeeMasterGroupwiseAutoReceipt(searchParams),
+            staleTime: 0
+        }),
+        refetchAll: () =>
+            queryClient.invalidateQueries({
+                queryKey: [FEES_QUERY_KEYS.FEE_MASTER_GROUPWISE_AUTO_RECEIPT]
+            })
+    };
+};
+
+export const useFeeMasterGroupwiseAutoReceiptDropDown = (academicYear: number) => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [FEES_QUERY_KEYS.FEE_MASTER_GROUPWISE_AUTO_RECEIPT_GROUP_DROPDOWN],
+            queryFn: async () => getFeeMasterGroupwiseAutoReceiptGroupDropDown(academicYear),
+            enabled: !!academicYear,
+
+            staleTime: 0
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+
+            });
+        }
+    };
+};
+
+
+
 export const useMasterTermsHeadDueDate = (searchParams?: ApiSearchparams) => {
     const queryClient = useQueryClient();
 
@@ -741,3 +792,4 @@ export const useMasterTermsHeadDueDate = (searchParams?: ApiSearchparams) => {
         }
     };
 };
+

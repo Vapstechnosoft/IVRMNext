@@ -12,7 +12,7 @@ import { type SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 
 type FormFields = {
-    fyccC_Id?: number | string;
+    fmcC_Id?: number | string;
 };
 
 interface toggleMasterclassCategoryFormProps {
@@ -42,7 +42,7 @@ export default function toggleMasterclassCategoryForm({ rowData, onClose }: togg
     const onSubmit: SubmitHandler<FormFields> = async (data) => {
         try {
             // Try the form value first, then try common id fields from rowData.
-            const idToToggle = Number((data?.fyccC_Id as any) ?? (rowData as any).fyccC_Id);
+            const idToToggle = Number((data?.fmcC_Id as any) ?? (rowData as any).fmcC_Id);
 
             if (!idToToggle) {
                 toast.error('Invalid record id. Cannot update status.');
@@ -67,11 +67,12 @@ export default function toggleMasterclassCategoryForm({ rowData, onClose }: togg
         <AdaptiveDialog title='Toggle Class Category Status' isOpen={true} onClose={closeDialog}>
             <form onSubmit={handleSubmit(onSubmit)} className='flex flex-col gap-4'>
                 <AdaptiveBody className='flex flex-col gap-5'>
-                    <input type='hidden' {...register('fyccC_Id')} defaultValue={rowData.fyccC_Id} />
+                    {/* Register as number so zod validation receives a number (not a string) */}
+                    <input type='hidden' {...register('fmcC_Id', { valueAsNumber: true })} value={rowData.fmcC_Id as any} />
                     <p>
                         Are you sure you want to {isActive ? 'deactivate' : 'activate'} <strong>{rowData.fmcC_ClassCategoryName}</strong>?
                     </p>
-                    <FormError>{errors.fyccC_Id?.message}</FormError>
+                    <FormError>{errors.fmcC_Id?.message}</FormError>
                     <FormError>{errors.root?.message}</FormError>
                 </AdaptiveBody>
                 <AdaptiveFooter>

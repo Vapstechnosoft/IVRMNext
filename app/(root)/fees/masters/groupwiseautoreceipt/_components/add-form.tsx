@@ -4,10 +4,10 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { FormError, Label } from '@/components/ui/extension/field';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { useAcademicYearDropdown } from '@/hooks/fees/useMasters';
+import { useAcademicYearDropdown, useFeeMasterGroupwiseAutoReceiptDropDown } from '@/hooks/fees/useMasters';
 import { cn } from '@/lib/utils';
-import { masterClassSchema } from '@/schemas/fees/masters';
-import { addOrUpdateMasterClassYearlyCategory } from '@/server/fees/masters/class_yearly_category';
+import { masterClassFeeMasterGroupwiseAutoReceipt } from '@/schemas/fees/masters';
+import { addOrUpdateMasterFeeMasterGroupwiseAutoReceipt } from '@/server/fees/masters/fee_master_groupwise_auto_receipt';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { CheckSquare, RotateCcw, Save, Square } from 'lucide-react';
 import { useEffect, useState } from 'react';
@@ -33,8 +33,8 @@ interface DropdownOption {
 }
 
 interface GroupOption {
-    value: string;
-    label: string;
+    fmG_Id: number;
+    fmG_GroupName: string;
 }
 
 interface AddMasterClassFormProps {
@@ -53,7 +53,7 @@ export default function AddMasterClassForm({ onSuccess, className = '' }: AddMas
         register,
         formState: { errors, isSubmitting }
     } = useForm<FormFields>({
-        resolver: zodResolver(masterClassSchema.addOrUpdate),
+        resolver: zodResolver(masterClassFeeMasterGroupwiseAutoReceipt.addOrUpdate),
         mode: 'onSubmit',
         defaultValues: {
             academicYear: '',
@@ -71,13 +71,7 @@ export default function AddMasterClassForm({ onSuccess, className = '' }: AddMas
 
     const [hasSubmitted, setHasSubmitted] = useState(false);
     const [academicYearOptions, setAcademicYearOptions] = useState<DropdownOption[]>([]);
-    const [groupOptions] = useState<GroupOption[]>([
-        { value: '1', label: 'Group 1' },
-        { value: '2', label: 'Group 2' },
-        { value: '3', label: 'Group 3' },
-        { value: '4', label: 'Group 4' },
-        { value: '5', label: 'Group 5' }
-    ]);
+    const [groupOptions, setGroupOptions] = useState<GroupOption[]>([]);
     const [selectedGroups, setSelectedGroups] = useState<string[]>([]);
     const [searchTerm, setSearchTerm] = useState('');
     const [isLoadingDropdowns, setIsLoadingDropdowns] = useState(false);
@@ -108,7 +102,26 @@ export default function AddMasterClassForm({ onSuccess, className = '' }: AddMas
         }
     }, [academicData, academicError]);
 
-    const filteredGroupOptions = groupOptions.filter((option) => option.label.toLowerCase().includes(searchTerm.toLowerCase()));
+    const filteredGroupOptions = groupOptions.filter((option) => option.fmG_GroupName.toLowerCase().includes(searchTerm.toLowerCase()));
+
+    const {
+        data: groupData,
+        isLoading: loadingGroupData,
+        error: groupDataError
+    } = useFeeMasterGroupwiseAutoReceiptDropDown(Number(academicYear));
+
+    useEffect(() => {
+        if (groupDataError) {
+            toast.error(groupDataError.message || 'Error fetching groups');
+            setGroupOptions([]);
+            return;
+        }
+        if (groupData?.data && Array.isArray(groupData.data)) {
+            setGroupOptions(groupData.data);
+        } else {
+            setGroupOptions([]);
+        }
+    }, [groupData, groupDataError, academicYear]);
 
     const handleGroupChange = (value: string) => {
         const currentGroups = groupsValue || [];
@@ -119,78 +132,50 @@ export default function AddMasterClassForm({ onSuccess, className = '' }: AddMas
             updatedGroups = [...currentGroups, value];
         }
         setSelectedGroups(updatedGroups);
-        setValue('groups', updatedGroups, { shouldValidate: true });
+        setValue('groups', updatedGroups, { shouldValidate: hasSubmitted });
     };
 
     const handleSelectAll = () => {
         const currentGroups = groupsValue || [];
         if (currentGroups.length === groupOptions.length) {
             setSelectedGroups([]);
-            setValue('groups', [], { shouldValidate: true });
+            setValue('groups', [], { shouldValidate: hasSubmitted });
         } else {
-            const allValues = groupOptions.map((opt) => opt.value);
+            const allValues = groupOptions.map((opt) => opt.fmG_Id.toString());
             setSelectedGroups(allValues);
-            setValue('groups', allValues, { shouldValidate: true });
+            setValue('groups', allValues, { shouldValidate: hasSubmitted });
         }
     };
 
     const onSubmit: SubmitHandler<FormFields> = async (data) => {
-        if (isSubmitting) return;
-
         try {
             const { academicYear, prefixValue, suffixValue, startingNumber, groups, autoGroupName, address, receiptTemplateFormat } = data;
 
-            if (!academicYear) {
-                toast.error('Please select academic year.');
-                return;
-            }
-            if (usePrefix && !prefixValue) {
-                toast.error('Please enter prefix value.');
-                return;
-            }
-            if (useSuffix && !suffixValue) {
-                toast.error('Please enter suffix value.');
-                return;
-            }
-            if (!startingNumber) {
-                toast.error('Please enter starting number.');
-                return;
-            }
-            if (groups.length === 0) {
-                toast.error('Please select at least one group.');
-                return;
-            }
-            if (!autoGroupName) {
-                toast.error('Please enter auto group name.');
-                return;
-            }
-
             const payload = {
-                fmcC_Id: 0,
-                mI_Id: 30,
-                fmcC_ClassCategoryName: autoGroupName,
-                fmcC_ClassCategoryCode: '',
-                fmcC_ActiveFlag: true,
-                asmaY_ID: Number.parseInt(academicYear),
-                asmcL_ID: 0,
-                clsYearData: groups,
-                user_id: 21602,
-                prefix: usePrefix ? prefixValue : '',
-                suffix: useSuffix ? suffixValue : '',
-                startingNumber: startingNumber,
-                address: address,
-                receiptTemplateFormat: receiptTemplateFormat
+                mi_id: 30,
+                asmaY_Id: Number.parseInt(academicYear),
+                fgaR_PrefixFlag: prefixValue ? '1' : '',
+                fgaR_SuffixFlag: suffixValue ? '1' : '',
+                fgaR_PrefixName: prefixValue,
+                fgaR_SuffixName: suffixValue,
+                fgaR_Name: autoGroupName,
+                userid: 101,
+                roleid: 5,
+                fgaR_Address: address || '',
+                savegroup: groups.map((groupId) => ({
+                    fmG_Id: Number.parseInt(groupId)
+                })),
+                fgaR_Starting_No: startingNumber,
+                fgaR_Template_Name: receiptTemplateFormat || ''
             };
 
-            const response = await addOrUpdateMasterClassYearlyCategory(payload);
+            console.log('Payload being sent:', payload);
+
+            const response = await addOrUpdateMasterFeeMasterGroupwiseAutoReceipt(payload);
 
             if (response.success) {
                 toast.success(response.message || 'Master class saved successfully');
-                reset();
-                setSelectedGroups([]);
-                setSearchTerm('');
-                setUsePrefix(false);
-                setUseSuffix(false);
+                handleReset();
                 onSuccess?.();
             } else {
                 toast.error(response.message || 'Failed to save master class');
@@ -207,28 +192,34 @@ export default function AddMasterClassForm({ onSuccess, className = '' }: AddMas
         setSearchTerm('');
         setUsePrefix(false);
         setUseSuffix(false);
+        setHasSubmitted(false);
+    };
+
+    const handleFormSubmit = (e: React.MouseEvent) => {
+        e.preventDefault();
+        setHasSubmitted(true);
+        handleSubmit(onSubmit)();
     };
 
     return (
         <div className={`${className} w-full`}>
-            <Card className='mx-auto w-full max-w-6xl border-gray-200 shadow-md'>
+            <Card className='mx-auto w-full max-w-8xl border-gray-200 shadow-md'>
                 <CardHeader className='border-b bg-white p-5'>
                     <CardTitle className='font-medium text-gray-700 text-sm'>Add Master Class</CardTitle>
                 </CardHeader>
                 <CardContent className='p-6'>
-                    <form
-                        onSubmit={(e) => {
-                            setHasSubmitted(true);
-                            handleSubmit(onSubmit)(e);
-                        }}
-                        className='space-y-6'>
+                    <div className='space-y-6'>
                         {/* Academic Year */}
                         <div>
                             <Label htmlFor='academicYear'>
                                 Academic Year <span className='text-red-500'>*</span>
                             </Label>
                             <Select
-                                onValueChange={(value) => setValue('academicYear', value, { shouldValidate: true })}
+                                onValueChange={(value) =>
+                                    setValue('academicYear', value, {
+                                        shouldValidate: hasSubmitted
+                                    })
+                                }
                                 value={academicYear}
                                 disabled={isLoadingDropdowns}>
                                 <SelectTrigger
@@ -256,8 +247,9 @@ export default function AddMasterClassForm({ onSuccess, className = '' }: AddMas
                             </Label>
                             <input
                                 id='startingNumber'
-                                type='number'
+                                type='text'
                                 {...register('startingNumber')}
+                                placeholder='Enter starting number'
                                 className='mt-1 w-full rounded-md border border-gray-300 px-3 py-2 transition-colors focus:border-gray-400 focus:ring-0'
                             />
                             {hasSubmitted && errors.startingNumber && <FormError>{errors.startingNumber.message}</FormError>}
@@ -272,10 +264,20 @@ export default function AddMasterClassForm({ onSuccess, className = '' }: AddMas
                                         type='checkbox'
                                         checked={usePrefix}
                                         onChange={(e) => {
-                                            setUsePrefix(e.target.checked);
-                                            setValue('usePrefix', e.target.checked, {
-                                                shouldValidate: true
+                                            const checked = e.target.checked;
+                                            setUsePrefix(checked);
+                                            if (checked) setUseSuffix(false);
+                                            setValue('usePrefix', checked, {
+                                                shouldValidate: hasSubmitted
                                             });
+                                            setValue('useSuffix', false, {
+                                                shouldValidate: hasSubmitted
+                                            });
+                                            if (!checked) {
+                                                setValue('prefixValue', '', {
+                                                    shouldValidate: hasSubmitted
+                                                });
+                                            }
                                         }}
                                         className='h-4 w-4 rounded border-gray-300 accent-primary'
                                     />
@@ -286,10 +288,20 @@ export default function AddMasterClassForm({ onSuccess, className = '' }: AddMas
                                         type='checkbox'
                                         checked={useSuffix}
                                         onChange={(e) => {
-                                            setUseSuffix(e.target.checked);
-                                            setValue('useSuffix', e.target.checked, {
-                                                shouldValidate: true
+                                            const checked = e.target.checked;
+                                            setUseSuffix(checked);
+                                            if (checked) setUsePrefix(false);
+                                            setValue('useSuffix', checked, {
+                                                shouldValidate: hasSubmitted
                                             });
+                                            setValue('usePrefix', false, {
+                                                shouldValidate: hasSubmitted
+                                            });
+                                            if (!checked) {
+                                                setValue('suffixValue', '', {
+                                                    shouldValidate: hasSubmitted
+                                                });
+                                            }
                                         }}
                                         className='h-4 w-4 rounded border-gray-300 accent-primary'
                                     />
@@ -307,8 +319,10 @@ export default function AddMasterClassForm({ onSuccess, className = '' }: AddMas
                                     id='prefixValue'
                                     type='text'
                                     {...register('prefixValue')}
+                                    placeholder='Enter prefix value'
                                     className='mt-1 w-full rounded-md border border-gray-300 px-3 py-2 transition-colors focus:border-gray-400 focus:ring-0'
                                 />
+                                {hasSubmitted && errors.prefixValue && <FormError>{errors.prefixValue.message}</FormError>}
                             </div>
                         )}
 
@@ -321,8 +335,10 @@ export default function AddMasterClassForm({ onSuccess, className = '' }: AddMas
                                     id='suffixValue'
                                     type='text'
                                     {...register('suffixValue')}
+                                    placeholder='Enter suffix value'
                                     className='mt-1 w-full rounded-md border border-gray-300 px-3 py-2 transition-colors focus:border-gray-400 focus:ring-0'
                                 />
+                                {hasSubmitted && errors.suffixValue && <FormError>{errors.suffixValue.message}</FormError>}
                             </div>
                         )}
 
@@ -339,16 +355,16 @@ export default function AddMasterClassForm({ onSuccess, className = '' }: AddMas
                                     onChange={(e) => setSearchTerm(e.target.value)}
                                     className='mb-3 w-full rounded-md border border-gray-300 px-3 py-1.5 transition-colors focus:border-gray-400 focus:ring-0'
                                 />
-                                {/* Select All styled like groupsgrouping UI */}
+                                {/* Select All */}
                                 <div
                                     onClick={handleSelectAll}
                                     className={cn(
                                         'mb-2 flex cursor-pointer items-center gap-2 rounded-md border px-2 py-1.5 font-medium text-sm transition-all',
-                                        selectedGroups.length === groupOptions.length
+                                        (groupsValue || []).length === groupOptions.length && groupOptions.length > 0
                                             ? 'border-primary bg-primary/5 text-primary'
                                             : 'border-gray-200 hover:border-primary/40'
                                     )}>
-                                    {selectedGroups.length === groupOptions.length ? (
+                                    {(groupsValue || []).length === groupOptions.length && groupOptions.length > 0 ? (
                                         <CheckSquare className='h-4 w-4 text-primary' />
                                     ) : (
                                         <Square className='h-4 w-4 text-gray-400' />
@@ -357,12 +373,19 @@ export default function AddMasterClassForm({ onSuccess, className = '' }: AddMas
                                 </div>
 
                                 <div className='mt-2 max-h-40 overflow-y-auto rounded-md border border-gray-200 p-1'>
+                                    {loadingGroupData && <div className='py-4 text-center text-gray-500 text-sm'>Loading groups...</div>}
+                                    {!loadingGroupData && filteredGroupOptions.length === 0 && (
+                                        <div className='py-4 text-center text-gray-500 text-sm'>
+                                            {academicYear ? 'No groups found' : 'Please select an academic year first'}
+                                        </div>
+                                    )}
                                     {filteredGroupOptions.map((option) => {
-                                        const selected = selectedGroups.includes(option.value);
+                                        const value = option.fmG_Id.toString();
+                                        const selected = (groupsValue || []).includes(value);
                                         return (
                                             <div
-                                                key={option.value}
-                                                onClick={() => handleGroupChange(option.value)}
+                                                key={option.fmG_Id}
+                                                onClick={() => handleGroupChange(value)}
                                                 className={cn(
                                                     'mb-1 flex cursor-pointer items-center gap-2 rounded-md border px-2 py-1.5 text-sm transition-all',
                                                     selected
@@ -374,12 +397,13 @@ export default function AddMasterClassForm({ onSuccess, className = '' }: AddMas
                                                 ) : (
                                                     <Square className='h-4 w-4 text-gray-400' />
                                                 )}
-                                                <span>{option.label}</span>
+                                                <span>{option.fmG_GroupName}</span>
                                             </div>
                                         );
                                     })}
                                 </div>
                             </div>
+                            {hasSubmitted && errors.groups && <FormError>{errors.groups.message}</FormError>}
                         </div>
 
                         {/* Auto Group Name */}
@@ -391,8 +415,10 @@ export default function AddMasterClassForm({ onSuccess, className = '' }: AddMas
                                 id='autoGroupName'
                                 type='text'
                                 {...register('autoGroupName')}
+                                placeholder='Enter auto group name'
                                 className='mt-1 w-full rounded-md border border-gray-300 px-3 py-2 transition-colors focus:border-gray-400 focus:ring-0'
                             />
+                            {hasSubmitted && errors.autoGroupName && <FormError>{errors.autoGroupName.message}</FormError>}
                         </div>
 
                         {/* Address */}
@@ -401,6 +427,7 @@ export default function AddMasterClassForm({ onSuccess, className = '' }: AddMas
                             <textarea
                                 id='address'
                                 {...register('address')}
+                                placeholder='Enter address (optional)'
                                 className='mt-1 h-24 w-full rounded-md border border-gray-300 px-3 py-2 transition-colors focus:border-gray-400 focus:ring-0'
                             />
                         </div>
@@ -411,6 +438,7 @@ export default function AddMasterClassForm({ onSuccess, className = '' }: AddMas
                             <textarea
                                 id='receiptTemplateFormat'
                                 {...register('receiptTemplateFormat')}
+                                placeholder='Enter receipt template format (optional)'
                                 className='mt-1 h-32 w-full rounded-md border border-gray-300 px-3 py-2 transition-colors focus:border-gray-400 focus:ring-0'
                             />
                         </div>
@@ -421,19 +449,20 @@ export default function AddMasterClassForm({ onSuccess, className = '' }: AddMas
                                 type='button'
                                 variant='outline'
                                 onClick={handleReset}
+                                disabled={isSubmitting}
                                 className='order-2 flex w-fit items-center gap-2 transition-all duration-200 hover:scale-105 sm:order-1'>
                                 <RotateCcw className='h-4 w-4' />
                                 Reset
                             </Button>
                             <Button
-                                type='submit'
+                                onClick={handleFormSubmit}
                                 disabled={isSubmitting}
                                 className='order-1 flex w-fit items-center gap-2 transition-all duration-200 hover:scale-105 sm:order-2'>
                                 <Save className='h-4 w-4' />
-                                Save Master Class
+                                {isSubmitting ? 'Saving...' : 'Save Master Class'}
                             </Button>
                         </div>
-                    </form>
+                    </div>
                 </CardContent>
             </Card>
         </div>
