@@ -3,8 +3,7 @@
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/extension/field';
-
-import { useMasterModeOfPayment } from '@/hooks/fees/useMasters';
+import { useFeeconfiguration } from '@/hooks/fees/useConfiguration';
 import { feeConfigSchema } from '@/schemas/fees/configuration';
 import { addOrUpdatefeeconfig } from '@/server/fees/configuration/feeconfiguration';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -21,7 +20,7 @@ interface AddFeeConfigProps {
 }
 
 export default function AddFeeConfigForm({ onSuccess, className = '' }: AddFeeConfigProps) {
-    const { refetchAll } = useMasterModeOfPayment();
+    const { refetchAll } = useFeeconfiguration();
 
     const {
         control,

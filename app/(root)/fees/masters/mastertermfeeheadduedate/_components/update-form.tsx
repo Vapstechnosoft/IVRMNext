@@ -73,17 +73,24 @@ export default function UpdateFeeTermsHeadDueDateForm({ onSuccess, termname = ''
         mode: 'onChange'
     });
 
+    function OnReset() {
+        reset();
+        refetchAll();
+
+        setGridData([]);
+    }
+
     const [initialized, setInitialized] = useState(false);
 
     useEffect(() => {
         if (!initialized && rowData && academicYear?.data?.length && terms?.data?.length && masterHeads?.data?.length) {
             reset({
-                asmay_Id: rowData.asmaY_Id,
+                asmay_Id: rowData.asmay_Id,
                 fmt_id: rowData.fmT_Id,
                 fmh_id: rowData.fmH_Id
             });
 
-            setSelectedAcademicYear(rowData.asmaY_Id);
+            setSelectedAcademicYear(rowData.asmay_Id);
             setSelectedTerm(rowData.fmT_Id);
             setSelectedHead(rowData.fmH_Id);
 
@@ -123,19 +130,26 @@ export default function UpdateFeeTermsHeadDueDateForm({ onSuccess, termname = ''
 
         const payload = {
             mI_Id: 30,
-            temyrid: selectedAcademicYear ?? 0,
-            fmT_Id: selectedTerm ?? 0,
-            fmH_Id: selectedHead ?? 0,
-            mainid: 0,
+            term_year_id: selectedAcademicYear ?? 0,
+            // fmT_Id: selectedTerm ?? 0,
+            // fmH_Id: selectedHead ?? 0,
+            FMTFHDD_Id: rowData?.fmtfhdD_Id,
             //insname: rowData.headnamed,
             feetfhddd: gridData.map((item) => ({
                 //fmtfhdD_Id: item.fmtfhdD_Id ?? 0,
-                fmtfH_Id: item.fmtfH_Id ?? 0,
-                asmaY_Id: selectedAcademicYear ?? 0,
-                FMTFHDD_FromDate: item.fmtfhdD_FromDate?.split('T')[0] ?? null,
-                FMTFHDD_ToDate: item.fmtfhdD_ToDate?.split('T')[0] ?? null,
-                FMTFHDD_ApplicableDate: item.fmtfhdD_ApplicableDate?.split('T')[0] ?? null,
-                FMTFHDD_DueDate: item.fmtfhdD_DueDate?.split('T')[0] ?? null
+                // fmtfH_Id: item.fmtfH_Id ?? 0,
+                // asmaY_Id: selectedAcademicYear ?? 0,
+                // FMTFHDD_FromDate: item.fmtfhdD_FromDate?.split('T')[0] ?? null,
+                // FMTFHDD_ToDate: item.fmtfhdD_ToDate?.split('T')[0] ?? null,
+                // FMTFHDD_ApplicableDate: item.fmtfhdD_ApplicableDate?.split('T')[0] ?? null,
+                // FMTFHDD_DueDate: item.fmtfhdD_DueDate?.split('T')[0] ?? null
+
+                FMTFH_Id: item.fmtfH_Id ?? 0,
+                FMTP_Id: item.fmtP_Id ?? 0,
+                FMTFHDD_FromDate: item.fmtfhdD_FromDate || null,
+                FMTFHDD_ToDate: item.fmtfhdD_ToDate || null,
+                FMTFHDD_ApplicableDate: item.fmtfhdD_ApplicableDate || null,
+                FMTFHDD_DueDate: item.fmtfhdD_DueDate || null
             }))
         };
 
@@ -298,7 +312,7 @@ export default function UpdateFeeTermsHeadDueDateForm({ onSuccess, termname = ''
             )}
 
             {/* Submit */}
-            {gridData.length > 0 && (
+            {/* {gridData.length > 0 && (
                 <div className='flex flex-col gap-3 pt-4 sm:flex-row sm:justify-start'>
                     <Button type='submit' disabled={isSubmitting}>
                         <div className='flex items-center'>
@@ -306,7 +320,34 @@ export default function UpdateFeeTermsHeadDueDateForm({ onSuccess, termname = ''
                         </div>
                     </Button>
                 </div>
-            )}
+            )} */}
+
+            <div className='flex flex-col gap-3 pt-4 sm:flex-row sm:justify-start'>
+                {gridData.length > 0 && (
+                    <>
+                        <Button
+                            type='button'
+                            variant='outline'
+                            onClick={OnReset}
+                            disabled={isSubmitting}
+                            className='order-2 w-fit transition-all duration-200 hover:scale-105 sm:order-1'>
+                            Reset
+                        </Button>
+
+                        <Button
+                            type='submit'
+                            disabled={isSubmitting}
+                            className='order-1 w-fit transition-all duration-200 hover:scale-105 sm:order-2'
+                            isLoading={isSubmitting}
+                            loadingText='Saving...'>
+                            <div className='flex items-center'>
+                                <Save className='mr-2 h-4 w-4' />
+                                Update
+                            </div>
+                        </Button>
+                    </>
+                )}
+            </div>
         </form>
     );
 }

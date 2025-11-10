@@ -404,7 +404,6 @@ export interface IMasterAllFeeHeadList {
     deleteId: number;
 }
 
-
 export interface IMasterTermFeeHeadDueDateList {
     fmtfhdD_Id: number;
     termname: string;
@@ -414,7 +413,7 @@ export interface IMasterTermFeeHeadDueDateList {
     tdate1: string;
     aplc1: string;
     ddate1: string;
-    asmaY_Id: number;
+    asmay_Id: number;
     fmT_Id: number;
     fmH_Id: number;
 }
@@ -481,5 +480,4 @@ export interface IMasterGroupWiseAutoReciptList {
     academicyear: string;
     fgaR_Id: number;
     fgaR_Starting_No: number;
-
 }
