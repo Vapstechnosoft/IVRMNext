@@ -823,7 +823,7 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
                                             <div className='flex flex-col items-center'>
                                                 <button
                                                     type='button'
-                                                    // onClick={() => goToStep(step.id)}
+                                                    onClick={() => goToStep(step.id)}
                                                     disabled={isSubmitting}
                                                     className={cn(
                                                         'flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full border-2 font-semibold transition-all duration-300 hover:scale-110 disabled:cursor-not-allowed disabled:opacity-50',
@@ -1984,7 +1984,7 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
                                                                     label='Father Income'
                                                                     id='pasR_FatherIncome'
                                                                     value={field.value || 0}
-                                                                    onChange={(value) => field.onChange(value)}
+                                                                    onChange={(value) => field.onChange(Number.isNaN(value) ? 0 : value)}
                                                                     minValue={0}
                                                                 />
                                                             )}
@@ -2275,7 +2275,7 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
                                                                     label='Mother Income'
                                                                     id='pasR_MotherIncome'
                                                                     value={field.value || 0}
-                                                                    onChange={(value) => field.onChange(value)}
+                                                                    onChange={(value) => field.onChange(Number.isNaN(value) ? 0 : value)}
                                                                     minValue={0}
                                                                 />
                                                             )}
