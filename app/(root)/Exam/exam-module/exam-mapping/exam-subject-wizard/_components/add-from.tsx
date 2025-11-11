@@ -18,7 +18,9 @@ import {
 } from '@/server/exam/exam-module/exam-mapping/exam-subject-wizard';
 import { getExamsByCategoryandAcademicYear } from '@/server/exam/exam-module/masters/exam';
 import { getMasterSubExamDropdownList } from '@/server/exam/exam-module/masters/sub-exam';
+import { getMasterSubSubjectDropdownList } from '@/server/exam/exam-module/masters/sus-subject';
 import type { IAcademicYearDropDown } from '@/types/admission/preadmission/masters';
+import type { IExamSubjectWizard } from '@/types/exam/exam-module/exam-mapping';
 import type { ICategory, IMasterGrade } from '@/types/exam/exam-module/masters';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useEffect, useState } from 'react';
@@ -39,7 +41,7 @@ type FormFields = z.infer<typeof ExamSubjectWizardSchema.addOrUpdate>;
  * - Category fetch uses EYC_Id
  * - Subjects stored in yearly_category_exam_subjects
  */
-export default function AddExamSubjectWizard({ onSuccess }: { onSuccess?: () => void }) {
+export default function AddExamSubjectWizard({ onSuccess, rowData }: { onSuccess?: () => void; rowData?: IExamSubjectWizard }) {
     const methods = useForm<FormFields>({
         resolver: zodResolver(ExamSubjectWizardSchema.addOrUpdate),
         mode: 'onChange',
@@ -90,6 +92,23 @@ export default function AddExamSubjectWizard({ onSuccess }: { onSuccess?: () => 
 
     const { data: academicData, isLoading: loadingAcademic, error: academicError } = useAcademicYearDropdown();
     const { data: gradeData, isLoading: loadingGrade, error: gradeError } = useMasterGrade();
+
+    useEffect(() => {
+        if (!rowData) return;
+
+        setValue('EYCE_Id', rowData.eycE_Id || 0);
+        setValue('ASMAY_Id', rowData.asmaY_Id);
+        setValue('EYC_Id', rowData.eyC_Id);
+        setValue('EMCA_Id', rowData.emcA_Id);
+        setValue('EMGR_Id', rowData.emgR_Id);
+        setValue('EYCE_AttendanceFromDate', rowData.eycE_AttendanceFromDate || '');
+        setValue('EYCE_AttendanceToDate', rowData.eycE_AttendanceToDate || '');
+        setValue('EYCE_SubExamFlg', rowData.eycE_SubExamFlg || false);
+        setValue('EYCE_SubSubjectFlg', rowData.eycE_SubSubjectFlg || false);
+        setValue('EYCE_ActiveFlg', rowData.eycE_ActiveFlg || true);
+        setValue('EYCE_BestOfApplicableFlg', rowData.eycE_BestOfApplicableFlg || false);
+        setValue('EYCE_BestOf', rowData.eycE_BestOf);
+    }, [rowData, setValue]);
 
     // ------------------- Fetch Dropdowns -----------------------
     useEffect(() => {
@@ -163,7 +182,6 @@ export default function AddExamSubjectWizard({ onSuccess }: { onSuccess?: () => 
 
             try {
                 const { data: subj } = await getSubjectsByCategory(30, Number(watchCategory));
-                console.log(subj);
                 const formattedSubjects = Array.isArray(subj)
                     ? subj.map((s: any) => ({
                           ISMS_Id: s.ismS_Id ?? s.ISMS_Id,
@@ -178,7 +196,6 @@ export default function AddExamSubjectWizard({ onSuccess }: { onSuccess?: () => 
                       }))
                     : [];
                 setSubjects(formattedSubjects);
-                console.log(formattedSubjects);
                 setValue('yearly_category_exam_subjects', formattedSubjects);
             } catch {
                 const fallback = [
@@ -230,8 +247,7 @@ export default function AddExamSubjectWizard({ onSuccess }: { onSuccess?: () => 
 
     const onOpenSubSubjectModal = async (subject: any) => {
         try {
-            const { data: list } = await getMasterSubExamDropdownList(30);
-            console.log(list);
+            const { data: list } = await getMasterSubSubjectDropdownList(30);
             setSubSubjectModalState({ open: true, subject: { ...subject, list } });
         } catch {
             setSubSubjectModalState({
@@ -299,8 +315,8 @@ export default function AddExamSubjectWizard({ onSuccess }: { onSuccess?: () => 
             const subExamList: any[] = [];
             const subSubjectList: any[] = [];
             const subSubjectSubExamList: any[] = [];
-
-            subjects.forEach((s) => {
+            const selectedSubjects = subjects.filter((s) => s.checkedvalue);
+            selectedSubjects.forEach((s) => {
                 // ----- SubExam list -----
                 if (s.subExamConfig?.length) {
                     subExamList.push({
@@ -368,14 +384,13 @@ export default function AddExamSubjectWizard({ onSuccess }: { onSuccess?: () => 
                 EYCE_BestOfApplicableFlg: values.EYCE_BestOfApplicableFlg ?? true,
                 EYCE_BestOf: values.EYCE_BestOf ?? 5,
                 exams_list: exams.filter((e) => e.checked),
-                yearly_category_exam_subjects: subjects,
+                yearly_category_exam_subjects: selectedSubjects,
                 exm_subject_subexams_list: subExamList,
                 exm_subject_subsubjects_list: subSubjectList,
                 exm_subject_subsubjects_subexam: subSubjectSubExamList,
                 Temp_Subject_Order: []
             };
 
-            console.log('🚀 Final Payload:', payload);
             await addOrUpdateExamSubjectWizard(payload);
             toast.success('Exam Subject Wizard saved successfully');
             onSuccess?.();
@@ -385,7 +400,7 @@ export default function AddExamSubjectWizard({ onSuccess }: { onSuccess?: () => 
         }
     };
 
-    const isTopFieldsFilled = watchYear && watchCategory && watchGrade && watchDates[0] && watchDates[1];
+    const isTopFieldsFilled = watchYear && watchCategory && watchGrade;
 
     // ------------------- JSX -------------------
     return (

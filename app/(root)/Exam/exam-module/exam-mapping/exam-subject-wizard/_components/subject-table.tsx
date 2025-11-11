@@ -128,12 +128,12 @@ export default function SubjectTable({
     };
 
     const handleMapClick = (subject: any) => {
-        if (showSubExamColumn && subject.ECYSES_SubExamFlg) {
+        if (showSubExamColumn && showSubSubjectColumn && subject.ECYSES_SubSubjectFlg && subject.ECYSES_SubSubjectFlg) {
+            onOpenSubSubjectSubExamModal(subject);
+        } else if (showSubExamColumn && subject.ECYSES_SubExamFlg) {
             onOpenSubExamModal(subject);
         } else if (showSubSubjectColumn && subject.ECYSES_SubSubjectFlg) {
             onOpenSubSubjectModal(subject);
-        } else if (showSubExamColumn && showSubSubjectColumn && subject.ECYSES_SubSubjectFlg && subject.ECYSES_SubSubjectFlg) {
-            onOpenSubSubjectSubExamModal(subject);
         }
     };
 

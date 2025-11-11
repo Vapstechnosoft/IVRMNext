@@ -11,14 +11,32 @@ import { useEffect } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import type { z } from 'zod';
 
-type Grade = { emgR_Id: string; emgR_GradeName: string };
+// ---- Minimal types added to fix checkedvalue typing/updation ----
+interface SubExamItem {
+    emsE_Id: number;
+    emsE_SubExamName: string;
+    emsE_SubExamCode?: string;
+    checkedvalue?: boolean;
+    eycessS_MaxMarks?: string | number;
+    eycessS_MinMarks?: string | number;
+    emgR_Id?: string | number;
+    eycessS_ExemptedFlg?: boolean;
+    eycessS_ExemptedPer?: string | number;
+    eycessS_SubSubjectOrder?: string | number;
+    eycessS_ActiveFlg?: boolean;
+    eycessS_GradesFlg?: boolean;
+    eycessS_MarksFlg?: boolean;
+    eycessS_AplResultFlg?: boolean;
+    eycessS_MarksEntryMax?: string | number;
+    EYCESSE_Id?: number;
+    EYCESSS_Id?: number;
+}
 
-/**
- * SubExamModal
- * - Uses your provided schema via prop `schema`
- * - Shows inline errors under inputs using formState.errors from react-hook-form
- * - Keeps your reset/getValues pattern and UI exactly the same
- */
+interface FormData {
+    subexam_list: SubExamItem[];
+}
+// ------------------------------------------------------------------
+
 export default function SubExamModal({
     open,
     subject,
@@ -34,27 +52,26 @@ export default function SubExamModal({
     schema: z.ZodType<any>;
     gradeList: IMasterGrade[];
 }) {
-    const methods = useForm({
+    const methods = useForm<FormData>({
         resolver: zodResolver(schema),
         defaultValues: { subexam_list: [] },
-        mode: 'onTouched' // validate on touch and submit; keeps UX friendly
+        mode: 'onTouched'
     });
 
-    const { reset, getValues, handleSubmit, trigger, setError, formState } = methods;
-    const { errors } = formState as { errors: any };
+    // <-- extract setValue (was missing previously) along with reset, getValues, trigger
+    const { reset, getValues, trigger, setValue } = methods;
 
     useEffect(() => {
         if (!subject) {
             reset({ subexam_list: [] });
             return;
         }
-        console.log(subject);
-        // Prepare list with controlled defaults (keeps your original logic)
+
         const list = (subject.list ?? []).map((l: any) => ({
             ...l,
-            emsE_subExamName: l.emsE_SubExamName,
-            emsE_subExamCode: l.emsE_SubExamCode,
-            checkedvalue: Boolean(l.checkedvalue),
+            emsE_SubExamName: l.emsE_SubExamName,
+            emsE_SubExamCode: l.emsE_SubExamCode,
+            checkedvalue: Boolean(l.checkedvalue) ?? false,
             eycessS_MaxMarks: l.eycessS_MaxMarks ?? '',
             eycessS_MinMarks: l.eycessS_MinMarks ?? '',
             emgR_Id: l.emgR_Id ?? subject.emgR_Id ?? '',
@@ -63,259 +80,248 @@ export default function SubExamModal({
             eycessS_SubSubjectOrder: l.eycessS_SubSubjectOrder ?? '',
             eycessS_ActiveFlg: !!l.eycessS_ActiveFlg,
             eycessS_GradesFlg: !!l.eycessS_GradesFlg,
-            eycessS_MarksFlg: !!l.eycessS_MarksFlg
+            eycessS_MarksFlg: !!l.eycessS_MarksFlg,
+            eycessS_AplResultFlg: !!l.eycessS_AplResultFlg,
+            eycessS_MarksEntryMax: l.eycessS_MarksEntryMax ?? ''
         }));
+
         reset({ subexam_list: list });
 
-        // trigger validation for the current list so any schema errors show immediately
-        // small timeout to allow reset to finish
         setTimeout(() => {
             trigger('subexam_list');
         }, 0);
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [subject, reset]);
+    }, [subject, reset, trigger]);
 
     if (!subject) return null;
-
-    const onSubmit = async (values: any) => {
-        // values validated by zodResolver at this point (or errors are populated)
-        // Build selected list (same as before)
-        const selected = (values.subexam_list ?? [])
-            .filter((r: any) => r.checkedvalue)
-            .map((r: any) => ({
-                eycessS_Id: r.eycessS_Id,
-                emsS_Id: r.emsS_Id,
-                emgR_Id: r.emgR_Id,
-                eycessS_MaxMarks: r.eycessS_MaxMarks ?? '',
-                eycessS_MinMarks: r.eycessS_MinMarks ?? '',
-                eycessS_ExemptedFlg: !!r.eycessS_ExemptedFlg,
-                eycessS_ExemptedPer: r.eycessS_ExemptedPer ?? '',
-                eycessS_SubSubjectOrder: r.eycessS_SubSubjectOrder ?? '',
-                eycessS_ActiveFlg: !!r.eycessS_ActiveFlg,
-                eycessS_GradesFlg: !!r.eycessS_GradesFlg,
-                eycessS_MarksFlg: !!r.eycessS_MarksFlg
-            }));
-
-        // Keep your existing sum validation behavior (alert)
-        const parentMax = Number(subject.eyceS_MaxMarks ?? 0);
-        const parentMin = Number(subject.eyceS_MinMarks ?? 0);
-        const totMax = selected.reduce((acc: number, cur: any) => acc + Number(cur.eycessS_MaxMarks || 0), 0);
-        const totMin = selected.reduce((acc: number, cur: any) => acc + Number(cur.eycessS_MinMarks || 0), 0);
-
-        if (selected.length > 0 && (totMax !== parentMax || totMin !== parentMin)) {
-            // show alert as before
-            alert('Sum of selected sub-exams (max/min) must equal subject max/min marks');
-
-            // Also set inline errors on the first checked row to indicate mismatch
-            const valuesList = values.subexam_list ?? [];
-            const firstCheckedIndex = valuesList.findIndex((r: any) => r.checkedvalue);
-            if (firstCheckedIndex >= 0) {
-                const basePath = `subexam_list.${firstCheckedIndex}`;
-                setError(`${basePath}.eycessS_MaxMarks` as any, {
-                    type: 'manual',
-                    message: 'Sum mismatch: totals must equal parent marks'
-                });
-                setError(`${basePath}.eycessS_MinMarks` as any, {
-                    type: 'manual',
-                    message: 'Sum mismatch: totals must equal parent marks'
-                });
-            }
-            return;
-        }
-
-        // If no schema errors and sum check passed, call onSave
-        onSave(subject.ismS_Id, selected);
-    };
 
     return (
         <Dialog open={open} onOpenChange={(val) => !val && onClose()}>
             <DialogContent className='max-h-[70vh] w-full min-w-[80vw] overflow-x-auto overflow-y-auto pt-0 sm:overflow-x-hidden'>
                 <DialogHeader className='sticky top-0 bg-white pt-4'>
-                    <DialogTitle>{`Map Sub-Subjects — ${subject.ISMS_SubjectName}`}</DialogTitle>
+                    <DialogTitle>{`Map Sub-Exam — ${subject.ISMS_SubjectName}`}</DialogTitle>
                     <DialogDescription>Fill details and save mapping</DialogDescription>
                 </DialogHeader>
 
                 <FormProvider {...methods}>
-                    <form onSubmit={handleSubmit(onSubmit)}>
-                        <div className='overflow-x-auto'>
-                            <table className='w-full table-auto'>
-                                <thead className='bg-slate-50'>
-                                    <tr className='text-sm'>
-                                        <th className='border p-2'>SLNO</th>
-                                        <th className='border p-2'>Select</th>
-                                        <th className='border p-2'>Sub-Exam</th>
-                                        <th className='border p-2'>Max Marks</th>
-                                        <th className='border p-2'>Min Marks</th>
-                                        <th className='border p-2'>Grade</th>
-                                        <th className='border p-2'>Exempted</th>
-                                        <th className='border p-2'>Exempt %</th>
-                                        <th className='border p-2'>Marks Flag</th>
-                                        <th className='border p-2'>Grades Flag</th>
-                                        <th className='border p-2'>Active Flag</th>
+                    <div className='overflow-x-auto'>
+                        <table className='w-full table-auto'>
+                            <thead className='bg-slate-50'>
+                                <tr className='text-sm'>
+                                    <th className='border p-2'>SLNO</th>
+                                    <th className='border p-2'>Select</th>
+                                    <th className='border p-2'>Sub-Exam</th>
+                                    <th className='border p-2'>Max Marks</th>
+                                    <th className='border p-2'>Min Marks</th>
+                                    <th className='border p-2'>Grade</th>
+                                    <th className='border p-2'>Exempted</th>
+                                    <th className='border p-2'>Exempt %</th>
+                                    <th className='border p-2'>Marks Flag</th>
+                                    <th className='border p-2'>Grades Flag</th>
+                                    <th className='border p-2'>Apl Result</th>
+                                    <th className='border p-2'>Marks Entry Max</th>
+                                    <th className='border p-2'>Active</th>
+                                </tr>
+                            </thead>
+
+                            <tbody>
+                                {getValues('subexam_list')?.map((row: SubExamItem, idx: number) => (
+                                    <tr key={row.emsE_Id} className={idx % 2 === 0 ? 'bg-white' : 'bg-slate-50'}>
+                                        <td className='border p-2'>{idx + 1}</td>
+                                        <td className='border p-2 text-center'>
+                                            <Checkbox
+                                                checked={!!row.checkedvalue}
+                                                onCheckedChange={(v) => {
+                                                    // now setValue exists and updates the form correctly
+                                                    setValue(`subexam_list.${idx}.checkedvalue`, !!v);
+                                                }}
+                                            />
+                                        </td>
+
+                                        <td className='border p-2'>{row.emsE_SubExamName}</td>
+
+                                        <td className='w-28 border p-2'>
+                                            <Input
+                                                value={row.eycessS_MaxMarks ?? ''}
+                                                onChange={(e) => {
+                                                    const list = getValues('subexam_list').map((r: any) =>
+                                                        r.emsE_Id === row.emsE_Id ? { ...r, eycessS_MaxMarks: e.target.value } : r
+                                                    );
+                                                    reset({ subexam_list: list });
+                                                }}
+                                            />
+                                        </td>
+
+                                        <td className='w-24 border p-2'>
+                                            <Input
+                                                value={row.eycessS_MinMarks ?? ''}
+                                                onChange={(e) => {
+                                                    const list = getValues('subexam_list').map((r: any) =>
+                                                        r.emsE_Id === row.emsE_Id ? { ...r, eycessS_MinMarks: e.target.value } : r
+                                                    );
+                                                    reset({ subexam_list: list });
+                                                }}
+                                            />
+                                        </td>
+
+                                        <td className='w-40 border p-2'>
+                                            <Select
+                                                value={row.emgR_Id?.toString() ?? ''}
+                                                onValueChange={(val) => {
+                                                    const list = getValues('subexam_list').map((r: any) =>
+                                                        r.emsE_Id === row.emsE_Id ? { ...r, emgR_Id: val } : r
+                                                    );
+                                                    reset({ subexam_list: list });
+                                                }}>
+                                                <SelectTrigger>
+                                                    <SelectValue placeholder='Select Grade' />
+                                                </SelectTrigger>
+                                                <SelectContent>
+                                                    {gradeList.map((g) => (
+                                                        <SelectItem key={g.emgR_Id} value={g.emgR_Id.toString()}>
+                                                            {g.emgR_GradeName}
+                                                        </SelectItem>
+                                                    ))}
+                                                </SelectContent>
+                                            </Select>
+                                        </td>
+
+                                        <td className='border p-2 text-center'>
+                                            <Checkbox
+                                                checked={!!row.eycessS_ExemptedFlg}
+                                                onCheckedChange={(v) => {
+                                                    const list = getValues('subexam_list').map((r: any) =>
+                                                        r.emsE_Id === row.emsE_Id ? { ...r, eycessS_ExemptedFlg: !!v } : r
+                                                    );
+                                                    reset({ subexam_list: list });
+                                                }}
+                                            />
+                                        </td>
+
+                                        <td className='w-24 border p-2'>
+                                            <Input
+                                                disabled={!row.eycessS_ExemptedFlg}
+                                                value={row.eycessS_ExemptedPer ?? ''}
+                                                onChange={(e) => {
+                                                    const list = getValues('subexam_list').map((r: any) =>
+                                                        r.emsE_Id === row.emsE_Id ? { ...r, eycessS_ExemptedPer: e.target.value } : r
+                                                    );
+                                                    reset({ subexam_list: list });
+                                                }}
+                                            />
+                                        </td>
+
+                                        <td className='border p-2 text-center'>
+                                            <Checkbox
+                                                checked={!!row.eycessS_MarksFlg}
+                                                onCheckedChange={(v) => {
+                                                    const list = getValues('subexam_list').map((r: any) =>
+                                                        r.emsE_Id === row.emsE_Id ? { ...r, eycessS_MarksFlg: !!v } : r
+                                                    );
+                                                    reset({ subexam_list: list });
+                                                }}
+                                            />
+                                        </td>
+
+                                        <td className='border p-2 text-center'>
+                                            <Checkbox
+                                                checked={!!row.eycessS_GradesFlg}
+                                                onCheckedChange={(v) => {
+                                                    const list = getValues('subexam_list').map((r: any) =>
+                                                        r.emsE_Id === row.emsE_Id ? { ...r, eycessS_GradesFlg: !!v } : r
+                                                    );
+                                                    reset({ subexam_list: list });
+                                                }}
+                                            />
+                                        </td>
+
+                                        <td className='border p-2 text-center'>
+                                            <Checkbox
+                                                checked={!!row.eycessS_AplResultFlg}
+                                                onCheckedChange={(v) => {
+                                                    const list = getValues('subexam_list').map((r: any) =>
+                                                        r.emsE_Id === row.emsE_Id ? { ...r, eycessS_AplResultFlg: !!v } : r
+                                                    );
+                                                    reset({ subexam_list: list });
+                                                }}
+                                            />
+                                        </td>
+
+                                        <td className='w-28 border p-2'>
+                                            <Input
+                                                value={row.eycessS_MarksEntryMax ?? ''}
+                                                onChange={(e) => {
+                                                    const list = getValues('subexam_list').map((r: any) =>
+                                                        r.emsE_Id === row.emsE_Id ? { ...r, eycessS_MarksEntryMax: e.target.value } : r
+                                                    );
+                                                    reset({ subexam_list: list });
+                                                }}
+                                            />
+                                        </td>
+
+                                        <td className='border p-2 text-center'>
+                                            <Checkbox
+                                                checked={!!row.eycessS_ActiveFlg}
+                                                onCheckedChange={(v) => {
+                                                    const list = getValues('subexam_list').map((r: any) =>
+                                                        r.emsE_Id === row.emsE_Id ? { ...r, eycessS_ActiveFlg: !!v } : r
+                                                    );
+                                                    reset({ subexam_list: list });
+                                                }}
+                                            />
+                                        </td>
                                     </tr>
-                                </thead>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
 
-                                <tbody>
-                                    {getValues('subexam_list')?.map((row: any, idx: number) => {
-                                        const idPrefix = `subexam-${subject.ismS_Id}-${row.emsS_Id}`;
-                                        // path used by react-hook-form errors for this row
-                                        const maxMarksError = errors?.subexam_list?.[idx]?.eycessS_MaxMarks?.message;
-                                        const minMarksError = errors?.subexam_list?.[idx]?.eycessS_MinMarks?.message;
-                                        const exemptPerError = errors?.subexam_list?.[idx]?.eycessS_ExemptedPer?.message;
-                                        const gradeError = errors?.subexam_list?.[idx]?.emgR_Id?.message;
+                    {/* ✅ SAVE & CLOSE BUTTON - no onSubmit */}
+                    <div className='z-10 mt-4 flex w-fit justify-end gap-2 border-t bg-white p-2'>
+                        <Button
+                            className='w-fit'
+                            type='button'
+                            onClick={() => {
+                                const values = getValues();
+                                const selected = values.subexam_list.filter((r: any) => r.checkedvalue);
 
-                                        return (
-                                            <tr key={row.emsS_Id} className={idx % 2 === 0 ? 'bg-white' : 'bg-slate-50'}>
-                                                <td className='border p-2'>{idx + 1}</td>
+                                const parentMax = Number(subject.ECYSES_MaxMarks ?? 0);
+                                const parentMin = Number(subject.ECYSES_MinMarks ?? 0);
+                                const totMax = selected.reduce((acc: number, cur: any) => acc + Number(cur.eycessS_MaxMarks || 0), 0);
+                                const totMin = selected.reduce((acc: number, cur: any) => acc + Number(cur.eycessS_MinMarks || 0), 0);
 
-                                                <td className='border p-2'>
-                                                    <Checkbox
-                                                        id={`${idPrefix}-check`}
-                                                        checked={!!row.checkedvalue}
-                                                        onCheckedChange={(v) => {
-                                                            const list = getValues('subexam_list').map((r: any) =>
-                                                                r.emsS_Id === row.emsS_Id ? { ...r, checkedvalue: !!v } : r
-                                                            );
-                                                            reset({ subexam_list: list });
-                                                            // re-run validation for this row after change
-                                                        }}
-                                                    />
-                                                </td>
+                                if (selected.length > 0 && (totMax !== parentMax || totMin !== parentMin)) {
+                                    alert('Sum of selected sub-exams (max/min) must equal subject max/min marks');
+                                    return;
+                                }
 
-                                                <td className='border p-2'>{row.emsE_subExamName}</td>
+                                // ✅ Map to final structure
+                                const formatted = selected.map((r: any, index: number) => ({
+                                    EYCESSE_Id: r.EYCESSE_Id ?? 0,
+                                    EYCES_Id: subject.EYCES_Id,
+                                    EMSE_Id: r.emsE_Id,
+                                    EMGR_Id: Number(r.emgR_Id) || null,
+                                    EYCESSE_MaxMarks: Number(r.eycessS_MaxMarks) || 0,
+                                    EYCESSE_MinMarks: Number(r.eycessS_MinMarks) || 0,
+                                    EYCESSE_ExemptedFlg: !!r.eycessS_ExemptedFlg,
+                                    EYCESSE_ExemptedPer: Number(r.eycessS_ExemptedPer) || 0,
+                                    EYCESSE_ActiveFlg: !!r.eycessS_ActiveFlg,
+                                    EYCESSE_SubExamOrder: index + 1,
+                                    EYCESSS_MarksFlg: !!r.eycessS_MarksFlg,
+                                    EYCESSS_GradesFlg: !!r.eycessS_GradesFlg,
+                                    EYCESSS_AplResultFlg: !!r.eycessS_AplResultFlg,
+                                    EYCESSS_MarksEntryMax: Number(r.eycessS_MarksEntryMax) || 0
+                                }));
 
-                                                <td className='w-28 border p-2'>
-                                                    <Input
-                                                        aria-label={`Max marks for ${row.emsS_SubSubjectName}`}
-                                                        value={row.eycessS_MaxMarks ?? ''}
-                                                        onChange={(e) => {
-                                                            const list = getValues('subexam_list').map((r: any) =>
-                                                                r.emsS_Id === row.emsS_Id ? { ...r, eycessS_MaxMarks: e.target.value } : r
-                                                            );
-                                                            reset({ subexam_list: list });
-                                                            // validate this specific field/row
-                                                        }}
-                                                    />
-                                                    {maxMarksError && <div className='mt-1 text-[11px] text-red-500'>{maxMarksError}</div>}
-                                                </td>
+                                onSave(subject.ISMS_Id, formatted);
+                                onClose();
+                            }}>
+                            Save & Close
+                        </Button>
 
-                                                <td className='w-24 border p-2'>
-                                                    <Input
-                                                        aria-label={`Min marks for ${row.emsS_SubSubjectName}`}
-                                                        value={row.eycessS_MinMarks ?? ''}
-                                                        onChange={(e) => {
-                                                            const list = getValues('subexam_list').map((r: any) =>
-                                                                r.emsS_Id === row.emsS_Id ? { ...r, eycessS_MinMarks: e.target.value } : r
-                                                            );
-                                                            reset({ subexam_list: list });
-                                                        }}
-                                                    />
-                                                    {minMarksError && <div className='mt-1 text-[11px] text-red-500'>{minMarksError}</div>}
-                                                </td>
-
-                                                <td className='w-44 border p-2'>
-                                                    <Select
-                                                        value={row.emgR_Id ?? ''}
-                                                        onValueChange={(val) => {
-                                                            const list = getValues('subexam_list').map((r: any) =>
-                                                                r.emsS_Id === row.emsS_Id ? { ...r, emgR_Id: val } : r
-                                                            );
-                                                            reset({ subexam_list: list });
-                                                        }}>
-                                                        <SelectTrigger>
-                                                            <SelectValue placeholder='Select Grade' />
-                                                        </SelectTrigger>
-                                                        <SelectContent>
-                                                            {gradeList.map((g) => (
-                                                                <SelectItem key={g.emgR_Id} value={g.emgR_Id.toString()}>
-                                                                    {g.emgR_GradeName}
-                                                                </SelectItem>
-                                                            ))}
-                                                        </SelectContent>
-                                                    </Select>
-                                                    {gradeError && <div className='mt-1 text-[11px] text-red-500'>{gradeError}</div>}
-                                                </td>
-
-                                                <td className='border p-2 text-center'>
-                                                    <Checkbox
-                                                        checked={!!row.eycessS_ExemptedFlg}
-                                                        onCheckedChange={(v) => {
-                                                            const list = getValues('subexam_list').map((r: any) =>
-                                                                r.emsS_Id === row.emsS_Id ? { ...r, eycessS_ExemptedFlg: !!v } : r
-                                                            );
-                                                            reset({ subexam_list: list });
-                                                        }}
-                                                    />
-                                                </td>
-
-                                                <td className='w-24 border p-2'>
-                                                    <Input
-                                                        aria-label={`Exempt percent ${row.emsS_SubSubjectName}`}
-                                                        disabled={!row.eycessS_ExemptedFlg}
-                                                        value={row.eycessS_ExemptedPer ?? ''}
-                                                        onChange={(e) => {
-                                                            const list = getValues('subexam_list').map((r: any) =>
-                                                                r.emsS_Id === row.emsS_Id
-                                                                    ? { ...r, eycessS_ExemptedPer: e.target.value }
-                                                                    : r
-                                                            );
-                                                            reset({ subexam_list: list });
-                                                        }}
-                                                    />
-                                                    {exemptPerError && (
-                                                        <div className='mt-1 text-[11px] text-red-500'>{exemptPerError}</div>
-                                                    )}
-                                                </td>
-
-                                                <td className='border p-2 text-center'>
-                                                    <Checkbox
-                                                        checked={!!row.eycessS_MarksFlg}
-                                                        onCheckedChange={(v) => {
-                                                            const list = getValues('subexam_list').map((r: any) =>
-                                                                r.emsS_Id === row.emsS_Id ? { ...r, eycessS_MarksFlg: !!v } : r
-                                                            );
-                                                            reset({ subexam_list: list });
-                                                        }}
-                                                    />
-                                                </td>
-
-                                                <td className='border p-2 text-center'>
-                                                    <Checkbox
-                                                        checked={!!row.eycessS_GradesFlg}
-                                                        onCheckedChange={(v) => {
-                                                            const list = getValues('subexam_list').map((r: any) =>
-                                                                r.emsS_Id === row.emsS_Id ? { ...r, eycessS_GradesFlg: !!v } : r
-                                                            );
-                                                            reset({ subexam_list: list });
-                                                        }}
-                                                    />
-                                                </td>
-
-                                                <td className='border p-2 text-center'>
-                                                    <Checkbox
-                                                        checked={!!row.eycessS_ActiveFlg}
-                                                        onCheckedChange={(v) => {
-                                                            const list = getValues('subexam_list').map((r: any) =>
-                                                                r.emsS_Id === row.emsS_Id ? { ...r, eycessS_ActiveFlg: !!v } : r
-                                                            );
-                                                            reset({ subexam_list: list });
-                                                        }}
-                                                    />
-                                                </td>
-                                            </tr>
-                                        );
-                                    })}
-                                </tbody>
-                            </table>
-                        </div>
-
-                        <div className='z-10 mt-4 flex w-fit justify-end gap-2 border-t bg-white p-2'>
-                            <Button type='submit'>Save & Close</Button>
-                            <Button type='button' variant='ghost' onClick={onClose}>
-                                Cancel
-                            </Button>
-                        </div>
-                    </form>
+                        <Button type='button' variant='ghost' onClick={onClose}>
+                            Cancel
+                        </Button>
+                    </div>
                 </FormProvider>
             </DialogContent>
         </Dialog>

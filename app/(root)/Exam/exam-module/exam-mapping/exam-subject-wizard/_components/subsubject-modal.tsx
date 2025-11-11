@@ -59,7 +59,6 @@ export default function SubSubjectModal({
             reset({ subsubject_list: [] });
             return;
         }
-        console.log(subject);
         const list = (subject.list ?? []).map((l: any) => ({
             emsS_Id: l.emsS_Id,
             emsS_SubSubjectName: l.emsS_SubSubjectName,
@@ -117,7 +116,7 @@ export default function SubSubjectModal({
 
                                 <tbody>
                                     {getValues('subsubject_list')?.map((row, idx) => {
-                                        const idPrefix = `subsubject-${subject.ismS_Id}-${row.emsS_Id}`;
+                                        const idPrefix = `subsubject-${subject.ISMS_Id}-${row.emsS_Id}`;
                                         const rowErrors: any = errors.subsubject_list?.[idx];
                                         return (
                                             <tr key={row.emsS_Id ?? idx} className={idx % 2 === 0 ? 'bg-white' : 'bg-slate-50'}>
@@ -365,7 +364,7 @@ export default function SubSubjectModal({
                                         return;
                                     }
 
-                                    onSave(subject.ismS_Id, selected);
+                                    onSave(subject.ISMS_Id, selected);
                                     onClose();
                                 }}>
                                 Save & Close

@@ -4,12 +4,19 @@ import {
     getExamSubjectGroupMapping,
     getExamSubjectGroupMappingDetails
 } from '@/server/exam/exam-module/exam-mapping/exam-subject-group-mapping';
-import { getExamSubjectWizard, getExamSubjectWizardDetails } from '@/server/exam/exam-module/exam-mapping/exam-subject-wizard';
+import {
+    getExamSubjectWizard,
+    getExamSubjectWizardDetails,
+    getSubExamsMappedList,
+    getSubSubjectsAndSubExamsMappedList,
+    getSubSubjectsMappedList
+} from '@/server/exam/exam-module/exam-mapping/exam-subject-wizard';
 import {
     getExamTermAndExamMapping,
     getExamTermAndExamMappingDetails
 } from '@/server/exam/exam-module/exam-mapping/examTerm-and-exam-mappiong';
 import { getYearlyCategoryDatesMapping } from '@/server/exam/exam-module/exam-mapping/yearly-category-dates-mapping';
+import { getYearlyCategorySubjectMapping } from '@/server/exam/exam-module/exam-mapping/yearly-category-subject-mapping';
 import type { ApiSearchparams } from '@/types';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 
@@ -19,7 +26,7 @@ export const useYearlyCategorySubjectMapping = (searchParams?: ApiSearchparams) 
     return {
         ...useQuery({
             queryKey: [EXAM_QUERY_KEYS.YEARLY_CATEGORY_SUBJECT_MAPPING, searchParams ?? {}],
-            queryFn: async () => getExamLoginPrivileges(searchParams),
+            queryFn: async () => getYearlyCategorySubjectMapping(searchParams),
             staleTime: 0
         }),
 
@@ -169,6 +176,60 @@ export const useExamSubjectWizardDetails = (org_Id: number, ecycE_Id: number) =>
         refetchAll: () => {
             return queryClient.invalidateQueries({
                 queryKey: [EXAM_QUERY_KEYS.EXAM_SUBJECT_WIZARD_DETAILS]
+            });
+        }
+    };
+};
+
+export const useSubExamsMappedList = (org_Id: number, eyceS_Id: number) => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [EXAM_QUERY_KEYS.SUB_EXAMS_MAPPED_VIEW, org_Id, eyceS_Id],
+            queryFn: async () => getSubExamsMappedList(org_Id, eyceS_Id),
+            staleTime: 0
+        }),
+
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [EXAM_QUERY_KEYS.SUB_EXAMS_MAPPED_VIEW]
+            });
+        }
+    };
+};
+
+export const useSubSubjectsMappedList = (org_Id: number, eyceS_Id: number) => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [EXAM_QUERY_KEYS.SUB_SUBJECTS_MAPPED_VIEW, org_Id, eyceS_Id],
+            queryFn: async () => getSubSubjectsMappedList(org_Id, eyceS_Id),
+            staleTime: 0
+        }),
+
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [EXAM_QUERY_KEYS.SUB_SUBJECTS_MAPPED_VIEW]
+            });
+        }
+    };
+};
+
+export const useSubSubjectsAndSubExamsMappedList = (org_Id: number, eyceS_Id: number) => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [EXAM_QUERY_KEYS.SUB_BOTH_MAPPED_VIEW, org_Id, eyceS_Id],
+            queryFn: async () => getSubSubjectsAndSubExamsMappedList(org_Id, eyceS_Id),
+            staleTime: 0
+        }),
+
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [EXAM_QUERY_KEYS.SUB_BOTH_MAPPED_VIEW]
             });
         }
     };

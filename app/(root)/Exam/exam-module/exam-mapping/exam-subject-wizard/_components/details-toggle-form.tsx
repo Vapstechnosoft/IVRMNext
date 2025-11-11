@@ -49,7 +49,7 @@ export default function ToggleExamSubjectWizardDetailsForm({ rowData, onClose }:
         }
 
         try {
-            const response = await toggleExamSubjectWizardDetails(rowData.eycE_Id);
+            const response = await toggleExamSubjectWizardDetails(rowData.eyceS_Id);
             if (response.success) {
                 toast.success(response.message || 'Status updated successfully');
                 refetchAll();

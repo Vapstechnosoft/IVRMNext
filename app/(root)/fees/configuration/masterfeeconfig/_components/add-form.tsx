@@ -105,8 +105,6 @@ export default function AddFeeConfigForm({ onSuccess, className = '' }: AddFeeCo
 
             const jsondata = JSON.stringify(payload);
 
-            console.log('Payload Data', jsondata);
-
             const response = await addOrUpdatefeeconfig(payload);
             if (response.success) {
                 toast.success(response.message);

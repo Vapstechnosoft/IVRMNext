@@ -125,6 +125,7 @@ export const EXAM_QUERY_KEYS = {
     MASTER_ALL_SUBJECT_GROUP_DETAILS: 'master-all-subject-group-details',
     MASTER_CATEGORY: 'master-category',
     MASTER_CATEGORY_CLASS_MAPPING: 'master-category-class-mapping',
+    MASTER_CATEGORY_CLASS_MAPPED_SECTIONS: 'master-category-class-mapped-sections',
     YEARLY_CATEGORY_SUBJECT_MAPPING: 'yearly-category-subject-mapping',
     EXAM_LOGIN_PRIVILAGES: 'exam-login-privilages',
     YEARLY_CATEGORY_DATES_MAPPING: 'yearly-category-dates-mapping',
@@ -133,5 +134,8 @@ export const EXAM_QUERY_KEYS = {
     EXAM_TERM_AND_EXAM_MAPPING: 'exam-term-and-exam-mapping',
     EXAM_TERM_AND_EXAM_MAPPING_DETAILS: 'exam-term-and-exam-mapping-details',
     EXAM_SUBJECT_WIZARD: 'exam-subject-wizard',
-    EXAM_SUBJECT_WIZARD_DETAILS: 'exam-subject-wizard-details'
+    EXAM_SUBJECT_WIZARD_DETAILS: 'exam-subject-wizard-details',
+    SUB_EXAMS_MAPPED_VIEW: 'SUB_EXAMS_MAPPED_LIST',
+    SUB_SUBJECTS_MAPPED_VIEW: 'SUB_SUBJECTS_MAPPED_LIST',
+    SUB_BOTH_MAPPED_VIEW: 'SUB_SUBJECTS_SUB_EXAMS_MAPPED_LIST'
 };

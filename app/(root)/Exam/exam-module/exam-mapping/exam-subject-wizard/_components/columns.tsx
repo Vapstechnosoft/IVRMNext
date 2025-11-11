@@ -88,7 +88,7 @@ export const ExamSubjectWizardColumns: ColumnDef<IExamSubjectWizard>[] = [
         accessorKey: 'subject_order',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Subject Order' />,
         cell: ({ row }) => {
-            const { openOrderDetails } = useFormContext<IExamSubjectWizard>(); // 👈 pull handler from context (like your others)
+            const { openOrderDetails } = useFormContext<IExamSubjectWizard>();
             const rowData = row.original; // full data of the clicked row
 
             const handleOpenOrderMenu = () => {

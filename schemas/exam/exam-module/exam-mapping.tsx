@@ -498,3 +498,44 @@ export const BaseExamSubjectSchema = {
         EYCE_Id: z.number({ required_error: 'EYCE_Id is required' }).int().positive({ message: 'Invalid EYCE_Id' })
     })
 };
+
+export const categorySubjectMappingSchema = {
+    addOrUpdate: z
+        .object({
+            userId: z.number().int().positive({ message: 'User Id is required' }).optional(),
+            eycG_Id: z.number().optional(),
+            mI_Id: z.number().optional(),
+            // Core Dropdowns
+            asmaY_Id: z.number({ required_error: 'Academic Year is required' }).min(1, { message: 'Please select an Academic Year' }),
+
+            emcA_Id: z.number({ required_error: 'Category  is required' }).min(1, { message: 'Please select an Category ' }),
+
+            emG_Id: z.number({ required_error: 'Subject Group is required' }).min(1, { message: 'Please select a Subject Group' }),
+
+            subjects_list: z
+                .array(
+                    z.object({
+                        ismS_Id: z.number({ required_error: 'Subjects is required' }).min(1, { message: 'Please select a Subjects' })
+                    })
+                )
+                .min(1, { message: 'At least one subject must be selected' }),
+
+            // Flags & Remarks
+            eyC_BasedOnPaperTypeFlg: z.boolean().default(true).optional()
+        })
+        .superRefine((data, ctx) => {
+            // Disallow duplicate subjects
+            const subjectIds = data.subjects_list?.map((s) => s.ismS_Id) || [];
+            if (new Set(subjectIds).size !== subjectIds.length) {
+                ctx.addIssue({
+                    path: ['subjectList'],
+                    code: z.ZodIssueCode.custom,
+                    message: 'Duplicate subjects are not allowed'
+                });
+            }
+        }),
+
+    delete: z.object({
+        eycG_Id: z.number({ required_error: 'eycG_Id is required' })
+    })
+};

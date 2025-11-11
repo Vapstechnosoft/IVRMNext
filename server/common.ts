@@ -580,6 +580,22 @@ export async function getUserAccessibleModules() {
                                     icon: 'Settings',
                                     pages: [
                                         {
+                                            id: 53,
+                                            name: 'Yearly category Subject Mapping',
+                                            icon: 'CalendarDays',
+                                            url: '/Exam/exam-module/exam-mapping/yearly-category-subject-mapping',
+                                            title: 'Yearly category Subject Mapping',
+                                            description: 'Manage Yearly category Subject Mapping Details'
+                                        },
+                                        {
+                                            id: 54,
+                                            name: 'Exam Subject Wizard',
+                                            icon: 'CalendarDays',
+                                            url: '/Exam/exam-module/exam-mapping/exam-subject-wizard',
+                                            title: 'Exam Subject Wizard',
+                                            description: 'Manage Exam Subject Wizard Details'
+                                        },
+                                        {
                                             id: 55,
                                             name: 'Yearly Category Date Mapping',
                                             icon: 'CalendarDays',
