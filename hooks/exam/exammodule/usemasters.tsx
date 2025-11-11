@@ -9,7 +9,7 @@ import {
     getCoScholasticArea
 } from '@/server/exam/exam-module/masters/co-scholastic-area';
 
-import { getCategoryMappedSections, getExamMasterCategoryMapping } from '@/server/exam/exam-module/masters/category-class-mapping';
+import { getCategoryMappedSections } from '@/server/exam/exam-module/masters/category-class-mapping';
 
 import { getMasterExam } from '@/server/exam/exam-module/masters/exam';
 import { getMasterExamPaper } from '@/server/exam/exam-module/masters/exam-paper';
@@ -234,22 +234,18 @@ export const useMasterCategoryClassMapping = (searchParams?: ApiSearchparams) =>
     };
 };
 
-
 export const useMasterCategoryMappedSections = (academicYear: number, category: number, className: number) => {
-
     const queryClient = useQueryClient();
 
     return {
         ...useQuery({
-
-            queryKey: [EXAM_QUERY_KEYS.CO_SCHOLASTIC_ACTIVITY, searchParams ?? {}],
-            queryFn: async () => getCoScholasticActivities(searchParams),
+            queryKey: [EXAM_QUERY_KEYS.MASTER_CATEGORY_CLASS_MAPPED_SECTIONS],
+            queryFn: async () => getCategoryMappedSections(academicYear, category, className),
             staleTime: 0
         }),
-
         refetchAll: () => {
             return queryClient.invalidateQueries({
-                queryKey: [EXAM_QUERY_KEYS.CO_SCHOLASTIC_ACTIVITY]
+                queryKey: [EXAM_QUERY_KEYS.MASTER_CATEGORY_CLASS_MAPPED_SECTIONS]
             });
         }
     };
@@ -295,24 +291,15 @@ export const useCoScholasticActivityAreaDropDown = (searchParams?: ApiSearchpara
             queryKey: [EXAM_QUERY_KEYS.CO_SCHOLASTIC_AREA_DROPDOWN, searchParams ?? {}],
             queryFn: async () => getCoScholasticActivityArea(searchParams),
 
-            queryKey: [EXAM_QUERY_KEYS.MASTER_CATEGORY_CLASS_MAPPED_SECTIONS],
-            queryFn: async () => getCategoryMappedSections(academicYear, category, className),
-
             staleTime: 0
         }),
         refetchAll: () => {
             return queryClient.invalidateQueries({
-
                 queryKey: [EXAM_QUERY_KEYS.CO_SCHOLASTIC_AREA_DROPDOWN]
-
-                queryKey: [EXAM_QUERY_KEYS.MASTER_CATEGORY_CLASS_MAPPED_SECTIONS]
-
             });
         }
     };
 };
-
-
 
 export const useCoScholasticActivity = (searchParams?: ApiSearchparams) => {
     const queryClient = useQueryClient();
