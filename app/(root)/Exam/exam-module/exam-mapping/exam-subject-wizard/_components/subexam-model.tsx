@@ -5,10 +5,13 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { MasterViewDetails } from '@/components/ui/set-order/generic-set-order';
 import type { IMasterGrade } from '@/types/exam/exam-module/masters';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useEffect } from 'react';
+import { List } from 'lucide-react';
+import { useEffect, useState } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
+import { toast } from 'sonner';
 import type { z } from 'zod';
 
 // ---- Minimal types added to fix checkedvalue typing/updation ----
@@ -60,6 +63,9 @@ export default function SubExamModal({
 
     // <-- extract setValue (was missing previously) along with reset, getValues, trigger
     const { reset, getValues, trigger, setValue } = methods;
+    const [isOrderDetailsOpen, setIsOrderDetailsOpen] = useState(false);
+    const [isOrderSaving, setIsOrderSaving] = useState(false);
+    const [isOrderloading, setIsOrderloading] = useState(true);
 
     useEffect(() => {
         if (!subject) {
@@ -82,8 +88,11 @@ export default function SubExamModal({
             eycessS_GradesFlg: !!l.eycessS_GradesFlg,
             eycessS_MarksFlg: !!l.eycessS_MarksFlg,
             eycessS_AplResultFlg: !!l.eycessS_AplResultFlg,
-            eycessS_MarksEntryMax: l.eycessS_MarksEntryMax ?? ''
+            eycessS_MarksEntryMax: l.eycessS_MarksEntryMax ?? '',
+            EYCESSE_SubExamOrder: l.emsE_SubExamOrder
         }));
+
+        console.log('list', list);
 
         reset({ subexam_list: list });
 
@@ -92,19 +101,92 @@ export default function SubExamModal({
         }, 0);
     }, [subject, reset, trigger]);
 
+    const handleSetOrder = async () => {
+        try {
+            if (methods.watch('subexam_list').length === 0) {
+                toast.info('subsubjects are loading...');
+            }
+            setIsOrderDetailsOpen(true);
+        } catch (error: any) {
+            setIsOrderloading(false);
+        } finally {
+            setIsOrderloading(false);
+        }
+    };
+
+    // Save reordered exams
+    const handleOrderSave = async (updatedData: any) => {
+        setIsOrderSaving(true);
+
+        const currentList = getValues('subexam_list') ?? [];
+        const reorderedList = (updatedData ?? []).map((item: any, index: number) => {
+            const matchId = item.id ?? item.emsS_Id ?? item.EmsS_Id;
+            const original = currentList.find((x: any) => x.emsS_Id === matchId) ?? item;
+
+            return {
+                ...original,
+                EYCESSE_SubExamOrder: index + 1 // ✅ Update order here
+            };
+        });
+
+        // If the master view returned only IDs (or partial items), ensure we also keep any originals that were not included:
+        // Merge any originals that are missing in reorderedList (append at end with their existing order)
+        const reorderedIds = new Set(reorderedList.map((r: any) => r.emsS_Id));
+        const remaining = currentList.filter((x: any) => !reorderedIds.has(x.emsS_Id));
+        const finalList = [...reorderedList, ...remaining];
+
+        // Optionally sort by the new order so UI is consistent
+        finalList.sort((a: any, b: any) => {
+            const aOrder = Number(a.eycessS_SubSubjectOrder ?? 0);
+            const bOrder = Number(b.eycessS_SubSubjectOrder ?? 0);
+            return aOrder - bOrder;
+        });
+
+        setValue('subexam_list', finalList, {
+            shouldDirty: true,
+            shouldValidate: true
+        });
+        setIsOrderSaving(false);
+        setIsOrderDetailsOpen(false);
+        toast.info('Sub-Subjects order saved successfully.');
+    };
+    const closeOrderDetails = () => {
+        setIsOrderDetailsOpen(false);
+        window.scrollTo({
+            top: 0,
+            behavior: 'smooth'
+        });
+    };
     if (!subject) return null;
+    const renderSkeletonTable = () => (
+        <div className='w-full rounded-md'>
+            <table className='w-full table-auto border-collapse border border-gray-200'>
+                <tbody>
+                    {Array.from({ length: 6 }).map((_, i) => (
+                        <tr key={i} className='hover:bg-transparent'>
+                            {Array.from({ length: 12 }).map((_, j) => (
+                                <td key={j} className='border px-3 py-2'>
+                                    <div className='h-6 w-full animate-pulse rounded bg-slate-200' />
+                                </td>
+                            ))}
+                        </tr>
+                    ))}
+                </tbody>
+            </table>
+        </div>
+    );
 
     return (
         <Dialog open={open} onOpenChange={(val) => !val && onClose()}>
-            <DialogContent className='max-h-[70vh] w-full min-w-[80vw] overflow-x-auto overflow-y-auto pt-0 sm:overflow-x-hidden'>
+            <DialogContent className='max-h-[80vh] w-full min-w-[80vw] overflow-x-auto overflow-y-auto pt-0 sm:overflow-x-hidden'>
                 <DialogHeader className='sticky top-0 bg-white pt-4'>
                     <DialogTitle>{`Map Sub-Exam — ${subject.ISMS_SubjectName}`}</DialogTitle>
                     <DialogDescription>Fill details and save mapping</DialogDescription>
                 </DialogHeader>
 
                 <FormProvider {...methods}>
-                    <div className='overflow-x-auto'>
-                        <table className='w-full table-auto'>
+                    <div className='max-h-[55vh] overflow-x-auto overflow-y-auto'>
+                        <table className='w-full table-auto border-collapse'>
                             <thead className='bg-slate-50'>
                                 <tr className='text-sm'>
                                     <th className='border p-2'>SLNO</th>
@@ -124,6 +206,22 @@ export default function SubExamModal({
                             </thead>
 
                             <tbody>
+                                {subject && subject.list === undefined && (
+                                    <tr>
+                                        <td colSpan={12} className='p-6'>
+                                            {renderSkeletonTable()}
+                                        </td>
+                                    </tr>
+                                )}
+
+                                {/*  No records found */}
+                                {subject?.list?.length === 0 && (
+                                    <tr>
+                                        <td colSpan={12} className='py-6 text-center text-muted-foreground text-sm'>
+                                            No records found.
+                                        </td>
+                                    </tr>
+                                )}
                                 {getValues('subexam_list')?.map((row: SubExamItem, idx: number) => (
                                     <tr key={row.emsE_Id} className={idx % 2 === 0 ? 'bg-white' : 'bg-slate-50'}>
                                         <td className='border p-2'>{idx + 1}</td>
@@ -277,6 +375,19 @@ export default function SubExamModal({
 
                     {/* ✅ SAVE & CLOSE BUTTON - no onSubmit */}
                     <div className='z-10 mt-4 flex w-fit justify-end gap-2 border-t bg-white p-2'>
+                        <Button type='button' variant='ghost' onClick={onClose}>
+                            Cancel
+                        </Button>
+                        <Button
+                            type='button'
+                            variant='secondary'
+                            onClick={handleSetOrder}
+                            className='order-2 w-fit transition-all duration-200 hover:scale-105 sm:order-3'>
+                            <div className='flex items-center'>
+                                <List className='mr-2 h-4 w-4' />
+                                Set Order
+                            </div>
+                        </Button>
                         <Button
                             className='w-fit'
                             type='button'
@@ -317,12 +428,26 @@ export default function SubExamModal({
                             }}>
                             Save & Close
                         </Button>
-
-                        <Button type='button' variant='ghost' onClick={onClose}>
-                            Cancel
-                        </Button>
                     </div>
                 </FormProvider>
+                {isOrderDetailsOpen && (
+                    <MasterViewDetails
+                        isOpen={isOrderDetailsOpen}
+                        onClose={closeOrderDetails}
+                        data={methods.watch('subexam_list').map((d) => ({ ...d, id: d.emsE_Id }))}
+                        isLoading={isOrderloading}
+                        isSaving={isOrderSaving}
+                        columns={[
+                            { key: 'id', label: 'SLNO', className: 'text-center w-12' },
+                            { key: 'emsS_SubSubjectName', label: 'Sub-Subject Name', className: 'text-left' },
+                            { key: 'emsS_SubSubjectCode', label: 'Sub-Subject Code', className: 'text-left' },
+                            { key: 'eycessS_SubSubjectOrder', label: 'Sub-Subject Order', className: 'text-left' }
+                        ]}
+                        onSave={handleOrderSave}
+                        tableHeight='500px'
+                        title='Set Master Subject Order'
+                    />
+                )}
             </DialogContent>
         </Dialog>
     );

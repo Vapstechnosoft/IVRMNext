@@ -95,11 +95,7 @@ export function MasterViewDetails<T extends { id: number }>({
                 {/* Scrollable Table Section */}
                 <ScrollArea className='max-h-[70vh] flex-1 overflow-y-auto rounded-md border'>
                     {isLoading ? (
-                        <div className='flex flex-col items-center justify-center space-y-3 py-12'>
-                            <Loader2 className='h-8 w-8 animate-spin text-muted-foreground' />
-                            <p className='text-muted-foreground text-sm'>Loading data...</p>
-                            {renderSkeletonTable()}
-                        </div>
+                        <div className='flex flex-col items-center justify-center space-y-3 py-12'>{renderSkeletonTable()}</div>
                     ) : items.length === 0 ? (
                         <div className='flex flex-col items-center justify-center space-y-3 py-12'>
                             <p className='text-muted-foreground text-sm'>No records found.</p>

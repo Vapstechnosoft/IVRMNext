@@ -6,7 +6,7 @@ import { FormProvider, useFormContext } from '@/components/ui/form/form-provider
 import { List, Plus, X } from 'lucide-react';
 import { use, useState } from 'react';
 
-import { MasterViewDetails } from '@/components/ui/set-order/generic-seto-order';
+import { MasterViewDetails } from '@/components/ui/set-order/generic-set-order';
 import { useMasterSubSubject } from '@/hooks/exam/exammodule/usemasters';
 import { UpdatedOrderdSubSubjects, getMasterSubSubjectOrderData } from '@/server/exam/exam-module/masters/sus-subject';
 import type { IMasterSubSubject } from '@/types/exam/exam-module/masters';

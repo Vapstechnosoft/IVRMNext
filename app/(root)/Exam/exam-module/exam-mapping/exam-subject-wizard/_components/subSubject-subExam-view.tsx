@@ -36,19 +36,29 @@ function SubSubjectSubExamModelViewContent({ rowData, onClose }: SubSubjectModel
     const bothQuery = useSubSubjectsAndSubExamsMappedList(30, rowData.eyceS_Id);
 
     const [details, setDetails] = useState<ISubSubjectSubExamMapped[]>([]);
+    const activeHook = showSubExam && showSubSubject ? bothQuery : showSubExam ? subExamsQuery : subSubjectsQuery;
+
+    //  Extract correct refetch
+    const refetchAll = activeHook.refetchAll;
 
     //  Auto-set data when queries update
     useEffect(() => {
         if (!rowData.eyceS_Id) return;
 
-        if (showSubExam && !showSubSubject) {
-            if (subExamsQuery.data?.data) setDetails(subExamsQuery.data.data);
+        let active = null;
+
+        if (showSubExam && showSubSubject) {
+            active = bothQuery;
+        } else if (showSubExam && !showSubSubject) {
+            active = subExamsQuery;
         } else if (!showSubExam && showSubSubject) {
-            if (subSubjectsQuery.data?.data) setDetails(subSubjectsQuery.data.data);
-        } else {
-            if (bothQuery.data?.data) setDetails(bothQuery.data.data);
+            active = subSubjectsQuery;
         }
-    }, [rowData, showSubExam, showSubSubject, subExamsQuery.data, subSubjectsQuery.data, bothQuery.data]);
+
+        if (active?.data?.data) {
+            setDetails(active.data.data);
+        }
+    }, [rowData.eyceS_Id, showSubExam, showSubSubject, subExamsQuery.data, subSubjectsQuery.data, bothQuery.data]);
 
     const loading = subExamsQuery.isLoading || subSubjectsQuery.isLoading || bothQuery.isLoading;
 
@@ -92,13 +102,19 @@ function SubSubjectSubExamModelViewContent({ rowData, onClose }: SubSubjectModel
                     columnPinning={{ right: ['actions'] }}
                 />
 
-                <FormSections rowData={rowData} />
+                <FormSections rowData={rowData} refetchAll={refetchAll} />
             </div>
         </div>
     );
 }
 
-function FormSections(rowData: any) {
+function FormSections({
+    rowData,
+    refetchAll
+}: {
+    rowData: any;
+    refetchAll: () => void;
+}) {
     const { isToggleFormOpen, selectedRow, closeToggleForm } = useFormContext<ISubSubjectSubExamMapped>();
 
     return (
@@ -107,6 +123,7 @@ function FormSections(rowData: any) {
                 <ToggleSubSubjectOrSubExamMappedForm
                     rowData={selectedRow}
                     onClose={closeToggleForm}
+                    refetchAll={refetchAll}
                     subsubjectFlag={rowData.eyceS_SubSubjectFlg}
                     subexamFlag={rowData.eyceS_SubExamFlg}
                 />

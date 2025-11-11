@@ -3,16 +3,15 @@
 import { Button } from '@/components/ui/button';
 import { AdaptiveBody, AdaptiveDialog, AdaptiveFooter } from '@/components/ui/extension/adaptive-dialog';
 import { FormError } from '@/components/ui/extension/field';
-import { useSubExamsMappedList, useSubSubjectsAndSubExamsMappedList, useSubSubjectsMappedList } from '@/hooks/exam/exammodule/exam-mapping';
 import { toggleMappedSubSubjectOrSubExam } from '@/server/exam/exam-module/exam-mapping/exam-subject-wizard';
 import type { ISubSubjectSubExamMapped } from '@/types/exam/exam-module/exam-mapping';
-import React from 'react';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 
 interface ToggleSubSubjectOrSubExamMappedFormProps {
     rowData: ISubSubjectSubExamMapped;
     onClose: () => void;
+    refetchAll: () => void;
     subsubjectFlag: boolean;
     subexamFlag: boolean;
 }
@@ -24,6 +23,7 @@ interface ToggleFormFields {
 export default function ToggleSubSubjectOrSubExamMappedForm({
     rowData,
     onClose,
+    refetchAll,
     subsubjectFlag,
     subexamFlag
 }: ToggleSubSubjectOrSubExamMappedFormProps) {
@@ -38,18 +38,20 @@ export default function ToggleSubSubjectOrSubExamMappedForm({
             EYCESSS_Id: rowData.eycessS_Id ?? null
         }
     });
-    const subExam = useSubExamsMappedList(30, rowData.eyceS_Id);
-    const subSubject = useSubSubjectsMappedList(30, rowData.eyceS_Id);
-    const subSubjectAndExam = useSubSubjectsAndSubExamsMappedList(30, rowData.eyceS_Id);
+    // const subExam = useSubExamsMappedList(30, rowData.eyceS_Id);
+    // const subSubject = useSubSubjectsMappedList(30, rowData.eyceS_Id);
+    // const subSubjectAndExam = useSubSubjectsAndSubExamsMappedList(30, rowData.eyceS_Id);
 
-    // ✅ Select correct hook based on flags
-    const activeHook = React.useMemo(() => {
-        if (subexamFlag) return subExam;
-        if (subsubjectFlag) return subSubject;
-        return subSubjectAndExam;
-    }, [rowData, subExam, subSubject, subSubjectAndExam]);
+    // // ✅ Select correct hook based on flags
+    // const activeHook = React.useMemo(() => {
+    //     if (subexamFlag && subsubjectFlag) return subSubjectAndExam;
+    //     if (subexamFlag && !subsubjectFlag) return subExam;
+    //     if (!subexamFlag && subsubjectFlag) return subSubject;
 
-    const { refetchAll } = activeHook;
+    //     // default case when both are false
+    //     return subSubjectAndExam; // or pick any default you want
+    // }, [subexamFlag, subsubjectFlag, subExam, subSubject, subSubjectAndExam]);
+    // const { refetchAll } = activeHook;
 
     const closeDialog = () => {
         onClose();

@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/generic-data-table';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
-import { MasterViewDetails } from '@/components/ui/set-order/generic-seto-order';
+import { MasterViewDetails } from '@/components/ui/set-order/generic-set-order';
 import { useExamSubjectWizard } from '@/hooks/exam/exammodule/exam-mapping';
 import { UpdateOrderedSubjectDetails, getExamSubjectWizardDetails } from '@/server/exam/exam-module/exam-mapping/exam-subject-wizard';
 import type { IExamSubjectOrder, IExamSubjectWizard } from '@/types/exam/exam-module/exam-mapping';

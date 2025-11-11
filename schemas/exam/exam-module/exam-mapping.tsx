@@ -346,7 +346,7 @@ export const SubSubjectSubExamSchema = z
         emsS_SubSubjectCode: z.string().min(1, { message: 'SubSubject Code required' }),
         emsE_SubExamName: z.string().min(1, { message: 'SubExam Name required' }),
         emsE_SubExamCode: z.string().min(1, { message: 'SubExam Code required' }),
-
+        checkedvalue: z.boolean().optional(),
         eycessS_MaxMarks: z.number({ invalid_type_error: 'Enter Max Marks' }).min(0, 'Max Marks must be 0 or greater'),
         eycessS_MinMarks: z.number({ invalid_type_error: 'Enter Min Marks' }).min(0, 'Min Marks must be 0 or greater'),
         eycessS_MarksEntryMax: z.number({ invalid_type_error: 'Enter Marks Entry Max' }).min(0, 'Marks Entry Max must be 0 or greater'),
