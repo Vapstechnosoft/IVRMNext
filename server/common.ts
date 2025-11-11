@@ -469,16 +469,6 @@ export async function getUserAccessibleModules() {
                                             title: 'Fee waivedoff',
                                             description: 'Fee waivedoff'
                                         }
-
-                                        // ,
-                                        // {
-                                        //     id: 101,
-                                        //     name: 'Fee Preadmission Transaction',
-                                        //     icon: 'Settings',
-                                        //     url: '/fees/transactions/feepreadmissiontrasaction',
-                                        //     title: 'Fee Preadmission Transaction',
-                                        //     description: 'Fee Preadmission Transaction'
-                                        // }
                                     ]
                                 }
                             ]
