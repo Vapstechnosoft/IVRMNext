@@ -22,7 +22,6 @@ export default function AddCoScholasticAreaForm({ onSuccess, className = '' }: A
     const { refetchAll } = useCoScholasticArea();
 
     const {
-        control,
         register,
         handleSubmit,
         reset,
