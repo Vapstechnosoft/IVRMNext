@@ -166,11 +166,10 @@ export default function EmployeeShiftMappingPage() {
                     headerClassName=''>
                     <GenericDataTable
                         isLoading={isLoading}
-                        columns={getEmployeeShiftMappingColumns({ onEdit: handleEdit, onDelete: handleDelete, onExport: handleExportData })}
+                        columns={getEmployeeShiftMappingColumns({ onEdit: handleEdit, onDelete: handleDelete })}
                         data={shiftMappings}
                         totalItems={shiftMappings.length}
                         showViewOptions={true}
-                        onExport={handleExportData}
                     />
                 </CollapsibleSection>
 

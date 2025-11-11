@@ -46,13 +46,11 @@ export interface EmployeeShiftMapping extends BaseEntity {
 interface GetEmployeeShiftMappingColumnsProps {
     onEdit: (mapping: EmployeeShiftMapping) => void;
     onDelete: (id: number) => void;
-    onExport: () => void;
 }
 
 export function getEmployeeShiftMappingColumns({
     onEdit,
-    onDelete,
-    onExport
+    onDelete
 }: GetEmployeeShiftMappingColumnsProps): ColumnDef<EmployeeShiftMapping>[] {
     return [
         {
