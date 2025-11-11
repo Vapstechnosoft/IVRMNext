@@ -80,41 +80,80 @@ export default function UpdateFeeTermForm({ onSuccess, fineslab = '', selectedRo
 
     return (
         <div className={`${fineslab}`}>
-            <form onSubmit={handleSubmit(onSubmit)} className='space-y-6'>
-                <div className='flex flex-col items-center space-y-4'>
-                    <div className='flex w-full max-w-lg items-center space-x-2'>
+            <form onSubmit={handleSubmit(onSubmit)} className='flex w-full flex-col items-center justify-center space-y-6'>
+                {/* className='flex flex-col items-center space-y-4' */}
+                {/* <div className='flex items-center space-x-4'>
                         <InputText
                             label='Term Name'
                             required
                             id='fmT_Name'
-                            {...register('fmT_Name')}
+                         {...register('fmT_Name')}
+                         error={errors.fmT_Name?.message}
+                             className='w-full transition-colors focus:ring-2 focus:ring-primary/20'
+                           
+                        {...register('fmT_Name', {
+                            required: 'Term Name is required',
+                            validate: (value) => {
+                                if (!/^[a-zA-Z0-9]+$/.test(value)) {
+                                    return 'Only letters and numbers allowed (no spaces)';
+                                }
+                                return true;
+                            },
+                            onChange: (e) => {
+                               
+                                e.target.value = e.target.value.replace(/[^a-zA-Z0-9]/g, '');
+                            }
+                        })}
+                        />
+                    </div> */}
+
+                <div className='flex items-center space-x-3'>
+                    <label htmlFor='fmT_Name' className='w-32 text-right font-medium'>
+                        Term Name<span className='text-red-500'>*</span>:
+                    </label>
+
+                    <div className='flex-1'>
+                        <InputText
+                            id='fmT_Name'
+                            {...register('fmT_Name', {
+                                required: 'Term Name is required',
+                                validate: (value) => {
+                                    if (!/^[a-zA-Z0-9]+$/.test(value)) {
+                                        return 'Only letters and numbers allowed (no spaces)';
+                                    }
+                                    return true;
+                                },
+                                onChange: (e) => {
+                                    e.target.value = e.target.value.replace(/[^a-zA-Z0-9]/g, '');
+                                }
+                            })}
                             error={errors.fmT_Name?.message}
-                            className='w-full transition-colors focus:ring-2 focus:ring-primary/20'
+                            className='w-full rounded-none border-0 border-gray-300 px-0 py-1 focus:border-primary focus:ring-0'
                         />
                     </div>
-
-                    <Controller
-                        name='fmT_IncludeArrearFeeFlg'
-                        control={control}
-                        defaultValue={false}
-                        render={({ field }) => (
-                            <div className='flex items-center space-x-2'>
-                                <Checkbox
-                                    checked={field.value}
-                                    onCheckedChange={(checked: boolean) => {
-                                        field.onChange(checked);
-                                    }}
-                                    id='fmT_IncludeArrearFeeFlg'
-                                />
-                                <Label htmlFor='fmT_IncludeArrearFeeFlg'>Arrear Flag</Label>
-                            </div>
-                        )}
-                    />
-
-                    {errors.root && <FormError>{errors.root.message}</FormError>}
                 </div>
 
-                <div className='flex flex-col gap-3 border-t pt-4 sm:flex-row sm:justify-start'>
+                <Controller
+                    name='fmT_IncludeArrearFeeFlg'
+                    control={control}
+                    defaultValue={false}
+                    render={({ field }) => (
+                        <div className='flex items-center space-x-2'>
+                            <Checkbox
+                                checked={field.value}
+                                onCheckedChange={(checked: boolean) => {
+                                    field.onChange(checked);
+                                }}
+                                id='fmT_IncludeArrearFeeFlg'
+                            />
+                            <Label htmlFor='fmT_IncludeArrearFeeFlg'>Arrear Flag</Label>
+                        </div>
+                    )}
+                />
+
+                {errors.root && <FormError>{errors.root.message}</FormError>}
+
+                <div className='flex flex-col gap-3 pt-4 sm:flex-row'>
                     <Button
                         type='button'
                         variant='outline'
