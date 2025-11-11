@@ -82,7 +82,6 @@ export default function UpdateMasterFeeInstallmentForm({ onSuccess, selectedRow:
 
     const {
         control,
-        register,
         handleSubmit,
         reset,
         setValue,
@@ -179,16 +178,15 @@ export default function UpdateMasterFeeInstallmentForm({ onSuccess, selectedRow:
 
     const onSubmit = async (data: FormFields) => {
         try {
+            // Always get the most reliable fmI_Id
             const idFromForm = sanitizeId((data as any)?.fmI_Id ?? data.fmI_Id);
-            const originalId =
-                (idFromForm && typeof idFromForm === 'number' && idFromForm > 0 ? idFromForm : undefined) ??
-                (typeof sanitizedRef.current?.fmI_Id === 'number'
-                    ? sanitizedRef.current?.fmI_Id
-                    : sanitizeId(row.fmI_Id ?? (row as any).id));
-
-            const fmI_Id = originalId && typeof originalId === 'number' && originalId > 0 ? originalId : undefined;
+            const idFromRef = sanitizeId(sanitizedRef.current?.fmI_Id);
+            const idFromRow = sanitizeId(row.fmI_Id ?? (row as any).id);
+            // Prefer form, then ref, then row
+            const fmI_Id = idFromForm || idFromRef || idFromRow;
 
             const payload = {
+                // Always pass fmI_Id, even if undefined
                 fmI_Id,
                 mI_Id: row.mI_Id,
                 fmI_Name: data.fmI_Name,
@@ -198,12 +196,7 @@ export default function UpdateMasterFeeInstallmentForm({ onSuccess, selectedRow:
                     const originalInst = (row as any).fydto?.[idx] ?? {};
                     const originalId = sanitizeId(originalInst.ftI_Id ?? originalInst.id);
                     const idFromForm = sanitizeId(inst.ftI_Id);
-                    const ftI_Id =
-                        idFromForm && typeof idFromForm === 'number' && idFromForm > 0
-                            ? idFromForm
-                            : originalId && typeof originalId === 'number' && originalId > 0
-                              ? originalId
-                              : undefined;
+                    const ftI_Id = idFromForm || originalId;
                     return {
                         ftI_Id,
                         ftI_Name: inst.ftI_Name
@@ -262,7 +255,19 @@ export default function UpdateMasterFeeInstallmentForm({ onSuccess, selectedRow:
     return (
         <div className='p-4'>
             <form onSubmit={handleSubmit(onSubmit)} className='space-y-6'>
-                <input type='hidden' {...register('fmI_Id')} />
+                {/* Use Controller for hidden fmI_Id so DOM value stays in sync with form state when setValue is used */}
+                <Controller
+                    name='fmI_Id'
+                    control={control}
+                    render={({ field }) => (
+                        <input
+                            type='hidden'
+                            {...field}
+                            value={field.value ?? ('' as any)}
+                            onChange={(e) => field.onChange(e.target.value)}
+                        />
+                    )}
+                />
 
                 <div className='flex flex-col gap-1.5'>
                     <Label htmlFor='fmI_Name'>
@@ -366,7 +371,7 @@ export default function UpdateMasterFeeInstallmentForm({ onSuccess, selectedRow:
                                                 render={({ field }) => (
                                                     <input
                                                         type='hidden'
-                                                        value={field.value as any}
+                                                        value={field.value ?? ('' as any)}
                                                         onChange={(e) => {
                                                             field.onChange(e.target.value);
                                                         }}

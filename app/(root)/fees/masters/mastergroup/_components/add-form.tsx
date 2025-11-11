@@ -85,8 +85,9 @@ export default function MasterGroups({ onSuccess, className = '' }: MasterGroups
 
     const handleReset = () => {
         reset({
-            transportHostelType: '' as any,
-            studentType: '' as any,
+            fmG_GroupName: '',
+            fmG_Remarks: '',
+            transportHostelType: undefined,
             fmG_CompulsoryFlag: false
         });
     };

@@ -131,11 +131,14 @@ export const fineslabSchema = {
 export const masterClassCategorySchema = {
     addOrUpdate: z.object({
         fmcC_Id: z.number().optional(),
-        fmcC_ClassCategoryName: z.string().min(1, { message: 'Class Category Name is required' }),
-        fmcC_ClassCategoryCode: z.string().min(1, { message: 'Class Category Code is required' }),
+
+        fmcC_ClassCategoryName: createStringSchema('Class Category Name', 1, 100),
+        fmcC_ClassCategoryCode: createStringSchema('Class Category Code', 1, 20),
+
         mI_Id: z.number().optional(),
         fmcC_ActiveFlag: z.boolean().optional()
     }),
+
     delete: z.object({
         fmcC_Id: z
             .number({
@@ -188,7 +191,7 @@ export const masterClassYearlyCategorySchema = {
 
 export const masterGroupsGroupingSchema = {
     addOrUpdate: z.object({
-        fmgG_GroupName: z.string().min(1, { message: 'Grouping Name is required' }),
+        fmgG_GroupName: z.string().min(1, { message: 'Group Name is required' }),
         fmgG_GroupCode: z.string().min(1, { message: 'Group Code is required' }),
         selectedFeeGroupIds: z.array(z.number()).min(1, { message: 'Please select at least one fee group' })
     }),
@@ -196,21 +199,21 @@ export const masterGroupsGroupingSchema = {
         fmgG_Id: z.number({ message: 'ID is required for deletion' })
     })
 };
-//installment fees
 export const masterInstallmentSchema = {
     addOrUpdate: z.object({
-        fmI_Name: z.string().min(1, { message: 'Master Installment Name is required' }),
-        fmI_Installment_Type: z.string().min(1, { message: 'Installment Type is required' }),
+        fmI_Name: createStringSchema('Master Installment Name', 1, 100),
+        fmI_Installment_Type: createStringSchema('Installment Type', 1, 30),
         fmI_No_Of_Installments: z.number().optional(),
         installments: z
             .array(
                 z.object({
                     sno: z.number(),
-                    ftI_Name: z.string().min(1, { message: 'Installment name is required' })
+                    ftI_Name: createStringSchema('Installment Name', 1, 100)
                 })
             )
             .optional()
     }),
+
     delete: z.object({
         fmI_Id: z.number().optional()
     })

@@ -188,33 +188,42 @@ function ActionButtonsCell({
         }
     }, [isFetching, fetchId, fetchedData, openEditForm]);
 
-    const handleEdit = useCallback((data: IMasterFeesInstallmentList) => {
-        const rawId = (data as any)?.fmI_Id ?? (data as any)?.id;
+    const handleEdit = useCallback(
+        (data: IMasterFeesInstallmentList) => {
+            // Accept multiple possible id field names coming from different backends
+            const candidate = (data as any)?.fmI_Id ?? (data as any)?.fmIId ?? (data as any)?.fmi_id ?? (data as any)?.id;
 
-        const sanitize = (id: any): number | undefined => {
-            if (id === null || id === undefined) return undefined;
-            if (typeof id === 'number') return id > 0 ? id : undefined;
-            if (typeof id === 'string') {
-                const trimmed = id.trim();
-                const lower = trimmed.toLowerCase();
-                if (lower === '' || lower.includes('undefined') || lower === '$undefined') return undefined;
-                const n = Number(trimmed);
-                if (!Number.isNaN(n) && Number.isInteger(n) && n > 0) return n;
+            const sanitize = (id: any): number | undefined => {
+                if (id === null || id === undefined) return undefined;
+                if (typeof id === 'number') return id > 0 ? id : undefined;
+                if (typeof id === 'string') {
+                    const trimmed = id.trim();
+                    const lower = trimmed.toLowerCase();
+                    if (lower === '' || lower.includes('undefined') || lower === '$undefined') return undefined;
+                    const n = Number(trimmed);
+                    if (!Number.isNaN(n) && Number.isInteger(n) && n > 0) return n;
+                }
+                return undefined;
+            };
+
+            const id = sanitize(candidate);
+
+            if (id) {
+                // store id and trigger fetch to auto-fill the form
+                // Do NOT open the edit form yet — wait for the API response to populate
+                // and open the form in the fetch effect. This ensures the form only
+                // displays after we have the full data.
+                setFetchId(id);
+            } else {
+                const sanitizedData = sanitizeRowForEdit({
+                    ...data,
+                    fmI_Id: sanitize((data as any)?.fmI_Id) ?? sanitize((data as any)?.id)
+                });
+                openEditForm(sanitizedData as any);
             }
-            return undefined;
-        };
-
-        const id = sanitize(rawId);
-        if (id) {
-            setFetchId(id);
-        } else {
-            const sanitizedData = sanitizeRowForEdit({
-                ...data,
-                fmI_Id: sanitize((data as any)?.fmI_Id) ?? sanitize((data as any)?.id)
-            });
-            openEditForm(sanitizedData as any);
-        }
-    }, []);
+        },
+        [openEditForm]
+    );
 
     const handleToggle = useCallback(
         (data: IMasterFeesInstallmentList) => {
