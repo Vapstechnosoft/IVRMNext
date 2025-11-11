@@ -9,7 +9,7 @@ import { useFieldArray } from 'react-hook-form';
 import { StandardTabActions } from './standard-tab-actions';
 import type { SalaryDetailItem } from '@/types/hrms/employee-register';
 
-export function UploadDocumentTab({ control, register, errors, isSubmitting, watch }: any) {
+export function UploadDocumentTab({ control, register, errors, isSubmitting, watch, onClear }: any) {
     const { fields, append, remove } = useFieldArray({
         control,
         name: 'documentList'
@@ -117,7 +117,7 @@ export function UploadDocumentTab({ control, register, errors, isSubmitting, wat
                 })}
             </div>
 
-            <StandardTabActions errors={errors} isSubmitting={isSubmitting} />
+            <StandardTabActions errors={errors} isSubmitting={isSubmitting} onClear={onClear} />
         </div>
     );
 }

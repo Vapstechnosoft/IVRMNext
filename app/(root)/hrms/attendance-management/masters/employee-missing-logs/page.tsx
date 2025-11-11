@@ -1,132 +1,146 @@
 'use client';
 
-import { Heading } from '@/components/layout/heading';
 import { Button } from '@/components/ui/button';
-import { GenericDataTable } from '@/components/ui/data-table/generic-data-table';
+import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/generic-data-table';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
-import { createLocalCrud } from '@/lib/localdb';
+import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
+import { useEmployeeMissingLogs } from '@/hooks/hrms/attendance-management/useMasters';
 import { Plus, X } from 'lucide-react';
-import { useEffect, useRef, useState } from 'react';
-import { toast } from 'sonner';
-import { type MissingLog, getMissingLogColumns } from './_components/columns';
-import { MissingLogForm, type MissingLogFormData } from './_components/missing-log-form';
+import { use } from 'react';
+import AddEmployeeMissingLogForm from './_components/add-form';
+import { missingLogColumns, type MissingLog } from './_components/columns';
+import UpdateEmployeeMissingLogForm from './_components/update-form';
 
-export default function EmployeeMissingLogsPage() {
-    const store = createLocalCrud<MissingLog>('attendance:employee-missing-logs');
-    const [rows, setRows] = useState<MissingLog[]>([]);
-    const [isLoading, setIsLoading] = useState(true);
-    const [isFormOpen, setIsFormOpen] = useState(false);
-    const [editing, setEditing] = useState<MissingLog | null>(null);
-    const formRef = useRef<HTMLDivElement>(null);
+type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 
-    useEffect(() => {
-        setRows(store.list());
-        setIsLoading(false);
-    }, []);
+export default function EmployeeMissingLogsPage(props: { searchParams: SearchParams }) {
+    const searchParams = use(props.searchParams);
+    const { data: response, isLoading, error } = useEmployeeMissingLogs();
 
-    const handleAdd = () => {
-        setIsFormOpen(true);
-        setEditing(null);
-        setTimeout(() => formRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 100);
-    };
+    return (
+        <FormProvider<MissingLog>>
+            <EmployeeMissingLogsPageContent response={response} isLoading={isLoading} error={error} />
+        </FormProvider>
+    );
+}
 
-    const handleFormSubmit = (data: MissingLogFormData) => {
-        try {
-            if (editing) {
-                // For editing, update the single entry
-                const entry = data.entries[0];
-                store.update(editing.id, {
-                    ...editing,
-                    employeeName: data.employeeName,
-                    date: data.date,
-                    time: entry.time,
-                    inOut: entry.inOut,
-                    remarks: entry.remarks,
-                    file: entry.file
-                });
-                toast.success('Missing log updated');
-            } else {
-                // For new entries, create one record per entry
-                data.entries.forEach((entry) => {
-                    store.create({
-                        employeeName: data.employeeName,
-                        date: data.date,
-                        time: entry.time,
-                        inOut: entry.inOut,
-                        remarks: entry.remarks,
-                        file: entry.file,
-                        reportedBy: 'VTSPD',
-                        status: 'Approved' as const
-                    });
-                });
-                toast.success(`Missing log${data.entries.length > 1 ? 's' : ''} added`);
-            }
-            setIsFormOpen(false);
-            setEditing(null);
-            setRows(store.list());
-        } catch (e: any) {
-            toast.error(e.message || 'Operation failed');
-        }
-    };
-
-    const handleFormCancel = () => {
-        setIsFormOpen(false);
-        setEditing(null);
-    };
-
-    const columns = getMissingLogColumns();
+function EmployeeMissingLogsPageContent({
+    response,
+    isLoading,
+    error
+}: {
+    response: any;
+    isLoading: boolean;
+    error: any;
+}) {
+    const { openAddForm } = useFormContext<MissingLog>();
+    const tableProps = useDataTableProps({
+        data: response?.data || [],
+        totalItems: response?.data?.length || 0
+    });
 
     return (
         <div className='min-h-screen'>
             <div className='container space-y-4 p-1'>
-                <div className='flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between'>
-                    <div className='space-y-1'>
-                        <Heading title='Employee Missing Logs' description='Record and track missing IN/OUT logs' />
-                    </div>
+                {/* Header */}
+                <div className='flex justify-end'>
                     <Button
                         type='button'
-                        onClick={handleAdd}
+                        onClick={openAddForm}
                         className='w-fit shadow-md transition-all duration-200 hover:scale-105 hover:shadow-lg'>
                         <Plus className='h-4 w-4' />
                         Add Employee Missing Log
                     </Button>
                 </div>
 
+                {/* Data Table Section */}
                 <CollapsibleSection
-                    title='Employee Missing Logs Details'
-                    description=''
                     defaultOpen={true}
                     variant='default'
                     size='lg'
-                    className='shadow-lg transition-shadow duration-300 hover:shadow-xl'
-                    headerClassName=''>
-                    <GenericDataTable isLoading={isLoading} columns={columns} data={rows} totalItems={rows.length} showViewOptions />
+                    className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
+                    <GenericDataTable<MissingLog>
+                        {...tableProps}
+                        columns={missingLogColumns}
+                        isLoading={isLoading}
+                        error={error}
+                        showViewOptions={false}
+                        columnPinning={{ right: ['actions'] }}
+                        loadingMessage='Loading employee missing logs...'
+                        noDataTitle='No Employee Missing Logs Found'
+                        noDataDescription='Get started by creating your first employee missing log'
+                        errorTitle='Error Loading Employee Missing Logs'
+                    />
                 </CollapsibleSection>
 
-                {isFormOpen && (
-                    <div ref={formRef} className='slide-in-from-top-4 animate-in duration-300'>
-                        <CollapsibleSection
-                            title={editing ? 'Edit Employee Missing Log' : 'Add New Employee Missing Log'}
-                            description={editing ? 'Update missing log details below' : 'Fill in the details below to create a new missing log entry'}
-                            defaultOpen={true}
-                            variant='outline'
-                            size='md'
-                            className='shadow-lg'>
-                            <div className='relative'>
-                                <Button
-                                    type='button'
-                                    onClick={handleFormCancel}
-                                    variant='ghost'
-                                    size='sm'
-                                    className='-top-[3.5rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
-                                    <X className='h-4 w-4 text-destructive' /> Close
-                                </Button>
-                                <MissingLogForm editingMissingLog={editing} onSubmit={handleFormSubmit} onCancel={handleFormCancel} />
-                            </div>
-                        </CollapsibleSection>
-                    </div>
-                )}
+                {/* Forms */}
+                <FormSections />
             </div>
         </div>
+    );
+}
+
+function FormSections() {
+    const {
+        isAddFormOpen,
+        isEditFormOpen,
+        selectedRow,
+        closeAddForm,
+        closeEditForm,
+        addFormRef,
+        editFormRef
+    } = useFormContext<MissingLog>();
+
+    return (
+        <>
+            {/* Add Form */}
+            {isAddFormOpen && (
+                <div ref={addFormRef}>
+                    <CollapsibleSection
+                        title='Add New Employee Missing Log'
+                        description='Fill in the details below to create a new employee missing log'
+                        defaultOpen={true}
+                        variant='outline'
+                        size='md'
+                        className='slide-in-from-top-4 animate-in shadow-lg duration-300'>
+                        <div className='relative'>
+                            <Button
+                                type='button'
+                                onClick={closeAddForm}
+                                variant='ghost'
+                                size='sm'
+                                className='-top-[3.5rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
+                                <X className='h-4 w-4 text-destructive' /> Close
+                            </Button>
+                            <AddEmployeeMissingLogForm onSuccess={closeAddForm} />
+                        </div>
+                    </CollapsibleSection>
+                </div>
+            )}
+
+            {/* Edit Form */}
+            {isEditFormOpen && selectedRow && (
+                <div ref={editFormRef}>
+                    <CollapsibleSection
+                        title='Edit Employee Missing Log'
+                        defaultOpen={true}
+                        variant='outline'
+                        size='md'
+                        className='slide-in-from-top-4 animate-in border-primary/20 shadow-lg duration-300'>
+                        <div className='relative'>
+                            <Button
+                                type='button'
+                                onClick={closeEditForm}
+                                variant='ghost'
+                                size='sm'
+                                className='-top-[3.5rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
+                                <X className='h-4 w-4 text-destructive' /> Close
+                            </Button>
+                            <UpdateEmployeeMissingLogForm selectedRow={selectedRow} onSuccess={closeEditForm} />
+                        </div>
+                    </CollapsibleSection>
+                </div>
+            )}
+        </>
     );
 }

@@ -12,6 +12,7 @@ import { format } from 'date-fns';
 import { CalendarIcon, Plus, Trash2, Upload, X } from 'lucide-react';
 import { Controller } from 'react-hook-form';
 import { StandardTabActions } from './standard-tab-actions';
+import { useState } from 'react';
 
 interface EmployeeTabProps {
     control: any;
@@ -24,6 +25,7 @@ interface EmployeeTabProps {
     options: any;
     isSubmitting: boolean;
     watch: any;
+    onClear?: () => void;
 }
 
 export function EmployeeTab({
@@ -36,8 +38,17 @@ export function EmployeeTab({
     setPhotoFile,
     options,
     isSubmitting,
-    watch
+    watch,
+    onClear
 }: any) {
+    // State for controlling date picker popovers
+    const [dateOfJoiningOpen, setDateOfJoiningOpen] = useState(false);
+    const [dateOfConfirmationOpen, setDateOfConfirmationOpen] = useState(false);
+    const [pfDateOpen, setPfDateOpen] = useState(false);
+    const [esiDateOpen, setEsiDateOpen] = useState(false);
+    const [dateOfBirthOpen, setDateOfBirthOpen] = useState(false);
+    const [dateOfRetirementOpen, setDateOfRetirementOpen] = useState(false);
+
     return (
         <div className='space-y-6'>
             {/* Main Form Fields in Two Columns */}
@@ -210,7 +221,7 @@ export function EmployeeTab({
                                 <Label>
                                     Date Of Joining <span className='text-red-500'>*</span>
                                 </Label>
-                                <Popover>
+                                <Popover open={dateOfJoiningOpen} onOpenChange={setDateOfJoiningOpen}>
                                     <PopoverTrigger asChild>
                                         <Button
                                             variant={'outline'}
@@ -226,7 +237,12 @@ export function EmployeeTab({
                                         <DatePickerWithYear
                                             mode='single'
                                             selected={field.value ? new Date(field.value) : undefined}
-                                            onDayClick={(day) => field.onChange(format(day, 'yyyy-MM-dd'))}
+                                            onSelect={(day) => {
+                                                if (day) {
+                                                    field.onChange(format(day, 'yyyy-MM-dd'));
+                                                    setDateOfJoiningOpen(false);
+                                                }
+                                            }}
                                             initialFocus
                                         />
                                     </PopoverContent>
@@ -241,7 +257,7 @@ export function EmployeeTab({
                         render={({ field }) => (
                             <div className='space-y-2'>
                                 <Label>Date Of Confirmation</Label>
-                                <Popover>
+                                <Popover open={dateOfConfirmationOpen} onOpenChange={setDateOfConfirmationOpen}>
                                     <PopoverTrigger asChild>
                                         <Button
                                             variant={'outline'}
@@ -257,7 +273,12 @@ export function EmployeeTab({
                                         <DatePickerWithYear
                                             mode='single'
                                             selected={field.value ? new Date(field.value) : undefined}
-                                            onDayClick={(day) => field.onChange(format(day, 'yyyy-MM-dd'))}
+                                            onSelect={(day) => {
+                                                if (day) {
+                                                    field.onChange(format(day, 'yyyy-MM-dd'));
+                                                    setDateOfConfirmationOpen(false);
+                                                }
+                                            }}
                                             initialFocus
                                         />
                                     </PopoverContent>
@@ -365,7 +386,7 @@ export function EmployeeTab({
                                 render={({ field }) => (
                                     <div className='space-y-2'>
                                         <Label>PF Date</Label>
-                                        <Popover>
+                                        <Popover open={pfDateOpen} onOpenChange={setPfDateOpen}>
                                             <PopoverTrigger asChild>
                                                 <Button
                                                     variant={'outline'}
@@ -381,7 +402,12 @@ export function EmployeeTab({
                                                 <DatePickerWithYear
                                                     mode='single'
                                                     selected={field.value ? new Date(field.value) : undefined}
-                                                    onDayClick={(day) => field.onChange(format(day, 'yyyy-MM-dd'))}
+                                                    onSelect={(day) => {
+                                                        if (day) {
+                                                            field.onChange(format(day, 'yyyy-MM-dd'));
+                                                            setPfDateOpen(false);
+                                                        }
+                                                    }}
                                                     initialFocus
                                                 />
                                             </PopoverContent>
@@ -421,7 +447,7 @@ export function EmployeeTab({
                                 render={({ field }) => (
                                     <div className='space-y-2'>
                                         <Label>ESI Date</Label>
-                                        <Popover>
+                                        <Popover open={esiDateOpen} onOpenChange={setEsiDateOpen}>
                                             <PopoverTrigger asChild>
                                                 <Button
                                                     variant={'outline'}
@@ -437,7 +463,12 @@ export function EmployeeTab({
                                                 <DatePickerWithYear
                                                     mode='single'
                                                     selected={field.value ? new Date(field.value) : undefined}
-                                                    onDayClick={(day) => field.onChange(format(day, 'yyyy-MM-dd'))}
+                                                    onSelect={(day) => {
+                                                        if (day) {
+                                                            field.onChange(format(day, 'yyyy-MM-dd'));
+                                                            setEsiDateOpen(false);
+                                                        }
+                                                    }}
                                                     initialFocus
                                                 />
                                             </PopoverContent>
@@ -568,7 +599,7 @@ export function EmployeeTab({
                                 <Label>
                                     Date Of Birth <span className='text-red-500'>*</span>
                                 </Label>
-                                <Popover>
+                                <Popover open={dateOfBirthOpen} onOpenChange={setDateOfBirthOpen}>
                                     <PopoverTrigger asChild>
                                         <Button
                                             variant={'outline'}
@@ -584,7 +615,12 @@ export function EmployeeTab({
                                         <DatePickerWithYear
                                             mode='single'
                                             selected={field.value ? new Date(field.value) : undefined}
-                                            onDayClick={(day) => field.onChange(format(day, 'yyyy-MM-dd'))}
+                                            onSelect={(day) => {
+                                                if (day) {
+                                                    field.onChange(format(day, 'yyyy-MM-dd'));
+                                                    setDateOfBirthOpen(false);
+                                                }
+                                            }}
                                             initialFocus
                                         />
                                     </PopoverContent>
@@ -599,7 +635,7 @@ export function EmployeeTab({
                         render={({ field }) => (
                             <div className='space-y-2'>
                                 <Label>Date of Retirement</Label>
-                                <Popover>
+                                <Popover open={dateOfRetirementOpen} onOpenChange={setDateOfRetirementOpen}>
                                     <PopoverTrigger asChild>
                                         <Button
                                             variant={'outline'}
@@ -615,7 +651,12 @@ export function EmployeeTab({
                                         <DatePickerWithYear
                                             mode='single'
                                             selected={field.value ? new Date(field.value) : undefined}
-                                            onDayClick={(day) => field.onChange(format(day, 'yyyy-MM-dd'))}
+                                            onSelect={(day) => {
+                                                if (day) {
+                                                    field.onChange(format(day, 'yyyy-MM-dd'));
+                                                    setDateOfRetirementOpen(false);
+                                                }
+                                            }}
                                             initialFocus
                                         />
                                     </PopoverContent>
@@ -1026,7 +1067,7 @@ export function EmployeeTab({
                 </div>
             </div>
 
-            <StandardTabActions errors={errors} isSubmitting={isSubmitting} />
+            <StandardTabActions errors={errors} isSubmitting={isSubmitting} onClear={onClear} />
         </div>
     );
 }

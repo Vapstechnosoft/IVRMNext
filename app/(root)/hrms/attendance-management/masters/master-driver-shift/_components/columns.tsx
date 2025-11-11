@@ -1,13 +1,14 @@
 'use client';
 
-import { Button } from '@/components/ui/button';
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
-import { type BaseEntity } from '@/lib/localdb';
+import { ActionButtons } from '@/components/ui/form/action-buttons';
+import { useFormContext } from '@/components/ui/form/form-provider';
 import type { ColumnDef } from '@tanstack/react-table';
 import { format } from 'date-fns';
-import { Edit, Trash2 } from 'lucide-react';
+import { useCallback } from 'react';
 
-export interface DriverShift extends BaseEntity {
+export interface DriverShift {
+    id: number;
     shift: string;
     driver: string;
     fromDate: string;
@@ -16,98 +17,133 @@ export interface DriverShift extends BaseEntity {
     saturdayOff: boolean;
     sundayWorking: boolean;
     isActive?: boolean;
+    createdAt: Date;
 }
 
-interface GetDriverShiftColumnsProps {
-    onEdit: (shift: DriverShift) => void;
-    onDelete: (shift: DriverShift) => void;
-}
+export const driverShiftColumns: ColumnDef<DriverShift>[] = [
+    {
+        accessorKey: 'id',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Sl.No' />,
+        cell: ({ row, table }) => {
+            const pageIndex = table.getState().pagination.pageIndex;
+            const pageSize = table.getState().pagination.pageSize;
+            const continuousIndex = pageIndex * pageSize + row.index + 1;
+            return <div>{continuousIndex}</div>;
+        },
+        enableSorting: true,
+        enableHiding: false
+    },
+    {
+        accessorKey: 'driver',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Driver Name' />,
+        cell: ({ row }) => <div>{row.getValue('driver')}</div>,
+        enableSorting: true,
+        enableHiding: true
+    },
+    {
+        accessorKey: 'shift',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Shift Name' />,
+        cell: ({ row }) => <div>{row.getValue('shift')}</div>,
+        enableSorting: true,
+        enableHiding: true
+    },
+    {
+        accessorKey: 'fromDate',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='From Date' />,
+        cell: ({ row }) => {
+            const date = row.getValue('fromDate') as string;
+            if (!date) return '-';
+            try {
+                return format(new Date(date), 'dd/MM/yyyy');
+            } catch {
+                return date;
+            }
+        },
+        enableSorting: true,
+        enableHiding: true
+    },
+    {
+        accessorKey: 'toDate',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='To Date' />,
+        cell: ({ row }) => {
+            const date = row.getValue('toDate') as string;
+            if (!date) return '-';
+            try {
+                return format(new Date(date), 'dd/MM/yyyy');
+            } catch {
+                return date;
+            }
+        },
+        enableSorting: true,
+        enableHiding: true
+    },
+    {
+        accessorKey: 'remarks',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Remarks' />,
+        cell: ({ row }) => <div>{row.getValue('remarks')}</div>,
+        enableSorting: true,
+        enableHiding: true
+    },
+    {
+        accessorKey: 'sundayWorking',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Sunday_WorkingFlag' />,
+        cell: ({ row }) => {
+            const value = row.getValue('sundayWorking') as boolean;
+            return (
+                <div className='flex items-center justify-center'>
+                    {value ? (
+                        <span className='text-green-600 font-semibold'>✓</span>
+                    ) : (
+                        <span className='text-red-600 font-semibold'>✗</span>
+                    )}
+                </div>
+            );
+        },
+        enableSorting: true,
+        enableHiding: true
+    },
+    {
+        accessorKey: 'saturdayOff',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Saturday_OffFlg' />,
+        cell: ({ row }) => {
+            const value = row.getValue('saturdayOff') as boolean;
+            return (
+                <div className='flex items-center justify-center'>
+                    {value ? (
+                        <span className='text-green-600 font-semibold'>✓</span>
+                    ) : (
+                        <span className='text-red-600 font-semibold'>✗</span>
+                    )}
+                </div>
+            );
+        },
+        enableSorting: true,
+        enableHiding: true
+    },
+    {
+        id: 'actions',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Actions' className='text-start' />,
+        accessorFn: (row: any) => row,
+        enableSorting: false,
+        cell: ({ row }) => <ActionButtonsCell rowData={row.original} />
+    }
+];
 
-export function getDriverShiftColumns({ onEdit, onDelete }: GetDriverShiftColumnsProps): ColumnDef<DriverShift>[] {
-    return [
-        {
-            id: 'sl',
-            header: ({ column }) => <DataTableColumnHeader column={column} title='SL.NO' />,
-            cell: ({ row }) => <div className='font-medium'>{row.index + 1}</div>,
-            enableSorting: false
+function ActionButtonsCell({ rowData }: { rowData: DriverShift }) {
+    const { openEditForm } = useFormContext<DriverShift>();
+
+    const handleEdit = useCallback(
+        (data: DriverShift) => {
+            openEditForm(data);
         },
-        { accessorKey: 'driver', header: ({ column }) => <DataTableColumnHeader column={column} title='Driver Name' /> },
-        { accessorKey: 'shift', header: ({ column }) => <DataTableColumnHeader column={column} title='Shift Name' /> },
-        {
-            accessorKey: 'fromDate',
-            header: ({ column }) => <DataTableColumnHeader column={column} title='From Date' />,
-            cell: ({ row }) => {
-                const date = row.getValue('fromDate') as string;
-                if (!date) return '-';
-                try {
-                    return format(new Date(date), 'dd/MM/yyyy');
-                } catch {
-                    return date;
-                }
-            }
-        },
-        {
-            accessorKey: 'toDate',
-            header: ({ column }) => <DataTableColumnHeader column={column} title='To Date' />,
-            cell: ({ row }) => {
-                const date = row.getValue('toDate') as string;
-                if (!date) return '-';
-                try {
-                    return format(new Date(date), 'dd/MM/yyyy');
-                } catch {
-                    return date;
-                }
-            }
-        },
-        { accessorKey: 'remarks', header: ({ column }) => <DataTableColumnHeader column={column} title='Remarks' /> },
-        {
-            accessorKey: 'sundayWorking',
-            header: ({ column }) => <DataTableColumnHeader column={column} title='Sunday_WorkingFlag' />,
-            cell: ({ row }) => {
-                const value = row.getValue('sundayWorking') as boolean;
-                return (
-                    <div className='flex items-center justify-center'>
-                        {value ? (
-                            <span className='text-green-600 font-semibold'>✓</span>
-                        ) : (
-                            <span className='text-red-600 font-semibold'>✗</span>
-                        )}
-                    </div>
-                );
-            }
-        },
-        {
-            accessorKey: 'saturdayOff',
-            header: ({ column }) => <DataTableColumnHeader column={column} title='Saturday_OffFlg' />,
-            cell: ({ row }) => {
-                const value = row.getValue('saturdayOff') as boolean;
-                return (
-                    <div className='flex items-center justify-center'>
-                        {value ? (
-                            <span className='text-green-600 font-semibold'>✓</span>
-                        ) : (
-                            <span className='text-red-600 font-semibold'>✗</span>
-                        )}
-                    </div>
-                );
-            }
-        },
-        {
-            id: 'actions',
-            header: 'Actions',
-            cell: ({ row }) => {
-                const r = row.original as DriverShift;
-                return (
-                    <div className='flex items-center gap-2'>
-                        <Button variant='outline' size='sm' onClick={() => onEdit(r)}>
-                            <Edit className='h-4 w-4' />
-                        </Button>
-                        <Button variant='outline' size='sm' className='text-red-600' onClick={() => onDelete(r)}>
-                            <Trash2 className='h-4 w-4' />
-                        </Button>
-                    </div>
-                );
-            }
-        }
-    ];
+        [openEditForm]
+    );
+
+    return (
+        <ActionButtons
+            rowData={rowData}
+            buttons={{ edit: true, toggle: false, delete: false }}
+            onEdit={handleEdit}
+        />
+    );
 }

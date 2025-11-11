@@ -3,17 +3,15 @@
 import { Heading } from '@/components/layout/heading';
 import { GenericDataTable } from '@/components/ui/data-table/generic-data-table';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
-import { createLocalCrud } from '@/lib/localdb';
-import { useMemo, useState } from 'react';
-import { type LIEORow, employeeLateInEarlyOutReportColumns } from './_components/columns';
+import { useEmployeeLateInEarlyOutReport, useEmployeeLateInEarlyOutReportDropdowns } from '@/hooks/hrms/attendance-management/useReports';
+import { useState } from 'react';
+import { employeeLateInEarlyOutReportColumns } from './_components/columns';
 import {
     type EmployeeLateInEarlyOutReportFilters,
     EmployeeLateInEarlyOutReportFilters as EmployeeLateInEarlyOutReportFiltersComponent
 } from './_components/filters';
 
 export default function EmployeeLateInEarlyOutReportPage() {
-    const db = createLocalCrud<LIEORow>('attendance:lieo');
-
     const [filters, setFilters] = useState<EmployeeLateInEarlyOutReportFilters>({
         type: [],
         department: [],
@@ -26,30 +24,14 @@ export default function EmployeeLateInEarlyOutReportPage() {
         mode: 'Late In Early Out'
     });
 
-    const data = useMemo(() => db.list(), []);
+    const { data: reportData, isLoading } = useEmployeeLateInEarlyOutReport(filters);
+    const { data: dropdownData } = useEmployeeLateInEarlyOutReportDropdowns();
 
-    const types = useMemo(() => [...new Set(data.map((d) => d.type).filter(Boolean))], [data]);
-    const departments = useMemo(() => [...new Set(data.map((d) => d.department))], [data]);
-    const designations = useMemo(() => [...new Set(data.map((d) => d.designation))], [data]);
+    const types = dropdownData?.data?.types || [];
+    const departments = dropdownData?.data?.departments || [];
+    const designations = dropdownData?.data?.designations || [];
 
-    const filtered = useMemo(() => {
-        return data.filter((r) => {
-            const okType = filters.type && filters.type.length > 0 ? filters.type.includes(r.type) : true;
-            const okDept = filters.department && filters.department.length > 0 ? filters.department.includes(r.department) : true;
-            const okDesg = filters.designation && filters.designation.length > 0 ? filters.designation.includes(r.designation) : true;
-            const okDateFrom = filters.fromDate ? new Date(r.date) >= new Date(filters.fromDate) : true;
-            const okDateTo = filters.toDate ? new Date(r.date) <= new Date(filters.toDate) : true;
-            const okQuery =
-                filters.allOrIndividual === 'Individual' && filters.query
-                    ? filters.codeOrName === 'Code'
-                        ? r.employeeCode.includes(filters.query)
-                        : r.employeeName.toLowerCase().includes(filters.query.toLowerCase())
-                    : true;
-            const okMode =
-                filters.mode === 'Late By' ? r.lateBy : filters.mode === 'Early Out' ? r.earlyOut : r.lateBy || r.earlyOut;
-            return okType && okDept && okDesg && okDateFrom && okDateTo && okQuery && okMode;
-        });
-    }, [data, filters]);
+    const filtered = reportData?.data || [];
 
     const handleSearch = () => {
         /* TODO: implement */
@@ -104,7 +86,7 @@ export default function EmployeeLateInEarlyOutReportPage() {
                     size='lg'
                     className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
                     <GenericDataTable
-                        isLoading={false}
+                        isLoading={isLoading}
                         columns={employeeLateInEarlyOutReportColumns}
                         data={filtered}
                         totalItems={filtered.length}

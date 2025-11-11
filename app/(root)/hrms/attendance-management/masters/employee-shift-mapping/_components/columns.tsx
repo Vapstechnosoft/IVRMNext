@@ -1,13 +1,13 @@
 'use client';
 
-import { Button } from '@/components/ui/button';
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuLabel, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { type BaseEntity } from '@/lib/localdb';
+import { ActionButtons } from '@/components/ui/form/action-buttons';
+import { useFormContext } from '@/components/ui/form/form-provider';
 import type { ColumnDef } from '@tanstack/react-table';
-import { Download, Edit, MoreHorizontal, Trash2 } from 'lucide-react';
+import { useCallback } from 'react';
 
-export interface EmployeeShiftMapping extends BaseEntity {
+export interface EmployeeShiftMapping {
+    id: number;
     employeeTypes?: string[];
     dayTypes?: string[];
     allEmployees?: boolean;
@@ -41,121 +41,139 @@ export interface EmployeeShiftMapping extends BaseEntity {
     halfDayWorkingHours?: string;
     earlyPerShift?: string;
     lunchHours?: string;
+    createdAt: Date;
 }
 
-interface GetEmployeeShiftMappingColumnsProps {
-    onEdit: (mapping: EmployeeShiftMapping) => void;
-    onDelete: (id: number) => void;
-}
-
-export function getEmployeeShiftMappingColumns({
-    onEdit,
-    onDelete
-}: GetEmployeeShiftMappingColumnsProps): ColumnDef<EmployeeShiftMapping>[] {
-    return [
-        {
-            id: 'serialNumber',
-            header: ({ column }) => <DataTableColumnHeader column={column} title='SL. NO' />,
-            cell: ({ row }) => <div className='font-medium'>{row.index + 1}</div>,
-            enableSorting: false
+export const employeeShiftMappingColumns: ColumnDef<EmployeeShiftMapping>[] = [
+    {
+        accessorKey: 'id',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Sl.No' />,
+        cell: ({ row, table }) => {
+            const pageIndex = table.getState().pagination.pageIndex;
+            const pageSize = table.getState().pagination.pageSize;
+            const continuousIndex = pageIndex * pageSize + row.index + 1;
+            return <div>{continuousIndex}</div>;
         },
+        enableSorting: true,
+        enableHiding: false
+    },
         {
             accessorKey: 'shiftName',
             header: ({ column }) => <DataTableColumnHeader column={column} title='Shift Name' />,
-            cell: ({ row }) => <div className='font-medium'>{row.getValue('shiftName')}</div>
+            cell: ({ row }) => <div className='font-medium'>{row.getValue('shiftName')}</div>,
+            enableSorting: true,
+            enableHiding: true
         },
         {
             accessorKey: 'employee',
             header: ({ column }) => <DataTableColumnHeader column={column} title='Employee' />,
-            cell: ({ row }) => <div>{row.getValue('employee') || 'All Employees'}</div>
+            cell: ({ row }) => <div>{row.getValue('employee') || 'All Employees'}</div>,
+            enableSorting: true,
+            enableHiding: true
         },
         {
             accessorKey: 'holidayType',
             header: ({ column }) => <DataTableColumnHeader column={column} title='Holiday Type' />,
-            cell: ({ row }) => <div>{row.getValue('holidayType')}</div>
+            cell: ({ row }) => <div>{row.getValue('holidayType')}</div>,
+            enableSorting: true,
+            enableHiding: true
         },
         {
             accessorKey: 'applicableDate',
             header: ({ column }) => <DataTableColumnHeader column={column} title='Applicable Date' />,
-            cell: ({ row }) => <div>{new Date(row.getValue('applicableDate')).toLocaleDateString()}</div>
+            cell: ({ row }) => <div>{new Date(row.getValue('applicableDate')).toLocaleDateString()}</div>,
+            enableSorting: true,
+            enableHiding: true
         },
         {
             accessorKey: 'totalWork',
             header: ({ column }) => <DataTableColumnHeader column={column} title='Total Work Hour' />,
-            cell: ({ row }) => <div>{row.getValue('totalWork')}</div>
+            cell: ({ row }) => <div>{row.getValue('totalWork')}</div>,
+            enableSorting: true,
+            enableHiding: true
         },
         {
             accessorKey: 'halfDayWork',
             header: ({ column }) => <DataTableColumnHeader column={column} title='Half Day Work Hour' />,
-            cell: ({ row }) => <div>{row.getValue('halfDayWork')}</div>
+            cell: ({ row }) => <div>{row.getValue('halfDayWork')}</div>,
+            enableSorting: true,
+            enableHiding: true
         },
         {
             accessorKey: 'morningLogin',
             header: ({ column }) => <DataTableColumnHeader column={column} title='Morning Login' />,
-            cell: ({ row }) => <div>{row.getValue('morningLogin')}</div>
+            cell: ({ row }) => <div>{row.getValue('morningLogin')}</div>,
+            enableSorting: true,
+            enableHiding: true
         },
         {
             accessorKey: 'morningLogout',
             header: ({ column }) => <DataTableColumnHeader column={column} title='Morning Logout' />,
-            cell: ({ row }) => <div>{row.getValue('morningLogout')}</div>
+            cell: ({ row }) => <div>{row.getValue('morningLogout')}</div>,
+            enableSorting: true,
+            enableHiding: true
         },
         {
             accessorKey: 'afternoonLogin',
             header: ({ column }) => <DataTableColumnHeader column={column} title='Afternoon Login' />,
-            cell: ({ row }) => <div>{row.getValue('afternoonLogin')}</div>
+            cell: ({ row }) => <div>{row.getValue('afternoonLogin')}</div>,
+            enableSorting: true,
+            enableHiding: true
         },
         {
             accessorKey: 'afternoonLogout',
             header: ({ column }) => <DataTableColumnHeader column={column} title='Afternoon Logout' />,
-            cell: ({ row }) => <div>{row.getValue('afternoonLogout')}</div>
+            cell: ({ row }) => <div>{row.getValue('afternoonLogout')}</div>,
+            enableSorting: true,
+            enableHiding: true
         },
         {
             accessorKey: 'delayShift',
             header: ({ column }) => <DataTableColumnHeader column={column} title='Delay Shift' />,
-            cell: ({ row }) => <div>{row.getValue('delayShift')}</div>
+            cell: ({ row }) => <div>{row.getValue('delayShift')}</div>,
+            enableSorting: true,
+            enableHiding: true
         },
         {
             accessorKey: 'earlyShift',
             header: ({ column }) => <DataTableColumnHeader column={column} title='Early Shift' />,
-            cell: ({ row }) => <div>{row.getValue('earlyShift')}</div>
+            cell: ({ row }) => <div>{row.getValue('earlyShift')}</div>,
+            enableSorting: true,
+            enableHiding: true
         },
         {
             accessorKey: 'lunchHour',
             header: ({ column }) => <DataTableColumnHeader column={column} title='Lunch Hour' />,
-            cell: ({ row }) => <div>{row.getValue('lunchHour')}</div>
+            cell: ({ row }) => <div>{row.getValue('lunchHour')}</div>,
+            enableSorting: true,
+            enableHiding: true
         },
         {
             id: 'actions',
-            header: 'Actions',
-            cell: ({ row }) => {
-                const mapping = row.original;
-                return (
-                    <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                            <Button variant='ghost' className='h-8 w-8 p-0'>
-                                <MoreHorizontal className='h-4 w-4' />
-                            </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align='end'>
-                            <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                            <Button variant='ghost' size='sm' onClick={() => onEdit(mapping)} className='w-full justify-start'>
-                                <Edit className='mr-2 h-4 w-4' />
-                                Edit
-                            </Button>
-                            <Button
-                                variant='ghost'
-                                size='sm'
-                                onClick={() => onDelete(mapping.id)}
-                                className='w-full justify-start text-red-600 hover:text-red-900'>
-                                <Trash2 className='mr-2 h-4 w-4' />
-                                Delete
-                            </Button>
-                        </DropdownMenuContent>
-                    </DropdownMenu>
-                );
-            }
+            header: ({ column }) => <DataTableColumnHeader column={column} title='Actions' className='text-start' />,
+            accessorFn: (row: any) => row,
+            enableSorting: false,
+            cell: ({ row }) => <ActionButtonsCell rowData={row.original} />
         }
     ];
+
+function ActionButtonsCell({ rowData }: { rowData: EmployeeShiftMapping }) {
+    const { openEditForm } = useFormContext<EmployeeShiftMapping>();
+
+    const handleEdit = useCallback(
+        (data: EmployeeShiftMapping) => {
+            openEditForm(data);
+        },
+        [openEditForm]
+    );
+
+    return (
+        <ActionButtons
+            rowData={rowData}
+            buttons={{ edit: true, toggle: false, delete: false }}
+            onEdit={handleEdit}
+        />
+    );
 }
 
 export const employeeTypeOptions = [

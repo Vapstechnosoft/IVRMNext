@@ -23,7 +23,7 @@ interface CompOffApprovalColumnsProps {
     onReject: (row: CompOffApproval) => void;
 }
 
-export const getCompOffApprovalColumns = ({
+export const compOffApprovalColumns = ({
     onApprove,
     onReject
 }: CompOffApprovalColumnsProps): ColumnDef<CompOffApproval>[] => [

@@ -1,42 +1,33 @@
 'use client';
 
 import { Heading } from '@/components/layout/heading';
-import { GenericDataTable } from '@/components/ui/data-table/generic-data-table';
+import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/generic-data-table';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
-import { createLocalCrud } from '@/lib/localdb';
-import { useEffect, useMemo, useState } from 'react';
-import { toast } from 'sonner';
-import { getCompOffApprovalColumns, type CompOffApproval } from './_components/columns';
-
-const compOffDB = createLocalCrud<CompOffApproval>('compOffApproval');
+import { useCompOffApproval, useUpdateCompOffApprovalStatus } from '@/hooks/hrms/leave-management/useTransactions';
+import { useMemo } from 'react';
+import { compOffApprovalColumns, type CompOffApproval } from './_components/columns';
 
 export default function CompOffApprovalPage() {
-    const [data, setData] = useState<CompOffApproval[]>([]);
-
-    const loadData = () => {
-        setData(compOffDB.list());
-    };
-
-    useEffect(() => {
-        loadData();
-    }, []);
+    const { data: response, isLoading, error } = useCompOffApproval();
+    const { mutate: updateStatus } = useUpdateCompOffApprovalStatus();
 
     const handleApprove = (row: CompOffApproval) => {
-        compOffDB.update(row.id, { hrStatus: 'Approved' });
-        toast.success('Approved');
-        loadData();
+        updateStatus({ id: row.id, hrStatus: 'Approved' });
     };
 
     const handleReject = (row: CompOffApproval) => {
-        compOffDB.update(row.id, { hrStatus: 'Rejected' });
-        toast.success('Rejected');
-        loadData();
+        updateStatus({ id: row.id, hrStatus: 'Rejected' });
     };
 
     const columns = useMemo(
-        () => getCompOffApprovalColumns({ onApprove: handleApprove, onReject: handleReject }),
+        () => compOffApprovalColumns({ onApprove: handleApprove, onReject: handleReject }),
         [handleApprove, handleReject]
     );
+
+    const tableProps = useDataTableProps({
+        data: response?.data || [],
+        totalItems: response?.data?.length || 0
+    });
 
     return (
         <div className='min-h-screen'>
@@ -54,11 +45,17 @@ export default function CompOffApprovalPage() {
                     variant='default'
                     size='lg'
                     className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
-                    {data.length === 0 ? (
-                        <div className='py-10 text-center text-muted-foreground text-sm'>No Approvals Pending</div>
-                    ) : (
-                        <GenericDataTable data={data} columns={columns} totalItems={data.length} isLoading={false} />
-                    )}
+                    <GenericDataTable<CompOffApproval>
+                        {...tableProps}
+                        columns={columns}
+                        isLoading={isLoading}
+                        error={error}
+                        showViewOptions={false}
+                        loadingMessage='Loading comp off approvals...'
+                        noDataTitle='No Approvals Pending'
+                        noDataDescription='All comp off requests have been processed'
+                        errorTitle='Error Loading Comp Off Approvals'
+                    />
                 </CollapsibleSection>
             </div>
         </div>
