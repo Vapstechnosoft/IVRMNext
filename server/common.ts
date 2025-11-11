@@ -328,11 +328,11 @@ export async function getUserAccessibleModules() {
                                         },
                                         {
                                             id: 27,
-                                            name: 'Master Fee Terms',
+                                            name: 'Fee Terms',
                                             icon: 'Settings',
                                             url: '/fees/masters/feemasterterms',
-                                            title: 'Master Fee Terms',
-                                            description: 'Manage Master Fee Terms Details'
+                                            title: 'Fee Terms',
+                                            description: 'Manage Fee Terms Details'
                                         },
                                         {
                                             id: 28,
