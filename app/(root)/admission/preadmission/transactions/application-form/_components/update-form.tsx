@@ -2133,7 +2133,7 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                                                                     label='Father Income'
                                                                     id='pasR_FatherIncome'
                                                                     value={field.value || 0}
-                                                                    onChange={(value) => field.onChange(value)}
+                                                                    onChange={(value) => field.onChange(Number.isNaN(value) ? 0 : value)}
                                                                     minValue={0}
                                                                 />
                                                             )}
@@ -2444,7 +2444,7 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                                                                     label='Mother Income'
                                                                     id='pasR_MotherIncome'
                                                                     value={field.value || 0}
-                                                                    onChange={(value) => field.onChange(value)}
+                                                                    onChange={(value) => field.onChange(Number.isNaN(value) ? 0 : value)}
                                                                     minValue={0}
                                                                 />
                                                             )}

@@ -137,8 +137,8 @@ export const studentApplicationFormSchema = {
         pasA_MotherCompany: createOptionalStringSchema('Mother Company', 1, 150),
 
         // Income
-        pasR_FatherIncome: z.number().optional(),
-        pasR_MotherIncome: z.number().optional(),
+        pasR_FatherIncome: z.number().default(0).optional(),
+        pasR_MotherIncome: z.number().default(0).optional(),
 
         // Alternate Contact
         pasR_AltContactNo: z
