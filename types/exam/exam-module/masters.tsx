@@ -204,3 +204,21 @@ export interface ICategoryClassMappingDetails {
     asmC_Order: number;
     asmC_ActiveFlag: boolean;
 }
+export interface ICoScholasticActivity {
+    ecacT_Id: number;
+    mI_Id: number;
+    ecacT_SkillName: string;
+    ecacT_SkillCode: string;
+    ecacT_ActiveFlag: boolean;
+    createdDate: string;
+    updatedDate: string;
+}
+export interface ICoScholasticArea {
+    ecactA_Id: number;
+    mI_Id: number;
+    ecactA_SkillArea?: string;
+    ecactA_SkillOrder: number;
+    ecactA_ActiveFlag: boolean;
+    createdDate: string;
+    updatedDate: string;
+}

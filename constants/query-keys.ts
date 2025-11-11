@@ -116,5 +116,10 @@ export const EXAM_QUERY_KEYS = {
     EXAM_TERM_AND_EXAM_MAPPING: 'exam-term-and-exam-mapping',
     EXAM_TERM_AND_EXAM_MAPPING_DETAILS: 'exam-term-and-exam-mapping-details',
     EXAM_SUBJECT_WIZARD: 'exam-subject-wizard',
-    EXAM_SUBJECT_WIZARD_DETAILS: 'exam-subject-wizard-details'
+    EXAM_SUBJECT_WIZARD_DETAILS: 'exam-subject-wizard-details',
+    CO_SCHOLASTIC_ACTIVITY: 'co-scholastic-activity',
+    CO_SCHOLASTIC_AREA: 'co-scholastic-area',
+    CO_SCHOLASTIC_ACTIVITY_AREA_MAPPING: 'co-scholastic-activity-area-mapping',
+    CO_SCHOLASTIC_ACTIVITY_DROPDOWN: 'co-scholastic-activity-dropdown',
+    CO_SCHOLASTIC_AREA_DROPDOWN: 'co-scholastic-area-dropdown'
 };

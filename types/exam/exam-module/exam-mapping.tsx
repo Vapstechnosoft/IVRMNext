@@ -270,3 +270,17 @@ export interface IExamSubjectWizardDetails {
     eyceS_ActiveFlg: boolean;
     pT_Count: number;
 }
+export interface ICoScholasticActivityAreaMapping {
+    ecacT_SkillName?: string; // "ACTIVITY"
+    ecactA_SkillArea?: string; // "ART EDUCATION"
+    emgR_GradeName?: string; // "100 Marks Percentage"
+    ecactaM_Id?: number; // 19
+    emgR_Id?: number; // 133
+    ecactaM_ActiveFlag: boolean; // true
+    ecactaM_IndicatorDescription?: string | null; // "string" (or null)
+    asmaY_Year?: string; // "2024-2025"
+    asmaY_Order?: number;
+    ecacT_Id?: number;
+    ecactA_Id?: number;
+    asmaY_Id?: number; // 26
+}

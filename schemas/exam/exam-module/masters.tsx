@@ -231,3 +231,25 @@ export const categoryClassMappingSchema = {
             .min(1, { message: 'At least one section must be selected' })
     })
 };
+export const coScholasticActivitySchema = {
+    addOrUpdate: z.object({
+        ecacT_Id: z.number().optional(),
+        mI_Id: z.number(),
+        ecacT_SkillName: z.string().min(1, { message: 'Co-Scholastic Activity Name is required' }),
+        ecacT_SkillCode: z.string().min(1, { message: 'Co-Scholastic Activity is required' })
+    }),
+    delete: z.object({
+        ecacT_Id: deleteIdSchema('ecacT_Id')
+    })
+};
+export const coScholasticAreaSchema = {
+    addOrUpdate: z.object({
+        ecactA_Id: z.number().optional(),
+        mI_Id: z.number(),
+        ecactA_SkillArea: z.string().min(1, { message: 'Co-Scholastic Area Name is required' }),
+        ecactA_SkillOrder: z.coerce.number().min(1, { message: 'Co-Scholastic Activity Order is required' })
+    }),
+    delete: z.object({
+        ecactA_Id: deleteIdSchema('ecactA_Id')
+    })
+};

@@ -258,7 +258,7 @@ export function getSearchParamsUrl(searchParams: ApiSearchparams | undefined, se
     const page = searchParams?.page || 1;
     const page_size = searchParams?.page_size || 10;
     const sort_column = searchParams?.sort_column || '';
-    const sort_direction = searchParams?.sort_direction || 'asc';
+    const sort_direction = searchParams?.sort_direction || 'desc';
     const search_query = searchParams?.search_query || '';
 
     let url = `page=${page}&page_size=${page_size}&sort_column=${sort_column}&sort_direction=${sort_direction}`;
