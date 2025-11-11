@@ -1,12 +1,9 @@
 'use client';
-
-import ToggleMasterCategoryForm from '@/app/(root)/admission/preadmission/masters/category/_components/toggle-form';
 import { Heading } from '@/components/layout/heading';
 import { Button } from '@/components/ui/button';
-import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
+import { FormProvider } from '@/components/ui/form/form-provider';
 import { GenericDataTable, useDataTableProps } from '@/components/ui/view-data-table/view-generic-data-table';
 import { getYearlyCategorySubjectMappingDetails } from '@/server/exam/exam-module/exam-mapping/yearly-category-subject-mapping';
-import type { IMasterCategoryList } from '@/types/admission/preadmission/masters';
 import type { IYearlyCategorySubjectMapping, IYearlyCategorySubjectMappingViewDetails } from '@/types/exam/exam-module/exam-mapping';
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
@@ -98,7 +95,7 @@ export default function YearlyCategorySubjectMappingDetailsPage({ rowData, onClo
                         showViewOptions={false}
                     />
 
-                    <FormSections />
+                    {/* <FormSections /> */}
                 </div>
             </div>
         </FormProvider>
@@ -108,8 +105,8 @@ export default function YearlyCategorySubjectMappingDetailsPage({ rowData, onClo
 // -------------------------
 // Form Sections for Toggle Form
 // -------------------------
-function FormSections() {
-    const { isToggleFormOpen, selectedRow, closeToggleForm } = useFormContext<IMasterCategoryList>();
+// function FormSections() {
+//     const { isToggleFormOpen, selectedRow, closeToggleForm } = useFormContext<IYearlyCategorySubjectMappingViewDetails>();
 
-    return <>{isToggleFormOpen && selectedRow && <ToggleMasterCategoryForm rowData={selectedRow} onClose={closeToggleForm} />}</>;
-}
+//     return <>{isToggleFormOpen && selectedRow && <ToggleMasterCategoryForm rowData={selectedRow} onClose={closeToggleForm} />}</>;
+// }

@@ -128,12 +128,13 @@ export default function SubjectTable({
     };
 
     const handleMapClick = (subject: any) => {
-        if (showSubExamColumn && subject.ECYSES_SubExamFlg) {
+        console.log(subject);
+        if (subject.ECYSES_SubExamFlg && subject.ECYSES_SubSubjectFlg) {
+            onOpenSubSubjectSubExamModal(subject);
+        } else if (showSubExamColumn && subject.ECYSES_SubExamFlg) {
             onOpenSubExamModal(subject);
         } else if (showSubSubjectColumn && subject.ECYSES_SubSubjectFlg) {
             onOpenSubSubjectModal(subject);
-        } else if (showSubExamColumn && showSubSubjectColumn && subject.ECYSES_SubSubjectFlg && subject.ECYSES_SubSubjectFlg) {
-            onOpenSubSubjectSubExamModal(subject);
         }
     };
 
@@ -295,7 +296,6 @@ export default function SubjectTable({
                                                 onCheckedChange={(v) => updateSubjectField(s.ISMS_Id, 'ECYSES_SubExamFlg', !!v)}
                                                 disabled={!canToggleSubFlags}
                                             />
-                                            {!canToggleSubFlags && <div className='mt-1 text-slate-400 text-xs'>Enter marks first</div>}
                                         </td>
                                     )}
                                     {showSubSubjectColumn && (
@@ -305,7 +305,6 @@ export default function SubjectTable({
                                                 onCheckedChange={(v) => updateSubjectField(s.ISMS_Id, 'ECYSES_SubSubjectFlg', !!v)}
                                                 disabled={!canToggleSubFlags}
                                             />
-                                            {!canToggleSubFlags && <div className='mt-1 text-slate-400 text-xs'>Enter marks first</div>}
                                         </td>
                                     )}
                                     {(showSubExamColumn || showSubSubjectColumn) && (

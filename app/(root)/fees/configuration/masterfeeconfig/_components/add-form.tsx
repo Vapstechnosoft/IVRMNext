@@ -3,8 +3,7 @@
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/extension/field';
-
-import { useMasterModeOfPayment } from '@/hooks/fees/useMasters';
+import { useFeeconfiguration } from '@/hooks/fees/useConfiguration';
 import { feeConfigSchema } from '@/schemas/fees/configuration';
 import { addOrUpdatefeeconfig } from '@/server/fees/configuration/feeconfiguration';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -21,7 +20,7 @@ interface AddFeeConfigProps {
 }
 
 export default function AddFeeConfigForm({ onSuccess, className = '' }: AddFeeConfigProps) {
-    const { refetchAll } = useMasterModeOfPayment();
+    const { refetchAll } = useFeeconfiguration();
 
     const {
         control,
@@ -51,7 +50,8 @@ export default function AddFeeConfigForm({ onSuccess, className = '' }: AddFeeCo
                 FMC_RSectionFlag: defaultNumber(data.FMC_RSectionFlag),
                 FMC_No_Receipt: defaultNumber(data.FMC_No_Receipt),
                 FMC_Online_Payment_Aca_Yr_Flag: defaultString(data.FMC_Online_Payment_Aca_Yr_Flag),
-                FMC_GroupOrTermFlg: defaultString(data.FMC_GroupOrTermFlg),
+                //FMC_GroupOrTermFlg: defaultString(data.FMC_GroupOrTermFlg),
+                FMC_GroupOrTermFlg: data.FMC_GroupOrTermFlg,
                 FMC_ArrearAfterFlag: defaultNumber(data.FMC_ArrearAfterFlag),
                 FMC_Areawise_FeeFlg: defaultNumber(data.FMC_Areawise_FeeFlg),
                 FMC_TransportFeeAreaFlag: defaultNumber(data.FMC_TransportFeeAreaFlag),
@@ -105,8 +105,6 @@ export default function AddFeeConfigForm({ onSuccess, className = '' }: AddFeeCo
 
             const jsondata = JSON.stringify(payload);
 
-            console.log('Payload Data', jsondata);
-
             const response = await addOrUpdatefeeconfig(payload);
             if (response.success) {
                 toast.success(response.message);
@@ -136,27 +134,58 @@ export default function AddFeeConfigForm({ onSuccess, className = '' }: AddFeeCo
                                     <b>General</b>
                                 </div>
 
-                                <div className='flex items-center justify-center space-x-6 rounded-lg border border-gray-300 bg-white px-4 py-2'>
-                                    <label className='inline-flex cursor-pointer items-center space-x-4'>
-                                        <input
-                                            type='radio'
-                                            name='FMC_GroupOrTermFlg'
-                                            value='T'
-                                            className='form-radio h-5 w-5 text-blue-600'
-                                            defaultChecked
-                                        />
-                                        <span className='text-gray-900'>Fee Term</span>
-                                    </label>
+                                <div>
+                                    {/* className="flex items-center justify-center space-x-6 rounded-lg border border-gray-300 bg-white px-4 py-2" */}
+                                    {/* <label className="inline-flex cursor-pointer items-center space-x-4">
+                    <input
+                      type="radio"
+                      name="FMC_GroupOrTermFlg"
+                      value="T"
+                      className="form-radio h-5 w-5 text-blue-600"
+                      defaultChecked
+                    />
+                    <span className="text-gray-900">Fee Term</span>
+                  </label>
 
-                                    <label className='inline-flex cursor-pointer items-center space-x-4'>
-                                        <input
-                                            type='radio'
-                                            name='FMC_GroupOrTermFlg'
-                                            value='G'
-                                            className='form-radio h-5 w-5 text-gray-600'
-                                        />
-                                        <span className='text-gray-900'>Fee Group</span>
-                                    </label>
+                  <label className="inline-flex cursor-pointer items-center space-x-4">
+                    <input
+                      type="radio"
+                      name="FMC_GroupOrTermFlg"
+                      value="G"
+                      className="form-radio h-5 w-5 text-gray-600"
+                    />
+                    <span className="text-gray-900">Fee Group</span>
+                  </label> */}
+                                    <Controller
+                                        name='FMC_GroupOrTermFlg'
+                                        control={control}
+                                        defaultValue='T'
+                                        render={({ field }) => (
+                                            <div className='flex items-center justify-center space-x-6 rounded-lg border border-gray-300 bg-white px-4 py-2'>
+                                                <label className='inline-flex cursor-pointer items-center space-x-4'>
+                                                    <input
+                                                        type='radio'
+                                                        value='T'
+                                                        checked={field.value === 'T'}
+                                                        onChange={() => field.onChange('T')}
+                                                        className='form-radio h-5 w-5 text-blue-600'
+                                                    />
+                                                    <span className='text-gray-900'>Fee Term</span>
+                                                </label>
+
+                                                <label className='inline-flex cursor-pointer items-center space-x-4'>
+                                                    <input
+                                                        type='radio'
+                                                        value='G'
+                                                        checked={field.value === 'G'}
+                                                        onChange={() => field.onChange('G')}
+                                                        className='form-radio h-5 w-5 text-gray-600'
+                                                    />
+                                                    <span className='text-gray-900'>Fee Group</span>
+                                                </label>
+                                            </div>
+                                        )}
+                                    />
                                 </div>
                             </div>
                         </div>
@@ -639,7 +668,7 @@ export default function AddFeeConfigForm({ onSuccess, className = '' }: AddFeeCo
                                         <div className='flex items-center space-x-2'>
                                             <Checkbox
                                                 checked={field.value === '1'}
-                                                onCheckedChange={(checked) => field.onChange(checked ? 1 : 0)} // send int values
+                                                onCheckedChange={(checked) => field.onChange(checked ? '1' : '0')} // send int values
                                                 id='FMC_RInstallmentsMergeFlag'
                                             />
                                             <Label htmlFor='Merge Installment'>Merge Installment</Label>
@@ -852,23 +881,67 @@ export default function AddFeeConfigForm({ onSuccess, className = '' }: AddFeeCo
                             />
                         </div>
 
+                        {/* <div className="group mt-1.5 flex flex-row items-center gap-3">
+              <label htmlFor="No. Of Receipt" className="w-32">
+                No. Of Receipt :
+              </label>
+              <input
+                id="FMC_No_Receipt"
+                {...register("FMC_No_Receipt")}
+                className="rounded border px-2 py-1 transition-colors focus:ring-2 focus:ring-primary/20"
+              />
+            </div> */}
                         <div className='group mt-1.5 flex flex-row items-center gap-3'>
-                            <label htmlFor='No. Of Receipt' className='w-32'>
+                            <label htmlFor='FMC_No_Receipt' className='w-32'>
                                 No. Of Receipt :
                             </label>
                             <input
                                 id='FMC_No_Receipt'
-                                {...register('FMC_No_Receipt')}
+                                type='text'
+                                maxLength={1} // only one character allowed
+                                inputMode='numeric' // brings up number keyboard on mobile
+                                pattern='[0-9]*' // allows only digits
+                                {...register('FMC_No_Receipt', {
+                                    maxLength: 1,
+                                    pattern: /^[0-9]$/ // only a single digit
+                                })}
+                                onInput={(e) => {
+                                    const target = e.target as HTMLInputElement;
+                                    target.value = target.value.replace(/[^0-9]/g, '').slice(0, 1);
+                                }}
                                 className='rounded border px-2 py-1 transition-colors focus:ring-2 focus:ring-primary/20'
                             />
                         </div>
+
+                        {/* <div className="group mt-1.5 flex flex-row items-center gap-3">
+              <label htmlFor=" No. Of Search By Character" className="w-32">
+                No. Of Search By Character :
+              </label>
+              <input
+                id="FMC_FeeSearchNoOfDigits"
+                {...register("FMC_FeeSearchNoOfDigits")}
+                className="rounded border px-2 py-1 transition-colors focus:ring-2 focus:ring-primary/20"
+              />
+            </div> */}
+
                         <div className='group mt-1.5 flex flex-row items-center gap-3'>
-                            <label htmlFor=' No. Of Search By Character' className='w-32'>
+                            <label htmlFor='FMC_FeeSearchNoOfDigits' className='w-32'>
                                 No. Of Search By Character :
                             </label>
                             <input
                                 id='FMC_FeeSearchNoOfDigits'
-                                {...register('FMC_FeeSearchNoOfDigits')}
+                                type='text'
+                                maxLength={1} // only one character allowed
+                                inputMode='numeric' // brings up numeric keypad on mobile
+                                pattern='[0-9]*' // only digits allowed
+                                {...register('FMC_FeeSearchNoOfDigits', {
+                                    maxLength: 1,
+                                    pattern: /^[0-9]$/ // only one digit
+                                })}
+                                onInput={(e) => {
+                                    const target = e.target as HTMLInputElement;
+                                    target.value = target.value.replace(/[^0-9]/g, '').slice(0, 1);
+                                }}
                                 className='rounded border px-2 py-1 transition-colors focus:ring-2 focus:ring-primary/20'
                             />
                         </div>
@@ -884,13 +957,36 @@ export default function AddFeeConfigForm({ onSuccess, className = '' }: AddFeeCo
                             />
                         </div>
 
+                        {/* <div className="group mt-1.5 flex flex-row items-center gap-3">
+              <label htmlFor="Partial Payment" className="w-32">
+                Partial Payment :
+              </label>
+              <input
+                id="FMC_EnablePartialPaymentFlg"
+                {...register("FMC_EnablePartialPaymentFlg")}
+                className="rounded border px-2 py-1 transition-colors focus:ring-2 focus:ring-primary/20"
+              />
+            </div> */}
+
                         <div className='group mt-1.5 flex flex-row items-center gap-3'>
-                            <label htmlFor='Partial Payment' className='w-32'>
+                            <label htmlFor='FMC_EnablePartialPaymentFlg' className='w-32'>
                                 Partial Payment :
                             </label>
                             <input
                                 id='FMC_EnablePartialPaymentFlg'
-                                {...register('FMC_EnablePartialPaymentFlg')}
+                                type='text'
+                                inputMode='numeric'
+                                pattern='[0-2]*' // only digits 0,1,2 allowed
+                                maxLength={5} // maximum 5 digits
+                                {...register('FMC_EnablePartialPaymentFlg', {
+                                    pattern: /^[0-2]{0,5}$/, // only 0-2 allowed, up to 5 characters
+                                    maxLength: 5
+                                })}
+                                onInput={(e) => {
+                                    const target = e.target as HTMLInputElement;
+                                    // remove any characters not 0–2, and limit to 5 characters
+                                    target.value = target.value.replace(/[^0-2]/g, '').slice(0, 5);
+                                }}
                                 className='rounded border px-2 py-1 transition-colors focus:ring-2 focus:ring-primary/20'
                             />
                         </div>
@@ -932,7 +1028,7 @@ export default function AddFeeConfigForm({ onSuccess, className = '' }: AddFeeCo
                                         <div className='flex items-center space-x-2'>
                                             <Checkbox
                                                 checked={field.value === '1'}
-                                                onCheckedChange={(checked) => field.onChange(checked ? 1 : 0)} // send int values
+                                                onCheckedChange={(checked) => field.onChange(checked ? '1' : '0')} // send int values
                                                 id='FMC_RClassFlag'
                                             />
                                             <Label htmlFor='Class'>Class</Label>
@@ -1175,22 +1271,59 @@ export default function AddFeeConfigForm({ onSuccess, className = '' }: AddFeeCo
                             <b>Account Setting</b>
                         </div>
 
-                        <div className='flex items-center justify-center space-x-6 rounded-lg border border-gray-300 bg-white px-4 py-2'>
-                            <label className='inline-flex cursor-pointer items-center space-x-4'>
-                                <input
-                                    type='radio'
-                                    name='FMC_StudentwiseJVFlag'
-                                    value='T'
-                                    className='form-radio h-5 w-5 text-blue-600'
-                                    defaultChecked
-                                />
-                                <span className='text-gray-900'>Student Wise JV </span>
-                            </label>
+                        <div>
+                            {/* className="flex items-center justify-center space-x-6 rounded-lg border border-gray-300 bg-white px-4 py-2" */}
+                            {/* <label className="inline-flex cursor-pointer items-center space-x-4">
+                <input
+                  type="radio"
+                  name="FMC_StudentwiseJVFlag"
+                  value="T"
+                  className="form-radio h-5 w-5 text-blue-600"
+                  defaultChecked
+                />
+                <span className="text-gray-900">Student Wise JV </span>
+              </label>
 
-                            <label className='inline-flex cursor-pointer items-center space-x-2'>
-                                <input type='radio' name='FMC_StudentwiseJVFlag' value='G' className='form-radio h-5 w-5 text-gray-600' />
-                                <span className='text-gray-900'>Fee Head Wise JV</span>
-                            </label>
+              <label className="inline-flex cursor-pointer items-center space-x-2">
+                <input
+                  type="radio"
+                  name="FMC_StudentwiseJVFlag"
+                  value="G"
+                  className="form-radio h-5 w-5 text-gray-600"
+                />
+                <span className="text-gray-900">Fee Head Wise JV</span>
+              </label> */}
+
+                            <Controller
+                                name='FMC_StudentwiseJVFlag'
+                                control={control}
+                                defaultValue='T'
+                                render={({ field }) => (
+                                    <div className='flex items-center justify-center space-x-6 rounded-lg border border-gray-300 bg-white px-4 py-2'>
+                                        <label className='inline-flex cursor-pointer items-center space-x-4'>
+                                            <input
+                                                type='radio'
+                                                value='S'
+                                                checked={field.value === 'S'}
+                                                onChange={() => field.onChange('S')}
+                                                className='form-radio h-5 w-5 text-blue-600'
+                                            />
+                                            <span className='text-gray-900'>Student Wise JV</span>
+                                        </label>
+
+                                        <label className='inline-flex cursor-pointer items-center space-x-4'>
+                                            <input
+                                                type='radio'
+                                                value='H'
+                                                checked={field.value === 'H'}
+                                                onChange={() => field.onChange('H')}
+                                                className='form-radio h-5 w-5 text-gray-600'
+                                            />
+                                            <span className='text-gray-900'>Fee Head Wise JV</span>
+                                        </label>
+                                    </div>
+                                )}
+                            />
                         </div>
                     </div>
                     <div>

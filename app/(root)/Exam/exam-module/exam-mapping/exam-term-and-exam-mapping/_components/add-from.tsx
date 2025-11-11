@@ -249,7 +249,6 @@ export default function AddExamTermAndExamMapping({ onSuccess }: { onSuccess?: (
                     ecteX_NotApplicableToTotal: r.ecteX_NotApplicableToTotal // boolean
                 }))
             };
-            console.log('FINAL PAYLOAD →', JSON.stringify(payload, null, 2));
             const res = await addOrUpdateExamTermAndExamMapping(payload);
             if (res?.success) {
                 toast.success('Exam term mapping saved successfully');

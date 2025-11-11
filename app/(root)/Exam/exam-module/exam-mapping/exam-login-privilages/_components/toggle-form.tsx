@@ -39,7 +39,6 @@ export default function ToggleCategoryClassMappingForm({ rowData, onClose }: Tog
     const onSubmit: SubmitHandler<FormFields> = async () => {
         try {
             const response = await toggleMasterExamCategoryClassSection(30, Number(rowData.ecaC_Id));
-
             if (response.success) {
                 toast.success(response.message);
                 refetchAll();

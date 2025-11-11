@@ -71,11 +71,30 @@ export default function AddMasterConcessionForm({ onSuccess, concession = '' }: 
             <form onSubmit={handleSubmit(onSubmit)} className='flex w-full flex-col items-center justify-center space-y-6'>
                 <div className='space-y-4'>
                     <div className='grid grid-cols-1 gap-4 md:grid-cols-4'>
-                        <InputText
+                        {/* <InputText
                             label='Concession Name'
                             required
                             id='fmcC_ConcessionName'
                             {...register('fmcC_ConcessionName')}
+                            error={errors.fmcC_ConcessionName?.message}
+                            className='transition-colors focus:ring-2 focus:ring-primary/20'
+                        /> */}
+                        <InputText
+                            label='Concession Name'
+                            required
+                            id='fmcC_ConcessionName'
+                            {...register('fmcC_ConcessionName', {
+                                onChange: (e) => {
+                                    // ✅ Allow only alphabets (no spaces, numbers, or special characters)
+                                    e.target.value = e.target.value.replace(/[^a-zA-Z]/g, '');
+                                },
+                                validate: (value) => {
+                                    if (!value.trim()) {
+                                        return 'Concession Name is required';
+                                    }
+                                    return true;
+                                }
+                            })}
                             error={errors.fmcC_ConcessionName?.message}
                             className='transition-colors focus:ring-2 focus:ring-primary/20'
                         />

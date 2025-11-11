@@ -21,7 +21,7 @@ export const masterCasteCategoryColumns: ColumnDef<IMasterCasteCategoryList>[] =
     },
     {
         accessorKey: 'fmcC_ClassCategoryName',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Class Category Name' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title=' Category Name' />,
         cell: ({ row }) => <div>{row.getValue('fmcC_ClassCategoryName')}</div>,
         enableSorting: true,
         enableHiding: true

@@ -68,10 +68,11 @@ export const YearlyCategorySubjectMappingColumns: ColumnDef<IYearlyCategorySubje
 ];
 
 function ActionButtonsCell({ rowData }: { rowData: IYearlyCategorySubjectMapping }) {
-    const { openEditForm, openDetailsView } = useFormContext<IYearlyCategorySubjectMapping>();
+    const { openEditForm, openDetailsView, openToggleForm } = useFormContext<IYearlyCategorySubjectMapping>();
 
-    const handleView = useCallback(() => openDetailsView(rowData), [openDetailsView, rowData]);
     const handleEdit = useCallback(() => openEditForm(rowData), [openEditForm, rowData]);
+    const handleView = useCallback(() => openDetailsView(rowData), [openDetailsView, rowData]);
+    const handleToggle = useCallback(() => openToggleForm?.(rowData), [openToggleForm, rowData]);
 
     return (
         <div className='flex justify-center gap-2'>
@@ -82,6 +83,7 @@ function ActionButtonsCell({ rowData }: { rowData: IYearlyCategorySubjectMapping
                 rowData={rowData}
                 buttons={{ edit: true, delete: false, toggle: true }}
                 onEdit={handleEdit}
+                onToggle={handleToggle}
                 toggleConditionKey='eyC_ActiveFlg'
             />
         </div>

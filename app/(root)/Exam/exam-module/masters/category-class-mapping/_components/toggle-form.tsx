@@ -3,7 +3,6 @@
 import { Button } from '@/components/ui/button';
 import { AdaptiveBody, AdaptiveDialog, AdaptiveFooter } from '@/components/ui/extension/adaptive-dialog';
 import { FormError } from '@/components/ui/extension/field';
-import { useMasterCategoryClassMapping } from '@/hooks/exam/exammodule/usemasters';
 import { toggleMasterExamCategoryClassSection } from '@/server/exam/exam-module/masters/category-class-mapping';
 import type { ICategoryClassMappingDetails } from '@/types/exam/exam-module/masters';
 import { type SubmitHandler, useForm } from 'react-hook-form';
@@ -18,10 +17,12 @@ interface ToggleCategoryClassMappingFormProps {
     onClose: () => void;
 }
 
-export default function ToggleCategoryClassMappingForm({ rowData, onClose }: ToggleCategoryClassMappingFormProps) {
-    const { refetchAll } = useMasterCategoryClassMapping();
+export default function ToggleCategoryClassMappingForm({
+    rowData,
+    onClose,
+    refetchAll
+}: ToggleCategoryClassMappingFormProps & { refetchAll: () => void }) {
     const isActive = rowData.asmC_ActiveFlag;
-
     const {
         register,
         handleSubmit,
@@ -39,7 +40,7 @@ export default function ToggleCategoryClassMappingForm({ rowData, onClose }: Tog
     const onSubmit: SubmitHandler<FormFields> = async () => {
         try {
             const response = await toggleMasterExamCategoryClassSection(30, Number(rowData.ecaC_Id));
-
+            console.log(rowData);
             if (response.success) {
                 toast.success(response.message);
                 refetchAll();

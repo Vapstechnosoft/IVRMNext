@@ -54,8 +54,11 @@ export async function getPreadmissionStudentTermsData(studentId: number): Promis
     return res.data ?? [];
 }
 
-export async function getPreadmissionStudentTrasactionData(studentId: number): Promise<IFeePreAdmissionTransactionDetails[]> {
-    const url = `FeePreadmissionFacade/feedashboard?MIId=30&ASMAY_Id=231&StudentId=${studentId}`;
+export async function getPreadmissionStudentTrasactionData(
+    studentId: number,
+    academicYear: number
+): Promise<IFeePreAdmissionTransactionDetails[]> {
+    const url = `FeePreadmissionFacade/feedashboard?MIId=30&ASMAY_Id=${academicYear}&StudentId=${studentId}`;
 
     console.info('Requesting preadmission transaction details:', { baseUrlKey: 'fees', url });
 

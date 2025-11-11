@@ -18,3 +18,13 @@ export async function getYearlyCategorySubjectMappingDetails(eyc_Id: number, eyc
     const url = `/category_subject_mapping/yearly_category_subject_view_by_ids/${eyc_Id}/${eycg_id}/${asmay_id}`;
     return await api.get<IYearlyCategorySubjectMappingViewDetails>('exam', url);
 }
+
+export async function addOrUpdateYearlyCategorySubjectMapping(data: any) {
+    const url = '/category_subject_mapping';
+    return await api.post<any>('exam', url, data);
+}
+
+export async function toggleYearlyCategorySubjectMapping(mI_Id: number, eycg_id: number) {
+    const url = `/category_subject_mapping/toggle_yearly_category_subjects/${mI_Id}/${eycg_id}`;
+    return await api.put('exam', url);
+}

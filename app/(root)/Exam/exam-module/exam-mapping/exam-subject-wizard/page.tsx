@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/generic-data-table';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
-import { MasterViewDetails } from '@/components/ui/set-order/generic-seto-order';
+import { MasterViewDetails } from '@/components/ui/set-order/generic-set-order';
 import { useExamSubjectWizard } from '@/hooks/exam/exammodule/exam-mapping';
 import { UpdateOrderedSubjectDetails, getExamSubjectWizardDetails } from '@/server/exam/exam-module/exam-mapping/exam-subject-wizard';
 import type { IExamSubjectOrder, IExamSubjectWizard } from '@/types/exam/exam-module/exam-mapping';
@@ -45,6 +45,9 @@ function ExamSubjectWizardPageContent({
     const [isOrderSaving, setIsOrderSaving] = useState(false);
     const [isOrderloading, setIsOrderloading] = useState(true);
     const [orderData, setOrderData] = useState<(IExamSubjectOrder & { id: number })[]>([]);
+    useEffect(() => {
+        console.log(response);
+    }, [response]);
 
     useEffect(() => {
         (async () => {
@@ -216,7 +219,7 @@ function FormSections() {
                                 className='-top-[3.5rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
                                 <X className='h-4 w-4 text-destructive' /> Close
                             </Button>
-                            {/* <UpdateExamSubjectWizard rowData={selectedRow} onSuccess={closeEditForm} /> */}
+                            <AddExamSubjectWizard rowData={selectedRow} onSuccess={closeEditForm} />
                         </div>
                     </CollapsibleSection>
                 </div>

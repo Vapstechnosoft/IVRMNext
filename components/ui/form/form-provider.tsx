@@ -10,6 +10,7 @@ interface FormContextType<T = any> {
     isDeleteFormOpen: boolean;
     isDetailsViewOpen: boolean; // 👈 New for Grade details view
     isOrderDetailsOpen: boolean;
+    isMappedviewOpen: boolean;
     selectedRow: T | null;
 
     // Actions
@@ -25,6 +26,8 @@ interface FormContextType<T = any> {
     closeDetailsView: () => void; // 👈 New action
     openOrderDetails: (row: T) => void;
     closeOrderDetails: () => void;
+    openMappedview: (row: T) => void;
+    closeMappedview: () => void;
     closeAllForms: () => void;
 
     // Refs for scrolling
@@ -53,6 +56,7 @@ export function FormProvider<T = any>({
     const [isDeleteFormOpen, setIsDeleteFormOpen] = useState(false);
     const [isDetailsViewOpen, setIsDetailsViewOpen] = useState(false); //  New state
     const [isOrderDetailsOpen, setIsOrderDetailsOpen] = useState(false); // New state
+    const [isMappedviewOpen, setIsMappedviewOpen] = useState(false);
     const [selectedRow, setSelectedRow] = useState<T | null>(null);
 
     const addFormRef = useRef<HTMLDivElement>(null);
@@ -88,6 +92,7 @@ export function FormProvider<T = any>({
         setIsDeleteFormOpen(false);
         setIsDetailsViewOpen(false); //  Close details view also
         setIsOrderDetailsOpen(false);
+        setIsMappedviewOpen(false);
         setSelectedRow(null);
         scrollToTop();
     }, [scrollToTop]);
@@ -172,6 +177,21 @@ export function FormProvider<T = any>({
         scrollToTop();
     }, [scrollToTop]);
 
+    const openMappedview = useCallback(
+        (row: T) => {
+            closeAllForms();
+            setSelectedRow(row);
+            setIsMappedviewOpen(true);
+        },
+        [closeAllForms]
+    );
+
+    const closeMappedview = useCallback(() => {
+        setIsMappedviewOpen(false);
+        setSelectedRow(null);
+        scrollToTop();
+    }, [scrollToTop]);
+
     return (
         <FormContext.Provider
             value={{
@@ -181,6 +201,7 @@ export function FormProvider<T = any>({
                 isDeleteFormOpen,
                 isDetailsViewOpen, //  Include this
                 isOrderDetailsOpen, //  Include this
+                isMappedviewOpen,
                 selectedRow,
                 openAddForm,
                 closeAddForm,
@@ -190,10 +211,12 @@ export function FormProvider<T = any>({
                 closeToggleForm,
                 openDeleteForm,
                 closeDeleteForm,
-                openDetailsView, //  Include this
-                closeDetailsView, //  Include this
-                openOrderDetails, //  Include thi
-                closeOrderDetails, //  Include this
+                openDetailsView,
+                closeDetailsView,
+                openOrderDetails,
+                closeOrderDetails,
+                openMappedview,
+                closeMappedview,
                 closeAllForms,
                 addFormRef,
                 editFormRef

@@ -1,6 +1,6 @@
 import { EXAM_QUERY_KEYS } from '@/constants/query-keys';
 import { getExamMasterCategory } from '@/server/exam/exam-module/masters/category';
-import { getExamMasterCategoryMapping } from '@/server/exam/exam-module/masters/category-class-mapping';
+import { getCategoryMappedSections, getExamMasterCategoryMapping } from '@/server/exam/exam-module/masters/category-class-mapping';
 import { getMasterExam } from '@/server/exam/exam-module/masters/exam';
 import { getMasterExamPaper } from '@/server/exam/exam-module/masters/exam-paper';
 import { getGradeDetailsById, getMasterGrade } from '@/server/exam/exam-module/masters/grade';
@@ -219,6 +219,22 @@ export const useMasterCategoryClassMapping = (searchParams?: ApiSearchparams) =>
         refetchAll: () => {
             return queryClient.invalidateQueries({
                 queryKey: [EXAM_QUERY_KEYS.MASTER_CATEGORY_CLASS_MAPPING]
+            });
+        }
+    };
+};
+export const useMasterCategoryMappedSections = (academicYear: number, category: number, className: number) => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [EXAM_QUERY_KEYS.MASTER_CATEGORY_CLASS_MAPPED_SECTIONS],
+            queryFn: async () => getCategoryMappedSections(academicYear, category, className),
+            staleTime: 0
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [EXAM_QUERY_KEYS.MASTER_CATEGORY_CLASS_MAPPED_SECTIONS]
             });
         }
     };

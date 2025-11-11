@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button';
 import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/generic-data-table';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
-import { MasterViewDetails } from '@/components/ui/set-order/generic-seto-order';
+import { MasterViewDetails } from '@/components/ui/set-order/generic-set-order';
 import { useMasterSubject } from '@/hooks/exam/exammodule/usemasters';
 import { UpdatedOrderdSubjects, getMasterSubjectOrderData } from '@/server/exam/exam-module/masters/subject';
 import type { IMasterSubject, IMasterSubjectOrder } from '@/types/exam/exam-module/masters';

@@ -74,6 +74,8 @@ export const FEES_QUERY_KEYS = {
     FEE_INSTALLMENT_DUE_DATE: 'fee_installment_due_date',
     FEE_YEARLY_GROUPS: 'fee_yearly_groups',
     FEE_GROUP_LIST_DROPDOWN: 'fee_group_list_dropdown',
+    FEE_MASTER_GROUPWISE_AUTO_RECEIPT: 'fee_master_groupwise_auto_receipt',
+    FEE_MASTER_GROUPWISE_AUTO_RECEIPT_GROUP_DROPDOWN: 'fee_master_groupwise_auto_receipt_group_dropdown',
 
     FEE_MASTER_CONCESSION: 'masterfeeconcession',
     FEE_MASTER_TERMS: 'feemasterterms',
@@ -109,7 +111,9 @@ export const FEES_QUERY_KEYS = {
     FEE_ONLINE_PAYMENT_HEAD_TABLE: 'fee_online_payment_head_table',
     FEE_ONLINE_PAYMENT_HEAD_GROUP_TERMS: 'fee_online_payment_head_group_terms',
     FEE_PREADMISSION_TRANSACTION_DETAILS: 'fee_preadmission_transaction_details',
-    FEE_PREADMISSION_STUDENT_DROPDOWN: 'fee_preadmission_student_dropdown'
+    FEE_PREADMISSION_STUDENT_DROPDOWN: 'fee_preadmission_student_dropdown',
+    FEE_TERM_HEAD_DUEDATE: 'fee_term_head_duedate',
+    FEE_CONCESSION_CATEGORY_DROPDOWN: 'fee_concession_category_dropdown'
 };
 
 export const EXAM_QUERY_KEYS = {
@@ -125,6 +129,7 @@ export const EXAM_QUERY_KEYS = {
     MASTER_ALL_SUBJECT_GROUP_DETAILS: 'master-all-subject-group-details',
     MASTER_CATEGORY: 'master-category',
     MASTER_CATEGORY_CLASS_MAPPING: 'master-category-class-mapping',
+    MASTER_CATEGORY_CLASS_MAPPED_SECTIONS: 'master-category-class-mapped-sections',
     YEARLY_CATEGORY_SUBJECT_MAPPING: 'yearly-category-subject-mapping',
     EXAM_LOGIN_PRIVILAGES: 'exam-login-privilages',
     YEARLY_CATEGORY_DATES_MAPPING: 'yearly-category-dates-mapping',
@@ -133,7 +138,10 @@ export const EXAM_QUERY_KEYS = {
     EXAM_TERM_AND_EXAM_MAPPING: 'exam-term-and-exam-mapping',
     EXAM_TERM_AND_EXAM_MAPPING_DETAILS: 'exam-term-and-exam-mapping-details',
     EXAM_SUBJECT_WIZARD: 'exam-subject-wizard',
-    EXAM_SUBJECT_WIZARD_DETAILS: 'exam-subject-wizard-details'
+    EXAM_SUBJECT_WIZARD_DETAILS: 'exam-subject-wizard-details',
+    SUB_EXAMS_MAPPED_VIEW: 'SUB_EXAMS_MAPPED_LIST',
+    SUB_SUBJECTS_MAPPED_VIEW: 'SUB_SUBJECTS_MAPPED_LIST',
+    SUB_BOTH_MAPPED_VIEW: 'SUB_SUBJECTS_SUB_EXAMS_MAPPED_LIST'
 };
 
 export const HRMS_QUERY_KEYS = {
