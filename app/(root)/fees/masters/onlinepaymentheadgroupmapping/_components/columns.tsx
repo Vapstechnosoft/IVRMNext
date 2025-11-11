@@ -4,6 +4,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
 import { ActionButtons } from '@/components/ui/form/action-buttons';
 import { useFormContext } from '@/components/ui/form/form-provider';
+import { getOnlinePaymentHeadGroupEdit } from '@/server/fees/masters/online_payment_head_group';
 import type { IMasterOnlinePaymentHeadgroupList } from '@/types/fees/masters/masters';
 import type { ColumnDef } from '@tanstack/react-table';
 import { useCallback } from 'react';
@@ -87,33 +88,41 @@ function ActionButtonsCell({
     const handleEdit = useCallback(
         async (data: IMasterOnlinePaymentHeadgroupList) => {
             try {
-                const response = '';
-                // const response = await getOnlinePaymentHeadGroupEdit(data.fopM_Id);
+                // Get the fopM_Id from the data - this is the primary key
+                const fopM_Id = data.fopM_Id;
 
-                //if (response.success && response.data && response.data.length > 0) {
-                // const apiData = response.data[0];
+                // Fetch the complete edit data from API
+                const response = await getOnlinePaymentHeadGroupEdit(fopM_Id);
 
-                // const transformedData: SelectedRowData = {
-                //   fopM_Id: apiData.fopM_Id,
-                //   asmaY_Id: 176,
-                //   asmcL_ID: apiData.asmcL_Id,
-                //   className: data.className,
-                //   fpgd_id: apiData.fpgd_id,
-                //   fmg_id: apiData.fmg_id,
-                //   groupName: data.groupName,
-                //   fmh_HeadId: apiData.fmH_Id,
-                //   fti_id: apiData.fti_id,
-                //   installmentName: data.installmentName,
-                //   fmt_id: apiData.fmt_id,
-                //   institutionName: "vidya_vikas_vidya_samste",
-                // };
+                if (response?.success && response?.data) {
+                    const dataArray = (response as any).data;
+                    const apiData = dataArray[0];
 
-                // openEditForm(transformedData);
-                // } else {
-                //   toast.error("Failed to fetch edit data");
-                // }
+                    // Transform the API data to the format expected by the update form
+                    const transformedData = {
+                        fopM_Id: apiData.fopM_Id,
+                        asmaY_Id: 176, // Replace with actual value from API if available
+                        asmcL_ID: apiData.asmcL_Id,
+                        className: data.className,
+                        fpgd_id: apiData.fpgd_id,
+                        submerchandId: data.subMerchantId,
+                        fmg_id: apiData.fmg_id,
+                        groupName: data.groupName,
+                        fmh_HeadId: apiData.fmH_Id,
+                        headName: data.headSearchTerm,
+                        fti_id: apiData.fti_id,
+                        installmentName: data.installmentName,
+                        fmt_id: apiData.fmt_id,
+                        termName: data.terms,
+                        institutionName: 'vidya_vikas_vidya_samste'
+                    };
+
+                    openEditForm(transformedData as any);
+                } else {
+                    toast.error('Failed to fetch edit data');
+                }
             } catch (error) {
-                console.error('Error fetching edit data:', error);
+                console.error('Error opening edit form:', error);
                 toast.error('An error occurred while loading edit data');
             }
         },

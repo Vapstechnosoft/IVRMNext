@@ -268,7 +268,7 @@ export interface IMasterRoleDropdown {
 }
 
 export interface IMasterOnlinePaymentHeadgroupList {
-    fopM_Id(fopM_Id: any): unknown;
+    fopM_Id: number;
     fmcC_Id: number;
     mI_Id: number;
     institutionName: string;
@@ -279,6 +279,7 @@ export interface IMasterOnlinePaymentHeadgroupList {
     installmentName: string;
     terms: string;
     academicYear: string;
+    className: string;
 }
 
 export interface IMasterFeeHeadDropdownList {
@@ -332,19 +333,6 @@ export interface FeeInstallmentList {
     ftI_Name: string;
 }
 
-export interface IMasterOnlinePaymentHeadgroupList {
-    fmcC_Id: number;
-    mI_Id: number;
-    institutionName: string;
-    classCategory: string;
-    subMerchantId: string;
-    groupName: string;
-    className: string;
-    headSearchTerm: string;
-    installmentName: string;
-    terms: string;
-    academicYear: string;
-}
 export interface IMasterFeesInstallmentList {
     fmI_Id: number;
     mI_Id: number;
