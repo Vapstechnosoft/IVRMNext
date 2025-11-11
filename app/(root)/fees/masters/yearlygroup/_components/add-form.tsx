@@ -5,13 +5,17 @@ import { FormError } from '@/components/ui/extension/field';
 import { Input } from '@/components/ui/input';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { FEES_QUERY_KEYS } from '@/constants/query-keys';
-import { useAcademicYearDropdown, useMasterFeeYearlyGroup, useMasterGroupListDropDown } from '@/hooks/fees/useMasters';
+import {
+    useAcademicYearDropdown,
+    useMasterFeeYearlyGroup,
+    useMasterGetYearlyCategory,
+    useMasterGroupListDropDown
+} from '@/hooks/fees/useMasters';
 import { cn } from '@/lib/utils';
 import { YearlyGroupSchema } from '@/schemas/fees/masters';
 import { addOrUpdateMasterGroupYearlyCategory } from '@/server/fees/masters/fees_yearly_group';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useQueryClient } from '@tanstack/react-query';
+
 import { CheckSquare, ChevronsUpDown, Save, Search, Square } from 'lucide-react';
 import { useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
@@ -44,7 +48,7 @@ export default function AddMasterYearlyGroup({ onSuccess }: AddMasterYearlyGroup
     const { data: academicYearOptions } = useAcademicYearDropdown();
     const { data: groupData } = useMasterGroupListDropDown();
     const { refetchAll } = useMasterFeeYearlyGroup();
-    const queryClient = useQueryClient();
+    const { refetchAll: refetchCategory } = useMasterGetYearlyCategory();
 
     const feeGroups: FeeGroup[] =
         groupData?.success && Array.isArray(groupData.data)
@@ -108,14 +112,16 @@ export default function AddMasterYearlyGroup({ onSuccess }: AddMasterYearlyGroup
                     onSuccess?.();
                 } catch (_e) {}
                 try {
-                    queryClient.invalidateQueries({
-                        predicate: (query) => Array.isArray(query.queryKey) && query.queryKey[0] === FEES_QUERY_KEYS.FEE_YEARLY_GROUPS
-                    });
-                    try {
-                        refetchAll();
-                    } catch (_e) {}
+                    if (typeof refetchCategory === 'function') {
+                        await refetchCategory();
+                    } else if (typeof refetchAll === 'function') {
+                        // fallback to groups refetch if category hook isn't available
+                        await refetchAll();
+                    } else {
+                        console.warn('Neither refetchCategory nor refetchAll are available');
+                    }
                 } catch (e) {
-                    console.warn('Failed to invalidate queries:', e);
+                    console.warn('Failed to refetch after create:', e);
                 }
                 reset();
             } else {

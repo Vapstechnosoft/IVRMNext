@@ -74,6 +74,8 @@ export const FEES_QUERY_KEYS = {
     FEE_INSTALLMENT_DUE_DATE: 'fee_installment_due_date',
     FEE_YEARLY_GROUPS: 'fee_yearly_groups',
     FEE_GROUP_LIST_DROPDOWN: 'fee_group_list_dropdown',
+    FEE_MASTER_GROUPWISE_AUTO_RECEIPT: 'fee_master_groupwise_auto_receipt',
+    FEE_MASTER_GROUPWISE_AUTO_RECEIPT_GROUP_DROPDOWN: 'fee_master_groupwise_auto_receipt_group_dropdown',
 
     FEE_MASTER_CONCESSION: 'masterfeeconcession',
     FEE_MASTER_TERMS: 'feemasterterms',
@@ -109,7 +111,9 @@ export const FEES_QUERY_KEYS = {
     FEE_ONLINE_PAYMENT_HEAD_TABLE: 'fee_online_payment_head_table',
     FEE_ONLINE_PAYMENT_HEAD_GROUP_TERMS: 'fee_online_payment_head_group_terms',
     FEE_PREADMISSION_TRANSACTION_DETAILS: 'fee_preadmission_transaction_details',
-    FEE_PREADMISSION_STUDENT_DROPDOWN: 'fee_preadmission_student_dropdown'
+    FEE_PREADMISSION_STUDENT_DROPDOWN: 'fee_preadmission_student_dropdown',
+    FEE_TERM_HEAD_DUEDATE: 'fee_term_head_duedate',
+    FEE_CONCESSION_CATEGORY_DROPDOWN: 'fee_concession_category_dropdown'
 };
 
 export const EXAM_QUERY_KEYS = {

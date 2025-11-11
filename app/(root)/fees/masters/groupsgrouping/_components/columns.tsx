@@ -65,7 +65,7 @@ export const feegroupgroupingColoumn: ColumnDef<IMasterGroupsGrouping>[] = [
     },
     {
         id: 'actions',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Actions' className='text-center' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Actions' className='text-start' />,
         accessorFn: (row: any) => row,
         enableSorting: false,
         cell: ({ row }) => <ActionButtonsCell rowData={row.original} />
@@ -101,7 +101,7 @@ function SelectedFeeGroupsCell({
                             <ul className='list-inside list-disc space-y-1 text-sm'>
                                 {fmG_GroupName.map((name, index) => (
                                     <li key={`${name}-${index}`} className='text-foreground'>
-                                        Fee Group Name: <span className='font-mono font-semibold'>{name}</span>
+                                        <span className='font-mono font-semibold'>{name}</span>
                                     </li>
                                 ))}
                             </ul>

@@ -17,10 +17,17 @@ import { getMasterAllFeeHead, getMasterfeeInstallment, getMasterfeehead } from '
 
 import { getGroupListCategory, getMasterYearlyCategory } from '@/server/fees/masters/fees_yearly_group';
 
+import { getFeeTermHeadDueDateList } from '@/server/fees/masters/fee-term-head-duedate';
+
+import {
+    getFeeMasterGroupwiseAutoReceipt,
+    getFeeMasterGroupwiseAutoReceiptGroupDropDown
+} from '@/server/fees/masters/fee_master_groupwise_auto_receipt';
+
 import { getFineSlab } from '@/server/fees/masters/fineSlab';
 import { getFeeGroup, getFeeGroupGrouping } from '@/server/fees/masters/groupsgrouping';
 import { getMasterGroup } from '@/server/fees/masters/master_group';
-import { getMasterConcessionDetails } from '@/server/fees/masters/masterconcessiondetails';
+import { getMasterConcessionDetails, getconcessioncategorydropdown } from '@/server/fees/masters/masterconcessiondetails';
 import { getModeOfPayment } from '@/server/fees/masters/modeOfPayment';
 import {
     getClassDropDownList,
@@ -719,6 +726,73 @@ export const useMasterAllFeeHead = (searchParams?: ApiSearchparams) => {
         refetchAll: () => {
             return queryClient.invalidateQueries({
                 queryKey: [FEES_QUERY_KEYS.FEE_ALL_HEAD]
+            });
+        }
+    };
+};
+
+export const useFeeMasterGroupwiseAutoReceipt = (searchParams?: ApiSearchparams) => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [FEES_QUERY_KEYS.FEE_MASTER_GROUPWISE_AUTO_RECEIPT, searchParams ?? {}],
+            queryFn: async () => getFeeMasterGroupwiseAutoReceipt(searchParams),
+            staleTime: 0
+        }),
+        refetchAll: () =>
+            queryClient.invalidateQueries({
+                queryKey: [FEES_QUERY_KEYS.FEE_MASTER_GROUPWISE_AUTO_RECEIPT]
+            })
+    };
+};
+
+export const useFeeMasterGroupwiseAutoReceiptDropDown = (academicYear: number) => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [FEES_QUERY_KEYS.FEE_MASTER_GROUPWISE_AUTO_RECEIPT_GROUP_DROPDOWN],
+            queryFn: async () => getFeeMasterGroupwiseAutoReceiptGroupDropDown(academicYear),
+            enabled: !!academicYear,
+
+            staleTime: 0
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({});
+        }
+    };
+};
+
+export const useMasterTermsHeadDueDate = (searchParams?: ApiSearchparams) => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [FEES_QUERY_KEYS.FEE_TERM_HEAD_DUEDATE, searchParams ?? {}],
+            queryFn: async () => getFeeTermHeadDueDateList(searchParams),
+            staleTime: 0
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [FEES_QUERY_KEYS.FEE_TERM_HEAD_DUEDATE]
+            });
+        }
+    };
+};
+
+export const CONCESSION_CATEGORYDROPDOWN_DATA = () => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [FEES_QUERY_KEYS.FEE_CONCESSION_CATEGORY_DROPDOWN],
+            queryFn: async () => getconcessioncategorydropdown(),
+            staleTime: 0
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [FEES_QUERY_KEYS.FEE_CONCESSION_CATEGORY_DROPDOWN]
             });
         }
     };

@@ -45,12 +45,13 @@ function MasterFeeInstallmentPageContent({
             <div className='container space-y-4 p-1'>
                 {/* Header */}
                 <div className='flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between'>
+                    <div className='space-y-1'>{/* <Heading title='Fee Head' description='' /> */}</div>
                     <Button
                         type='button'
                         onClick={openAddForm}
                         className='w-fit shadow-md transition-all duration-200 hover:scale-105 hover:shadow-lg'>
                         <Plus className='h-4 w-4' />
-                        Add Installment
+                        Add Fee Installment
                     </Button>
                 </div>
 

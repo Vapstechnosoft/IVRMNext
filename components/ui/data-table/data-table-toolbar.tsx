@@ -193,7 +193,7 @@ export function DataTableToolbar<TData>({ table, data, showExportOptions = true,
                 {/* Search Columns */}
                 {isSearchColumnModalOpen && anyColumnHiding.length > 0 && (
                     <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
+                        {/* <DropdownMenuTrigger asChild>
                             <Button
                                 variant='outline'
                                 size='sm'
@@ -201,7 +201,7 @@ export function DataTableToolbar<TData>({ table, data, showExportOptions = true,
                                 className='hidden h-8 w-fit sm:flex'>
                                 Search Columns
                             </Button>
-                        </DropdownMenuTrigger>
+                        </DropdownMenuTrigger> */}
                         <DropdownMenuContent align='end' className='w-[180px]'>
                             <DropdownMenuItem onClick={toggleSelectAllSearchColumns}>
                                 {selectedSearchColumns.length === allSearchableColumns.length ? 'Deselect All' : 'Select All'}

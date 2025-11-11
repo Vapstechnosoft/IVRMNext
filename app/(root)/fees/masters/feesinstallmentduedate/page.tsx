@@ -21,7 +21,6 @@ export default function MasterFeeDueDate(props: {
 }) {
     const searchParams = use(props.searchParams);
     const { data: response, isLoading, error } = useMasterFeeInstallmentDueDate(searchParams as any);
-    console.log('Installment Due Date Table response:', response);
 
     return (
         <FormProvider<IMasterFeesInstallmentDueDateList>>
@@ -53,7 +52,7 @@ function MasterFeeDueDateContent({
                         onClick={openAddForm}
                         className='w-fit shadow-md transition-all duration-200 hover:scale-105 hover:shadow-lg'>
                         <Plus className='h-4 w-4' />
-                        Add fee installment due date
+                        Add Fee Installment Due Date
                     </Button>
                 </div>
 

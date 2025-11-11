@@ -141,10 +141,14 @@ export default function AddMasterGroupGrouping({ onSuccess, className = '' }: Ad
                         control={control}
                         render={({ field }) => (
                             <div className='flex w-full flex-col sm:w-1/2'>
-                                Fees Groups <span className='text-red-500'>*</span>
+                                <span className='mb-1 flex items-center font-medium text-sm'>
+                                    Fees Groups <span className='ml-1 text-red-500'>*</span>
+                                </span>
+
                                 <Popover>
                                     <PopoverTrigger asChild>
                                         <Button
+                                            id='fee-groups'
                                             type='button'
                                             variant='outline'
                                             disabled={isLoading}
@@ -169,6 +173,7 @@ export default function AddMasterGroupGrouping({ onSuccess, className = '' }: Ad
                                                 className='h-8 pl-8 text-sm'
                                             />
                                         </div>
+
                                         {/* Scrollable list with "Select All" option */}
                                         <div className='max-h-[260px] overflow-y-auto rounded-md border p-1'>
                                             {/* Select All option */}
@@ -227,6 +232,7 @@ export default function AddMasterGroupGrouping({ onSuccess, className = '' }: Ad
                                         </div>
                                     </PopoverContent>
                                 </Popover>
+
                                 {errors.selectedFeeGroupIds && <FormError>{errors.selectedFeeGroupIds.message}</FormError>}
                             </div>
                         )}
