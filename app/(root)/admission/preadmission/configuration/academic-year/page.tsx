@@ -66,7 +66,8 @@ function MasterAcademicYearPageContent({
                     variant='default'
                     size='lg'
                     className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
-                    <div className='mb-4 flex justify-end'>
+                    <div className='mb-2 flex items-end justify-between'>
+                        <p className='font-semibold text-destructive text-sm'>Note: Only one preadmission flag should be activated.</p>
                         <ReorderAcademicYearForm />
                     </div>
 
