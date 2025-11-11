@@ -102,43 +102,56 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
         }
     });
 
-    // Initialize form with row data if provided
     useEffect(() => {
         if (rowData) {
-            // Set form values
             const existingId = rowData.pasr_id ?? rowData.pasR_Id ?? rowData.pasRId ?? 0;
             setValue('pasR_Id', existingId);
 
             Object.entries(rowData).forEach(([key, value]) => {
-                if (key === 'pasR_DOB') {
+                if (key === 'pasR_DOB' && value) {
                     setValue(key, new Date(value as string));
+                    return;
                 }
-                // Convert mobile numbers to strings
-                else if (
-                    ['pasR_MobileNo', 'pasR_FatherMobleNo', 'pasR_MotherMobleNo', 'pasR_AltContactNo', 'pasR_AadharNo'].includes(key) &&
-                    typeof value === 'number'
+
+                let normalized: any = value;
+
+                if (
+                    normalized === '' ||
+                    normalized === null ||
+                    (normalized === 0 && !['pasR_TransportReqdFlag'].includes(key)) ||
+                    normalized === '0'
                 ) {
-                    setValue(key as any, value.toString());
+                    normalized = undefined;
                 }
-                // Convert nationality fields - keep as strings
-                else if (
-                    ['pasR_Nationality', 'pasR_FatherNationality', 'pasR_MotherNationality'].includes(key) &&
-                    value !== null &&
-                    value !== undefined
+
+                if (
+                    [
+                        'pasR_MobileNo',
+                        'pasR_FatherMobleNo',
+                        'pasR_MotherMobleNo',
+                        'pasR_AltContactNo',
+                        'pasR_AadharNo',
+                        'pasR_FatherPanno',
+                        'pasR_MotherPanno'
+                    ].includes(key) &&
+                    typeof normalized === 'number'
                 ) {
-                    setValue(key as any, typeof value === 'number' ? String(value) : value);
+                    normalized = String(normalized);
                 }
-                // Convert state fields to numbers if they're strings
-                else if (['pasR_ConState', 'pasR_PerState'].includes(key) && value !== null && value !== undefined) {
-                    setValue(key as any, typeof value === 'string' ? Number(value) : value);
-                } else {
-                    setValue(key as any, value);
+
+                if (['pasR_Nationality', 'pasR_FatherNationality', 'pasR_MotherNationality'].includes(key) && normalized !== undefined) {
+                    normalized = typeof normalized === 'number' ? String(normalized) : normalized;
                 }
+
+                if (['pasR_ConState', 'pasR_PerState'].includes(key) && normalized !== undefined) {
+                    normalized = typeof normalized === 'string' ? Number(normalized) : normalized;
+                }
+
+                setValue(key as any, normalized);
             });
             setValue('pasA_WillingToContributeFlg', rowData.pasA_WillingToContributeFlg ? 1 : 0);
-            setValue('pasA_WillingToContributeRemarks', rowData.pasA_WillingToContributeRemarks ?? null);
+            setValue('pasA_WillingToContributeRemarks', rowData.pasA_WillingToContributeRemarks ?? undefined);
 
-            // Set other state values
             if (rowData.selectedSourceDetails) {
                 setSelectedSourceItems(rowData.selectedSourceDetails);
             }
@@ -155,7 +168,6 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                 setUploadedDocuments(rowData.selectedDocuments);
             }
 
-            // Initialize student photo from row data if present
             if (rowData.pasR_Student_Pic_Path) {
                 setStudentPhoto({
                     pasR_Student_Pic_Path: rowData.pasR_Student_Pic_Path,
@@ -163,7 +175,6 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                 });
             }
 
-            // Initialize father photo from row data if present
             if (rowData.pasR_FatherPhoto) {
                 setFatherPhoto({
                     pasR_FatherPhoto: rowData.pasR_FatherPhoto,
@@ -171,7 +182,6 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                 });
             }
 
-            // Initialize mother photo from row data if present
             if (rowData.pasR_MotherPhoto) {
                 setMotherPhoto({
                     pasR_MotherPhoto: rowData.pasR_MotherPhoto,
@@ -179,7 +189,6 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                 });
             }
 
-            // Calculate age details if DOB exists
             if (rowData.pasR_DOB) {
                 const dob = new Date(rowData.pasR_DOB);
                 const ageDetails = calculateAge(dob);
@@ -232,7 +241,6 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
     } | null>(null);
     const [studentPhotoError, setStudentPhotoError] = useState<string | null>(null);
 
-    // Ref for hidden file input to support edit/replace
     const studentPhotoInputRef = useRef<HTMLInputElement | null>(null);
 
     const [fatherPhoto, setFatherPhoto] = useState<{
@@ -241,7 +249,6 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
     } | null>(null);
     const [fatherPhotoError, setFatherPhotoError] = useState<string | null>(null);
 
-    // Ref for hidden file input to support edit/replace
     const fatherPhotoInputRef = useRef<HTMLInputElement | null>(null);
 
     const [motherPhoto, setMotherPhoto] = useState<{
@@ -250,7 +257,6 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
     } | null>(null);
     const [motherPhotoError, setMotherPhotoError] = useState<string | null>(null);
 
-    // Ref for hidden file input to support edit/replace
     const motherPhotoInputRef = useRef<HTMLInputElement | null>(null);
 
     const [documentErrors, setDocumentErrors] = useState<Record<number, string>>({});
@@ -353,18 +359,14 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                 return;
             }
         } else if (currentStep === 4) {
-            // Get selected religion details
             const selectedReligionId = watch('religion_Id');
             const selectedReligion = religion?.data?.find((r) => r.ivrmmR_Id === selectedReligionId);
             const isRomanCatholic = selectedReligion?.ivrmmR_Name === 'Roman Catholic';
 
-            // Validate document uploads with conditional logic for Baptism Certificate
             const mandatoryDocs =
                 preadmissionDocuments?.data?.filter((doc) => {
-                    // Check if document is mandatory by default
                     if (doc.amsmD_FLAG) return true;
 
-                    // Make Baptism Certificate mandatory for Roman Catholic religion
                     if (doc.amsmD_DocumentName === 'Baptism Certificate' && isRomanCatholic) {
                         return true;
                     }
@@ -400,10 +402,6 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
         setCurrentStep((prev) => Math.max(prev - 1, 1));
     };
 
-    const goToStep = (step: number) => {
-        setCurrentStep(step);
-    };
-
     const onSubmit: SubmitHandler<FormFields | any> = async (data: FormFields) => {
         if (!calculatedAgeDetails) {
             toast.error('Please select date of birth');
@@ -416,16 +414,8 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
         }
 
         try {
-            // FIXED: Determine the correct ID - check all possible sources
-            const existingId =
-                data.pasR_Id ??
-                rowData?.pasR_Id ??
-                rowData?.pasr_id ?? // lowercase version
-                rowData?.pasRId ?? // no underscore version
-                id ??
-                0;
+            const existingId = data.pasR_Id ?? rowData?.pasR_Id ?? rowData?.pasr_id ?? rowData?.pasRId ?? id ?? 0;
 
-            // Don't destructure pasR_Id out if you need it
             const {
                 pasR_DOB,
                 source_ids,
@@ -440,25 +430,50 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                 ...filteredData
             } = data;
 
-            const payload = {
-                pasR_Id: Number(existingId), // Use the determined ID
-                ...filteredData,
-                pasR_DOB: format(pasR_DOB, 'yyyy-MM-dd'),
-                pasR_Age: calculatedAgeDetails.ageInYears,
-                // Use student photo path from state
-                pasR_Student_Pic_Path: studentPhoto?.pasR_Student_Pic_Path || '',
-                pasR_FatherPhoto: fatherPhoto?.pasR_FatherPhoto || '',
-                pasR_MotherPhoto: motherPhoto?.pasR_MotherPhoto || '',
-                // FIXED: Ensure proper type conversions
-                PASR_ConState: pasR_ConState?.toString() ?? '',
-                PASR_PerState: pasR_PerState?.toString() ?? '',
-                PASR_ConCountry: pasR_ConCountry?.toString() ?? '',
-                PASR_PerCountry: pasR_PerCountry?.toString() ?? '',
-                PASR_ConPincode:
-                    pasR_ConPincode === undefined || pasR_ConPincode === null || pasR_ConPincode === '' ? 0 : Number(pasR_ConPincode),
-                PASR_PerPincode:
-                    pasR_PerPincode === undefined || pasR_PerPincode === null || pasR_PerPincode === '' ? 0 : Number(pasR_PerPincode),
+            const toNull = (v: any) => (v === '' || v === undefined || v === '$undefined' ? null : v);
+            const toNullOther = (v: any) => (v === '' || v === undefined || v === '$undefined' ? '' : v);
+            const toZero = (v: any) => (v === '' || v === undefined || v === '$undefined' || v === null ? 0 : v);
+            const nullFields = new Set([
+                'pasR_AadharNo',
+                'pasR_FatherPanno',
+                'pasR_MotherPanno',
+                'pasR_MobileNo',
+                'pasR_FatherMobleNo',
+                'pasR_MotherMobleNo',
+                'pasR_AltContactNo',
+                'pasR_FatherIncome',
+                'pasR_MotherIncome',
+                'pasR_ConState'
+            ]);
 
+            const payload = {
+                pasR_Id: Number(existingId),
+                ...Object.fromEntries(
+                    Object.entries(filteredData)
+                        .filter(([k]) => k !== 'createdDate' && k !== 'updatedDate' && k !== 'createdAt' && k !== 'updatedAt')
+                        .map(([k, v]) => [k, nullFields.has(k) ? toNull(v) : toNullOther(v)])
+                ),
+                pasR_DOB: pasR_DOB ? format(pasR_DOB, 'yyyy-MM-dd') : null,
+                pasR_Age: calculatedAgeDetails.ageInYears,
+                pasR_Student_Pic_Path: toNullOther(studentPhoto?.pasR_Student_Pic_Path),
+                pasR_FatherPhoto: toNullOther(fatherPhoto?.pasR_FatherPhoto),
+                pasR_MotherPhoto: toNullOther(motherPhoto?.pasR_MotherPhoto),
+                PASR_ConState:
+                    pasR_ConState == null || String(pasR_ConState) === '' || String(pasR_ConState) === '$undefined'
+                        ? null
+                        : Number(pasR_ConState),
+                PASR_PerState: toNullOther(pasR_PerState?.toString()),
+                PASR_ConCountry: toNullOther(pasR_ConCountry?.toString()),
+                PASR_PerCountry: toNullOther(pasR_PerCountry?.toString()),
+                PASR_ConPincode: toZero(pasR_ConPincode),
+                PASR_PerPincode: toZero(pasR_PerPincode),
+                pasR_MobileNo: toNull(data.pasR_MobileNo),
+                pasR_FatherMobleNo: toNull(data.pasR_FatherMobleNo),
+                pasR_MotherMobleNo: toNull(data.pasR_MotherMobleNo),
+                pasR_AltContactNo: toNull(data.pasR_AltContactNo),
+                pasR_AadharNo: toNull(data.pasR_AadharNo),
+                pasR_FatherPanno: toNull(data.pasR_FatherPanno),
+                pasR_MotherPanno: toNull(data.pasR_MotherPanno),
                 selectedSourceDetails: selectedSourceItems.map((item) => ({
                     pamS_Id: item.pamS_Id
                 })),
@@ -466,7 +481,7 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                     pamR_Id: item.pamR_Id
                 })),
                 siblingsDetails: siblings.map((sibling) => ({
-                    ...sibling,
+                    ...Object.fromEntries(Object.entries(sibling).filter(([k]) => k !== 'createdDate' && k !== 'updatedDate')),
                     verrejstatus: '',
                     pasrS_SchoolName: '',
                     pasrS_Age: 0,
@@ -477,7 +492,9 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                 previousSchoolList: previousSchool.pasrpS_PrvSchoolName
                     ? [
                           {
-                              ...previousSchool,
+                              ...Object.fromEntries(
+                                  Object.entries(previousSchool).filter(([k]) => k !== 'createdDate' && k !== 'updatedDate')
+                              ),
                               pasrpS_TcNo: '',
                               pasrpS_PreviousPer: '',
                               pasrpS_PreviousGrade: '',
@@ -492,13 +509,12 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                     pasrD_Id: doc.pasrD_Id,
                     pasR_Id: doc.pasR_Id,
                     amsmD_Id: doc.amsmD_Id,
-                    document_Path: doc.document_Path
+                    document_Path: toNullOther(doc.document_Path)
                 })),
-                PASR_RegistrationNo: '',
+                PASR_RegistrationNo: toNullOther((data as any).pasR_RegistrationNo),
                 pasA_WillingToContributeFlg: pasA_WillingToContributeFlg === 1
             };
 
-            // Submit the payload
             const response = await addStudentApplicationForm(payload);
 
             if (response && (response.success === true || response.status === 200)) {
@@ -573,7 +589,6 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
         }
     };
 
-    // Add these functions after handleSameAsResidential
     const addSibling = () => {
         setSiblings([
             ...siblings,
@@ -608,7 +623,6 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
 
     const handleDocumentUpload = async (amsmD_Id: number, file: File, documentName: string) => {
         try {
-            // Set uploading state - ADD document if it doesn't exist
             setUploadedDocuments((prev) => {
                 const existingIndex = prev.findIndex((doc) => doc.amsmD_Id === amsmD_Id);
 
@@ -854,7 +868,6 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
             return true;
         }
 
-        // Convert age to total days for accurate comparison
         const studentTotalDays = ageDetails.years * 365 + ageDetails.months * 30 + ageDetails.days;
         const minAgeDays = selectedClass.asmcL_MinAgeYear * 365 + selectedClass.asmcL_MinAgeMonth * 30 + selectedClass.asmcL_MinAgeDays;
         const maxAgeDays = selectedClass.asmcL_MaxAgeYear * 365 + selectedClass.asmcL_MaxAgeMonth * 30 + selectedClass.asmcL_MaxAgeDays;
@@ -1247,7 +1260,7 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                                                             label='Mobile No.'
                                                             id='pasR_MobileNo'
                                                             required
-                                                            value={field.value}
+                                                            value={field.value === '' || field.value == null ? '' : field.value}
                                                             onChange={(value) => field.onChange(value)}
                                                             type='number'
                                                             showSpinner={false}
@@ -1476,7 +1489,7 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                                                         <MobileNumberInput
                                                             label='Aadhaar No.'
                                                             id='pasR_AadharNo'
-                                                            value={field.value}
+                                                            value={field.value === '' || field.value == null ? '' : field.value}
                                                             onChange={(value) => field.onChange(value)}
                                                             type='number'
                                                             showSpinner={false}
@@ -1704,7 +1717,7 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                                                                 <MobileNumberInput
                                                                     label='Pin Code/Zip Code'
                                                                     id='pasR_ConPincode'
-                                                                    value={field.value}
+                                                                    value={field.value === '' || field.value == null ? '' : field.value}
                                                                     onChange={(value) => field.onChange(value)}
                                                                     type='number'
                                                                     showSpinner={false}
@@ -1837,7 +1850,7 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                                                                 <MobileNumberInput
                                                                     label='Pin Code/Zip Code'
                                                                     id='pasR_PerPincode'
-                                                                    value={field.value}
+                                                                    value={field.value === '' || field.value == null ? '' : field.value}
                                                                     onChange={(value) => field.onChange(value)}
                                                                     type='number'
                                                                     showSpinner={false}
@@ -2113,7 +2126,7 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                                                                 <MobileNumberInput
                                                                     label='Mobile No.'
                                                                     id='pasR_FatherMobleNo'
-                                                                    value={field.value}
+                                                                    value={field.value === '' || field.value == null ? '' : field.value}
                                                                     onChange={(value) => field.onChange(value)}
                                                                     type='number'
                                                                     showSpinner={false}
@@ -2424,7 +2437,7 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                                                                 <MobileNumberInput
                                                                     label='Mobile No.'
                                                                     id='pasR_MotherMobleNo'
-                                                                    value={field.value}
+                                                                    value={field.value === '' || field.value == null ? '' : field.value}
                                                                     onChange={(value) => field.onChange(value)}
                                                                     type='number'
                                                                     showSpinner={false}
@@ -2495,7 +2508,7 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                                                                 <MobileNumberInput
                                                                     label='Alternate Contact No.'
                                                                     id='pasR_AltContactNo'
-                                                                    value={field.value}
+                                                                    value={field.value === '' || field.value == null ? '' : field.value}
                                                                     onChange={(value) => field.onChange(value)}
                                                                     type='number'
                                                                     showSpinner={false}
