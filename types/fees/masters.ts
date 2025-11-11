@@ -130,10 +130,29 @@ export interface IMasterFeesInstallmentList {
     }>;
 }
 export interface IMasterConcessionDetailsList {
+    fmccD_Id: number;
     fmcC_Id: number;
     fmcC_ConcessionName: string;
-    fmcC_ConcessionFlag: string;
     fmccD_FromNoSibblings: number;
     fmccD_ToNoSibblings: number;
     fmccD_PerOrAmt: number;
+    fmccD_PerOrAmtFlag: string; // "Amount" or "Percentage"
+    fmccD_ActiveFlg: boolean;
+    fmccD_CreatedBy: number;
+    fmccD_UpdatedBy: number;
+    fmcC_ConcessionFlag: string;
+}
+
+export interface IMasterConcessionDetailsList {
+    fmccD_Id: number;
+    fmcC_Id: number;
+    fmcC_ConcessionName: string;
+    fmccD_FromNoSibblings: number;
+    fmccD_ToNoSibblings: number;
+    fmccD_PerOrAmt: number;
+    fmccD_PerOrAmtFlag: string; // "Amount" or "Percentage"
+    fmccD_ActiveFlg: boolean;
+    fmccD_CreatedBy: number;
+    fmccD_UpdatedBy: number;
+    fmcC_ConcessionFlag: string;
 }

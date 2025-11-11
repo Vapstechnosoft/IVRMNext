@@ -9,6 +9,7 @@ import { Plus, X } from 'lucide-react';
 import { use } from 'react';
 import AddFeePreAdmissionTransactionForm from './_components/add-form';
 import { feePreAdmissionTransactionEntryColumns } from './_components/columns';
+import ReceiptViewPage from './_components/receiptview';
 
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 
@@ -87,7 +88,9 @@ function FormSections() {
         closeEditForm,
         closeToggleForm,
         addFormRef,
-        editFormRef
+        editFormRef,
+        isDetailsViewOpen,
+        closeDetailsView
     } = useFormContext<IFeePreAdmissionTransactionDetails>();
 
     return (
@@ -140,6 +143,8 @@ function FormSections() {
             )} */}
 
             {/* {isDeleteFormOpen && selectedRow && <ToggleMasterAmountEntryForm rowData={selectedRow} onClose={closeToggleForm} />} */}
+
+            {isDetailsViewOpen && selectedRow && <ReceiptViewPage rowData={selectedRow} onClose={closeDetailsView} />}
         </>
     );
 }

@@ -481,3 +481,8 @@ export interface IMasterGroupWiseAutoReciptList {
     fgaR_Id: number;
     fgaR_Starting_No: number;
 }
+
+export interface IConcessionCategoryDropdownList {
+    fmcC_Id: number;
+    fmcC_ConcessionName: string;
+}

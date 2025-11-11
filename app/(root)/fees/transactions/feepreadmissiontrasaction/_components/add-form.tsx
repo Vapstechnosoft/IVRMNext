@@ -444,19 +444,6 @@ export default function AddFeePreAdmissionTransactionForm({ onSuccess, headname 
                                 )}
                             />
                             {errors.asmaY_Id && <FormError>{errors.asmaY_Id.message}</FormError>}
-                            {/* <select
-                className="w-72 rounded border px-3 py-2"
-                value={academicYear}
-                onChange={(e) => setAcademicYear(e.target.value)}
-                required
-                >
-                <option value="">-- Select Academic Year --</option>
-                {academicYears.map((year) => (
-                    <option key={year} value={year}>
-                    {year}
-                    </option>
-                ))}
-                </select> */}
                         </div>
 
                         <div className='mb-4'>

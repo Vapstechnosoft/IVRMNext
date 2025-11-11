@@ -17,7 +17,6 @@ import { getMasterAllFeeHead, getMasterfeeInstallment, getMasterfeehead } from '
 
 import { getGroupListCategory, getMasterYearlyCategory } from '@/server/fees/masters/fees_yearly_group';
 
-
 import { getFeeTermHeadDueDateList } from '@/server/fees/masters/fee-term-head-duedate';
 
 import {
@@ -28,7 +27,7 @@ import {
 import { getFineSlab } from '@/server/fees/masters/fineSlab';
 import { getFeeGroup, getFeeGroupGrouping } from '@/server/fees/masters/groupsgrouping';
 import { getMasterGroup } from '@/server/fees/masters/master_group';
-import { getMasterConcessionDetails } from '@/server/fees/masters/masterconcessiondetails';
+import { getMasterConcessionDetails, getconcessioncategorydropdown } from '@/server/fees/masters/masterconcessiondetails';
 import { getModeOfPayment } from '@/server/fees/masters/modeOfPayment';
 import {
     getClassDropDownList,
@@ -732,18 +731,11 @@ export const useMasterAllFeeHead = (searchParams?: ApiSearchparams) => {
     };
 };
 
-
-
-
 export const useFeeMasterGroupwiseAutoReceipt = (searchParams?: ApiSearchparams) => {
-
     const queryClient = useQueryClient();
 
     return {
         ...useQuery({
-
-
-
             queryKey: [FEES_QUERY_KEYS.FEE_MASTER_GROUPWISE_AUTO_RECEIPT, searchParams ?? {}],
             queryFn: async () => getFeeMasterGroupwiseAutoReceipt(searchParams),
             staleTime: 0
@@ -767,14 +759,10 @@ export const useFeeMasterGroupwiseAutoReceiptDropDown = (academicYear: number) =
             staleTime: 0
         }),
         refetchAll: () => {
-            return queryClient.invalidateQueries({
-
-            });
+            return queryClient.invalidateQueries({});
         }
     };
 };
-
-
 
 export const useMasterTermsHeadDueDate = (searchParams?: ApiSearchparams) => {
     const queryClient = useQueryClient();
@@ -793,3 +781,19 @@ export const useMasterTermsHeadDueDate = (searchParams?: ApiSearchparams) => {
     };
 };
 
+export const CONCESSION_CATEGORYDROPDOWN_DATA = () => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [FEES_QUERY_KEYS.FEE_CONCESSION_CATEGORY_DROPDOWN],
+            queryFn: async () => getconcessioncategorydropdown(),
+            staleTime: 0
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [FEES_QUERY_KEYS.FEE_CONCESSION_CATEGORY_DROPDOWN]
+            });
+        }
+    };
+};

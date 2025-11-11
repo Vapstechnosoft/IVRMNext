@@ -2,43 +2,38 @@
 
 import { Button } from '@/components/ui/button';
 import { FormError, Label } from '@/components/ui/extension/field';
+import { InputNumber } from '@/components/ui/extension/input-number';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { MASTER_HEADS_DROPDOWN, MASTER_INSTALLMENT_DROPDOWN, TERM_DROPDOWN_DATA, useMasterTermsHead } from '@/hooks/fees/useMasters';
+import { CONCESSION_CATEGORYDROPDOWN_DATA, useMasterConcessionDetails } from '@/hooks/fees/useMasters';
 import { masterConcessionDetailsSchema } from '@/schemas/fees/masters';
+import { addOrUpdateMasterConcessionDetails } from '@/server/fees/masters/masterconcessiondetails';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Save } from 'lucide-react';
-import { useState } from 'react';
 import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import type { z } from 'zod';
 
 type FormFields = z.infer<typeof masterConcessionDetailsSchema.addOrUpdate>;
 
-interface FeeTermsHeadFormProps {
+interface FeemasterConcessionDetailsFormProps {
     onSuccess?: () => void;
     termname?: string;
 }
 
-export default function AddMasterConcessionDetailsForm({ onSuccess, termname = '' }: FeeTermsHeadFormProps) {
-    const { refetchAll } = useMasterTermsHead();
-    const [selectedHeadsItems, setSelectedHeadsItems] = useState<{ fmH_Id: string; fmH_FeeName: string }[]>([]);
-
-    const [SelectedInstallmentsItems, setSelectedInstallmentsItems] = useState<{ ftI_ID: string; ftI_NAME: string }[]>([]);
-
-    const { data: terms, isLoading: termsLoading, error: termsError, refetchAll: refetchheads } = TERM_DROPDOWN_DATA();
+export default function AddMasterConcessionDetailsForm({ onSuccess, termname = '' }: FeemasterConcessionDetailsFormProps) {
+    const { refetchAll } = useMasterConcessionDetails();
 
     const {
-        data: masterInstallment,
-        isLoading: masterInstallmentLoading,
-        error: masterInstallmentError,
-        refetchAll: refetchmasterInstallment
-    } = MASTER_INSTALLMENT_DROPDOWN();
-
-    const { data: masterHeads, isLoading: masterHeadsLoading, refetchAll: refetchMasterHeads } = MASTER_HEADS_DROPDOWN();
+        data: category,
+        isLoading: categoryLoading,
+        error: categoryError,
+        refetchAll: refetchcategory
+    } = CONCESSION_CATEGORYDROPDOWN_DATA();
 
     const {
         control,
         handleSubmit,
+        register,
         reset,
         formState: { errors, isSubmitting }
     } = useForm<FormFields>({
@@ -48,32 +43,32 @@ export default function AddMasterConcessionDetailsForm({ onSuccess, termname = '
 
     function OnReset() {
         reset();
-        setSelectedHeadsItems([]);
-        setSelectedInstallmentsItems([]);
         refetchAll();
-        refetchheads();
-        refetchmasterInstallment();
-        refetchMasterHeads();
+        refetchcategory();
     }
 
     const onSubmit: SubmitHandler<FormFields | any> = async (data: FormFields) => {
         try {
-            // const { fmT_Id } = data;
+            const { fmcC_Id, fmccD_PerOrAmtFlag, fmccD_FromNoSibblings, fmccD_ToNoSibblings, fmccD_PerOrAmt } = data;
             const payload = {
-                // terms: fmT_Id,
-                installments: SelectedInstallmentsItems,
-                heads: selectedHeadsItems
+                mI_Id: 30,
+                fmcC_Id: fmcC_Id,
+                fmccD_PerOrAmtFlag: fmccD_PerOrAmtFlag,
+                fmccD_FromNoSibblings: fmccD_FromNoSibblings,
+                fmccD_ToNoSibblings: fmccD_ToNoSibblings,
+                fmccD_PerOrAmt: fmccD_PerOrAmt,
+                fmccD_CreatedBy: 21602
             };
 
-            // const response = await addMasterClassCategory(payload);
+            const response = await addOrUpdateMasterConcessionDetails(payload);
 
-            // if (response.success) {
-            //     toast.success(response.message);
-            //     OnReset();
-            //     onSuccess?.();
-            // } else {
-            //     toast.error(response.message);
-            // }
+            if (response.success) {
+                toast.success(response.message);
+                OnReset();
+                onSuccess?.();
+            } else {
+                toast.error(response.message);
+            }
         } catch (error: any) {
             toast.error(error.message);
         }
@@ -83,119 +78,164 @@ export default function AddMasterConcessionDetailsForm({ onSuccess, termname = '
         reset();
     };
 
-    const handleHeadSelection = (selectedValues: string[]) => {
-        const selectedheads = selectedValues.map((value) => {
-            return { fmH_Id: value.toString(), fmH_FeeName: '' };
-        });
-
-        setSelectedHeadsItems(selectedheads);
-    };
-
-    const handleInstallmentSelection = (selectedValues: string[]) => {
-        const selectedInstallment = selectedValues.map((value) => {
-            return { ftI_ID: value.toString(), ftI_NAME: '' };
-        });
-
-        setSelectedInstallmentsItems(selectedInstallment);
-    };
-
     return (
         <div className={`${termname}`}>
             <form onSubmit={handleSubmit(onSubmit)} className='space-y-6'>
                 <div className='space-y-4'>
-                    <div className='grid grid-cols-1 gap-5 md:grid-cols-2'>
-                        <div className='group flex flex-col gap-1.5'>
-                            <Label aria-label='Term' htmlFor='fmT_Id'>
-                                Term <span className='ml-1 text-red-500'>*</span>
+                    <div className='flex flex-col items-center space-y-4'>
+                        {/* className="grid grid-cols-1 gap-5 md:grid-cols-2" */}
+                        <div className='group flex items-center justify-center gap-1.5 space-x-3'>
+                            <Label aria-label='Category' htmlFor='fmcC_Id' className='whitespace-nowrap font-medium'>
+                                Category <span className='ml-1 text-red-500'>*</span>:
                             </Label>
-                            <Controller
-                                name='fmcC_Id'
-                                control={control}
-                                render={({ field }) => (
-                                    <Select
-                                        onValueChange={(value) => {
-                                            field.onChange(Number(value));
-                                        }}
-                                        value={field.value?.toString() || undefined}>
-                                        <SelectTrigger className='w-full'>
-                                            <SelectValue placeholder='Select Term' />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            {termsLoading ? (
-                                                <SelectItem value='loading' disabled>
-                                                    Loading Terms...
-                                                </SelectItem>
-                                            ) : termsError ? (
-                                                <SelectItem value='error' disabled>
-                                                    Error loading Terms
-                                                </SelectItem>
-                                            ) : (
-                                                terms?.data?.map((item) => (
-                                                    <SelectItem key={item.fmT_Id} value={item.fmT_Id.toString()}>
-                                                        {item.fmT_Name}
+
+                            <div className='w-64'>
+                                <Controller
+                                    name='fmcC_Id'
+                                    control={control}
+                                    render={({ field }) => (
+                                        <Select
+                                            onValueChange={(value) => field.onChange(Number(value))}
+                                            value={field.value?.toString() || ''}>
+                                            <SelectTrigger className='w-full'>
+                                                <SelectValue placeholder='Select Category' />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                {categoryLoading ? (
+                                                    <SelectItem value='loading' disabled>
+                                                        Loading Terms...
                                                     </SelectItem>
-                                                ))
-                                            )}
-                                        </SelectContent>
-                                    </Select>
+                                                ) : categoryError ? (
+                                                    <SelectItem value='error' disabled>
+                                                        Error loading Terms
+                                                    </SelectItem>
+                                                ) : (
+                                                    category?.data?.map((item) => (
+                                                        <SelectItem key={item.fmcC_Id} value={item.fmcC_Id.toString()}>
+                                                            {item.fmcC_ConcessionName}
+                                                        </SelectItem>
+                                                    ))
+                                                )}
+                                            </SelectContent>
+                                        </Select>
+                                    )}
+                                />
+                                {errors.fmcC_Id && <FormError className='ml-2'>{errors.fmcC_Id.message}</FormError>}
+                            </div>
+                        </div>
+                        <div className='group flex items-center justify-center gap-3 space-x-3'>
+                            <Label aria-label='type' htmlFor='fmccD_PerOrAmtFlag' className='whitespace-nowrap font-medium'>
+                                Type <span className='ml-1 text-red-500'>*</span>:
+                            </Label>
+
+                            <div className='w-64'>
+                                <Controller
+                                    name='fmccD_PerOrAmtFlag'
+                                    control={control}
+                                    rules={{
+                                        required: 'Please select a type'
+                                    }}
+                                    render={({ field }) => (
+                                        <Select onValueChange={(value) => field.onChange(value)} value={field.value || ''}>
+                                            <SelectTrigger className='w-full'>
+                                                <SelectValue placeholder='Select Type' />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                <SelectItem value='P'>Percent</SelectItem>
+                                                <SelectItem value='A'>Amount</SelectItem>
+                                            </SelectContent>
+                                        </Select>
+                                    )}
+                                />
+
+                                {/* ✅ Show validation error below the dropdown */}
+                                {errors.fmccD_PerOrAmtFlag && (
+                                    <FormError className='mt-1 text-red-500 text-sm'>{errors.fmccD_PerOrAmtFlag.message}</FormError>
+                                )}
+                            </div>
+                        </div>
+                        <div className='group flex items-center justify-center space-x-3'>
+                            <label htmlFor='fmccD_FromNoSibblings'>
+                                From No of Sibling<span className='text-red-500'>*</span>:
+                            </label>
+                            <Controller
+                                name='fmccD_FromNoSibblings'
+                                control={control}
+                                rules={{ required: 'From No of Sibling is required' }}
+                                render={({ field }) => (
+                                    <div className='flex flex-col'>
+                                        <InputNumber
+                                            //   label='Concession Limit'
+
+                                            id='fmccD_FromNoSibblings'
+                                            value={field.value ?? 0}
+                                            onChange={(value: number) => {
+                                                field.onChange(value);
+                                            }}
+                                            className='transition-colors focus:ring-2 focus:ring-primary/20'
+                                        />
+                                        {errors.fmccD_FromNoSibblings && <FormError>{errors.fmccD_FromNoSibblings.message}</FormError>}
+                                    </div>
                                 )}
                             />
-                            {errors.fmcC_Id && <FormError>{errors.fmcC_Id.message}</FormError>}
                         </div>
-                        {/* 
-                        <Controller
-                            name='heads'
-                            control={control}
-                            render={({ field }) => (
-                                <MultiSelect
-                                    options={
-                                        masterHeads?.data?.map((data) => ({
-                                            label: data.fmH_Id !== undefined ? data.fmH_Id.toString() : '',
-                                            value: data.fmH_FeeName !== undefined ? data.fmH_FeeName.toString() : ''
-                                        })) ?? []
-                                    }
-                                    onValueChange={(selectedValues) => {
-                                        field.onChange(selectedValues);
-                                        handleHeadSelection(selectedValues);
-                                    }}
-                                    defaultValue={selectedHeadsItems.map((data) =>
-                                        data.fmH_Id !== undefined ? data.fmH_Id.toString() : ''
-                                    )}
-                                    value={selectedHeadsItems.map((data) => (data.fmH_Id !== undefined ? data.fmH_Id.toString() : ''))}
-                                    placeholder='Select Heads'
-                                    variant='inverted'
-                                    disabled={masterHeadsLoading}
-                                />
-                            )}
-                        /> */}
+                        <div className='group flex items-center justify-center space-x-3'>
+                            <label htmlFor='fmccD_ToNoSibblings' className='whitespace-nowrap font-medium'>
+                                To No of Siblings <span className='text-red-500'>*</span>:
+                            </label>
 
-                        {/* <Controller
-                            name='installments'
-                            control={control}
-                            render={({ field }) => (
-                                <MultiSelect
-                                    options={
-                                        masterInstallment?.data?.map((data) => ({
-                                            label: data.ftI_ID !== undefined ? data.ftI_ID.toString() : '',
-                                            value: data.ftI_NAME !== undefined ? data.ftI_NAME.toString() : ''
-                                        })) ?? []
-                                    }
-                                    onValueChange={(selectedValues) => {
-                                        field.onChange(selectedValues);
-                                        handleInstallmentSelection(selectedValues);
-                                    }}
-                                    defaultValue={SelectedInstallmentsItems.map((data) =>
-                                        data.ftI_ID !== undefined ? data.ftI_ID.toString() : ''
+                            <div className='flex-1'>
+                                <Controller
+                                    name='fmccD_ToNoSibblings'
+                                    control={control}
+                                    rules={{ required: 'To No of Siblings is required' }}
+                                    render={({ field }) => (
+                                        <div className='flex flex-col'>
+                                            <InputNumber
+                                                //   label='Concession Limit'
+
+                                                id='fmccD_ToNoSibblings'
+                                                value={field.value ?? 0}
+                                                onChange={(value: number) => {
+                                                    field.onChange(value);
+                                                }}
+                                                className='transition-colors focus:ring-2 focus:ring-primary/20'
+                                            />
+                                            {errors.fmccD_ToNoSibblings && <FormError>{errors.fmccD_ToNoSibblings.message}</FormError>}
+                                        </div>
                                     )}
-                                    value={SelectedInstallmentsItems.map((data) =>
-                                        data.ftI_ID !== undefined ? data.ftI_ID.toString() : ''
-                                    )}
-                                    placeholder='Select Installment'
-                                    variant='inverted'
-                                    disabled={masterInstallmentLoading}
                                 />
-                            )}
-                        /> */}
+                            </div>
+                        </div>
+
+                        <div className='group flex items-center justify-center space-x-3'>
+                            <label htmlFor='fmccD_PerOrAmt'>
+                                Percent/Amount<span className='text-red-500'>*</span>:
+                            </label>
+
+                            <div className='flex-1'>
+                                <Controller
+                                    name='fmccD_PerOrAmt'
+                                    control={control}
+                                    rules={{ required: 'Percent/Amount is required' }}
+                                    render={({ field }) => (
+                                        <div className='flex flex-col'>
+                                            <InputNumber
+                                                //   label='Concession Limit'
+
+                                                id='fmccD_PerOrAmt'
+                                                value={field.value ?? 0}
+                                                onChange={(value: number) => {
+                                                    field.onChange(value);
+                                                }}
+                                                className='transition-colors focus:ring-2 focus:ring-primary/20'
+                                            />
+                                            {errors.fmccD_PerOrAmt && <FormError>{errors.fmccD_PerOrAmt.message}</FormError>}
+                                        </div>
+                                    )}
+                                />
+                            </div>
+                        </div>
                     </div>
 
                     {/* Root Error */}
@@ -203,7 +243,7 @@ export default function AddMasterConcessionDetailsForm({ onSuccess, termname = '
                 </div>
 
                 {/* Action Buttons */}
-                <div className='flex flex-col gap-3 border-t pt-4 sm:flex-row sm:justify-start'>
+                <div className='flex flex-col gap-3 border-t pt-4 sm:flex-row sm:justify-center'>
                     <Button
                         type='button'
                         variant='outline'

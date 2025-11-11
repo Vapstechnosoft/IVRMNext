@@ -326,6 +326,15 @@ export async function getUserAccessibleModules() {
                                             title: 'Master Fee Concession',
                                             description: 'Manage Master Fee Concession Details'
                                         },
+
+                                        {
+                                            id: 600,
+                                            name: ' Concession Category Details',
+                                            icon: 'Settings',
+                                            url: '/fees/masters/masterfeeconcessiondetails',
+                                            title: 'Concession Category Details',
+                                            description: 'Concession Category Details'
+                                        },
                                         {
                                             id: 27,
                                             name: 'Fee Terms',
@@ -484,7 +493,8 @@ export async function getUserAccessibleModules() {
                                         //     url: '/fees/transactions/waivedoff',
                                         //     title: 'Fee waivedoff',
                                         //     description: 'Fee waivedoff'
-                                        // },
+                                        // }
+                                        // ,
                                         // {
                                         //     id: 500,
                                         //     name: 'Fee Preadmission Transaction',
