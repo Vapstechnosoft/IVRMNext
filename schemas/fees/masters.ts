@@ -382,16 +382,17 @@ export const masterTermFeeHeadSchema = {
 };
 export const masterConcessionDetailsSchema = {
     addOrUpdate: z.object({
-        fmcC_Id: z.number().int().optional(),
-        fmcC_ConcessionName: z.string({ message: 'ConcessionName is required' }),
-        fmcC_ConcessionApplLimit: z.number({
-            message: 'ConcessionApplLimit is required'
-        }),
-        fmcC_ConcessionFlag: z.string().optional(),
-        fmcC_ActiveFlag: z.boolean().optional()
+        fmccD_Id: z.number().int().optional(),
+        fmcC_Id: z.number({ message: 'Concession Category Type is required' }),
+        fmccD_PerOrAmtFlag: z.string({ message: 'Amount or Percentage is required' }),
+
+        fmccD_FromNoSibblings: z.number().min(1, { message: 'From No of Sibblings is required' }),
+        fmccD_ToNoSibblings: z.number().min(1, { message: 'To No of Sibblings is required' }),
+        //fmcC_ActiveFlag: z.boolean().optional(),
+        fmccD_PerOrAmt: z.number().min(1, { message: 'Concession Limit must be at morethan 0' })
     }),
     delete: z.object({
-        // fmcC_Id: deleteIdSchema('fmcC_Id')
+        fmccD_Id: deleteIdSchema('fmccD_Id')
     })
 };
 
