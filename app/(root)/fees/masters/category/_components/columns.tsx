@@ -1,6 +1,5 @@
 'use client';
 
-import { Checkbox } from '@/components/ui/checkbox';
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
 import { ActionButtons } from '@/components/ui/form/action-buttons';
 import { useFormContext } from '@/components/ui/form/form-provider';
@@ -10,28 +9,13 @@ import { useCallback } from 'react';
 
 export const masterClassYearlyCategoryColumns: ColumnDef<IMasterClassYearlyList>[] = [
     {
-        id: 'select',
-        header: ({ table }) => (
-            <Checkbox
-                checked={table.getIsAllPageRowsSelected() || (table.getIsSomePageRowsSelected() && 'indeterminate')}
-                onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
-                aria-label='Select all'
-            />
-        ),
-        cell: ({ row }) => (
-            <Checkbox checked={row.getIsSelected()} onCheckedChange={(value) => row.toggleSelected(!!value)} aria-label='Select row' />
-        ),
-        enableSorting: false,
-        enableHiding: false,
-        size: 24
-    },
-    {
         accessorKey: 'fyccC_Id',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Sl. No' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Sl. No' className='w-full pl-6' />,
         cell: ({ row, table }) => {
             const pageIndex = table.getState().pagination.pageIndex;
             const pageSize = table.getState().pagination.pageSize;
-            return <div>{pageIndex * pageSize + row.index + 1}</div>;
+
+            return <div className='w-full pl-6'>{pageIndex * pageSize + row.index + 1}</div>;
         },
         enableSorting: false,
         enableHiding: false
@@ -70,16 +54,9 @@ export const masterClassYearlyCategoryColumns: ColumnDef<IMasterClassYearlyList>
 ];
 
 function ActionButtonsCell({ rowData }: { rowData: IMasterClassYearlyList }) {
-    const { openToggleForm } = useFormContext<IMasterClassYearlyList>();
+    const { openDeleteForm } = useFormContext<IMasterClassYearlyList>();
 
-    const handleToggle = useCallback((data: IMasterClassYearlyList) => openToggleForm(data), [openToggleForm]);
+    const handleDelete = useCallback((data: IMasterClassYearlyList) => openDeleteForm(data), [openDeleteForm]);
 
-    return (
-        <ActionButtons
-            rowData={rowData}
-            buttons={{ edit: false, toggle: true, delete: false }}
-            onToggle={handleToggle}
-            toggleConditionKey='fycC_ActiveFlag'
-        />
-    );
+    return <ActionButtons rowData={rowData} buttons={{ edit: false, toggle: false, delete: true }} onDelete={handleDelete} />;
 }

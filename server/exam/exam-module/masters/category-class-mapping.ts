@@ -93,6 +93,7 @@ export async function addOrUpdateCategoryClassMapping(data: any) {
 }
 
 export async function toggleMasterExamCategoryClassSection(mi_id: number, id: number) {
+    console.log(mi_id, id);
     const url = `/exam_master_category/toggle_exam_category_class_section/${mi_id}/${id}`;
     return await api.put('exam', url);
 }

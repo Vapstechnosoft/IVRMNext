@@ -8,13 +8,18 @@ export async function addOrUpdateInstallment(data: any) {
     return await api.post<any>('fees', url, data);
 }
 
-export async function toggleMasterfeeInstallment(_mi_id: 30, id: number) {
-    const url = `/fee_installment/Deactivate${id}`;
+export async function toggleMasterfeeInstallment(id: number) {
+    const url = `/fee_installment/Deactivate/${id}`;
     return await api.put('fees', url);
 }
 
-export async function getfeeInstallment(searchParams?: ApiSearchparams) {
+export async function getfeeInstallment(mI_Id = 30, searchParams?: ApiSearchparams) {
     const urlParams = getSearchParamsUrl(searchParams ?? {});
-    const url = `/fee_installment/30?${urlParams}`;
+    const url = `/fee_installment/${mI_Id}?${urlParams}`;
+    return await api.get<IMasterFeesInstallmentList[]>('fees', url);
+}
+
+export async function getfeeInstallmentyId(fmi_id: number) {
+    const url = `/fee_installment/getpagedetails/${fmi_id}`;
     return await api.get<IMasterFeesInstallmentList[]>('fees', url);
 }

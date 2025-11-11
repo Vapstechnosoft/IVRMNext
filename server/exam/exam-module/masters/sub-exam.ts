@@ -10,6 +10,10 @@ export async function getMasterSubExam(searchParams?: ApiSearchparams) {
     return await api.get<IMasterSubExam>('exam', url);
 }
 
+export async function getMasterSubExamDropdownList(mI_Id: number) {
+    const url = `/master_sub_exam/sub_exam_drop_down_list/${mI_Id}`;
+    return await api.get<IMasterSubExam>('exam', url);
+}
 export async function addOrUpdateMasterSubExam(data: any) {
     const url = '/master_sub_exam';
     return await api.post<any>('exam', url, data);

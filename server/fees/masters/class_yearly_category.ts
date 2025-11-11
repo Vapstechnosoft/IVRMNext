@@ -3,9 +3,8 @@
 import { api, getSearchParamsUrl } from '@/lib/apiService';
 import type { ApiSearchparams } from '@/types';
 import type { IMasterClassYearlyList } from '@/types/fees/masters/masters';
-
 export async function getMasterClassYearlyCategory(searchParams?: ApiSearchparams) {
-    const urlParams = getSearchParamsUrl(searchParams ?? {});
+    const urlParams = getSearchParamsUrl(searchParams ?? {}, 'asmaY_Year,fmcC_ClassCategoryName,asmcL_ClassName');
     const url = `/fee_class_category/yearlyclasscategorylist/30?${urlParams}`;
     return await api.get<IMasterClassYearlyList[]>('fees', url);
 }
@@ -32,6 +31,6 @@ export async function addOrUpdateMasterClassYearlyCategory(data: any) {
 }
 
 export async function toggleMasterclassYearlyCategory(id: number) {
-    const url = `/fee_class_category/AddOrUpdateYearlyClassCategory/${id}`;
+    const url = `/fee_class_category/deletedetailsY/${id}`;
     return await api.put('fees', url);
 }

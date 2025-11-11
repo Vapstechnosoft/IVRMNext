@@ -2,19 +2,15 @@
 
 import { zodResolver } from '@hookform/resolvers/zod';
 import { format, parse } from 'date-fns';
-import { Calendar as CalendarIcon, Save } from 'lucide-react';
+import { Save } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import type { z } from 'zod';
 
 import { Button } from '@/components/ui/button';
-import { CalendarYear } from '@/components/ui/calendar_year';
 import { FormError, Label } from '@/components/ui/extension/field';
-import { InputText } from '@/components/ui/extension/input-text';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { cn } from '@/lib/utils';
 
 import { useMasterFeeInstallmentDueDate } from '@/hooks/fees/useMasters';
 import { masterInstallmentDueDateSchema } from '@/schemas/fees/masters';
@@ -36,7 +32,6 @@ export default function UpdateMasterFeeInstallmentDueDateForm({ onSuccess, selec
         control,
         handleSubmit,
         reset,
-        setValue,
         watch,
         formState: { errors, isSubmitting }
     } = useForm<FormFields>({
@@ -65,38 +60,38 @@ export default function UpdateMasterFeeInstallmentDueDateForm({ onSuccess, selec
     useEffect(() => {
         if (row) {
             // Initialize form with existing data
-            const initialInstallment: IMasterFeesInstallmentDueDateList = {
-                sno: 1,
-                ftI_Id: row.ftI_Id,
-                fmI_Id: row.fmI_Id,
-                fmI_Name: row.fmI_Name,
-                fmI_No_Of_Installments: row.fmI_No_Of_Installments,
-                fmI_Installment_Type: row.fmI_Installment_Type,
-                ftI_Name: row.ftI_Name || '',
-                mI_ID: row.mI_ID,
-                fmI_ActiveFlag: row.fmI_ActiveFlag,
-                fdate: row.fdate || '',
-                tdate: row.tdate || '',
-                aplc: row.aplc || '',
-                ddate: row.ddate || ''
-            };
+            // const initialInstallment: IMasterFeesInstallmentDueDateList = {
+            //     sno: 1,
+            //     ftI_Id: row.ftI_Id,
+            //     fmI_Id: row.fmI_Id,
+            //     fmI_Name: row.fmI_Name,
+            //     fmI_No_Of_Installments: row.fmI_No_Of_Installments,
+            //     fmI_Installment_Type: row.fmI_Installment_Type,
+            //     ftI_Name: row.ftI_Name || '',
+            //     mI_ID: row.mI_ID,
+            //     fmI_ActiveFlag: row.fmI_ActiveFlag,
+            //     fdate: row.fdate || '',
+            //     tdate: row.tdate || '',
+            //     aplc: row.aplc || '',
+            //     ddate: row.ddate || ''
+            // };
 
-            setInstallments([initialInstallment]);
+            // setInstallments([initialInstallment]);
 
             reset({
-                fmI_Name: row.fmI_Name,
-                fmI_Installment_Type: row.fmI_Installment_Type,
-                fmI_No_Of_Installments: row.fmI_No_Of_Installments,
-                installments: [
-                    {
-                        sno: 1,
-                        ftI_Name: row.ftI_Name || '',
-                        fdate: row.fdate || '',
-                        tdate: row.tdate || '',
-                        aplc: row.aplc || '',
-                        ddate: row.ddate || ''
-                    }
-                ]
+                // fmI_Name: row.fmI_Name,
+                // fmI_Installment_Type: row.fmI_Installment_Type,
+                // fmI_No_Of_Installments: row.fmI_No_Of_Installments,
+                // installments: [
+                //     {
+                //         sno: 1,
+                //         ftI_Name: row.ftI_Name || '',
+                //         fdate: row.fdate || '',
+                //         tdate: row.tdate || '',
+                //         aplc: row.aplc || '',
+                //         ddate: row.ddate || ''
+                //     }
+                // ]
             });
         }
     }, [row, reset]);
@@ -124,14 +119,14 @@ export default function UpdateMasterFeeInstallmentDueDateForm({ onSuccess, selec
 
         // Update form value
         const formInstallments = updated.map((inst) => ({
-            sno: inst.sno,
-            ftI_Name: inst.ftI_Name,
-            fdate: inst.fdate,
-            tdate: inst.tdate,
-            aplc: inst.aplc,
-            ddate: inst.ddate
+            // sno: inst.sno,
+            // ftI_Name: inst.ftI_Name,
+            // fdate: inst.fdate,
+            // tdate: inst.tdate,
+            // aplc: inst.aplc,
+            // ddate: inst.ddate
         }));
-        setValue('installments', formInstallments);
+        //setValue('installments', formInstallments);
     };
 
     const onSubmit = async (data: FormFields) => {
@@ -145,17 +140,17 @@ export default function UpdateMasterFeeInstallmentDueDateForm({ onSuccess, selec
                         fmI_No_Of_Installments: data.fmI_No_Of_Installments || installments.length,
                         updatedDate: new Date().toISOString()
                     }
-                ],
-                inTData: installments.map((inst) => ({
-                    ftI_Id: inst.ftI_Id,
-                    mI_ID: row.mI_ID,
-                    ftI_Name: inst.ftI_Name || `Installment ${inst.sno}`,
-                    fdate: inst.fdate,
-                    tdate: inst.tdate,
-                    aplc: inst.aplc,
-                    ddate: inst.ddate,
-                    updatedDate: new Date().toISOString()
-                }))
+                ]
+                // inTData: installments.map((inst) => ({
+                //     ftI_Id: inst.ftI_Id,
+                //     mI_ID: row.mI_ID,
+                //     ftI_Name: inst.ftI_Name || `Installment ${inst.sno}`,
+                //     fdate: inst.fdate,
+                //     tdate: inst.tdate,
+                //     aplc: inst.aplc,
+                //     ddate: inst.ddate,
+                //     updatedDate: new Date().toISOString()
+                // }))
             };
 
             const response = await addOrUpdateInsallmentDueDate(payload);
@@ -176,22 +171,22 @@ export default function UpdateMasterFeeInstallmentDueDateForm({ onSuccess, selec
     const handleReset = () => {
         reset();
         if (row) {
-            const initialInstallment: IMasterFeesInstallmentDueDateList = {
-                sno: 1,
-                ftI_Id: row.ftI_Id,
-                fmI_Id: row.fmI_Id,
-                fmI_Name: row.fmI_Name,
-                fmI_No_Of_Installments: row.fmI_No_Of_Installments,
-                fmI_Installment_Type: row.fmI_Installment_Type,
-                ftI_Name: row.ftI_Name || '',
-                mI_ID: row.mI_ID,
-                fmI_ActiveFlag: row.fmI_ActiveFlag,
-                fdate: row.fdate || '',
-                tdate: row.tdate || '',
-                aplc: row.aplc || '',
-                ddate: row.ddate || ''
-            };
-            setInstallments([initialInstallment]);
+            // const initialInstallment: IMasterFeesInstallmentDueDateList = {
+            //     sno: 1,
+            //     ftI_Id: row.ftI_Id,
+            //     fmI_Id: row.fmI_Id,
+            //     fmI_Name: row.fmI_Name,
+            //     fmI_No_Of_Installments: row.fmI_No_Of_Installments,
+            //     fmI_Installment_Type: row.fmI_Installment_Type,
+            //     ftI_Name: row.ftI_Name || '',
+            //     mI_ID: row.mI_ID,
+            //     fmI_ActiveFlag: row.fmI_ActiveFlag,
+            //     fdate: row.fdate || '',
+            //     tdate: row.tdate || '',
+            //     aplc: row.aplc || '',
+            //     ddate: row.ddate || ''
+            // };
+            // setInstallments([initialInstallment]);
         }
     };
 
@@ -289,7 +284,7 @@ export default function UpdateMasterFeeInstallmentDueDateForm({ onSuccess, selec
                                 </tr>
                             </thead>
                             <tbody>
-                                {installments.map((inst, index) => (
+                                {/* {installments.map((inst, index) => (
                                     <tr key={inst.sno} className='text-gray-800 text-sm hover:bg-gray-50'>
                                         <td className='border border-gray-200 px-4 py-2 text-center font-medium'>{inst.sno}</td>
                                         <td className='border border-gray-200 px-4 py-2'>
@@ -333,7 +328,7 @@ export default function UpdateMasterFeeInstallmentDueDateForm({ onSuccess, selec
                                             </td>
                                         ))}
                                     </tr>
-                                ))}
+                                ))} */}
                             </tbody>
                         </table>
                     </div>

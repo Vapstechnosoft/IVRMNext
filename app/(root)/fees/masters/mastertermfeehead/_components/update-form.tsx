@@ -88,6 +88,7 @@ export default function UpdateFeeTermHeadForm({ onSuccess, fineslab = '', select
             const { fmT_Id } = data;
 
             const payload = {
+                fmtfH_Id: row.idforedt,
                 FMT_Id: fmT_Id,
                 mI_Id: 30,
                 feeHeadList: selectedHeadsItems.map((item) => ({

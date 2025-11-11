@@ -34,3 +34,8 @@ export async function getAllMasterSubjectDetails(searchParams?: ApiSearchparams)
     const url = `/master_subject_group/master_subject_active_list/30?${urlParams}`;
     return await api.get<IMasterSubjectGroupDetails>('exam', url);
 }
+
+export async function getMasterSubjectGroupDetailsById(groupId: number) {
+    const url = `/master_subject_group/GetSubjectGroupDetailsViewById/${groupId}`;
+    return await api.get<IMasterSubjectGroupDetails>('exam', url);
+}

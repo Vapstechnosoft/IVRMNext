@@ -6,7 +6,7 @@ import { FormProvider, useFormContext } from '@/components/ui/form/form-provider
 import { List, Plus, X } from 'lucide-react';
 import { use, useState } from 'react';
 
-import { MasterViewDetails } from '@/components/ui/set-order/generic-seto-order';
+import { MasterViewDetails } from '@/components/ui/set-order/generic-set-order';
 import { useMasterExam } from '@/hooks/exam/exammodule/usemasters';
 import { UpdatedOrderdExams, getMasterExamOrderData } from '@/server/exam/exam-module/masters/exam';
 import type { IMasterExam, IMasterExamOrder } from '@/types/exam/exam-module/masters';
@@ -178,7 +178,7 @@ function FormSections() {
             {isAddFormOpen && (
                 <div ref={addFormRef}>
                     <CollapsibleSection
-                        title='Add New Master Subject'
+                        title='Add New Master Exam'
                         description='Fill in the details below to create a new master subject'
                         defaultOpen={true}
                         variant='outline'
@@ -203,7 +203,7 @@ function FormSections() {
             {isEditFormOpen && selectedRow && (
                 <div ref={editFormRef}>
                     <CollapsibleSection
-                        title='Edit Master Subject'
+                        title='Edit Master Exam'
                         defaultOpen={true}
                         variant='outline'
                         size='md'

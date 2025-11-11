@@ -1,25 +1,26 @@
 'use client';
-
-import { Heading } from '@/components/layout/heading';
 import { Button } from '@/components/ui/button';
-import { useDataTableProps } from '@/components/ui/data-table/generic-data-table';
+import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/generic-data-table';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
-import { useMasterConcession } from '@/hooks/fees/useMasters';
+import { useMasterConcessionDetails } from '@/hooks/fees/useMasters';
 
-import type { IMasterConcessionList } from '@/types/fees/masters';
+import type { IMasterConcessionDetailsList } from '@/types/fees/masters';
 import { Plus, X } from 'lucide-react';
 import { use } from 'react';
 import AddMasterConcessionForm from './_components/add-form';
+import { feeMasterConcessionDetailsColumns } from './_components/columns';
+import ToggleFeesConcessionDetails from './_components/toggle-form';
+import UpdateMasterConcessionDetailsForm from './_components/update-form';
 
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 
 export default function feeconcessionPage(props: { searchParams: SearchParams }) {
     const searchParams = use(props.searchParams);
-    const { data: response, isLoading, error } = useMasterConcession(searchParams);
+    const { data: response, isLoading, error } = useMasterConcessionDetails();
 
     return (
-        <FormProvider<IMasterConcessionList>>
+        <FormProvider<IMasterConcessionDetailsList>>
             <MasterFeeConcessionPageContent response={response} isLoading={isLoading} error={error} />
         </FormProvider>
     );
@@ -34,7 +35,7 @@ function MasterFeeConcessionPageContent({
     isLoading: boolean;
     error: any;
 }) {
-    const { openAddForm } = useFormContext<IMasterConcessionList>();
+    const { openAddForm } = useFormContext<IMasterConcessionDetailsList>();
     const tableProps = useDataTableProps(response);
 
     return (
@@ -42,9 +43,7 @@ function MasterFeeConcessionPageContent({
             <div className='container space-y-4 p-1'>
                 {/* Header */}
                 <div className='flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between'>
-                    <div className='space-y-1'>
-                        <Heading title='Fees Master Concession' description='' />
-                    </div>
+                    <div className='space-y-1'>{/* <Heading title='Fees Master Concession' description='' /> */}</div>
                     <Button
                         type='button'
                         onClick={openAddForm}
@@ -55,23 +54,23 @@ function MasterFeeConcessionPageContent({
                 </div>
 
                 {/* Data Table Section */}
-                {/* <CollapsibleSection
+                <CollapsibleSection
                     defaultOpen={true}
                     variant='default'
                     size='lg'
                     className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
-                    <GenericDataTable<IMasterConcessionList>
+                    <GenericDataTable<IMasterConcessionDetailsList>
                         {...tableProps}
-                        columns={feeMasterConcessionColumns}
+                        columns={feeMasterConcessionDetailsColumns}
                         isLoading={isLoading}
                         error={error}
                         columnPinning={{ right: ['actions'] }}
-                        loadingMessage='Loading master fees concessions...'
-                        noDataTitle='No master fees concessions found'
-                        noDataDescription='Add a new master fees concession'
-                        errorTitle=' Error loading master fees concessions'
+                        loadingMessage='Loading master fees concessions category Details...'
+                        noDataTitle=' No concessions category Details found'
+                        noDataDescription=' You can add new concessions category Details'
+                        errorTitle=' Error loading master fees concessions category Details'
                     />
-                </CollapsibleSection> */}
+                </CollapsibleSection>
 
                 {/* Forms */}
                 <FormSections />
@@ -91,7 +90,7 @@ function FormSections() {
         closeToggleForm,
         addFormRef,
         editFormRef
-    } = useFormContext<IMasterConcessionList>();
+    } = useFormContext<IMasterConcessionDetailsList>();
 
     return (
         <>
@@ -99,8 +98,8 @@ function FormSections() {
             {isAddFormOpen && (
                 <div ref={addFormRef}>
                     <CollapsibleSection
-                        title='Add New Fine Slab'
-                        description='Fill in the details below to create a new Fee Concession'
+                        title='Add Concession Category Details'
+                        description='Fill in the details below to create a new Fee Concession Category Details'
                         defaultOpen={true}
                         variant='outline'
                         size='md'
@@ -124,7 +123,7 @@ function FormSections() {
             {isEditFormOpen && selectedRow && (
                 <div ref={editFormRef}>
                     <CollapsibleSection
-                        title='Edit Master Master Concession'
+                        title='Edit Concession Category Details'
                         defaultOpen={true}
                         variant='outline'
                         size='md'
@@ -138,14 +137,14 @@ function FormSections() {
                                 className='-top-[3.5rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
                                 <X className='h-4 w-4 text-destructive' /> Close
                             </Button>
-                            {/* <UpdateMasterConcessionForm selectedRow={selectedRow} onSuccess={closeEditForm} /> */}
+                            <UpdateMasterConcessionDetailsForm selectedRow={selectedRow} onSuccess={closeEditForm} />
                         </div>
                     </CollapsibleSection>
                 </div>
             )}
 
             {/* Toggle Form */}
-            {/* {isToggleFormOpen && selectedRow && <ToggleMasterConcessionForm rowData={selectedRow} onClose={closeToggleForm} />} */}
+            {isToggleFormOpen && selectedRow && <ToggleFeesConcessionDetails rowData={selectedRow} onClose={closeToggleForm} />}
         </>
     );
 }

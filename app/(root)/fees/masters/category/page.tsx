@@ -10,7 +10,7 @@ import { Plus, X } from 'lucide-react';
 import { use, useEffect } from 'react';
 import AddMasterClassForm from './_components/add-form';
 import { masterClassYearlyCategoryColumns } from './_components/columns';
-import ToggleMasterClassForm from './_components/toggle-form';
+import DeleteMasterClassForm from './_components/toggle-form';
 
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 
@@ -18,6 +18,7 @@ export default function MasterClassPage(props: { searchParams: SearchParams }) {
     const searchParams = use(props.searchParams);
     const { data: response, isLoading, error, refetch } = useMasterYearlyCategory(searchParams);
 
+    // biome-ignore lint/suspicious/noEmptyBlockStatements: <explanation>
     useEffect(() => {}, [response]);
 
     return (
@@ -46,7 +47,8 @@ function MasterClassPageContent({
             <div className='container space-y-4 p-1'>
                 {/* Header */}
                 <div className='flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between'>
-                    <div className='space-y-1'></div>
+                    <div className='space-y-1'>{/* <Heading title='Fee Head' description='' /> */}</div>
+
                     <Button
                         type='button'
                         onClick={openAddForm}
@@ -83,7 +85,7 @@ function MasterClassPageContent({
 }
 
 function FormSections({ refetch }: { refetch: () => void }) {
-    const { isAddFormOpen, isEditFormOpen, isToggleFormOpen, selectedRow, closeAddForm, closeToggleForm, addFormRef } =
+    const { isAddFormOpen, isEditFormOpen, isDeleteFormOpen, selectedRow, closeAddForm, closeDeleteForm, addFormRef } =
         useFormContext<IMasterClassYearlyList>();
 
     useEffect(() => {
@@ -129,14 +131,14 @@ function FormSections({ refetch }: { refetch: () => void }) {
                 </div>
             )}
 
-            {/* Toggle Form */}
-            {isToggleFormOpen && selectedRow && (
-                <ToggleMasterClassForm
+            {/* Delete Form */}
+            {isDeleteFormOpen && selectedRow && (
+                <DeleteMasterClassForm
                     rowData={selectedRow}
-                    onClose={closeToggleForm}
+                    onClose={closeDeleteForm}
                     onSuccess={() => {
                         handleSuccess();
-                        closeToggleForm();
+                        closeDeleteForm();
                     }}
                 />
             )}

@@ -69,7 +69,7 @@ export default function AddAddFeeTermsForm({ onSuccess, feeterms = '' }: AddFeeT
     return (
         <div className={`${feeterms}`}>
             <form onSubmit={handleSubmit(onSubmit)} className='flex w-full flex-col items-center justify-center space-y-6'>
-                <div className='flex items-center space-x-2'>
+                {/* <div className='flex items-center space-x-2'>
                     <InputText
                         label='Term Name'
                         required
@@ -78,7 +78,72 @@ export default function AddAddFeeTermsForm({ onSuccess, feeterms = '' }: AddFeeT
                         error={errors.fmT_Name?.message}
                         className='transition-colors focus:ring-2 focus:ring-primary/20'
                     />
+                </div> */}
+
+                {/* <div className='flex items-center space-x-2'>
+                    <InputText
+                        label='Term Name'
+                        required
+                        id='fmT_Name'
+                        {...register('fmT_Name', {
+                            onChange: (e) => {
+                                
+                                e.target.value = e.target.value.replace(/[^a-zA-Z0-9\s]/g, '');
+                            }
+                        })}
+                        error={errors.fmT_Name?.message}
+                        className='transition-colors focus:ring-2 focus:ring-primary/20'
+                    />
+                </div> */}
+                {/* <div className='flex items-center space-x-2'>
+                    <InputText
+                        label='Term Name'
+                        required
+                        id='fmT_Name'
+                        {...register('fmT_Name', {
+                            required: 'Term Name is required',
+                            validate: (value) => {
+                                if (!/^[a-zA-Z0-9]+$/.test(value)) {
+                                    return 'Only letters and numbers allowed (no spaces)';
+                                }
+                                return true;
+                            },
+                            onChange: (e) => {
+                               
+                                e.target.value = e.target.value.replace(/[^a-zA-Z0-9]/g, '');
+                            }
+                        })}
+                        error={errors.fmT_Name?.message}
+                        className='transition-colors focus:ring-2 focus:ring-primary/20'
+                    />
+                </div> */}
+
+                <div className='flex items-center space-x-3'>
+                    <label htmlFor='fmT_Name' className='w-32 text-right font-medium'>
+                        Term Name<span className='text-red-500'>*</span>:
+                    </label>
+
+                    <div className='flex-1'>
+                        <InputText
+                            id='fmT_Name'
+                            {...register('fmT_Name', {
+                                required: 'Term Name is required',
+                                validate: (value) => {
+                                    if (!/^[a-zA-Z0-9]+$/.test(value)) {
+                                        return 'Only letters and numbers allowed (no spaces)';
+                                    }
+                                    return true;
+                                },
+                                onChange: (e) => {
+                                    e.target.value = e.target.value.replace(/[^a-zA-Z0-9]/g, '');
+                                }
+                            })}
+                            error={errors.fmT_Name?.message}
+                            className='w-full rounded-none border-0 border-gray-300 px-0 py-1 focus:border-primary focus:ring-0'
+                        />
+                    </div>
                 </div>
+
                 <Controller
                     name='fmT_IncludeArrearFeeFlg'
                     control={control}

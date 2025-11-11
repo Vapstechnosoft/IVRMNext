@@ -88,7 +88,7 @@ export const ExamSubjectWizardColumns: ColumnDef<IExamSubjectWizard>[] = [
         accessorKey: 'subject_order',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Subject Order' />,
         cell: ({ row }) => {
-            const { openOrderDetails } = useFormContext<IExamSubjectWizard>(); // 👈 pull handler from context (like your others)
+            const { openOrderDetails } = useFormContext<IExamSubjectWizard>();
             const rowData = row.original; // full data of the clicked row
 
             const handleOpenOrderMenu = () => {
@@ -134,7 +134,7 @@ function ActionButtonsCell({ rowData }: { rowData: IExamSubjectWizard }) {
 
             <ActionButtons
                 rowData={rowData}
-                buttons={{ edit: true, delete: false, toggle: true }}
+                buttons={{ edit: false, delete: false, toggle: true }}
                 onEdit={handleEdit}
                 onToggle={handleToggle}
                 toggleConditionKey='eycE_ActiveFlg'

@@ -7,7 +7,7 @@ export const loginSchema = z.object({
 export const masterFeeheadSchema = {
     addOrUpdate: z.object({
         fmH_Id: z.number().optional(),
-        fmH_FeeName: createStringSchema('Fee Head Name', 1, 100),
+        fmH_FeeName: createStringSchema('Fee Head Name', 3, 100),
         fmH_Order: z.number().int({ message: 'fmH_Order is required' }),
         //fmH_Flag: createStringSchema('fmH_Flag', 1, 100),
 
@@ -131,29 +131,67 @@ export const fineslabSchema = {
 export const masterClassCategorySchema = {
     addOrUpdate: z.object({
         fmcC_Id: z.number().optional(),
-        fmcC_ClassCategoryName: z.string().min(1, { message: 'Class Category Name is required' }),
-        fmcC_ClassCategoryCode: z.string().min(1, { message: 'Class Category Code is required' }),
+
+        fmcC_ClassCategoryName: createStringSchema('Class Category Name', 1, 100),
+        fmcC_ClassCategoryCode: createStringSchema('Class Category Code', 1, 20),
+
         mI_Id: z.number().optional(),
         fmcC_ActiveFlag: z.boolean().optional()
     }),
+
     delete: z.object({
-        fmcC_Id: deleteIdSchema('fmcC_Id')
+        fmcC_Id: z
+            .number({
+                required_error: 'Class Category ID (fmcC_Id) is required',
+                invalid_type_error: 'Class Category ID must be a number'
+            })
+            .positive('Class Category ID must be positive')
     })
 };
 export const masterClassSchema = {
     addOrUpdate: z.object({
         academicYear: z.string().min(1, { message: 'Academic Year is required' }),
         classCategory: z.string().min(1, { message: 'Class Category is required' }),
-        classes: z.array(z.string().min(1)).min(1, { message: 'At least one class must be selected' })
+        headInstallments: z
+            .array(
+                z.object({
+                    id: z.number(),
+                    fmH_Id: z.string().min(1, { message: 'Fee Head is required' }),
+                    fmI_Id: z.string().min(1, { message: 'Fee Installment is required' }),
+                    fineApplicable: z.boolean(),
+                    active: z.boolean(),
+                    commonAmount: z.boolean()
+                })
+            )
+            .min(1, { message: 'At least one head installment is required' })
     }),
 
     delete: z.object({
-        asmS_Id: z.number().min(1, { message: 'Valid ASMCL ID is required for deletion' }) // Or use `deleteIdSchema
+        fycC_Id: z.number().min(1, {
+            message: 'Valid Class Yearly Category ID is required for deletion'
+        })
     })
 };
+
+export const masterClassYearlyCategorySchema = {
+    addOrUpdate: z.object({
+        academicYear: z.string().min(1, { message: 'Academic Year is required' }),
+        classCategory: z.string().min(1, { message: 'Class Category is required' }),
+        classes: z.array(z.string()).min(1, { message: 'At least one class is required' })
+    }),
+    delete: z.object({
+        fycC_Id: z
+            .number()
+            .min(1, {
+                message: 'Valid Class Yearly Category ID is required for deletion'
+            })
+            .optional()
+    })
+};
+
 export const masterGroupsGroupingSchema = {
     addOrUpdate: z.object({
-        fmgG_GroupName: z.string().min(1, { message: 'Grouping Name is required' }),
+        fmgG_GroupName: z.string().min(1, { message: 'Group Name is required' }),
         fmgG_GroupCode: z.string().min(1, { message: 'Group Code is required' }),
         selectedFeeGroupIds: z.array(z.number()).min(1, { message: 'Please select at least one fee group' })
     }),
@@ -161,23 +199,23 @@ export const masterGroupsGroupingSchema = {
         fmgG_Id: z.number({ message: 'ID is required for deletion' })
     })
 };
-//installment fees
 export const masterInstallmentSchema = {
     addOrUpdate: z.object({
-        fmI_Name: z.string().min(1, { message: 'Master Installment Name is required' }),
-        fmI_Installment_Type: z.string().min(1, { message: 'Installment Type is required' }),
+        fmI_Name: createStringSchema('Master Installment Name', 1, 100),
+        fmI_Installment_Type: createStringSchema('Installment Type', 1, 30),
         fmI_No_Of_Installments: z.number().optional(),
         installments: z
             .array(
                 z.object({
                     sno: z.number(),
-                    ftI_Name: z.string().min(1, { message: 'Installment name is required' })
+                    ftI_Name: createStringSchema('Installment Name', 1, 100)
                 })
             )
             .optional()
     }),
+
     delete: z.object({
-        mI_ID: z.number().optional()
+        fmI_Id: z.number().optional()
     })
 };
 export const masterGroupSchema = {
@@ -189,10 +227,16 @@ export const masterGroupSchema = {
             if (typeof val === 'string' && val.trim() === '') return undefined;
             return val;
         }, z.enum(['transport', 'hostel']).optional()),
-        studentType: z.preprocess((val) => {
-            if (typeof val === 'string' && val.trim() === '') return undefined;
-            return val;
-        }, z.enum(['regular', 'newstudent']).optional()),
+        studentType: z.preprocess(
+            (val) => {
+                if (typeof val === 'string' && val.trim() === '') return undefined;
+                return val;
+            },
+            z.enum(['regular', 'newstudent'], {
+                required_error: 'Please select Regular or New Student',
+                invalid_type_error: 'Please select Regular or New Student'
+            })
+        ),
         fmG_CompulsoryFlag: z.boolean().default(false)
     }),
     toggle: z.object({
@@ -314,7 +358,9 @@ export const masterConcessionSchema = {
 export const masterTermsSchema = {
     addOrUpdate: z.object({
         fmT_Id: z.number().int().optional(),
-        fmT_Name: z.string().min(1, { message: 'Term Name is required' }),
+        fmT_Name: z
+            .string()
+            .min(1, { message: 'Term Name is required and Only letters and numbers allowed (no spaces and special characters)' }),
         fmT_IncludeArrearFeeFlg: z.boolean().optional(),
         fmT_ActiveFlag: z.boolean().optional()
     }),
@@ -339,16 +385,17 @@ export const masterTermFeeHeadSchema = {
 };
 export const masterConcessionDetailsSchema = {
     addOrUpdate: z.object({
-        fmcC_Id: z.number().int().optional(),
-        fmcC_ConcessionName: z.string({ message: 'ConcessionName is required' }),
-        fmcC_ConcessionApplLimit: z.number({
-            message: 'ConcessionApplLimit is required'
-        }),
-        fmcC_ConcessionFlag: z.string().optional(),
-        fmcC_ActiveFlag: z.boolean().optional()
+        fmccD_Id: z.number().int().optional(),
+        fmcC_Id: z.number({ message: 'Concession Category Type is required' }),
+        fmccD_PerOrAmtFlag: z.string({ message: 'Amount or Percentage is required' }),
+
+        fmccD_FromNoSibblings: z.number().min(1, { message: 'From No of Sibblings is required' }),
+        fmccD_ToNoSibblings: z.number().min(1, { message: 'To No of Sibblings is required' }),
+        //fmcC_ActiveFlag: z.boolean().optional(),
+        fmccD_PerOrAmt: z.number().min(1, { message: 'Concession Limit must be at morethan 0' })
     }),
     delete: z.object({
-        // fmcC_Id: deleteIdSchema('fmcC_Id')
+        fmccD_Id: deleteIdSchema('fmccD_Id')
     })
 };
 
@@ -475,24 +522,6 @@ export const feePrivilegeSchema = {
     })
 };
 
-export const masterOnlinePaymentHeadGroupSchema = {
-    addOrUpdate: z.object({
-        fmcC_Id: z.number().int({ message: 'ivrmmoD_Id is required' }).optional(),
-        mI_Id: createStringSchema('ivrmmoD_ModeOfPayment', 1, 100),
-        institutionName: createStringSchema('institutionName', 1, 100),
-        classCategory: createStringSchema('classCategory', 1, 100),
-        subMerchantId: createStringSchema('subMerchantId', 1, 100),
-        groupName: createStringSchema('groupName', 1, 100),
-        headSearchTerm: createStringSchema('headSearchTerm', 1, 100),
-        installmentName: createStringSchema('installmentName', 1, 100),
-        terms: createStringSchema('headSearchTerm', 1, 100),
-        academicYear: createStringSchema('headSearchTerm', 1, 100)
-    }),
-    delete: z.object({
-        fmcC_Id: deleteIdSchema('ivrmmoD_Id')
-    })
-};
-
 export const masterTermFeeHeadDueDateSchema = {
     addOrUpdate: z.object({
         asmaY_Id: z.number().int({ message: 'Academic Year is required' }).optional(),
@@ -501,5 +530,80 @@ export const masterTermFeeHeadDueDateSchema = {
     }),
     delete: z.object({
         fmA_Id: deleteIdSchema('fmA_Id')
+    })
+};
+
+export const masterOnlinePaymentHeadGroupSchema = {
+    addOrUpdate: z.object({
+        mI_Id: z.string().min(1, { message: 'Institution is required' }),
+        institutionName: z.string().min(1, { message: 'Institution Name is required' }),
+        asmaY_Id: z.number().int({ message: 'Academic Year is required' }).optional(),
+        classCategory: z.string().min(1, { message: 'Class is required' }),
+        subMerchantId: z.string().min(1, { message: 'Sub Merchant Id is required' }),
+        groupName: z.string().min(1, { message: 'Group Name is required' }),
+        headSearchTerm: z.string().optional(),
+        installmentName: z.string().min(1, { message: 'Installment is required' }),
+        terms: z.string().min(1, { message: 'Terms is required' }),
+        academicYear: z.string().optional()
+    }),
+    delete: z.object({
+        fmcC_Id: deleteIdSchema('fmcC_Id')
+    })
+};
+
+export const masterTermFeeHeadDuedateSchema = {
+    addOrUpdate: z.object({
+        asmay_Id: z.number({ message: 'Academic Year is required' }),
+        fmt_id: z.number({ message: 'Term is required' }),
+        fmh_id: z.number({ message: 'Head is required' })
+    }),
+    delete: z.object({
+        fmtfhdD_Id: deleteIdSchema('fmtfhdD_Id')
+    })
+};
+
+export const masterClassFeeMasterGroupwiseAutoReceipt = {
+    addOrUpdate: z
+        .object({
+            academicYear: z.string().min(1, { message: 'Academic Year is required' }),
+            usePrefix: z.boolean().optional(),
+            useSuffix: z.boolean().optional(),
+            prefixValue: z.string().optional(),
+            suffixValue: z.string().optional(),
+            startingNumber: z.string().min(1, { message: 'Starting Number is required' }),
+            groups: z.array(z.string().min(1)).min(1, { message: 'At least one group must be selected' }),
+            autoGroupName: z.string().min(1, { message: 'Auto Group Name is required' }),
+            address: z.string().optional(),
+            receiptTemplateFormat: z.string().optional()
+        })
+        .refine(
+            (data) => {
+                if (data.usePrefix && (!data.prefixValue || data.prefixValue.trim() === '')) {
+                    return false;
+                }
+                return true;
+            },
+            {
+                message: 'Prefix value is required when prefix is selected',
+                path: ['prefixValue']
+            }
+        )
+        .refine(
+            (data) => {
+                if (data.useSuffix && (!data.suffixValue || data.suffixValue.trim() === '')) {
+                    return false;
+                }
+                return true;
+            },
+            {
+                message: 'Suffix value is required when suffix is selected',
+                path: ['suffixValue']
+            }
+        ),
+
+    delete: z.object({
+        fycC_Id: z.number().min(1, {
+            message: 'Valid Class Yearly Category ID is required for deletion'
+        })
     })
 };

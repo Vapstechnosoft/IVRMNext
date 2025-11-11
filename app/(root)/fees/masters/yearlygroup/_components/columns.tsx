@@ -1,5 +1,4 @@
 'use client';
-import { Checkbox } from '@/components/ui/checkbox';
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
 import { ActionButtons } from '@/components/ui/form/action-buttons';
 import { useFormContext } from '@/components/ui/form/form-provider';
@@ -9,20 +8,11 @@ import { useCallback } from 'react';
 
 export const YearlyColoumnsColumns: ColumnDef<IMaasterFeesYearlyGrouping>[] = [
     {
-        id: 'select',
-        header: ({ table }) => (
-            <Checkbox
-                checked={table.getIsAllPageRowsSelected() || (table.getIsSomePageRowsSelected() && 'indeterminate')}
-                onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
-                aria-label='Select all'
-            />
-        ),
-        cell: ({ row }) => (
-            <Checkbox checked={row.getIsSelected()} onCheckedChange={(value) => row.toggleSelected(!!value)} aria-label='Select row' />
-        ),
+        id: 'serialNumber',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='S.No' className='pl-6 text-start' />,
+        cell: ({ row }) => <div className='pl-6 text-start'>{row.index + 1}</div>,
         enableSorting: false,
-        enableHiding: false,
-        size: 24
+        enableHiding: false
     },
     {
         accessorKey: 'asmaY_Year',
@@ -43,32 +33,23 @@ export const YearlyColoumnsColumns: ColumnDef<IMaasterFeesYearlyGrouping>[] = [
         enableSorting: false,
         enableHiding: true
     },
-    {
-        accessorKey: 'fyG_ActiveFlag',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Active' />,
-        cell: ({ row }) => {
-            const val = row.getValue('fyG_ActiveFlag');
-            const isActive = typeof val === 'number' ? val === 1 : Boolean(val);
-            return <div>{isActive ? 'Active' : 'Inactive'}</div>;
-        },
-        enableSorting: true,
-        enableHiding: true
-    },
+
     {
         accessorKey: 'fyG_RebateApplicableFlg',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Rebate Applicable' />,
         cell: ({ row }) => {
             const val = row.getValue('fyG_RebateApplicableFlg');
-            const is = typeof val === 'number' ? val === 1 : Boolean(val);
+            const is =
+                typeof val === 'boolean'
+                    ? val
+                    : typeof val === 'number'
+                      ? val === 1
+                      : typeof val === 'string'
+                        ? val.toLowerCase() === 'true'
+                        : false;
+
             return <div>{is ? 'Yes' : 'No'}</div>;
         },
-        enableSorting: true,
-        enableHiding: true
-    },
-    {
-        accessorKey: 'fyG_RebateTypeFlg',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Rebate Type' />,
-        cell: ({ row }) => <div>{String(row.getValue('fyG_RebateTypeFlg') ?? '')}</div>,
         enableSorting: true,
         enableHiding: true
     },
@@ -77,16 +58,18 @@ export const YearlyColoumnsColumns: ColumnDef<IMaasterFeesYearlyGrouping>[] = [
         header: ({ column }) => <DataTableColumnHeader column={column} title='Rebate Value' />,
         cell: ({ row }) => {
             const val = row.getValue('fyG_PartialRebateAmtOrPercentageValue');
-            const type = row.getValue('fyG_RebateTypeFlg');
+            const type = (row.original as any)?.fyG_RebateTypeFlg;
+
             if (val === undefined || val === null || val === '') return <div />;
+
             const asStr = String(val);
             const formatted = type && String(type).toLowerCase().includes('percent') ? `${asStr}%` : asStr;
+
             return <div>{formatted}</div>;
         },
         enableSorting: true,
         enableHiding: true
     },
-
     {
         id: 'actions',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Actions' className='text-center' />,

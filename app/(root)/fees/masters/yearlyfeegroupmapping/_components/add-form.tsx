@@ -5,28 +5,50 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
 import { DataTable } from '@/components/ui/data-table/data-table';
+import { useDataTableProps } from '@/components/ui/data-table/generic-data-table';
 import { Label } from '@/components/ui/extension/field';
 import { ActionButtons } from '@/components/ui/form/action-buttons';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useAcademicYearDropdown, useMasterFeeGroupDropdown } from '@/hooks/fees/useMasters';
-import { useFeeMasterHead, useFeeMasterInstallment } from '@/hooks/fees/useMasters';
+import { useFeeMasterHead, useFeeMasterInstallment, useMasterAllFeeHead } from '@/hooks/fees/useMasters';
+import { masterClassSchema } from '@/schemas/fees/masters';
+import { addMasterYearlyGroupMapping } from '@/server/fees/masters/yearly_group_mapping';
+import { zodResolver } from '@hookform/resolvers/zod';
 import type { ColumnDef } from '@tanstack/react-table';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
+import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
+import type { z } from 'zod';
+
+type FormFields = z.infer<typeof masterClassSchema.addOrUpdate>;
 
 interface IHeadInstallment {
     id: number;
-    feeHead: string;
-    installment: string;
-    fine: boolean;
+    fmH_Id: string;
+    fmI_Id: string;
+    fineApplicable: boolean;
     active: boolean;
     commonAmount: boolean;
 }
 
 interface IFeeGroupHeadMapping {
-    id: number;
-    groupName: string;
-    headName: string;
-    installment: string;
+    fyghM_Id: number;
+    fmG_GroupName: string;
+    fmH_FeeName: string;
+    fmI_Name: string;
+    returnval: boolean;
+    fmH_Id: number;
+    fmI_Id: number;
+}
+
+interface ApiSearchparams {
+    ASMAY_Id?: number;
+    FMG_Id?: number;
+    MI_Id?: number;
+    page?: number;
+    page_size?: number;
+    search?: string;
+    sort_by?: string;
+    [key: string]: any;
 }
 
 export default function YearlyFeeGroupMapping() {
@@ -39,23 +61,49 @@ export default function YearlyFeeGroupMapping() {
         };
     };
 
-    const { data: feeHeadResponse, isLoading: isLoadingHeads, error: headError } = useFeeMasterHead();
+    const {
+        control,
+        setValue,
+        handleSubmit,
+        reset,
+        formState: { errors, isSubmitting }
+    } = useForm<FormFields>({
+        resolver: zodResolver(masterClassSchema.addOrUpdate),
+        mode: 'onChange',
+        defaultValues: {
+            academicYear: '',
+            classCategory: '',
+            headInstallments: [
+                {
+                    id: 1,
+                    fmH_Id: '',
+                    fmI_Id: '',
+                    fineApplicable: false,
+                    active: false,
+                    commonAmount: false
+                }
+            ]
+        }
+    });
 
-    const { data: installmentResponse, isLoading: isLoadingInstallments, error: installmentError } = useFeeMasterInstallment();
-
-    console.log('Fee Head Response:', feeHeadResponse);
-    console.log('Fee Head Error:', headError);
-    console.log('Installment Response:', installmentResponse);
-    console.log('Installment Error:', installmentError);
+    const { data: feeHeadResponse, isLoading: isLoadingHeads } = useFeeMasterHead();
+    const { data: installmentResponse, isLoading: isLoadingInstallments } = useFeeMasterInstallment();
 
     const academicYears = Array.isArray(academicYearOptions?.data) ? academicYearOptions.data : [];
     const feeGroups = Array.isArray(feeGroupResponse?.data) ? feeGroupResponse.data : [];
 
-    const feeHeads = feeHeadResponse?.data || [];
-    const installments = installmentResponse?.data || [];
+    const feeHeads = Array.isArray(feeHeadResponse?.data?.data)
+        ? feeHeadResponse.data.data
+        : Array.isArray(feeHeadResponse?.data)
+          ? feeHeadResponse.data
+          : [];
 
-    console.log('Processed Fee Heads:', feeHeads);
-    console.log('Processed Installments:', installments);
+    const installments = Array.isArray(installmentResponse?.data?.data)
+        ? installmentResponse.data.data
+        : Array.isArray(installmentResponse?.data)
+          ? installmentResponse.data
+          : [];
+
     const [academicYear, setAcademicYear] = useState<string | null>(null);
     const [feeGroup, setFeeGroup] = useState<string | null>(null);
     const [search, _setSearch] = useState('');
@@ -63,47 +111,59 @@ export default function YearlyFeeGroupMapping() {
     const [headInstallments, setHeadInstallments] = useState<IHeadInstallment[]>([
         {
             id: 1,
-            feeHead: '',
-            installment: '',
-            fine: false,
+            fmH_Id: '',
+            fmI_Id: '',
+            fineApplicable: false,
             active: false,
             commonAmount: false
         }
     ]);
 
-    const feeGroupMappings: IFeeGroupHeadMapping[] = [
-        {
-            id: 1,
-            groupName: 'Transport Fees New 10000',
-            headName: 'VAN FEE',
-            installment: 'Transport Installment'
-        },
-        {
-            id: 2,
-            groupName: 'Transport Charges 22500',
-            headName: 'VAN FEE',
-            installment: 'II Installment'
-        },
-        {
-            id: 3,
-            groupName: 'Library Charges 5000',
-            headName: 'LIBRARY FEES',
-            installment: 'III Installment'
+    const apiSearchParams: ApiSearchparams | null = useMemo(() => {
+        if (academicYear && feeGroup) {
+            return {
+                ASMAY_Id: Number(academicYear),
+                FMG_Id: Number(feeGroup)
+            };
         }
-    ];
+        return null;
+    }, [academicYear, feeGroup]);
+
+    const {
+        data: allFeeHeadResponse,
+        isLoading: isLoadingAllFeeHeads,
+        refetch: refetchAll
+    } = useMasterAllFeeHead(apiSearchParams || undefined);
+
+    const feeGroupMappings: IFeeGroupHeadMapping[] = useMemo(() => {
+        if (allFeeHeadResponse?.data?.data && Array.isArray(allFeeHeadResponse.data.data)) {
+            return allFeeHeadResponse.data.data;
+        }
+        if (allFeeHeadResponse?.data && Array.isArray(allFeeHeadResponse.data)) {
+            return allFeeHeadResponse.data;
+        }
+        if (Array.isArray(allFeeHeadResponse)) {
+            return allFeeHeadResponse;
+        }
+        return [];
+    }, [allFeeHeadResponse]);
 
     const filteredMappings = useMemo(() => {
         if (!search) return feeGroupMappings;
         const term = search.toLowerCase();
         return feeGroupMappings.filter(
             (item) =>
-                item.groupName.toLowerCase().includes(term) ||
-                item.headName.toLowerCase().includes(term) ||
-                item.installment.toLowerCase().includes(term)
+                item.fmG_GroupName?.toLowerCase().includes(term) ||
+                item.fmH_FeeName?.toLowerCase().includes(term) ||
+                item.fmI_Name?.toLowerCase().includes(term)
         );
     }, [search, feeGroupMappings]);
 
-    const handleToggle = (data: any) => console.log('Toggle:', data);
+    useEffect(() => {
+        if (academicYear && feeGroup) {
+            refetchAll();
+        }
+    }, [academicYear, feeGroup, refetchAll]);
 
     const headInstallmentColumns: ColumnDef<IHeadInstallment>[] = [
         {
@@ -130,76 +190,99 @@ export default function YearlyFeeGroupMapping() {
                 const pageSize = table.getState().pagination.pageSize;
                 const continuousIndex = pageIndex * pageSize + row.index + 1;
                 return <div>{continuousIndex}</div>;
-            },
-            enableSorting: true,
-            enableHiding: false
+            }
         },
         {
-            accessorKey: 'feeHead',
+            accessorKey: 'fmH_Id',
             header: ({ column }) => <DataTableColumnHeader column={column} title='Fee Head' />,
             cell: ({ row }) => (
-                <Select
-                    value={row.original.feeHead}
-                    onValueChange={(value) => {
-                        const updated = [...headInstallments];
-                        updated[row.index].feeHead = value;
-                        setHeadInstallments(updated);
-                    }}>
-                    <SelectTrigger>
-                        <SelectValue placeholder='Select Head' />
-                    </SelectTrigger>
-                    <SelectContent>
-                        {Array.isArray(feeHeads) && feeHeads.length > 0 ? (
-                            feeHeads.map((h: any) => (
-                                <SelectItem key={h.fmH_Id} value={String(h.fmH_Id)}>
-                                    {h.fmH_FeeName}
-                                </SelectItem>
-                            ))
-                        ) : (
-                            <div className='px-2 py-1 text-gray-500 text-sm'>No fee heads available</div>
-                        )}
-                    </SelectContent>
-                </Select>
+                <Controller
+                    name={`headInstallments.${row.index}.fmH_Id`}
+                    control={control}
+                    render={({ field, fieldState }) => (
+                        <div>
+                            <Select
+                                value={field.value}
+                                onValueChange={(value) => {
+                                    field.onChange(value);
+                                    const updated = [...headInstallments];
+                                    updated[row.index].fmH_Id = value;
+                                    setHeadInstallments(updated);
+                                }}>
+                                <SelectTrigger className={fieldState.error ? 'border-red-500' : ''}>
+                                    <SelectValue placeholder='Select Head' />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {isLoadingHeads ? (
+                                        <div className='px-2 py-1 text-gray-500 text-sm'>Loading...</div>
+                                    ) : feeHeads.length > 0 ? (
+                                        feeHeads.map((h: any) => (
+                                            <SelectItem key={h.fmH_Id} value={String(h.fmH_Id)}>
+                                                {h.fmH_FeeName}
+                                            </SelectItem>
+                                        ))
+                                    ) : (
+                                        <div className='px-2 py-1 text-gray-500 text-sm'>No fee heads available</div>
+                                    )}
+                                </SelectContent>
+                            </Select>
+                            {fieldState.error && <p className='mt-1 text-red-500 text-xs'>{fieldState.error.message}</p>}
+                        </div>
+                    )}
+                />
             )
         },
         {
-            accessorKey: 'installment',
+            accessorKey: 'fmI_Id',
             header: ({ column }) => <DataTableColumnHeader column={column} title='Fee Installment' />,
             cell: ({ row }) => (
-                <Select
-                    value={row.original.installment}
-                    onValueChange={(value) => {
-                        const updated = [...headInstallments];
-                        updated[row.index].installment = value;
-                        setHeadInstallments(updated);
-                    }}>
-                    <SelectTrigger>
-                        <SelectValue placeholder='Select Installment' />
-                    </SelectTrigger>
-                    <SelectContent>
-                        {Array.isArray(installments) && installments.length > 0 ? (
-                            installments.map((i: any) => (
-                                <SelectItem key={i.fmI_Id} value={String(i.fmI_Id)}>
-                                    {i.fmI_Name}
-                                </SelectItem>
-                            ))
-                        ) : (
-                            <div className='px-2 py-1 text-gray-500 text-sm'>No installments available</div>
-                        )}
-                    </SelectContent>
-                </Select>
+                <Controller
+                    name={`headInstallments.${row.index}.fmI_Id`}
+                    control={control}
+                    render={({ field, fieldState }) => (
+                        <div>
+                            <Select
+                                value={field.value}
+                                onValueChange={(value) => {
+                                    field.onChange(value);
+                                    const updated = [...headInstallments];
+                                    updated[row.index].fmI_Id = value;
+                                    setHeadInstallments(updated);
+                                }}>
+                                <SelectTrigger className={fieldState.error ? 'border-red-500' : ''}>
+                                    <SelectValue placeholder='Select Installment' />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {isLoadingInstallments ? (
+                                        <div className='px-2 py-1 text-gray-500 text-sm'>Loading...</div>
+                                    ) : installments.length > 0 ? (
+                                        installments.map((i: any) => (
+                                            <SelectItem key={i.fmI_Id} value={String(i.fmI_Id)}>
+                                                {i.fmI_Name}
+                                            </SelectItem>
+                                        ))
+                                    ) : (
+                                        <div className='px-2 py-1 text-gray-500 text-sm'>No installments available</div>
+                                    )}
+                                </SelectContent>
+                            </Select>
+                            {fieldState.error && <p className='mt-1 text-red-500 text-xs'>{fieldState.error.message}</p>}
+                        </div>
+                    )}
+                />
             )
         },
         {
-            accessorKey: 'fine',
+            accessorKey: 'fineApplicable',
             header: ({ column }) => <DataTableColumnHeader column={column} title='Fine' />,
             cell: ({ row }) => (
                 <Checkbox
-                    checked={row.original.fine}
+                    checked={row.original.fineApplicable}
                     onCheckedChange={(v) => {
                         const updated = [...headInstallments];
-                        updated[row.index].fine = !!v;
+                        updated[row.index].fineApplicable = !!v;
                         setHeadInstallments(updated);
+                        setValue('headInstallments', updated);
                     }}
                 />
             )
@@ -214,6 +297,7 @@ export default function YearlyFeeGroupMapping() {
                         const updated = [...headInstallments];
                         updated[row.index].active = !!v;
                         setHeadInstallments(updated);
+                        setValue('headInstallments', updated);
                     }}
                 />
             )
@@ -228,6 +312,7 @@ export default function YearlyFeeGroupMapping() {
                         const updated = [...headInstallments];
                         updated[row.index].commonAmount = !!v;
                         setHeadInstallments(updated);
+                        setValue('headInstallments', updated);
                     }}
                 />
             )
@@ -236,34 +321,66 @@ export default function YearlyFeeGroupMapping() {
 
     const addRow = () => {
         const nextId = headInstallments.length ? Math.max(...headInstallments.map((h) => h.id)) + 1 : 1;
-        setHeadInstallments([
+        const newHeadInstallments = [
             ...headInstallments,
             {
                 id: nextId,
-                feeHead: '',
-                installment: '',
-                fine: false,
+                fmH_Id: '',
+                fmI_Id: '',
+                fineApplicable: false,
                 active: false,
                 commonAmount: false
             }
-        ]);
+        ];
+        setHeadInstallments(newHeadInstallments);
+        setValue('headInstallments', newHeadInstallments);
     };
 
     const clearRows = () => {
-        setHeadInstallments([
+        const defaultHeadInstallments = [
             {
                 id: 1,
-                feeHead: '',
-                installment: '',
-                fine: false,
+                fmH_Id: '',
+                fmI_Id: '',
+                fineApplicable: false,
                 active: false,
                 commonAmount: false
             }
-        ]);
+        ];
+        setHeadInstallments(defaultHeadInstallments);
+        setValue('headInstallments', defaultHeadInstallments);
+        reset();
     };
 
-    const saveRows = () => {
-        //send to backend
+    const saveRows: SubmitHandler<FormFields> = async (data) => {
+        const payload = {
+            mI_Id: 30,
+            asmaY_Id: Number(data.academicYear),
+            fmG_Id: Number(data.classCategory),
+            userId: 21602,
+            feeHeads: data.headInstallments.map((h) => ({
+                fmH_Id: Number(h.fmH_Id),
+                fmI_Id: Number(h.fmI_Id),
+                fineApplicable: h.fineApplicable,
+                commonAmount: h.commonAmount,
+                active: h.active,
+                fyghM_Id: 0
+            }))
+        };
+
+        try {
+            const res = await addMasterYearlyGroupMapping(payload);
+            if (res) {
+                alert('Saved successfully!');
+                clearRows();
+                refetchAll();
+            } else {
+                alert('Failed to save: Unknown error');
+            }
+        } catch (err) {
+            console.error(err);
+            alert('Error saving data');
+        }
     };
 
     const feeGroupColumns: ColumnDef<IFeeGroupHeadMapping>[] = [
@@ -284,7 +401,7 @@ export default function YearlyFeeGroupMapping() {
             size: 24
         },
         {
-            accessorKey: 'id',
+            accessorKey: 'fyghM_Id',
             header: ({ column }) => <DataTableColumnHeader column={column} title='Sl.No' />,
             cell: ({ row, table }) => {
                 const pageIndex = table.getState().pagination.pageIndex;
@@ -296,36 +413,35 @@ export default function YearlyFeeGroupMapping() {
             enableHiding: false
         },
         {
-            accessorKey: 'groupName',
+            accessorKey: 'fmG_GroupName',
             header: ({ column }) => <DataTableColumnHeader column={column} title='Group Name' />,
-            cell: ({ row }) => <div>{row.getValue('groupName')}</div>
+            cell: ({ row }) => <div>{row.getValue('fmG_GroupName')}</div>
         },
         {
-            accessorKey: 'headName',
+            accessorKey: 'fmH_FeeName',
             header: ({ column }) => <DataTableColumnHeader column={column} title='Head Name' />,
-            cell: ({ row }) => <div>{row.getValue('headName')}</div>
+            cell: ({ row }) => <div>{row.getValue('fmH_FeeName')}</div>
         },
         {
-            accessorKey: 'installment',
+            accessorKey: 'fmI_Name',
             header: ({ column }) => <DataTableColumnHeader column={column} title='Installment' />,
-            cell: ({ row }) => <div>{row.getValue('installment')}</div>
+            cell: ({ row }) => <div>{row.getValue('fmI_Name')}</div>
         },
         {
             id: 'actions',
-            header: ({ column }) => <DataTableColumnHeader column={column} title='Actions' className='text-center' />,
+            header: ({ column }) => <DataTableColumnHeader column={column} title='Actions' className='text-start' />,
             accessorFn: (row) => row,
             enableSorting: false,
-            cell: ({ row }) => (
-                <ActionButtons
-                    rowData={row.original}
-                    buttons={{ toggle: true, delete: false }}
-                    // onEdit={handleEdit}
-                    onToggle={handleToggle}
-                    toggleConditionKey='active'
-                />
-            )
+            cell: ({ row }) => <ActionButtons rowData={row.original} buttons={{ delete: true }} />
         }
     ];
+
+    const tableProps = useDataTableProps({
+        data: allFeeHeadResponse ? feeGroupMappings : [],
+        total: allFeeHeadResponse ? feeGroupMappings.length : 0,
+        pageIndex: 0,
+        pageSize: 10
+    });
 
     return (
         <div className='space-y-6'>
@@ -336,8 +452,13 @@ export default function YearlyFeeGroupMapping() {
                 <CardContent className='grid grid-cols-2 items-center gap-4'>
                     <div>
                         <Label>Academic Year *</Label>
-                        <Select onValueChange={setAcademicYear} value={academicYear || ''}>
-                            <SelectTrigger>
+                        <Select
+                            onValueChange={(value) => {
+                                setAcademicYear(value);
+                                setValue('academicYear', value);
+                            }}
+                            value={academicYear || ''}>
+                            <SelectTrigger className={errors.academicYear ? 'border-red-500' : ''}>
                                 <SelectValue placeholder='Select Year' />
                             </SelectTrigger>
                             <SelectContent>
@@ -352,11 +473,17 @@ export default function YearlyFeeGroupMapping() {
                                 )}
                             </SelectContent>
                         </Select>
+                        {errors.academicYear && <p className='mt-1 text-red-500 text-sm'>{errors.academicYear.message}</p>}
                     </div>
                     <div>
                         <Label>Fee Group *</Label>
-                        <Select onValueChange={setFeeGroup} value={feeGroup || ''}>
-                            <SelectTrigger>
+                        <Select
+                            onValueChange={(value) => {
+                                setFeeGroup(value);
+                                setValue('classCategory', value);
+                            }}
+                            value={feeGroup || ''}>
+                            <SelectTrigger className={errors.classCategory ? 'border-red-500' : ''}>
                                 <SelectValue placeholder='Select Group' />
                             </SelectTrigger>
                             <SelectContent>
@@ -371,6 +498,7 @@ export default function YearlyFeeGroupMapping() {
                                 )}
                             </SelectContent>
                         </Select>
+                        {errors.classCategory && <p className='mt-1 text-red-500 text-sm'>{errors.classCategory.message}</p>}
                     </div>
                 </CardContent>
             </Card>
@@ -382,15 +510,22 @@ export default function YearlyFeeGroupMapping() {
                     </CardHeader>
                     <CardContent>
                         <DataTable columns={headInstallmentColumns} data={headInstallments} totalItems={headInstallments.length} />
+                        {errors.headInstallments && <p className='mt-2 text-red-500 text-sm'>{errors.headInstallments.message}</p>}
 
                         <div className='mt-4 flex items-center justify-end gap-2'>
-                            <Button className='w-36' variant='accent' size='sm' onClick={addRow}>
+                            <Button className='w-36' variant='accent' size='sm' onClick={addRow} type='button'>
                                 Add another row
                             </Button>
-                            <Button className='w-24' variant='success' size='sm' onClick={saveRows}>
-                                Save
+                            <Button
+                                className='w-24'
+                                variant='success'
+                                size='sm'
+                                onClick={handleSubmit(saveRows)}
+                                type='button'
+                                disabled={isSubmitting}>
+                                {isSubmitting ? 'Saving...' : 'Save'}
                             </Button>
-                            <Button className='w-24' variant='danger' size='sm' onClick={clearRows}>
+                            <Button className='w-24' variant='danger' size='sm' onClick={clearRows} type='button'>
                                 Clear
                             </Button>
                         </div>
@@ -406,7 +541,17 @@ export default function YearlyFeeGroupMapping() {
                     </CardTitle>
                 </CardHeader>
                 <CardContent>
-                    <DataTable columns={feeGroupColumns} data={filteredMappings} totalItems={filteredMappings.length} />
+                    {isLoadingAllFeeHeads ? (
+                        <div className='py-4 text-center'>Loading...</div>
+                    ) : filteredMappings.length === 0 ? (
+                        <div className='py-8 text-center text-gray-500'>
+                            {academicYear && feeGroup
+                                ? 'No mappings found for the selected academic year and fee group.'
+                                : 'Please select an academic year and fee group to view mappings.'}
+                        </div>
+                    ) : (
+                        <DataTable {...tableProps} columns={feeGroupColumns} data={filteredMappings} totalItems={filteredMappings.length} />
+                    )}
                 </CardContent>
             </Card>
         </div>

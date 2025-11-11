@@ -6,7 +6,6 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { useFormContext } from '@/components/ui/form/form-provider';
-import { getStudentApplicationForm } from '@/server/admission/preadmission/transactions/application_form';
 import type { IPreadmissionStudentApplicationList } from '@/types/admission/preadmission/transactions';
 import type { ColumnDef } from '@tanstack/react-table';
 import { ReceiptIndianRupee } from 'lucide-react';
@@ -15,10 +14,11 @@ import { Edit } from 'lucide-react';
 import { ROLES } from '@/constants';
 
 import { useSession } from 'next-auth/react';
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 
 import { Spinner } from '@/components/ui/spinner';
-import { useDocumentDownload } from '@/hooks/admission/preadmission/useTransactions';
+import { useDocumentDownload, useStudentApplicationForm } from '@/hooks/admission/preadmission/useTransactions';
+import { toast } from 'sonner';
 import PaymentDialog from './payment-dialog';
 import ToggleStudentApplicationForm from './toggle-form';
 
@@ -106,7 +106,11 @@ export const studentApplicationColumns: ColumnDef<IPreadmissionStudentApplicatio
         cell: ({ row }) => {
             const appId = row.original.pasr_id;
             const [showPdfModal, setShowPdfModal] = useState(false);
-            const { data: pdfData, isLoading } = useDocumentDownload(appId, {});
+            const [isAuthorized, setIsAuthorized] = useState(false);
+            const session = useSession();
+
+            // Only call the hook when modal is shown AND user is authorized
+            const { data: pdfData, isLoading } = useDocumentDownload(showPdfModal && isAuthorized ? appId : 0);
             const [iframeLoading, setIframeLoading] = useState(false);
 
             const pdfBase64: string | null | undefined =
@@ -123,14 +127,35 @@ export const studentApplicationColumns: ColumnDef<IPreadmissionStudentApplicatio
                 if (!showPdfModal) setIframeLoading(false);
             }, [showPdfModal, pdfBase64]);
 
+            const handleViewApplication = () => {
+                // Check authorization before opening modal
+                if (session?.data?.role?.toUpperCase() === ROLES.ADMIN) {
+                    setIsAuthorized(true);
+                    setShowPdfModal(true);
+                } else if (row.original.applied_by === session?.data?.name) {
+                    // Allow access if user applied for this application
+                    setIsAuthorized(true);
+                    setShowPdfModal(true);
+                } else {
+                    // Deny access if unauthorized
+                    toast.error('You do not have permission to view this application');
+                    setIsAuthorized(false);
+                }
+            };
+
+            const handleCloseModal = () => {
+                setShowPdfModal(false);
+                setIsAuthorized(false);
+            };
+
             return (
                 <>
-                    <Button variant='link' className='p-0 text-blue-600 hover:underline' onClick={() => setShowPdfModal(true)}>
+                    <Button variant='link' className='p-0 text-blue-600 hover:underline' onClick={handleViewApplication}>
                         View Application
                     </Button>
 
-                    {showPdfModal && (
-                        <Dialog open={showPdfModal} onOpenChange={setShowPdfModal}>
+                    {showPdfModal && isAuthorized && (
+                        <Dialog open={showPdfModal} onOpenChange={handleCloseModal}>
                             <DialogContent className='flex h-[90vh] max-w-5xl flex-col p-0'>
                                 <DialogHeader className='p-0'>
                                     <DialogTitle className='pt-3 text-center font-semibold text-lg'>
@@ -193,12 +218,48 @@ export const studentApplicationColumns: ColumnDef<IPreadmissionStudentApplicatio
         cell: ({ cell }: { cell: any }) => {
             const { openEditForm } = useFormContext<IPreadmissionStudentApplicationList>();
             const session = useSession();
-            const [loading, setLoading] = React.useState(false);
+            const [pasrId, setPasrId] = useState<number>(0);
+
+            const { data: applicationFormDetails, isLoading: applicationFormDetailsLoading } = useStudentApplicationForm(pasrId);
+
             useEffect(() => {
                 if (session?.data?.role === undefined) {
                     window.location.reload();
                 }
             }, [session?.data?.role]);
+
+            // Trigger form open when applicationFormDetails is loaded
+            useEffect(() => {
+                if (pasrId && applicationFormDetails?.data && !applicationFormDetailsLoading) {
+                    try {
+                        const resp = applicationFormDetails.data;
+                        const student = resp?.student_details || resp || {};
+                        const payload = {
+                            ...student,
+                            selectedSourceDetails: (resp?.student_sources || resp?.studentSource || []).map((s: any) => ({
+                                pamS_Id: String(s.pamS_Id)
+                            })),
+                            selectedRefrenceDetails: (resp?.student_refrences || resp?.studentReference || []).map((r: any) => ({
+                                pamR_Id: String(r.pamR_Id)
+                            })),
+                            siblingsDetails: resp?.student_siblings || [],
+                            previousSchoolList: resp?.previous_schools || [],
+                            selectedDocuments: (resp?.student_documents || []).map((d: any) => ({
+                                pasrD_Id: d.pasrD_Id,
+                                pasR_Id: d.pasR_Id,
+                                amsmD_Id: d.amsmD_Id,
+                                document_Path: d.document_Path
+                            }))
+                        };
+                        openEditForm(payload);
+                        setPasrId(0); // Reset after opening
+                    } catch (error) {
+                        console.error('Error fetching application details:', error);
+                        toast.error('Unable to fetch application details');
+                        setPasrId(0); // Reset on error
+                    }
+                }
+            }, [pasrId, applicationFormDetails, applicationFormDetailsLoading]);
 
             return (
                 <div className='flex items-start justify-start gap-2'>
@@ -206,40 +267,13 @@ export const studentApplicationColumns: ColumnDef<IPreadmissionStudentApplicatio
                         type='button'
                         variant='ghost'
                         size='sm'
-                        disabled={loading}
-                        onClick={async () => {
-                            setLoading(true);
-                            try {
-                                const rowData = cell.row.original;
-                                const response = await getStudentApplicationForm(rowData.pasr_id);
-                                const resp = response.data;
-                                const student = resp?.student_details || resp || {};
-                                const payload = {
-                                    ...student,
-                                    selectedSourceDetails: (resp?.student_sources || resp?.studentSource || []).map((s: any) => ({
-                                        pamS_Id: String(s.pamS_Id)
-                                    })),
-                                    selectedRefrenceDetails: (resp?.student_refrences || resp?.studentReference || []).map((r: any) => ({
-                                        pamR_Id: String(r.pamR_Id)
-                                    })),
-                                    siblingsDetails: resp?.student_siblings || [],
-                                    previousSchoolList: resp?.previous_schools || [],
-                                    selectedDocuments: (resp?.student_documents || []).map((d: any) => ({
-                                        pasrD_Id: d.pasrD_Id,
-                                        pasR_Id: d.pasR_Id,
-                                        amsmD_Id: d.amsmD_Id,
-                                        document_Path: d.document_Path
-                                    }))
-                                };
-                                openEditForm(payload);
-                            } catch (error) {
-                                console.error('Error fetching application details:', error);
-                            } finally {
-                                setLoading(false);
-                            }
+                        disabled={applicationFormDetailsLoading}
+                        onClick={() => {
+                            const rowData = cell.row.original;
+                            setPasrId(rowData.pasr_id);
                         }}
                         className='w-fit p-1'>
-                        {loading ? (
+                        {applicationFormDetailsLoading ? (
                             <span className='inline-block h-4 w-4 animate-spin rounded-full border-2 border-gray-400 border-t-transparent' />
                         ) : (
                             <Edit className='h-4 w-4' />

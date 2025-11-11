@@ -43,19 +43,28 @@ export interface IMasterClassYearlyList {
 }
 
 export interface IMasterFeesInstallmentDueDateList {
-    sno: number;
+    ftidD_Id: number;
+    mI_Id: number;
     ftI_Id: number;
-    fmI_Id: number;
+    asmaY_Id: number;
+    ftidD_FromDate: string;
+    ftidD_ToDate: string;
+    ftidD_ApplicableDate: string;
+    ftidD_DueDate: string;
+    returnval: boolean;
+    fdate1: string;
+    tdate1: string;
+    aplc1: string;
+    ddate1: string;
+    fname: string;
+    fmiid: number;
+    fromdate2: string;
+    todate2: string;
+    apldate2: string;
+    ddudate2: string;
+    yrid: number;
     fmI_Name: string;
-    fmI_No_Of_Installments: number;
-    fmI_Installment_Type: string;
-    ftI_Name: string;
-    mI_ID: number;
-    fmI_ActiveFlag: boolean;
-    fdate: string;
-    tdate: string;
-    aplc: string;
-    ddate: string;
+    fmI_Id: number;
 }
 
 export interface IMasterConcessionList {
@@ -121,10 +130,29 @@ export interface IMasterFeesInstallmentList {
     }>;
 }
 export interface IMasterConcessionDetailsList {
+    fmccD_Id: number;
     fmcC_Id: number;
     fmcC_ConcessionName: string;
-    fmcC_ConcessionFlag: string;
     fmccD_FromNoSibblings: number;
     fmccD_ToNoSibblings: number;
     fmccD_PerOrAmt: number;
+    fmccD_PerOrAmtFlag: string; // "Amount" or "Percentage"
+    fmccD_ActiveFlg: boolean;
+    fmccD_CreatedBy: number;
+    fmccD_UpdatedBy: number;
+    fmcC_ConcessionFlag: string;
+}
+
+export interface IMasterConcessionDetailsList {
+    fmccD_Id: number;
+    fmcC_Id: number;
+    fmcC_ConcessionName: string;
+    fmccD_FromNoSibblings: number;
+    fmccD_ToNoSibblings: number;
+    fmccD_PerOrAmt: number;
+    fmccD_PerOrAmtFlag: string; // "Amount" or "Percentage"
+    fmccD_ActiveFlg: boolean;
+    fmccD_CreatedBy: number;
+    fmccD_UpdatedBy: number;
+    fmcC_ConcessionFlag: string;
 }

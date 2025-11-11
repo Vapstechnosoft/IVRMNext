@@ -15,13 +15,11 @@ import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import type { z } from 'zod';
 
-// API Response Interface
 interface FeeGroup {
     fmG_Id: number;
     feeGroups: string;
 }
 
-// Save Payload Interface
 interface SaveGroupGroupingPayload {
     mI_Id: number;
     fmgG_Id: number;
@@ -39,7 +37,7 @@ type FormFields = z.infer<typeof masterGroupsGroupingSchema.addOrUpdate> & {
 interface UpdateMasterFeeGroupGroupingFormProps {
     onSuccess?: () => void;
     selectedRow: IMasterGroupsGrouping;
-    feeGroups: FeeGroup[]; // Must be passed from parent
+    feeGroups: FeeGroup[];
     className?: string;
 }
 
@@ -68,26 +66,28 @@ export default function UpdateMasterFeeGroupGroupingForm({
         }
     });
 
-    // Watch selected IDs to compute "Select All"
     const selectedIds = watch('selectedFeeGroupIds') || [];
 
-    // Populate form + auto-select existing fee groups
     useEffect(() => {
         if (selectedRow) {
+            const selectedIds = selectedRow.selectedFeeGroups?.map((group: { fmG_Id: any }) => group.fmG_Id) || [];
+
             const initialData = {
                 fmgG_GroupName: selectedRow.fmgG_GroupName || '',
                 fmgG_GroupCode: selectedRow.fmgG_GroupCode || '',
-                selectedFeeGroupIds: selectedRow.selectedFeeGroupIds || []
+                selectedFeeGroupIds: selectedIds
             };
             reset(initialData);
+            // Ensure the selectedFeeGroupIds is set correctly
+            setValue('selectedFeeGroupIds', selectedIds);
         }
-    }, [selectedRow, reset]);
+    }, [selectedRow, reset, setValue]);
 
     const onSubmit: SubmitHandler<FormFields> = async (data) => {
         try {
             const payload: SaveGroupGroupingPayload = {
-                mI_Id: 30, // Hardcoded as per requirement
-                fmgG_Id: selectedRow.fmgG_Id, // Correct ID from Edit click
+                mI_Id: 30,
+                fmgG_Id: selectedRow.fmgG_Id,
                 fmgG_GroupName: data.fmgG_GroupName?.trim() || '',
                 fmgG_GroupCode: data.fmgG_GroupCode?.trim() || '',
                 selectedFeeGroupIds: data.selectedFeeGroupIds || []
@@ -108,23 +108,15 @@ export default function UpdateMasterFeeGroupGroupingForm({
     };
 
     const handleReset = () => {
+        const selectedIds = selectedRow.selectedFeeGroups?.map((group: { fmG_Id: any }) => group.fmG_Id) || [];
         reset({
             fmgG_GroupName: selectedRow.fmgG_GroupName || '',
             fmgG_GroupCode: selectedRow.fmgG_GroupCode || '',
-            selectedFeeGroupIds: selectedRow.selectedFeeGroupIds || []
+            selectedFeeGroupIds: selectedIds
         });
     };
 
-    // Filter fee groups by search
     const filteredFeeGroups = feeGroups.filter((fg) => fg.feeGroups.toLowerCase().includes(search.toLowerCase().trim()));
-
-    // Select All logic
-    const allIds = feeGroups.map((fg) => fg.fmG_Id);
-    const isAllSelected = allIds.length > 0 && selectedIds.length === allIds.length;
-
-    const toggleSelectAll = () => {
-        setValue('selectedFeeGroupIds', isAllSelected ? [] : allIds);
-    };
 
     return (
         <div className={className}>
@@ -197,34 +189,34 @@ export default function UpdateMasterFeeGroupGroupingForm({
 
                                         {/* Scrollable List */}
                                         <div className='max-h-[260px] overflow-y-auto rounded-md border p-1'>
-                                            {/* Select All */}
-                                            <div
-                                                onClick={toggleSelectAll}
-                                                className={cn(
-                                                    'mb-2 flex cursor-pointer items-center gap-2 rounded-md border px-2 py-1.5 font-medium text-sm transition-all',
-                                                    isAllSelected
-                                                        ? 'border-primary bg-primary/5 text-primary'
-                                                        : 'border-gray-200 hover:border-primary/40'
-                                                )}>
-                                                {isAllSelected ? (
-                                                    <CheckSquare className='h-4 w-4 text-primary' />
-                                                ) : (
-                                                    <Square className='h-4 w-4 text-gray-400' />
-                                                )}
-                                                <span>Select All</span>
-                                            </div>
-
                                             {/* Individual Items */}
                                             {filteredFeeGroups.map((fg) => {
                                                 const isSelected = selectedIds.includes(fg.fmG_Id);
+
                                                 return (
                                                     <div
                                                         key={fg.fmG_Id}
                                                         onClick={() => {
-                                                            const newSelected = isSelected
-                                                                ? selectedIds.filter((id) => id !== fg.fmG_Id)
-                                                                : [...selectedIds, fg.fmG_Id];
-                                                            setValue('selectedFeeGroupIds', newSelected);
+                                                            if (isSelected) {
+                                                                // Only allow unselecting one item at a time
+                                                                const newSelected = selectedIds.filter((id) => id !== fg.fmG_Id);
+                                                                setValue('selectedFeeGroupIds', newSelected);
+                                                            } else {
+                                                                // Count how many originally selected items are currently unselected
+                                                                const unselectedOriginalCount =
+                                                                    selectedRow.selectedFeeGroups?.filter(
+                                                                        (group: { fmG_Id: number }) => !selectedIds.includes(group.fmG_Id)
+                                                                    ).length || 0;
+
+                                                                // Only allow selecting if exactly one original item is unselected
+                                                                if (unselectedOriginalCount === 1) {
+                                                                    setValue('selectedFeeGroupIds', [...selectedIds, fg.fmG_Id]);
+                                                                } else if (unselectedOriginalCount === 0) {
+                                                                    toast.error('Please unselect one item first');
+                                                                } else {
+                                                                    toast.error('You can only replace one item at a time');
+                                                                }
+                                                            }
                                                         }}
                                                         className={cn(
                                                             'mb-1 flex cursor-pointer items-center gap-2 rounded-md border px-2 py-1.5 text-sm transition-all',

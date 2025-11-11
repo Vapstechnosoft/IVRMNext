@@ -36,9 +36,8 @@ export default function MasterGroups({ onSuccess, className = '' }: MasterGroups
         resolver: zodResolver(masterGroupSchema.addOrUpdate),
         mode: 'onChange',
         defaultValues: {
-            transportHostelType: 'transport',
-            studentType: 'regular',
-            fmG_CompulsoryFlag: false
+            fmG_CompulsoryFlag: false,
+            studentType: 'regular'
         }
     });
 
@@ -69,7 +68,11 @@ export default function MasterGroups({ onSuccess, className = '' }: MasterGroups
             const response = await addOrUpdateMasterGroup(payload);
             if (response.success) {
                 toast.success(response.message);
-                reset();
+                reset({
+                    transportHostelType: '' as any,
+                    studentType: '' as any,
+                    fmG_CompulsoryFlag: false
+                });
                 refetchAll();
                 onSuccess?.();
             } else {
@@ -81,7 +84,12 @@ export default function MasterGroups({ onSuccess, className = '' }: MasterGroups
     };
 
     const handleReset = () => {
-        reset();
+        reset({
+            fmG_GroupName: '',
+            fmG_Remarks: '',
+            transportHostelType: undefined,
+            fmG_CompulsoryFlag: false
+        });
     };
 
     return (
@@ -115,7 +123,7 @@ export default function MasterGroups({ onSuccess, className = '' }: MasterGroups
                             name='transportHostelType'
                             control={control}
                             render={({ field }) => (
-                                <RadioGroup value={field.value} onValueChange={field.onChange} className='flex items-center gap-4'>
+                                <RadioGroup value={field.value ?? ''} onValueChange={field.onChange} className='flex items-center gap-4'>
                                     <div className='flex items-center justify-center gap-1'>
                                         <RadioGroupItem value='transport' id='transport' />
                                         <Label htmlFor='transport' className='cursor-pointer text-gray-600 text-sm'>
@@ -149,28 +157,34 @@ export default function MasterGroups({ onSuccess, className = '' }: MasterGroups
                         </div>
                     </div>
 
-                    <div className='flex flex-row items-center justify-center space-x-4'>
-                        <Controller
-                            name='studentType'
-                            control={control}
-                            render={({ field }) => (
-                                <RadioGroup value={field.value} onValueChange={field.onChange} className='flex items-center gap-4'>
-                                    <div className='flex items-center justify-center gap-1'>
-                                        <RadioGroupItem value='regular' id='regular' />
-                                        <Label htmlFor='regular' className='cursor-pointer text-gray-600 text-sm'>
-                                            Regular
-                                        </Label>
-                                    </div>
+                    <div className='flex flex-col gap-1.5'>
+                        <div className='flex flex-row items-center justify-center space-x-4'>
+                            <Controller
+                                name='studentType'
+                                control={control}
+                                render={({ field }) => (
+                                    <RadioGroup
+                                        value={field.value ?? ''}
+                                        onValueChange={field.onChange}
+                                        className='flex items-center gap-4'>
+                                        <div className='flex items-center justify-center gap-1'>
+                                            <RadioGroupItem value='regular' id='regular' />
+                                            <Label htmlFor='regular' className='cursor-pointer text-gray-600 text-sm'>
+                                                Regular
+                                            </Label>
+                                        </div>
 
-                                    <div className='flex items-center justify-center gap-1'>
-                                        <RadioGroupItem value='newstudent' id='newstudent' />
-                                        <Label htmlFor='newstudent' className='cursor-pointer text-gray-600 text-sm'>
-                                            New Student
-                                        </Label>
-                                    </div>
-                                </RadioGroup>
-                            )}
-                        />
+                                        <div className='flex items-center justify-center gap-1'>
+                                            <RadioGroupItem value='newstudent' id='newstudent' />
+                                            <Label htmlFor='newstudent' className='cursor-pointer text-gray-600 text-sm'>
+                                                New Student
+                                            </Label>
+                                        </div>
+                                    </RadioGroup>
+                                )}
+                            />
+                        </div>
+                        {errors.studentType && <FormError>{errors.studentType.message}</FormError>}
                     </div>
 
                     {/* Root Error */}

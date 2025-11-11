@@ -3,7 +3,7 @@
 import { Button } from '@/components/ui/button';
 import { AdaptiveBody, AdaptiveDialog, AdaptiveFooter } from '@/components/ui/extension/adaptive-dialog';
 import { FormError } from '@/components/ui/extension/field';
-import { useMasterFeeYearlyGroup } from '@/hooks/fees/useMasters';
+import { useMasterFeeYearlyGroup, useMasterGetYearlyCategory } from '@/hooks/fees/useMasters';
 import { YearlyGroupSchema } from '@/schemas/fees/masters';
 import { toggleMasterclassYearlyCategory } from '@/server/fees/masters/fees_yearly_group';
 import type { IMaasterFeesYearlyGrouping } from '@/types/fees/masters/masters';
@@ -19,6 +19,7 @@ interface ToggleYearColumnFormProps {
 
 export default function ToggleYearColumnForm({ rowData, onClose }: ToggleYearColumnFormProps) {
     const { refetchAll } = useMasterFeeYearlyGroup();
+    const { refetchAll: refetchCategory } = useMasterGetYearlyCategory();
 
     const isActive = typeof rowData.fyG_ActiveFlag === 'number' ? rowData.fyG_ActiveFlag === 1 : Boolean(rowData.fyG_ActiveFlag);
 
@@ -53,7 +54,15 @@ export default function ToggleYearColumnForm({ rowData, onClose }: ToggleYearCol
             const response = await toggleMasterclassYearlyCategory(miId || 30, fyG_Id);
 
             if (response.success) {
-                refetchAll();
+                try {
+                    if (typeof refetchCategory === 'function') {
+                        await refetchCategory();
+                    } else if (typeof refetchAll === 'function') {
+                        await refetchAll();
+                    }
+                } catch (e) {
+                    console.warn('Failed to refetch after toggle:', e);
+                }
                 closeDialog();
             }
         } catch (error) {

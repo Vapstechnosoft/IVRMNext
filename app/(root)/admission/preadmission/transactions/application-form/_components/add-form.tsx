@@ -7,6 +7,7 @@ import { FormError, Label } from '@/components/ui/extension/field';
 import { MobileNumberInput } from '@/components/ui/extension/input-mobile-number';
 import { InputNumber } from '@/components/ui/extension/input-number';
 import { InputText } from '@/components/ui/extension/input-text';
+import { InputTextarea } from '@/components/ui/extension/input-textarea';
 import { MultiSelect } from '@/components/ui/multi-select';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
@@ -92,6 +93,7 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
         resolver: zodResolver(studentApplicationFormSchema.add),
         mode: 'onChange',
         defaultValues: {
+            pasA_WillingToContributeFlg: 0,
             pasR_UndertakingFlag: 0
         }
     });
@@ -139,6 +141,18 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
         isUploading?: boolean;
     } | null>(null);
     const [studentPhotoError, setStudentPhotoError] = useState<string | null>(null);
+
+    const [fatherPhoto, setFatherPhoto] = useState<{
+        pasR_FatherPhoto: string;
+        isUploading?: boolean;
+    } | null>(null);
+    const [fatherPhotoError, setFatherPhotoError] = useState<string | null>(null);
+
+    const [motherPhoto, setMotherPhoto] = useState<{
+        pasR_MotherPhoto: string;
+        isUploading?: boolean;
+    } | null>(null);
+    const [motherPhotoError, setMotherPhotoError] = useState<string | null>(null);
 
     const [documentErrors, setDocumentErrors] = useState<Record<number, string>>({});
 
@@ -229,6 +243,16 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
             ];
         } else if (currentStep === 3) {
             fieldsToValidate = ['pasR_FatherName', 'pasR_FatherNationality', 'pasR_MotherName', 'pasR_MotherNationality'];
+
+            if (!fatherPhoto?.pasR_FatherPhoto) {
+                toast.error('Please upload father photo');
+                return;
+            }
+
+            if (!motherPhoto?.pasR_MotherPhoto) {
+                toast.error('Please upload mother photo');
+                return;
+            }
         } else if (currentStep === 4) {
             // Validate document uploads
             const mandatoryDocs = preadmissionDocuments?.data?.filter((doc) => doc.amsmD_FLAG) || [];
@@ -285,6 +309,7 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
                 pasR_PerCountry,
                 pasR_ConPincode,
                 pasR_PerPincode,
+                pasA_WillingToContributeFlg,
                 ...filteredData
             } = data;
             const payload = {
@@ -292,6 +317,8 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
                 pasR_DOB: format(pasR_DOB, 'yyyy-MM-dd'),
                 pasR_Age: calculatedAgeDetails.ageInYears,
                 pasR_Student_Pic_Path: studentPhoto?.pasR_Student_Pic_Path || '',
+                pasR_FatherPhoto: fatherPhoto?.pasR_FatherPhoto || '',
+                pasR_MotherPhoto: motherPhoto?.pasR_MotherPhoto || '',
                 PASR_PerState: pasR_PerState?.toString() ?? '',
                 PASR_ConCountry: pasR_ConCountry?.toString() ?? '',
                 PASR_PerCountry: pasR_PerCountry?.toString() ?? '',
@@ -338,6 +365,7 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
                     document_Path: doc.document_Path
                 })),
                 PASR_RegistrationNo: '',
+                pasA_WillingToContributeFlg: pasA_WillingToContributeFlg === 1,
                 pasP_Id: 0
             };
 
@@ -621,6 +649,96 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
         return true;
     };
 
+    const handleFatherPhotoUpload = async (file: File) => {
+        try {
+            setFatherPhoto({ pasR_FatherPhoto: '', isUploading: true });
+            setFatherPhotoError(null);
+
+            const formData = new FormData();
+            formData.append('file', file);
+            formData.append('SubContainerName', 'preadmission_student_photo');
+
+            const response = await uploadDocument(formData);
+
+            if (response.success && response.data) {
+                setFatherPhoto({
+                    pasR_FatherPhoto: response.data as string,
+                    isUploading: false
+                });
+                toast.success('Father photo uploaded successfully');
+            } else {
+                throw new Error(response.message || 'Upload failed');
+            }
+        } catch (error: any) {
+            console.error('Upload error:', error);
+            const errorMessage = error?.response?.data?.message || error?.message || 'Upload failed';
+            setFatherPhotoError(errorMessage);
+            setFatherPhoto(null);
+            toast.error(`Failed to upload photo: ${errorMessage}`);
+        }
+    };
+
+    const handleFatherPhotoDelete = async () => {
+        if (!fatherPhoto?.pasR_FatherPhoto) return;
+
+        try {
+            const response = await deleteDocument(fatherPhoto.pasR_FatherPhoto);
+            if (response.success) {
+                setFatherPhoto(null);
+                toast.success('Father photo deleted successfully');
+            } else {
+                throw new Error(response.message || 'Delete failed');
+            }
+        } catch (_error: any) {
+            toast.error('Failed to delete photo');
+        }
+    };
+
+    const handleMotherPhotoUpload = async (file: File) => {
+        try {
+            setMotherPhoto({ pasR_MotherPhoto: '', isUploading: true });
+            setMotherPhotoError(null);
+
+            const formData = new FormData();
+            formData.append('file', file);
+            formData.append('SubContainerName', 'preadmission_student_photo');
+
+            const response = await uploadDocument(formData);
+
+            if (response.success && response.data) {
+                setMotherPhoto({
+                    pasR_MotherPhoto: response.data as string,
+                    isUploading: false
+                });
+                toast.success('Mother photo uploaded successfully');
+            } else {
+                throw new Error(response.message || 'Upload failed');
+            }
+        } catch (error: any) {
+            console.error('Upload error:', error);
+            const errorMessage = error?.response?.data?.message || error?.message || 'Upload failed';
+            setMotherPhotoError(errorMessage);
+            setMotherPhoto(null);
+            toast.error(`Failed to upload photo: ${errorMessage}`);
+        }
+    };
+
+    const handleMotherPhotoDelete = async () => {
+        if (!motherPhoto?.pasR_MotherPhoto) return;
+
+        try {
+            const response = await deleteDocument(motherPhoto.pasR_MotherPhoto);
+            if (response.success) {
+                setMotherPhoto(null);
+                toast.success('Mother photo deleted successfully');
+            } else {
+                throw new Error(response.message || 'Delete failed');
+            }
+        } catch (_error: any) {
+            toast.error('Failed to delete photo');
+        }
+    };
+
     return (
         <>
             <div className={cn('mx-auto w-full max-w-7xl px-4 py-2', className)}>
@@ -688,7 +806,7 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
                                             <div className='flex flex-col items-center'>
                                                 <button
                                                     type='button'
-                                                    onClick={() => goToStep(step.id)}
+                                                    // onClick={() => goToStep(step.id)}
                                                     disabled={isSubmitting}
                                                     className={cn(
                                                         'flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full border-2 font-semibold transition-all duration-300 hover:scale-110 disabled:cursor-not-allowed disabled:opacity-50',
@@ -735,7 +853,7 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
                     {/* Form Content */}
                     <div className='min-w-0 flex-1 space-y-6'>
                         <div className='overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm'>
-                            <div className='p-6 md:p-8'>
+                            <div className='max-h-[calc(100vh-2rem)] overflow-y-auto p-6 md:p-8'>
                                 {/* Step 1: Student Information */}
                                 {currentStep === 1 && (
                                     <div className='space-y-6'>
@@ -1601,6 +1719,142 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
                                             <div className='space-y-4'>
                                                 <h3 className='font-semibold text-gray-800 text-lg'>Father Details</h3>
                                                 <div className='grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3'>
+                                                    {/* Father Photo Upload - Mandatory */}
+                                                    <div className='col-span-full w-fit'>
+                                                        <div className='rounded-lg border-2 border-blue-200 bg-blue-50 p-2'>
+                                                            <div className='mb-1'>
+                                                                <Label htmlFor='father_photo'>
+                                                                    Father Photo <span className='ml-1 text-red-500'>*</span>
+                                                                </Label>
+                                                            </div>
+
+                                                            {!fatherPhoto?.pasR_FatherPhoto ? (
+                                                                <label
+                                                                    htmlFor='father_photo'
+                                                                    className={cn(
+                                                                        'flex cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed px-2 py-3 text-center transition-all hover:border-primary hover:bg-white',
+                                                                        fatherPhoto?.isUploading
+                                                                            ? 'border-blue-400 bg-blue-100'
+                                                                            : 'border-gray-300 bg-white'
+                                                                    )}>
+                                                                    {fatherPhoto?.isUploading ? (
+                                                                        <div className='flex flex-col items-center gap-2'>
+                                                                            <svg
+                                                                                className='h-8 w-8 animate-spin text-primary'
+                                                                                fill='none'
+                                                                                stroke='currentColor'
+                                                                                viewBox='0 0 24 24'>
+                                                                                <circle
+                                                                                    className='opacity-25'
+                                                                                    cx='12'
+                                                                                    cy='12'
+                                                                                    r='10'
+                                                                                    strokeWidth='4'
+                                                                                    stroke='currentColor'
+                                                                                />
+                                                                                <path
+                                                                                    className='opacity-75'
+                                                                                    fill='currentColor'
+                                                                                    d='M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z'
+                                                                                />
+                                                                            </svg>
+                                                                            <span className='font-medium text-primary text-sm'>
+                                                                                Uploading photo...
+                                                                            </span>
+                                                                        </div>
+                                                                    ) : (
+                                                                        <>
+                                                                            <svg
+                                                                                className='h-12 w-12 text-primary'
+                                                                                fill='none'
+                                                                                stroke='currentColor'
+                                                                                viewBox='0 0 24 24'>
+                                                                                <path
+                                                                                    strokeLinecap='round'
+                                                                                    strokeLinejoin='round'
+                                                                                    strokeWidth={2}
+                                                                                    d='M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z'
+                                                                                />
+                                                                            </svg>
+                                                                            <span className='font-medium text-gray-700 text-sm'>
+                                                                                Click to upload
+                                                                            </span>
+                                                                            <span className='mt-1 max-w-[250px] text-gray-600 text-sm'>
+                                                                                Upload recent passport-size photo (Max size: 1MB, Format:
+                                                                                JPG, PNG)
+                                                                            </span>
+                                                                        </>
+                                                                    )}
+                                                                    <input
+                                                                        id='father_photo'
+                                                                        type='file'
+                                                                        className='hidden'
+                                                                        accept='image/jpeg,image/jpg,image/png'
+                                                                        disabled={fatherPhoto?.isUploading || isSubmitting}
+                                                                        onChange={(e) => {
+                                                                            const file = e.target.files?.[0];
+                                                                            if (file) {
+                                                                                if (file.size > 1 * 1024 * 1024) {
+                                                                                    toast.error('File size must be less than 1MB');
+                                                                                    e.target.value = '';
+                                                                                    return;
+                                                                                }
+                                                                                handleFatherPhotoUpload(file);
+                                                                                e.target.value = '';
+                                                                            }
+                                                                        }}
+                                                                    />
+                                                                </label>
+                                                            ) : (
+                                                                <div className='flex w-fit flex-col items-start justify-between gap-2 rounded-lg border border-green-200 bg-green-50 p-4'>
+                                                                    <div className='flex items-center gap-4'>
+                                                                        <img
+                                                                            src={fatherPhoto.pasR_FatherPhoto}
+                                                                            alt='Father'
+                                                                            className='h-20 w-20 rounded-lg border-2 border-green-300 object-cover'
+                                                                        />
+                                                                        <div>
+                                                                            <div className='flex items-center gap-2 font-medium text-green-700'>
+                                                                                <Check className='h-5 w-5' />
+                                                                                Uploaded Successfully
+                                                                            </div>
+                                                                            <p className='mt-1 text-green-600 text-sm'>
+                                                                                Father photo is ready
+                                                                            </p>
+                                                                        </div>
+                                                                    </div>
+                                                                    <div className='flex gap-2'>
+                                                                        <Button
+                                                                            type='button'
+                                                                            variant='outline'
+                                                                            size='sm'
+                                                                            onClick={() =>
+                                                                                window.open(fatherPhoto.pasR_FatherPhoto, '_blank')
+                                                                            }>
+                                                                            <Eye className='h-4 w-4' />
+                                                                        </Button>
+                                                                        <Button
+                                                                            type='button'
+                                                                            variant='destructive'
+                                                                            size='sm'
+                                                                            disabled={isSubmitting}
+                                                                            onClick={handleFatherPhotoDelete}>
+                                                                            <Trash className='h-4 w-4' />
+                                                                        </Button>
+                                                                    </div>
+                                                                </div>
+                                                            )}
+
+                                                            {fatherPhotoError && (
+                                                                <div className='mt-3 rounded-md border border-red-200 bg-red-50 p-3'>
+                                                                    <p className='flex items-start gap-2 font-medium text-red-700 text-sm'>
+                                                                        <span className='mt-0.5 text-red-500'>⚠</span>
+                                                                        <span>{fatherPhotoError}</span>
+                                                                    </p>
+                                                                </div>
+                                                            )}
+                                                        </div>
+                                                    </div>
                                                     <InputText
                                                         label='Father Name'
                                                         required
@@ -1722,12 +1976,176 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
                                                             <FormError>{errors.pasR_FatherIncome.message}</FormError>
                                                         )}
                                                     </div>
+                                                    <InputText
+                                                        label={`Father's Institution Attended`}
+                                                        id='pasA_FatherInstitution'
+                                                        placeholder={`Enter Father's Institution Attended`}
+                                                        {...register('pasA_FatherInstitution')}
+                                                        error={errors.pasA_FatherInstitution?.message}
+                                                    />
+                                                    <InputText
+                                                        label={`Father's Mother Tongue`}
+                                                        id='pasA_FatherMotherTongue'
+                                                        placeholder={`Enter Father's Mother Tongue`}
+                                                        {...register('pasA_FatherMotherTongue')}
+                                                        error={errors.pasA_FatherMotherTongue?.message}
+                                                    />
+                                                    <InputText
+                                                        label={`Father's Business`}
+                                                        id='pasA_FatherBusiness'
+                                                        placeholder={`Enter Father's Business`}
+                                                        {...register('pasA_FatherBusiness')}
+                                                        error={errors.pasA_FatherBusiness?.message}
+                                                    />
+                                                    <InputText
+                                                        label={`Father's Company/Office`}
+                                                        id='pasA_FatherCompany'
+                                                        placeholder={`Enter Father's Company/Office`}
+                                                        {...register('pasA_FatherCompany')}
+                                                        error={errors.pasA_FatherCompany?.message}
+                                                    />
                                                 </div>
                                             </div>
 
                                             <div className='space-y-4'>
                                                 <h3 className='font-semibold text-gray-800 text-lg'>Mother Details</h3>
                                                 <div className='grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3'>
+                                                    {/* Mother Photo Upload - Mandatory */}
+                                                    <div className='col-span-full w-fit'>
+                                                        <div className='rounded-lg border-2 border-blue-200 bg-blue-50 p-2'>
+                                                            <div className='mb-1'>
+                                                                <Label htmlFor='mother_photo'>
+                                                                    Mother Photo <span className='ml-1 text-red-500'>*</span>
+                                                                </Label>
+                                                            </div>
+
+                                                            {!motherPhoto?.pasR_MotherPhoto ? (
+                                                                <label
+                                                                    htmlFor='mother_photo'
+                                                                    className={cn(
+                                                                        'flex cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed px-2 py-3 text-center transition-all hover:border-primary hover:bg-white',
+                                                                        motherPhoto?.isUploading
+                                                                            ? 'border-blue-400 bg-blue-100'
+                                                                            : 'border-gray-300 bg-white'
+                                                                    )}>
+                                                                    {motherPhoto?.isUploading ? (
+                                                                        <div className='flex flex-col items-center gap-2'>
+                                                                            <svg
+                                                                                className='h-8 w-8 animate-spin text-primary'
+                                                                                fill='none'
+                                                                                stroke='currentColor'
+                                                                                viewBox='0 0 24 24'>
+                                                                                <circle
+                                                                                    className='opacity-25'
+                                                                                    cx='12'
+                                                                                    cy='12'
+                                                                                    r='10'
+                                                                                    strokeWidth='4'
+                                                                                    stroke='currentColor'
+                                                                                />
+                                                                                <path
+                                                                                    className='opacity-75'
+                                                                                    fill='currentColor'
+                                                                                    d='M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z'
+                                                                                />
+                                                                            </svg>
+                                                                            <span className='font-medium text-primary text-sm'>
+                                                                                Uploading photo...
+                                                                            </span>
+                                                                        </div>
+                                                                    ) : (
+                                                                        <>
+                                                                            <svg
+                                                                                className='h-12 w-12 text-primary'
+                                                                                fill='none'
+                                                                                stroke='currentColor'
+                                                                                viewBox='0 0 24 24'>
+                                                                                <path
+                                                                                    strokeLinecap='round'
+                                                                                    strokeLinejoin='round'
+                                                                                    strokeWidth={2}
+                                                                                    d='M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z'
+                                                                                />
+                                                                            </svg>
+                                                                            <span className='font-medium text-gray-700 text-sm'>
+                                                                                Click to upload
+                                                                            </span>
+                                                                            <span className='mt-1 max-w-[250px] text-gray-600 text-sm'>
+                                                                                Upload recent passport-size photo (Max size: 1MB, Format:
+                                                                                JPG, PNG)
+                                                                            </span>
+                                                                        </>
+                                                                    )}
+                                                                    <input
+                                                                        id='mother_photo'
+                                                                        type='file'
+                                                                        className='hidden'
+                                                                        accept='image/jpeg,image/jpg,image/png'
+                                                                        disabled={motherPhoto?.isUploading || isSubmitting}
+                                                                        onChange={(e) => {
+                                                                            const file = e.target.files?.[0];
+                                                                            if (file) {
+                                                                                if (file.size > 1 * 1024 * 1024) {
+                                                                                    toast.error('File size must be less than 1MB');
+                                                                                    e.target.value = '';
+                                                                                    return;
+                                                                                }
+                                                                                handleMotherPhotoUpload(file);
+                                                                                e.target.value = '';
+                                                                            }
+                                                                        }}
+                                                                    />
+                                                                </label>
+                                                            ) : (
+                                                                <div className='flex w-fit flex-col items-start justify-between gap-2 rounded-lg border border-green-200 bg-green-50 p-4'>
+                                                                    <div className='flex items-center gap-4'>
+                                                                        <img
+                                                                            src={motherPhoto.pasR_MotherPhoto}
+                                                                            alt='Mother'
+                                                                            className='h-20 w-20 rounded-lg border-2 border-green-300 object-cover'
+                                                                        />
+                                                                        <div>
+                                                                            <div className='flex items-center gap-2 font-medium text-green-700'>
+                                                                                <Check className='h-5 w-5' />
+                                                                                Uploaded Successfully
+                                                                            </div>
+                                                                            <p className='mt-1 text-green-600 text-sm'>
+                                                                                Mother photo is ready
+                                                                            </p>
+                                                                        </div>
+                                                                    </div>
+                                                                    <div className='flex gap-2'>
+                                                                        <Button
+                                                                            type='button'
+                                                                            variant='outline'
+                                                                            size='sm'
+                                                                            onClick={() =>
+                                                                                window.open(motherPhoto.pasR_MotherPhoto, '_blank')
+                                                                            }>
+                                                                            <Eye className='h-4 w-4' />
+                                                                        </Button>
+                                                                        <Button
+                                                                            type='button'
+                                                                            variant='destructive'
+                                                                            size='sm'
+                                                                            disabled={isSubmitting}
+                                                                            onClick={handleMotherPhotoDelete}>
+                                                                            <Trash className='h-4 w-4' />
+                                                                        </Button>
+                                                                    </div>
+                                                                </div>
+                                                            )}
+
+                                                            {motherPhotoError && (
+                                                                <div className='mt-3 rounded-md border border-red-200 bg-red-50 p-3'>
+                                                                    <p className='flex items-start gap-2 font-medium text-red-700 text-sm'>
+                                                                        <span className='mt-0.5 text-red-500'>⚠</span>
+                                                                        <span>{motherPhotoError}</span>
+                                                                    </p>
+                                                                </div>
+                                                            )}
+                                                        </div>
+                                                    </div>
                                                     <InputText
                                                         label='Mother Name'
                                                         required
@@ -1849,6 +2267,34 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
                                                             <FormError>{errors.pasR_MotherIncome.message}</FormError>
                                                         )}
                                                     </div>
+                                                    <InputText
+                                                        label={`Mother's Institution Attended`}
+                                                        id='pasA_MotherInstitution'
+                                                        placeholder={`Enter Mother's Institution Attended`}
+                                                        {...register('pasA_MotherInstitution')}
+                                                        error={errors.pasA_MotherInstitution?.message}
+                                                    />
+                                                    <InputText
+                                                        label={`Mother's Mother Tongue`}
+                                                        id='pasA_MotherMotherTongue'
+                                                        placeholder={`Enter Mother's Mother Tongue`}
+                                                        {...register('pasA_MotherMotherTongue')}
+                                                        error={errors.pasA_MotherMotherTongue?.message}
+                                                    />
+                                                    <InputText
+                                                        label={`Mother's Business`}
+                                                        id='pasA_MotherBusiness'
+                                                        placeholder={`Enter Mother's Business`}
+                                                        {...register('pasA_MotherBusiness')}
+                                                        error={errors.pasA_MotherBusiness?.message}
+                                                    />
+                                                    <InputText
+                                                        label={`Mother's Company/Office`}
+                                                        id='pasA_MotherCompany'
+                                                        placeholder={`Enter Mother's Company/Office`}
+                                                        {...register('pasA_MotherCompany')}
+                                                        error={errors.pasA_MotherCompany?.message}
+                                                    />
                                                 </div>
                                             </div>
 
@@ -2289,6 +2735,74 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
                                                 />
                                             </div>
                                         </div>
+
+                                        <InputTextarea
+                                            label={'Reason for Admitting Child'}
+                                            id='pasA_AdmittingReason'
+                                            placeholder={'Enter reason for admitting child'}
+                                            {...register('pasA_AdmittingReason')}
+                                            error={errors.pasA_AdmittingReason?.message}
+                                            rows={2}
+                                        />
+
+                                        <div className='group flex flex-col gap-1.5'>
+                                            <Label htmlFor='pasA_WillingToContributeFlg'>Willing to Contribute</Label>
+                                            <Controller
+                                                name='pasA_WillingToContributeFlg'
+                                                control={control}
+                                                render={({ field }) => (
+                                                    <RadioGroup
+                                                        id='pasA_WillingToContributeFlg'
+                                                        value={field.value !== undefined ? String(field.value) : '0'}
+                                                        onValueChange={(value) => {
+                                                            field.onChange(Number(value.toString()));
+                                                            if (Number(value) === 0) {
+                                                                setValue('pasA_WillingToContributeRemarks', undefined);
+                                                            } else {
+                                                                setValue('pasA_WillingToContributeRemarks', undefined);
+                                                            }
+                                                        }}
+                                                        required
+                                                        className='flex gap-6 pt-2'>
+                                                        <div className='flex items-center gap-2'>
+                                                            <RadioGroupItem
+                                                                value='1'
+                                                                id='pasA_WillingToContributeFlg_yes'
+                                                                className='h-5 w-5'
+                                                            />
+                                                            <Label
+                                                                htmlFor='pasA_WillingToContributeFlg_yes'
+                                                                className='cursor-pointer font-medium'>
+                                                                Yes
+                                                            </Label>
+                                                        </div>
+                                                        <div className='flex items-center gap-2'>
+                                                            <RadioGroupItem
+                                                                value='0'
+                                                                id='pasA_WillingToContributeFlg_no'
+                                                                className='h-5 w-5'
+                                                            />
+                                                            <Label
+                                                                htmlFor='pasA_WillingToContributeFlg_no'
+                                                                className='cursor-pointer font-medium'>
+                                                                No
+                                                            </Label>
+                                                        </div>
+                                                    </RadioGroup>
+                                                )}
+                                            />
+                                        </div>
+
+                                        {watch('pasA_WillingToContributeFlg') === 1 && (
+                                            <InputTextarea
+                                                label={'Willing to Contribute Remarks'}
+                                                id='pasA_WillingToContributeRemarks'
+                                                placeholder={'Enter willing to Contribute Remarks'}
+                                                {...register('pasA_WillingToContributeRemarks')}
+                                                error={errors.pasA_WillingToContributeRemarks?.message}
+                                                rows={2}
+                                            />
+                                        )}
 
                                         {/* Undertaking Section */}
                                         <div className='rounded-lg border border-gray-200 bg-gray-200 p-6'>

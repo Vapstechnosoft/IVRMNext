@@ -22,8 +22,9 @@ export async function addOrUpdateFeeTermHead(data: any) {
 }
 
 export async function deleteFeeTermHead(mi_id: number, id: number) {
-    const url = `/FeeFineSlabFacade/Toggle/${id}`;
-    return await api.put('fees', url);
+    const url = `/FeeMasterTerms/delete_mapped_term_heads?mi_Id=30&fmtfh_Id=${id}`;
+
+    return await api.post('fees', url);
 }
 
 export async function getheadsdropdown(searchParams?: ApiSearchparams) {
@@ -41,5 +42,6 @@ export async function getinstallmentsdropdown(searchParams?: ApiSearchparams) {
 export async function gettermsdropdown(searchParams?: ApiSearchparams) {
     const urlParams = getSearchParamsUrl(searchParams ?? {});
     const url = `/FeeMasterTerms/fee_term_Dropdown/30?${urlParams}`;
+
     return await api.get<IMasterTermDropdownList[]>('fees', url);
 }

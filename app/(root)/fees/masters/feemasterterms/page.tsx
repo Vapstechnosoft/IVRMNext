@@ -48,7 +48,7 @@ function MasterFeeTermsPageContent({
                         onClick={openAddForm}
                         className='w-fit shadow-md transition-all duration-200 hover:scale-105 hover:shadow-lg'>
                         <Plus className='h-4 w-4' />
-                        Add Fee Fee Term
+                        Add Fee Term
                     </Button>
                 </div>
 
@@ -118,7 +118,7 @@ function FormSections() {
             {isEditFormOpen && selectedRow && (
                 <div ref={editFormRef}>
                     <CollapsibleSection
-                        title='Edit Master Term'
+                        title='Edit Fee Term'
                         defaultOpen={true}
                         variant='outline'
                         size='md'

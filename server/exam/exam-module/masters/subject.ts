@@ -11,6 +11,11 @@ export async function getMasterSubject(searchParams?: ApiSearchparams) {
     const res = await api.get<IMasterSubject[]>('exam', url);
     return res;
 }
+export async function getMasterSubjectDropdownList(mI_id: number) {
+    const url = `/master_subject/subject_dropdown_list/${mI_id}`;
+    const res = await api.get<IMasterSubject[]>('exam', url);
+    return res;
+}
 
 export async function addOrUpdateMasterSubject(data: any) {
     const url = '/master_subject';

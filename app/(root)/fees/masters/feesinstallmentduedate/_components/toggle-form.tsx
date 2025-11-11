@@ -45,8 +45,8 @@ export default function ToggleMasterInstallmentDueDateForm({ rowData, onClose }:
 
     const onSubmit: SubmitHandler<FormFields> = async (_formData) => {
         try {
-            await toggleMasterfeeInstallmentDueDate(30, rowData.mI_ID);
-            const response = await toggleMasterfeeInstallmentDueDate(30, rowData.mI_ID);
+            await toggleMasterfeeInstallmentDueDate(30, rowData.mI_Id);
+            const response = await toggleMasterfeeInstallmentDueDate(30, rowData.mI_Id);
 
             if (response.success) {
                 toast.success(response.message || 'Status updated successfully!');
@@ -64,12 +64,12 @@ export default function ToggleMasterInstallmentDueDateForm({ rowData, onClose }:
         <AdaptiveDialog title='Toggle Master Installment Status' isOpen={true} onClose={closeDialog}>
             <form onSubmit={handleSubmit(onSubmit)} className='flex flex-col gap-4'>
                 <AdaptiveBody className='flex flex-col gap-5'>
-                    <input type='hidden' {...register('mI_ID', { valueAsNumber: true })} defaultValue={rowData.mI_ID} />
+                    <input type='hidden' {...register('fmI_Id', { valueAsNumber: true })} defaultValue={rowData.fmI_Id} />
                     <p>
                         Are you sure you want to {isActive ? 'deactivate' : 'activate'} <strong>{rowData.fmI_Name}</strong>?
                     </p>
 
-                    <FormError>{errors.mI_ID?.message}</FormError>
+                    <FormError>{errors.fmI_Id?.message}</FormError>
                     <FormError>{errors.root?.message}</FormError>
                 </AdaptiveBody>
 

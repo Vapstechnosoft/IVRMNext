@@ -10,9 +10,10 @@ import type { IMasterCasteCategoryList } from '@/types/fees/masters/masters';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { type SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
-import type { z } from 'zod';
 
-type FormFields = z.infer<typeof masterClassCategorySchema.delete>;
+type FormFields = {
+    fmcC_Id?: number | string;
+};
 
 interface toggleMasterclassCategoryFormProps {
     rowData: IMasterCasteCategoryList;
@@ -38,9 +39,17 @@ export default function toggleMasterclassCategoryForm({ rowData, onClose }: togg
         reset();
     }
 
-    const onSubmit: SubmitHandler<FormFields | any> = async () => {
+    const onSubmit: SubmitHandler<FormFields> = async (data) => {
         try {
-            const response = await toggleMasterclassCategory(Number(rowData.fmcC_Id));
+            // Try the form value first, then try common id fields from rowData.
+            const idToToggle = Number((data?.fmcC_Id as any) ?? (rowData as any).fmcC_Id);
+
+            if (!idToToggle) {
+                toast.error('Invalid record id. Cannot update status.');
+                return;
+            }
+
+            const response = await toggleMasterclassCategory(idToToggle);
 
             if (response.success) {
                 toast.success(response.message || 'Status updated successfully');
@@ -58,7 +67,8 @@ export default function toggleMasterclassCategoryForm({ rowData, onClose }: togg
         <AdaptiveDialog title='Toggle Class Category Status' isOpen={true} onClose={closeDialog}>
             <form onSubmit={handleSubmit(onSubmit)} className='flex flex-col gap-4'>
                 <AdaptiveBody className='flex flex-col gap-5'>
-                    <input type='hidden' {...register('fmcC_Id')} defaultValue={rowData.fmcC_Id} />
+                    {/* Register as number so zod validation receives a number (not a string) */}
+                    <input type='hidden' {...register('fmcC_Id', { valueAsNumber: true })} value={rowData.fmcC_Id as any} />
                     <p>
                         Are you sure you want to {isActive ? 'deactivate' : 'activate'} <strong>{rowData.fmcC_ClassCategoryName}</strong>?
                     </p>

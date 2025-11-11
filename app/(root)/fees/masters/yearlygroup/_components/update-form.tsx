@@ -4,14 +4,18 @@ import { FormError, Label } from '@/components/ui/extension/field';
 import { InputText } from '@/components/ui/extension/input-text';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { FEES_QUERY_KEYS } from '@/constants/query-keys';
-import { useAcademicYearDropdown, useMasterFeeYearlyGroup, useMasterGroupListDropDown } from '@/hooks/fees/useMasters';
+import {
+    useAcademicYearDropdown,
+    useMasterFeeYearlyGroup,
+    useMasterGetYearlyCategory,
+    useMasterGroupListDropDown
+} from '@/hooks/fees/useMasters';
 import { cn } from '@/lib/utils';
 import { YearlyGroupSchema } from '@/schemas/fees/masters';
-import { addOrUpdateMasterClassYearlyCategory } from '@/server/fees/masters/fees_yearly_group';
+import { addOrUpdateMasterGroupYearlyCategory } from '@/server/fees/masters/fees_yearly_group';
 import type { IMaasterFeesYearlyGrouping } from '@/types/fees/masters/masters';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useQueryClient } from '@tanstack/react-query';
+
 import { CheckSquare, ChevronsUpDown, Save, Search, Square } from 'lucide-react';
 import { useRef } from 'react';
 import { useEffect, useState } from 'react';
@@ -53,7 +57,7 @@ export default function UpdateYearlyGroupForm({ onSuccess, selectedRow }: Update
     const { data: academicYearOptions, isLoading: isAcademicYearLoading } = useAcademicYearDropdown();
     const { data: groupData, isLoading: isGroupDataLoading } = useMasterGroupListDropDown();
     const { refetchAll } = useMasterFeeYearlyGroup();
-    const queryClient = useQueryClient();
+    const { refetchAll: refetchCategory } = useMasterGetYearlyCategory();
 
     const feeGroups: FeeGroup[] =
         groupData?.success && Array.isArray(groupData.data)
@@ -170,19 +174,22 @@ export default function UpdateYearlyGroupForm({ onSuccess, selectedRow }: Update
                 fyG_PartialRebateAmtOrPercentageValue: data.rebateApplicable && data.rebateValue ? Number(data.rebateValue) : 0
             };
 
-            const response = await addOrUpdateMasterClassYearlyCategory(payload);
+            console.warn('Calling addOrUpdateMasterGroupYearlyCategory with payload:', payload);
+            const response = await addOrUpdateMasterGroupYearlyCategory(payload);
+            console.warn('addOrUpdateMasterGroupYearlyCategory response:', response);
 
-            if (response.success) {
+            if (response?.success) {
                 toast.success(response.message || 'Master Yearly Group updated successfully!');
                 try {
-                    queryClient.invalidateQueries({
-                        predicate: (query) => Array.isArray(query.queryKey) && query.queryKey[0] === FEES_QUERY_KEYS.FEE_YEARLY_GROUPS
-                    });
-                    try {
-                        refetchAll();
-                    } catch (_e) {}
+                    if (typeof refetchCategory === 'function') {
+                        await refetchCategory();
+                    } else if (typeof refetchAll === 'function') {
+                        await refetchAll();
+                    } else {
+                        console.warn('Neither refetchCategory nor refetchAll are available');
+                    }
                 } catch (e) {
-                    console.warn('Failed to invalidate queries:', e);
+                    console.warn('Failed to refetch after update:', e);
                 }
                 reset();
                 onSuccess?.();

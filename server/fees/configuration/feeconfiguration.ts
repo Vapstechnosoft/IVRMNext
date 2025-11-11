@@ -5,7 +5,7 @@ import type { ApiSearchparams } from '@/types';
 import type { IFeeConfig } from '@/types/fees/configuration/feesconfiguration';
 
 export async function getfeeconfig(searchParams?: ApiSearchparams) {
-    const urlParams = getSearchParamsUrl(searchParams ?? {});
+    const urlParams = getSearchParamsUrl(searchParams ?? {}, 'userName,mI_Name');
     const url = `/FeeMasterConfigFacade/30?${urlParams}`;
     return await api.get<IFeeConfig[]>('fees', url);
 }

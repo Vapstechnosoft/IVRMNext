@@ -83,7 +83,7 @@ export default function AddExamTermAndExamMapping({ onSuccess }: { onSuccess?: (
             setAcademicYears([]);
         } else if (academicData?.data && Array.isArray(academicData.data)) {
             const formattedYears: IAcademicYearDropDown[] = academicData.data.map((item: any) => ({
-                asmaY_Id: item.asmaY_Id?.toString() ?? '',
+                asmaY_Id: item.asmaY_Id ?? '',
                 asmaY_Year: item.asmaY_Year ?? '',
                 asmaY_Order: item.asmaY_Order ?? 0
             }));
@@ -156,16 +156,30 @@ export default function AddExamTermAndExamMapping({ onSuccess }: { onSuccess?: (
             return;
         }
 
-        const totalMarksOrPercentage = addedRows.reduce((acc, curr) => acc + Number(curr.ecteX_MarksPercentValue || 0), 0);
+        // Prevent duplicate exams
+        const examAlreadyAdded = addedRows.some((row) => row.emE_Id === entryExamId);
+        if (examAlreadyAdded) {
+            toast.error('This exam is already added!');
+            return;
+        }
 
-        if (totalMarksOrPercentage + Number(entryValue || 0) > Number(ecT_Marks || 0)) {
-            toast.error('Total marks or percentage cannot exceed term marks.');
+        const totalMarksOrPercentage = addedRows.reduce((acc, curr) => acc + Number(curr.ecteX_MarksPercentValue || 0), 0);
+        const newTotal = totalMarksOrPercentage + Number(entryValue || 0);
+
+        if (newTotal > Number(ecT_Marks || 0)) {
+            toast.error(`Total (${newTotal}) cannot exceed term marks (${ecT_Marks})`);
+            return;
+        }
+
+        const selectedExam = exams.find((e) => e.emE_Id === entryExamId);
+        if (!selectedExam) {
+            toast.error('Invalid exam selected');
             return;
         }
 
         const newRow = {
             emE_Id: entryExamId,
-            emE_ExamName: exams.find((e) => e.emE_Id === entryExamId)?.emE_ExamName ?? '',
+            emE_ExamName: selectedExam.emE_ExamName,
             ecteX_MarksPerFlag: entryMarksFlag,
             ecteX_MarksPercentValue: Number(entryValue),
             ecteX_RoundOffReqFlg: entryRoundOff,
@@ -173,16 +187,19 @@ export default function AddExamTermAndExamMapping({ onSuccess }: { onSuccess?: (
             ecteX_NotApplicableToTotal: entryNotApplicable
         };
 
-        setAddedRows((prev) => [...prev, newRow]);
-        setValue('exam_term', [...addedRows, newRow]);
+        const updatedRows = [...addedRows, newRow];
+        setAddedRows(updatedRows);
+        setValue('exam_term', updatedRows); // Keep RHF in sync
 
-        // Reset entry fields (but not top-level)
+        // Reset entry
         setEntryExamId(0);
-        setEntryMarksFlag('M');
         setEntryValue('');
+        setEntryMarksFlag('M');
         setEntryRoundOff(false);
         setEntryConversion(false);
         setEntryNotApplicable(false);
+
+        toast.success('Exam added successfully');
     }
 
     function handleDeleteRow(index: number) {
@@ -198,41 +215,40 @@ export default function AddExamTermAndExamMapping({ onSuccess }: { onSuccess?: (
         // Sync to field array for validation
         replace(addedRows);
 
-        // Wait a tick for validation
-        await new Promise((resolve) => setTimeout(resolve, 0));
+        // // Wait a tick for validation
+        // await new Promise((resolve) => setTimeout(resolve, 0));
 
-        // Check for validation errors
-        if (Object.keys(errors).length > 0) {
-            toast.error('Please fix form errors before submitting');
-            return;
-        }
+        // // Check for validation errors
+        // if (Object.keys(errors).length > 0) {
+        //     toast.error('Please fix form errors before submitting');
+        //     return;
+        // }
 
         try {
             // Build API payload matching the required structure
             const payload = {
-                ECT_Id: Number(data.ecT_Id ?? 0),
-                MI_Id: Number(data.mI_Id ?? 0),
-                ASMAY_Id: Number(data.asmaY_Id ?? 0),
-                EMCA_Id: Number(data.emcA_Id ?? 0),
-                EMGR_Id: Number(data.emcA_Id ?? 0),
-                ECT_Marks: Number(data.ecT_Marks ?? 0),
-                ECT_MinMarks: Number(data.ecT_MinMarks ?? 0),
-                ECT_TermStartDate: data.ecT_TermStartDate,
-                ECT_TermEndDate: data.ecT_TermEndDate,
-                ECT_TermName: data.ecT_TermName,
-                ECT_PublishDate: data.ecT_MarksPublishDate,
+                ecT_Id: data.ecT_Id ?? 0,
+                mI_Id: 30,
+                asmaY_Id: data.asmaY_Id,
+                emcA_Id: data.emcA_Id,
+                emgR_Id: data.emgR_Id,
+                ecT_TermName: data.ecT_TermName.trim(),
+                ecT_TermStartDate: data.ecT_TermStartDate,
+                ecT_TermEndDate: data.ecT_TermEndDate,
+                ecT_MarksPublishDate: data.ecT_MarksPublishDate,
+                ecT_Marks: data.ecT_Marks,
+                ecT_MinMarks: data.ecT_MinMarks,
+
                 exam_term: addedRows.map((r) => ({
-                    ECTEX_Id: 0,
-                    ECT_Id: Number(data.ecT_Id ?? 0),
-                    EME_Id: Number(r.emE_Id ?? 0),
-                    ECTEX_RoundOffReqFlg: r.ecteX_RoundOffReqFlg,
-                    ECTEX_ConversionReqFlg: r.ecteX_ConversionReqFlg,
-                    ECTEX_MarksPercentValue: Number(r.ecteX_MarksPercentValue),
-                    ECTEX_MarksPerFlag: r.ecteX_MarksPerFlag,
-                    ECTEX_NotApplToTotalFlg: r.ecteX_NotApplicableToTotal
+                    emE_Id: r.emE_Id,
+                    emE_ExamName: r.emE_ExamName,
+                    ecteX_MarksPerFlag: r.ecteX_MarksPerFlag,
+                    ecteX_MarksPercentValue: r.ecteX_MarksPercentValue,
+                    ecteX_RoundOffReqFlg: r.ecteX_RoundOffReqFlg, // boolean
+                    ecteX_ConversionReqFlg: r.ecteX_ConversionReqFlg, // boolean
+                    ecteX_NotApplicableToTotal: r.ecteX_NotApplicableToTotal // boolean
                 }))
             };
-            console.log(payload);
             const res = await addOrUpdateExamTermAndExamMapping(payload);
             if (res?.success) {
                 toast.success('Exam term mapping saved successfully');
@@ -562,6 +578,11 @@ export default function AddExamTermAndExamMapping({ onSuccess }: { onSuccess?: (
                                     value={entryValue === '' ? '' : entryValue}
                                     onChange={(e) => setEntryValue(e.target.value === '' ? '' : Number(e.target.value))}
                                     placeholder='Enter value'
+                                    onKeyDown={(e) => {
+                                        if (['e', 'E', '+', '-'].includes(e.key)) {
+                                            e.preventDefault(); // 🚫 Block unwanted chars
+                                        }
+                                    }}
                                 />
                             </div>
 

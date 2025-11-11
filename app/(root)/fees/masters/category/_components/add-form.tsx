@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { FormError, Label } from '@/components/ui/extension/field';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useAcademicYearDropdown, useClassCategoryDropdown } from '@/hooks/fees/useMasters';
-import { masterClassSchema } from '@/schemas/fees/masters';
+import { masterClassYearlyCategorySchema } from '@/schemas/fees/masters';
 import { addOrUpdateMasterClassYearlyCategory, getGroupListCategory } from '@/server/fees/masters/class_yearly_category';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Save } from 'lucide-react';
@@ -39,7 +39,7 @@ export default function AddMasterClassForm({ onSuccess, className = '' }: AddMas
         watch,
         formState: { errors, isSubmitting }
     } = useForm<FormFields>({
-        resolver: zodResolver(masterClassSchema.addOrUpdate),
+        resolver: zodResolver(masterClassYearlyCategorySchema.addOrUpdate),
         mode: 'onSubmit',
         defaultValues: {
             academicYear: '',
@@ -317,7 +317,7 @@ export default function AddMasterClassForm({ onSuccess, className = '' }: AddMas
                         className='order-1 w-fit transition-all duration-200 hover:scale-105 sm:order-2'>
                         <div className='flex items-center'>
                             <Save className='mr-2 h-4 w-4' />
-                            Save Master Class
+                            Save Yearly Category
                         </div>
                     </Button>
                 </div>

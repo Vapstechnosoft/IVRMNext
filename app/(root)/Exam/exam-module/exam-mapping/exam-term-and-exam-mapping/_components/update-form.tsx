@@ -1,23 +1,24 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
-import { CalendarYear } from '@/components/ui/calendar_year';
+import { DateField } from '@/components/ui/dateField';
 import { FormError, Label } from '@/components/ui/extension/field';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useExamTermAndExamMapping } from '@/hooks/exam/exammodule/exam-mapping';
 import { useExamTermAndExamMappingDetails } from '@/hooks/exam/exammodule/exam-mapping';
+import { useAcademicYearDropdown } from '@/hooks/fees/useMasters';
 import { ExamTermAndExamMappingSchema } from '@/schemas/exam/exam-module/exam-mapping';
 import { getExamGroupsByCategory } from '@/server/exam/exam-module/exam-mapping/exam-subject-group-mapping';
 import { addOrUpdateExamTermAndExamMapping } from '@/server/exam/exam-module/exam-mapping/examTerm-and-exam-mappiong';
 import { getCategoryDropDownByAcademicYearlist } from '@/server/exam/exam-module/exam-mapping/yearly-category-dates-mapping';
-import { getAcademicYears } from '@/server/exam/exam-module/masters/category-class-mapping';
 import { getMasterGrade } from '@/server/exam/exam-module/masters/grade';
+import type { IAcademicYearDropDown } from '@/types/admission/preadmission/masters';
 import type { IExamTermAndExamMapping, IExamTermAndExamMappingDetails } from '@/types/exam/exam-module/exam-mapping';
 import type { IMasterGrade } from '@/types/exam/exam-module/masters';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Trash2 } from 'lucide-react';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Controller, FormProvider, useFieldArray, useForm, useWatch } from 'react-hook-form';
 import { toast } from 'sonner';
 import type { z } from 'zod';
@@ -85,32 +86,47 @@ export default function UpdateExamTermAndExamMapping({ rowData, onSuccess, onClo
     const [entryRoundOff, setEntryRoundOff] = useState<boolean>(false);
     const [entryConversion, setEntryConversion] = useState<boolean>(false);
     const [entryNotApplicable, setEntryNotApplicable] = useState<boolean>(false);
+    const { data: academicData, isLoading: loadingAcademic, error: academicError } = useAcademicYearDropdown();
 
     // lock top-level when there is at least one added row (same behavior)
     const topLocked = addedRows.length > 0;
 
     // fetch academic years on mount
     useEffect(() => {
-        async function fetchYears() {
-            try {
-                const years = await getAcademicYears();
-                const validYears = Array.isArray(years) ? years : [];
-                setAcademicYears(validYears);
-
-                //  Auto-select academic year after data load
-                if (rowData?.asmaY_Id && validYears.length > 0) {
-                    const matchingYear = validYears.find((y) => y.asmaY_Id === rowData.asmaY_Id);
-                    if (matchingYear) {
-                        setValue('asmaY_Id', matchingYear.asmaY_Id, { shouldValidate: true, shouldDirty: true }); // Set default in form
-                    }
-                }
-            } catch (err: any) {
-                toast.error(err?.message ?? 'Failed to load academic years');
-            }
+        if (academicError) {
+            toast.error(academicError.message || 'Error fetching academic years');
+            setAcademicYears([]);
+            return;
         }
 
-        fetchYears();
-    }, [rowData?.asmaY_Id, setValue]);
+        if (!academicData?.data || !Array.isArray(academicData.data)) {
+            setAcademicYears([]);
+            return;
+        }
+
+        const formattedYears: IAcademicYearDropDown[] = academicData.data.map((item: any) => ({
+            asmaY_Id: item.asmaY_Id ?? 0,
+            asmaY_Year: item.asmaY_Year ?? '',
+            asmaY_Order: item.asmaY_Order ?? 0
+        }));
+
+        setAcademicYears(formattedYears);
+    }, [academicData, academicError, rowData]);
+
+    // Set academic year value when both academicYears and rowData are available
+    useEffect(() => {
+        if (!rowData || !rowData.asmaY_Id || academicYears.length === 0) return;
+
+        const matchingYear = academicYears.find((y) => y.asmaY_Id === rowData.asmaY_Id);
+
+        if (matchingYear) {
+            setValue('asmaY_Id', matchingYear.asmaY_Id, {
+                shouldValidate: true,
+                shouldDirty: false,
+                shouldTouch: false
+            });
+        }
+    }, [academicYears, rowData, setValue]);
 
     useEffect(() => {
         if (!asmaY_Id) return;
@@ -169,10 +185,10 @@ export default function UpdateExamTermAndExamMapping({ rowData, onSuccess, onClo
         isLoading: detailsLoading
     } = useExamTermAndExamMappingDetails(orgId, rowData?.asmaY_Id ?? 0, rowData?.emcA_Id ?? 0, rowData?.ecT_Id ?? 0);
 
-    // populate form top-level fields from rowData when component mounts
+    // populate form top-level fields from rowData when component mounts and academicYears are loaded
     useEffect(() => {
-        if (!rowData) return;
-        // Reset form values to rowData values
+        if (!rowData || academicYears.length === 0) return;
+
         reset(
             {
                 ecT_Id: rowData.ecT_Id ?? 0,
@@ -190,7 +206,14 @@ export default function UpdateExamTermAndExamMapping({ rowData, onSuccess, onClo
             },
             { keepDefaultValues: false }
         );
-    }, [rowData, reset]);
+
+        // Explicitly set academic year after a short delay to ensure Select is ready
+        setTimeout(() => {
+            if (rowData.asmaY_Id) {
+                setValue('asmaY_Id', rowData.asmaY_Id, { shouldValidate: true, shouldDirty: false });
+            }
+        }, 100);
+    }, [rowData, reset, academicYears, setValue]);
 
     // When detailsResponse is available, map to the same shape we use in addedRows and set them
     useEffect(() => {
@@ -306,14 +329,6 @@ export default function UpdateExamTermAndExamMapping({ rowData, onSuccess, onClo
         // ensure field array synced
         replace(addedRows as any);
 
-        // small tick to allow RHF to process validation
-        await new Promise((resolve) => setTimeout(resolve, 0));
-
-        if (Object.keys(errors).length > 0) {
-            toast.error('Please fix form errors before submitting');
-            return;
-        }
-
         try {
             const payload = {
                 ECT_Id: data.ecT_Id ?? rowData.ecT_Id ?? 0,
@@ -339,7 +354,7 @@ export default function UpdateExamTermAndExamMapping({ rowData, onSuccess, onClo
                 }))
             };
 
-            const res = await addOrUpdateExamTermAndExamMapping(payload); // update uses same API in your project
+            const res = await addOrUpdateExamTermAndExamMapping(payload);
             if (res?.success) {
                 toast.success('Exam term mapping updated successfully');
                 onSuccess?.();
@@ -352,47 +367,6 @@ export default function UpdateExamTermAndExamMapping({ rowData, onSuccess, onClo
             console.error('Submit error:', err);
             toast.error(err?.message ?? 'Failed to update');
         }
-    };
-
-    // DateField same as Add form
-    const DateField = ({ field, fieldState, label }: { field: any; fieldState: any; label: string }) => {
-        const [open, setOpen] = useState(false);
-        const ref = useRef<HTMLDivElement | null>(null);
-        useEffect(() => {
-            const handler = (e: MouseEvent) => {
-                if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
-            };
-            document.addEventListener('mousedown', handler);
-            return () => document.removeEventListener('mousedown', handler);
-        }, []);
-        return (
-            <div className='relative mt-4' ref={ref}>
-                <Label>
-                    {label} <span className='text-red-500'>*</span>
-                </Label>
-                <input
-                    readOnly
-                    value={field.value ?? ''}
-                    placeholder={`Select ${label}`}
-                    onClick={() => !topLocked && setOpen(true)}
-                    className={`w-full cursor-pointer rounded-md border px-3 py-2 text-sm shadow-sm ${topLocked ? 'cursor-not-allowed bg-gray-50' : ''}`}
-                />
-                {open && (
-                    <div className='absolute z-50 mt-2'>
-                        <div className='rounded-md bg-white shadow-lg'>
-                            <CalendarYear
-                                selected={field.value ? new Date(field.value) : undefined}
-                                onDayClick={(day) => {
-                                    field.onChange(day.toISOString().split('T')[0]);
-                                    setOpen(false);
-                                }}
-                            />
-                        </div>
-                    </div>
-                )}
-                {fieldState.error && <FormError>{fieldState.error.message}</FormError>}
-            </div>
-        );
     };
 
     // reset to current loaded rowData (not blank) — useful after successful update or to undo changes
@@ -410,7 +384,7 @@ export default function UpdateExamTermAndExamMapping({ rowData, onSuccess, onClo
             ecT_MinMarks: rowData.ecT_MinMarks ?? 0,
             ecT_MarksPublishDate: rowData.ecT_PublishDate ?? '',
             emgR_Id: rowData.emgR_Id ?? 0,
-            exam_term: addedRows // keep current existing addedRows (they came from details)
+            exam_term: addedRows
         });
         // reset entry editor
         setEntryExamId(0);
@@ -421,6 +395,7 @@ export default function UpdateExamTermAndExamMapping({ rowData, onSuccess, onClo
         setEntryNotApplicable(false);
         toast.info('Form reset to loaded values');
     }
+
     function handleCancel() {
         setAddedRows([]);
         setEntryExamId(0);
@@ -465,10 +440,9 @@ export default function UpdateExamTermAndExamMapping({ rowData, onSuccess, onClo
             <FormProvider {...methods}>
                 <form
                     onSubmit={handleSubmit(onSubmit, (errs) => {
-                        const firstErrorKey = Object.keys(errs)[0];
-                        const firstError = firstErrorKey && (errs as Record<string, any>)[firstErrorKey];
-                        const errorMessage = firstError?.message || 'Something went wrong';
-                        toast.error(errorMessage);
+                        console.error('Form validation errors:', errs);
+                        const msg = getFirstErrorMessage(errs) || 'Please fix the highlighted fields';
+                        toast.error(msg);
                     })}
                     className='flex flex-col gap-6 rounded-2xl bg-white p-6 shadow-md'
                     noValidate>
@@ -478,31 +452,32 @@ export default function UpdateExamTermAndExamMapping({ rowData, onSuccess, onClo
                             <Controller
                                 control={control}
                                 name='asmaY_Id'
-                                render={({ field, fieldState }) => (
-                                    <div>
-                                        <Label>
-                                            Academic Year <span className='text-red-500'>*</span>
-                                        </Label>
-                                        <Select
-                                            onValueChange={(val) => !topLocked && field.onChange(Number(val))}
-                                            value={field.value ? String(field.value) : undefined}
-                                            disabled={topLocked}>
-                                            <SelectTrigger>
-                                                <SelectValue placeholder='Select Academic Year' />
-                                            </SelectTrigger>
-                                            <SelectContent>
-                                                {academicYears.map((y) => (
-                                                    <SelectItem key={y.asmaY_Id} value={String(y.asmaY_Id)}>
-                                                        {y.asmaY_Year}
-                                                    </SelectItem>
-                                                ))}
-                                            </SelectContent>
-                                        </Select>
-                                        {fieldState.error && <FormError>{fieldState.error.message}</FormError>}
-                                    </div>
-                                )}
+                                render={({ field, fieldState }) => {
+                                    return (
+                                        <div>
+                                            <Label>
+                                                Academic Year <span className='text-red-500'>*</span>
+                                            </Label>
+                                            <Select
+                                                onValueChange={(val) => !topLocked && field.onChange(Number(val))}
+                                                value={field.value && field.value > 0 ? String(field.value) : ''}
+                                                disabled={topLocked}>
+                                                <SelectTrigger>
+                                                    <SelectValue placeholder='Select Academic Year' />
+                                                </SelectTrigger>
+                                                <SelectContent>
+                                                    {academicYears.map((y) => (
+                                                        <SelectItem key={y.asmaY_Id} value={String(y.asmaY_Id)}>
+                                                            {y.asmaY_Year}
+                                                        </SelectItem>
+                                                    ))}
+                                                </SelectContent>
+                                            </Select>
+                                            {fieldState.error && <FormError>{fieldState.error.message}</FormError>}
+                                        </div>
+                                    );
+                                }}
                             />
-
                             <Controller
                                 control={control}
                                 name='ecT_TermName'
@@ -615,14 +590,24 @@ export default function UpdateExamTermAndExamMapping({ rowData, onSuccess, onClo
                                     control={control}
                                     name='ecT_TermEndDate'
                                     render={({ field, fieldState }) => (
-                                        <DateField field={field} fieldState={fieldState} label='Term End Date' />
+                                        <DateField
+                                            field={field}
+                                            fieldState={fieldState}
+                                            label='Term End Date'
+                                            fromDate={new Date(methods.watch('ecT_TermStartDate'))}
+                                        />
                                     )}
                                 />
                                 <Controller
                                     control={control}
                                     name='ecT_MarksPublishDate'
                                     render={({ field, fieldState }) => (
-                                        <DateField field={field} fieldState={fieldState} label='Term Publish Date' />
+                                        <DateField
+                                            field={field}
+                                            fieldState={fieldState}
+                                            label='Term Publish Date'
+                                            fromDate={new Date(methods.watch('ecT_TermEndDate'))}
+                                        />
                                     )}
                                 />
                             </div>
@@ -713,6 +698,11 @@ export default function UpdateExamTermAndExamMapping({ rowData, onSuccess, onClo
                                     value={entryValue === '' ? '' : entryValue}
                                     onChange={(e) => setEntryValue(e.target.value === '' ? '' : Number(e.target.value))}
                                     placeholder='Enter value'
+                                    onKeyDown={(e) => {
+                                        if (['e', 'E', '+', '-'].includes(e.key)) {
+                                            e.preventDefault();
+                                        }
+                                    }}
                                 />
                             </div>
 
@@ -829,4 +819,35 @@ export default function UpdateExamTermAndExamMapping({ rowData, onSuccess, onClo
             </FormProvider>
         </div>
     );
+}
+
+import type { FieldErrors } from 'react-hook-form';
+
+function getFirstErrorMessage(errors: FieldErrors | undefined): string | null {
+    if (!errors) return null;
+
+    // If it has a message directly, return it
+    // @ts-ignore - FieldError has message sometimes
+    if ((errors as any).message && typeof (errors as any).message === 'string') {
+        return (errors as any).message;
+    }
+
+    // If it's an object, iterate keys and recurse
+    for (const key of Object.keys(errors)) {
+        const val = (errors as any)[key];
+        if (!val) continue;
+
+        // FieldArray errors can be arrays
+        if (Array.isArray(val)) {
+            for (const item of val) {
+                const nested = getFirstErrorMessage(item);
+                if (nested) return nested;
+            }
+        } else {
+            const nested = getFirstErrorMessage(val as FieldErrors);
+            if (nested) return nested;
+        }
+    }
+
+    return null;
 }
