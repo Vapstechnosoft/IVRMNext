@@ -22,9 +22,10 @@ interface QualificationTabProps {
     options?: any;
     countries?: any[];
     states?: any[];
+    onClear?: () => void;
 }
 
-export function QualificationTab({ control, register, errors, isSubmitting, options, countries = [], states = [] }: QualificationTabProps) {
+export function QualificationTab({ control, register, errors, isSubmitting, options, countries = [], states = [], onClear }: QualificationTabProps) {
     const { fields, append, remove } = useFieldArray({
         control,
         name: 'qualificationDetails'
@@ -453,7 +454,7 @@ export function QualificationTab({ control, register, errors, isSubmitting, opti
                 })}
             </div>
 
-            <StandardTabActions errors={errors} isSubmitting={isSubmitting} />
+            <StandardTabActions errors={errors} isSubmitting={isSubmitting} onClear={onClear} />
         </div>
     );
 }

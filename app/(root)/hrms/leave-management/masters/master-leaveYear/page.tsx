@@ -2,112 +2,58 @@
 
 import { Heading } from '@/components/layout/heading';
 import { Button } from '@/components/ui/button';
-import { GenericDataTable } from '@/components/ui/data-table/generic-data-table';
+import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/generic-data-table';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
-import { createLocalCrud } from '@/lib/localdb';
-import { Plus } from 'lucide-react';
-import { useMemo, useState } from 'react';
-import { useEffect } from 'react';
-import { toast } from 'sonner';
-import { getLeaveYearColumns, type LeaveYear } from './_components/columns';
-import { LeaveYearForm } from './_components/leave-year-form';
-
-const leaveYearDB = createLocalCrud<LeaveYear>('leaveYear');
+import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
+import { useMasterLeaveYear } from '@/hooks/hrms/leave-management/useMasters';
+import { Plus, X } from 'lucide-react';
+import AddMasterLeaveYearForm from './_components/add-form';
+import { leaveYearColumns, type LeaveYear } from './_components/columns';
+import UpdateMasterLeaveYearForm from './_components/update-form';
 
 export default function MasterLeaveYearPage() {
-    const [data, setData] = useState<LeaveYear[]>([]);
-    const [isFormOpen, setIsFormOpen] = useState(false);
-    const [editingLeaveYear, setEditingLeaveYear] = useState<LeaveYear | null>(null);
+    const { data: response, isLoading, error } = useMasterLeaveYear();
 
-    const loadData = () => {
-        try {
-            const result = leaveYearDB.list();
-            setData(result);
-        } catch (error) {
-            console.error('Error loading leave years:', error);
-            toast.error('Failed to load leave years');
-        }
-    };
+    return (
+        <FormProvider<LeaveYear>>
+            <MasterLeaveYearPageContent response={response} isLoading={isLoading} error={error} />
+        </FormProvider>
+    );
+}
 
-    useEffect(() => {
-        loadData();
-    }, []);
-
-    const handleAddClick = () => {
-        setIsFormOpen(true);
-        setEditingLeaveYear(null);
-        // Scroll to form
-        setTimeout(() => {
-            const formElement = document.getElementById('leave-year-form');
-            if (formElement) {
-                formElement.scrollIntoView({ behavior: 'smooth' });
-            }
-        }, 100);
-    };
-
-    const handleFormClose = () => {
-        setIsFormOpen(false);
-        setEditingLeaveYear(null);
-    };
-
-    const handleFormSubmit = (formData: LeaveYear) => {
-        try {
-            if (editingLeaveYear) {
-                leaveYearDB.update(editingLeaveYear.id, formData);
-                toast.success('Leave year updated successfully');
-            } else {
-                leaveYearDB.create(formData);
-                toast.success('Leave year created successfully');
-            }
-            loadData();
-            handleFormClose();
-        } catch (error) {
-            console.error('Error saving leave year:', error);
-            toast.error('Failed to save leave year');
-        }
-    };
-
-    const handleEdit = (leaveYear: LeaveYear) => {
-        setEditingLeaveYear(leaveYear);
-        setIsFormOpen(true);
-        // Scroll to form
-        setTimeout(() => {
-            const formElement = document.getElementById('leave-year-form');
-            if (formElement) {
-                formElement.scrollIntoView({ behavior: 'smooth' });
-            }
-        }, 100);
-    };
-
-    const handleDelete = (id: number) => {
-        if (window.confirm('Are you sure you want to delete this leave year?')) {
-            try {
-                leaveYearDB.remove(id);
-                toast.success('Leave year deleted successfully');
-                loadData();
-            } catch (error) {
-                console.error('Error deleting leave year:', error);
-                toast.error('Failed to delete leave year');
-            }
-        }
-    };
-
-    const columns = useMemo(() => getLeaveYearColumns({ onEdit: handleEdit, onDelete: handleDelete }), [handleEdit, handleDelete]);
+function MasterLeaveYearPageContent({
+    response,
+    isLoading,
+    error
+}: {
+    response: any;
+    isLoading: boolean;
+    error: any;
+}) {
+    const { openAddForm } = useFormContext<LeaveYear>();
+    const tableProps = useDataTableProps({
+        data: response?.data || [],
+        totalItems: response?.data?.length || 0
+    });
 
     return (
         <div className='min-h-screen'>
             <div className='container space-y-4 p-1'>
+                {/* Header */}
                 <div className='flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between'>
                     <div className='space-y-1'>
                         <Heading title='Leave Management' description='Master Leave Year Management' />
                     </div>
-                    <Button onClick={handleAddClick} className='bg-blue-600 hover:bg-blue-700'>
-                        <Plus className='mr-2 h-4 w-4' />
+                    <Button
+                        type='button'
+                        onClick={openAddForm}
+                        className='w-fit shadow-md transition-all duration-200 hover:scale-105 hover:shadow-lg'>
+                        <Plus className='h-4 w-4' />
                         Add Leave Year
                     </Button>
                 </div>
 
-                {/* Table Section */}
+                {/* Data Table Section */}
                 <CollapsibleSection
                     title='Master Leave Year Details'
                     description=''
@@ -115,28 +61,88 @@ export default function MasterLeaveYearPage() {
                     variant='default'
                     size='lg'
                     className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
-                    <GenericDataTable data={data} columns={columns} totalItems={data.length} isLoading={false} />
+                    <GenericDataTable<LeaveYear>
+                        {...tableProps}
+                        columns={leaveYearColumns}
+                        isLoading={isLoading}
+                        error={error}
+                        showViewOptions={false}
+                        columnPinning={{ right: ['actions'] }}
+                        loadingMessage='Loading leave year...'
+                        noDataTitle='No Leave Year Found'
+                        noDataDescription='Get started by creating your first leave year'
+                        errorTitle='Error Loading Leave Year'
+                    />
                 </CollapsibleSection>
 
-                {/* Form Section */}
-                {isFormOpen && (
-                    <div id='leave-year-form'>
-                        <CollapsibleSection
-                            title={editingLeaveYear ? 'Edit Leave Year' : 'Add Leave Year'}
-                            description=''
-                            defaultOpen={true}
-                            variant='default'
-                            size='lg'
-                            className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
-                            <LeaveYearForm
-                                editingLeaveYear={editingLeaveYear}
-                                onSubmit={handleFormSubmit}
-                                onCancel={handleFormClose}
-                            />
-                        </CollapsibleSection>
-                    </div>
-                )}
+                {/* Forms */}
+                <FormSections />
             </div>
         </div>
+    );
+}
+
+function FormSections() {
+    const {
+        isAddFormOpen,
+        isEditFormOpen,
+        selectedRow,
+        closeAddForm,
+        closeEditForm,
+        addFormRef,
+        editFormRef
+    } = useFormContext<LeaveYear>();
+
+    return (
+        <>
+            {/* Add Form */}
+            {isAddFormOpen && (
+                <div ref={addFormRef}>
+                    <CollapsibleSection
+                        title='Add New Leave Year'
+                        description='Fill in the details below to create a new leave year'
+                        defaultOpen={true}
+                        variant='outline'
+                        size='md'
+                        className='slide-in-from-top-4 animate-in shadow-lg duration-300'>
+                        <div className='relative'>
+                            <Button
+                                type='button'
+                                onClick={closeAddForm}
+                                variant='ghost'
+                                size='sm'
+                                className='-top-[3.5rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
+                                <X className='h-4 w-4 text-destructive' /> Close
+                            </Button>
+                            <AddMasterLeaveYearForm onSuccess={closeAddForm} />
+                        </div>
+                    </CollapsibleSection>
+                </div>
+            )}
+
+            {/* Edit Form */}
+            {isEditFormOpen && selectedRow && (
+                <div ref={editFormRef}>
+                    <CollapsibleSection
+                        title='Edit Leave Year'
+                        defaultOpen={true}
+                        variant='outline'
+                        size='md'
+                        className='slide-in-from-top-4 animate-in border-primary/20 shadow-lg duration-300'>
+                        <div className='relative'>
+                            <Button
+                                type='button'
+                                onClick={closeEditForm}
+                                variant='ghost'
+                                size='sm'
+                                className='-top-[3.5rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
+                                <X className='h-4 w-4 text-destructive' /> Close
+                            </Button>
+                            <UpdateMasterLeaveYearForm selectedRow={selectedRow} onSuccess={closeEditForm} />
+                        </div>
+                    </CollapsibleSection>
+                </div>
+            )}
+        </>
     );
 }

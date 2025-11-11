@@ -1,10 +1,11 @@
 'use client';
 
-import { Button } from '@/components/ui/button';
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
+import { ActionButtons } from '@/components/ui/form/action-buttons';
+import { useFormContext } from '@/components/ui/form/form-provider';
 import { type BaseEntity } from '@/lib/localdb';
 import type { ColumnDef } from '@tanstack/react-table';
-import { Edit, Trash2 } from 'lucide-react';
+import { useCallback } from 'react';
 
 export interface LeaveCredit extends BaseEntity {
     leaveYear: string;
@@ -17,15 +18,19 @@ export interface LeaveCredit extends BaseEntity {
     designation: string[];
 }
 
-interface LeaveCreditColumnsProps {
-    onEdit: (row: LeaveCredit) => void;
-    onDelete: (id: number) => void;
-}
-
-export const getLeaveCreditColumns = ({
-    onEdit,
-    onDelete
-}: LeaveCreditColumnsProps): ColumnDef<LeaveCredit>[] => [
+export const leaveCreditColumns: ColumnDef<LeaveCredit>[] = [
+    {
+        accessorKey: 'id',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Sl.No' />,
+        cell: ({ row, table }) => {
+            const pageIndex = table.getState().pagination.pageIndex;
+            const pageSize = table.getState().pagination.pageSize;
+            const continuousIndex = pageIndex * pageSize + row.index + 1;
+            return <div>{continuousIndex}</div>;
+        },
+        enableSorting: true,
+        enableHiding: false
+    },
     {
         accessorKey: 'leaveYear',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Leave Year' />,
@@ -53,19 +58,28 @@ export const getLeaveCreditColumns = ({
     },
     {
         id: 'actions',
-        header: 'Actions',
-        cell: ({ row }) => {
-            const entity = row.original;
-            return (
-                <div className='flex gap-2'>
-                    <Button variant='outline' size='sm' onClick={() => onEdit(entity)}>
-                        <Edit className='h-4 w-4' />
-                    </Button>
-                    <Button variant='outline' size='sm' onClick={() => onDelete(entity.id)}>
-                        <Trash2 className='h-4 w-4' />
-                    </Button>
-                </div>
-            );
-        }
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Actions' className='text-start' />,
+        accessorFn: (row: any) => row,
+        enableSorting: false,
+        cell: ({ row }) => <ActionButtonsCell rowData={row.original} />
     }
 ];
+
+function ActionButtonsCell({ rowData }: { rowData: LeaveCredit }) {
+    const { openEditForm } = useFormContext<LeaveCredit>();
+
+    const handleEdit = useCallback(
+        (data: LeaveCredit) => {
+            openEditForm(data);
+        },
+        [openEditForm]
+    );
+
+    return (
+        <ActionButtons
+            rowData={rowData}
+            buttons={{ edit: true, toggle: false, delete: false }}
+            onEdit={handleEdit}
+        />
+    );
+}
