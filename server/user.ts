@@ -20,6 +20,14 @@ interface LoginSceham {
     callbackUrl?: string | null;
 }
 
+/*************  ✨ Windsurf Command ⭐  *************/
+/**
+ * Logs the user in using their email and password, and redirects them to the specified callback url after a successful login.
+ *
+ * @param {LoginSceham} - An object containing the email and password to be used for login, and optionally a callback URL.
+ * @returns {Promise<{error: string}>} - A promise resolving to an object containing an error string if the login fails.
+ */
+/*******  dd5ced51-38ed-4a66-88c6-96be01e9e274  *******/
 export async function login({ values, callbackUrl }: LoginSceham) {
     try {
         const { email, password } = values;

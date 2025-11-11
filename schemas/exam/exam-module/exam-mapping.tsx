@@ -499,6 +499,46 @@ export const BaseExamSubjectSchema = {
     })
 };
 
+export const CoScholasticActivityAreaMappingSchema = {
+    addOrUpdate: z
+        .object({
+            mI_Id: z.number().int().nonnegative().optional(),
+            ecactAAM_Id: z.number().int().nonnegative().optional(),
+            ecactaM_Id: z.number().int().nonnegative().optional(),
+
+            // 🔹 Academic Year
+            asmaY_Id: z.number().int().positive({ message: 'Select Academic Year' }),
+
+            // 🔹 Activities Name
+            ecacT_Id: z.number().int().positive({ message: 'Select Activities Name' }),
+
+            // 🔹 Activities Area Name
+            ecactA_Id: z.number().int().positive({ message: 'Select Activities Area Name' }),
+
+            // 🔹 Master Grade
+            emgR_Id: z.number().int().positive({ message: 'Select Master Grade' }),
+
+            // 🔹 Indicators Description (optional but with max length validation)
+            ecactaM_IndicatorDescription: z
+                .string()
+                .trim()
+                .max(500, { message: 'Indicator Description cannot exceed 500 characters' })
+                .optional()
+                .nullable(),
+
+            // 🔹 Active Flag
+            ecactaM_ActiveFlag: z.boolean({ required_error: 'Active flag is required' })
+        })
+        .strict(),
+
+    delete: z.object({
+        ecactaM_Id: z.number().int().positive({ message: 'Invalid Mapping ID' }),
+        asmaY_Id: z.number().int().positive({ message: 'Invalid Academic Year ID' }),
+        ecactA_Id: z.number().int().positive({ message: 'Invalid Activity ID' })
+    })
+};
+
+
 export const categorySubjectMappingSchema = {
     addOrUpdate: z
         .object({
@@ -537,5 +577,6 @@ export const categorySubjectMappingSchema = {
 
     delete: z.object({
         eycG_Id: z.number({ required_error: 'eycG_Id is required' })
+
     })
 };
