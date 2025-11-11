@@ -1,0 +1,142 @@
+'use client';
+
+import { Heading } from '@/components/layout/heading';
+import { Button } from '@/components/ui/button';
+import { GenericDataTable } from '@/components/ui/data-table/generic-data-table';
+import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
+import { createLocalCrud } from '@/lib/localdb';
+import { Plus } from 'lucide-react';
+import { useMemo, useState } from 'react';
+import { useEffect } from 'react';
+import { toast } from 'sonner';
+import { getLeaveYearColumns, type LeaveYear } from './_components/columns';
+import { LeaveYearForm } from './_components/leave-year-form';
+
+const leaveYearDB = createLocalCrud<LeaveYear>('leaveYear');
+
+export default function MasterLeaveYearPage() {
+    const [data, setData] = useState<LeaveYear[]>([]);
+    const [isFormOpen, setIsFormOpen] = useState(false);
+    const [editingLeaveYear, setEditingLeaveYear] = useState<LeaveYear | null>(null);
+
+    const loadData = () => {
+        try {
+            const result = leaveYearDB.list();
+            setData(result);
+        } catch (error) {
+            console.error('Error loading leave years:', error);
+            toast.error('Failed to load leave years');
+        }
+    };
+
+    useEffect(() => {
+        loadData();
+    }, []);
+
+    const handleAddClick = () => {
+        setIsFormOpen(true);
+        setEditingLeaveYear(null);
+        // Scroll to form
+        setTimeout(() => {
+            const formElement = document.getElementById('leave-year-form');
+            if (formElement) {
+                formElement.scrollIntoView({ behavior: 'smooth' });
+            }
+        }, 100);
+    };
+
+    const handleFormClose = () => {
+        setIsFormOpen(false);
+        setEditingLeaveYear(null);
+    };
+
+    const handleFormSubmit = (formData: LeaveYear) => {
+        try {
+            if (editingLeaveYear) {
+                leaveYearDB.update(editingLeaveYear.id, formData);
+                toast.success('Leave year updated successfully');
+            } else {
+                leaveYearDB.create(formData);
+                toast.success('Leave year created successfully');
+            }
+            loadData();
+            handleFormClose();
+        } catch (error) {
+            console.error('Error saving leave year:', error);
+            toast.error('Failed to save leave year');
+        }
+    };
+
+    const handleEdit = (leaveYear: LeaveYear) => {
+        setEditingLeaveYear(leaveYear);
+        setIsFormOpen(true);
+        // Scroll to form
+        setTimeout(() => {
+            const formElement = document.getElementById('leave-year-form');
+            if (formElement) {
+                formElement.scrollIntoView({ behavior: 'smooth' });
+            }
+        }, 100);
+    };
+
+    const handleDelete = (id: number) => {
+        if (window.confirm('Are you sure you want to delete this leave year?')) {
+            try {
+                leaveYearDB.remove(id);
+                toast.success('Leave year deleted successfully');
+                loadData();
+            } catch (error) {
+                console.error('Error deleting leave year:', error);
+                toast.error('Failed to delete leave year');
+            }
+        }
+    };
+
+    const columns = useMemo(() => getLeaveYearColumns({ onEdit: handleEdit, onDelete: handleDelete }), [handleEdit, handleDelete]);
+
+    return (
+        <div className='min-h-screen'>
+            <div className='container space-y-4 p-1'>
+                <div className='flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between'>
+                    <div className='space-y-1'>
+                        <Heading title='Leave Management' description='Master Leave Year Management' />
+                    </div>
+                    <Button onClick={handleAddClick} className='bg-blue-600 hover:bg-blue-700'>
+                        <Plus className='mr-2 h-4 w-4' />
+                        Add Leave Year
+                    </Button>
+                </div>
+
+                {/* Table Section */}
+                <CollapsibleSection
+                    title='Master Leave Year Details'
+                    description=''
+                    defaultOpen={true}
+                    variant='default'
+                    size='lg'
+                    className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
+                    <GenericDataTable data={data} columns={columns} totalItems={data.length} isLoading={false} />
+                </CollapsibleSection>
+
+                {/* Form Section */}
+                {isFormOpen && (
+                    <div id='leave-year-form'>
+                        <CollapsibleSection
+                            title={editingLeaveYear ? 'Edit Leave Year' : 'Add Leave Year'}
+                            description=''
+                            defaultOpen={true}
+                            variant='default'
+                            size='lg'
+                            className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
+                            <LeaveYearForm
+                                editingLeaveYear={editingLeaveYear}
+                                onSubmit={handleFormSubmit}
+                                onCancel={handleFormClose}
+                            />
+                        </CollapsibleSection>
+                    </div>
+                )}
+            </div>
+        </div>
+    );
+}

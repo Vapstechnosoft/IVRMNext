@@ -180,7 +180,7 @@ export default function Dashboard() {
                                                     fill='#8884d8'
                                                     dataKey='value'
                                                     label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}>
-                                                    {gradeDistributionData.map((entry, index) => (
+                                                    {gradeDistributionData.map((_entry, index) => (
                                                         <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                                                     ))}
                                                 </Pie>

@@ -5,6 +5,7 @@ import { FormError, Label } from '@/components/ui/extension/field';
 import { InputText } from '@/components/ui/extension/input-text';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { useMasterGrade } from '@/hooks/exam/exammodule/usemasters';
 import { masterGradeSchema } from '@/schemas/exam/exam-module/masters';
 import { addOrUpdateMasterGrade, getGradeDetailsById } from '@/server/exam/exam-module/masters/grade';
 import type { IMasterGrade } from '@/types/exam/exam-module/masters';
@@ -23,6 +24,7 @@ interface UpdateMasterGradeFormProps {
 
 export default function UpdateMasterGradeForm({ gradeData, onSuccess, className = '' }: UpdateMasterGradeFormProps) {
     const [isLoading, setIsLoading] = useState(true);
+    const { refetchAll } = useMasterGrade();
 
     const {
         control,
@@ -125,6 +127,7 @@ export default function UpdateMasterGradeForm({ gradeData, onSuccess, className 
             if (response?.success) {
                 toast.success(response.message);
                 onSuccess?.();
+                refetchAll();
             } else {
                 toast.error(response?.message || 'Failed to save');
             }

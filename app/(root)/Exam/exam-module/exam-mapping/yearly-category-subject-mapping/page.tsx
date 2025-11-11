@@ -8,7 +8,10 @@ import type { IYearlyCategorySubjectMapping } from '@/types/exam/exam-module/exa
 import type { ICategoryMapping } from '@/types/exam/exam-module/masters';
 import { Plus, X } from 'lucide-react';
 import { use, useEffect } from 'react';
+import AddCategorySubjectMappingForm from './_components/add-form';
 import { YearlyCategorySubjectMappingColumns } from './_components/columns';
+import ToggleCategorySubjectMappingForm from './_components/toggle-form';
+import UpdateCategorySubjectMappingForm from './_components/update-form';
 import YearlyCategorySubjectMappingDetailsPage from './_components/yearly-category-subject-mapping-details';
 
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
@@ -81,9 +84,11 @@ function FormSections() {
         isAddFormOpen,
         isEditFormOpen,
         isDetailsViewOpen,
+        isToggleFormOpen,
         closeAddForm,
         closeEditForm,
         closeDetailsView,
+        closeToggleForm,
         addFormRef,
         editFormRef,
         selectedRow
@@ -118,7 +123,7 @@ function FormSections() {
                                 className='-top-[3.5rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
                                 <X className='h-4 w-4 text-destructive' /> Close
                             </Button>
-                            {/* <AddCategoryClassForm onSuccess={closeAddForm} /> */}
+                            <AddCategorySubjectMappingForm onSuccess={closeAddForm} />
                         </div>
                     </CollapsibleSection>
                 </div>
@@ -142,12 +147,12 @@ function FormSections() {
                                 className='-top-[3.5rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
                                 <X className='h-4 w-4 text-destructive' /> Close
                             </Button>
-                            {/* <UpdateCategoryClassMappingForm
-                                initialData={selectedRow}
+                            <UpdateCategorySubjectMappingForm
+                                rowData={selectedRow}
                                 // _selectedSections={selectedSections}
                                 // sections={sections}
                                 onSuccess={closeEditForm}
-                            /> */}
+                            />
                         </div>
                     </CollapsibleSection>
                 </div>
@@ -157,6 +162,9 @@ function FormSections() {
             {isDetailsViewOpen && selectedRow && (
                 <YearlyCategorySubjectMappingDetailsPage rowData={selectedRow} onClose={closeDetailsView} />
             )}
+
+            {/* Toggle Form */}
+            {isToggleFormOpen && selectedRow && <ToggleCategorySubjectMappingForm rowData={selectedRow} onClose={closeToggleForm} />}
         </>
     );
 }

@@ -15,7 +15,7 @@ function CalendarYear({ className, classNames, showOutsideDays = true, selected,
     const [currentMonth, setCurrentMonth] = React.useState<Date>(props.month || new Date());
 
     // State to track calendar open status
-    const [calendarOpen, setCalendarOpen] = React.useState<boolean>(false);
+    const [_calendarOpen, setCalendarOpen] = React.useState<boolean>(false);
 
     // Update the internal month state when the prop changes
     React.useEffect(() => {

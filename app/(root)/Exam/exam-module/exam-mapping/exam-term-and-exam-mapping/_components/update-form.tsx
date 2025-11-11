@@ -111,9 +111,6 @@ export default function UpdateExamTermAndExamMapping({ rowData, onSuccess, onClo
         }));
 
         setAcademicYears(formattedYears);
-
-        console.log('Academic years loaded:', formattedYears);
-        console.log('rowData.asmaY_Id:', rowData?.asmaY_Id);
     }, [academicData, academicError, rowData]);
 
     // Set academic year value when both academicYears and rowData are available
@@ -121,7 +118,6 @@ export default function UpdateExamTermAndExamMapping({ rowData, onSuccess, onClo
         if (!rowData || !rowData.asmaY_Id || academicYears.length === 0) return;
 
         const matchingYear = academicYears.find((y) => y.asmaY_Id === rowData.asmaY_Id);
-        console.log('Matching year found:', matchingYear);
 
         if (matchingYear) {
             setValue('asmaY_Id', matchingYear.asmaY_Id, {
@@ -129,7 +125,6 @@ export default function UpdateExamTermAndExamMapping({ rowData, onSuccess, onClo
                 shouldDirty: false,
                 shouldTouch: false
             });
-            console.log('Academic year set to:', matchingYear.asmaY_Id);
         }
     }, [academicYears, rowData, setValue]);
 
@@ -194,10 +189,6 @@ export default function UpdateExamTermAndExamMapping({ rowData, onSuccess, onClo
     useEffect(() => {
         if (!rowData || academicYears.length === 0) return;
 
-        console.log('Resetting form with rowData:', rowData);
-        console.log('Academic years available:', academicYears);
-
-        // Reset form values to rowData values
         reset(
             {
                 ecT_Id: rowData.ecT_Id ?? 0,
@@ -220,7 +211,6 @@ export default function UpdateExamTermAndExamMapping({ rowData, onSuccess, onClo
         setTimeout(() => {
             if (rowData.asmaY_Id) {
                 setValue('asmaY_Id', rowData.asmaY_Id, { shouldValidate: true, shouldDirty: false });
-                console.log('Set asmaY_Id to:', rowData.asmaY_Id);
             }
         }, 100);
     }, [rowData, reset, academicYears, setValue]);
@@ -406,11 +396,6 @@ export default function UpdateExamTermAndExamMapping({ rowData, onSuccess, onClo
         toast.info('Form reset to loaded values');
     }
 
-    useEffect(() => {
-        console.log('rowData.asmaY_Id:', rowData?.asmaY_Id);
-        console.log('academicData:', academicData);
-    }, [rowData, academicData]);
-
     function handleCancel() {
         setAddedRows([]);
         setEntryExamId(0);
@@ -468,8 +453,6 @@ export default function UpdateExamTermAndExamMapping({ rowData, onSuccess, onClo
                                 control={control}
                                 name='asmaY_Id'
                                 render={({ field, fieldState }) => {
-                                    console.log('Academic Year field value:', field.value);
-                                    console.log('Academic Years list:', academicYears);
                                     return (
                                         <div>
                                             <Label>

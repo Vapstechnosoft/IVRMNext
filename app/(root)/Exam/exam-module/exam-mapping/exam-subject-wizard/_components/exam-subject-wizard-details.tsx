@@ -4,12 +4,13 @@ import { Heading } from '@/components/layout/heading';
 import { Button } from '@/components/ui/button';
 import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
 import { GenericDataTable, useDataTableProps } from '@/components/ui/view-data-table/view-generic-data-table';
-import { getExamSubjectWizardDetails } from '@/server/exam/exam-module/exam-mapping/exam-subject-wizard';
+import { useExamSubjectWizardDetails } from '@/hooks/exam/exammodule/exam-mapping';
 import type { IExamSubjectWizard, IExamSubjectWizardDetails } from '@/types/exam/exam-module/exam-mapping';
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 import ToggleExamSubjectWizardDetailsForm from './details-toggle-form';
 import { ExamSubjectWizardDetailsColumns } from './exam-subject-wizard-details-columns';
+import SubSubjectSubExamModelView from './subSubject-subExam-view';
 
 interface ExamSubjectWizardDetailsPageProps {
     rowData: IExamSubjectWizard;
@@ -33,34 +34,28 @@ function ExamSubjectWizardDetailsPageContent({
 }) {
     const [details, setDetails] = useState<IExamSubjectWizardDetails[]>([]);
     const [loading, setLoading] = useState(false);
+    const { data: response, isLoading, error, refetch } = useExamSubjectWizardDetails(30, rowData?.eycE_Id);
 
     // -------------------------
-    // Fetch Exam Subject Wizard Details
+    // Set Details When API Responds
     // -------------------------
     useEffect(() => {
-        async function fetchDetails() {
-            if (!rowData.eycE_Id) return;
-            setLoading(true);
+        if (!rowData?.eycE_Id) return;
+        if (!response) return;
 
-            try {
-                const response = await getExamSubjectWizardDetails(30, rowData.eycE_Id);
-                const apiResponse = response as unknown as {
-                    success: boolean;
-                    message: string;
-                    data: IExamSubjectWizardDetails[];
-                };
+        try {
+            const apiResponse = response as unknown as {
+                success: boolean;
+                message: string;
+                data: IExamSubjectWizardDetails[];
+            };
 
-                const data = apiResponse?.data || [];
-                setDetails(data);
-            } catch (error: any) {
-                toast.error(error.message || 'Failed to fetch Exam Subject Wizard details');
-            } finally {
-                setLoading(false);
-            }
+            const data = apiResponse?.data || [];
+            setDetails(data);
+        } catch (err: any) {
+            toast.error(err?.message || 'Failed to parse Exam Subject Wizard details');
         }
-
-        fetchDetails();
-    }, [rowData]);
+    }, [rowData?.eycE_Id, response]);
 
     // -------------------------
     // Data table setup
@@ -104,7 +99,7 @@ function ExamSubjectWizardDetailsPageContent({
                     noDataDescription='No subjects are mapped for this exam.'
                     errorTitle='Error Loading Details'
                     showViewOptions={false}
-                    columnPinning={{ right: ['actions'] }}
+                    columnPinning={{ right: ['mapping', 'actions'] }}
                 />
 
                 <FormSections />
@@ -114,12 +109,16 @@ function ExamSubjectWizardDetailsPageContent({
 }
 
 export function FormSections() {
-    const { isToggleFormOpen, selectedRow, closeToggleForm } = useFormContext<IExamSubjectWizardDetails>();
+    const { isToggleFormOpen, selectedRow, closeToggleForm, isMappedviewOpen, closeMappedview } =
+        useFormContext<IExamSubjectWizardDetails>();
 
     return (
         <>
             {/* Toggle Form */}
             {isToggleFormOpen && selectedRow && <ToggleExamSubjectWizardDetailsForm rowData={selectedRow} onClose={closeToggleForm} />}
+
+            {/* Mapped View */}
+            {isMappedviewOpen && selectedRow && <SubSubjectSubExamModelView rowData={selectedRow} onClose={closeMappedview} />}
         </>
     );
 }

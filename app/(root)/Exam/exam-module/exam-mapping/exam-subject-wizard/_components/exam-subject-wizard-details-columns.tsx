@@ -79,14 +79,6 @@ export const ExamSubjectWizardDetailsColumns: ColumnDef<IExamSubjectWizardDetail
     },
 
     {
-        id: 'mapping',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Mapping' />,
-        cell: ({ row }) => <MappingCell rowData={row.original} />,
-        enableHiding: true,
-        enableSorting: false
-    },
-
-    {
         accessorKey: 'eyceS_MarksGradeEntryFlg',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Marks/Grade' />,
         cell: ({ row }) => <div>{row.getValue('eyceS_MarksGradeEntryFlg')}</div>,
@@ -127,6 +119,14 @@ export const ExamSubjectWizardDetailsColumns: ColumnDef<IExamSubjectWizardDetail
     },
 
     {
+        id: 'mapping',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Mapping' />,
+        cell: ({ row }) => <MappingCell rowData={row.original} />,
+        enableHiding: true,
+        enableSorting: false
+    },
+
+    {
         id: 'actions',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Action' className='text-center' />,
         accessorFn: (row) => row,
@@ -140,11 +140,12 @@ export const ExamSubjectWizardDetailsColumns: ColumnDef<IExamSubjectWizardDetail
 // -------------------------
 function MappingCell({ rowData }: { rowData: IExamSubjectWizardDetails }) {
     const showEye = rowData.eyceS_SubExamFlg || rowData.eyceS_SubSubjectFlg;
-
+    const { openMappedview } = useFormContext<IExamSubjectWizardDetails>();
+    const handleOpenView = useCallback(() => openMappedview(rowData), [openMappedview, rowData]);
     if (!showEye) return <div>-</div>;
 
     return (
-        <button type='button' className='rounded-md p-2 transition hover:bg-muted' title='View Mapping Details'>
+        <button onClick={handleOpenView} type='button' className='rounded-md p-2 transition hover:bg-muted' title='View Mapping Details'>
             <Eye className='h-4 w-4 text-blue-600' />
         </button>
     );

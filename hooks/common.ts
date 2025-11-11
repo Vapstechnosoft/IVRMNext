@@ -55,8 +55,12 @@ export const useUserAccessibleModules = () => {
         ...useQuery({
             queryKey: [QUERY_KEYS.USER_ACCESSIBLE_MODULES],
             queryFn: async () => getUserAccessibleModules(),
-            staleTime: 0,
-            refetchInterval: 10000 // Refetch every 10 seconds
+            staleTime: 10 * 60 * 1000, // 10 minutes - user modules don't change frequently
+            gcTime: 30 * 60 * 1000, // 30 minutes cache
+            refetchOnWindowFocus: false,
+            refetchOnMount: false,
+            refetchOnReconnect: false
+            // Removed refetchInterval - no need to poll every 10 seconds
         }),
         refetchAll: () => {
             return queryClient.invalidateQueries({

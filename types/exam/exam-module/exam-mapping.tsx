@@ -5,6 +5,7 @@ export interface IYearlyCategorySubjectMapping {
     asmaY_Id: number;
     asmaY_Year: string;
     emcA_CategoryName: string;
+    emcA_Id: number;
     eycG_Id: number;
     emG_Id: number;
     emG_GroupName: string;
@@ -188,7 +189,7 @@ export interface IExamSubjectWizard {
     emcA_Id: number;
     asmaY_Id: number;
     emE_Id: number;
-
+    emgR_Id: number;
     asmaY_Year: string;
     emcA_CategoryName: string;
     emE_ExamName: string;
@@ -269,4 +270,28 @@ export interface IExamSubjectWizardDetails {
     eyceS_SubjectOrder: number;
     eyceS_ActiveFlg: boolean;
     pT_Count: number;
+}
+
+export interface ISubSubjectSubExamMapped {
+    eycessS_Id: number;
+    eyceS_Id: number;
+    ismS_Id: number;
+    emsS_Id: number;
+    emgR_GradeName: string;
+    ismS_SubjectName: string;
+    ismS_SubjectCode: string;
+    emsS_SubSubjectName?: string;
+    emsS_SubSubjectCode?: string;
+    emsE_SubExamName?: string;
+    emsE_SubExamCode?: string;
+    eycessS_MaxMarks: number;
+    eycessS_MinMarks: number;
+    eycessS_ExemptedFlg: boolean;
+    eycessS_ExemptedPer: number;
+    eycessS_SubSubjectOrder: number;
+    eycessS_ActiveFlg: boolean;
+    eycessS_GradesFlg: boolean;
+    eycessS_MarksFlg: boolean;
+    eycessS_AplResultFlg?: boolean;
+    eycessS_MarksEntryMax?: number;
 }
