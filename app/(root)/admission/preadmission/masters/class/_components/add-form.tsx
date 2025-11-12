@@ -129,7 +129,7 @@ export default function AddMasterClassForm({ onSuccess, className = '' }: AddMas
                                         required
                                         id='asmcl_maxcapacity'
                                         value={field.value || 0}
-                                        onChange={(value) => field.onChange(value)}
+                                        onChange={(value) => field.onChange(Number.isNaN(value) ? 0 : value)}
                                         minValue={0}
                                         step={1}
                                     />
@@ -147,7 +147,7 @@ export default function AddMasterClassForm({ onSuccess, className = '' }: AddMas
                                         required
                                         id='asmcl_order'
                                         value={field.value || 0}
-                                        onChange={(value) => field.onChange(value)}
+                                        onChange={(value) => field.onChange(Number.isNaN(value) ? 0 : value)}
                                         minValue={0}
                                         step={1}
                                     />
@@ -167,7 +167,7 @@ export default function AddMasterClassForm({ onSuccess, className = '' }: AddMas
                                         required
                                         id='asmcl_minageyear'
                                         value={field.value || 0}
-                                        onChange={(value) => field.onChange(value)}
+                                        onChange={(value) => field.onChange(Number.isNaN(value) ? 0 : value)}
                                         minValue={0}
                                         maxValue={100}
                                         step={1}
@@ -186,7 +186,7 @@ export default function AddMasterClassForm({ onSuccess, className = '' }: AddMas
                                         required
                                         id='asmcl_minagemonth'
                                         value={field.value || 0}
-                                        onChange={(value) => field.onChange(value)}
+                                        onChange={(value) => field.onChange(Number.isNaN(value) ? 0 : value)}
                                         minValue={0}
                                         maxValue={11}
                                         step={1}
@@ -205,7 +205,7 @@ export default function AddMasterClassForm({ onSuccess, className = '' }: AddMas
                                         required
                                         id='asmcl_minagedays'
                                         value={field.value || 0}
-                                        onChange={(value) => field.onChange(value)}
+                                        onChange={(value) => field.onChange(Number.isNaN(value) ? 0 : value)}
                                         minValue={0}
                                         maxValue={31}
                                         step={1}
@@ -226,7 +226,7 @@ export default function AddMasterClassForm({ onSuccess, className = '' }: AddMas
                                         required
                                         id='asmcl_maxageyear'
                                         value={field.value || 0}
-                                        onChange={(value) => field.onChange(value)}
+                                        onChange={(value) => field.onChange(Number.isNaN(value) ? 0 : value)}
                                         minValue={0}
                                         maxValue={100}
                                         step={1}
@@ -245,7 +245,7 @@ export default function AddMasterClassForm({ onSuccess, className = '' }: AddMas
                                         required
                                         id='asmcl_maxagemonth'
                                         value={field.value || 0}
-                                        onChange={(value) => field.onChange(value)}
+                                        onChange={(value) => field.onChange(Number.isNaN(value) ? 0 : value)}
                                         minValue={0}
                                         maxValue={11}
                                         step={1}
@@ -264,7 +264,7 @@ export default function AddMasterClassForm({ onSuccess, className = '' }: AddMas
                                         required
                                         id='asmcl_maxagedays'
                                         value={field.value || 0}
-                                        onChange={(value) => field.onChange(value)}
+                                        onChange={(value) => field.onChange(Number.isNaN(value) ? 0 : value)}
                                         minValue={0}
                                         maxValue={31}
                                         step={1}
