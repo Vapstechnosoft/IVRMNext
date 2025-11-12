@@ -4,27 +4,13 @@ import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
 import { useMasterFeeOnlinePaymentHeadGroupTable } from '@/hooks/fees/useMasters';
-import type { IMasterFeesInstallmentList } from '@/types/fees/masters';
+
 import type { IMasterOnlinePaymentHeadgroupList } from '@/types/fees/masters/masters';
-import type { ColumnDef } from '@tanstack/react-table';
 import { Plus, X } from 'lucide-react';
 import { use } from 'react';
 import AddMasterOnlinePaymentHeadGroupForm from './_components/add-form';
-
-const masterFeesInstallmentColumns: ColumnDef<IMasterFeesInstallmentList>[] = [
-    {
-        accessorKey: 'name',
-        header: 'Name'
-    },
-    {
-        accessorKey: 'description',
-        header: 'Description'
-    },
-    {
-        accessorKey: 'actions',
-        header: 'Actions'
-    }
-];
+import { masterClassYearlyCategoryColumns } from './_components/columns';
+import UpdateMasterOnlinePaymentHeadGroupMappingForm from './_components/update-form';
 
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 
@@ -50,7 +36,7 @@ function MasterFeeheadPageContent({
     isLoading: boolean;
     error: any;
 }) {
-    const { openAddForm } = useFormContext<IMasterFeesInstallmentList>();
+    const { openAddForm } = useFormContext<IMasterOnlinePaymentHeadgroupList>();
     const tableProps = useDataTableProps(response);
 
     return (
@@ -74,16 +60,16 @@ function MasterFeeheadPageContent({
                     variant='default'
                     size='lg'
                     className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
-                    <GenericDataTable<IMasterFeesInstallmentList>
+                    <GenericDataTable<IMasterOnlinePaymentHeadgroupList>
                         {...tableProps}
-                        columns={masterFeesInstallmentColumns}
+                        columns={masterClassYearlyCategoryColumns}
                         isLoading={isLoading}
                         error={error}
                         columnPinning={{ right: ['actions'] }}
-                        loadingMessage='Loading master classes...'
-                        noDataTitle='No Master Classes Found'
-                        noDataDescription='Get started by creating your first master class'
-                        errorTitle='Error Loading Classes'
+                        loadingMessage='Loading Online Payment Head Groups...'
+                        noDataTitle='No Online Payment Head Groups Found'
+                        noDataDescription='Get started by creating your first Online Payment Head Group'
+                        errorTitle='Error Loading Online Payment Head Groups'
                     />
                 </CollapsibleSection>
 
@@ -95,17 +81,8 @@ function MasterFeeheadPageContent({
 }
 
 function FormSections() {
-    const {
-        isAddFormOpen,
-        isEditFormOpen,
-        isToggleFormOpen,
-        selectedRow,
-        closeAddForm,
-        closeEditForm,
-        closeToggleForm,
-        addFormRef,
-        editFormRef
-    } = useFormContext<IMasterFeesInstallmentList>();
+    const { isAddFormOpen, isEditFormOpen, selectedRow, closeAddForm, closeEditForm, addFormRef, editFormRef } =
+        useFormContext<IMasterOnlinePaymentHeadgroupList>();
 
     return (
         <>
@@ -152,10 +129,7 @@ function FormSections() {
                                 className='-top-[3.5rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
                                 <X className='h-4 w-4 text-destructive' /> Close
                             </Button>
-                            {/* <UpdateMasteOnlinePaymentHeadGroupMappingForm
-                selectedRow={selectedRow}
-                onSuccess={closeEditForm}
-              /> */}
+                            <UpdateMasterOnlinePaymentHeadGroupMappingForm selectedRow={selectedRow as any} onSuccess={closeEditForm} />
                         </div>
                     </CollapsibleSection>
                 </div>

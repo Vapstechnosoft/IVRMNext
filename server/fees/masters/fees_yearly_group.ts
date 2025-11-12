@@ -11,10 +11,7 @@ export async function getMasterYearlyCategory(searchParams?: ApiSearchparams) {
 }
 
 export async function getGroupListCategory(searchParams?: ApiSearchparams) {
-    const _urlParams = getSearchParamsUrl(
-        searchParams ?? {},
-        'asmaY_Year,fmG_GroupName,fyG_RebateApplicableFlg,fyG_PartialRebateAmtOrPercentageValue'
-    );
+    const _urlParams = getSearchParamsUrl(searchParams ?? {});
     const url = '/fee_yearly_group/getgrouplist/30';
     return await api.get<IMasterClassYearlyList[]>('fees', url);
 }
