@@ -1,11 +1,12 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
-import { GenericDataTable } from '@/components/ui/data-table/generic-data-table';
+import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/generic-data-table';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
 import { HRMS_MI_ID } from '@/constants/hrms-config';
 import { useMasterGroupType } from '@/hooks/hrms/useMasters';
+import type { ApiSearchparams } from '@/types';
 import type { GroupTypeDetail } from '@/types/hrms/master-group-type';
 import { ListOrdered, Plus, Save, X } from 'lucide-react';
 import { useMemo, useState } from 'react';
@@ -13,17 +14,18 @@ import { toast } from 'sonner';
 import { columns, getEditableColumns } from '../../group-type/_components/columns';
 import GroupTypeForm from '../../group-type/_components/group-type-form';
 
-export default function GroupTypeTab() {
+export default function GroupTypeTab({ searchParams }: { searchParams?: ApiSearchparams }) {
     const roleId = HRMS_MI_ID;
-    const { listQuery } = useMasterGroupType(roleId);
-
-    console.log('📊 [GROUP TYPE TAB] Main component - isLoading:', listQuery.isLoading);
-    console.log('📊 [GROUP TYPE TAB] Main component - isFetching:', listQuery.isFetching);
-    console.log('📊 [GROUP TYPE TAB] Main component - dataUpdatedAt:', listQuery.dataUpdatedAt);
+    const { listQuery, refetchAll } = useMasterGroupType(roleId, searchParams);
 
     return (
         <FormProvider<GroupTypeDetail>>
-            <GroupTypeTabContent response={listQuery.data} isLoading={listQuery.isLoading} error={listQuery.error} />
+            <GroupTypeTabContent 
+                response={listQuery.data} 
+                isLoading={listQuery.isLoading} 
+                error={listQuery.error}
+                refetch={refetchAll}
+            />
         </FormProvider>
     );
 }
@@ -31,16 +33,22 @@ export default function GroupTypeTab() {
 function GroupTypeTabContent({
     response,
     isLoading,
-    error
+    error,
+    refetch
 }: {
     response: any;
     isLoading: boolean;
     error: any;
+    refetch: () => void;
 }) {
     const { openAddForm } = useFormContext<GroupTypeDetail>();
     const { saveOrderMutation } = useMasterGroupType(HRMS_MI_ID);
-    // Memoize array to prevent unnecessary re-renders
-    const rows: GroupTypeDetail[] = useMemo(() => response?.grouptypeList ?? [], [response?.grouptypeList]);
+    const tableProps = useDataTableProps(response, { dataKey: 'data' });
+    // Extract data for order editing mode - support both new structure (data) and old structure (grouptypeList)
+    const rows: GroupTypeDetail[] = useMemo(() => {
+        const data = response?.data ?? response?.grouptypeList ?? [];
+        return Array.isArray(data) ? data : [];
+    }, [response?.data, response?.grouptypeList]);
 
     console.log('📊 [GROUP TYPE TAB] Component render - rows count:', rows.length);
     console.log('📊 [GROUP TYPE TAB] Sample row orders:', rows.slice(0, 3).map(r => `ID=${r.HRMGT_Id}, Order=${r.HRMGT_Order}`));
@@ -147,8 +155,7 @@ function GroupTypeTabContent({
                 size='lg'
                 className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
                 <GenericDataTable<GroupTypeDetail>
-                    data={displayData}
-                    totalItems={displayData.length}
+                    {...(isEditOrderMode ? { data: displayData, totalItems: displayData.length } : tableProps)}
                     columns={displayColumns}
                     isLoading={isLoading}
                     error={error}
@@ -160,12 +167,12 @@ function GroupTypeTabContent({
                 />
             </CollapsibleSection>
 
-            <FormSections />
+            <FormSections refetch={refetch} />
         </div>
     );
 }
 
-function FormSections() {
+function FormSections({ refetch }: { refetch: () => void }) {
     const { isAddFormOpen, isEditFormOpen, selectedRow, closeAddForm, closeEditForm, addFormRef, editFormRef } =
         useFormContext<GroupTypeDetail>();
 
@@ -189,7 +196,12 @@ function FormSections() {
                                 className='-top-[3.5rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
                                 <X className='h-4 w-4 text-destructive' /> Close
                             </Button>
-                            <GroupTypeForm onSuccess={closeAddForm} />
+                            <GroupTypeForm 
+                                onSuccess={() => {
+                                    closeAddForm();
+                                    refetch();
+                                }} 
+                            />
                         </div>
                     </CollapsibleSection>
                 </div>
@@ -212,7 +224,13 @@ function FormSections() {
                                 className='-top-[3.5rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
                                 <X className='h-4 w-4 text-destructive' /> Close
                             </Button>
-                            <GroupTypeForm selectedRow={selectedRow} onSuccess={closeEditForm} />
+                            <GroupTypeForm 
+                                selectedRow={selectedRow} 
+                                onSuccess={() => {
+                                    closeEditForm();
+                                    refetch();
+                                }} 
+                            />
                         </div>
                     </CollapsibleSection>
                 </div>

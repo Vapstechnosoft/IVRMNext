@@ -1,8 +1,10 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
+import type { ApiSearchparams } from '@/types';
 import { cn } from '@/lib/utils';
 import { Award, Building2, Layers, Trophy, Users } from 'lucide-react';
+import { use } from 'react';
 import { useState } from 'react';
 
 import DepartmentTab from './_components/department-tab';
@@ -18,7 +20,7 @@ interface Tab {
     id: TabType;
     label: string;
     icon: React.ReactNode;
-    component: React.ComponentType;
+    component: React.ComponentType<{ searchParams?: ApiSearchparams }>;
 }
 
 const tabs: Tab[] = [
@@ -54,7 +56,22 @@ const tabs: Tab[] = [
     }
 ];
 
-export default function EmployeeCategoryManagementPage() {
+type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
+
+export default function EmployeeCategoryManagementPage(props: { searchParams: SearchParams }) {
+    const rawSearchParams = use(props.searchParams);
+    
+    // Convert Next.js searchParams (string | string[]) to ApiSearchparams format
+    // This matches how preadmission and other master modules handle it
+    const searchParams: ApiSearchparams = {
+        page: typeof rawSearchParams?.page === 'string' ? parseInt(rawSearchParams.page, 10) : Array.isArray(rawSearchParams?.page) ? parseInt(rawSearchParams.page[0], 10) : typeof rawSearchParams?.page === 'number' ? rawSearchParams.page : undefined,
+        page_size: typeof rawSearchParams?.page_size === 'string' ? parseInt(rawSearchParams.page_size, 10) : Array.isArray(rawSearchParams?.page_size) ? parseInt(rawSearchParams.page_size[0], 10) : typeof rawSearchParams?.page_size === 'number' ? rawSearchParams.page_size : undefined,
+        search_query: typeof rawSearchParams?.search_query === 'string' ? rawSearchParams.search_query : Array.isArray(rawSearchParams?.search_query) ? rawSearchParams.search_query[0] : undefined,
+        search_column: typeof rawSearchParams?.search_column === 'string' ? rawSearchParams.search_column : Array.isArray(rawSearchParams?.search_column) ? rawSearchParams.search_column[0] : undefined,
+        sort_column: typeof rawSearchParams?.sort_column === 'string' ? rawSearchParams.sort_column : Array.isArray(rawSearchParams?.sort_column) ? rawSearchParams.sort_column[0] : undefined,
+        sort_direction: typeof rawSearchParams?.sort_direction === 'string' ? rawSearchParams.sort_direction : Array.isArray(rawSearchParams?.sort_direction) ? rawSearchParams.sort_direction[0] : undefined
+    };
+    
     const [activeTab, setActiveTab] = useState<TabType>('employee-type');
 
     const ActiveComponent = tabs.find((tab) => tab.id === activeTab)?.component || EmployeeTypeTab;
@@ -85,7 +102,7 @@ export default function EmployeeCategoryManagementPage() {
 
                 {/* Tab Content */}
                 <div className='rounded-lg border border-border/40 bg-card/50 p-4 shadow-lg backdrop-blur-sm'>
-                    <ActiveComponent />
+                    <ActiveComponent searchParams={searchParams} />
                 </div>
             </div>
         </div>

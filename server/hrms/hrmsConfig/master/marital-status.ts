@@ -1,11 +1,72 @@
 'use server';
 
 import { api } from '@/lib/apiService';
+import type { ApiSearchparams } from '@/types';
 import type { MasterMaritalStatusInput, MasterMaritalStatusResponse } from '@/types/hrms/master-marital-status';
 
-export async function getMasterMaritalStatusList(roleId: number) {
+/**
+ * Helper function to convert searchParams from URL (strings) to proper types
+ */
+function normalizeSearchParams(searchParams?: ApiSearchparams | Record<string, string | string[] | undefined>): ApiSearchparams {
+    if (!searchParams) return {};
+    
+    // Helper to get first value if array, or the value itself
+    const getValue = (value: string | string[] | number | undefined, defaultValue: string | number): string | number => {
+        if (value === undefined) return defaultValue;
+        if (typeof value === 'number') return value;
+        if (Array.isArray(value)) return value[0] || defaultValue;
+        return value;
+    };
+    
+    return {
+        page: typeof getValue(searchParams.page, 1) === 'string' ? parseInt(getValue(searchParams.page, 1) as string, 10) || 1 : (getValue(searchParams.page, 1) as number) || 1,
+        page_size: typeof getValue(searchParams.page_size, 10) === 'string' ? parseInt(getValue(searchParams.page_size, 10) as string, 10) || 10 : (getValue(searchParams.page_size, 10) as number) || 10,
+        search_query: (getValue(searchParams.search_query, '') as string) || '',
+        search_column: (getValue(searchParams.search_column, '') as string) || '',
+        sort_column: (getValue(searchParams.sort_column, '') as string) || '',
+        sort_direction: (getValue(searchParams.sort_direction, '') as string) || ''
+    };
+}
+
+/**
+ * Get onload details for master marital status with search, sort, and pagination
+ * POST /api/MasterMaritalStatusFacade/onloadgetdetails
+ */
+export async function getMasterMaritalStatusList(roleId: number, searchParams?: ApiSearchparams | Record<string, string | string[] | undefined>) {
     const url = '/api/MasterMaritalStatusFacade/onloadgetdetails';
+    
+    // Normalize searchParams (convert strings to proper types)
+    const normalizedParams = normalizeSearchParams(searchParams);
+    
+    // Extract pagination, search, and sort parameters
+    const page = normalizedParams.page || 1;
+    const page_size = normalizedParams.page_size || 10;
+    const search_query = normalizedParams.search_query || '';
+    
+    // Define searchable columns
+    // These are the columns that can be searched when search_query is provided
+    const searchableColumns = 'IVRMMMS_MaritalStatus';
+    const search_column = normalizedParams.search_column || (search_query ? searchableColumns : '');
+    
+    // If sort_column is provided but sort_direction is empty, default to 'asc'
+    // The API requires sort_direction to be 'asc' or 'desc' when sort_column is provided
+    const sort_column = normalizedParams.sort_column || '';
+    const sort_direction = sort_column && !normalizedParams.sort_direction 
+        ? 'asc' 
+        : (normalizedParams.sort_direction || '');
+    
     const requestBody = {
+        page,
+        page_size,
+        search_query,
+        search_column,
+        sort_column,
+        sort_direction,
+        is_export: false,
+        MIID: 30,
+        LoginUserId: 0,
+        UserRole: '',
+        // Required fields by API model (even for list operations)
         CreatedDate: new Date().toISOString(),
         UpdatedDate: new Date().toISOString(),
         IVRMMMS_Id: 0,
@@ -16,7 +77,38 @@ export async function getMasterMaritalStatusList(roleId: number) {
         retrunMsg: 'string',
         roleId: roleId
     };
-    return await api.post<MasterMaritalStatusResponse>('hrms', url, requestBody);
+    
+    try {
+        const response = await api.post<MasterMaritalStatusResponse>('hrms', url, requestBody);
+        
+        // Transform response to match expected structure (like preadmission and bank)
+        // The API returns data directly as an array in the response.data field, or nested in maritalstatusList
+        // Based on the API response structure: { success, message, data: [...], total, page, page_size }
+        const maritalStatusList = Array.isArray(response?.data) 
+            ? response.data 
+            : (response as any)?.maritalstatusList || (response as any)?.data?.maritalstatusList || [];
+        
+        // Use API's total if provided, otherwise use array length
+        // Note: If API is paginating correctly, it should return total count of ALL records, not just this page
+        const total = response?.total ?? (Array.isArray(maritalStatusList) ? maritalStatusList.length : 0);
+        
+        // Return in the expected format - spread response first, then override with transformed values
+        return {
+            ...response,
+            success: response?.success ?? true,
+            message: response?.message || 'Data fetched successfully',
+            data: maritalStatusList, // Return all items from API - let API handle pagination
+            total: total,
+            page: response?.page ?? page,
+            page_size: response?.page_size ?? page_size
+        } as MasterMaritalStatusResponse;
+    } catch (error: any) {
+        console.error('🔴 [DEBUG] getMasterMaritalStatusList - Error Details:');
+        console.error('🔴 [DEBUG] Error Message:', error?.message);
+        console.error('🔴 [DEBUG] Error Response Status:', error?.response?.status);
+        console.error('🔴 [DEBUG] Error Response Data:', JSON.stringify(error?.response?.data, null, 2));
+        throw error;
+    }
 }
 
 export async function saveMasterMaritalStatus(data: MasterMaritalStatusInput) {

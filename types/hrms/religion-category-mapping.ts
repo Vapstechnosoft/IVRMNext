@@ -46,26 +46,39 @@ export interface ReligionCategoryMappingDetail {
 }
 
 export interface ReligionCategoryMappingResponse {
-    IRCC_Id: number;
-    MI_Id: number;
-    UserId: number;
-    IVRMMR_Id: number;
-    IMCC_Id: number;
-    IRCC_ActiveFlg: boolean;
-    IRCC_CreatedBy: number;
-    IRCC_UpdatedBy: number;
-    IRCC_CreatedDate: string;
-    IRCC_UpdatedDate: string;
-    religion_list: ReligionItem[];
-    get_masterlist: ReligionCategoryMappingDetail[];
-    caste_list: CasteItem[];
-    editlist: any[];
-    returnval: boolean;
-    castid: CastIdItem[];
-    duplicate: boolean;
-    IVRMMR_Name: string;
-    IMCC_CategoryName: string;
-    msg: string;
+    success?: boolean;
+    message?: string;
+    data?: ReligionCategoryMappingDetail[] | {
+        mapping?: ReligionCategoryMappingDetail[];
+        get_masterlist?: ReligionCategoryMappingDetail[];
+        religion_list?: ReligionItem[];
+        caste_list?: CasteItem[];
+    };
+    mapping?: ReligionCategoryMappingDetail[];
+    get_masterlist?: ReligionCategoryMappingDetail[];
+    religion_list?: ReligionItem[];
+    caste_list?: CasteItem[];
+    total?: number;
+    page?: number;
+    page_size?: number;
+    // Legacy fields (for backward compatibility)
+    IRCC_Id?: number;
+    MI_Id?: number;
+    UserId?: number;
+    IVRMMR_Id?: number;
+    IMCC_Id?: number;
+    IRCC_ActiveFlg?: boolean;
+    IRCC_CreatedBy?: number;
+    IRCC_UpdatedBy?: number;
+    IRCC_CreatedDate?: string;
+    IRCC_UpdatedDate?: string;
+    editlist?: any[];
+    returnval?: boolean;
+    castid?: CastIdItem[];
+    duplicate?: boolean;
+    IVRMMR_Name?: string;
+    IMCC_CategoryName?: string;
+    msg?: string;
 }
 
 export interface ReligionCategoryMappingRequest {

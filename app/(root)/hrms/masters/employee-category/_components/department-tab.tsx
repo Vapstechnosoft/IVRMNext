@@ -1,11 +1,12 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
-import { GenericDataTable } from '@/components/ui/data-table/generic-data-table';
+import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/generic-data-table';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
 import { HRMS_MI_ID } from '@/constants/hrms-config';
 import { useMasterDepartment } from '@/hooks/hrms/useMasters';
+import type { ApiSearchparams } from '@/types';
 import type { DepartmentDetail } from '@/types/hrms/master-department';
 import { ListOrdered, Plus, Save, X } from 'lucide-react';
 import { useMemo, useState } from 'react';
@@ -13,13 +14,18 @@ import { toast } from 'sonner';
 import { columns, getEditableColumns } from '../../department/_components/columns';
 import DepartmentForm from '../../department/_components/department-form';
 
-export default function DepartmentTab() {
+export default function DepartmentTab({ searchParams }: { searchParams?: ApiSearchparams }) {
     const roleId = HRMS_MI_ID;
-    const { listQuery } = useMasterDepartment(roleId);
+    const { listQuery, refetchAll } = useMasterDepartment(roleId, searchParams);
 
     return (
         <FormProvider<DepartmentDetail>>
-            <DepartmentTabContent response={listQuery.data} isLoading={listQuery.isLoading} error={listQuery.error} />
+            <DepartmentTabContent 
+                response={listQuery.data} 
+                isLoading={listQuery.isLoading} 
+                error={listQuery.error}
+                refetch={refetchAll}
+            />
         </FormProvider>
     );
 }
@@ -27,16 +33,22 @@ export default function DepartmentTab() {
 function DepartmentTabContent({
     response,
     isLoading,
-    error
+    error,
+    refetch
 }: {
     response: any;
     isLoading: boolean;
     error: any;
+    refetch: () => void;
 }) {
     const { openAddForm } = useFormContext<DepartmentDetail>();
     const { saveOrderMutation } = useMasterDepartment(HRMS_MI_ID);
-    // Memoize array to prevent unnecessary re-renders
-    const rows: DepartmentDetail[] = useMemo(() => response?.departmentList ?? [], [response?.departmentList]);
+    const tableProps = useDataTableProps(response, { dataKey: 'data' });
+    // Extract data for order editing mode - support both new structure (data) and old structure (departmentList)
+    const rows: DepartmentDetail[] = useMemo(() => {
+        const data = response?.data ?? response?.departmentList ?? [];
+        return Array.isArray(data) ? data : [];
+    }, [response?.data, response?.departmentList]);
 
     const [isEditOrderMode, setIsEditOrderMode] = useState(false);
     const [editedRows, setEditedRows] = useState<DepartmentDetail[]>([]);
@@ -125,8 +137,7 @@ function DepartmentTabContent({
                 size='lg'
                 className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
                 <GenericDataTable<DepartmentDetail>
-                    data={displayData}
-                    totalItems={displayData.length}
+                    {...(isEditOrderMode ? { data: displayData, totalItems: displayData.length } : tableProps)}
                     columns={displayColumns}
                     isLoading={isLoading}
                     error={error}
@@ -138,12 +149,12 @@ function DepartmentTabContent({
                 />
             </CollapsibleSection>
 
-            <FormSections />
+            <FormSections refetch={refetch} />
         </div>
     );
 }
 
-function FormSections() {
+function FormSections({ refetch }: { refetch: () => void }) {
     const { isAddFormOpen, isEditFormOpen, selectedRow, closeAddForm, closeEditForm, addFormRef, editFormRef } =
         useFormContext<DepartmentDetail>();
 
@@ -167,7 +178,12 @@ function FormSections() {
                                 className='-top-[3.5rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
                                 <X className='h-4 w-4 text-destructive' /> Close
                             </Button>
-                            <DepartmentForm onSuccess={closeAddForm} />
+                            <DepartmentForm 
+                                onSuccess={() => {
+                                    closeAddForm();
+                                    refetch();
+                                }} 
+                            />
                         </div>
                     </CollapsibleSection>
                 </div>
@@ -190,7 +206,13 @@ function FormSections() {
                                 className='-top-[3.5rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
                                 <X className='h-4 w-4 text-destructive' /> Close
                             </Button>
-                            <DepartmentForm selectedRow={selectedRow} onSuccess={closeEditForm} />
+                            <DepartmentForm 
+                                selectedRow={selectedRow} 
+                                onSuccess={() => {
+                                    closeEditForm();
+                                    refetch();
+                                }} 
+                            />
                         </div>
                     </CollapsibleSection>
                 </div>

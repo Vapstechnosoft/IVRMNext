@@ -1,13 +1,22 @@
 export interface MasterEmployeeTypeResponse {
-    HRMET_Id: number;
-    MI_Id: number;
-    HRMET_EmployeeType: string | null;
-    HRMET_ActiveFlag: boolean;
-    employeeTypeList: EmployeeTypeDetail[];
-    retrunMsg: string;
-    roleId: number;
-    CreatedDate: string | null;
-    UpdatedDate: string | null;
+    success?: boolean;
+    message?: string;
+    data?: EmployeeTypeDetail[] | {
+        employeeTypeList: EmployeeTypeDetail[];
+    };
+    employeeTypeList?: EmployeeTypeDetail[];
+    retrunMsg?: string;
+    total?: number;
+    page?: number;
+    page_size?: number;
+    // Legacy fields (for backward compatibility)
+    HRMET_Id?: number;
+    MI_Id?: number;
+    HRMET_EmployeeType?: string | null;
+    HRMET_ActiveFlag?: boolean;
+    roleId?: number;
+    CreatedDate?: string | null;
+    UpdatedDate?: string | null;
 }
 
 export interface EmployeeTypeDetail {

@@ -1,13 +1,15 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
-import { GenericDataTable } from '@/components/ui/data-table/generic-data-table';
+import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/generic-data-table';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
 import { HRMS_MI_ID } from '@/constants/hrms-config';
 import { useMasterGrade } from '@/hooks/hrms/useMasters';
+import type { ApiSearchparams } from '@/types';
 import type { GradeDetail } from '@/types/hrms/master-grade';
 import { ListOrdered, Plus, Save, X } from 'lucide-react';
+import { use } from 'react';
 import { useMemo, useState } from 'react';
 import { toast } from 'sonner';
 import { columns, getEditableColumns } from './_components/columns';
@@ -15,15 +17,30 @@ import GradeForm from './_components/grade-form';
 
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 
-export default function MasterGradePage(_props: {
-    searchParams: SearchParams;
-}) {
-    const roleId = HRMS_MI_ID;
-    const { listQuery } = useMasterGrade(roleId);
+export default function MasterGradePage(props: { searchParams: SearchParams }) {
+    const rawSearchParams = use(props.searchParams);
+    
+    // Convert Next.js searchParams (string | string[]) to ApiSearchparams format
+    // This matches how preadmission and other master modules handle it
+    const searchParams: ApiSearchparams = {
+        page: typeof rawSearchParams?.page === 'string' ? parseInt(rawSearchParams.page, 10) : Array.isArray(rawSearchParams?.page) ? parseInt(rawSearchParams.page[0], 10) : typeof rawSearchParams?.page === 'number' ? rawSearchParams.page : undefined,
+        page_size: typeof rawSearchParams?.page_size === 'string' ? parseInt(rawSearchParams.page_size, 10) : Array.isArray(rawSearchParams?.page_size) ? parseInt(rawSearchParams.page_size[0], 10) : typeof rawSearchParams?.page_size === 'number' ? rawSearchParams.page_size : undefined,
+        search_query: typeof rawSearchParams?.search_query === 'string' ? rawSearchParams.search_query : Array.isArray(rawSearchParams?.search_query) ? rawSearchParams.search_query[0] : undefined,
+        search_column: typeof rawSearchParams?.search_column === 'string' ? rawSearchParams.search_column : Array.isArray(rawSearchParams?.search_column) ? rawSearchParams.search_column[0] : undefined,
+        sort_column: typeof rawSearchParams?.sort_column === 'string' ? rawSearchParams.sort_column : Array.isArray(rawSearchParams?.sort_column) ? rawSearchParams.sort_column[0] : undefined,
+        sort_direction: typeof rawSearchParams?.sort_direction === 'string' ? rawSearchParams.sort_direction : Array.isArray(rawSearchParams?.sort_direction) ? rawSearchParams.sort_direction[0] : undefined
+    };
+    
+    const { listQuery, refetchAll } = useMasterGrade(HRMS_MI_ID, searchParams);
 
     return (
         <FormProvider<GradeDetail>>
-            <MasterGradePageContent response={listQuery.data} isLoading={listQuery.isLoading} error={listQuery.error} />
+            <MasterGradePageContent 
+                response={listQuery.data} 
+                isLoading={listQuery.isLoading} 
+                error={listQuery.error}
+                refetch={refetchAll}
+            />
         </FormProvider>
     );
 }
@@ -31,16 +48,22 @@ export default function MasterGradePage(_props: {
 function MasterGradePageContent({
     response,
     isLoading,
-    error
+    error,
+    refetch
 }: {
     response: any;
     isLoading: boolean;
     error: any;
+    refetch: () => void;
 }) {
     const { openAddForm } = useFormContext<GradeDetail>();
     const { saveOrderMutation } = useMasterGrade(HRMS_MI_ID);
-    // Memoize array to prevent unnecessary re-renders
-    const rows: GradeDetail[] = useMemo(() => response?.gradelList ?? [], [response?.gradelList]);
+    const tableProps = useDataTableProps(response, { dataKey: 'data' });
+    // Extract data for order editing mode - support both new structure (data) and old structure (gradelList)
+    const rows: GradeDetail[] = useMemo(() => {
+        const data = response?.data ?? response?.gradelList ?? [];
+        return Array.isArray(data) ? data : [];
+    }, [response?.data, response?.gradelList]);
 
     const [isEditOrderMode, setIsEditOrderMode] = useState(false);
     const [editedRows, setEditedRows] = useState<GradeDetail[]>([]);
@@ -124,8 +147,7 @@ function MasterGradePageContent({
                     size='lg'
                     className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
                     <GenericDataTable<GradeDetail>
-                        data={displayData}
-                        totalItems={displayData.length}
+                        {...(isEditOrderMode ? { data: displayData, totalItems: displayData.length } : tableProps)}
                         columns={displayColumns}
                         isLoading={isLoading}
                         error={error}
@@ -137,13 +159,13 @@ function MasterGradePageContent({
                     />
                 </CollapsibleSection>
 
-                <FormSections />
+                <FormSections refetch={refetch} />
             </div>
         </div>
     );
 }
 
-function FormSections() {
+function FormSections({ refetch }: { refetch: () => void }) {
     const { isAddFormOpen, isEditFormOpen, selectedRow, closeAddForm, closeEditForm, addFormRef, editFormRef } =
         useFormContext<GradeDetail>();
 
@@ -167,7 +189,12 @@ function FormSections() {
                                 className='-top-[3.5rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
                                 <X className='h-4 w-4 text-destructive' /> Close
                             </Button>
-                            <GradeForm onSuccess={closeAddForm} />
+                            <GradeForm 
+                                onSuccess={() => {
+                                    closeAddForm();
+                                    refetch();
+                                }} 
+                            />
                         </div>
                     </CollapsibleSection>
                 </div>
@@ -190,7 +217,13 @@ function FormSections() {
                                 className='-top-[3.5rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
                                 <X className='h-4 w-4 text-destructive' /> Close
                             </Button>
-                            <GradeForm selectedRow={selectedRow} onSuccess={closeEditForm} />
+                            <GradeForm 
+                                selectedRow={selectedRow} 
+                                onSuccess={() => {
+                                    closeEditForm();
+                                    refetch();
+                                }} 
+                            />
                         </div>
                     </CollapsibleSection>
                 </div>

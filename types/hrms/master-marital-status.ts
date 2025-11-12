@@ -1,13 +1,22 @@
 export interface MasterMaritalStatusResponse {
-    IVRMMMS_Id: number;
-    MI_Id: number;
-    IVRMMMS_MaritalStatus: string | null;
-    IVRMMMS_ActiveFlag: boolean | null;
-    maritalstatusList: MaritalStatusDetail[];
-    retrunMsg: string;
-    roleId: number;
-    CreatedDate: string | null;
-    UpdatedDate: string | null;
+    success?: boolean;
+    message?: string;
+    data?: MaritalStatusDetail[] | {
+        maritalstatusList: MaritalStatusDetail[];
+    };
+    maritalstatusList?: MaritalStatusDetail[];
+    retrunMsg?: string;
+    total?: number;
+    page?: number;
+    page_size?: number;
+    // Legacy fields (for backward compatibility)
+    IVRMMMS_Id?: number;
+    MI_Id?: number;
+    IVRMMMS_MaritalStatus?: string | null;
+    IVRMMMS_ActiveFlag?: boolean | null;
+    roleId?: number;
+    CreatedDate?: string | null;
+    UpdatedDate?: string | null;
 }
 
 export interface MaritalStatusDetail {
