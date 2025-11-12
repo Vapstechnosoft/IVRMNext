@@ -24,6 +24,12 @@ import {
     getFeeMasterGroupwiseAutoReceiptGroupDropDown
 } from '@/server/fees/masters/fee_master_groupwise_auto_receipt';
 
+import {
+    getConcessionCategoryGroupHeadMappingDetails,
+    getcategorydropdowndropdown,
+    getcategorygroupdropdown,
+    getcategoryheadsdropdown
+} from '@/server/fees/masters/concession_category_head_group_mapping';
 import { getFineSlab } from '@/server/fees/masters/fineSlab';
 import { getFeeGroup, getFeeGroupGrouping } from '@/server/fees/masters/groupsgrouping';
 import { getMasterGroup } from '@/server/fees/masters/master_group';
@@ -455,13 +461,13 @@ export const MASTER_INSTALLMENT_DROPDOWN = () => {
     };
 };
 
-export const useMasterConcessionDetails = () => {
+export const useMasterConcessionDetails = (searchParams?: ApiSearchparams) => {
     const queryClient = useQueryClient();
 
     return {
         ...useQuery({
-            queryKey: [FEES_QUERY_KEYS.FEE_MASTER_CONCESSION_DETAILS],
-            queryFn: async () => getMasterConcessionDetails(),
+            queryKey: [FEES_QUERY_KEYS.FEE_MASTER_CONCESSION_DETAILS, searchParams ?? {}],
+            queryFn: async () => getMasterConcessionDetails(searchParams),
             staleTime: 0
         }),
         refetchAll: () => {
@@ -793,6 +799,74 @@ export const CONCESSION_CATEGORYDROPDOWN_DATA = () => {
         refetchAll: () => {
             return queryClient.invalidateQueries({
                 queryKey: [FEES_QUERY_KEYS.FEE_CONCESSION_CATEGORY_DROPDOWN]
+            });
+        }
+    };
+};
+
+export const useConcessionCategoryGroupHeadmappingdata = (searchParams?: ApiSearchparams) => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [FEES_QUERY_KEYS.FEE_CONCESSION_CATEGORY_GROUP_HEAD_MAPPING, searchParams ?? {}],
+            queryFn: async () => getConcessionCategoryGroupHeadMappingDetails(searchParams),
+            staleTime: 0
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [FEES_QUERY_KEYS.FEE_CONCESSION_CATEGORY_GROUP_HEAD_MAPPING]
+            });
+        }
+    };
+};
+
+export const CONCESSION_CATEGORYG_GROUP_DROPDOWN_DATA = () => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [FEES_QUERY_KEYS.FEE_CONCESSION_CATEGORY_GROUP__DROPDOWN],
+            queryFn: async () => getcategorygroupdropdown(),
+            staleTime: 0
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [FEES_QUERY_KEYS.FEE_CONCESSION_CATEGORY_GROUP__DROPDOWN]
+            });
+        }
+    };
+};
+
+export const CONCESSION_CATEGORYG_HEADS_DROPDOWN_DATA = (groupId: number) => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [FEES_QUERY_KEYS.FEE_CONCESSION_CATEGORY_HEADS__DROPDOWN],
+            queryFn: async () => getcategoryheadsdropdown(groupId),
+            staleTime: 0
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [FEES_QUERY_KEYS.FEE_CONCESSION_CATEGORY_HEADS__DROPDOWN]
+            });
+        }
+    };
+};
+
+export const CONCESSION_CATEGORYG_DROPDOWN_DATA = () => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [FEES_QUERY_KEYS.FEE_CONCESSION_CATEGORY_DROPDOWNDATADETAILS],
+            queryFn: async () => getcategorydropdowndropdown(),
+            staleTime: 0
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [FEES_QUERY_KEYS.FEE_CONCESSION_CATEGORY_DROPDOWNDATADETAILS]
             });
         }
     };
