@@ -80,6 +80,19 @@ export async function addOrUpdateMasterShift(data: {
     specificDay: boolean;
 }) {
     try {
+        // Check for uniqueness of shift name (case-insensitive)
+        const existingShifts = store.list();
+        const duplicateShift = existingShifts.find(
+            (shift) => shift.id !== data.id && shift.shiftName.toLowerCase().trim() === data.shiftName.toLowerCase().trim()
+        );
+
+        if (duplicateShift) {
+            return {
+                success: false,
+                message: 'Shift Name must be unique. A shift with this name already exists.'
+            };
+        }
+
         if (data.id) {
             const updated = store.update(data.id, {
                 shiftName: data.shiftName,

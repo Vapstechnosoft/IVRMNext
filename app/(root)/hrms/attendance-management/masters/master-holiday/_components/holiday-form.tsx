@@ -218,135 +218,133 @@ export function HolidayForm({ editingHoliday, calendarYears, onSubmit, onCancel 
                     </div>
                 )}
 
-                {/* Dynamic Fields - Only show when PUBLIC HOLIDAY or WEEK END is selected */}
-                {(holidayType === 'PUBLIC HOLIDAY' || holidayType === 'WEEK END') && (
-                    <>
-                        <div className='grid grid-cols-1 gap-4 lg:grid-cols-2'>
-                            <div className='space-y-2'>
-                                <label className='font-medium text-sm' htmlFor='fromDate'>
-                                    Start Date <span className='text-red-500'>*</span>
-                                </label>
-                                <Controller
-                                    name='fromDate'
-                                    control={control}
-                                    render={({ field }) => {
-                                        const selectedDate = field.value ? new Date(field.value) : undefined;
-                                        const minDate = new Date();
-                                        minDate.setHours(0, 0, 0, 0);
+                {/* Holiday Date - Always Required */}
+                <div className='grid grid-cols-1 gap-4 lg:grid-cols-2'>
+                    <div className='space-y-2'>
+                        <label className='font-medium text-sm' htmlFor='fromDate'>
+                            Holiday Date <span className='text-red-500'>*</span>
+                        </label>
+                        <Controller
+                            name='fromDate'
+                            control={control}
+                            render={({ field }) => {
+                                const selectedDate = field.value ? new Date(field.value) : undefined;
+                                const minDate = new Date();
+                                minDate.setHours(0, 0, 0, 0);
 
-                                        return (
-                                            <Popover>
-                                                <PopoverTrigger asChild>
-                                                    <Button
-                                                        variant='outline'
-                                                        className={cn(
-                                                            'w-full justify-start text-left font-normal',
-                                                            !selectedDate && 'text-muted-foreground',
-                                                            errors.fromDate && 'border-red-500'
-                                                        )}
-                                                        type='button'>
-                                                        <CalendarIcon className='mr-2 h-4 w-4' />
-                                                        {selectedDate ? format(selectedDate, 'dd-MM-yyyy') : 'Enter date'}
-                                                    </Button>
-                                                </PopoverTrigger>
-                                                <PopoverContent className='w-auto p-0' align='start'>
-                                                    <DatePickerWithYear
-                                                        mode='single'
-                                                        selected={selectedDate}
-                                                        onDayClick={(day) => {
-                                                            if (day) {
-                                                                const dateStr = format(day, 'yyyy-MM-dd');
-                                                                field.onChange(dateStr);
-                                                            }
-                                                        }}
-                                                        fromDate={minDate}
-                                                        initialFocus
-                                                    />
-                                                </PopoverContent>
-                                            </Popover>
-                                        );
-                                    }}
-                                />
-                                {errors.fromDate && <FormError>{errors.fromDate.message}</FormError>}
-                            </div>
+                                return (
+                                    <Popover>
+                                        <PopoverTrigger asChild>
+                                            <Button
+                                                variant='outline'
+                                                className={cn(
+                                                    'w-full justify-start text-left font-normal',
+                                                    !selectedDate && 'text-muted-foreground',
+                                                    errors.fromDate && 'border-red-500'
+                                                )}
+                                                type='button'>
+                                                <CalendarIcon className='mr-2 h-4 w-4' />
+                                                {selectedDate ? format(selectedDate, 'dd-MM-yyyy') : 'Enter date'}
+                                            </Button>
+                                        </PopoverTrigger>
+                                        <PopoverContent className='w-auto p-0' align='start'>
+                                            <DatePickerWithYear
+                                                mode='single'
+                                                selected={selectedDate}
+                                                onDayClick={(day) => {
+                                                    if (day) {
+                                                        const dateStr = format(day, 'yyyy-MM-dd');
+                                                        field.onChange(dateStr);
+                                                    }
+                                                }}
+                                                fromDate={minDate}
+                                                initialFocus
+                                            />
+                                        </PopoverContent>
+                                    </Popover>
+                                );
+                            }}
+                        />
+                        {errors.fromDate && <FormError>{errors.fromDate.message}</FormError>}
+                    </div>
 
-                            <div className='space-y-2'>
-                                <label className='font-medium text-sm' htmlFor='toDate'>
-                                    End Date <span className='text-red-500'>*</span>
-                                </label>
-                                <Controller
-                                    name='toDate'
-                                    control={control}
-                                    render={({ field }) => {
-                                        const selectedDate = field.value ? new Date(field.value) : undefined;
-                                        const minDate = fromDate ? new Date(fromDate) : new Date();
-                                        minDate.setHours(0, 0, 0, 0);
+                    <div className='space-y-2'>
+                        <label className='font-medium text-sm' htmlFor='toDate'>
+                            End Date
+                        </label>
+                        <Controller
+                            name='toDate'
+                            control={control}
+                            render={({ field }) => {
+                                const selectedDate = field.value ? new Date(field.value) : undefined;
+                                const minDate = fromDate ? new Date(fromDate) : new Date();
+                                minDate.setHours(0, 0, 0, 0);
 
-                                        return (
-                                            <Popover>
-                                                <PopoverTrigger asChild>
-                                                    <Button
-                                                        variant='outline'
-                                                        className={cn(
-                                                            'w-full justify-start text-left font-normal',
-                                                            !selectedDate && 'text-muted-foreground',
-                                                            errors.toDate && 'border-red-500'
-                                                        )}
-                                                        type='button'>
-                                                        <CalendarIcon className='mr-2 h-4 w-4' />
-                                                        {selectedDate ? format(selectedDate, 'dd-MM-yyyy') : 'Enter date'}
-                                                    </Button>
-                                                </PopoverTrigger>
-                                                <PopoverContent className='w-auto p-0' align='start'>
-                                                    <DatePickerWithYear
-                                                        mode='single'
-                                                        selected={selectedDate}
-                                                        onDayClick={(day) => {
-                                                            if (day) {
-                                                                const dateStr = format(day, 'yyyy-MM-dd');
-                                                                field.onChange(dateStr);
-                                                            }
-                                                        }}
-                                                        fromDate={minDate}
-                                                        initialFocus
-                                                    />
-                                                </PopoverContent>
-                                            </Popover>
-                                        );
-                                    }}
-                                />
-                                {errors.toDate && <FormError>{errors.toDate.message}</FormError>}
-                            </div>
-                        </div>
+                                return (
+                                    <Popover>
+                                        <PopoverTrigger asChild>
+                                            <Button
+                                                variant='outline'
+                                                className={cn(
+                                                    'w-full justify-start text-left font-normal',
+                                                    !selectedDate && 'text-muted-foreground',
+                                                    errors.toDate && 'border-red-500'
+                                                )}
+                                                type='button'>
+                                                <CalendarIcon className='mr-2 h-4 w-4' />
+                                                {selectedDate ? format(selectedDate, 'dd-MM-yyyy') : 'Enter date (optional)'}
+                                            </Button>
+                                        </PopoverTrigger>
+                                        <PopoverContent className='w-auto p-0' align='start'>
+                                            <DatePickerWithYear
+                                                mode='single'
+                                                selected={selectedDate}
+                                                onDayClick={(day) => {
+                                                    if (day) {
+                                                        const dateStr = format(day, 'yyyy-MM-dd');
+                                                        field.onChange(dateStr);
+                                                    }
+                                                }}
+                                                fromDate={minDate}
+                                                initialFocus
+                                            />
+                                        </PopoverContent>
+                                    </Popover>
+                                );
+                            }}
+                        />
+                        {errors.toDate && <FormError>{errors.toDate.message}</FormError>}
+                    </div>
+                </div>
 
-                        <div className='grid grid-cols-1 gap-4'>
-                            <InputText
-                                label='Holiday Name'
-                                required
-                                id='name'
-                                {...register('name')}
-                                error={errors.name?.message}
-                                className='transition-colors focus:ring-2 focus:ring-primary/20'
-                                maxLength={100}
-                            />
-                        </div>
+                {/* Holiday Name - Always Required */}
+                <div className='grid grid-cols-1 gap-4'>
+                    <InputText
+                        label='Holiday Name'
+                        required
+                        id='name'
+                        {...register('name')}
+                        error={errors.name?.message}
+                        className='transition-colors focus:ring-2 focus:ring-primary/20'
+                        maxLength={100}
+                    />
+                </div>
 
-                        <div className='space-y-2'>
-                            <label className='font-medium text-sm' htmlFor='remarks'>
-                                Remarks
-                            </label>
-                            <textarea
-                                id='remarks'
-                                {...register('remarks')}
-                                rows={3}
-                                maxLength={250}
-                                className={`w-full rounded-md border px-3 py-2 ${errors.remarks ? 'border-red-500' : 'border-input'}`}
-                                placeholder='Enter remarks...'
-                            />
-                            {errors.remarks && <FormError>{errors.remarks.message}</FormError>}
-                        </div>
-                    </>
-                )}
+                {/* Remarks - Optional */}
+                <div className='space-y-2'>
+                    <label className='font-medium text-sm' htmlFor='remarks'>
+                        Remarks
+                    </label>
+                    <textarea
+                        id='remarks'
+                        {...register('remarks')}
+                        rows={3}
+                        maxLength={250}
+                        className={`w-full rounded-md border px-3 py-2 ${errors.remarks ? 'border-red-500' : 'border-input'}`}
+                        placeholder='Enter remarks...'
+                    />
+                    {errors.remarks && <FormError>{errors.remarks.message}</FormError>}
+                </div>
 
                 {/* Root Error */}
                 {errors.root && <FormError>{errors.root.message}</FormError>}

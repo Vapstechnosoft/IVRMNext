@@ -19,25 +19,132 @@ import { OtherDetailsTab } from './tabs/other-details-tab';
 import { UploadDocumentTab } from './tabs/document-tab';
 import { PayrollTab } from './tabs/payroll-tab-new';
 
+// Helper functions for validation
+const validateMobileNumber = (mobile: string) => {
+    const cleaned = mobile.replace(/\D/g, ''); // Remove non-digits
+    return cleaned.length === 10;
+};
+
+const validateAadharNumber = (aadhar: string) => {
+    const cleaned = aadhar.replace(/\D/g, ''); // Remove non-digits
+    return cleaned.length === 12;
+};
+
+const validatePANNumber = (pan: string) => {
+    // PAN format: 5 letters, 4 numbers, 1 letter (e.g., ABCDE1234F)
+    const panRegex = /^[A-Z]{5}[0-9]{4}[A-Z]{1}$/;
+    return panRegex.test(pan.toUpperCase());
+};
+
+const validateEmail = (email: string) => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+};
+
+const validatePincode = (pincode: string) => {
+    const cleaned = pincode.replace(/\D/g, ''); // Remove non-digits
+    return cleaned.length >= 5 && cleaned.length <= 10;
+};
+
+// Qualification details schema
+const qualificationDetailSchema = z.object({
+    qualification: z.string().min(1, 'Qualification is required').max(50, 'Qualification must not exceed 50 characters'),
+    course: z.string().min(1, 'Course is required'),
+    college: z.string().min(1, 'College is required').max(100, 'College must not exceed 100 characters'),
+    university: z.string().min(1, 'University is required').max(100, 'University must not exceed 100 characters'),
+    yearOfPassing: z.string().min(1, 'Year of Passing is required').refine((val) => {
+        const year = parseInt(val);
+        return !isNaN(year) && year >= 1900 && year <= new Date().getFullYear();
+    }, 'Year of Passing must be a valid year'),
+    country: z.string().min(1, 'Country is required'),
+    state: z.string().min(1, 'State is required'),
+    registrationNo: z.string().optional().max(50, 'Registration No must not exceed 50 characters'),
+    result: z.string().min(1, 'Result is required').max(20, 'Result must not exceed 20 characters'),
+    cgpaOrPercentage: z.string().min(1, 'CGPA or Percentage type is required'),
+    cgpa: z.string().optional(),
+    percentage: z.string().optional(),
+    areaOfSpecialization: z.string().optional(),
+    phd: z.boolean().optional(),
+    medicalCouncil: z.string().optional().max(50, 'Medical Council must not exceed 50 characters'),
+    thesisTitle: z.string().optional().max(255, 'Thesis Title must not exceed 255 characters'),
+    registrationYear: z.string().optional().refine((val) => {
+        if (!val) return true;
+        const year = parseInt(val);
+        return !isNaN(year) && year >= 1900 && year <= new Date().getFullYear();
+    }, 'Registration Year must be a valid year'),
+    guideName: z.string().optional().max(100, 'Guide Name must not exceed 100 characters'),
+    qualifiedDate: z.string().min(1, 'Qualified Date is required')
+}).refine((data) => {
+    // Validate CGPA or Percentage based on selected type
+    if (data.cgpaOrPercentage === 'CGPA') {
+        if (!data.cgpa) return false;
+        const num = parseFloat(data.cgpa);
+        return !isNaN(num) && num >= 0 && num <= 10;
+    } else if (data.cgpaOrPercentage === 'Percentage') {
+        if (!data.percentage) return false;
+        const num = parseFloat(data.percentage);
+        return !isNaN(num) && num >= 0 && num <= 100;
+    }
+    return true;
+}, {
+    message: 'CGPA must be between 0-10 or Percentage must be between 0-100 based on selected type',
+    path: ['cgpa']
+});
+
+// Experience details schema
+const experienceDetailSchema = z.object({
+    organisationName: z.string().min(1, 'Organisation Name is required').max(255, 'Organisation Name must not exceed 255 characters'),
+    organisationAddress: z.string().min(1, 'Organisation Address is required').max(500, 'Organisation Address must not exceed 500 characters'),
+    department: z.string().min(1, 'Department is required').max(100, 'Department must not exceed 100 characters'),
+    designation: z.string().min(1, 'Designation is required').max(100, 'Designation must not exceed 100 characters'),
+    dateOfJoining: z.string().min(1, 'Date of Joining is required'),
+    dateOfLeaving: z.string().min(1, 'Date of Leaving is required'),
+    lastDrawnSalary: z.string().min(1, 'Last Drawn Salary is required').refine((val) => {
+        const num = parseFloat(val);
+        return !isNaN(num) && num >= 0;
+    }, 'Last Drawn Salary must be a positive number'),
+    reasonForLeaving: z.string().min(1, 'Reason For Leaving is required').max(500, 'Reason For Leaving must not exceed 500 characters')
+}).refine((data) => {
+    if (data.dateOfJoining && data.dateOfLeaving) {
+        return new Date(data.dateOfLeaving) >= new Date(data.dateOfJoining);
+    }
+    return true;
+}, {
+    message: 'Date of Leaving must be on or after Date of Joining',
+    path: ['dateOfLeaving']
+});
+
+// Document schema
+const documentSchema = z.object({
+    nameOfDocument: z.string().min(1, 'Name of Document is required').max(255, 'Name of Document must not exceed 255 characters'),
+    documentDescription: z.string().optional().max(500, 'Document Description must not exceed 500 characters'),
+    document: z.instanceof(File).optional().refine((file) => {
+        if (!file) return true;
+        const maxSize = 2 * 1024 * 1024; // 2MB
+        const allowedTypes = ['image/jpeg', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'application/pdf'];
+        return file.size <= maxSize && allowedTypes.includes(file.type);
+    }, 'File must be JPEG, DOC, DOCX, or PDF and not exceed 2MB')
+});
+
 // Extended form schema to include all tab fields (using tab field names)
 const formSchema = z.object({
     // Employee tab fields (using tab field names)
-    firstName: z.string().min(1, 'First name is required'),
-    middleName: z.string().optional(),
-    lastName: z.string().optional(),
-    employeeCode: z.string().min(1, 'Employee code is required'),
-    typeOfEmployment: z.string().min(1, 'Employee type is required'),
-    employeeGroup: z.string().min(1, 'Employee group is required'),
-    school: z.string().min(1, 'School/Department is required'),
+    firstName: z.string().min(1, 'Name of the Employee is required').max(100, 'Name must not exceed 100 characters'),
+    middleName: z.string().optional().max(100, 'Middle Name must not exceed 100 characters'),
+    lastName: z.string().optional().max(100, 'Last Name must not exceed 100 characters'),
+    employeeCode: z.string().min(1, 'Employee Code is required').max(20, 'Employee Code must not exceed 20 characters'),
+    typeOfEmployment: z.string().min(1, 'Type of Employment is required'),
+    employeeGroup: z.string().min(1, 'Employee Group is required'),
+    school: z.string().min(1, 'Department is required'),
     designation: z.string().min(1, 'Designation is required'),
-    grade: z.string().optional(),
-    fatherName: z.string().optional(),
-    motherName: z.string().optional(),
-    dateOfBirth: z.string().optional(),
-    dateOfJoining: z.string().optional(),
+    grade: z.string().min(1, 'Grade is required'),
+    fatherName: z.string().min(1, "Father's Name is required").max(100, "Father's Name must not exceed 100 characters"),
+    motherName: z.string().min(1, "Mother's Name is required").max(100, "Mother's Name must not exceed 100 characters"),
+    dateOfBirth: z.string().min(1, 'Date of Birth is required'),
+    dateOfJoining: z.string().min(1, 'Date of Joining is required'),
     dateOfConfirmation: z.string().optional(),
     dateOfRetirement: z.string().optional(),
-    gender: z.string().optional(),
+    gender: z.string().min(1, 'Gender is required'),
     maritalStatus: z.string().optional(),
     religion: z.string().optional(),
     casteCategory: z.string().optional(),
@@ -52,56 +159,117 @@ const formSchema = z.object({
     recognitionYear: z.string().optional(),
     teachingNonTeaching: z.string().optional(),
     pfApplicable: z.preprocess((val) => val === true || val === 'on', z.boolean()).optional(),
+    ptMaxAmount: z.string().optional().refine((val) => {
+        if (!val) return true;
+        const num = parseFloat(val);
+        return !isNaN(num) && num >= 0;
+    }, 'PT Max Amount must be a positive number'),
     pfMaxAmount: z.preprocess((val) => val === true || val === 'on', z.boolean()).optional(),
     pfFixedAmount: z.preprocess((val) => val === true || val === 'on', z.boolean()).optional(),
-    pfAccNo: z.string().optional(),
-    uanNumber: z.string().optional(),
+    pfAccNo: z.string().optional().max(20, 'PF Acc. No. must not exceed 20 characters'),
+    uanNumber: z.string().optional().max(20, 'UAN Number must not exceed 20 characters'),
     pfDate: z.string().optional(),
     esiApplicable: z.preprocess((val) => val === true || val === 'on', z.boolean()).optional(),
-    esiAccNo: z.string().optional(),
-    gratuityAccNo: z.string().optional(),
+    esiAccNo: z.string().optional().max(20, 'ESI Acc. No. must not exceed 20 characters'),
+    gratuityAccNo: z.string().optional().max(20, 'Gratuity Acc No. must not exceed 20 characters'),
     esiDate: z.string().optional(),
-    nationalSSN: z.string().optional(),
-    aadharNo: z.string().optional(),
-    panCardNo: z.string().optional(),
-    mobileDetails: z.array(z.object({ mobileNo: z.string(), type: z.string() })).optional(),
-    emailDetails: z.array(z.object({ emailId: z.string(), type: z.string() })).optional(),
-    bankDetails: z.array(z.object({ employerBankName: z.string(), bankAccountNo: z.string(), accountType: z.string() })).optional(),
+    nationalSSN: z.string().optional().max(20, 'National SSN must not exceed 20 characters'),
+    aadharNo: z.string().optional().max(12, 'Aadhar No. must not exceed 12 characters').refine((val) => {
+        if (!val) return true;
+        return validateAadharNumber(val);
+    }, 'Aadhar No. must be a valid 12-digit number'),
+    panCardNo: z.string().optional().max(10, 'PAN Card No. must not exceed 10 characters').refine((val) => {
+        if (!val) return true;
+        return validatePANNumber(val);
+    }, 'PAN Card No. must be in valid format (e.g., ABCDE1234F)'),
+    mobileDetails: z.array(z.object({ 
+        mobileNo: z.string().min(1, 'Mobile No. is required').refine((val) => validateMobileNumber(val), 'Mobile No. must be a valid 10-digit number').max(15, 'Mobile No. must not exceed 15 characters'),
+        type: z.string().optional()
+    })).min(1, 'At least one mobile number is required'),
+    emailDetails: z.array(z.object({ 
+        emailId: z.string().optional().refine((val) => {
+            if (!val) return true;
+            return validateEmail(val);
+        }, 'Email must be in valid format').max(100, 'Email must not exceed 100 characters'),
+        type: z.string().optional()
+    })).optional(),
+    bankDetails: z.array(z.object({ 
+        employerBankName: z.string().min(1, 'Bank Name is required'),
+        bankAccountNo: z.string().min(1, 'Bank Account No. is required').max(20, 'Bank Account No. must not exceed 20 characters'),
+        accountType: z.string().optional()
+    })).optional(),
     // Address tab fields
-    contactAddress: z.string().optional(),
+    contactAddress: z.string().min(1, 'Contact Address is required').max(100, 'Contact Address must not exceed 100 characters'),
     contactArea: z.string().optional(),
-    contactCountry: z.string().optional(),
-    contactState: z.string().optional(),
-    contactCity: z.string().optional(),
-    contactPincode: z.string().optional(),
-    permanentAddress: z.string().optional(),
+    contactCountry: z.string().min(1, 'Contact Country is required'),
+    contactState: z.string().min(1, 'Contact State is required'),
+    contactCity: z.string().min(1, 'Contact City is required'),
+    contactPincode: z.string().min(1, 'Contact Pincode is required').refine((val) => validatePincode(val), 'Pincode must be a valid numerical value (5-10 digits)'),
+    permanentAddress: z.string().optional().max(100, 'Permanent Address must not exceed 100 characters'),
     permanentArea: z.string().optional(),
     permanentCountry: z.string().optional(),
     permanentState: z.string().optional(),
     permanentCity: z.string().optional(),
-    permanentPincode: z.string().optional(),
+    permanentPincode: z.string().optional().refine((val) => {
+        if (!val) return true;
+        return validatePincode(val);
+    }, 'Pincode must be a valid numerical value (5-10 digits)'),
     sameAsCommunicationAddress: z.preprocess((val) => val === true || val === 'on', z.boolean()).optional(),
     // Other tabs
-    qualificationDetails: z.array(z.any()).optional(),
-    experienceDetails: z.array(z.any()).optional(),
-    documentList: z.array(z.any()).optional(),
-    employeeHeight: z.string().optional(),
+    qualificationDetails: z.array(qualificationDetailSchema).optional(),
+    experienceDetails: z.array(experienceDetailSchema).optional(),
+    documentList: z.array(documentSchema).optional(),
+    employeeHeight: z.string().optional().refine((val) => {
+        if (!val) return true;
+        const num = parseFloat(val);
+        return !isNaN(num) && num >= 0;
+    }, 'Height must be a valid number'),
     employeeHeightUnit: z.string().optional(),
-    employeeWeight: z.string().optional(),
+    employeeWeight: z.string().optional().refine((val) => {
+        if (!val) return true;
+        const num = parseFloat(val);
+        return !isNaN(num) && num >= 0;
+    }, 'Weight must be a valid number'),
     employeeWeightUnit: z.string().optional(),
-    eyeSightIssue: z.string().optional(),
-    anyHealthIssue: z.string().optional(),
-    identificationMark: z.string().optional(),
-    biometricCode: z.string().optional(),
-    rfCardId: z.string().optional(),
+    eyeSightIssue: z.string().optional().max(255, 'Eye Sight Issue must not exceed 255 characters'),
+    anyHealthIssue: z.string().optional().max(500, 'Any Health Issue must not exceed 500 characters'),
+    identificationMark: z.string().optional().max(255, 'Identification Mark must not exceed 255 characters'),
+    biometricCode: z.string().optional().max(50, 'Biometric Code must not exceed 50 characters'),
+    rfCardId: z.string().optional().max(50, 'RF card ID must not exceed 50 characters'),
     punchRelaxation: z.preprocess((val) => val === true || val === 'on', z.boolean()).optional(),
     stopPension: z.preprocess((val) => val === true || val === 'on', z.boolean()).optional(),
-    dateOfStopPension: z.string().optional(),
-    msTeamsUserName: z.string().optional(),
-    msTeamsPassword: z.string().optional(),
+    dateOfStopPension: z.string().optional().refine((val, ctx) => {
+        const stopPension = (ctx.parent as any)?.stopPension;
+        if (stopPension && !val) {
+            return false;
+        }
+        return true;
+    }, 'Date of Stop Pension is required when Stop Pension is checked'),
+    msTeamsUserName: z.string().optional().max(100, 'MS Teams UserName must not exceed 100 characters'),
+    msTeamsPassword: z.string().optional().max(255, 'MS Teams Password must not exceed 255 characters'),
     employeeLeft: z.preprocess((val) => val === true || val === 'on', z.boolean()).optional(),
-    lastWorkingDay: z.string().optional(),
-    reasonForLeaving: z.string().optional()
+    lastWorkingDay: z.string().min(1, 'Last Working day is required'),
+    reasonForLeaving: z.string().min(1, 'Reason for leaving is required').max(50, 'Reason for leaving must not exceed 50 characters')
+}).refine((data) => {
+    // Validate Date of Confirmation must be after Date of Joining
+    if (data.dateOfConfirmation && data.dateOfJoining) {
+        return new Date(data.dateOfConfirmation) >= new Date(data.dateOfJoining);
+    }
+    return true;
+}, {
+    message: 'Date of Confirmation must be after Date of Joining',
+    path: ['dateOfConfirmation']
+}).refine((data) => {
+    // Validate permanent address if not same as communication address
+    if (!data.sameAsCommunicationAddress) {
+        if (!data.permanentAddress || !data.permanentCountry || !data.permanentState || !data.permanentCity || !data.permanentPincode) {
+            return false;
+        }
+    }
+    return true;
+}, {
+    message: 'Permanent Address fields are required when "Same As Communication Address" is not checked',
+    path: ['permanentAddress']
 });
 
 type FormFields = z.infer<typeof formSchema>;
