@@ -166,7 +166,7 @@ export default function AddMasterClassForm({ onSuccess, className = '' }: AddMas
                 ASMAY_Id: Number(academicYear), // Selected academic year
                 ASMCL_ID: 0, // Always 0 as per your rules (single class will be in TempararyArrayList)
                 FYCC_ActiveFlag: true,
-                TempararyArrayList: classes.map((clsId) => ({
+                ClassList: classes.map((clsId) => ({
                     ASMCL_ID: Number(clsId)
                 })),
                 user_id: 21602 // Static user id
