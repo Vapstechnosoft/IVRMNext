@@ -489,6 +489,7 @@ export interface IConcessionCategoryDropdownList {
     fmcC_ConcessionName: string;
 }
 
+
 export interface IFeeGroupMapping {
     fyghM_Id: number;
     mI_Id: number;
@@ -505,4 +506,30 @@ export interface IFeeGroupMapping {
     returnval: boolean;
     userid: number;
     deleteId: number;
+}
+export interface IConcessionCategoryGroupHeadMappingList {
+    fmcC_Id: number;
+    fmG_Id: number;
+    fmH_Id: number;
+    fmaccG_Id: number;
+    fmcC_ConcessionName: string;
+    fmG_GroupName: string;
+    fmH_FeeName: string;
+    fmaccG_ActiveFlg: boolean;
+}
+
+export interface IConcessionCategoryGroupDropdownList {
+    fmG_Id: number;
+    fmG_GroupName: string;
+}
+
+export interface IConcessionCategoryHeadsDropdownList {
+    fmH_Id: number;
+    fmH_FeeName: string;
+}
+
+export interface IConcessionCategoryDropdownList {
+    fmcC_Id: number;
+    fmcC_ConcessionName: string;
+
 }

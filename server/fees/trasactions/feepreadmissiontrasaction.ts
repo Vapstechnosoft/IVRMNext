@@ -20,7 +20,7 @@ export async function getFeePreadmissionTransactionList(searchParams?: ApiSearch
         searchParams ?? {},
         'modeOfPayment,paidAmount,paidDate,receiptNo,studentEmail,studentMobile,studentRegNo,studentName'
     );
-    const url = '/FeePreadmissionFacade/gettransactionlist?MI_Id=30&ASMAY_Id=231';
+    const url = '/FeePreadmission/gettransactionlist?MI_Id=30&ASMAY_Id=231';
     console.info('preadmissiontransactiondetials api', url);
     return await api.get<IFeePreAdmissionTransactionDetails[]>('fees', url);
 }
@@ -29,7 +29,7 @@ export async function getPreadmissionStudentDropdownData(
     searchText: string,
     radiovalue: string
 ): Promise<IFeePreAdmissionStudentsDropDownList[]> {
-    const url = `/FeePreadmissionFacade/getstudents?MI_Id=30&ASMAY_Id=231&SearchText=${searchText}&filterinitialdata=${radiovalue}`;
+    const url = `/FeePreadmission/getstudents?MI_Id=30&ASMAY_Id=231&SearchText=${searchText}&filterinitialdata=${radiovalue}`;
     console.info('preadmissiontransactiondetials api', url);
     const res = await api.get<IFeePreAdmissionStudentsDropDownList[]>('fees', url);
     return res.data ?? [];
@@ -39,7 +39,7 @@ export async function getPreadmissionStudentInformation(
     studentId: number,
     searchText: string
 ): Promise<IFeePreAdmissionStudentInformation[]> {
-    const url = `/FeePreadmissionFacade/getStudentInfo?studentId=${studentId}&miId=30&asmayId=231&filterType=${searchText}`;
+    const url = `/FeePreadmission/getStudentInfo?studentId=${studentId}&miId=30&asmayId=231&filterType=${searchText}`;
     console.info('preadmissiontransactiondetials api', url);
     const res = await api.get<IFeePreAdmissionStudentInformation[]>('fees', url);
     console.info('preadmissiontransactiondetials api', res);
@@ -47,7 +47,7 @@ export async function getPreadmissionStudentInformation(
 }
 
 export async function getPreadmissionStudentTermsData(studentId: number): Promise<IFeePreAdmissionStudentTermsDetails[]> {
-    const url = `/FeePreadmissionFacade/terms?MI_Id=30&AMST_Id=${studentId}`;
+    const url = `/FeePreadmission/terms?MI_Id=30&AMST_Id=${studentId}`;
     const res = await api.get<IFeePreAdmissionStudentTermsDetails[]>('fees', url);
 
     // Always return an array (never null)
@@ -58,7 +58,7 @@ export async function getPreadmissionStudentTrasactionData(
     studentId: number,
     academicYear: number
 ): Promise<IFeePreAdmissionTransactionDetails[]> {
-    const url = `FeePreadmissionFacade/feedashboard?MIId=30&ASMAY_Id=${academicYear}&StudentId=${studentId}`;
+    const url = `FeePreadmission/feedashboard?MIId=30&ASMAY_Id=${academicYear}&StudentId=${studentId}`;
 
     console.info('Requesting preadmission transaction details:', { baseUrlKey: 'fees', url });
 

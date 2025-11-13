@@ -335,6 +335,14 @@ export async function getUserAccessibleModules() {
                                             title: 'Concession Category Details',
                                             description: 'Concession Category Details'
                                         },
+                                        //  {
+                                        //     id: 650,
+                                        //     name: ' Concession Category Group Head Mapping',
+                                        //     icon: 'Settings',
+                                        //     url: '/fees/masters/concessioncategorygroupheadmapping',
+                                        //     title: 'Concession Category Group Head Mapping',
+                                        //     description: 'Concession Category Group Head Mapping'
+                                        // },
                                         {
                                             id: 27,
                                             name: 'Fee Terms',
@@ -495,7 +503,7 @@ export async function getUserAccessibleModules() {
                                         //     title: 'Fee waivedoff',
                                         //     description: 'Fee waivedoff'
                                         // }
-                                        // ,
+                                        //  ,
                                         // {
                                         //     id: 500,
                                         //     name: 'Fee Preadmission Transaction',

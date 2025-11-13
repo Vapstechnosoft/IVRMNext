@@ -8,9 +8,11 @@ import type { IConcessionCategoryDropdownList } from '@/types/fees/masters/maste
 export async function getMasterConcessionDetails(searchParams?: ApiSearchparams) {
     const urlParams = getSearchParamsUrl(
         searchParams ?? {},
-        'fmccD_Id,fmcC_Id,fmccD_PerOrAmtFlag,fmccD_FromNoSibblings,fmccD_ToNoSibblings,fmccD_PerOrAmt,fmcC_ConcessionName'
+        'fmccD_PerOrAmtFlag,fmccD_FromNoSibblings,fmccD_ToNoSibblings,fmccD_PerOrAmt,fmcC_ConcessionName'
     );
     const url = `FeeMasterConcession/GetFeeCategoryList/30?${urlParams}`;
+
+    console.info('url', url);
     return await api.get<IMasterConcessionDetailsList[]>('fees', url);
 }
 
