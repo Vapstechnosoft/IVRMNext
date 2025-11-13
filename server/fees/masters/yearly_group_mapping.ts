@@ -1,6 +1,6 @@
 'use server';
 
-import { api, getSearchParamsUrl } from '@/lib/apiService';
+import { api } from '@/lib/apiService';
 import type { ApiSearchparams } from '@/types';
 import type { IMasterAllFeeHeadList, IMasterFeeHeadDropdownList, IMasterFeeInstallmentDropdownList } from '@/types/fees/masters/masters';
 
@@ -29,8 +29,15 @@ export async function addMasterYearlyGroupMapping(data: any) {
 }
 
 export async function getMasterAllFeeHead(searchParams?: ApiSearchparams) {
-    const urlParams = getSearchParamsUrl(searchParams ?? {}, 'ASMAY_Id,FMG_Id');
-    const url = `/YearlyFeeGroupMappingFacade/getallfeehead?MI_Id=30${urlParams ? `&${urlParams}` : ''}`;
+    const page = searchParams?.page || 1;
+    const pageSize = searchParams?.page_size || 10;
+    const asmayId = (searchParams as any)?.ASMAY_Id || '';
+
+    let url = `/YearlyFeeGroupMappingFacade/getallfeehead?MI_Id=30&page=${page}&pageSize=${pageSize}`;
+
+    if (asmayId) {
+        url += `&ASMAY_Id=${asmayId}`;
+    }
 
     return await api.get<{
         success: boolean;

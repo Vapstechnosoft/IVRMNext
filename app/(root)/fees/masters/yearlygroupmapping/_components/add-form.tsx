@@ -5,9 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
 import { DataTable } from '@/components/ui/data-table/data-table';
-import { useDataTableProps } from '@/components/ui/data-table/generic-data-table';
 import { Label } from '@/components/ui/extension/field';
-import { ActionButtons } from '@/components/ui/form/action-buttons';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useAcademicYearDropdown, useMasterFeeGroupDropdown } from '@/hooks/fees/useMasters';
 import { useFeeMasterHead, useFeeMasterInstallment, useMasterAllFeeHead } from '@/hooks/fees/useMasters';
@@ -28,16 +26,6 @@ interface IHeadInstallment {
     fineApplicable: boolean;
     active: boolean;
     commonAmount: boolean;
-}
-
-interface IFeeGroupHeadMapping {
-    fyghM_Id: number;
-    fmG_GroupName: string;
-    fmH_FeeName: string;
-    fmI_Name: string;
-    returnval: boolean;
-    fmH_Id: number;
-    fmI_Id: number;
 }
 
 interface ApiSearchparams {
@@ -106,7 +94,6 @@ export default function YearlyFeeGroupMapping() {
 
     const [academicYear, setAcademicYear] = useState<string | null>(null);
     const [feeGroup, setFeeGroup] = useState<string | null>(null);
-    const [search, _setSearch] = useState('');
 
     const [headInstallments, setHeadInstallments] = useState<IHeadInstallment[]>([
         {
@@ -129,35 +116,7 @@ export default function YearlyFeeGroupMapping() {
         return null;
     }, [academicYear, feeGroup]);
 
-    const {
-        data: allFeeHeadResponse,
-        isLoading: isLoadingAllFeeHeads,
-        refetch: refetchAll
-    } = useMasterAllFeeHead(apiSearchParams || undefined);
-
-    const feeGroupMappings: IFeeGroupHeadMapping[] = useMemo(() => {
-        if (allFeeHeadResponse?.data?.data && Array.isArray(allFeeHeadResponse.data.data)) {
-            return allFeeHeadResponse.data.data;
-        }
-        if (allFeeHeadResponse?.data && Array.isArray(allFeeHeadResponse.data)) {
-            return allFeeHeadResponse.data;
-        }
-        if (Array.isArray(allFeeHeadResponse)) {
-            return allFeeHeadResponse;
-        }
-        return [];
-    }, [allFeeHeadResponse]);
-
-    const filteredMappings = useMemo(() => {
-        if (!search) return feeGroupMappings;
-        const term = search.toLowerCase();
-        return feeGroupMappings.filter(
-            (item) =>
-                item.fmG_GroupName?.toLowerCase().includes(term) ||
-                item.fmH_FeeName?.toLowerCase().includes(term) ||
-                item.fmI_Name?.toLowerCase().includes(term)
-        );
-    }, [search, feeGroupMappings]);
+    const { refetch: refetchAll } = useMasterAllFeeHead(apiSearchParams || undefined);
 
     useEffect(() => {
         if (academicYear && feeGroup) {
@@ -383,75 +342,18 @@ export default function YearlyFeeGroupMapping() {
         }
     };
 
-    const feeGroupColumns: ColumnDef<IFeeGroupHeadMapping>[] = [
-        {
-            id: 'select',
-            header: ({ table }) => (
-                <Checkbox
-                    checked={table.getIsAllPageRowsSelected() || (table.getIsSomePageRowsSelected() && 'indeterminate')}
-                    onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
-                    aria-label='Select all'
-                />
-            ),
-            cell: ({ row }) => (
-                <Checkbox checked={row.getIsSelected()} onCheckedChange={(value) => row.toggleSelected(!!value)} aria-label='Select row' />
-            ),
-            enableSorting: false,
-            enableHiding: false,
-            size: 24
-        },
-        {
-            accessorKey: 'fyghM_Id',
-            header: ({ column }) => <DataTableColumnHeader column={column} title='Sl.No' />,
-            cell: ({ row, table }) => {
-                const pageIndex = table.getState().pagination.pageIndex;
-                const pageSize = table.getState().pagination.pageSize;
-                const continuousIndex = pageIndex * pageSize + row.index + 1;
-                return <div>{continuousIndex}</div>;
-            },
-            enableSorting: true,
-            enableHiding: false
-        },
-        {
-            accessorKey: 'fmG_GroupName',
-            header: ({ column }) => <DataTableColumnHeader column={column} title='Group Name' />,
-            cell: ({ row }) => <div>{row.getValue('fmG_GroupName')}</div>
-        },
-        {
-            accessorKey: 'fmH_FeeName',
-            header: ({ column }) => <DataTableColumnHeader column={column} title='Head Name' />,
-            cell: ({ row }) => <div>{row.getValue('fmH_FeeName')}</div>
-        },
-        {
-            accessorKey: 'fmI_Name',
-            header: ({ column }) => <DataTableColumnHeader column={column} title='Installment' />,
-            cell: ({ row }) => <div>{row.getValue('fmI_Name')}</div>
-        },
-        {
-            id: 'actions',
-            header: ({ column }) => <DataTableColumnHeader column={column} title='Actions' className='text-start' />,
-            accessorFn: (row) => row,
-            enableSorting: false,
-            cell: ({ row }) => <ActionButtons rowData={row.original} buttons={{ delete: true }} />
-        }
-    ];
-
-    const tableProps = useDataTableProps({
-        data: allFeeHeadResponse ? feeGroupMappings : [],
-        total: allFeeHeadResponse ? feeGroupMappings.length : 0,
-        pageIndex: 0,
-        pageSize: 10
-    });
-
     return (
-        <div className='space-y-6'>
+        <div className='mt-5 space-y-6'>
             <Card>
-                <CardHeader>
+                {/* <CardHeader>
                     <CardTitle className='text-blue-700'>YEARLY FEE GROUP MAPPING</CardTitle>
-                </CardHeader>
-                <CardContent className='grid grid-cols-2 items-center gap-4'>
+                </CardHeader> */}
+                <CardContent className='mt-10 grid grid-cols-2 items-center gap-4'>
                     <div>
-                        <Label>Academic Year *</Label>
+                        <Label>
+                            Academic Year <span className='text-red-500'>*</span>
+                        </Label>
+
                         <Select
                             onValueChange={(value) => {
                                 setAcademicYear(value);
@@ -461,6 +363,7 @@ export default function YearlyFeeGroupMapping() {
                             <SelectTrigger className={errors.academicYear ? 'border-red-500' : ''}>
                                 <SelectValue placeholder='Select Year' />
                             </SelectTrigger>
+
                             <SelectContent>
                                 {academicYears.length ? (
                                     academicYears.map((y: any) => (
@@ -473,10 +376,15 @@ export default function YearlyFeeGroupMapping() {
                                 )}
                             </SelectContent>
                         </Select>
+
                         {errors.academicYear && <p className='mt-1 text-red-500 text-sm'>{errors.academicYear.message}</p>}
                     </div>
+
                     <div>
-                        <Label>Fee Group *</Label>
+                        <Label>
+                            Fee Group <span className='text-red-500'>*</span>
+                        </Label>
+
                         <Select
                             onValueChange={(value) => {
                                 setFeeGroup(value);
@@ -486,6 +394,7 @@ export default function YearlyFeeGroupMapping() {
                             <SelectTrigger className={errors.classCategory ? 'border-red-500' : ''}>
                                 <SelectValue placeholder='Select Group' />
                             </SelectTrigger>
+
                             <SelectContent>
                                 {feeGroups.length ? (
                                     feeGroups.map((f: any) => (
@@ -498,6 +407,7 @@ export default function YearlyFeeGroupMapping() {
                                 )}
                             </SelectContent>
                         </Select>
+
                         {errors.classCategory && <p className='mt-1 text-red-500 text-sm'>{errors.classCategory.message}</p>}
                     </div>
                 </CardContent>
@@ -532,28 +442,6 @@ export default function YearlyFeeGroupMapping() {
                     </CardContent>
                 </Card>
             )}
-
-            <Card>
-                <CardHeader>
-                    <CardTitle className='flex justify-between text-blue-700'>
-                        YEARLY FEE GROUP HEAD MAPPING LIST
-                        <span className='text-gray-600 text-sm'>Total Grid Records: {filteredMappings.length}</span>
-                    </CardTitle>
-                </CardHeader>
-                <CardContent>
-                    {isLoadingAllFeeHeads ? (
-                        <div className='py-4 text-center'>Loading...</div>
-                    ) : filteredMappings.length === 0 ? (
-                        <div className='py-8 text-center text-gray-500'>
-                            {academicYear && feeGroup
-                                ? 'No mappings found for the selected academic year and fee group.'
-                                : 'Please select an academic year and fee group to view mappings.'}
-                        </div>
-                    ) : (
-                        <DataTable {...tableProps} columns={feeGroupColumns} data={filteredMappings} totalItems={filteredMappings.length} />
-                    )}
-                </CardContent>
-            </Card>
         </div>
     );
 }

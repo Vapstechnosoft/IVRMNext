@@ -423,11 +423,12 @@ export async function getUserAccessibleModules() {
                                             title: 'Yearly Groups',
                                             description: 'Manage Yearly Groups'
                                         },
+
                                         {
                                             id: 36,
                                             name: 'Yearly Groups Mapping',
                                             icon: 'Settings',
-                                            url: '/fees/masters/yearlyfeegroupmapping',
+                                            url: '/fees/masters/yearlygroupmapping',
                                             title: 'Yearly Groups Mapping',
                                             description: 'Manage Yearly Groups Mapping'
                                         },

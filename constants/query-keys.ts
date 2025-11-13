@@ -85,6 +85,7 @@ export const FEES_QUERY_KEYS = {
     MASTER_INSTALLMENT_DROPDOWN: 'masterInstallmentsDropdown',
     FEE_MASTER_CONCESSION_DETAILS: 'masterfeeconcessiondetails',
     FEE_PAYMENTGATEWAY_DROPDOWN: 'paymentGatewayDropdown',
+    FEE_INSTITUTE_DROPDOWN: 'fee_institute_dropdown',
 
     FEE_AMOUNT_ENTRY: 'fee_amount_entry',
     FEE_CATEGORY_DROPDOWN: 'fee_category_dropdown',
