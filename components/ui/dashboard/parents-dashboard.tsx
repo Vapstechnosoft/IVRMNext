@@ -5,14 +5,17 @@ import { Card } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Spinner } from '@/components/ui/spinner';
+import { ROUTES } from '@/constants/routes';
 import { useParentDashboard } from '@/hooks/admission/preadmission/useReports';
 import { useActivePreadmissionDetails, useDocumentDownload } from '@/hooks/admission/preadmission/useTransactions';
 import type { IParentsDashboardStudentResponse } from '@/types/admission/preadmission/reports';
-import { CreditCard, Eye, Loader2, User } from 'lucide-react';
+import { ArrowUpRight, CreditCard, Eye, Loader2, User } from 'lucide-react';
 import Image from 'next/image';
+import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 
 export default function ParentsDashboard() {
+    const router = useRouter();
     const { data: activePreadmission, isLoading: activePreadmissionLoading } = useActivePreadmissionDetails();
     const { data: parentDashboard, isLoading: parentDashboardLoading } = useParentDashboard(activePreadmission?.data?.asmaY_Id ?? 0);
 
@@ -57,9 +60,10 @@ export default function ParentsDashboard() {
         setShowPdfModal(true);
     };
 
-    const handlePayAdmissionFee = (pasrId: number) => {
-        // Implement payment logic
-        console.log('Pay admission fee:', pasrId);
+    const handlePayAdmissionFee = () => {
+        router.push(
+            `${ROUTES.ADMISSION.ADMISSION}${ROUTES.ADMISSION.ADMISSION_SUB_MENUS.PREADMISSION}${ROUTES.ADMISSION.ADMISSION_SUB_MENUS.PREADMISSION_SUB_MENUS.TRANSACTIONS}${ROUTES.ADMISSION.ADMISSION_SUB_MENUS.PREADMISSION_SUB_MENUS.TRANSACTIONS_SUB_MENUS.APPLICATION_FORM}`
+        );
     };
 
     // Loading State
@@ -207,9 +211,12 @@ export default function ParentsDashboard() {
                                             </Button>
                                             {application.is_fee_applicable === 1 && (
                                                 <Button
-                                                    onClick={() => handlePayAdmissionFee(application.pasr_id)}
+                                                    onClick={handlePayAdmissionFee}
                                                     className='w-fit bg-green-600 font-semibold text-white hover:bg-green-700'
-                                                    disabled={application.payment_status === 1}>
+                                                    disabled={application.payment_status === 1}
+                                                    suffix={
+                                                        <ArrowUpRight className='size-4 transition-all ease-linear group-hover:translate-x-2' />
+                                                    }>
                                                     <CreditCard className='h-4 w-4' />
                                                     {application.payment_status === 0 ? 'Pay Admission Fee' : 'Paid'}
                                                 </Button>
