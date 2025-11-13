@@ -4,21 +4,20 @@ import { Button } from '@/components/ui/button';
 import { AdaptiveBody, AdaptiveDialog, AdaptiveFooter } from '@/components/ui/extension/adaptive-dialog';
 import { Label } from '@/components/ui/extension/field';
 import { useMasterYearlyCategory } from '@/hooks/fees/useMasters';
-import { toggleMasterclassYearlyCategory } from '@/server/fees/masters/class_yearly_category';
+import { MasterfeeMasterGroupwiseAutoReceipt } from '@/server/fees/masters/fee_master_groupwise_auto_receipt';
 import type { IMasterGroupWiseAutoReciptList } from '@/types/fees/masters/masters';
 import { useState } from 'react';
 import { toast } from 'sonner';
 
-interface ToggleMasterClassFormProps {
+interface DeleteMasterAutoReceiptFormProps {
     rowData: IMasterGroupWiseAutoReciptList;
     onClose: () => void;
     onSuccess?: () => void;
 }
 
-export default function ToggleMasterClassForm({ rowData, onClose, onSuccess }: ToggleMasterClassFormProps) {
+export default function deleteMasterAutoReceiptForm({ rowData, onClose, onSuccess }: DeleteMasterAutoReceiptFormProps) {
     const { refetch } = useMasterYearlyCategory();
     const [isSubmitting, setIsSubmitting] = useState(false);
-    const isActive = rowData.fycC_ActiveFlag;
 
     const closeDialog = () => {
         onClose();
@@ -30,45 +29,37 @@ export default function ToggleMasterClassForm({ rowData, onClose, onSuccess }: T
 
         setIsSubmitting(true);
         try {
-            const response = await toggleMasterclassYearlyCategory(Number(rowData.fmcC_Id));
+            // Send fgaR_Id and asmaY_Id to delete
+            const response = await MasterfeeMasterGroupwiseAutoReceipt(Number(rowData.fgaR_Id), Number(rowData.asmaY_Id));
 
             if (response.success) {
-                toast.success(`${rowData.fmcC_ClassCategoryName} successfully ${isActive ? 'deactivated' : 'activated'}`);
+                toast.success(`${rowData.fgaR_Name || 'Receipt'} successfully deleted`);
                 await refetch();
                 onSuccess?.();
                 closeDialog();
             } else {
-                toast.error(response.message || 'Failed to toggle category');
+                toast.error(response.message || 'Failed to delete receipt');
             }
         } catch (error: any) {
-            console.error('Toggle error:', error);
-            toast.error(error.message || 'Error toggling master class category');
+            console.error('Delete error:', error);
+            toast.error(error.message || 'Error deleting receipt');
         } finally {
             setIsSubmitting(false);
         }
     };
 
     return (
-        <AdaptiveDialog title={'Toggle Master Class Category Status'} isOpen={true} onClose={closeDialog}>
+        <AdaptiveDialog title={'Delete Auto Receipt'} isOpen={true} onClose={closeDialog}>
             <form onSubmit={handleSubmit} className='space-y-6'>
                 <AdaptiveBody className='flex flex-col gap-5'>
                     <Label>
-                        Are you sure you want to {isActive ? 'deactivate' : 'activate'}{' '}
+                        Are you sure you want to delete{' '}
                         <strong>
-                            {rowData.fmcC_ClassCategoryName} ({rowData.asmaY_Year})
+                            {rowData.fgaR_Name || 'this receipt'} ({rowData.academicyear})
                         </strong>
                         ?
                     </Label>
-                    <div className='text-muted-foreground text-sm'>
-                        Classes: {(() => {
-                            try {
-                                const parsed = JSON.parse(rowData.asmcL_ClassName);
-                                return Array.isArray(parsed) ? parsed.join(', ') : rowData.asmcL_ClassName;
-                            } catch {
-                                return rowData.asmcL_ClassName;
-                            }
-                        })()}
-                    </div>
+                    <div className='text-muted-foreground text-sm'>This action cannot be undone.</div>
                 </AdaptiveBody>
 
                 <AdaptiveFooter className='flex flex-col gap-3 sm:flex-row sm:justify-end'>
@@ -83,9 +74,9 @@ export default function ToggleMasterClassForm({ rowData, onClose, onSuccess }: T
                     <Button
                         type='submit'
                         disabled={isSubmitting}
-                        variant={isActive ? 'destructive' : 'default'}
+                        variant='destructive'
                         className='w-fit transition-all duration-200 hover:scale-105'>
-                        {isSubmitting ? 'Processing...' : isActive ? 'Deactivate' : 'Activate'}
+                        {isSubmitting ? 'Deleting...' : 'Delete'}
                     </Button>
                 </AdaptiveFooter>
             </form>

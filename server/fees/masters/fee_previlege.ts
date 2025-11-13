@@ -19,6 +19,6 @@ export async function addOrUpdateFeePrivilege(data: any) {
 }
 
 export async function getFeePrevilegeList() {
-    const url = '/fee_class_category/academicyearlist/30';
+    const url = '/FeePrevilege/GetMasterFeePreviledgeList?mi_Id=30';
     return await api.get<IMasterFeePrevilegeList[]>('fees', url);
 }

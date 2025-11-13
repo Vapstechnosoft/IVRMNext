@@ -3,24 +3,12 @@
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
+import type { IFeePrivilegeList } from '@/types/fees/masters/masters';
 import type { ColumnDef } from '@tanstack/react-table';
 import { Edit } from 'lucide-react';
 import { useCallback } from 'react';
 
 // Define the Fee Privilege type based on your schema
-export interface IFeePrivilegeList {
-    id?: number;
-    academicYearId: number;
-    academicYearName?: string;
-    groupId: number;
-    groupName?: string;
-    feeGroupIds: number[];
-    feeGroupNames?: string[];
-    roleIds: number[];
-    roleNames?: string[];
-    demoIds?: number[];
-    demoNames?: string[];
-}
 
 interface ActionButtonsCellProps {
     rowData: IFeePrivilegeList;

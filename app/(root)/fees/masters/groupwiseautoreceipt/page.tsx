@@ -13,7 +13,7 @@ import { Plus, X } from 'lucide-react';
 import { use, useEffect, useState } from 'react';
 import AddMasterClassForm from './_components/add-form';
 import { masterGroupWiseAutoReciptColumns } from './_components/columns';
-import ToggleMasterClassForm from './_components/toggle-form';
+import DeleteMasterAutoReceiptForm from './_components/delete-form';
 import UpdateMasterClassForm from './_components/update-form';
 
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
@@ -75,19 +75,15 @@ function MasterClassPageContent({
                                 Academic Year
                             </Label>
                             <Select
-                                value={academicYearId !== null ? String(academicYearId) : 'all'}
+                                value={academicYearId !== null ? String(academicYearId) : ''}
                                 onValueChange={(value) => {
-                                    if (value === 'all') {
-                                        setAcademicYearId(null);
-                                    } else {
-                                        setAcademicYearId(Number(value));
-                                    }
+                                    setAcademicYearId(Number(value));
                                 }}>
                                 <SelectTrigger id='academic-year'>
                                     <SelectValue placeholder='Select Academic Year' />
                                 </SelectTrigger>
+
                                 <SelectContent>
-                                    <SelectItem value='all'>All</SelectItem>
                                     {academicYearLoading ? (
                                         <SelectItem value='loading' disabled>
                                             Loading...
@@ -152,11 +148,11 @@ function FormSections({ refetch }: { refetch: () => void }) {
     const {
         isAddFormOpen,
         isEditFormOpen,
-        isToggleFormOpen,
+        isDeleteFormOpen,
         selectedRow,
         closeAddForm,
         closeEditForm,
-        closeToggleForm,
+        closeDeleteForm,
         addFormRef,
         editFormRef
     } = useFormContext<IMasterGroupWiseAutoReciptList>();
@@ -208,7 +204,7 @@ function FormSections({ refetch }: { refetch: () => void }) {
                 <div ref={editFormRef}>
                     <CollapsibleSection
                         title='Edit Group Receipt Configuration'
-                        description={`Editing: ${selectedRow.fmcC_ClassCategoryName} (${selectedRow.asmaY_Year})`}
+                        // description={`Editing: ${selectedRow.fmcC_ClassCategoryName} (${selectedRow.asmaY_Year})`}
                         defaultOpen
                         variant='outline'
                         size='md'
@@ -238,14 +234,14 @@ function FormSections({ refetch }: { refetch: () => void }) {
                 </div>
             ) : null}
 
-            {/* Toggle Form */}
-            {isToggleFormOpen && selectedRow && (
-                <ToggleMasterClassForm
+            {/* Delete Form */}
+            {isDeleteFormOpen && selectedRow && (
+                <DeleteMasterAutoReceiptForm
                     rowData={selectedRow}
-                    onClose={closeToggleForm}
+                    onClose={closeDeleteForm}
                     onSuccess={() => {
                         handleSuccess();
-                        closeToggleForm();
+                        closeDeleteForm();
                     }}
                 />
             )}

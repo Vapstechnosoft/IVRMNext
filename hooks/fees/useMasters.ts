@@ -762,7 +762,7 @@ export const useFeeMasterGroupwiseAutoReceipt = (asmay_Id: number, searchParams?
     return {
         ...useQuery({
             queryKey: [FEES_QUERY_KEYS.FEE_MASTER_GROUPWISE_AUTO_RECEIPT, asmay_Id, searchParams ?? {}],
-            queryFn: async () => getFeeMasterGroupwiseAutoReceipt(asmay_Id),
+            queryFn: async () => getFeeMasterGroupwiseAutoReceipt(asmay_Id, searchParams),
             staleTime: 0
         }),
         refetchAll: () =>

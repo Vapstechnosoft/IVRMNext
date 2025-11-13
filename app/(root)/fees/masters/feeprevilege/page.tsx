@@ -5,10 +5,11 @@ import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
 import { useFeePrevilegeList } from '@/hooks/fees/useMasters';
+import type { IFeePrivilegeList } from '@/types/fees/masters/masters';
 import { Plus, X } from 'lucide-react';
 import { use } from 'react';
 import AddFeePrivilegeForm from './_components/add-form';
-import { type IFeePrivilegeList, feePrivilegeColumns } from './_components/columns';
+import { feePrivilegeColumns } from './_components/columns';
 import UpdateFeePrivilegeForm from './_components/update-form';
 
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;

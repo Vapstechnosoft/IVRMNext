@@ -205,6 +205,7 @@ export interface IMasterpaymentGatewayDropdownList {
 }
 
 export interface IMasterGroupWiseAutoReciptList {
+    feeGroupslist: any;
     asmaY_Id: any;
     asmcL_Id: number;
     fmcC_Id: any;
@@ -489,7 +490,6 @@ export interface IConcessionCategoryDropdownList {
     fmcC_ConcessionName: string;
 }
 
-
 export interface IFeeGroupMapping {
     fyghM_Id: number;
     mI_Id: number;
@@ -531,5 +531,13 @@ export interface IConcessionCategoryHeadsDropdownList {
 export interface IConcessionCategoryDropdownList {
     fmcC_Id: number;
     fmcC_ConcessionName: string;
+}
 
+export interface IFeePrivilegeList {
+    fgL_Id: number;
+    user_Id: number;
+    normalizedUserName: string;
+    fmG_GroupName: string;
+    fmH_FeeName: string;
+    ivrmrT_Role: string;
 }

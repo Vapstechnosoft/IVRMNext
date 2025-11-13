@@ -135,7 +135,7 @@ function FeeGroupMappingContent() {
 export default function FeeGroupMappingView({
     searchParams: _searchParams
 }: {
-    searchParams: SearchParams;
+    searchParams: Promise<SearchParams>;
 }) {
     return (
         <FormProvider<IFeeGroupMapping>>

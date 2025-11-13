@@ -154,8 +154,6 @@ export default function AddMasterClassForm({ onSuccess, className = '' }: AddMas
             const { academicYear, prefixValue, suffixValue, startingNumber, groups, autoGroupName, address, receiptTemplateFormat } = data;
 
             const payload = {
-                mi_id: 30,
-
                 asmaY_Id: Number.parseInt(academicYear),
                 fgaR_PrefixFlag: prefixValue ? '1' : '',
                 fgaR_SuffixFlag: suffixValue ? '1' : '',

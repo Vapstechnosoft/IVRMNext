@@ -3,7 +3,7 @@
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { FormError, Label } from '@/components/ui/extension/field';
-import { InputText } from '@/components/ui/extension/input-text'; // <-- added to match add-form UI
+import { InputText } from '@/components/ui/extension/input-text';
 import { InputTextarea } from '@/components/ui/extension/input-textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useAcademicYearDropdown, useFeeMasterGroupwiseAutoReceiptDropDown } from '@/hooks/fees/useMasters';
@@ -49,8 +49,6 @@ interface UpdateMasterClassFormProps {
 export default function UpdateMasterClassForm({ onSuccess, className = '', selectedRow }: UpdateMasterClassFormProps) {
     const { data: academicData, isLoading: loadingAcademic, error: academicError } = useAcademicYearDropdown();
 
-    // selectedRow provided by parent for pre-filling the form
-
     const {
         handleSubmit,
         reset,
@@ -78,7 +76,7 @@ export default function UpdateMasterClassForm({ onSuccess, className = '', selec
     const [hasSubmitted, setHasSubmitted] = useState(false);
     const [academicYearOptions, setAcademicYearOptions] = useState<DropdownOption[]>([]);
     const [groupOptions, setGroupOptions] = useState<GroupOption[]>([]);
-    const [_selectedGroups, setSelectedGroups] = useState<string[]>([]);
+    const [selectedGroups, setSelectedGroups] = useState<string[]>([]);
     const [searchTerm, setSearchTerm] = useState('');
     const [isLoadingDropdowns, setIsLoadingDropdowns] = useState(false);
     const [usePrefix, setUsePrefix] = useState(false);
@@ -87,32 +85,12 @@ export default function UpdateMasterClassForm({ onSuccess, className = '', selec
     const academicYear = watch('academicYear');
     const groupsValue = watch('groups');
 
+    // Sync selectedGroups with form state
     useEffect(() => {
-        if (selectedRow && academicYearOptions.length > 0) {
-            const academicYearOption = academicYearOptions.find((opt) => opt.label === selectedRow.academicyear);
+        setSelectedGroups(groupsValue || []);
+    }, [groupsValue]);
 
-            if (academicYearOption) {
-                setValue('academicYear', academicYearOption.value);
-            }
-
-            setValue('startingNumber', selectedRow.fgaR_Starting_No?.toString() || '');
-
-            const hasPrefix = selectedRow.fgaR_PrefixFlag === '1' && !!selectedRow.fgaR_PrefixName;
-            const hasSuffix = selectedRow.fgaR_SuffixFlag === '1' && !!selectedRow.fgaR_SuffixName;
-
-            setUsePrefix(hasPrefix);
-            setUseSuffix(hasSuffix);
-            setValue('usePrefix', hasPrefix);
-            setValue('useSuffix', hasSuffix);
-            setValue('prefixValue', selectedRow.fgaR_PrefixName || '');
-            setValue('suffixValue', selectedRow.fgaR_SuffixName || '');
-
-            setValue('autoGroupName', selectedRow.fgaR_Name || '');
-            setValue('address', selectedRow.fgaR_Address || '');
-            setValue('receiptTemplateFormat', selectedRow.fgaR_Template_Name || '');
-        }
-    }, [selectedRow, academicYearOptions, setValue]);
-
+    // Load Academic Years
     useEffect(() => {
         setIsLoadingDropdowns(loadingAcademic);
     }, [loadingAcademic]);
@@ -134,8 +112,7 @@ export default function UpdateMasterClassForm({ onSuccess, className = '', selec
         }
     }, [academicData, academicError]);
 
-    const filteredGroupOptions = groupOptions.filter((option) => option.fmG_GroupName.toLowerCase().includes(searchTerm.toLowerCase()));
-
+    // Load Groups based on Academic Year
     const {
         data: groupData,
         isLoading: loadingGroupData,
@@ -154,6 +131,56 @@ export default function UpdateMasterClassForm({ onSuccess, className = '', selec
             setGroupOptions([]);
         }
     }, [groupData, groupDataError, academicYear]);
+
+    // Pre-fill form when selectedRow changes and dropdowns are ready
+    useEffect(() => {
+        if (!selectedRow) return;
+
+        // Academic Year
+        if (academicYearOptions.length > 0) {
+            const academicYearOption = academicYearOptions.find((opt) => opt.label === selectedRow.academicyear);
+            if (academicYearOption) {
+                setValue('academicYear', academicYearOption.value);
+            }
+        }
+
+        // Starting Number
+        setValue('startingNumber', selectedRow.fgaR_Starting_No?.toString() || '');
+
+        // Prefix / Suffix
+        const hasPrefix = selectedRow.fgaR_PrefixFlag === '1' && !!selectedRow.fgaR_PrefixName;
+        const hasSuffix = selectedRow.fgaR_SuffixFlag === '1' && !!selectedRow.fgaR_SuffixName;
+
+        setUsePrefix(hasPrefix);
+        setUseSuffix(hasSuffix);
+        setValue('usePrefix', hasPrefix);
+        setValue('useSuffix', hasSuffix);
+        setValue('prefixValue', selectedRow.fgaR_PrefixName || '');
+        setValue('suffixValue', selectedRow.fgaR_SuffixName || '');
+
+        // Other fields
+        setValue('autoGroupName', selectedRow.fgaR_Name || '');
+        setValue('address', selectedRow.fgaR_Address || '');
+        setValue('receiptTemplateFormat', selectedRow.fgaR_Template_Name || '');
+    }, [selectedRow, academicYearOptions, setValue]);
+
+    useEffect(() => {
+        if (!selectedRow?.feeGroupslist || groupOptions.length === 0) return;
+
+        const preSelectedGroupIds = selectedRow.feeGroupslist
+            .map((group: any) => {
+                const matched = groupOptions.find((opt) => opt.fmG_GroupName === group.fmG_GroupName);
+                return matched ? matched.fmG_Id.toString() : null;
+            })
+            .filter((id: string | null): id is string => id !== null);
+
+        if (preSelectedGroupIds.length > 0) {
+            setSelectedGroups(preSelectedGroupIds);
+            setValue('groups', preSelectedGroupIds, { shouldValidate: hasSubmitted });
+        }
+    }, [selectedRow, groupOptions, setValue, hasSubmitted]);
+
+    const filteredGroupOptions = groupOptions.filter((option) => option.fmG_GroupName.toLowerCase().includes(searchTerm.toLowerCase()));
 
     const handleGroupChange = (value: string) => {
         const currentGroups = groupsValue || [];
@@ -181,12 +208,9 @@ export default function UpdateMasterClassForm({ onSuccess, className = '', selec
 
     const onSubmit: SubmitHandler<FormFields> = async (data) => {
         try {
-            // form submission initiated
-
             const { academicYear, prefixValue, suffixValue, startingNumber, groups, autoGroupName, address, receiptTemplateFormat } = data;
 
             const payload = {
-                mi_id: 30,
                 asmaY_Id: Number.parseInt(academicYear),
                 fgaR_Id: selectedRow?.fgaR_Id || 0,
                 fgaR_PrefixFlag: prefixValue ? '1' : '',
@@ -194,8 +218,6 @@ export default function UpdateMasterClassForm({ onSuccess, className = '', selec
                 fgaR_PrefixName: prefixValue || '',
                 fgaR_SuffixName: suffixValue || '',
                 fgaR_Name: autoGroupName,
-                userid: 101,
-                roleid: 5,
                 fgaR_Address: address || '',
                 savegroup: groups.map((groupId) => ({
                     fmG_Id: Number.parseInt(groupId)
@@ -204,15 +226,13 @@ export default function UpdateMasterClassForm({ onSuccess, className = '', selec
                 fgaR_Template_Name: receiptTemplateFormat || ''
             };
 
-            // payload prepared for update API
-
             const response = await addOrUpdateMasterFeeMasterGroupwiseAutoReceipt(payload);
 
             if (response.success) {
                 toast.success(response.message || 'Master class updated successfully');
                 onSuccess?.();
             } else {
-                toast.error(response.message || 'Failed to update master class');
+                toast.error(response.message || 'Failed to update Groupwise Auto Receipt');
             }
         } catch (error: any) {
             console.error('Submission error:', error);
@@ -275,6 +295,7 @@ export default function UpdateMasterClassForm({ onSuccess, className = '', selec
                                 {hasSubmitted && errors.academicYear && <FormError>{errors.academicYear.message}</FormError>}
                             </div>
 
+                            {/* Starting Number */}
                             <div>
                                 <Label htmlFor='startingNumber'>
                                     Starting Number <span className='text-red-500'>*</span>
@@ -289,6 +310,7 @@ export default function UpdateMasterClassForm({ onSuccess, className = '', selec
                                 {hasSubmitted && errors.startingNumber && <FormError>{errors.startingNumber.message}</FormError>}
                             </div>
 
+                            {/* Prefix / Suffix Toggle */}
                             <div className='lg:col-span-2'>
                                 <Label>Prefix / Suffix</Label>
                                 <div className='mt-2 flex flex-wrap gap-6'>
@@ -299,22 +321,14 @@ export default function UpdateMasterClassForm({ onSuccess, className = '', selec
                                             onChange={(e) => {
                                                 const checked = e.target.checked;
                                                 setUsePrefix(checked);
-                                                setValue('usePrefix', checked, {
-                                                    shouldValidate: hasSubmitted
-                                                });
+                                                setValue('usePrefix', checked, { shouldValidate: hasSubmitted });
                                                 if (checked) {
                                                     setUseSuffix(false);
-                                                    setValue('useSuffix', false, {
-                                                        shouldValidate: hasSubmitted
-                                                    });
-                                                    setValue('suffixValue', '', {
-                                                        shouldValidate: hasSubmitted
-                                                    });
+                                                    setValue('useSuffix', false, { shouldValidate: hasSubmitted });
+                                                    setValue('suffixValue', '', { shouldValidate: hasSubmitted });
                                                 }
                                                 if (!checked) {
-                                                    setValue('prefixValue', '', {
-                                                        shouldValidate: hasSubmitted
-                                                    });
+                                                    setValue('prefixValue', '', { shouldValidate: hasSubmitted });
                                                 }
                                             }}
                                             className='h-4 w-4 rounded border-gray-300 accent-primary'
@@ -328,22 +342,14 @@ export default function UpdateMasterClassForm({ onSuccess, className = '', selec
                                             onChange={(e) => {
                                                 const checked = e.target.checked;
                                                 setUseSuffix(checked);
-                                                setValue('useSuffix', checked, {
-                                                    shouldValidate: hasSubmitted
-                                                });
+                                                setValue('useSuffix', checked, { shouldValidate: hasSubmitted });
                                                 if (checked) {
                                                     setUsePrefix(false);
-                                                    setValue('usePrefix', false, {
-                                                        shouldValidate: hasSubmitted
-                                                    });
-                                                    setValue('prefixValue', '', {
-                                                        shouldValidate: hasSubmitted
-                                                    });
+                                                    setValue('usePrefix', false, { shouldValidate: hasSubmitted });
+                                                    setValue('prefixValue', '', { shouldValidate: hasSubmitted });
                                                 }
                                                 if (!checked) {
-                                                    setValue('suffixValue', '', {
-                                                        shouldValidate: hasSubmitted
-                                                    });
+                                                    setValue('suffixValue', '', { shouldValidate: hasSubmitted });
                                                 }
                                             }}
                                             className='h-4 w-4 rounded border-gray-300 accent-primary'
@@ -353,6 +359,7 @@ export default function UpdateMasterClassForm({ onSuccess, className = '', selec
                                 </div>
                             </div>
 
+                            {/* Prefix Input */}
                             {usePrefix && (
                                 <div>
                                     <Label htmlFor='prefixValue'>
@@ -369,6 +376,7 @@ export default function UpdateMasterClassForm({ onSuccess, className = '', selec
                                 </div>
                             )}
 
+                            {/* Suffix Input */}
                             {useSuffix && (
                                 <div>
                                     <Label htmlFor='suffixValue'>
@@ -385,6 +393,7 @@ export default function UpdateMasterClassForm({ onSuccess, className = '', selec
                                 </div>
                             )}
 
+                            {/* Group Selection */}
                             <div className='lg:col-span-2'>
                                 <Label>
                                     Select Groups <span className='text-red-500'>*</span>
@@ -400,11 +409,11 @@ export default function UpdateMasterClassForm({ onSuccess, className = '', selec
                                         onClick={handleSelectAll}
                                         className={cn(
                                             'mb-2 flex cursor-pointer items-center gap-2 rounded-md border px-2 py-1.5 font-medium text-sm transition-all',
-                                            (groupsValue || []).length === groupOptions.length && groupOptions.length > 0
+                                            groupsValue?.length === groupOptions.length && groupOptions.length > 0
                                                 ? 'border-primary bg-primary/5 text-primary'
                                                 : 'border-gray-300 hover:border-primary/40'
                                         )}>
-                                        {(groupsValue || []).length === groupOptions.length && groupOptions.length > 0 ? (
+                                        {groupsValue?.length === groupOptions.length && groupOptions.length > 0 ? (
                                             <CheckSquare className='h-4 w-4 text-primary' />
                                         ) : (
                                             <Square className='h-4 w-4 text-gray-400' />
@@ -423,7 +432,7 @@ export default function UpdateMasterClassForm({ onSuccess, className = '', selec
                                         )}
                                         {filteredGroupOptions.map((option) => {
                                             const value = option.fmG_Id.toString();
-                                            const selected = (groupsValue || []).includes(value);
+                                            const selected = groupsValue?.includes(value) || false;
                                             return (
                                                 <div
                                                     key={option.fmG_Id}
@@ -444,10 +453,14 @@ export default function UpdateMasterClassForm({ onSuccess, className = '', selec
                                             );
                                         })}
                                     </div>
+                                    <div className='mt-1 text-gray-500 text-xs'>
+                                        {groupsValue?.length || 0} of {groupOptions.length} groups selected
+                                    </div>
                                 </div>
                                 {hasSubmitted && errors.groups && <FormError>{errors.groups.message}</FormError>}
                             </div>
 
+                            {/* Auto Group Name */}
                             <div>
                                 <Label htmlFor='autoGroupName'>
                                     Auto Group Name <span className='text-red-500'>*</span>
@@ -462,6 +475,7 @@ export default function UpdateMasterClassForm({ onSuccess, className = '', selec
                                 {hasSubmitted && errors.autoGroupName && <FormError>{errors.autoGroupName.message}</FormError>}
                             </div>
 
+                            {/* Address */}
                             <div className='lg:col-span-2'>
                                 <Label htmlFor='address'>Address</Label>
                                 <InputTextarea
@@ -473,6 +487,7 @@ export default function UpdateMasterClassForm({ onSuccess, className = '', selec
                                 />
                             </div>
 
+                            {/* Receipt Template */}
                             <div className='pt-10 lg:col-span-2'>
                                 <Label htmlFor='receiptTemplateFormat'>Receipt Template Format</Label>
                                 <InputTextarea
@@ -484,6 +499,7 @@ export default function UpdateMasterClassForm({ onSuccess, className = '', selec
                                 />
                             </div>
 
+                            {/* Action Buttons */}
                             <div className='mt-3 flex justify-start gap-3 border-t pt-5 lg:col-span-2'>
                                 <Button
                                     type='button'
@@ -499,7 +515,7 @@ export default function UpdateMasterClassForm({ onSuccess, className = '', selec
                                     disabled={isSubmitting}
                                     className='order-1 flex w-fit items-center gap-2 transition-all duration-200 hover:scale-105 sm:order-2'>
                                     <Save className='h-4 w-4' />
-                                    {isSubmitting ? 'Updating...' : 'Update Master Class'}
+                                    {isSubmitting ? 'Updating...' : ' update Groupwise Auto Receipt'}
                                 </Button>
                             </div>
                         </div>

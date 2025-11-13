@@ -6,13 +6,12 @@ import type { IMasterGroupWiseAutoReciptList } from '@/types/fees/masters/master
 
 export async function getFeeMasterGroupwiseAutoReceipt(asmay_Id: number, searchParams?: ApiSearchparams) {
     const urlParams = getSearchParamsUrl(searchParams ?? {}, 'academicyear,fgaR_PrefixName,fgaR_SuffixName');
-
-    const url = `/FeeMasterGroupwiseAutoReceipt/GetMasterGroupwiseAutoReceiptList?mi_Id=30&asmay_Id=${asmay_Id}${urlParams}`;
+    const url = `/FeeMasterGroupwiseAutoReceipt/GetMasterGroupwiseAutoReceiptList?asmay_Id=${asmay_Id}&${urlParams}`;
 
     return await api.get<IMasterGroupWiseAutoReciptList[]>('fees', url);
 }
 export async function getFeeMasterGroupwiseAutoReceiptGroupDropDown(academicYear: number) {
-    const url = `/FeeMasterGroupwiseAutoReceipt/GetGroupDropdown?mi_Id=${30}&asmay_Id=${academicYear}`;
+    const url = `/FeeMasterGroupwiseAutoReceipt/GetGroupDropdown?asmay_Id=${academicYear}`;
 
     return await api.get<any>('fees', url);
 }
@@ -21,4 +20,9 @@ export async function addOrUpdateMasterFeeMasterGroupwiseAutoReceipt(payload: an
     const url = '/FeeMasterGroupwiseAutoReceipt/AddorUpdateMasterGroupwiseAutoReceipt';
 
     return await api.post<any>('fees', url, payload);
+}
+
+export async function MasterfeeMasterGroupwiseAutoReceipt(fgar_id: number, asmay_id: number) {
+    const url = `/FeeMasterGroupwiseAutoReceipt/delete/${fgar_id}/${asmay_id} `;
+    return await api.put('fees', url);
 }
