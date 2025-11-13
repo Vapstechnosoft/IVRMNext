@@ -306,7 +306,6 @@ export default function AddExamSubjectWizard({ onSuccess, rowData }: { onSuccess
                 s.ISMS_Id === subjectId ? { ...s, subExamConfig: selectedList, EYCES_SubExamFlg: selectedList.length > 0 } : s
             )
         );
-        console.log(selectedList);
         setSubExamModalState({ open: false });
     };
 
@@ -459,9 +458,6 @@ export default function AddExamSubjectWizard({ onSuccess, rowData }: { onSuccess
                 exm_subject_subsubjects_subexam,
                 Temp_Subject_Order: values.Temp_Subject_Order ?? []
             };
-
-            console.log('✅ Final Payload:', finalPayload);
-
             const res = await addOrUpdateExamSubjectWizard(finalPayload);
             if (res.success) toast.success('Exam Subject Wizard saved successfully');
             else toast.error(res.message);

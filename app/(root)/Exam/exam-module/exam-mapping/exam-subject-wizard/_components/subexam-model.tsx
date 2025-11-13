@@ -91,9 +91,6 @@ export default function SubExamModal({
             eycessS_MarksEntryMax: l.eycessS_MarksEntryMax ?? '',
             EYCESSE_SubExamOrder: l.emsE_SubExamOrder
         }));
-
-        console.log('list', list);
-
         reset({ subexam_list: list });
 
         setTimeout(() => {

@@ -6,9 +6,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import type { IMasterGrade } from '@/types/exam/exam-module/masters';
-import { zodResolver } from '@hookform/resolvers/zod';
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import { z } from 'zod';
 
@@ -85,8 +83,6 @@ export const BaseExamSubjectSchema = {
 };
 
 // ---------- Types ----------
-type Grade = { emgR_Id: number | string; emgR_GradeName: string };
-
 type SubjectRowRaw = {
     ISMS_Id: number;
     ISMS_SubjectName?: string;
@@ -189,10 +185,6 @@ export default function SubjectTableWithValidation({
         gradeDisplay: false,
         applyToResult: false
     });
-
-    // react-hook-form (kept for extension; not used heavily inside this component)
-    const form = useForm({ resolver: zodResolver(BaseExamSubjectSchema.addOrUpdate) as any });
-
     // ---------- helpers ----------
     const firstDefinedNumber = (...vals: any[]) => {
         for (const v of vals) {
@@ -244,7 +236,7 @@ export default function SubjectTableWithValidation({
             subSubjectConfig: raw.subSubjectConfig ?? [],
             Exam_Subject_PT_GradeList: raw.Exam_Subject_PT_GradeList ?? [],
             EYCES_SubjectOrder: idx + 1,
-            EYCES_ActiveFlg: firstDefinedBoolean(raw.EYCES_ActiveFlg, raw.EYCES_ActiveFlg, true),
+            EYCES_ActiveFlg: firstDefinedBoolean(true),
             EYCES_Id: raw.EYCES_Id ?? 0,
             EYCE_Id: raw.EYCE_Id ?? 0
         };
@@ -484,81 +476,6 @@ export default function SubjectTableWithValidation({
             toast.error('Enable SubExam or SubSubject for mapping first.');
         }
     };
-
-    // ---------- Build yearly_category_exam_subjects payload (only checked subjects) ----------
-    const buildYearlyCategoryExamSubjectsForSubmit = () => {
-        const checkedSubjects = subjects.filter((s) => s.checkedvalue === true);
-
-        if (!checkedSubjects || checkedSubjects.length === 0) {
-            toast.error('Select at least one subject');
-            return null;
-        }
-
-        // run validation
-        const ok = validateSubjects();
-        if (!ok) {
-            toast.error('Fix validation errors before saving subjects');
-            return null;
-        }
-
-        const mapped = checkedSubjects.map((s, idx) => ({
-            EYCES_Id: s.EYCES_Id ?? 0,
-            EYCE_Id: s.EYCE_Id ?? 0,
-            ISMS_Id: s.ISMS_Id,
-            EMGR_Id: Number(s.EMGR_Id ?? 0),
-            EYCES_MaxMarks: Number(s.EYCES_MaxMarks ?? 0),
-            EYCES_MinMarks: Number(s.EYCES_MinMarks ?? 0),
-            EYCES_MarksEntryMax: Number(s.EYCES_MarksEntryMax ?? 0),
-            EYCES_SubExamFlg: !!s.EYCES_SubExamFlg,
-            EYCES_SubSubjectFlg: !!s.EYCES_SubSubjectFlg,
-            EYCES_ActiveFlg: !!s.EYCES_ActiveFlg,
-            EYCES_SubjectOrder: s.EYCES_SubjectOrder ?? idx + 1,
-            Exam_Subject_PT_GradeList: s.Exam_Subject_PT_GradeList ?? []
-        }));
-
-        return mapped;
-    };
-
-    // ---------- Submit handler (example) ----------
-    const handleSubmit = async () => {
-        const payloadSubjects = buildYearlyCategoryExamSubjectsForSubmit();
-        if (!payloadSubjects) return;
-
-        const finalPayload = {
-            EYCE_Id: 0,
-            EYC_Id: 0,
-            EMGR_Id: 0,
-            EYCE_SubExamFlg: true,
-            EYCE_SubSubjectFlg: true,
-            EYCE_ActiveFlg: true,
-            EYCE_AttendanceFromDate: '',
-            EYCE_AttendanceToDate: '',
-            UserId: 0,
-            MI_Id: 0,
-            ASMAY_Id: 0,
-            ASMAY_Year: '',
-            EYCE_BestOfApplicableFlg: true,
-            EYCE_BestOf: 5,
-            exams_list: [],
-            yearly_category_exam_subjects: payloadSubjects,
-            exm_subject_subexams_list: [],
-            exm_subject_subsubjects_list: [],
-            exm_subject_subsubjects_subexam: [],
-            Temp_Subject_Order: []
-        };
-
-        console.log('Final payload to send:', JSON.stringify(finalPayload, null, 2));
-        toast.info('Submitting subjects...');
-
-        // replace with your API call:
-        // const res = await addOrUpdateExamSubjectWizard(finalPayload);
-        // handle res...
-        setTimeout(() => {
-            toast.success('Subjects submitted (simulated)');
-        }, 400);
-    };
-
-    // ---------- UI ----------
     return (
         <div className='overflow-x-auto rounded-md bg-white p-2 shadow-sm'>
             <div className='mb-3 flex items-center justify-between gap-4'>
