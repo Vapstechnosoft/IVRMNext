@@ -227,7 +227,10 @@ export function ShiftSettingForm({ editingShiftSetting, onSubmit, onCancel }: Sh
                     className='order-2 w-fit transition-all duration-200 hover:scale-105 sm:order-1'>
                     Cancel
                 </Button>
-                <Button type='submit' disabled={isSubmitting} className='order-1 w-fit transition-all duration-200 hover:scale-105 sm:order-2'>
+                <Button
+                    type='submit'
+                    disabled={isSubmitting}
+                    className='order-1 w-fit transition-all duration-200 hover:scale-105 sm:order-2'>
                     {isSubmitting ? (
                         <div className='flex items-center'>
                             <RefreshCw className='mr-2 h-4 w-4 animate-spin' />

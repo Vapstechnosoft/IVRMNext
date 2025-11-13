@@ -79,7 +79,10 @@ export function ExperienceTab({ control, register, errors, isSubmitting, onClear
                                             <Label>Join Date</Label>
                                             <Popover open={open} onOpenChange={setOpen}>
                                                 <PopoverTrigger asChild>
-                                                    <Button variant='outline' className='h-9 w-full justify-start text-left font-normal' type='button'>
+                                                    <Button
+                                                        variant='outline'
+                                                        className='h-9 w-full justify-start text-left font-normal'
+                                                        type='button'>
                                                         <CalendarIcon className='mr-2 h-4 w-4' />
                                                         {field.value ? format(new Date(field.value), 'dd/MM/yyyy') : 'Select date'}
                                                     </Button>
@@ -112,7 +115,10 @@ export function ExperienceTab({ control, register, errors, isSubmitting, onClear
                                             <Label>Exit Date</Label>
                                             <Popover open={open} onOpenChange={setOpen}>
                                                 <PopoverTrigger asChild>
-                                                    <Button variant='outline' className='h-9 w-full justify-start text-left font-normal' type='button'>
+                                                    <Button
+                                                        variant='outline'
+                                                        className='h-9 w-full justify-start text-left font-normal'
+                                                        type='button'>
                                                         <CalendarIcon className='mr-2 h-4 w-4' />
                                                         {field.value ? format(new Date(field.value), 'dd/MM/yyyy') : 'Select date'}
                                                     </Button>

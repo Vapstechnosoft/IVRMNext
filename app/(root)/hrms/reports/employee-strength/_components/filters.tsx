@@ -2,14 +2,14 @@
 
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
+import { DatePickerWithYear } from '@/components/ui/date-picker-year';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { Label } from '@/components/ui/label';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { DatePickerWithYear } from '@/components/ui/date-picker-year';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
-import { CalendarIcon, Download, Printer, Search, X } from 'lucide-react';
+import { CalendarIcon, Search, X } from 'lucide-react';
 
 export interface StrengthReportFilters {
     groupType: string;
@@ -48,8 +48,8 @@ export function EmployeeStrengthFilters({
     onDateChange,
     onSearch,
     onCancel,
-    onExport,
-    onPrint
+    onExport: _onExport,
+    onPrint: _onPrint
 }: EmployeeStrengthFiltersProps) {
     return (
         <CollapsibleSection
@@ -165,7 +165,10 @@ export function EmployeeStrengthFilters({
                             <PopoverTrigger asChild>
                                 <Button
                                     variant='outline'
-                                    className={cn('w-full justify-start text-left font-normal', !filters.fromDate && 'text-muted-foreground')}>
+                                    className={cn(
+                                        'w-full justify-start text-left font-normal',
+                                        !filters.fromDate && 'text-muted-foreground'
+                                    )}>
                                     <CalendarIcon className='mr-2 h-4 w-4' />
                                     {filters.fromDate ? format(filters.fromDate, 'dd-MM-yyyy') : <span>17-09-2025</span>}
                                 </Button>
@@ -187,7 +190,10 @@ export function EmployeeStrengthFilters({
                             <PopoverTrigger asChild>
                                 <Button
                                     variant='outline'
-                                    className={cn('w-full justify-start text-left font-normal', !filters.toDate && 'text-muted-foreground')}>
+                                    className={cn(
+                                        'w-full justify-start text-left font-normal',
+                                        !filters.toDate && 'text-muted-foreground'
+                                    )}>
                                     <CalendarIcon className='mr-2 h-4 w-4' />
                                     {filters.toDate ? format(filters.toDate, 'dd-MM-yyyy') : <span>17-09-2025</span>}
                                 </Button>
@@ -219,4 +225,3 @@ export function EmployeeStrengthFilters({
         </CollapsibleSection>
     );
 }
-

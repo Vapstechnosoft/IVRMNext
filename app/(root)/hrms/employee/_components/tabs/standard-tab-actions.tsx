@@ -32,4 +32,3 @@ export function StandardTabActions({ isSubmitting, onClear }: StandardTabActions
         </div>
     );
 }
-

@@ -24,8 +24,8 @@ export default function AddMasterLeaveForm({ onSuccess, className = '' }: AddMas
         register,
         handleSubmit,
         control,
-        watch,
-        setValue,
+        watch: _watch,
+        setValue: _setValue,
         reset,
         formState: { errors, isSubmitting }
     } = useForm<MasterLeave>({
@@ -125,7 +125,9 @@ export default function AddMasterLeaveForm({ onSuccess, className = '' }: AddMas
                                         Leave Apply Criteria <span className='text-red-500'>*</span>
                                     </label>
                                     <Select value={field.value} onValueChange={field.onChange}>
-                                        <SelectTrigger id='leaveApplyCriteria' className={errors.leaveApplyCriteria ? 'border-red-500' : ''}>
+                                        <SelectTrigger
+                                            id='leaveApplyCriteria'
+                                            className={errors.leaveApplyCriteria ? 'border-red-500' : ''}>
                                             <SelectValue placeholder='Select Apply Criteria' />
                                         </SelectTrigger>
                                         <SelectContent>
@@ -174,13 +176,7 @@ export default function AddMasterLeaveForm({ onSuccess, className = '' }: AddMas
                             <Controller
                                 name='leaveCredit'
                                 control={control}
-                                render={({ field }) => (
-                                    <Checkbox
-                                        id='leaveCredit'
-                                        checked={field.value}
-                                        onCheckedChange={field.onChange}
-                                    />
-                                )}
+                                render={({ field }) => <Checkbox id='leaveCredit' checked={field.value} onCheckedChange={field.onChange} />}
                             />
                             <label htmlFor='leaveCredit' className='font-medium text-sm'>
                                 Leave Credit
@@ -191,13 +187,7 @@ export default function AddMasterLeaveForm({ onSuccess, className = '' }: AddMas
                             <Controller
                                 name='lateDeduct'
                                 control={control}
-                                render={({ field }) => (
-                                    <Checkbox
-                                        id='lateDeduct'
-                                        checked={field.value}
-                                        onCheckedChange={field.onChange}
-                                    />
-                                )}
+                                render={({ field }) => <Checkbox id='lateDeduct' checked={field.value} onCheckedChange={field.onChange} />}
                             />
                             <label htmlFor='lateDeduct' className='font-medium text-sm'>
                                 Late Deduct
@@ -209,11 +199,7 @@ export default function AddMasterLeaveForm({ onSuccess, className = '' }: AddMas
                                 name='probationNotApplicable'
                                 control={control}
                                 render={({ field }) => (
-                                    <Checkbox
-                                        id='probationNotApplicable'
-                                        checked={field.value}
-                                        onCheckedChange={field.onChange}
-                                    />
+                                    <Checkbox id='probationNotApplicable' checked={field.value} onCheckedChange={field.onChange} />
                                 )}
                             />
                             <label htmlFor='probationNotApplicable' className='font-medium text-sm'>
@@ -245,4 +231,3 @@ export default function AddMasterLeaveForm({ onSuccess, className = '' }: AddMas
         </div>
     );
 }
-

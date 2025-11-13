@@ -8,7 +8,7 @@ import { FormProvider, useFormContext } from '@/components/ui/form/form-provider
 import { useMasterLeave } from '@/hooks/hrms/leave-management/useMasters';
 import { Plus, X } from 'lucide-react';
 import AddMasterLeaveForm from './_components/add-form';
-import { masterLeaveColumns, type MasterLeave } from './_components/columns';
+import { type MasterLeave, masterLeaveColumns } from './_components/columns';
 import UpdateMasterLeaveForm from './_components/update-form';
 
 export default function MasterLeavePage() {
@@ -83,15 +83,8 @@ function MasterLeavePageContent({
 }
 
 function FormSections() {
-    const {
-        isAddFormOpen,
-        isEditFormOpen,
-        selectedRow,
-        closeAddForm,
-        closeEditForm,
-        addFormRef,
-        editFormRef
-    } = useFormContext<MasterLeave>();
+    const { isAddFormOpen, isEditFormOpen, selectedRow, closeAddForm, closeEditForm, addFormRef, editFormRef } =
+        useFormContext<MasterLeave>();
 
     return (
         <>

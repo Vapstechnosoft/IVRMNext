@@ -11,12 +11,8 @@ import { MultiSelect } from '@/components/ui/multi-select';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useGenerateSalary, useSalaryCalculationOnload, useSearchSalaryCalculation } from '@/hooks/hrms/useTransactions';
 import type {
-    DepartmentDropdown,
     DesignationDropdown,
     EmployeeDropdown,
-    GroupTypeDropdown,
-    LeaveYearDropdown,
-    MonthDropdown,
     SalaryCalculationGenerateRequest,
     SalaryCalculationSearchRequest
 } from '@/types/hrms/salary-calculation';

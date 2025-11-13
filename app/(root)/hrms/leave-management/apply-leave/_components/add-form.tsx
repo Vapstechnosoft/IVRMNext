@@ -118,14 +118,7 @@ export default function AddApplyLeaveForm({ onSuccess, className = '', defaultEm
                         {...register('designation')}
                         error={errors.designation?.message}
                     />
-                    <InputText
-                        label='DOJ'
-                        id='doj-input'
-                        type='date'
-                        readOnly
-                        {...register('doj')}
-                        error={errors.doj?.message}
-                    />
+                    <InputText label='DOJ' id='doj-input' type='date' readOnly {...register('doj')} error={errors.doj?.message} />
                 </div>
 
                 {/* Leave inputs */}
@@ -205,4 +198,3 @@ export default function AddApplyLeaveForm({ onSuccess, className = '', defaultEm
         </div>
     );
 }
-

@@ -104,7 +104,7 @@ export default function UpdateMasterHolidayForm({ onSuccess, className = '', sel
                 department: data.department,
                 holidayType: data.holidayType,
                 name: data.name || '',
-                selectedDays: data.selectDay ? (data.selectedDays || []) : [],
+                selectedDays: data.selectDay ? data.selectedDays || [] : [],
                 fromDate: data.fromDate || '',
                 toDate: data.toDate || '',
                 isActive: data.isActive
@@ -211,11 +211,7 @@ export default function UpdateMasterHolidayForm({ onSuccess, className = '', sel
                     </div>
 
                     <div className='flex items-center space-y-2'>
-                        <Checkbox
-                            id='selectDay'
-                            checked={selectDay}
-                            onCheckedChange={(checked) => setValue('selectDay', !!checked)}
-                        />
+                        <Checkbox id='selectDay' checked={selectDay} onCheckedChange={(checked) => setValue('selectDay', !!checked)} />
                         <label htmlFor='selectDay' className='ml-2 font-medium text-foreground text-sm'>
                             Select Day
                         </label>
@@ -397,4 +393,3 @@ export default function UpdateMasterHolidayForm({ onSuccess, className = '', sel
         </div>
     );
 }
-

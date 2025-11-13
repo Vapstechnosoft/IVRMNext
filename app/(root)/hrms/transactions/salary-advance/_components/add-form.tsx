@@ -9,23 +9,17 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { HRMS_MI_ID } from '@/constants/hrms-config';
 import { useSaveSalaryAdvance } from '@/hooks/hrms/useTransactions';
 import { cn } from '@/lib/utils';
+import { salaryAdvanceFormSchema } from '@/schemas/hrms/salary-advance-schemas';
 import type { SalaryAdvanceOnloadResponse } from '@/types/hrms/salary-advance';
+import { zodResolver } from '@hookform/resolvers/zod';
 import { format } from 'date-fns';
 import { CalendarIcon, Save } from 'lucide-react';
-import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
 import { useMemo } from 'react';
+import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
+import type { z } from 'zod';
 
-interface SalaryAdvanceForm {
-    employeeId: string;
-    entryDate: string;
-    advanceYear: string;
-    advanceMonth: string;
-    appliedAmount: number;
-    remarks: string;
-    modeOfPayment: string;
-    referenceNo: number;
-}
+type SalaryAdvanceForm = z.infer<typeof salaryAdvanceFormSchema>;
 
 interface AddFormProps {
     onloadData: SalaryAdvanceOnloadResponse | undefined;
@@ -49,6 +43,7 @@ export default function AddSalaryAdvanceForm({ onloadData, onSuccess, className 
         control,
         formState: { errors, isSubmitting }
     } = useForm<SalaryAdvanceForm>({
+        resolver: zodResolver(salaryAdvanceFormSchema),
         mode: 'onChange',
         defaultValues: {
             employeeId: '',
@@ -58,11 +53,19 @@ export default function AddSalaryAdvanceForm({ onloadData, onSuccess, className 
             appliedAmount: 0,
             remarks: '',
             modeOfPayment: '',
-            referenceNo: 0
+            referenceNo: ''
         }
     });
 
     const onSubmit: SubmitHandler<SalaryAdvanceForm> = async (data: SalaryAdvanceForm) => {
+        // Convert referenceNo to number if it's a valid numeric string, otherwise use 0
+        const referenceNoValue =
+            data.referenceNo && /^\d+$/.test(data.referenceNo)
+                ? Number(data.referenceNo)
+                : data.referenceNo
+                  ? Number(data.referenceNo) || 0
+                  : 0;
+
         const payload = {
             HRESA_Id: 0,
             MI_Id: HRMS_MI_ID,
@@ -71,12 +74,12 @@ export default function AddSalaryAdvanceForm({ onloadData, onSuccess, className 
             HRESA_AdvYear: Number(data.advanceYear),
             HRESA_AdvMonth: data.advanceMonth,
             HRESA_AppliedAmount: data.appliedAmount,
-            HRESA_Remarks: data.remarks,
+            HRESA_Remarks: data.remarks || '',
             HRESA_ActiveFlag: true,
             HRESA_AdvStatus: 'Pending',
             HRESA_SanctinedAmount: 0,
             HRESA_ModeOfPayment: data.modeOfPayment,
-            HRESA_ReferenceNo: data.referenceNo,
+            HRESA_ReferenceNo: referenceNoValue,
             roleId: 2
         };
 
@@ -105,7 +108,6 @@ export default function AddSalaryAdvanceForm({ onloadData, onSuccess, className 
                         <Controller
                             name='employeeId'
                             control={control}
-                            rules={{ required: 'Please select an employee' }}
                             render={({ field }) => (
                                 <Select value={field.value} onValueChange={field.onChange}>
                                     <SelectTrigger>
@@ -129,7 +131,6 @@ export default function AddSalaryAdvanceForm({ onloadData, onSuccess, className 
                         <Controller
                             name='entryDate'
                             control={control}
-                            rules={{ required: 'Please select entry date' }}
                             render={({ field }) => (
                                 <Popover>
                                     <PopoverTrigger asChild>
@@ -162,7 +163,6 @@ export default function AddSalaryAdvanceForm({ onloadData, onSuccess, className 
                         <Controller
                             name='advanceYear'
                             control={control}
-                            rules={{ required: 'Please select advance year' }}
                             render={({ field }) => (
                                 <Select value={field.value} onValueChange={field.onChange}>
                                     <SelectTrigger>
@@ -186,7 +186,6 @@ export default function AddSalaryAdvanceForm({ onloadData, onSuccess, className 
                         <Controller
                             name='advanceMonth'
                             control={control}
-                            rules={{ required: 'Please select advance month' }}
                             render={({ field }) => (
                                 <Select value={field.value} onValueChange={field.onChange}>
                                     <SelectTrigger>
@@ -206,18 +205,12 @@ export default function AddSalaryAdvanceForm({ onloadData, onSuccess, className 
                     </div>
 
                     <div className='space-y-2'>
-                        <Label>Applied Amount *</Label>
+                        <Label>Advanced Amount *</Label>
                         <InputText
                             type='number'
-                            step='any'
-                            placeholder='Enter amount'
-                            {...register('appliedAmount', {
-                                required: 'Please enter applied amount',
-                                min: {
-                                    value: 1,
-                                    message: 'Amount must be greater than 0'
-                                }
-                            })}
+                            step='0.01'
+                            placeholder='Enter advanced amount (max 10 digits including decimals)'
+                            {...register('appliedAmount', { valueAsNumber: true })}
                             error={errors.appliedAmount?.message}
                         />
                     </div>
@@ -227,7 +220,6 @@ export default function AddSalaryAdvanceForm({ onloadData, onSuccess, className 
                         <Controller
                             name='modeOfPayment'
                             control={control}
-                            rules={{ required: 'Please select mode of payment' }}
                             render={({ field }) => (
                                 <Select value={field.value} onValueChange={field.onChange}>
                                     <SelectTrigger>
@@ -249,9 +241,8 @@ export default function AddSalaryAdvanceForm({ onloadData, onSuccess, className 
                     <div className='space-y-2'>
                         <Label>Reference No</Label>
                         <InputText
-                            type='number'
-                            placeholder='Enter reference number'
-                            {...register('referenceNo', { valueAsNumber: true })}
+                            placeholder='Enter reference number (alphanumeric, max 255 characters)'
+                            {...register('referenceNo')}
                             error={errors.referenceNo?.message}
                         />
                     </div>
@@ -259,7 +250,7 @@ export default function AddSalaryAdvanceForm({ onloadData, onSuccess, className 
 
                 <div className='space-y-2'>
                     <Label>Remarks</Label>
-                    <InputText placeholder='Enter remarks' {...register('remarks')} error={errors.remarks?.message} />
+                    <InputText placeholder='Enter remarks (max 255 characters)' {...register('remarks')} error={errors.remarks?.message} />
                 </div>
 
                 <div className='flex flex-col gap-3 border-t pt-4 sm:flex-row sm:justify-start'>
@@ -287,4 +278,3 @@ export default function AddSalaryAdvanceForm({ onloadData, onSuccess, className 
         </div>
     );
 }
-

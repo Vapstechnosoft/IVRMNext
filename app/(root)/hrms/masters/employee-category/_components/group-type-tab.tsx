@@ -20,12 +20,7 @@ export default function GroupTypeTab({ searchParams }: { searchParams?: ApiSearc
 
     return (
         <FormProvider<GroupTypeDetail>>
-            <GroupTypeTabContent 
-                response={listQuery.data} 
-                isLoading={listQuery.isLoading} 
-                error={listQuery.error}
-                refetch={refetchAll}
-            />
+            <GroupTypeTabContent response={listQuery.data} isLoading={listQuery.isLoading} error={listQuery.error} refetch={refetchAll} />
         </FormProvider>
     );
 }
@@ -50,49 +45,33 @@ function GroupTypeTabContent({
         return Array.isArray(data) ? data : [];
     }, [response?.data, response?.grouptypeList]);
 
-    console.log('📊 [GROUP TYPE TAB] Component render - rows count:', rows.length);
-    console.log('📊 [GROUP TYPE TAB] Sample row orders:', rows.slice(0, 3).map(r => `ID=${r.HRMGT_Id}, Order=${r.HRMGT_Order}`));
-
     const [isEditOrderMode, setIsEditOrderMode] = useState(false);
     const [editedRows, setEditedRows] = useState<GroupTypeDetail[]>([]);
 
     const handleSetOrder = () => {
-        console.log('🔵 [ORDER] Set Order button clicked');
-        console.log('🔵 [ORDER] Current rows count:', rows.length);
         setIsEditOrderMode(true);
         setEditedRows([...rows]);
     };
 
     const handleCancelOrder = () => {
-        console.log('🔵 [ORDER] Cancel Order clicked');
         setIsEditOrderMode(false);
         setEditedRows([]);
     };
 
     const handleSaveOrder = async () => {
-        console.log('🔵 [ORDER] ========== SAVE ORDER ==========');
-        console.log('🔵 [ORDER] Edited rows to save:', JSON.stringify(editedRows, null, 2));
-        console.log('🔵 [ORDER] Number of rows:', editedRows.length);
-        
         try {
-            console.log('🟡 [ORDER] Calling saveOrderMutation.mutateAsync...');
             await saveOrderMutation.mutateAsync(editedRows);
-            console.log('🟢 [ORDER] Save order successful');
             toast.success('Order saved successfully');
             setIsEditOrderMode(false);
             setEditedRows([]);
-        } catch (error) {
-            console.log('🔴 [ORDER] Error saving order:', error);
+        } catch (_error) {
             toast.error('Failed to save order');
         }
-        console.log('🔵 [ORDER] ========== SAVE ORDER END ==========');
     };
 
     const handleOrderChange = (rowId: number, newOrder: number) => {
-        console.log('🔵 [ORDER] Order changed - Row ID:', rowId, 'New Order:', newOrder);
         setEditedRows((prev) => {
             const updated = prev.map((row) => (row.HRMGT_Id === rowId ? { ...row, HRMGT_Order: newOrder } : row));
-            console.log('🔵 [ORDER] Updated row:', updated.find(r => r.HRMGT_Id === rowId));
             return updated;
         });
     };
@@ -196,11 +175,11 @@ function FormSections({ refetch }: { refetch: () => void }) {
                                 className='-top-[3.5rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
                                 <X className='h-4 w-4 text-destructive' /> Close
                             </Button>
-                            <GroupTypeForm 
+                            <GroupTypeForm
                                 onSuccess={() => {
                                     closeAddForm();
                                     refetch();
-                                }} 
+                                }}
                             />
                         </div>
                     </CollapsibleSection>
@@ -224,12 +203,12 @@ function FormSections({ refetch }: { refetch: () => void }) {
                                 className='-top-[3.5rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
                                 <X className='h-4 w-4 text-destructive' /> Close
                             </Button>
-                            <GroupTypeForm 
-                                selectedRow={selectedRow} 
+                            <GroupTypeForm
+                                selectedRow={selectedRow}
                                 onSuccess={() => {
                                     closeEditForm();
                                     refetch();
-                                }} 
+                                }}
                             />
                         </div>
                     </CollapsibleSection>

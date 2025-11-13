@@ -3,7 +3,7 @@
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
 import { ActionButtons } from '@/components/ui/form/action-buttons';
 import { useFormContext } from '@/components/ui/form/form-provider';
-import { type BaseEntity } from '@/lib/localdb';
+import type { BaseEntity } from '@/lib/localdb';
 import type { ColumnDef } from '@tanstack/react-table';
 import { Check, X } from 'lucide-react';
 import { useCallback } from 'react';
@@ -108,11 +108,5 @@ function ActionButtonsCell({ rowData }: { rowData: MasterLeave }) {
         [openEditForm]
     );
 
-    return (
-        <ActionButtons
-            rowData={rowData}
-            buttons={{ edit: true, toggle: false, delete: false }}
-            onEdit={handleEdit}
-        />
-    );
+    return <ActionButtons rowData={rowData} buttons={{ edit: true, toggle: false, delete: false }} onEdit={handleEdit} />;
 }

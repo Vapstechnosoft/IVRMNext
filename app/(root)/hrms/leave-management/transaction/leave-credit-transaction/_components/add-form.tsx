@@ -2,7 +2,6 @@
 
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
-import { FormError } from '@/components/ui/extension/field';
 import { InputText } from '@/components/ui/extension/input-text';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -70,7 +69,11 @@ export default function AddLeaveCreditTransactionForm({ onSuccess, className = '
     const toggleMulti = (field: 'type' | 'department' | 'designation', value: string, checked: boolean) => {
         const current = watch(field);
         if (checked) setValue(field, [...current, value]);
-        else setValue(field, current.filter((v: string) => v !== value));
+        else
+            setValue(
+                field,
+                current.filter((v: string) => v !== value)
+            );
     };
 
     const handleReset = () => {
@@ -202,12 +205,7 @@ export default function AddLeaveCreditTransactionForm({ onSuccess, className = '
                             <Controller
                                 name='lossOfPay'
                                 control={control}
-                                render={({ field }) => (
-                                    <Checkbox
-                                        checked={field.value}
-                                        onCheckedChange={field.onChange}
-                                    />
-                                )}
+                                render={({ field }) => <Checkbox checked={field.value} onCheckedChange={field.onChange} />}
                             />
                             <span className='text-sm'>Loss of Pay</span>
                         </div>
@@ -261,4 +259,3 @@ export default function AddLeaveCreditTransactionForm({ onSuccess, className = '
         </div>
     );
 }
-

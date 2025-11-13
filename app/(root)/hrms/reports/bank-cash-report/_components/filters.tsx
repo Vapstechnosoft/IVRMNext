@@ -6,7 +6,7 @@ import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Search, X } from 'lucide-react';
 import { useEffect, useState } from 'react';
-import { GroupType, Department, Designation } from './columns';
+import type { Department, Designation, GroupType } from './columns';
 
 // Report filters
 export interface BankCashReportFilters {
@@ -23,11 +23,7 @@ interface BankCashReportFiltersProps {
     groupTypes: GroupType[];
     departments: Department[];
     designations: Designation[];
-    onCheckboxChange: (
-        category: 'selectedTypes' | 'selectedDepartments' | 'selectedDesignations',
-        value: string,
-        checked: boolean
-    ) => void;
+    onCheckboxChange: (category: 'selectedTypes' | 'selectedDepartments' | 'selectedDesignations', value: string, checked: boolean) => void;
     onSelectAllChange: (
         category: 'selectedTypes' | 'selectedDepartments' | 'selectedDesignations',
         checked: boolean,
@@ -175,11 +171,7 @@ export function BankCashReportFilters({
                                         id={`desig-${designation.id}`}
                                         checked={filters.selectedDesignations.includes(designation.designationName)}
                                         onCheckedChange={(checked) =>
-                                            onCheckboxChange(
-                                                'selectedDesignations',
-                                                designation.designationName,
-                                                checked as boolean
-                                            )
+                                            onCheckboxChange('selectedDesignations', designation.designationName, checked as boolean)
                                         }
                                     />
                                     <label htmlFor={`desig-${designation.id}`} className='cursor-pointer text-sm'>
@@ -281,4 +273,3 @@ export function BankCashReportFilters({
         </CollapsibleSection>
     );
 }
-

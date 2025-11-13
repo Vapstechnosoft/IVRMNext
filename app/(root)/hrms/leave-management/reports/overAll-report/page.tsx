@@ -6,7 +6,7 @@ import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { useOverallReport } from '@/hooks/hrms/leave-management/useReports';
 import { useState } from 'react';
 import { overallReportColumns } from './_components/columns';
-import { OverallReportFilters, type OverallReportFilters as FiltersType } from './_components/filters';
+import { type OverallReportFilters as FiltersType, OverallReportFilters } from './_components/filters';
 
 export default function LeaveOverallReportPage() {
     const [showReport, setShowReport] = useState(false);
@@ -50,7 +50,12 @@ export default function LeaveOverallReportPage() {
                     </div>
                 </div>
 
-                <OverallReportFilters filters={filters} onFilterChange={handleFilterChange} onReport={handleReport} onCancel={handleClear} />
+                <OverallReportFilters
+                    filters={filters}
+                    onFilterChange={handleFilterChange}
+                    onReport={handleReport}
+                    onCancel={handleClear}
+                />
 
                 {showReport && (
                     <CollapsibleSection

@@ -45,7 +45,6 @@ function ActionButtonsCell({ rowData }: { rowData: GroupTypeDetail }) {
 
     const handleEdit = useCallback(
         (data: GroupTypeDetail) => {
-            console.log('🔵 [TOGGLE] Edit button clicked for:', data.HRMGT_Id);
             openEditForm(data as any);
         },
         [openEditForm]
@@ -53,35 +52,22 @@ function ActionButtonsCell({ rowData }: { rowData: GroupTypeDetail }) {
 
     const handleToggle = useCallback(
         async (data: GroupTypeDetail, newState: boolean) => {
-            console.log('🔵 [TOGGLE] handleToggle called');
-            console.log('🔵 [TOGGLE] Record ID:', data.HRMGT_Id);
-            console.log('🔵 [TOGGLE] Record Name:', data.HRMGT_EmployeeGroupType);
-            console.log('🔵 [TOGGLE] Current State:', data.HRMGT_ActiveFlag);
-            console.log('🔵 [TOGGLE] New State:', newState);
-            
             try {
-                console.log('🟡 [TOGGLE] Calling toggleMutation.mutateAsync...');
                 const result = await toggleMutation.mutateAsync({
                     HRMGT_Id: data.HRMGT_Id,
                     HRMGT_ActiveFlag: newState,
                     MI_Id: HRMS_MI_ID
                 });
-                
-                console.log('🟢 [TOGGLE] Toggle result:', result);
-                
+
                 // Check if the record is mapped/in use
                 const retrunMsg = (result as any)?.retrunMsg || '';
-                console.log('🟢 [TOGGLE] retrunMsg:', retrunMsg);
-                
+
                 if (retrunMsg === 'Mapped') {
-                    console.log('⚠️ [TOGGLE] Record is mapped - cannot deactivate');
                     toast.error('Cannot deactivate - Group Type is currently assigned/in use');
                 } else {
-                    console.log('✅ [TOGGLE] Success! Message: Group Type ' + (newState ? 'activated' : 'deactivated') + ' successfully');
                     toast.success(`Group Type ${newState ? 'activated' : 'deactivated'} successfully`);
                 }
-            } catch (error) {
-                console.log('🔴 [TOGGLE] Error:', error);
+            } catch (_error) {
                 toast.error(`Failed to ${newState ? 'activate' : 'deactivate'} group type`);
             }
         },

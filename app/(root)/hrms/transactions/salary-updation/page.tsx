@@ -1,10 +1,10 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
-import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/generic-data-table';
+import { GenericDataTable } from '@/components/ui/data-table/generic-data-table';
+import { Label } from '@/components/ui/extension/field';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
-import { Label } from '@/components/ui/extension/field';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { HRMS_MI_ID } from '@/constants/hrms-config';
 import { useSalaryUpdationList } from '@/hooks/hrms/useTransactions';
@@ -23,9 +23,9 @@ export default function SalaryUpdationPage(_props: { searchParams: SearchParams 
 
     return (
         <FormProvider<SalaryUpdationItem>>
-            <SalaryUpdationPageContent 
-                response={listQuery.data} 
-                isLoading={listQuery.isLoading} 
+            <SalaryUpdationPageContent
+                response={listQuery.data}
+                isLoading={listQuery.isLoading}
                 error={listQuery.error}
                 refetch={listQuery.refetch}
             />
@@ -48,7 +48,7 @@ function SalaryUpdationPageContent({
     const [hasSearched, setHasSearched] = useState(false);
     const [filteredEmployees, setFilteredEmployees] = useState<SalaryUpdationItem[]>([]);
     const [selectedEmployees, setSelectedEmployees] = useState<number[]>([]);
-    
+
     // Safely extract data with proper defaults to prevent hydration mismatches
     // Use useMemo to prevent unnecessary re-renders and infinite loops
     const groupTypes = useMemo(() => response?.groupTypedropdownlist || [], [response?.groupTypedropdownlist]);
@@ -61,7 +61,7 @@ function SalaryUpdationPageContent({
 
     // Initialize date values client-side only to prevent hydration mismatches
     const [isClient, setIsClient] = useState(false);
-    
+
     useEffect(() => {
         setIsClient(true);
     }, []);
@@ -85,17 +85,20 @@ function SalaryUpdationPageContent({
             const now = new Date();
             const year = now.getFullYear().toString();
             const month = (now.getMonth() + 1).toString();
-            
-            reset({
-                groupType: 'All',
-                department: 'All',
-                designation: 'All',
-                year,
-                month,
-                earningDeduction: 'All Earning & Deduction',
-                amountType: 'All',
-                heads: 'All'
-            }, { keepDefaultValues: false });
+
+            reset(
+                {
+                    groupType: 'All',
+                    department: 'All',
+                    designation: 'All',
+                    year,
+                    month,
+                    earningDeduction: 'All Earning & Deduction',
+                    amountType: 'All',
+                    heads: 'All'
+                },
+                { keepDefaultValues: false }
+            );
         }
     }, [isClient, reset]);
 
@@ -138,7 +141,7 @@ function SalaryUpdationPageContent({
         }
     }, [hasSearched, watchedGroupType, watchedDepartment, watchedDesignation, filterEmployees]);
 
-    const onSubmit = async (data: any) => {
+    const onSubmit = async (_data: any) => {
         try {
             filterEmployees();
             setHasSearched(true);
@@ -365,14 +368,12 @@ function SalaryUpdationPageContent({
                             />
 
                             <div className='flex justify-end gap-2'>
-                                <Button 
-                                    onClick={handleUpdate}
-                                    className='w-fit transition-all duration-200 hover:scale-105'>
+                                <Button onClick={handleUpdate} className='w-fit transition-all duration-200 hover:scale-105'>
                                     <RefreshCw className='mr-2 h-4 w-4' />
                                     UPDATE
                                 </Button>
-                                <Button 
-                                    variant='outline' 
+                                <Button
+                                    variant='outline'
                                     className='w-fit transition-all duration-200 hover:scale-105'
                                     onClick={() => {
                                         reset();

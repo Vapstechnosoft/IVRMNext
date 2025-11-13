@@ -6,12 +6,11 @@ import { DataTable } from '@/components/ui/data-table/data-table';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { type BaseEntity, createLocalCrud } from '@/lib/localdb';
+import { createLocalCrud } from '@/lib/localdb';
 import { BarChart3 } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';
-import { EmployeeSalaryDetailsFilters } from './_components/filters';
-import { getMonthlySalaryDetailColumns, type MonthlySalaryDetail } from './_components/columns';
+import { type MonthlySalaryDetail, getMonthlySalaryDetailColumns } from './_components/columns';
 
 export default function EmployeeSalaryDetailsReportPage() {
     // Database instances

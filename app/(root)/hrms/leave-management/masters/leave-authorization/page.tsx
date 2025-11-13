@@ -8,7 +8,7 @@ import { FormProvider, useFormContext } from '@/components/ui/form/form-provider
 import { useLeaveAuthorization } from '@/hooks/hrms/leave-management/useMasters';
 import { Plus, X } from 'lucide-react';
 import AddLeaveAuthorizationForm from './_components/add-form';
-import { leaveAuthorizationColumns, type LeaveAuthorization } from './_components/columns';
+import { type LeaveAuthorization, leaveAuthorizationColumns } from './_components/columns';
 import UpdateLeaveAuthorizationForm from './_components/update-form';
 
 export default function LeaveAuthorizationPage() {
@@ -83,15 +83,8 @@ function LeaveAuthorizationPageContent({
 }
 
 function FormSections() {
-    const {
-        isAddFormOpen,
-        isEditFormOpen,
-        selectedRow,
-        closeAddForm,
-        closeEditForm,
-        addFormRef,
-        editFormRef
-    } = useFormContext<LeaveAuthorization>();
+    const { isAddFormOpen, isEditFormOpen, selectedRow, closeAddForm, closeEditForm, addFormRef, editFormRef } =
+        useFormContext<LeaveAuthorization>();
 
     return (
         <>

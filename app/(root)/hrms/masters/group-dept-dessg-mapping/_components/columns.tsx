@@ -47,7 +47,7 @@ export const groupDeptDessgMappingColumns: ColumnDef<GroupDeptDessgMappingDetail
     },
     {
         id: 'actions',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Actions' className='text-start whitespace-nowrap' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Actions' className='whitespace-nowrap text-start' />,
         cell: ({ row }) => <ActionButtonsCell rowData={row.original} />,
         enableSorting: false
     }
@@ -59,14 +59,6 @@ function ActionButtonsCell({ rowData }: { rowData: GroupDeptDessgMappingDetail }
 
     const handleEdit = useCallback(
         (data: GroupDeptDessgMappingDetail) => {
-            console.log('🔵 [GROUP-DEPT-DESSG COLUMNS] handleEdit called');
-            console.log('🔵 [COLUMNS] Edit button clicked for row:', JSON.stringify(data, null, 2));
-            console.log('🔵 [COLUMNS] HRGTDDS_Id:', data.HRGTDDS_Id);
-            console.log('🔵 [COLUMNS] HRMGT_Id:', data.HRMGT_Id);
-            console.log('🔵 [COLUMNS] HRMD_Id:', data.HRMD_Id);
-            console.log('🔵 [COLUMNS] HRMDES_Id:', data.HRMDES_Id);
-            console.log('🔵 [COLUMNS] HRGTDDS_ActiveFlg:', data.HRGTDDS_ActiveFlg);
-            console.log('🔵 [COLUMNS] Calling openEditForm...');
             openEditForm(data as any);
         },
         [openEditForm]
@@ -74,18 +66,13 @@ function ActionButtonsCell({ rowData }: { rowData: GroupDeptDessgMappingDetail }
 
     const handleToggle = useCallback(
         async (data: GroupDeptDessgMappingDetail, newState: boolean) => {
-            console.log('🔵 [GROUP-DEPT-DESSG COLUMNS] handleToggle called');
-            console.log('🔵 [COLUMNS] Toggle data:', { HRGTDDS_Id: data.HRGTDDS_Id, currentState: data.HRGTDDS_ActiveFlg, newState });
-            
             try {
-                const result = await toggleMutation.mutateAsync({
+                const _result = await toggleMutation.mutateAsync({
                     ...data,
                     HRGTDDS_ActiveFlg: newState
                 });
-                console.log('🟢 [COLUMNS] Toggle success:', result);
                 toast.success(`Mapping ${newState ? 'activated' : 'deactivated'} successfully`);
-            } catch (error: any) {
-                console.log('🔴 [COLUMNS] Toggle error:', error);
+            } catch (_error: any) {
                 toast.error(`Failed to ${newState ? 'activate' : 'deactivate'} mapping`);
             }
         },

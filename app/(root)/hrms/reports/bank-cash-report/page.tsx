@@ -3,13 +3,12 @@
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { DataTable } from '@/components/ui/data-table/data-table';
-import { type BaseEntity, createLocalCrud } from '@/lib/localdb';
+import { createLocalCrud } from '@/lib/localdb';
 import { Banknote, CreditCard, Download, Printer, Wallet } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';
+import { type BankCashRecord, type Department, type Designation, type GroupType, bankCashColumns } from './_components/columns';
 import { BankCashReportFilters, type BankCashReportFilters as BankCashReportFiltersType } from './_components/filters';
-import { bankCashColumns, type BankCashRecord, type GroupType, type Department, type Designation } from './_components/columns';
-
 
 export default function BankCashReportPage() {
     // Database instances
@@ -249,7 +248,6 @@ export default function BankCashReportPage() {
             failedCount: filteredRecords.filter((r) => r.paymentStatus === 'Failed').length
         };
     }, [filteredRecords]);
-
 
     return (
         <div className='space-y-6'>

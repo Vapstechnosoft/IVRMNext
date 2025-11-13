@@ -8,7 +8,7 @@ import { FormProvider, useFormContext } from '@/components/ui/form/form-provider
 import { useLeaveBalance, useLeaveHistory } from '@/hooks/hrms/leave-management/useApplyLeave';
 import { Plus, X } from 'lucide-react';
 import AddApplyLeaveForm from './_components/add-form';
-import { leaveBalanceColumns, leaveHistoryColumns, type ApplyLeave } from './_components/columns';
+import { type ApplyLeave, leaveBalanceColumns, leaveHistoryColumns } from './_components/columns';
 
 const defaultEmployee = {
     name: 'R Siddesh Kumar',

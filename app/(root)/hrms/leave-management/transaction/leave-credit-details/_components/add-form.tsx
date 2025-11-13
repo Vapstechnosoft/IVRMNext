@@ -9,7 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useLeaveCreditDetails, useSaveLeaveCreditDetails } from '@/hooks/hrms/leave-management/useTransactions';
 import { Save } from 'lucide-react';
 import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
-import { MONTHS, type LeaveCreditDetail } from './columns';
+import { type LeaveCreditDetail, MONTHS } from './columns';
 
 interface AddLeaveCreditDetailsFormProps {
     onSuccess?: () => void;
@@ -70,7 +70,11 @@ export default function AddLeaveCreditDetailsForm({ onSuccess, className = '' }:
     const toggleMulti = (field: 'type' | 'department' | 'designation', value: string, checked: boolean) => {
         const current = watch(field);
         if (checked) setValue(field, [...current, value]);
-        else setValue(field, current.filter((v: string) => v !== value));
+        else
+            setValue(
+                field,
+                current.filter((v: string) => v !== value)
+            );
     };
 
     const handleReset = () => {
@@ -170,7 +174,7 @@ export default function AddLeaveCreditDetailsForm({ onSuccess, className = '' }:
                     </div>
 
                     <div className='space-y-2'>
-                        <label className='font-medium text-sm'>Monthly Credits</label>
+                        <div className='font-medium text-sm'>Monthly Credits</div>
                         <div className='grid grid-cols-2 gap-3 md:grid-cols-3'>
                             {MONTHS.map((m) => (
                                 <div key={m} className='flex items-center gap-2'>
@@ -208,4 +212,3 @@ export default function AddLeaveCreditDetailsForm({ onSuccess, className = '' }:
         </div>
     );
 }
-

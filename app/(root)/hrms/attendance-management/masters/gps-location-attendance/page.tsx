@@ -4,7 +4,7 @@ import { Heading } from '@/components/layout/heading';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { createLocalCrud } from '@/lib/localdb';
 import { toast } from 'sonner';
-import { type GPSForm, GPSAttendanceForm } from './_components/gps-attendance-form';
+import { GPSAttendanceForm, type GPSForm } from './_components/gps-attendance-form';
 
 export default function GPSLocationAttendancePage() {
     const store = createLocalCrud('attendance:gps-location-attendance');

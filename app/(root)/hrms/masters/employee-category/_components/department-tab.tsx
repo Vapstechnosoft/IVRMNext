@@ -20,12 +20,7 @@ export default function DepartmentTab({ searchParams }: { searchParams?: ApiSear
 
     return (
         <FormProvider<DepartmentDetail>>
-            <DepartmentTabContent 
-                response={listQuery.data} 
-                isLoading={listQuery.isLoading} 
-                error={listQuery.error}
-                refetch={refetchAll}
-            />
+            <DepartmentTabContent response={listQuery.data} isLoading={listQuery.isLoading} error={listQuery.error} refetch={refetchAll} />
         </FormProvider>
     );
 }
@@ -64,7 +59,6 @@ function DepartmentTabContent({
     };
 
     const handleSaveOrder = async () => {
-        console.log('🔵 [ORDER] Saving department orders:', editedRows.length);
         try {
             await saveOrderMutation.mutateAsync(editedRows);
             toast.success('Order saved successfully');
@@ -178,11 +172,11 @@ function FormSections({ refetch }: { refetch: () => void }) {
                                 className='-top-[3.5rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
                                 <X className='h-4 w-4 text-destructive' /> Close
                             </Button>
-                            <DepartmentForm 
+                            <DepartmentForm
                                 onSuccess={() => {
                                     closeAddForm();
                                     refetch();
-                                }} 
+                                }}
                             />
                         </div>
                     </CollapsibleSection>
@@ -206,12 +200,12 @@ function FormSections({ refetch }: { refetch: () => void }) {
                                 className='-top-[3.5rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
                                 <X className='h-4 w-4 text-destructive' /> Close
                             </Button>
-                            <DepartmentForm 
-                                selectedRow={selectedRow} 
+                            <DepartmentForm
+                                selectedRow={selectedRow}
                                 onSuccess={() => {
                                     closeEditForm();
                                     refetch();
-                                }} 
+                                }}
                             />
                         </div>
                     </CollapsibleSection>

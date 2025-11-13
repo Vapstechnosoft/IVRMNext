@@ -6,10 +6,7 @@ import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { useEmployeeInOutReport, useEmployeeInOutReportDropdowns } from '@/hooks/hrms/attendance-management/useReports';
 import { useState } from 'react';
 import { employeeInOutReportColumns } from './_components/columns';
-import {
-    type EmployeeInOutReportFilters,
-    EmployeeInOutReportFilters as EmployeeInOutReportFiltersComponent
-} from './_components/filters';
+import { type EmployeeInOutReportFilters, EmployeeInOutReportFilters as EmployeeInOutReportFiltersComponent } from './_components/filters';
 
 export default function EmployeeInOutReportPage() {
     const [filters, setFilters] = useState<EmployeeInOutReportFilters>({

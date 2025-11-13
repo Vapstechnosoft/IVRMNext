@@ -3,7 +3,6 @@
 import { Button } from '@/components/ui/button';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Search, X } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
 export interface PFChallanFilters {
@@ -107,4 +106,3 @@ export function PFChallanFilters({ filters, onFilterChange, onGenerate, onCancel
         </CollapsibleSection>
     );
 }
-

@@ -8,7 +8,7 @@ import { FormProvider, useFormContext } from '@/components/ui/form/form-provider
 import { useMasterLeaveYear } from '@/hooks/hrms/leave-management/useMasters';
 import { Plus, X } from 'lucide-react';
 import AddMasterLeaveYearForm from './_components/add-form';
-import { leaveYearColumns, type LeaveYear } from './_components/columns';
+import { type LeaveYear, leaveYearColumns } from './_components/columns';
 import UpdateMasterLeaveYearForm from './_components/update-form';
 
 export default function MasterLeaveYearPage() {
@@ -83,15 +83,8 @@ function MasterLeaveYearPageContent({
 }
 
 function FormSections() {
-    const {
-        isAddFormOpen,
-        isEditFormOpen,
-        selectedRow,
-        closeAddForm,
-        closeEditForm,
-        addFormRef,
-        editFormRef
-    } = useFormContext<LeaveYear>();
+    const { isAddFormOpen, isEditFormOpen, selectedRow, closeAddForm, closeEditForm, addFormRef, editFormRef } =
+        useFormContext<LeaveYear>();
 
     return (
         <>

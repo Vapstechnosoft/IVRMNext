@@ -1,15 +1,8 @@
 ﻿'use client';
-
-import { Button } from '@/components/ui/button';
-import { DatePickerWithYear } from '@/components/ui/date-picker-year';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/extension/field';
 import { InputText } from '@/components/ui/extension/input-text';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { cn } from '@/lib/utils';
-import { format } from 'date-fns';
-import { CalendarIcon } from 'lucide-react';
 import React from 'react';
 import { Controller } from 'react-hook-form';
 import { StandardTabActions } from './standard-tab-actions';
@@ -26,7 +19,17 @@ interface AddressTabProps {
     onClear?: () => void;
 }
 
-export function AddressTab({ control, register, errors, isSubmitting, watch, setValue, countries = [], states = [], onClear }: AddressTabProps) {
+export function AddressTab({
+    control,
+    register,
+    errors,
+    isSubmitting,
+    watch,
+    setValue,
+    countries = [],
+    states = [],
+    onClear
+}: AddressTabProps) {
     const sameAsCommunicationAddress = watch('sameAsCommunicationAddress');
 
     // Watch communication address fields
@@ -36,7 +39,7 @@ export function AddressTab({ control, register, errors, isSubmitting, watch, set
     const contactState = watch('contactState');
     const contactCity = watch('contactCity');
     const contactPincode = watch('contactPincode');
-    
+
     // Watch permanent address country for state filtering
     const permanentCountry = watch('permanentCountry');
 
@@ -52,17 +55,19 @@ export function AddressTab({ control, register, errors, isSubmitting, watch, set
             setValue('permanentPincode', contactPincode || '');
         }
     }, [sameAsCommunicationAddress]); // Only depend on checkbox state, not communication address fields
-    
+
     // Log when country changes to help debug state loading
     React.useEffect(() => {
+        // Country change handled by state loading logic
         if (contactCountry) {
-            console.log('🔍 [ADDRESS] Contact country changed:', contactCountry, 'Available states:', states.length);
+            // State loading logic handled elsewhere
         }
     }, [contactCountry, states.length]);
-    
+
     React.useEffect(() => {
+        // Country change handled by state loading logic
         if (permanentCountry) {
-            console.log('🔍 [ADDRESS] Permanent country changed:', permanentCountry, 'Available states:', states.length);
+            // State loading logic handled elsewhere
         }
     }, [permanentCountry, states.length]);
     return (
@@ -89,8 +94,14 @@ export function AddressTab({ control, register, errors, isSubmitting, watch, set
                                             </SelectTrigger>
                                             <SelectContent>
                                                 {countries.map((country: any, index: number) => {
-                                                    const countryId = country.IVRMMC_Id || country.IVRMMCO_Id || country.value || country.id || index;
-                                                    const countryName = country.IVRMMC_CountryName || country.IVRMMCO_CountryName || country.label || country.name || `Country ${countryId}`;
+                                                    const countryId =
+                                                        country.IVRMMC_Id || country.IVRMMCO_Id || country.value || country.id || index;
+                                                    const countryName =
+                                                        country.IVRMMC_CountryName ||
+                                                        country.IVRMMCO_CountryName ||
+                                                        country.label ||
+                                                        country.name ||
+                                                        `Country ${countryId}`;
                                                     return (
                                                         <SelectItem key={countryId} value={countryId.toString()}>
                                                             {countryName}
@@ -185,17 +196,20 @@ export function AddressTab({ control, register, errors, isSubmitting, watch, set
                                 render={({ field }) => (
                                     <>
                                         <Label>Country</Label>
-                                        <Select
-                                            onValueChange={field.onChange}
-                                            value={field.value}
-                                            disabled={sameAsCommunicationAddress}>
+                                        <Select onValueChange={field.onChange} value={field.value} disabled={sameAsCommunicationAddress}>
                                             <SelectTrigger>
                                                 <SelectValue placeholder='Select Country' />
                                             </SelectTrigger>
                                             <SelectContent>
                                                 {countries.map((country: any, index: number) => {
-                                                    const countryId = country.IVRMMC_Id || country.IVRMMCO_Id || country.value || country.id || index;
-                                                    const countryName = country.IVRMMC_CountryName || country.IVRMMCO_CountryName || country.label || country.name || `Country ${countryId}`;
+                                                    const countryId =
+                                                        country.IVRMMC_Id || country.IVRMMCO_Id || country.value || country.id || index;
+                                                    const countryName =
+                                                        country.IVRMMC_CountryName ||
+                                                        country.IVRMMCO_CountryName ||
+                                                        country.label ||
+                                                        country.name ||
+                                                        `Country ${countryId}`;
                                                     return (
                                                         <SelectItem key={countryId} value={countryId.toString()}>
                                                             {countryName}
@@ -215,10 +229,7 @@ export function AddressTab({ control, register, errors, isSubmitting, watch, set
                                 render={({ field }) => (
                                     <>
                                         <Label>State</Label>
-                                        <Select
-                                            onValueChange={field.onChange}
-                                            value={field.value}
-                                            disabled={sameAsCommunicationAddress}>
+                                        <Select onValueChange={field.onChange} value={field.value} disabled={sameAsCommunicationAddress}>
                                             <SelectTrigger>
                                                 <SelectValue placeholder='Select State' />
                                             </SelectTrigger>

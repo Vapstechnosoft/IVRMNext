@@ -8,7 +8,7 @@ import { FormProvider, useFormContext } from '@/components/ui/form/form-provider
 import { useLeaveCarryForward } from '@/hooks/hrms/leave-management/useTransactions';
 import { Plus, X } from 'lucide-react';
 import AddLeaveCarryForwardForm from './_components/add-form';
-import { leaveCarryForwardColumns, type LeaveCarryForward } from './_components/columns';
+import { type LeaveCarryForward, leaveCarryForwardColumns } from './_components/columns';
 import UpdateLeaveCarryForwardForm from './_components/update-form';
 
 export default function LeaveCarryForwardPage() {
@@ -83,15 +83,8 @@ function LeaveCarryForwardPageContent({
 }
 
 function FormSections() {
-    const {
-        isAddFormOpen,
-        isEditFormOpen,
-        selectedRow,
-        closeAddForm,
-        closeEditForm,
-        addFormRef,
-        editFormRef
-    } = useFormContext<LeaveCarryForward>();
+    const { isAddFormOpen, isEditFormOpen, selectedRow, closeAddForm, closeEditForm, addFormRef, editFormRef } =
+        useFormContext<LeaveCarryForward>();
 
     return (
         <>

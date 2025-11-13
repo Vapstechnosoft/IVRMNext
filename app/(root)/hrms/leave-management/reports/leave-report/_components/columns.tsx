@@ -1,8 +1,8 @@
 'use client';
 
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
-import type { ColumnDef } from '@tanstack/react-table';
 import { cn } from '@/lib/utils';
+import type { ColumnDef } from '@tanstack/react-table';
 
 export interface LeaveReportRow {
     slNo: number;
@@ -85,4 +85,3 @@ export const leaveReportColumns: ColumnDef<LeaveReportRow>[] = [
         cell: ({ row }) => <div className='text-center font-semibold'>{row.getValue('leaveBalance')}</div>
     }
 ];
-

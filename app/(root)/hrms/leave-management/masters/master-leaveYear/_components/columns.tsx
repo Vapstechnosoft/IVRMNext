@@ -3,7 +3,7 @@
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
 import { ActionButtons } from '@/components/ui/form/action-buttons';
 import { useFormContext } from '@/components/ui/form/form-provider';
-import { type BaseEntity } from '@/lib/localdb';
+import type { BaseEntity } from '@/lib/localdb';
 import type { ColumnDef } from '@tanstack/react-table';
 import { useCallback } from 'react';
 
@@ -53,11 +53,7 @@ export const leaveYearColumns: ColumnDef<LeaveYear>[] = [
         header: ({ column }) => <DataTableColumnHeader column={column} title='Status' />,
         cell: ({ row }) => {
             const isActive = row.getValue('isActive') as boolean;
-            return (
-                <span className={isActive ? 'text-green-600' : 'text-red-600'}>
-                    {isActive ? 'Active' : 'Inactive'}
-                </span>
-            );
+            return <span className={isActive ? 'text-green-600' : 'text-red-600'}>{isActive ? 'Active' : 'Inactive'}</span>;
         }
     },
     {
@@ -79,11 +75,5 @@ function ActionButtonsCell({ rowData }: { rowData: LeaveYear }) {
         [openEditForm]
     );
 
-    return (
-        <ActionButtons
-            rowData={rowData}
-            buttons={{ edit: true, toggle: false, delete: false }}
-            onEdit={handleEdit}
-        />
-    );
+    return <ActionButtons rowData={rowData} buttons={{ edit: true, toggle: false, delete: false }} onEdit={handleEdit} />;
 }

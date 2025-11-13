@@ -8,14 +8,14 @@ import { useMasterHoliday } from '@/hooks/hrms/attendance-management/useMasters'
 import { Plus, X } from 'lucide-react';
 import { use } from 'react';
 import AddMasterHolidayForm from './_components/add-form';
-import { masterHolidayColumns, type MasterHoliday } from './_components/columns';
+import { type MasterHoliday, masterHolidayColumns } from './_components/columns';
 import DeleteMasterHolidayForm from './_components/delete-form';
 import UpdateMasterHolidayForm from './_components/update-form';
 
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 
 export default function MasterHolidayPage(props: { searchParams: SearchParams }) {
-    const searchParams = use(props.searchParams);
+    const _searchParams = use(props.searchParams);
     const { data: response, isLoading, error } = useMasterHoliday();
 
     return (

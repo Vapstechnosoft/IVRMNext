@@ -123,12 +123,7 @@ export function LeaveForm({ editingLeave, onSubmit, onCancel }: LeaveFormProps) 
                     <label htmlFor='max-days-apply-input' className='font-medium text-sm'>
                         Max Days For Apply
                     </label>
-                    <InputText
-                        id='max-days-apply-input'
-                        {...register('maxDaysForApply')}
-                        placeholder='Enter max days'
-                        type='number'
-                    />
+                    <InputText id='max-days-apply-input' {...register('maxDaysForApply')} placeholder='Enter max days' type='number' />
                 </div>
 
                 <div className='md:col-span-3'>

@@ -6,7 +6,32 @@ import { PolygonBanner } from '@/components/ui/extension/polygon-banner';
 import { getIconByName } from '@/lib/lucide-icon-registry';
 import { cn } from '@/lib/utils';
 import { AnimatePresence, motion } from 'framer-motion';
-import { ChevronLeft, ChevronRight, CheckSquare, RefreshCw, User, ReceiptText, DollarSign, Building2, FileText, Calendar, CreditCard, Users, Shield, List, Briefcase, Award, Clock, Search } from 'lucide-react';
+import {
+    AlertCircle,
+    Award,
+    Briefcase,
+    Building2,
+    Calendar,
+    CheckSquare,
+    ChevronLeft,
+    ChevronRight,
+    ClipboardList,
+    Clock,
+    CreditCard,
+    DollarSign,
+    FileText,
+    List,
+    MapPin,
+    ReceiptText,
+    RefreshCw,
+    Search,
+    Settings,
+    Shield,
+    Truck,
+    User,
+    UserX,
+    Users
+} from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
@@ -18,7 +43,7 @@ const getPageIconWithFallback = (iconName: string | null | undefined, pageName: 
         const icon = getIconByName(iconName);
         if (icon) return icon;
     }
-    
+
     // Fallback icons for Transaction pages
     const transactionFallbacks: Record<string, any> = {
         'Salary Approval': CheckSquare,
@@ -29,7 +54,7 @@ const getPageIconWithFallback = (iconName: string | null | undefined, pageName: 
         'Salary Advance': DollarSign,
         'Employee Loan': CreditCard
     };
-    
+
     // Fallback icons for Report pages
     const reportFallbacks: Record<string, any> = {
         'Cumulative Salary Report': DollarSign,
@@ -54,12 +79,32 @@ const getPageIconWithFallback = (iconName: string | null | undefined, pageName: 
         'Department Salary Report': Building2,
         'Advance Report': Search,
         'Employee offer letter': FileText,
-        'Loan Report': CreditCard
+        'Loan Report': CreditCard,
+        // Attendance Management Reports
+        'Employee In/Out Report': ClipboardList,
+        'Late In Early Out Report': Clock,
+        'Employee Log Report': FileText,
+        'Employee Yearly Report': Calendar,
+        'Month End Report': Calendar,
+        'GPS Location Report': MapPin,
+        'Holiday Report': Calendar,
+        'Employee Absent Report': UserX
     };
-    
+
+    // Fallback icons for Attendance Management Masters
+    const attendanceMasterFallbacks: Record<string, any> = {
+        'Master Shift': Clock,
+        'Employee Missing Logs': AlertCircle,
+        'Employee Shift Mapping': User,
+        'Master Holiday': Calendar,
+        'Master Driver Shift': Truck,
+        'Shift Setting Master': Settings,
+        'GPS Location Attendance': MapPin
+    };
+
     // Combine all fallbacks
-    const allFallbacks = { ...transactionFallbacks, ...reportFallbacks };
-    
+    const allFallbacks = { ...transactionFallbacks, ...reportFallbacks, ...attendanceMasterFallbacks };
+
     return allFallbacks[pageName] || null;
 };
 

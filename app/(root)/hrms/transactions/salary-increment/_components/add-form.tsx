@@ -6,6 +6,7 @@ import { FormError, Label } from '@/components/ui/extension/field';
 import { InputNumber } from '@/components/ui/extension/input-number';
 import { InputText } from '@/components/ui/extension/input-text';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { HRMS_MI_ID } from '@/constants/hrms-config';
 import { useSaveSalaryIncrement } from '@/hooks/hrms/useTransactions';
@@ -15,8 +16,8 @@ import type { SalaryIncrementOnloadResponse } from '@/types/hrms/salary-incremen
 import { zodResolver } from '@hookform/resolvers/zod';
 import { format } from 'date-fns';
 import { CalendarIcon, Save } from 'lucide-react';
-import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
 import { useMemo } from 'react';
+import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import type { z } from 'zod';
 
@@ -36,6 +37,7 @@ export default function AddSalaryIncrementForm({ onloadData, onSuccess, classNam
         register,
         handleSubmit,
         reset,
+        watch,
         formState: { errors, isSubmitting }
     } = useForm<FormFields>({
         resolver: zodResolver(salaryIncrementSchema.addOrUpdate),
@@ -44,6 +46,8 @@ export default function AddSalaryIncrementForm({ onloadData, onSuccess, classNam
             HRESI_Id: 0,
             MI_Id: HRMS_MI_ID,
             HRME_Id: 0,
+            HRMED_Id: 0,
+            HRESI_IncrementType: undefined,
             HRESI_IncrementAmount: 0,
             HRESI_IncrementPercentage: 0,
             HRESI_EffectiveDate: new Date(),
@@ -62,8 +66,8 @@ export default function AddSalaryIncrementForm({ onloadData, onSuccess, classNam
             HREIC_ArrearApplicableFlg: false,
             HREIC_ArrearGivenFlg: false,
             HREIC_ArrearMonths: 0,
-            HRMED_Id: 0,
-            HREICED_Amount: data.HRESI_IncrementAmount,
+            HRMED_Id: data.HRMED_Id || 0,
+            HREICED_Amount: data.HRESI_IncrementAmount || 0,
             HREICED_Percentage: data.HRESI_IncrementPercentage?.toString() || '0',
             HREIC_ActiveFlag: data.HRESI_ActiveFlg,
             roleId: data.LogInUserId || 2,
@@ -88,7 +92,7 @@ export default function AddSalaryIncrementForm({ onloadData, onSuccess, classNam
 
     // Memoize arrays to prevent unnecessary re-renders
     const employees = useMemo(() => onloadData?.employeelist || [], [onloadData?.employeelist]);
-    const _earningDeductions = useMemo(() => onloadData?.earningdeductiontype || [], [onloadData?.earningdeductiontype]);
+    const earningDeductions = useMemo(() => onloadData?.earningdeductiontype || [], [onloadData?.earningdeductiontype]);
 
     return (
         <div className={className}>
@@ -123,10 +127,10 @@ export default function AddSalaryIncrementForm({ onloadData, onSuccess, classNam
                             {errors.HRME_Id && <FormError>{errors.HRME_Id.message}</FormError>}
                         </div>
 
-                        {/* Earning/Deduction Head - Commented out as not in schema */}
-                        {/* <div className='group flex flex-col gap-1.5'>
+                        {/* Head */}
+                        <div className='group flex flex-col gap-1.5'>
                             <Label htmlFor='HRMED_Id'>
-                                Earning/Deduction Head <span className='text-destructive'>*</span>
+                                Head <span className='text-destructive'>*</span>
                             </Label>
                             <Controller
                                 name='HRMED_Id'
@@ -149,7 +153,7 @@ export default function AddSalaryIncrementForm({ onloadData, onSuccess, classNam
                                 )}
                             />
                             {errors.HRMED_Id && <FormError>{errors.HRMED_Id.message}</FormError>}
-                        </div> */}
+                        </div>
 
                         {/* Increment Date */}
                         <div className='group flex flex-col gap-1.5'>
@@ -186,34 +190,75 @@ export default function AddSalaryIncrementForm({ onloadData, onSuccess, classNam
                             {errors.HRESI_EffectiveDate && <FormError>{errors.HRESI_EffectiveDate.message}</FormError>}
                         </div>
 
-                        {/* Amount */}
+                        {/* Increment Type */}
                         <div className='group flex flex-col gap-1.5'>
-                            <Label htmlFor='HRESI_IncrementAmount'>
-                                Amount <span className='text-destructive'>*</span>
-                            </Label>
+                            <Label>Increment Type</Label>
                             <Controller
-                                name='HRESI_IncrementAmount'
+                                name='HRESI_IncrementType'
                                 control={control}
                                 render={({ field }) => (
-                                    <InputNumber
-                                        id='HRESI_IncrementAmount'
-                                        value={field.value}
-                                        onChange={field.onChange}
-                                        error={errors.HRESI_IncrementAmount?.message}
-                                        className='transition-colors focus:ring-2 focus:ring-primary/20'
-                                    />
+                                    <RadioGroup
+                                        value={field.value || ''}
+                                        onValueChange={(value) => field.onChange(value as 'Percentage' | 'Amount' | undefined)}
+                                        className='flex items-center gap-6'>
+                                        <div className='flex items-center gap-2'>
+                                            <RadioGroupItem value='Percentage' id='inc-per' />
+                                            <Label htmlFor='inc-per' className='cursor-pointer font-normal'>
+                                                Percentage
+                                            </Label>
+                                        </div>
+                                        <div className='flex items-center gap-2'>
+                                            <RadioGroupItem value='Amount' id='inc-amt' />
+                                            <Label htmlFor='inc-amt' className='cursor-pointer font-normal'>
+                                                Amount
+                                            </Label>
+                                        </div>
+                                    </RadioGroup>
                                 )}
                             />
+                            {errors.HRESI_IncrementType && <FormError>{errors.HRESI_IncrementType.message}</FormError>}
                         </div>
 
-                        {/* Percentage */}
-                        <InputText
-                            label='Percentage'
-                            id='HRESI_IncrementPercentage'
-                            {...register('HRESI_IncrementPercentage')}
-                            error={errors.HRESI_IncrementPercentage?.message}
-                            className='transition-colors focus:ring-2 focus:ring-primary/20'
-                        />
+                        {/* Amount - Show only if Increment Type is Amount or not selected */}
+                        {(watch('HRESI_IncrementType') === 'Amount' || !watch('HRESI_IncrementType')) && (
+                            <div className='group flex flex-col gap-1.5'>
+                                <Label htmlFor='HRESI_IncrementAmount'>
+                                    Amount {watch('HRESI_IncrementType') === 'Amount' && <span className='text-destructive'>*</span>}
+                                </Label>
+                                <Controller
+                                    name='HRESI_IncrementAmount'
+                                    control={control}
+                                    render={({ field }) => (
+                                        <InputNumber
+                                            id='HRESI_IncrementAmount'
+                                            value={field.value || 0}
+                                            onChange={field.onChange}
+                                            error={errors.HRESI_IncrementAmount?.message}
+                                            className='transition-colors focus:ring-2 focus:ring-primary/20'
+                                        />
+                                    )}
+                                />
+                            </div>
+                        )}
+
+                        {/* Percentage - Show only if Increment Type is Percentage or not selected */}
+                        {(watch('HRESI_IncrementType') === 'Percentage' || !watch('HRESI_IncrementType')) && (
+                            <div className='group flex flex-col gap-1.5'>
+                                <Label htmlFor='HRESI_IncrementPercentage'>
+                                    Percentage{' '}
+                                    {watch('HRESI_IncrementType') === 'Percentage' && <span className='text-destructive'>*</span>}
+                                </Label>
+                                <InputText
+                                    type='number'
+                                    step='0.01'
+                                    id='HRESI_IncrementPercentage'
+                                    placeholder='Enter percentage (decimal 5,2)'
+                                    {...register('HRESI_IncrementPercentage', { valueAsNumber: true })}
+                                    error={errors.HRESI_IncrementPercentage?.message}
+                                    className='transition-colors focus:ring-2 focus:ring-primary/20'
+                                />
+                            </div>
+                        )}
 
                         {/* Arrear fields commented out - not in schema */}
                         {/* <InputNumber
@@ -255,6 +300,18 @@ export default function AddSalaryIncrementForm({ onloadData, onSuccess, classNam
                             </div>
                             {errors.HREIC_ArrearGivenFlg && <FormError>{errors.HREIC_ArrearGivenFlg.message}</FormError>}
                         </div> */}
+
+                        {/* Remarks */}
+                        <div className='group col-span-full flex flex-col gap-1.5'>
+                            <Label htmlFor='HRESI_Remarks'>Remarks</Label>
+                            <InputText
+                                id='HRESI_Remarks'
+                                placeholder='Enter remarks (max 256 characters)'
+                                {...register('HRESI_Remarks')}
+                                error={errors.HRESI_Remarks?.message}
+                                className='transition-colors focus:ring-2 focus:ring-primary/20'
+                            />
+                        </div>
                     </div>
 
                     {errors.root && <FormError>{errors.root.message}</FormError>}

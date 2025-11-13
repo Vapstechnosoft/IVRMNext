@@ -120,11 +120,5 @@ function ActionButtonsCell({ rowData }: { rowData: MissingLog }) {
         [openEditForm]
     );
 
-    return (
-        <ActionButtons
-            rowData={rowData}
-            buttons={{ edit: true, toggle: false, delete: false }}
-            onEdit={handleEdit}
-        />
-    );
+    return <ActionButtons rowData={rowData} buttons={{ edit: true, toggle: false, delete: false }} onEdit={handleEdit} />;
 }

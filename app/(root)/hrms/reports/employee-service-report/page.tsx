@@ -8,8 +8,8 @@ import { format } from 'date-fns';
 import { Download, FileText, Printer } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';
+import { type ServiceHistoryRecord, serviceReportColumns } from './_components/columns';
 import { EmployeeServiceFilters, type ServiceReportFilters } from './_components/filters';
-import { serviceReportColumns, type ServiceHistoryRecord } from './_components/columns';
 
 // Data interfaces
 interface GroupType extends BaseEntity {
@@ -66,7 +66,6 @@ interface EmployeeServiceRecord extends BaseEntity {
     achievements: string[];
     reportingManager: string;
 }
-
 
 export default function EmployeeServiceReportPage() {
     // Database instances
@@ -407,7 +406,6 @@ export default function EmployeeServiceReportPage() {
         const serviceRecord = serviceRecords.find((record) => record.employeeId.toString() === filters.selectedEmployee);
         return { employee, serviceRecord };
     }, [filters.selectedEmployee, employees, serviceRecords]);
-
 
     // Mock service history data
     const serviceHistoryData: ServiceHistoryRecord[] = selectedEmployeeDetails

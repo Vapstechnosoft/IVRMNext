@@ -11,7 +11,7 @@ interface AddEmployeeMissingLogFormProps {
 
 export default function AddEmployeeMissingLogForm({ onSuccess, className = '' }: AddEmployeeMissingLogFormProps) {
     const { refetchAll } = useEmployeeMissingLogs();
-    const { mutate: saveMissingLog, isPending } = useSaveEmployeeMissingLog();
+    const { mutate: saveMissingLog } = useSaveEmployeeMissingLog();
 
     const handleSubmit = (data: MissingLogFormData) => {
         // Create one record per entry
@@ -43,4 +43,3 @@ export default function AddEmployeeMissingLogForm({ onSuccess, className = '' }:
         </div>
     );
 }
-

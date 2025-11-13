@@ -2,8 +2,8 @@
 
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
-import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { InputText } from '@/components/ui/extension/input-text';
+import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { X } from 'lucide-react';
 
@@ -29,12 +29,7 @@ interface UnauthorizedLeaveCountFiltersProps {
 
 const availableCompanies = ['All', 'Vaps Knowledge Services Pvt Ltd', 'Vaps Infotech Pvt Ltd', 'Unnathi Marketing'];
 
-export function UnauthorizedLeaveCountFilters({
-    filters,
-    onFilterChange,
-    onReport,
-    onCancel
-}: UnauthorizedLeaveCountFiltersProps) {
+export function UnauthorizedLeaveCountFilters({ filters, onFilterChange, onReport, onCancel }: UnauthorizedLeaveCountFiltersProps) {
     return (
         <CollapsibleSection
             title='UNAUTHORIZED LEAVE COUNT REPORT'
@@ -81,24 +76,28 @@ export function UnauthorizedLeaveCountFilters({
                                 <div className='mt-2 max-h-40 space-y-1 overflow-y-auto'>
                                     {availableCompanies
                                         .filter((c) => c.toLowerCase().includes(filters.companyQuery.toLowerCase()))
-                                        .map((c) => (
-                                            <label key={c} className='flex items-center gap-2 text-sm'>
-                                                <Checkbox
-                                                    checked={filters.selectedCompanies.includes(c)}
-                                                    onCheckedChange={(checked) => {
-                                                        if (checked) {
-                                                            onFilterChange('selectedCompanies', [...filters.selectedCompanies, c]);
-                                                        } else {
-                                                            onFilterChange(
-                                                                'selectedCompanies',
-                                                                filters.selectedCompanies.filter((x) => x !== c)
-                                                            );
-                                                        }
-                                                    }}
-                                                />
-                                                <span>{c}</span>
-                                            </label>
-                                        ))}
+                                        .map((c) => {
+                                            const checkboxId = `company-${c}`;
+                                            return (
+                                                <label key={c} htmlFor={checkboxId} className='flex items-center gap-2 text-sm'>
+                                                    <Checkbox
+                                                        id={checkboxId}
+                                                        checked={filters.selectedCompanies.includes(c)}
+                                                        onCheckedChange={(checked) => {
+                                                            if (checked) {
+                                                                onFilterChange('selectedCompanies', [...filters.selectedCompanies, c]);
+                                                            } else {
+                                                                onFilterChange(
+                                                                    'selectedCompanies',
+                                                                    filters.selectedCompanies.filter((x) => x !== c)
+                                                                );
+                                                            }
+                                                        }}
+                                                    />
+                                                    <span>{c}</span>
+                                                </label>
+                                            );
+                                        })}
                                 </div>
                             </div>
                         </div>

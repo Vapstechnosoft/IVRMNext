@@ -8,13 +8,13 @@ import { useMasterDriverShift } from '@/hooks/hrms/attendance-management/useMast
 import { Plus, X } from 'lucide-react';
 import { use } from 'react';
 import AddMasterDriverShiftForm from './_components/add-form';
-import { driverShiftColumns, type DriverShift } from './_components/columns';
+import { type DriverShift, driverShiftColumns } from './_components/columns';
 import UpdateMasterDriverShiftForm from './_components/update-form';
 
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 
 export default function MasterDriverShiftPage(props: { searchParams: SearchParams }) {
-    const searchParams = use(props.searchParams);
+    const _searchParams = use(props.searchParams);
     const { data: response, isLoading, error } = useMasterDriverShift();
 
     return (
@@ -81,15 +81,8 @@ function MasterDriverShiftPageContent({
 }
 
 function FormSections() {
-    const {
-        isAddFormOpen,
-        isEditFormOpen,
-        selectedRow,
-        closeAddForm,
-        closeEditForm,
-        addFormRef,
-        editFormRef
-    } = useFormContext<DriverShift>();
+    const { isAddFormOpen, isEditFormOpen, selectedRow, closeAddForm, closeEditForm, addFormRef, editFormRef } =
+        useFormContext<DriverShift>();
 
     return (
         <>

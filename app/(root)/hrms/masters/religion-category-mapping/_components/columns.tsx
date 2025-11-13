@@ -8,7 +8,6 @@ import { useReligionCategoryMappingCRUD } from '@/hooks/hrms/useMasters';
 import type { ReligionCategoryMappingDetail, ReligionCategoryMappingResponse } from '@/types/hrms/religion-category-mapping';
 import type { ColumnDef } from '@tanstack/react-table';
 import { useCallback } from 'react';
-import { toast } from 'sonner';
 
 export const religionCategoryMappingColumns: ColumnDef<ReligionCategoryMappingDetail>[] = [
     {

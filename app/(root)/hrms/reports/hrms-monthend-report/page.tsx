@@ -8,8 +8,8 @@ import { type BaseEntity, createLocalCrud } from '@/lib/localdb';
 import { Building, Calculator, Download, Printer, TrendingUp, UserCheck, Users } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';
-import { HRMSMonthEndFilters, type FilterOptions, type MonthEndFilters } from './_components/filters';
-import { monthEndReportColumns, type MonthEndRecord as MonthEndRecordColumn } from './_components/columns';
+import { type MonthEndRecord as MonthEndRecordColumn, monthEndReportColumns } from './_components/columns';
+import { type FilterOptions, HRMSMonthEndFilters, type MonthEndFilters } from './_components/filters';
 
 // Month End Report data structure
 interface MonthEndRecord extends BaseEntity {
@@ -50,7 +50,6 @@ interface MonthEndSummary {
     totalNetSalary: number;
     averageNetSalary: number;
 }
-
 
 export default function HRMSMonthEndReportPage() {
     // Database instances
@@ -354,7 +353,6 @@ export default function HRMSMonthEndReportPage() {
 
         return summary;
     }, [filteredRecords]);
-
 
     return (
         <div className='space-y-6'>

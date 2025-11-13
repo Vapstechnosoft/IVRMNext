@@ -52,34 +52,21 @@ function ActionButtonsCell({ rowData }: { rowData: DepartmentDetail }) {
 
     const handleToggle = useCallback(
         async (data: DepartmentDetail, newState: boolean) => {
-            console.log('🔵 [TOGGLE] handleToggle called');
-            console.log('🔵 [TOGGLE] Record ID:', data.HRMD_Id);
-            console.log('🔵 [TOGGLE] Record Name:', data.HRMD_DepartmentName);
-            console.log('🔵 [TOGGLE] Current State:', data.HRMD_ActiveFlag);
-            console.log('🔵 [TOGGLE] New State:', newState);
-            
             try {
-                console.log('🟡 [TOGGLE] Calling toggleMutation.mutateAsync...');
                 const result = await toggleMutation.mutateAsync({
                     HRMD_Id: data.HRMD_Id,
                     HRMD_ActiveFlag: newState
                 });
-                
-                console.log('🟢 [TOGGLE] Toggle result:', result);
-                
+
                 // Check if the record is mapped/in use
                 const retrunMsg = (result as any)?.retrunMsg || '';
-                console.log('🟢 [TOGGLE] retrunMsg:', retrunMsg);
-                
+
                 if (retrunMsg === 'Mapped') {
-                    console.log('⚠️ [TOGGLE] Record is mapped - cannot deactivate');
                     toast.error('Cannot deactivate - Department is currently assigned/in use');
                 } else {
-                    console.log('✅ [TOGGLE] Success! Message: Department ' + (newState ? 'activated' : 'deactivated') + ' successfully');
                     toast.success(`Department ${newState ? 'activated' : 'deactivated'} successfully`);
                 }
-            } catch (error) {
-                console.log('🔴 [TOGGLE] Error:', error);
+            } catch (_error) {
                 toast.error(`Failed to ${newState ? 'activate' : 'deactivate'} department`);
             }
         },

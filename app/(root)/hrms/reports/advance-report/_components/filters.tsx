@@ -30,13 +30,7 @@ interface AdvanceReportFiltersProps {
     onCancel: () => void;
 }
 
-export function AdvanceReportFilters({
-    filters,
-    filterOptions,
-    onFilterChange,
-    onSearch,
-    onCancel
-}: AdvanceReportFiltersProps) {
+export function AdvanceReportFilters({ filters, filterOptions, onFilterChange, onSearch, onCancel }: AdvanceReportFiltersProps) {
     const [currentYear, setCurrentYear] = useState<number | null>(null);
 
     useEffect(() => {
@@ -145,7 +139,9 @@ export function AdvanceReportFilters({
                                 <Checkbox
                                     id={`dept-${department}`}
                                     checked={filters.selectedDepartments.includes(department)}
-                                    onCheckedChange={(checked) => handleCheckboxChange('selectedDepartments', department, checked as boolean)}
+                                    onCheckedChange={(checked) =>
+                                        handleCheckboxChange('selectedDepartments', department, checked as boolean)
+                                    }
                                 />
                                 <label htmlFor={`dept-${department}`} className='cursor-pointer text-sm'>
                                     {department}
@@ -177,7 +173,9 @@ export function AdvanceReportFilters({
                                 <Checkbox
                                     id={`desig-${designation}`}
                                     checked={filters.selectedDesignations.includes(designation)}
-                                    onCheckedChange={(checked) => handleCheckboxChange('selectedDesignations', designation, checked as boolean)}
+                                    onCheckedChange={(checked) =>
+                                        handleCheckboxChange('selectedDesignations', designation, checked as boolean)
+                                    }
                                 />
                                 <label htmlFor={`desig-${designation}`} className='cursor-pointer text-sm'>
                                     {designation}
@@ -260,4 +258,3 @@ export function AdvanceReportFilters({
         </div>
     );
 }
-

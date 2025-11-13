@@ -95,9 +95,7 @@ export function HeadWiseReportFilters({
                         <span className='font-medium text-foreground text-sm'>
                             Month: <span className='text-red-500'>*</span>
                         </span>
-                        <Select
-                            value={filters.month}
-                            onValueChange={(value) => onFilterChange({ ...filters, month: value })}>
+                        <Select value={filters.month} onValueChange={(value) => onFilterChange({ ...filters, month: value })}>
                             <SelectTrigger>
                                 <SelectValue placeholder='Select' />
                             </SelectTrigger>
@@ -171,4 +169,3 @@ export function HeadWiseReportFilters({
         </CollapsibleSection>
     );
 }
-

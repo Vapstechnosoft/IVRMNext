@@ -3,9 +3,8 @@
 import { Button } from '@/components/ui/button';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Search, X } from 'lucide-react';
+import type { BaseEntity } from '@/lib/localdb';
 import { useEffect, useState } from 'react';
-import { type BaseEntity } from '@/lib/localdb';
 
 export interface GroupType extends BaseEntity {
     groupType: string;
@@ -235,7 +234,9 @@ export function SalaryCertificateFilters({
                         <label htmlFor='employee-select' className='font-medium text-foreground text-sm'>
                             Employee: <span className='text-red-500'>*</span>
                         </label>
-                        <Select value={filters.selectedEmployee} onValueChange={(value) => handleInternalFilterChange('selectedEmployee', value)}>
+                        <Select
+                            value={filters.selectedEmployee}
+                            onValueChange={(value) => handleInternalFilterChange('selectedEmployee', value)}>
                             <SelectTrigger id='employee-select'>
                                 <SelectValue placeholder='Select' />
                             </SelectTrigger>
@@ -263,4 +264,3 @@ export function SalaryCertificateFilters({
         </CollapsibleSection>
     );
 }
-

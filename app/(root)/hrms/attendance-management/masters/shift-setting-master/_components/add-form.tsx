@@ -3,7 +3,7 @@
 import { Button } from '@/components/ui/button';
 import { FormError } from '@/components/ui/extension/field';
 import { InputText } from '@/components/ui/extension/input-text';
-import { useShiftSettingMaster, useSaveShiftSettingMaster } from '@/hooks/hrms/attendance-management/useMasters';
+import { useSaveShiftSettingMaster, useShiftSettingMaster } from '@/hooks/hrms/attendance-management/useMasters';
 import { shiftSettingMasterSchema } from '@/schemas/hrms/attendance-management-schemas';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Save } from 'lucide-react';
@@ -243,4 +243,3 @@ export default function AddShiftSettingMasterForm({ onSuccess, className = '' }:
         </div>
     );
 }
-

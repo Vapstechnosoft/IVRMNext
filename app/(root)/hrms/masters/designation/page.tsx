@@ -19,25 +19,59 @@ type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 
 export default function MasterDesignationPage(props: { searchParams: SearchParams }) {
     const rawSearchParams = use(props.searchParams);
-    
+
     // Convert Next.js searchParams (string | string[]) to ApiSearchparams format
     // This matches how preadmission and other master modules handle it
     const searchParams: ApiSearchparams = {
-        page: typeof rawSearchParams?.page === 'string' ? parseInt(rawSearchParams.page, 10) : Array.isArray(rawSearchParams?.page) ? parseInt(rawSearchParams.page[0], 10) : typeof rawSearchParams?.page === 'number' ? rawSearchParams.page : undefined,
-        page_size: typeof rawSearchParams?.page_size === 'string' ? parseInt(rawSearchParams.page_size, 10) : Array.isArray(rawSearchParams?.page_size) ? parseInt(rawSearchParams.page_size[0], 10) : typeof rawSearchParams?.page_size === 'number' ? rawSearchParams.page_size : undefined,
-        search_query: typeof rawSearchParams?.search_query === 'string' ? rawSearchParams.search_query : Array.isArray(rawSearchParams?.search_query) ? rawSearchParams.search_query[0] : undefined,
-        search_column: typeof rawSearchParams?.search_column === 'string' ? rawSearchParams.search_column : Array.isArray(rawSearchParams?.search_column) ? rawSearchParams.search_column[0] : undefined,
-        sort_column: typeof rawSearchParams?.sort_column === 'string' ? rawSearchParams.sort_column : Array.isArray(rawSearchParams?.sort_column) ? rawSearchParams.sort_column[0] : undefined,
-        sort_direction: typeof rawSearchParams?.sort_direction === 'string' ? rawSearchParams.sort_direction : Array.isArray(rawSearchParams?.sort_direction) ? rawSearchParams.sort_direction[0] : undefined
+        page:
+            typeof rawSearchParams?.page === 'string'
+                ? Number.parseInt(rawSearchParams.page, 10)
+                : Array.isArray(rawSearchParams?.page)
+                  ? Number.parseInt(rawSearchParams.page[0], 10)
+                  : typeof rawSearchParams?.page === 'number'
+                    ? rawSearchParams.page
+                    : undefined,
+        page_size:
+            typeof rawSearchParams?.page_size === 'string'
+                ? Number.parseInt(rawSearchParams.page_size, 10)
+                : Array.isArray(rawSearchParams?.page_size)
+                  ? Number.parseInt(rawSearchParams.page_size[0], 10)
+                  : typeof rawSearchParams?.page_size === 'number'
+                    ? rawSearchParams.page_size
+                    : undefined,
+        search_query:
+            typeof rawSearchParams?.search_query === 'string'
+                ? rawSearchParams.search_query
+                : Array.isArray(rawSearchParams?.search_query)
+                  ? rawSearchParams.search_query[0]
+                  : undefined,
+        search_column:
+            typeof rawSearchParams?.search_column === 'string'
+                ? rawSearchParams.search_column
+                : Array.isArray(rawSearchParams?.search_column)
+                  ? rawSearchParams.search_column[0]
+                  : undefined,
+        sort_column:
+            typeof rawSearchParams?.sort_column === 'string'
+                ? rawSearchParams.sort_column
+                : Array.isArray(rawSearchParams?.sort_column)
+                  ? rawSearchParams.sort_column[0]
+                  : undefined,
+        sort_direction:
+            typeof rawSearchParams?.sort_direction === 'string'
+                ? rawSearchParams.sort_direction
+                : Array.isArray(rawSearchParams?.sort_direction)
+                  ? rawSearchParams.sort_direction[0]
+                  : undefined
     };
-    
+
     const { listQuery, refetchAll } = useMasterDesignation(HRMS_MI_ID, searchParams);
 
     return (
         <FormProvider<DesignationDetail>>
-            <MasterDesignationPageContent 
-                response={listQuery.data} 
-                isLoading={listQuery.isLoading} 
+            <MasterDesignationPageContent
+                response={listQuery.data}
+                isLoading={listQuery.isLoading}
                 error={listQuery.error}
                 refetch={refetchAll}
             />
@@ -189,11 +223,11 @@ function FormSections({ refetch }: { refetch: () => void }) {
                                 className='-top-[3.5rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
                                 <X className='h-4 w-4 text-destructive' /> Close
                             </Button>
-                            <DesignationForm 
+                            <DesignationForm
                                 onSuccess={() => {
                                     closeAddForm();
                                     refetch();
-                                }} 
+                                }}
                             />
                         </div>
                     </CollapsibleSection>
@@ -217,12 +251,12 @@ function FormSections({ refetch }: { refetch: () => void }) {
                                 className='-top-[3.5rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
                                 <X className='h-4 w-4 text-destructive' /> Close
                             </Button>
-                            <DesignationForm 
-                                selectedRow={selectedRow} 
+                            <DesignationForm
+                                selectedRow={selectedRow}
                                 onSuccess={() => {
                                     closeEditForm();
                                     refetch();
-                                }} 
+                                }}
                             />
                         </div>
                     </CollapsibleSection>

@@ -122,4 +122,3 @@ export const monthEndReportColumns: ColumnDef<MonthEndRecord>[] = [
         enableHiding: true
     }
 ];
-

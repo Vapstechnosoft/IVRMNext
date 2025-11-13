@@ -8,8 +8,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useLeaveCredit, useUpdateLeaveCredit } from '@/hooks/hrms/leave-management/useTransactions';
 import { Save } from 'lucide-react';
-import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
 import { useEffect, useState } from 'react';
+import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
 import type { LeaveCredit } from './columns';
 
 interface UpdateLeaveCreditFormProps {
@@ -82,7 +82,10 @@ export default function UpdateLeaveCreditForm({ onSuccess, className = '', selec
         if (checked) {
             setValue('type', [...currentTypes, type]);
         } else {
-            setValue('type', currentTypes.filter((t) => t !== type));
+            setValue(
+                'type',
+                currentTypes.filter((t) => t !== type)
+            );
         }
     };
 
@@ -91,7 +94,10 @@ export default function UpdateLeaveCreditForm({ onSuccess, className = '', selec
         if (checked) {
             setValue('department', [...currentDepts, dept]);
         } else {
-            setValue('department', currentDepts.filter((d) => d !== dept));
+            setValue(
+                'department',
+                currentDepts.filter((d) => d !== dept)
+            );
         }
     };
 
@@ -100,7 +106,10 @@ export default function UpdateLeaveCreditForm({ onSuccess, className = '', selec
         if (checked) {
             setValue('designation', [...currentDesigs, desig]);
         } else {
-            setValue('designation', currentDesigs.filter((d) => d !== desig));
+            setValue(
+                'designation',
+                currentDesigs.filter((d) => d !== desig)
+            );
         }
     };
 
@@ -326,24 +335,17 @@ export default function UpdateLeaveCreditForm({ onSuccess, className = '', selec
                 </TabsContent>
 
                 <TabsContent value='Leave Addition' className='space-y-4'>
-                    <div className='py-8 text-center text-gray-500'>
-                        Leave Addition functionality will be implemented here
-                    </div>
+                    <div className='py-8 text-center text-gray-500'>Leave Addition functionality will be implemented here</div>
                 </TabsContent>
 
                 <TabsContent value='Leave Deduction' className='space-y-4'>
-                    <div className='py-8 text-center text-gray-500'>
-                        Leave Deduction functionality will be implemented here
-                    </div>
+                    <div className='py-8 text-center text-gray-500'>Leave Deduction functionality will be implemented here</div>
                 </TabsContent>
 
                 <TabsContent value='Leave CarryForward' className='space-y-4'>
-                    <div className='py-8 text-center text-gray-500'>
-                        Leave CarryForward functionality will be implemented here
-                    </div>
+                    <div className='py-8 text-center text-gray-500'>Leave CarryForward functionality will be implemented here</div>
                 </TabsContent>
             </Tabs>
         </div>
     );
 }
-

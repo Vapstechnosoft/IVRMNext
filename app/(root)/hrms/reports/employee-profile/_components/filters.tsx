@@ -2,11 +2,11 @@
 
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
-import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { InputText } from '@/components/ui/extension/input-text';
+import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { MultiSelect } from '@/components/ui/multi-select';
-import { Search, X } from 'lucide-react';
 import type { EmployeeDropdown } from '@/types/hrms/reports/employee-profile-report';
+import { Search, X } from 'lucide-react';
 
 interface EmployeeProfileFiltersProps {
     groupTypes: Array<{ HRMGT_Id: number; HRMGT_EmployeeGroupType: string }>;
@@ -189,4 +189,3 @@ export function EmployeeProfileFilters({
         </CollapsibleSection>
     );
 }
-

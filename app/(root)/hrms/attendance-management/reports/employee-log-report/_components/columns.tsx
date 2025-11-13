@@ -1,8 +1,8 @@
 'use client';
 
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
-import type { ColumnDef } from '@tanstack/react-table';
 import type { BaseEntity } from '@/lib/localdb';
+import type { ColumnDef } from '@tanstack/react-table';
 
 export interface LogRow extends BaseEntity {
     type: string;

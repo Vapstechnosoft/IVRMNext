@@ -85,4 +85,3 @@ export function PFForm3AFilters({ filters, employees, onFilterChange, onGenerate
         </CollapsibleSection>
     );
 }
-

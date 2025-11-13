@@ -28,7 +28,7 @@ export const columns: ColumnDef<MasterLoanDetail>[] = [
     },
     {
         id: 'actions',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Actions' className='text-start whitespace-nowrap' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Actions' className='whitespace-nowrap text-start' />,
         cell: ({ row }) => <ActionButtonsCell rowData={row.original} />,
         enableSorting: false
     }
@@ -40,12 +40,6 @@ function ActionButtonsCell({ rowData }: { rowData: MasterLoanDetail }) {
 
     const handleEdit = useCallback(
         (data: MasterLoanDetail) => {
-            console.log('🔵 [LOAN COLUMNS] handleEdit called');
-            console.log('🔵 [COLUMNS] Edit button clicked for row:', JSON.stringify(data, null, 2));
-            console.log('🔵 [COLUMNS] HRMLN_Id:', data.HRMLN_Id);
-            console.log('🔵 [COLUMNS] HRML_LoanType:', data.HRML_LoanType);
-            console.log('🔵 [COLUMNS] HRML_Max:', data.HRML_Max);
-            console.log('🔵 [COLUMNS] Calling openEditForm...');
             openEditForm(data as any);
         },
         [openEditForm]
@@ -53,32 +47,25 @@ function ActionButtonsCell({ rowData }: { rowData: MasterLoanDetail }) {
 
     const handleToggle = useCallback(
         async (data: MasterLoanDetail, newState: boolean) => {
-            console.log('🔵 [LOAN COLUMNS] handleToggle called');
-            console.log('🔵 [COLUMNS] Toggle data:', { HRMLN_Id: data.HRMLN_Id, currentState: data.HRMLN_ActiveFlag, newState });
-            
             try {
                 const result = await toggleMutation.mutateAsync({
                     HRMLN_Id: data.HRMLN_Id,
                     HRMLN_ActiveFlag: newState,
                     MI_Id: HRMS_MI_ID
                 });
-                console.log('🟢 [COLUMNS] Toggle success:', result);
-                
+
                 // Check if loan is mapped/in use
                 if (result && typeof result === 'object' && 'retrunMsg' in result) {
                     const retrunMsg = (result as any).retrunMsg;
-                    console.log('📝 [COLUMNS] retrunMsg:', retrunMsg);
-                    
+
                     if (retrunMsg === 'Mapped') {
-                        console.log('⚠️ [COLUMNS] Loan is mapped/in use');
                         toast.error('Cannot deactivate - Loan type is currently assigned/in use');
                         return;
                     }
                 }
-                
+
                 toast.success(`Loan ${newState ? 'activated' : 'deactivated'} successfully`);
-            } catch (error: any) {
-                console.log('🔴 [COLUMNS] Toggle error:', error);
+            } catch (_error: any) {
                 toast.error(`Failed to ${newState ? 'activate' : 'deactivate'} loan`);
             }
         },

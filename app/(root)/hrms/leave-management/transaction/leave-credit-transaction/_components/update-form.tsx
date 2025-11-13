@@ -2,14 +2,13 @@
 
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
-import { FormError } from '@/components/ui/extension/field';
 import { InputText } from '@/components/ui/extension/input-text';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useLeaveCreditTransaction, useUpdateLeaveCreditTransaction } from '@/hooks/hrms/leave-management/useTransactions';
 import { Save } from 'lucide-react';
-import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
 import { useEffect } from 'react';
+import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
 import type { LeaveCreditTransaction } from './columns';
 
 interface UpdateLeaveCreditTransactionFormProps {
@@ -31,7 +30,11 @@ const designationOptions = [
 const employeeOptions = ['Steffi Halian', 'Shruthi NA', 'Bindhushree N', 'Chaithra NS', 'Balu Prabhakar'];
 const leaveNames = ['CL', 'SL', 'PL', 'LWP', 'OD'];
 
-export default function UpdateLeaveCreditTransactionForm({ onSuccess, className = '', selectedRow: row }: UpdateLeaveCreditTransactionFormProps) {
+export default function UpdateLeaveCreditTransactionForm({
+    onSuccess,
+    className = '',
+    selectedRow: row
+}: UpdateLeaveCreditTransactionFormProps) {
     const { refetchAll } = useLeaveCreditTransaction();
     const { mutate: updateTransaction, isPending } = useUpdateLeaveCreditTransaction();
 
@@ -83,7 +86,11 @@ export default function UpdateLeaveCreditTransactionForm({ onSuccess, className 
     const toggleMulti = (field: 'type' | 'department' | 'designation', value: string, checked: boolean) => {
         const current = watch(field);
         if (checked) setValue(field, [...current, value]);
-        else setValue(field, current.filter((v: string) => v !== value));
+        else
+            setValue(
+                field,
+                current.filter((v: string) => v !== value)
+            );
     };
 
     const handleReset = () => {
@@ -215,12 +222,7 @@ export default function UpdateLeaveCreditTransactionForm({ onSuccess, className 
                             <Controller
                                 name='lossOfPay'
                                 control={control}
-                                render={({ field }) => (
-                                    <Checkbox
-                                        checked={field.value}
-                                        onCheckedChange={field.onChange}
-                                    />
-                                )}
+                                render={({ field }) => <Checkbox checked={field.value} onCheckedChange={field.onChange} />}
                             />
                             <span className='text-sm'>Loss of Pay</span>
                         </div>
@@ -274,4 +276,3 @@ export default function UpdateLeaveCreditTransactionForm({ onSuccess, className 
         </div>
     );
 }
-

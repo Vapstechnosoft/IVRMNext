@@ -8,13 +8,13 @@ import { useEmployeeMissingLogs } from '@/hooks/hrms/attendance-management/useMa
 import { Plus, X } from 'lucide-react';
 import { use } from 'react';
 import AddEmployeeMissingLogForm from './_components/add-form';
-import { missingLogColumns, type MissingLog } from './_components/columns';
+import { type MissingLog, missingLogColumns } from './_components/columns';
 import UpdateEmployeeMissingLogForm from './_components/update-form';
 
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 
 export default function EmployeeMissingLogsPage(props: { searchParams: SearchParams }) {
-    const searchParams = use(props.searchParams);
+    const _searchParams = use(props.searchParams);
     const { data: response, isLoading, error } = useEmployeeMissingLogs();
 
     return (
@@ -81,15 +81,8 @@ function EmployeeMissingLogsPageContent({
 }
 
 function FormSections() {
-    const {
-        isAddFormOpen,
-        isEditFormOpen,
-        selectedRow,
-        closeAddForm,
-        closeEditForm,
-        addFormRef,
-        editFormRef
-    } = useFormContext<MissingLog>();
+    const { isAddFormOpen, isEditFormOpen, selectedRow, closeAddForm, closeEditForm, addFormRef, editFormRef } =
+        useFormContext<MissingLog>();
 
     return (
         <>

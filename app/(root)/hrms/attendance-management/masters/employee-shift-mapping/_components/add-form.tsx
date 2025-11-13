@@ -11,7 +11,7 @@ interface AddEmployeeShiftMappingFormProps {
 
 export default function AddEmployeeShiftMappingForm({ onSuccess, className = '' }: AddEmployeeShiftMappingFormProps) {
     const { refetchAll } = useEmployeeShiftMapping();
-    const { mutate: saveMapping, isPending } = useSaveEmployeeShiftMapping();
+    const { mutate: saveMapping } = useSaveEmployeeShiftMapping();
 
     const handleSubmit = (data: EmployeeShiftMappingForm) => {
         const dayTypeValue = Array.isArray(data.dayType) ? data.dayType[0] || '' : data.dayType || '';
@@ -60,4 +60,3 @@ export default function AddEmployeeShiftMappingForm({ onSuccess, className = '' 
         </div>
     );
 }
-

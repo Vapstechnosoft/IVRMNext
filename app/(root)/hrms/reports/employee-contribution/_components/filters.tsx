@@ -10,7 +10,7 @@ import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
 import { CalendarIcon, Search, X } from 'lucide-react';
 import { useEffect, useState } from 'react';
-import { GroupType, Department, Designation } from './columns';
+import type { Department, Designation, GroupType } from './columns';
 
 export interface ContributionReportFilters {
     groupType: string;
@@ -233,7 +233,9 @@ export function EmployeeContributionFilters({
                             <Label htmlFor='month' className='font-medium text-foreground text-sm'>
                                 Month
                             </Label>
-                            <Select value={filters.selectedMonth} onValueChange={(value) => handleInternalFilterChange('selectedMonth', value)}>
+                            <Select
+                                value={filters.selectedMonth}
+                                onValueChange={(value) => handleInternalFilterChange('selectedMonth', value)}>
                                 <SelectTrigger id='month'>
                                     <SelectValue placeholder='Select Month' />
                                 </SelectTrigger>
@@ -263,7 +265,9 @@ export function EmployeeContributionFilters({
                             <Label htmlFor='year' className='font-medium text-foreground text-sm'>
                                 Year
                             </Label>
-                            <Select value={filters.selectedYear} onValueChange={(value) => handleInternalFilterChange('selectedYear', value)}>
+                            <Select
+                                value={filters.selectedYear}
+                                onValueChange={(value) => handleInternalFilterChange('selectedYear', value)}>
                                 <SelectTrigger id='year'>
                                     <SelectValue placeholder='Select Year' />
                                 </SelectTrigger>
@@ -289,7 +293,10 @@ export function EmployeeContributionFilters({
                                 <PopoverTrigger asChild>
                                     <Button
                                         variant='outline'
-                                        className={cn('w-full justify-start text-left font-normal', !filters.fromDate && 'text-muted-foreground')}>
+                                        className={cn(
+                                            'w-full justify-start text-left font-normal',
+                                            !filters.fromDate && 'text-muted-foreground'
+                                        )}>
                                         <CalendarIcon className='mr-2 h-4 w-4' />
                                         {filters.fromDate ? format(filters.fromDate, 'dd-MM-yyyy') : <span>Select date</span>}
                                     </Button>
@@ -310,7 +317,10 @@ export function EmployeeContributionFilters({
                                 <PopoverTrigger asChild>
                                     <Button
                                         variant='outline'
-                                        className={cn('w-full justify-start text-left font-normal', !filters.toDate && 'text-muted-foreground')}>
+                                        className={cn(
+                                            'w-full justify-start text-left font-normal',
+                                            !filters.toDate && 'text-muted-foreground'
+                                        )}>
                                         <CalendarIcon className='mr-2 h-4 w-4' />
                                         {filters.toDate ? format(filters.toDate, 'dd-MM-yyyy') : <span>Select date</span>}
                                     </Button>
@@ -342,4 +352,3 @@ export function EmployeeContributionFilters({
         </CollapsibleSection>
     );
 }
-

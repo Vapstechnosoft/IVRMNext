@@ -2,13 +2,18 @@
 
 import { Button } from '@/components/ui/button';
 import { DataTable } from '@/components/ui/data-table/data-table';
-import { type BaseEntity, createLocalCrud } from '@/lib/localdb';
+import { createLocalCrud } from '@/lib/localdb';
 import { Download, Printer } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';
-import { EmployeeContributionFilters, type ContributionReportFilters } from './_components/filters';
-import { employeeContributionColumns, type EmployeeContribution, type GroupType, type Department, type Designation } from './_components/columns';
-
+import {
+    type Department,
+    type Designation,
+    type EmployeeContribution,
+    type GroupType,
+    employeeContributionColumns
+} from './_components/columns';
+import { type ContributionReportFilters, EmployeeContributionFilters } from './_components/filters';
 
 export default function EmployeeContributionReportPage() {
     // Database instances
@@ -267,7 +272,6 @@ export default function EmployeeContributionReportPage() {
             }
         );
     }, [filteredContributions]);
-
 
     return (
         <div className='space-y-6'>

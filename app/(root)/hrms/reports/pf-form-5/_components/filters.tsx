@@ -108,4 +108,3 @@ export function PFForm5Filters({ filters, onFilterChange, onGenerate, onCancel }
         </CollapsibleSection>
     );
 }
-

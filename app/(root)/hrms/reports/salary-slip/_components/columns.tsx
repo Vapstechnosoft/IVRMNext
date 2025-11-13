@@ -20,10 +20,7 @@ interface SalarySlipColumnsProps {
     onSelectEmployee: (employeeId: number, checked: boolean) => void;
 }
 
-export const getSalarySlipColumns = ({
-    onSelectAll,
-    onSelectEmployee
-}: SalarySlipColumnsProps): ColumnDef<EmployeeSalarySlipDisplay>[] => [
+export const getSalarySlipColumns = ({ onSelectAll, onSelectEmployee }: SalarySlipColumnsProps): ColumnDef<EmployeeSalarySlipDisplay>[] => [
     {
         id: 'select',
         header: ({ table }) => (
@@ -75,4 +72,3 @@ export const getSalarySlipColumns = ({
         enableHiding: true
     }
 ];
-

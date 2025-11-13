@@ -7,7 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { X } from 'lucide-react';
 import { type SubmitHandler, useForm } from 'react-hook-form';
-import { MONTHS, type LeaveCreditDetail } from './columns';
+import { type LeaveCreditDetail, MONTHS } from './columns';
 
 interface LeaveCreditDetailsFormProps {
     editingRow: LeaveCreditDetail | null;

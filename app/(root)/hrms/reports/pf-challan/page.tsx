@@ -8,8 +8,8 @@ import { type BaseEntity, createLocalCrud } from '@/lib/localdb';
 import { Calculator, Download, FileText, Printer } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';
+import { type PFChallanRecord as PFChallanRecordColumn, pfChallanColumns } from './_components/columns';
 import { PFChallanFilters, type PFChallanFilters as PFChallanFiltersType } from './_components/filters';
-import { pfChallanColumns, type PFChallanRecord as PFChallanRecordColumn } from './_components/columns';
 
 // PF challan data structure
 interface PFChallanRecord extends BaseEntity {
@@ -39,7 +39,6 @@ interface PFChallanSummary {
     totalAdminCharges: number;
     grandTotal: number;
 }
-
 
 export default function PFChallanPage() {
     // Database instances
@@ -210,7 +209,6 @@ export default function PFChallanPage() {
             }
         );
     }, [filteredRecords]);
-
 
     return (
         <div className='space-y-6'>

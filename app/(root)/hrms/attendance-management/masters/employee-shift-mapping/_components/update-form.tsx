@@ -1,9 +1,9 @@
 'use client';
 
 import { useEmployeeShiftMapping, useSaveEmployeeShiftMapping } from '@/hooks/hrms/attendance-management/useMasters';
+import type { EmployeeShiftMapping } from './columns';
 import { ShiftMappingForm } from './shift-mapping-form';
 import type { EmployeeShiftMappingForm } from './shift-mapping-form';
-import type { EmployeeShiftMapping } from './columns';
 
 interface UpdateEmployeeShiftMappingFormProps {
     onSuccess?: () => void;
@@ -11,9 +11,13 @@ interface UpdateEmployeeShiftMappingFormProps {
     selectedRow: EmployeeShiftMapping;
 }
 
-export default function UpdateEmployeeShiftMappingForm({ onSuccess, className = '', selectedRow: row }: UpdateEmployeeShiftMappingFormProps) {
+export default function UpdateEmployeeShiftMappingForm({
+    onSuccess,
+    className = '',
+    selectedRow: row
+}: UpdateEmployeeShiftMappingFormProps) {
     const { refetchAll } = useEmployeeShiftMapping();
-    const { mutate: saveMapping, isPending } = useSaveEmployeeShiftMapping();
+    const { mutate: saveMapping } = useSaveEmployeeShiftMapping();
 
     const editingMapping: EmployeeShiftMappingForm = {
         type: Array.isArray(row.type) ? row.type : row.type ? [row.type] : [],
@@ -82,4 +86,3 @@ export default function UpdateEmployeeShiftMappingForm({ onSuccess, className = 
         </div>
     );
 }
-

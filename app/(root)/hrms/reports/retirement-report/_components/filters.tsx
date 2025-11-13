@@ -2,8 +2,8 @@
 
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
-import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { DatePickerWithYear } from '@/components/ui/date-picker-year';
+import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { cn } from '@/lib/utils';
@@ -89,7 +89,10 @@ export function RetirementReportFilters({
                     {/* Format Selection */}
                     <div className='space-y-3'>
                         <span className='font-medium text-foreground text-sm'>Format:</span>
-                        <RadioGroup value={filters.format} onValueChange={(value) => onFilterChange('format', value)} className='flex gap-4'>
+                        <RadioGroup
+                            value={filters.format}
+                            onValueChange={(value) => onFilterChange('format', value)}
+                            className='flex gap-4'>
                             <div className='flex items-center space-x-2'>
                                 <RadioGroupItem value='format1' id='format1' />
                                 <label htmlFor='format1' className='cursor-pointer text-sm'>
@@ -143,13 +146,21 @@ export function RetirementReportFilters({
                                 <PopoverTrigger asChild>
                                     <Button
                                         variant='outline'
-                                        className={cn('w-[140px] justify-start text-left font-normal', !filters.fromDate && 'text-muted-foreground')}>
+                                        className={cn(
+                                            'w-[140px] justify-start text-left font-normal',
+                                            !filters.fromDate && 'text-muted-foreground'
+                                        )}>
                                         <CalendarIcon className='mr-2 h-4 w-4' />
                                         {filters.fromDate ? format(filters.fromDate, 'dd-MM-yyyy') : '17-09-2025'}
                                     </Button>
                                 </PopoverTrigger>
                                 <PopoverContent className='w-auto p-0'>
-                                    <DatePickerWithYear mode='single' selected={filters.fromDate} onDayClick={(day) => onDateChange('fromDate', day)} initialFocus />
+                                    <DatePickerWithYear
+                                        mode='single'
+                                        selected={filters.fromDate}
+                                        onDayClick={(day) => onDateChange('fromDate', day)}
+                                        initialFocus
+                                    />
                                 </PopoverContent>
                             </Popover>
                         </div>
@@ -162,13 +173,21 @@ export function RetirementReportFilters({
                                 <PopoverTrigger asChild>
                                     <Button
                                         variant='outline'
-                                        className={cn('w-[140px] justify-start text-left font-normal', !filters.toDate && 'text-muted-foreground')}>
+                                        className={cn(
+                                            'w-[140px] justify-start text-left font-normal',
+                                            !filters.toDate && 'text-muted-foreground'
+                                        )}>
                                         <CalendarIcon className='mr-2 h-4 w-4' />
                                         {filters.toDate ? format(filters.toDate, 'dd-MM-yyyy') : '17-09-2025'}
                                     </Button>
                                 </PopoverTrigger>
                                 <PopoverContent className='w-auto p-0'>
-                                    <DatePickerWithYear mode='single' selected={filters.toDate} onDayClick={(day) => onDateChange('toDate', day)} initialFocus />
+                                    <DatePickerWithYear
+                                        mode='single'
+                                        selected={filters.toDate}
+                                        onDayClick={(day) => onDateChange('toDate', day)}
+                                        initialFocus
+                                    />
                                 </PopoverContent>
                             </Popover>
                         </div>
@@ -203,7 +222,10 @@ export function RetirementReportFilters({
                     {/* Report Scope */}
                     <div className='space-y-3'>
                         <span className='font-medium text-foreground text-sm'>Report Scope:</span>
-                        <RadioGroup value={filters.reportScope} onValueChange={(value) => onFilterChange('reportScope', value)} className='flex gap-4'>
+                        <RadioGroup
+                            value={filters.reportScope}
+                            onValueChange={(value) => onFilterChange('reportScope', value)}
+                            className='flex gap-4'>
                             <div className='flex items-center space-x-2'>
                                 <RadioGroupItem value='all' id='all' />
                                 <label htmlFor='all' className='cursor-pointer text-sm'>
@@ -235,4 +257,3 @@ export function RetirementReportFilters({
         </CollapsibleSection>
     );
 }
-

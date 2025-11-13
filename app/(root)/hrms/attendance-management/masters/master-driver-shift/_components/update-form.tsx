@@ -1,9 +1,9 @@
 'use client';
 
 import { useMasterDriverShift, useSaveMasterDriverShift } from '@/hooks/hrms/attendance-management/useMasters';
+import type { DriverShift } from './columns';
 import { DriverShiftForm } from './driver-shift-form';
 import type { DriverShiftForm as DriverShiftFormType } from './driver-shift-form';
-import type { DriverShift } from './columns';
 
 interface UpdateMasterDriverShiftFormProps {
     onSuccess?: () => void;
@@ -13,7 +13,7 @@ interface UpdateMasterDriverShiftFormProps {
 
 export default function UpdateMasterDriverShiftForm({ onSuccess, className = '', selectedRow: row }: UpdateMasterDriverShiftFormProps) {
     const { refetchAll } = useMasterDriverShift();
-    const { mutate: saveDriverShift, isPending } = useSaveMasterDriverShift();
+    const { mutate: saveDriverShift } = useSaveMasterDriverShift();
 
     const editingShift: DriverShiftFormType = {
         shift: row.shift || '',
@@ -53,4 +53,3 @@ export default function UpdateMasterDriverShiftForm({ onSuccess, className = '',
         </div>
     );
 }
-

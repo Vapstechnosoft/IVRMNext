@@ -6,8 +6,8 @@ import { FormError } from '@/components/ui/extension/field';
 import { InputText } from '@/components/ui/extension/input-text';
 import { masterShiftSchema } from '@/schemas/hrms/attendance-management-schemas';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { RefreshCw, Save, X } from 'lucide-react';
-import React, { useEffect } from 'react';
+import { RefreshCw, Save } from 'lucide-react';
+import { useEffect } from 'react';
 import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
 import type { z } from 'zod';
 import type { MasterShift } from './columns';
@@ -115,48 +115,32 @@ export function ShiftForm({ editingShift, onSubmit, onCancel }: ShiftFormProps) 
                 <label className='font-medium text-sm' htmlFor='remarks'>
                     Remark <span className='text-red-500'>*</span>
                 </label>
-                <InputText
-                    id='remarks'
-                    placeholder='Enter Name'
-                    {...register('remarks')}
-                    error={errors.remarks?.message}
-                    maxLength={250}
-                />
+                <InputText id='remarks' placeholder='Enter Name' {...register('remarks')} error={errors.remarks?.message} maxLength={250} />
             </div>
 
             <div className='space-y-2'>
-                <label className='font-medium text-sm'>
+                <label htmlFor='startTime' className='font-medium text-sm'>
                     Shift Start Time <span className='text-red-500'>*</span>
                 </label>
                 <Controller
                     name='startTime'
                     control={control}
                     render={({ field }) => (
-                        <TimePicker12Hour
-                            value={field.value}
-                            onChange={field.onChange}
-                            name='startTime'
-                            required
-                        />
+                        <TimePicker12Hour id='startTime' value={field.value} onChange={field.onChange} name='startTime' required />
                     )}
                 />
                 {errors.startTime && <FormError>{errors.startTime.message}</FormError>}
             </div>
 
             <div className='space-y-2'>
-                <label className='font-medium text-sm'>
+                <label htmlFor='endTime' className='font-medium text-sm'>
                     Shift End Time <span className='text-red-500'>*</span>
                 </label>
                 <Controller
                     name='endTime'
                     control={control}
                     render={({ field }) => (
-                        <TimePicker12Hour
-                            value={field.value}
-                            onChange={field.onChange}
-                            name='endTime'
-                            required
-                        />
+                        <TimePicker12Hour id='endTime' value={field.value} onChange={field.onChange} name='endTime' required />
                     )}
                 />
                 {errors.endTime && <FormError>{errors.endTime.message}</FormError>}
@@ -171,8 +155,8 @@ export function ShiftForm({ editingShift, onSubmit, onCancel }: ShiftFormProps) 
 
             <div className='flex justify-end gap-4 border-t pt-6 md:col-span-2'>
                 <Button type='button' variant='outline' onClick={handleCancel}>
-                    <X className='mr-2 h-4 w-4' />
-                    CANCEL
+                    <RefreshCw className='mr-2 h-4 w-4' />
+                    RESET
                 </Button>
                 <Button type='submit' disabled={isSubmitting}>
                     {isSubmitting ? (

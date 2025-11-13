@@ -8,13 +8,13 @@ import { useEmployeeShiftMapping } from '@/hooks/hrms/attendance-management/useM
 import { Plus, X } from 'lucide-react';
 import { use } from 'react';
 import AddEmployeeShiftMappingForm from './_components/add-form';
-import { employeeShiftMappingColumns, type EmployeeShiftMapping } from './_components/columns';
+import { type EmployeeShiftMapping, employeeShiftMappingColumns } from './_components/columns';
 import UpdateEmployeeShiftMappingForm from './_components/update-form';
 
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 
 export default function EmployeeShiftMappingPage(props: { searchParams: SearchParams }) {
-    const searchParams = use(props.searchParams);
+    const _searchParams = use(props.searchParams);
     const { data: response, isLoading, error } = useEmployeeShiftMapping();
 
     return (
@@ -81,15 +81,8 @@ function EmployeeShiftMappingPageContent({
 }
 
 function FormSections() {
-    const {
-        isAddFormOpen,
-        isEditFormOpen,
-        selectedRow,
-        closeAddForm,
-        closeEditForm,
-        addFormRef,
-        editFormRef
-    } = useFormContext<EmployeeShiftMapping>();
+    const { isAddFormOpen, isEditFormOpen, selectedRow, closeAddForm, closeEditForm, addFormRef, editFormRef } =
+        useFormContext<EmployeeShiftMapping>();
 
     return (
         <>

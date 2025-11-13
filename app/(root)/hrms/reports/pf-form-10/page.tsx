@@ -8,8 +8,8 @@ import { type BaseEntity, createLocalCrud } from '@/lib/localdb';
 import { Calculator, Download, FileText, Printer } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';
-import { PFForm10Filters, type Form10Filters } from './_components/filters';
-import { form10Columns, type Form10Record as Form10RecordColumn } from './_components/columns';
+import { type Form10Record as Form10RecordColumn, form10Columns } from './_components/columns';
+import { type Form10Filters, PFForm10Filters } from './_components/filters';
 
 // Form 10 data structure (Annual PF Statement)
 interface Form10Record extends BaseEntity {
@@ -43,7 +43,6 @@ interface Form10Summary {
     totalWithdrawals: number;
     totalClosingBalance: number;
 }
-
 
 export default function Form10Page() {
     // Database instances
@@ -83,7 +82,7 @@ export default function Form10Page() {
     };
 
     // Generate mock Form 10 data
-    const generateMockForm10Data = (referenceYear: number = 2024): Omit<Form10Record, 'id' | 'createdAt'>[] => {
+    const generateMockForm10Data = (referenceYear = 2024): Omit<Form10Record, 'id' | 'createdAt'>[] => {
         const employees = [
             {
                 code: 'EMP001',
@@ -247,7 +246,6 @@ export default function Form10Page() {
             }
         );
     }, [filteredRecords]);
-
 
     return (
         <div className='space-y-6'>

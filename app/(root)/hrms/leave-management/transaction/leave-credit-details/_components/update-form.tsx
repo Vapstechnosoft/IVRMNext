@@ -8,9 +8,9 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useLeaveCreditDetails, useUpdateLeaveCreditDetails } from '@/hooks/hrms/leave-management/useTransactions';
 import { Save } from 'lucide-react';
-import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
 import { useEffect } from 'react';
-import { MONTHS, type LeaveCreditDetail } from './columns';
+import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
+import { type LeaveCreditDetail, MONTHS } from './columns';
 
 interface UpdateLeaveCreditDetailsFormProps {
     onSuccess?: () => void;
@@ -53,13 +53,15 @@ export default function UpdateLeaveCreditDetailsForm({ onSuccess, className = ''
                 designation: row.designation || [],
                 leaveName: row.leaveName || '',
                 leaveCode: row.leaveCode || '',
-                months: row.months || MONTHS.reduce(
-                    (acc, m) => {
-                        acc[m] = 0;
-                        return acc;
-                    },
-                    {} as Record<string, number>
-                )
+                months:
+                    row.months ||
+                    MONTHS.reduce(
+                        (acc, m) => {
+                            acc[m] = 0;
+                            return acc;
+                        },
+                        {} as Record<string, number>
+                    )
             });
         }
     }, [row, reset]);
@@ -83,7 +85,11 @@ export default function UpdateLeaveCreditDetailsForm({ onSuccess, className = ''
     const toggleMulti = (field: 'type' | 'department' | 'designation', value: string, checked: boolean) => {
         const current = watch(field);
         if (checked) setValue(field, [...current, value]);
-        else setValue(field, current.filter((v: string) => v !== value));
+        else
+            setValue(
+                field,
+                current.filter((v: string) => v !== value)
+            );
     };
 
     const handleReset = () => {
@@ -183,7 +189,7 @@ export default function UpdateLeaveCreditDetailsForm({ onSuccess, className = ''
                     </div>
 
                     <div className='space-y-2'>
-                        <label className='font-medium text-sm'>Monthly Credits</label>
+                        <div className='font-medium text-sm'>Monthly Credits</div>
                         <div className='grid grid-cols-2 gap-3 md:grid-cols-3'>
                             {MONTHS.map((m) => (
                                 <div key={m} className='flex items-center gap-2'>
@@ -221,4 +227,3 @@ export default function UpdateLeaveCreditDetailsForm({ onSuccess, className = ''
         </div>
     );
 }
-

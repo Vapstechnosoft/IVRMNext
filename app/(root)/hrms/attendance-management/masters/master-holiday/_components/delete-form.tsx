@@ -65,4 +65,3 @@ export default function DeleteMasterHolidayForm({ rowData, onClose }: DeleteMast
         </AdaptiveDialog>
     );
 }
-

@@ -8,7 +8,7 @@ import { FormProvider, useFormContext } from '@/components/ui/form/form-provider
 import { useLeaveCreditDetails } from '@/hooks/hrms/leave-management/useTransactions';
 import { Plus, X } from 'lucide-react';
 import AddLeaveCreditDetailsForm from './_components/add-form';
-import { leaveCreditDetailColumns, type LeaveCreditDetail } from './_components/columns';
+import { type LeaveCreditDetail, leaveCreditDetailColumns } from './_components/columns';
 import UpdateLeaveCreditDetailsForm from './_components/update-form';
 
 export default function LeaveCreditDetailsPage() {
@@ -83,15 +83,8 @@ function LeaveCreditDetailsPageContent({
 }
 
 function FormSections() {
-    const {
-        isAddFormOpen,
-        isEditFormOpen,
-        selectedRow,
-        closeAddForm,
-        closeEditForm,
-        addFormRef,
-        editFormRef
-    } = useFormContext<LeaveCreditDetail>();
+    const { isAddFormOpen, isEditFormOpen, selectedRow, closeAddForm, closeEditForm, addFormRef, editFormRef } =
+        useFormContext<LeaveCreditDetail>();
 
     return (
         <>

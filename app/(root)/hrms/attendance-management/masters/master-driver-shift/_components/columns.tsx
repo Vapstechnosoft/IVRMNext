@@ -92,9 +92,9 @@ export const driverShiftColumns: ColumnDef<DriverShift>[] = [
             return (
                 <div className='flex items-center justify-center'>
                     {value ? (
-                        <span className='text-green-600 font-semibold'>✓</span>
+                        <span className='font-semibold text-green-600'>✓</span>
                     ) : (
-                        <span className='text-red-600 font-semibold'>✗</span>
+                        <span className='font-semibold text-red-600'>✗</span>
                     )}
                 </div>
             );
@@ -110,9 +110,9 @@ export const driverShiftColumns: ColumnDef<DriverShift>[] = [
             return (
                 <div className='flex items-center justify-center'>
                     {value ? (
-                        <span className='text-green-600 font-semibold'>✓</span>
+                        <span className='font-semibold text-green-600'>✓</span>
                     ) : (
-                        <span className='text-red-600 font-semibold'>✗</span>
+                        <span className='font-semibold text-red-600'>✗</span>
                     )}
                 </div>
             );
@@ -139,11 +139,5 @@ function ActionButtonsCell({ rowData }: { rowData: DriverShift }) {
         [openEditForm]
     );
 
-    return (
-        <ActionButtons
-            rowData={rowData}
-            buttons={{ edit: true, toggle: false, delete: false }}
-            onEdit={handleEdit}
-        />
-    );
+    return <ActionButtons rowData={rowData} buttons={{ edit: true, toggle: false, delete: false }} onEdit={handleEdit} />;
 }

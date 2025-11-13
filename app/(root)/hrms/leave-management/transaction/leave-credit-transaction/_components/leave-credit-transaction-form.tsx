@@ -29,12 +29,7 @@ const employeeOptions = ['Steffi Halian', 'Shruthi NA', 'Bindhushree N', 'Chaith
 const leaveNames = ['CL', 'SL', 'PL', 'LWP', 'OD'];
 
 export function LeaveCreditTransactionForm({ editingRow, onSubmit, onCancel }: LeaveCreditTransactionFormProps) {
-    const {
-        register,
-        handleSubmit,
-        setValue,
-        watch
-    } = useForm<LeaveCreditTransaction>({
+    const { register, handleSubmit, setValue, watch } = useForm<LeaveCreditTransaction>({
         defaultValues: editingRow || {
             type: [],
             department: [],
@@ -170,10 +165,7 @@ export function LeaveCreditTransactionForm({ editingRow, onSubmit, onCancel }: L
                         </Select>
                     </div>
                     <div className='flex items-center gap-2'>
-                        <Checkbox
-                            checked={watch('lossOfPay')}
-                            onCheckedChange={(c) => setValue('lossOfPay', c as boolean)}
-                        />
+                        <Checkbox checked={watch('lossOfPay')} onCheckedChange={(c) => setValue('lossOfPay', c as boolean)} />
                         <span className='text-sm'>Loss of Pay</span>
                     </div>
                 </div>
@@ -201,12 +193,7 @@ export function LeaveCreditTransactionForm({ editingRow, onSubmit, onCancel }: L
                     <label htmlFor='availed-input' className='font-medium text-sm'>
                         Availed
                     </label>
-                    <InputText
-                        id='availed-input'
-                        type='number'
-                        step='0.5'
-                        {...register('availed', { valueAsNumber: true })}
-                    />
+                    <InputText id='availed-input' type='number' step='0.5' {...register('availed', { valueAsNumber: true })} />
                 </div>
             </div>
 

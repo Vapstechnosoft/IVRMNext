@@ -1,13 +1,14 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
-import { Checkbox } from '@/components/ui/checkbox';
+import { DaySelectionCheckbox } from '@/components/ui/day-selection-checkbox';
 import { FormError } from '@/components/ui/extension/field';
 import { InputText } from '@/components/ui/extension/input-text';
 import { useMasterShift, useSaveMasterShift } from '@/hooks/hrms/attendance-management/useMasters';
 import { masterShiftSchema } from '@/schemas/hrms/attendance-management-schemas';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Save } from 'lucide-react';
+import { useState } from 'react';
 import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
 import type { z } from 'zod';
 import { TimePicker12Hour } from './time-picker-12hour';
@@ -22,6 +23,7 @@ interface AddMasterShiftFormProps {
 export default function AddMasterShiftForm({ onSuccess, className = '' }: AddMasterShiftFormProps) {
     const { refetchAll } = useMasterShift();
     const { mutate: saveMasterShift, isPending } = useSaveMasterShift();
+    const [selectedDays, setSelectedDays] = useState<string[]>([]);
 
     const {
         register,
@@ -64,6 +66,12 @@ export default function AddMasterShiftForm({ onSuccess, className = '' }: AddMas
 
     const handleReset = () => {
         reset();
+        setSelectedDays([]);
+    };
+
+    const handleDaysChange = (days: string[]) => {
+        setSelectedDays(days);
+        setValue('specificDay', days.length > 0);
     };
 
     return (
@@ -94,7 +102,7 @@ export default function AddMasterShiftForm({ onSuccess, className = '' }: AddMas
 
                     <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
                         <div className='space-y-2'>
-                            <label className='font-medium text-sm'>
+                            <label htmlFor='startTime' className='font-medium text-sm'>
                                 Shift Start Time <span className='text-red-500'>*</span>
                             </label>
                             <Controller
@@ -102,6 +110,7 @@ export default function AddMasterShiftForm({ onSuccess, className = '' }: AddMas
                                 control={control}
                                 render={({ field }) => (
                                     <TimePicker12Hour
+                                        id='startTime'
                                         value={field.value}
                                         onChange={field.onChange}
                                         name='startTime'
@@ -113,19 +122,14 @@ export default function AddMasterShiftForm({ onSuccess, className = '' }: AddMas
                         </div>
 
                         <div className='space-y-2'>
-                            <label className='font-medium text-sm'>
+                            <label htmlFor='endTime' className='font-medium text-sm'>
                                 Shift End Time <span className='text-red-500'>*</span>
                             </label>
                             <Controller
                                 name='endTime'
                                 control={control}
                                 render={({ field }) => (
-                                    <TimePicker12Hour
-                                        value={field.value}
-                                        onChange={field.onChange}
-                                        name='endTime'
-                                        required
-                                    />
+                                    <TimePicker12Hour id='endTime' value={field.value} onChange={field.onChange} name='endTime' required />
                                 )}
                             />
                             {errors.endTime && <FormError>{errors.endTime.message}</FormError>}
@@ -133,10 +137,14 @@ export default function AddMasterShiftForm({ onSuccess, className = '' }: AddMas
                     </div>
 
                     <div className='flex items-center gap-8'>
-                        <div className='flex items-center gap-2 text-sm'>
-                            <Checkbox checked={watch('specificDay')} onCheckedChange={(v) => setValue('specificDay', Boolean(v))} />
-                            <span>On Specific Day</span>
-                        </div>
+                        <DaySelectionCheckbox
+                            id='specificDay'
+                            label='On Specific Day'
+                            checked={watch('specificDay')}
+                            selectedDays={selectedDays}
+                            onCheckedChange={(checked) => setValue('specificDay', checked)}
+                            onDaysChange={handleDaysChange}
+                        />
                     </div>
                 </div>
 
@@ -166,4 +174,3 @@ export default function AddMasterShiftForm({ onSuccess, className = '' }: AddMas
         </div>
     );
 }
-

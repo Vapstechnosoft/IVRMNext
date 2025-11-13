@@ -81,4 +81,3 @@ export const form3AColumns: ColumnDef<MonthlyTransaction>[] = [
         enableHiding: true
     }
 ];
-

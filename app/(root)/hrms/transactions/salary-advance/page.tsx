@@ -6,15 +6,9 @@ import { DataTableColumnHeader } from '@/components/ui/data-table-column-header'
 import { DataTable } from '@/components/ui/data-table/data-table';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
+import { useSalaryAdvanceList } from '@/hooks/hrms/useTransactions';
 import { cn } from '@/lib/utils';
-import { useSalaryAdvanceList, useToggleSalaryAdvanceStatus } from '@/hooks/hrms/useTransactions';
-import type {
-    EmployeeDropdown,
-    LeaveYearDropdown,
-    ModeOfPaymentDropdown,
-    MonthDropdown,
-    SalaryAdvanceItem
-} from '@/types/hrms/salary-advance';
+import type { EmployeeDropdown, LeaveYearDropdown, MonthDropdown, SalaryAdvanceItem } from '@/types/hrms/salary-advance';
 import type { ColumnDef } from '@tanstack/react-table';
 import { Plus } from 'lucide-react';
 import { useState } from 'react';
@@ -57,7 +51,7 @@ function SalaryAdvancePageContent({
     const employees = advanceData?.employeedropdown || [];
     const leaveYears = advanceData?.leaveyeardropdown || [];
     const months = advanceData?.monthdropdown || [];
-    const modeOfPayments = advanceData?.modeOfPaymentdropdown || [];
+    const _modeOfPayments = advanceData?.modeOfPaymentdropdown || [];
 
     const handleSelectAll = (selected: boolean) => {
         if (selected) {

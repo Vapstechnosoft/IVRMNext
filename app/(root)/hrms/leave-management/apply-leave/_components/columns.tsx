@@ -2,8 +2,8 @@
 
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
 import type { BaseEntity } from '@/lib/localdb';
-import type { ColumnDef } from '@tanstack/react-table';
 import { cn } from '@/lib/utils';
+import type { ColumnDef } from '@tanstack/react-table';
 
 // Leave Balance Row
 export interface LeaveBalanceRow {

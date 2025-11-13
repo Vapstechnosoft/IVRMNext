@@ -1,13 +1,12 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
-import { FormError } from '@/components/ui/extension/field';
 import { InputText } from '@/components/ui/extension/input-text';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useLeaveCreditDeduction, useUpdateLeaveCreditDeduction } from '@/hooks/hrms/leave-management/useTransactions';
 import { Save } from 'lucide-react';
-import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
 import { useEffect } from 'react';
+import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
 import type { LeaveCreditDeduction } from './columns';
 
 interface UpdateLeaveCreditDeductionFormProps {
@@ -16,7 +15,11 @@ interface UpdateLeaveCreditDeductionFormProps {
     selectedRow: LeaveCreditDeduction;
 }
 
-export default function UpdateLeaveCreditDeductionForm({ onSuccess, className = '', selectedRow: row }: UpdateLeaveCreditDeductionFormProps) {
+export default function UpdateLeaveCreditDeductionForm({
+    onSuccess,
+    className = '',
+    selectedRow: row
+}: UpdateLeaveCreditDeductionFormProps) {
     const { refetchAll } = useLeaveCreditDeduction();
     const { mutate: updateDeduction, isPending } = useUpdateLeaveCreditDeduction();
 
@@ -24,8 +27,8 @@ export default function UpdateLeaveCreditDeductionForm({ onSuccess, className = 
         register,
         handleSubmit,
         control,
-        watch,
-        setValue,
+        watch: _watch,
+        setValue: _setValue,
         reset,
         formState: { errors, isSubmitting }
     } = useForm<LeaveCreditDeduction>({
@@ -155,4 +158,3 @@ export default function UpdateLeaveCreditDeductionForm({ onSuccess, className = 
         </div>
     );
 }
-

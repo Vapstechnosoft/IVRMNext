@@ -96,4 +96,3 @@ export const employeeStrengthColumns: ColumnDef<EmployeeStrengthRecord>[] = [
         enableHiding: true
     }
 ];
-

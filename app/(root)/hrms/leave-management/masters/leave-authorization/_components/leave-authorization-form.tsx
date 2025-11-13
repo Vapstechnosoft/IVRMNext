@@ -126,9 +126,7 @@ export function LeaveAuthorizationForm({ editingLeaveAuthorization, onSubmit, on
                                     Assistant Business Development Manager
                                 </SelectItem>
                                 <SelectItem value='Business Development Manager'>Business Development Manager</SelectItem>
-                                <SelectItem value='Senior Business Development Manager'>
-                                    Senior Business Development Manager
-                                </SelectItem>
+                                <SelectItem value='Senior Business Development Manager'>Senior Business Development Manager</SelectItem>
                                 <SelectItem value='Team Lead'>Team Lead</SelectItem>
                                 <SelectItem value='Senior Manager'>Senior Manager</SelectItem>
                             </SelectContent>

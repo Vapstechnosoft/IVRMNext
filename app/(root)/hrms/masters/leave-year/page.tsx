@@ -18,25 +18,59 @@ type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 
 export default function MasterLeaveYearPage(props: { searchParams: SearchParams }) {
     const rawSearchParams = use(props.searchParams);
-    
+
     // Convert Next.js searchParams (string | string[]) to ApiSearchparams format
     // This matches how preadmission and bank handle it
     const searchParams: ApiSearchparams = {
-        page: typeof rawSearchParams?.page === 'string' ? parseInt(rawSearchParams.page, 10) : Array.isArray(rawSearchParams?.page) ? parseInt(rawSearchParams.page[0], 10) : typeof rawSearchParams?.page === 'number' ? rawSearchParams.page : undefined,
-        page_size: typeof rawSearchParams?.page_size === 'string' ? parseInt(rawSearchParams.page_size, 10) : Array.isArray(rawSearchParams?.page_size) ? parseInt(rawSearchParams.page_size[0], 10) : typeof rawSearchParams?.page_size === 'number' ? rawSearchParams.page_size : undefined,
-        search_query: typeof rawSearchParams?.search_query === 'string' ? rawSearchParams.search_query : Array.isArray(rawSearchParams?.search_query) ? rawSearchParams.search_query[0] : undefined,
-        search_column: typeof rawSearchParams?.search_column === 'string' ? rawSearchParams.search_column : Array.isArray(rawSearchParams?.search_column) ? rawSearchParams.search_column[0] : undefined,
-        sort_column: typeof rawSearchParams?.sort_column === 'string' ? rawSearchParams.sort_column : Array.isArray(rawSearchParams?.sort_column) ? rawSearchParams.sort_column[0] : undefined,
-        sort_direction: typeof rawSearchParams?.sort_direction === 'string' ? rawSearchParams.sort_direction : Array.isArray(rawSearchParams?.sort_direction) ? rawSearchParams.sort_direction[0] : undefined
+        page:
+            typeof rawSearchParams?.page === 'string'
+                ? Number.parseInt(rawSearchParams.page, 10)
+                : Array.isArray(rawSearchParams?.page)
+                  ? Number.parseInt(rawSearchParams.page[0], 10)
+                  : typeof rawSearchParams?.page === 'number'
+                    ? rawSearchParams.page
+                    : undefined,
+        page_size:
+            typeof rawSearchParams?.page_size === 'string'
+                ? Number.parseInt(rawSearchParams.page_size, 10)
+                : Array.isArray(rawSearchParams?.page_size)
+                  ? Number.parseInt(rawSearchParams.page_size[0], 10)
+                  : typeof rawSearchParams?.page_size === 'number'
+                    ? rawSearchParams.page_size
+                    : undefined,
+        search_query:
+            typeof rawSearchParams?.search_query === 'string'
+                ? rawSearchParams.search_query
+                : Array.isArray(rawSearchParams?.search_query)
+                  ? rawSearchParams.search_query[0]
+                  : undefined,
+        search_column:
+            typeof rawSearchParams?.search_column === 'string'
+                ? rawSearchParams.search_column
+                : Array.isArray(rawSearchParams?.search_column)
+                  ? rawSearchParams.search_column[0]
+                  : undefined,
+        sort_column:
+            typeof rawSearchParams?.sort_column === 'string'
+                ? rawSearchParams.sort_column
+                : Array.isArray(rawSearchParams?.sort_column)
+                  ? rawSearchParams.sort_column[0]
+                  : undefined,
+        sort_direction:
+            typeof rawSearchParams?.sort_direction === 'string'
+                ? rawSearchParams.sort_direction
+                : Array.isArray(rawSearchParams?.sort_direction)
+                  ? rawSearchParams.sort_direction[0]
+                  : undefined
     };
-    
+
     const { listQuery, refetchAll } = useMasterLeaveYear(HRMS_MI_ID, searchParams);
 
     return (
         <FormProvider<LeaveYearDetail>>
-            <MasterLeaveYearPageContent 
-                response={listQuery.data} 
-                isLoading={listQuery.isLoading} 
+            <MasterLeaveYearPageContent
+                response={listQuery.data}
+                isLoading={listQuery.isLoading}
                 error={listQuery.error}
                 refetch={refetchAll}
             />
@@ -58,11 +92,9 @@ function MasterLeaveYearPageContent({
     const { openAddForm } = useFormContext<LeaveYearDetail>();
     const { saveOrderMutation } = useMasterLeaveYear(HRMS_MI_ID);
     const tableProps = useDataTableProps(response);
-    
+
     // Get the data array from response (could be in data or leaveYearList)
-    const rows: LeaveYearDetail[] = Array.isArray(response?.data) 
-        ? response.data 
-        : response?.leaveYearList ?? [];
+    const rows: LeaveYearDetail[] = Array.isArray(response?.data) ? response.data : (response?.leaveYearList ?? []);
 
     // Minimal logging - only when data changes
     // console.log('📊 [LEAVE YEAR PAGE] rows count:', rows.length);
@@ -81,23 +113,14 @@ function MasterLeaveYearPageContent({
     };
 
     const handleSaveOrder = async () => {
-        console.log('🔵 [ORDER] ========== SAVE ORDER ==========');
-        console.log('🔵 [ORDER] Edited rows to save:', JSON.stringify(editedRows, null, 2));
-        console.log('🔵 [ORDER] Number of rows:', editedRows.length);
-        
         try {
-            console.log('🟡 [ORDER] Calling saveOrderMutation.mutateAsync...');
-            const result = await saveOrderMutation.mutateAsync(editedRows);
-            console.log('🟢 [ORDER] Save order result:', result);
+            const _result = await saveOrderMutation.mutateAsync(editedRows);
             toast.success('Order saved successfully');
             setIsEditOrderMode(false);
             setEditedRows([]);
-            console.log('🟢 [ORDER] Order saved successfully');
-        } catch (error) {
-            console.log('🔴 [ORDER] Error saving order:', error);
+        } catch (_error) {
             toast.error('Failed to save order');
         }
-        console.log('🔵 [ORDER] ========== SAVE ORDER END ==========');
     };
 
     const handleOrderChange = (rowId: number, newOrder: number) => {
@@ -209,11 +232,11 @@ function FormSections({ refetch }: { refetch: () => void }) {
                                 className='-top-[3.5rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
                                 <X className='h-4 w-4 text-destructive' /> Close
                             </Button>
-                            <LeaveYearForm 
+                            <LeaveYearForm
                                 onSuccess={() => {
                                     closeAddForm();
                                     refetch();
-                                }} 
+                                }}
                             />
                         </div>
                     </CollapsibleSection>
@@ -237,12 +260,12 @@ function FormSections({ refetch }: { refetch: () => void }) {
                                 className='-top-[3.5rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
                                 <X className='h-4 w-4 text-destructive' /> Close
                             </Button>
-                            <LeaveYearForm 
-                                selectedRow={selectedRow} 
+                            <LeaveYearForm
+                                selectedRow={selectedRow}
                                 onSuccess={() => {
                                     closeEditForm();
                                     refetch();
-                                }} 
+                                }}
                             />
                         </div>
                     </CollapsibleSection>

@@ -103,7 +103,7 @@ export default function UpdateMasterShiftForm({ onSuccess, className = '', selec
 
                     <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
                         <div className='space-y-2'>
-                            <label className='font-medium text-sm'>
+                            <label htmlFor='startTime' className='font-medium text-sm'>
                                 Shift Start Time <span className='text-red-500'>*</span>
                             </label>
                             <Controller
@@ -111,6 +111,7 @@ export default function UpdateMasterShiftForm({ onSuccess, className = '', selec
                                 control={control}
                                 render={({ field }) => (
                                     <TimePicker12Hour
+                                        id='startTime'
                                         value={field.value}
                                         onChange={field.onChange}
                                         name='startTime'
@@ -122,19 +123,14 @@ export default function UpdateMasterShiftForm({ onSuccess, className = '', selec
                         </div>
 
                         <div className='space-y-2'>
-                            <label className='font-medium text-sm'>
+                            <label htmlFor='endTime' className='font-medium text-sm'>
                                 Shift End Time <span className='text-red-500'>*</span>
                             </label>
                             <Controller
                                 name='endTime'
                                 control={control}
                                 render={({ field }) => (
-                                    <TimePicker12Hour
-                                        value={field.value}
-                                        onChange={field.onChange}
-                                        name='endTime'
-                                        required
-                                    />
+                                    <TimePicker12Hour id='endTime' value={field.value} onChange={field.onChange} name='endTime' required />
                                 )}
                             />
                             {errors.endTime && <FormError>{errors.endTime.message}</FormError>}
@@ -175,4 +171,3 @@ export default function UpdateMasterShiftForm({ onSuccess, className = '', selec
         </div>
     );
 }
-

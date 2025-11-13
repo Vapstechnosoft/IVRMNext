@@ -5,7 +5,7 @@ import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { useCompOffApproval, useUpdateCompOffApprovalStatus } from '@/hooks/hrms/leave-management/useTransactions';
 import { useMemo } from 'react';
-import { compOffApprovalColumns, type CompOffApproval } from './_components/columns';
+import { type CompOffApproval, compOffApprovalColumns } from './_components/columns';
 
 export default function CompOffApprovalPage() {
     const { data: response, isLoading, error } = useCompOffApproval();

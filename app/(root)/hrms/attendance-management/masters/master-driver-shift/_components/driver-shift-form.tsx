@@ -254,7 +254,7 @@ export function DriverShiftForm({ editingShift, onSubmit, onCancel }: DriverShif
                                 checked={watch('saturdayOff')}
                                 onCheckedChange={(checked) => setValue('saturdayOff', !!checked)}
                             />
-                            <label htmlFor='saturdayOff' className='text-sm font-medium cursor-pointer'>
+                            <label htmlFor='saturdayOff' className='cursor-pointer font-medium text-sm'>
                                 Saturday Off Flag
                             </label>
                         </div>
@@ -265,7 +265,7 @@ export function DriverShiftForm({ editingShift, onSubmit, onCancel }: DriverShif
                                 checked={watch('sundayWorking')}
                                 onCheckedChange={(checked) => setValue('sundayWorking', !!checked)}
                             />
-                            <label htmlFor='sundayWorking' className='text-sm font-medium cursor-pointer'>
+                            <label htmlFor='sundayWorking' className='cursor-pointer font-medium text-sm'>
                                 Sunday Working Flag
                             </label>
                         </div>

@@ -211,4 +211,3 @@ export const loanTypeSummaryColumns: ColumnDef<LoanTypeSummary>[] = [
         enableHiding: true
     }
 ];
-

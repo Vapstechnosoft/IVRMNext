@@ -11,14 +11,14 @@ import { useState } from 'react';
 
 import { Heading } from '@/components/layout/heading';
 import { Button } from '@/components/ui/button';
-import { DatePickerWithYear } from '@/components/ui/date-picker-year';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
+import { DatePickerWithYear } from '@/components/ui/date-picker-year';
 import { Label } from '@/components/ui/extension/field';
 import { Input } from '@/components/ui/input';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { format } from 'date-fns';
-import { BarChart3, CalendarIcon, RefreshCw, Search, X } from 'lucide-react';
+import { BarChart3, CalendarIcon, Search, X } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 
 type ReportFormData = {

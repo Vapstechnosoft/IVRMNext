@@ -1,7 +1,7 @@
 'use client';
 
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
-import { type BaseEntity } from '@/lib/localdb';
+import type { BaseEntity } from '@/lib/localdb';
 import type { ColumnDef } from '@tanstack/react-table';
 
 export interface EmployeeAbsentReportRow extends BaseEntity {
@@ -35,4 +35,3 @@ export const employeeAbsentReportColumns: ColumnDef<EmployeeAbsentReportRow>[] =
         header: ({ column }) => <DataTableColumnHeader column={column} title='Total Absent' />
     }
 ];
-

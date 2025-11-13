@@ -9,8 +9,8 @@ import { Download, Printer } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { type SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
+import { type CumulativeSalaryRecord, cumulativeSalaryColumns } from './_components/columns';
 import { CumulativeSalaryReportFilters, type ReportFilters } from './_components/filters';
-import { cumulativeSalaryColumns, type CumulativeSalaryRecord } from './_components/columns';
 
 export default function CumulativeSalaryReportPage() {
     const MI_Id = 30; // Default MI_Id
@@ -200,7 +200,6 @@ export default function CumulativeSalaryReportPage() {
             }
         );
     }, [filteredRecords]);
-
 
     return (
         <div className='min-h-screen'>

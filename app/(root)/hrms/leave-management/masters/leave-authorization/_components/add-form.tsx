@@ -23,8 +23,8 @@ export default function AddLeaveAuthorizationForm({ onSuccess, className = '' }:
         register,
         handleSubmit,
         control,
-        watch,
-        setValue,
+        watch: _watch,
+        setValue: _setValue,
         reset,
         formState: { errors, isSubmitting }
     } = useForm<LeaveAuthorization>({
@@ -222,7 +222,9 @@ export default function AddLeaveAuthorizationForm({ onSuccess, className = '' }:
                                         Order Of Approval <span className='text-red-500'>*</span>
                                     </label>
                                     <Select value={field.value} onValueChange={field.onChange}>
-                                        <SelectTrigger id='order-approval-select' className={errors.orderOfApproval ? 'border-red-500' : ''}>
+                                        <SelectTrigger
+                                            id='order-approval-select'
+                                            className={errors.orderOfApproval ? 'border-red-500' : ''}>
                                             <SelectValue placeholder='--Select--' />
                                         </SelectTrigger>
                                         <SelectContent>
@@ -248,7 +250,9 @@ export default function AddLeaveAuthorizationForm({ onSuccess, className = '' }:
                                         Approval Person <span className='text-red-500'>*</span>
                                     </label>
                                     <Select value={field.value} onValueChange={field.onChange}>
-                                        <SelectTrigger id='approval-person-select' className={errors.approvalPerson ? 'border-red-500' : ''}>
+                                        <SelectTrigger
+                                            id='approval-person-select'
+                                            className={errors.approvalPerson ? 'border-red-500' : ''}>
                                             <SelectValue placeholder='--Select--' />
                                         </SelectTrigger>
                                         <SelectContent>
@@ -267,13 +271,7 @@ export default function AddLeaveAuthorizationForm({ onSuccess, className = '' }:
                             <Controller
                                 name='finalFlag'
                                 control={control}
-                                render={({ field }) => (
-                                    <Checkbox
-                                        id='finalFlag'
-                                        checked={field.value}
-                                        onCheckedChange={field.onChange}
-                                    />
-                                )}
+                                render={({ field }) => <Checkbox id='finalFlag' checked={field.value} onCheckedChange={field.onChange} />}
                             />
                             <label htmlFor='finalFlag' className='font-medium text-gray-700 text-sm'>
                                 Final Flag
@@ -321,4 +319,3 @@ export default function AddLeaveAuthorizationForm({ onSuccess, className = '' }:
         </div>
     );
 }
-

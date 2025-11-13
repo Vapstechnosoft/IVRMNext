@@ -6,10 +6,7 @@ import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { useHolidayReport } from '@/hooks/hrms/attendance-management/useReports';
 import { useEffect, useState } from 'react';
 import { holidayReportColumns } from './_components/columns';
-import {
-    type HolidayReportFilters,
-    HolidayReportFilters as HolidayReportFiltersComponent
-} from './_components/filters';
+import { type HolidayReportFilters, HolidayReportFilters as HolidayReportFiltersComponent } from './_components/filters';
 
 export default function HolidayReportPage() {
     const [currentYear, setCurrentYear] = useState<number | null>(null);
@@ -21,9 +18,7 @@ export default function HolidayReportPage() {
     }, []);
 
     // Generate calendar years starting from current year
-    const calendarYears = currentYear
-        ? Array.from({ length: 6 }, (_, i) => (currentYear + i).toString())
-        : [];
+    const calendarYears = currentYear ? Array.from({ length: 6 }, (_, i) => (currentYear + i).toString()) : [];
 
     const [filters, setFilters] = useState<HolidayReportFilters>({
         calendarYear: '',
@@ -86,4 +81,3 @@ export default function HolidayReportPage() {
         </div>
     );
 }
-

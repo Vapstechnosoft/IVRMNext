@@ -1,7 +1,6 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
-import { FormError } from '@/components/ui/extension/field';
 import { InputText } from '@/components/ui/extension/input-text';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useLeaveCreditDeduction, useSaveLeaveCreditDeduction } from '@/hooks/hrms/leave-management/useTransactions';
@@ -22,8 +21,8 @@ export default function AddLeaveCreditDeductionForm({ onSuccess, className = '' 
         register,
         handleSubmit,
         control,
-        watch,
-        setValue,
+        watch: _watch,
+        setValue: _setValue,
         reset,
         formState: { errors, isSubmitting }
     } = useForm<LeaveCreditDeduction>({
@@ -142,4 +141,3 @@ export default function AddLeaveCreditDeductionForm({ onSuccess, className = '' 
         </div>
     );
 }
-

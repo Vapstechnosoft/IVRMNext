@@ -7,8 +7,8 @@ import { type BaseEntity, createLocalCrud } from '@/lib/localdb';
 import { Download, Printer } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';
-import { ESIReportFilters, type ESIReportFilters as ESIFilters } from './_components/filters';
-import { esiReportColumns, type ESIRecord as ESIRecordColumn } from './_components/columns';
+import { type ESIRecord as ESIRecordColumn, esiReportColumns } from './_components/columns';
+import { type ESIReportFilters as ESIFilters, ESIReportFilters } from './_components/filters';
 
 // Data interfaces from employee-category masters
 interface GroupType extends BaseEntity {
@@ -55,7 +55,6 @@ interface ESIRecord extends BaseEntity {
     presentDays: number;
     esiStatus: 'Active' | 'Inactive' | 'Exempted';
 }
-
 
 export default function ESIReportPage() {
     // Database instances
@@ -309,7 +308,6 @@ export default function ESIReportPage() {
             }
         );
     }, [filteredRecords]);
-
 
     return (
         <div className='space-y-6'>

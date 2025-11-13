@@ -8,8 +8,8 @@ import { InputTextarea } from '@/components/ui/extension/input-textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useMasterLeave, useUpdateMasterLeave } from '@/hooks/hrms/leave-management/useMasters';
 import { Save } from 'lucide-react';
-import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
 import { useEffect } from 'react';
+import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
 import type { MasterLeave } from './columns';
 
 interface UpdateMasterLeaveFormProps {
@@ -26,8 +26,8 @@ export default function UpdateMasterLeaveForm({ onSuccess, className = '', selec
         register,
         handleSubmit,
         control,
-        watch,
-        setValue,
+        watch: _watch,
+        setValue: _setValue,
         reset,
         formState: { errors, isSubmitting }
     } = useForm<MasterLeave>({
@@ -133,7 +133,9 @@ export default function UpdateMasterLeaveForm({ onSuccess, className = '', selec
                                         Leave Apply Criteria <span className='text-red-500'>*</span>
                                     </label>
                                     <Select value={field.value} onValueChange={field.onChange}>
-                                        <SelectTrigger id='leaveApplyCriteria' className={errors.leaveApplyCriteria ? 'border-red-500' : ''}>
+                                        <SelectTrigger
+                                            id='leaveApplyCriteria'
+                                            className={errors.leaveApplyCriteria ? 'border-red-500' : ''}>
                                             <SelectValue placeholder='Select Apply Criteria' />
                                         </SelectTrigger>
                                         <SelectContent>
@@ -182,13 +184,7 @@ export default function UpdateMasterLeaveForm({ onSuccess, className = '', selec
                             <Controller
                                 name='leaveCredit'
                                 control={control}
-                                render={({ field }) => (
-                                    <Checkbox
-                                        id='leaveCredit'
-                                        checked={field.value}
-                                        onCheckedChange={field.onChange}
-                                    />
-                                )}
+                                render={({ field }) => <Checkbox id='leaveCredit' checked={field.value} onCheckedChange={field.onChange} />}
                             />
                             <label htmlFor='leaveCredit' className='font-medium text-sm'>
                                 Leave Credit
@@ -199,13 +195,7 @@ export default function UpdateMasterLeaveForm({ onSuccess, className = '', selec
                             <Controller
                                 name='lateDeduct'
                                 control={control}
-                                render={({ field }) => (
-                                    <Checkbox
-                                        id='lateDeduct'
-                                        checked={field.value}
-                                        onCheckedChange={field.onChange}
-                                    />
-                                )}
+                                render={({ field }) => <Checkbox id='lateDeduct' checked={field.value} onCheckedChange={field.onChange} />}
                             />
                             <label htmlFor='lateDeduct' className='font-medium text-sm'>
                                 Late Deduct
@@ -217,11 +207,7 @@ export default function UpdateMasterLeaveForm({ onSuccess, className = '', selec
                                 name='probationNotApplicable'
                                 control={control}
                                 render={({ field }) => (
-                                    <Checkbox
-                                        id='probationNotApplicable'
-                                        checked={field.value}
-                                        onCheckedChange={field.onChange}
-                                    />
+                                    <Checkbox id='probationNotApplicable' checked={field.value} onCheckedChange={field.onChange} />
                                 )}
                             />
                             <label htmlFor='probationNotApplicable' className='font-medium text-sm'>
@@ -253,4 +239,3 @@ export default function UpdateMasterLeaveForm({ onSuccess, className = '', selec
         </div>
     );
 }
-

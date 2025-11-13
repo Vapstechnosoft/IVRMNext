@@ -11,7 +11,7 @@ interface AddMasterDriverShiftFormProps {
 
 export default function AddMasterDriverShiftForm({ onSuccess, className = '' }: AddMasterDriverShiftFormProps) {
     const { refetchAll } = useMasterDriverShift();
-    const { mutate: saveDriverShift, isPending } = useSaveMasterDriverShift();
+    const { mutate: saveDriverShift } = useSaveMasterDriverShift();
 
     const handleSubmit = (data: DriverShiftFormType) => {
         saveDriverShift(
@@ -40,4 +40,3 @@ export default function AddMasterDriverShiftForm({ onSuccess, className = '' }: 
         </div>
     );
 }
-

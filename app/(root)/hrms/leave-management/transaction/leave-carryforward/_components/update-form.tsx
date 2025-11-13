@@ -1,13 +1,12 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
-import { FormError } from '@/components/ui/extension/field';
 import { InputText } from '@/components/ui/extension/input-text';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useLeaveCarryForward, useUpdateLeaveCarryForward } from '@/hooks/hrms/leave-management/useTransactions';
 import { Save } from 'lucide-react';
-import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
 import { useEffect } from 'react';
+import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
 import type { LeaveCarryForward } from './columns';
 
 interface UpdateLeaveCarryForwardFormProps {
@@ -24,8 +23,8 @@ export default function UpdateLeaveCarryForwardForm({ onSuccess, className = '',
         register,
         handleSubmit,
         control,
-        watch,
-        setValue,
+        watch: _watch,
+        setValue: _setValue,
         reset,
         formState: { errors, isSubmitting }
     } = useForm<LeaveCarryForward>({
@@ -171,4 +170,3 @@ export default function UpdateLeaveCarryForwardForm({ onSuccess, className = '',
         </div>
     );
 }
-

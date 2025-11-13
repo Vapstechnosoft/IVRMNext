@@ -38,4 +38,3 @@ export const serviceReportColumns: ColumnDef<ServiceHistoryRecord>[] = [
         cell: ({ row }) => <div>{row.getValue('performance')}</div>
     }
 ];
-

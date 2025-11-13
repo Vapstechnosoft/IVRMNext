@@ -67,9 +67,10 @@ export default function EmployeeAbsentReportPage() {
 
     const handlePrint = () => window.print();
 
-    const reportTitle = showReport && filters.fromDate && filters.toDate
-        ? `Monthly Report from ${new Date(filters.fromDate).toLocaleDateString('en-GB')} to ${new Date(filters.toDate).toLocaleDateString('en-GB')}`
-        : 'GRID VIEW';
+    const reportTitle =
+        showReport && filters.fromDate && filters.toDate
+            ? `Monthly Report from ${new Date(filters.fromDate).toLocaleDateString('en-GB')} to ${new Date(filters.toDate).toLocaleDateString('en-GB')}`
+            : 'GRID VIEW';
 
     return (
         <div className='min-h-screen'>
@@ -114,4 +115,3 @@ export default function EmployeeAbsentReportPage() {
         </div>
     );
 }
-

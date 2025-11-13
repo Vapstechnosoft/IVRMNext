@@ -28,13 +28,7 @@ const designationOptions = [
     'Manager HR'
 ];
 
-export function LeaveCreditForm({
-    editingCredit,
-    activeTab,
-    onTabChange,
-    onSubmit,
-    onCancel
-}: LeaveCreditFormProps) {
+export function LeaveCreditForm({ editingCredit, activeTab, onTabChange, onSubmit, onCancel }: LeaveCreditFormProps) {
     const {
         register,
         handleSubmit,
@@ -110,9 +104,7 @@ export function LeaveCreditForm({
                             <label htmlFor='type-checkboxes' className='font-medium text-sm'>
                                 Type
                             </label>
-                            <div
-                                id='type-checkboxes'
-                                className='max-h-32 overflow-y-auto rounded-md border border-gray-300 p-2'>
+                            <div id='type-checkboxes' className='max-h-32 overflow-y-auto rounded-md border border-gray-300 p-2'>
                                 <div className='mb-2 flex items-center space-x-2'>
                                     <Checkbox
                                         id='type-all'
@@ -148,9 +140,7 @@ export function LeaveCreditForm({
                             <label htmlFor='department-checkboxes' className='font-medium text-sm'>
                                 Department
                             </label>
-                            <div
-                                id='department-checkboxes'
-                                className='max-h-32 overflow-y-auto rounded-md border border-gray-300 p-2'>
+                            <div id='department-checkboxes' className='max-h-32 overflow-y-auto rounded-md border border-gray-300 p-2'>
                                 <div className='mb-2 flex items-center space-x-2'>
                                     <Checkbox
                                         id='dept-all'
@@ -186,9 +176,7 @@ export function LeaveCreditForm({
                             <label htmlFor='designation-checkboxes' className='font-medium text-sm'>
                                 Designation
                             </label>
-                            <div
-                                id='designation-checkboxes'
-                                className='max-h-32 overflow-y-auto rounded-md border border-gray-300 p-2'>
+                            <div id='designation-checkboxes' className='max-h-32 overflow-y-auto rounded-md border border-gray-300 p-2'>
                                 <div className='mb-2 flex items-center space-x-2'>
                                     <Checkbox
                                         id='desig-all'
@@ -227,9 +215,7 @@ export function LeaveCreditForm({
                                 Leave Year *
                             </label>
                             <Select value={watch('leaveYear')} onValueChange={(value) => setValue('leaveYear', value)}>
-                                <SelectTrigger
-                                    id='leave-year-select'
-                                    className={errors.leaveYear ? 'border-red-500' : ''}>
+                                <SelectTrigger id='leave-year-select' className={errors.leaveYear ? 'border-red-500' : ''}>
                                     <SelectValue placeholder='Select Leave Year' />
                                 </SelectTrigger>
                                 <SelectContent>
@@ -242,9 +228,7 @@ export function LeaveCreditForm({
                                     <SelectItem value='2025'>2025</SelectItem>
                                 </SelectContent>
                             </Select>
-                            {errors.leaveYear && (
-                                <p className='mt-1 text-red-500 text-xs'>{errors.leaveYear.message}</p>
-                            )}
+                            {errors.leaveYear && <p className='mt-1 text-red-500 text-xs'>{errors.leaveYear.message}</p>}
                         </div>
 
                         <div>
@@ -252,9 +236,7 @@ export function LeaveCreditForm({
                                 Leave Name *
                             </label>
                             <Select value={watch('leaveName')} onValueChange={(value) => setValue('leaveName', value)}>
-                                <SelectTrigger
-                                    id='leave-name-select'
-                                    className={errors.leaveName ? 'border-red-500' : ''}>
+                                <SelectTrigger id='leave-name-select' className={errors.leaveName ? 'border-red-500' : ''}>
                                     <SelectValue placeholder='Select Leave Name' />
                                 </SelectTrigger>
                                 <SelectContent>
@@ -266,20 +248,14 @@ export function LeaveCreditForm({
                                     <SelectItem value='Comp Off'>Comp Off</SelectItem>
                                 </SelectContent>
                             </Select>
-                            {errors.leaveName && (
-                                <p className='mt-1 text-red-500 text-xs'>{errors.leaveName.message}</p>
-                            )}
+                            {errors.leaveName && <p className='mt-1 text-red-500 text-xs'>{errors.leaveName.message}</p>}
                         </div>
 
                         <div>
                             <label htmlFor='employee-name-input' className='font-medium text-sm'>
                                 Employee Name
                             </label>
-                            <InputText
-                                id='employee-name-input'
-                                {...register('employeeName')}
-                                placeholder='Enter employee name'
-                            />
+                            <InputText id='employee-name-input' {...register('employeeName')} placeholder='Enter employee name' />
                         </div>
 
                         <div>
@@ -322,21 +298,15 @@ export function LeaveCreditForm({
             </TabsContent>
 
             <TabsContent value='Leave Addition' className='space-y-4'>
-                <div className='py-8 text-center text-gray-500'>
-                    Leave Addition functionality will be implemented here
-                </div>
+                <div className='py-8 text-center text-gray-500'>Leave Addition functionality will be implemented here</div>
             </TabsContent>
 
             <TabsContent value='Leave Deduction' className='space-y-4'>
-                <div className='py-8 text-center text-gray-500'>
-                    Leave Deduction functionality will be implemented here
-                </div>
+                <div className='py-8 text-center text-gray-500'>Leave Deduction functionality will be implemented here</div>
             </TabsContent>
 
             <TabsContent value='Leave CarryForward' className='space-y-4'>
-                <div className='py-8 text-center text-gray-500'>
-                    Leave CarryForward functionality will be implemented here
-                </div>
+                <div className='py-8 text-center text-gray-500'>Leave CarryForward functionality will be implemented here</div>
             </TabsContent>
         </Tabs>
     );

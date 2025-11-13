@@ -5,8 +5,8 @@ import { GenericDataTable } from '@/components/ui/data-table/generic-data-table'
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { useEmployeeLogReport } from '@/hooks/hrms/attendance-management/useReports';
 import { useState } from 'react';
-import { LogReportFilters, type LogReportFiltersState } from './_components/filters';
 import { logReportColumns } from './_components/columns';
+import { LogReportFilters, type LogReportFiltersState } from './_components/filters';
 
 export default function EmployeeLogReportPage() {
     const [filters, setFilters] = useState<LogReportFiltersState>({
@@ -62,7 +62,13 @@ export default function EmployeeLogReportPage() {
                     variant='default'
                     size='lg'
                     className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
-                    <GenericDataTable isLoading={isLoading} columns={logReportColumns} data={filtered} totalItems={filtered.length} showViewOptions />
+                    <GenericDataTable
+                        isLoading={isLoading}
+                        columns={logReportColumns}
+                        data={filtered}
+                        totalItems={filtered.length}
+                        showViewOptions
+                    />
                 </CollapsibleSection>
             </div>
         </div>

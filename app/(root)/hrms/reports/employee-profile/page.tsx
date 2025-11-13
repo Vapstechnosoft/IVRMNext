@@ -4,11 +4,7 @@ import { Heading } from '@/components/layout/heading';
 import { Button } from '@/components/ui/button';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { HRMS_MI_ID } from '@/constants/hrms-config';
-import {
-    useEmployeeProfileReportOnload,
-    useFilterEmployeesBySelection,
-    useSearchEmployeeProfileDetails
-} from '@/hooks/hrms/useReports';
+import { useEmployeeProfileReportOnload, useFilterEmployeesBySelection, useSearchEmployeeProfileDetails } from '@/hooks/hrms/useReports';
 import type { EmployeeDropdown } from '@/types/hrms/reports/employee-profile-report';
 import { Printer, User } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
@@ -29,13 +25,13 @@ export default function EmployeeProfileReportPage() {
     const groupTypes = useMemo(() => onloadData?.data?.groupTypedropdown || [], [onloadData?.data?.groupTypedropdown]);
     const departments = useMemo(() => onloadData?.data?.departmentdropdown || [], [onloadData?.data?.departmentdropdown]);
     const designations = useMemo(() => onloadData?.data?.designationdropdown || [], [onloadData?.data?.designationdropdown]);
-    
+
     // Memoize onload employee dropdown to prevent unnecessary re-renders
     const onloadEmployees = useMemo(() => onloadData?.data?.employeedropdown || [], [onloadData?.data?.employeedropdown]);
-    
+
     // Initialize with empty array to prevent hydration mismatches
     const [employees, setEmployees] = useState<EmployeeDropdown[]>([]);
-    
+
     // Update employees when onload data is available (client-side only)
     useEffect(() => {
         if (onloadEmployees.length > 0) {
@@ -57,7 +53,7 @@ export default function EmployeeProfileReportPage() {
     const [employeeReports, setEmployeeReports] = useState<any[]>([]);
 
     // No automatic filtering - employees will only load when user clicks "SEARCH EMPLOYEES"
-    
+
     // Hide employee dropdown when filters change (user must search again)
     useEffect(() => {
         if (showEmployeeDropdown) {
@@ -83,7 +79,7 @@ export default function EmployeeProfileReportPage() {
     // Handle filter search - load employees based on filters
     const handleFilterSearch = () => {
         const hasFilters = selectedGroupTypes.length > 0 || selectedDepartments.length > 0 || selectedDesignations.length > 0;
-        
+
         if (!hasFilters) {
             toast.error('Please select at least one filter (Group Type, Department, or Designation)');
             return;
@@ -152,7 +148,7 @@ export default function EmployeeProfileReportPage() {
         for (const employeeId of selectedEmployees) {
             try {
                 const employee = employees.find((emp) => emp.HRME_Id === employeeId);
-                
+
                 if (!employee) {
                     errorCount++;
                     continue;
@@ -171,7 +167,7 @@ export default function EmployeeProfileReportPage() {
 
                 if (response.success && response.data) {
                     const employeeData = response.data;
-                    
+
                     // Map the API response fields to our display format
                     const details = {
                         EmployeeCode: employee.HRME_EmployeeCode,
@@ -228,7 +224,7 @@ export default function EmployeeProfileReportPage() {
         setEmployeeReports([]);
     };
 
-    const handleBack = () => {
+    const _handleBack = () => {
         setShowReport(false);
         setEmployeeReports([]);
         setSelectedEmployees([]);
@@ -281,7 +277,6 @@ export default function EmployeeProfileReportPage() {
             {/* Employee Profile Reports Section - Multiple reports displayed one below another */}
             {showReport && employeeReports.length > 0 && (
                 <div className='space-y-6'>
-
                     {/* Render each report */}
                     {employeeReports.map((report, index) => (
                         <CollapsibleSection
@@ -392,7 +387,10 @@ export default function EmployeeProfileReportPage() {
 
                                 {/* Print Button for individual report */}
                                 <div className='flex justify-end border-t pt-4'>
-                                    <Button variant='outline' onClick={handlePrint} className='w-fit transition-all duration-200 hover:scale-105'>
+                                    <Button
+                                        variant='outline'
+                                        onClick={handlePrint}
+                                        className='w-fit transition-all duration-200 hover:scale-105'>
                                         <Printer className='mr-2 h-4 w-4' />
                                         PRINT
                                     </Button>

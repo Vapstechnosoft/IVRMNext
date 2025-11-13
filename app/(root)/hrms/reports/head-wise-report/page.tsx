@@ -7,8 +7,8 @@ import { type BaseEntity, createLocalCrud } from '@/lib/localdb';
 import { Calculator, Download, Printer } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';
-import { HeadWiseReportFilters, type HeadWiseReportFilters as HeadWiseFilters } from './_components/filters';
-import { headWiseReportColumns, type HeadWiseRecord as HeadWiseRecordColumn } from './_components/columns';
+import { type HeadWiseRecord as HeadWiseRecordColumn, headWiseReportColumns } from './_components/columns';
+import { type HeadWiseReportFilters as HeadWiseFilters, HeadWiseReportFilters } from './_components/filters';
 
 // Data interfaces from employee-category masters
 interface GroupType extends BaseEntity {
@@ -32,7 +32,6 @@ interface HeadWiseRecord extends BaseEntity {
     month: string;
     year: string;
 }
-
 
 export default function HeadWiseReportPage() {
     // Database instances
@@ -270,7 +269,6 @@ export default function HeadWiseReportPage() {
             deductionHeads: new Set(deductionRecords.map((r) => r.salaryHead)).size
         };
     }, [filteredRecords]);
-
 
     return (
         <div className='space-y-6'>

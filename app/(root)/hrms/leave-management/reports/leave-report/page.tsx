@@ -6,7 +6,7 @@ import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { useLeaveReport } from '@/hooks/hrms/leave-management/useReports';
 import { useState } from 'react';
 import { leaveReportColumns } from './_components/columns';
-import { LeaveReportFilters, type LeaveReportFilters as FiltersType } from './_components/filters';
+import { type LeaveReportFilters as FiltersType, LeaveReportFilters } from './_components/filters';
 
 export default function LeaveReportPage() {
     const [showReport, setShowReport] = useState(false);

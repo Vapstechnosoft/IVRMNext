@@ -3,7 +3,6 @@
 import { Badge } from '@/components/ui/badge';
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
 import type { ColumnDef } from '@tanstack/react-table';
-import { useMemo } from 'react';
 
 export interface RetirementRecord {
     id?: number;
@@ -237,4 +236,3 @@ export const getRetirementColumns = (selectedHeaders: string[]): ColumnDef<Retir
 
     return baseColumns;
 };
-

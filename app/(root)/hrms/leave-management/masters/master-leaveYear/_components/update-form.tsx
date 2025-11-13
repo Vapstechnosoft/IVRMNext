@@ -2,12 +2,11 @@
 
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
-import { FormError } from '@/components/ui/extension/field';
 import { InputText } from '@/components/ui/extension/input-text';
 import { useMasterLeaveYear, useUpdateMasterLeaveYear } from '@/hooks/hrms/leave-management/useMasters';
 import { Save } from 'lucide-react';
-import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
 import { useEffect } from 'react';
+import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
 import type { LeaveYear } from './columns';
 
 interface UpdateMasterLeaveYearFormProps {
@@ -24,8 +23,8 @@ export default function UpdateMasterLeaveYearForm({ onSuccess, className = '', s
         register,
         handleSubmit,
         control,
-        watch,
-        setValue,
+        watch: _watch,
+        setValue: _setValue,
         reset,
         formState: { errors, isSubmitting }
     } = useForm<LeaveYear>({
@@ -102,13 +101,7 @@ export default function UpdateMasterLeaveYearForm({ onSuccess, className = '', s
                         <Controller
                             name='isActive'
                             control={control}
-                            render={({ field }) => (
-                                <Checkbox
-                                    id='isActive'
-                                    checked={field.value}
-                                    onCheckedChange={field.onChange}
-                                />
-                            )}
+                            render={({ field }) => <Checkbox id='isActive' checked={field.value} onCheckedChange={field.onChange} />}
                         />
                         <label htmlFor='isActive' className='font-medium text-sm'>
                             Active
@@ -129,4 +122,3 @@ export default function UpdateMasterLeaveYearForm({ onSuccess, className = '', s
         </div>
     );
 }
-

@@ -56,34 +56,21 @@ function ActionButtonsCell({ rowData }: { rowData: DesignationDetail }) {
 
     const handleToggle = useCallback(
         async (data: DesignationDetail, newState: boolean) => {
-            console.log('🔵 [TOGGLE] handleToggle called');
-            console.log('🔵 [TOGGLE] Record ID:', data.HRMDES_Id);
-            console.log('🔵 [TOGGLE] Record Name:', data.HRMDES_DesignationName);
-            console.log('🔵 [TOGGLE] Current State:', data.HRMDES_ActiveFlag);
-            console.log('🔵 [TOGGLE] New State:', newState);
-            
             try {
-                console.log('🟡 [TOGGLE] Calling toggleMutation.mutateAsync...');
                 const result = await toggleMutation.mutateAsync({
                     HRMDES_Id: data.HRMDES_Id,
                     HRMDES_ActiveFlag: newState
                 });
-                
-                console.log('🟢 [TOGGLE] Toggle result:', result);
-                
+
                 // Check if the record is mapped/in use
                 const retrunMsg = (result as any)?.retrunMsg || '';
-                console.log('🟢 [TOGGLE] retrunMsg:', retrunMsg);
-                
+
                 if (retrunMsg === 'Mapped') {
-                    console.log('⚠️ [TOGGLE] Record is mapped - cannot deactivate');
                     toast.error('Cannot deactivate - Designation is currently assigned/in use');
                 } else {
-                    console.log('✅ [TOGGLE] Success! Message: Designation ' + (newState ? 'activated' : 'deactivated') + ' successfully');
                     toast.success(`Designation ${newState ? 'activated' : 'deactivated'} successfully`);
                 }
-            } catch (error) {
-                console.log('🔴 [TOGGLE] Error:', error);
+            } catch (_error) {
                 toast.error(`Failed to ${newState ? 'activate' : 'deactivate'} designation`);
             }
         },

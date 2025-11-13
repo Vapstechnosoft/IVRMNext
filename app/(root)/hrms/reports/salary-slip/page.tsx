@@ -2,17 +2,12 @@
 
 import { Button } from '@/components/ui/button';
 import { HRMS_MI_ID } from '@/constants/hrms-config';
-import {
-    useFilterEmployeesByYearMonth,
-    useGenerateSalarySlip,
-    useSalarySlipOnload
-} from '@/hooks/hrms/useReports';
-import type { EmployeeDropdown } from '@/types/hrms/salary-advance';
+import { useFilterEmployeesByYearMonth, useGenerateSalarySlip, useSalarySlipOnload } from '@/hooks/hrms/useReports';
 import { FileText } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';
-import { SalarySlipFilters, type SalarySlipFilters as SalarySlipFiltersType } from './_components/filters';
 import type { EmployeeSalarySlipDisplay } from './_components/columns';
+import { SalarySlipFilters, type SalarySlipFilters as SalarySlipFiltersType } from './_components/filters';
 
 export default function SalarySlipReportPage() {
     const roleId = HRMS_MI_ID;
@@ -63,16 +58,19 @@ export default function SalarySlipReportPage() {
             filterMutation.mutate(request, {
                 onSuccess: (response) => {
                     if (response.success && response.data?.employeedropdown) {
-                        const employeeList: EmployeeSalarySlipDisplay[] = (response.data.employeedropdown || []).map((emp: any, index: number) => ({
-                            id: emp.HRME_Id || index + 1, // Use HRME_Id as unique identifier, fallback to index if missing
-                            employeeCode: emp.HRME_EmployeeCode,
-                            employeeName: `${emp.HRME_EmployeeFirstName} ${emp.HRME_EmployeeMiddleName || ''} ${emp.HRME_EmployeeLastName || ''}`.trim(),
-                            groupTypeId: emp.HRMGT_Id || 0,
-                            departmentId: emp.HRMD_Id || 0,
-                            designationId: emp.HRMDES_Id || 0,
-                            HRME_Id: emp.HRME_Id,
-                            isSelected: false
-                        }));
+                        const employeeList: EmployeeSalarySlipDisplay[] = (response.data.employeedropdown || []).map(
+                            (emp: any, index: number) => ({
+                                id: emp.HRME_Id || index + 1, // Use HRME_Id as unique identifier, fallback to index if missing
+                                employeeCode: emp.HRME_EmployeeCode,
+                                employeeName:
+                                    `${emp.HRME_EmployeeFirstName} ${emp.HRME_EmployeeMiddleName || ''} ${emp.HRME_EmployeeLastName || ''}`.trim(),
+                                groupTypeId: emp.HRMGT_Id || 0,
+                                departmentId: emp.HRMD_Id || 0,
+                                designationId: emp.HRMDES_Id || 0,
+                                HRME_Id: emp.HRME_Id,
+                                isSelected: false
+                            })
+                        );
                         setEmployees(employeeList);
                         setFilteredEmployees(employeeList);
                     }

@@ -4,41 +4,28 @@ import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
 import { DataTable } from '@/components/ui/data-table/data-table';
-import { Label } from '@/components/ui/extension/field';
+import { FormError, Label } from '@/components/ui/extension/field';
 import { InputText } from '@/components/ui/extension/input-text';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { MultiSelect } from '@/components/ui/multi-select';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useGetEmployeeDetailsBySelection, useMassUpdationOnload, useSearchMassUpdationEmployees } from '@/hooks/hrms/useTransactions';
-import type {
-    DepartmentDropdown,
-    DesignationDropdown,
-    EarningDeductionHead,
-    EmployeeDropdown,
-    GroupTypeDropdown
-} from '@/types/hrms/mass-updation';
+import { massUpdationFormSchema, massUpdationSchema } from '@/schemas/hrms/mass-updation-schemas';
+import type { EmployeeDropdown } from '@/types/hrms/mass-updation';
+import { zodResolver } from '@hookform/resolvers/zod';
 import type { ColumnDef } from '@tanstack/react-table';
 import { Search, Users, X } from 'lucide-react';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
+import { z } from 'zod';
 
 interface Employee extends EmployeeDropdown {
     selected?: boolean;
 }
 
-interface MassUpdateForm {
-    groupType: string[];
-    department: string[];
-    designation: string[];
-    selectedHead: string;
-    updateType: 'Percentage' | 'Amount';
-    updateValue: number;
-    effectiveDate: string;
-    earningDeduction: 'Earning' | 'Deduction';
-    addRemove: 'Add' | 'Remove';
-}
+type MassUpdateForm = z.infer<typeof massUpdationFormSchema>;
 
 export default function MassUpdationPage() {
     const [employees, setEmployees] = useState<Employee[]>([]);
@@ -47,7 +34,16 @@ export default function MassUpdationPage() {
     const [hasSearched, setHasSearched] = useState(false);
     const _formRef = useRef<HTMLDivElement>(null);
 
-    const { register, handleSubmit, reset, watch, control, getValues } = useForm<MassUpdateForm>({
+    const {
+        register,
+        handleSubmit,
+        reset,
+        watch,
+        control,
+        getValues,
+        formState: { errors }
+    } = useForm<MassUpdateForm>({
+        resolver: zodResolver(massUpdationFormSchema),
         mode: 'onChange',
         defaultValues: {
             groupType: [],
@@ -75,52 +71,31 @@ export default function MassUpdationPage() {
     const searchMutation = useSearchMassUpdationEmployees();
     const saveMutation = useGetEmployeeDetailsBySelection();
 
-    // Debug logging
-    React.useEffect(() => {
-        console.log('=== Mass Updation Onload Debug ===');
-        console.log('Is Loading:', isLoading);
-        console.log('Onload Data:', onloadData);
-        if (onloadData) {
-            console.log('groupTypedropdownlist:', onloadData.groupTypedropdownlist?.length || 0);
-            console.log('groupTypedropdown:', onloadData.groupTypedropdown?.length || 0);
-            console.log('departmentdropdownlist:', onloadData.departmentdropdownlist?.length || 0);
-            console.log('departmentdropdown:', onloadData.departmentdropdown?.length || 0);
-            console.log('designationdropdownlist:', onloadData.designationdropdownlist?.length || 0);
-            console.log('designationdropdown:', onloadData.designationdropdown?.length || 0);
-            console.log('All keys in onloadData:', Object.keys(onloadData));
-        }
-    }, [onloadData, isLoading]);
+    // Debug logging - onloadData handled by data loading logic
 
     // Handle both field name variants (with and without 'list' suffix)
     // Memoize arrays to prevent unnecessary re-renders
     const groupTypes = useMemo(() => {
-        return (onloadData?.groupTypedropdownlist && onloadData.groupTypedropdownlist.length > 0) 
-            ? onloadData.groupTypedropdownlist 
-            : (onloadData?.groupTypedropdown || []);
+        return onloadData?.groupTypedropdownlist && onloadData.groupTypedropdownlist.length > 0
+            ? onloadData.groupTypedropdownlist
+            : onloadData?.groupTypedropdown || [];
     }, [onloadData?.groupTypedropdownlist, onloadData?.groupTypedropdown]);
-    
+
     const departments = useMemo(() => {
-        return (onloadData?.departmentdropdownlist && onloadData.departmentdropdownlist.length > 0)
+        return onloadData?.departmentdropdownlist && onloadData.departmentdropdownlist.length > 0
             ? onloadData.departmentdropdownlist
-            : (onloadData?.departmentdropdown || []);
+            : onloadData?.departmentdropdown || [];
     }, [onloadData?.departmentdropdownlist, onloadData?.departmentdropdown]);
-    
+
     const designations = useMemo(() => {
-        return (onloadData?.designationdropdownlist && onloadData.designationdropdownlist.length > 0)
+        return onloadData?.designationdropdownlist && onloadData.designationdropdownlist.length > 0
             ? onloadData.designationdropdownlist
-            : (onloadData?.designationdropdown || []);
+            : onloadData?.designationdropdown || [];
     }, [onloadData?.designationdropdownlist, onloadData?.designationdropdown]);
-    
+
     const heads = useMemo(() => onloadData?.headdropdown || [], [onloadData?.headdropdown]);
 
-    // Debug log the final values
-    React.useEffect(() => {
-        console.log('=== Final Dropdown Values ===');
-        console.log('Group Types:', groupTypes.length);
-        console.log('Departments:', departments.length);
-        console.log('Designations:', designations.length);
-        console.log('Heads:', heads.length);
-    }, [groupTypes, departments, designations, heads]);
+    // Debug log the final values - dependencies tracked for memoization
 
     const filteredHeads = React.useMemo(() => {
         if (!heads || heads.length === 0) return [];
@@ -163,6 +138,19 @@ export default function MassUpdationPage() {
     }, [hasSearched, filterEmployees]);
 
     const onSubmit: SubmitHandler<MassUpdateForm> = async (data: MassUpdateForm) => {
+        // Validate search criteria
+        const searchValidation = massUpdationSchema.search.safeParse({
+            groupType: data.groupType,
+            department: data.department,
+            designation: data.designation
+        });
+
+        if (!searchValidation.success) {
+            const firstError = searchValidation.error.errors[0];
+            toast.error(firstError.message);
+            return;
+        }
+
         const searchPayload = {
             MI_Id: 30,
             roleId: 2,
@@ -239,16 +227,33 @@ export default function MassUpdationPage() {
         }
 
         const values = getValues();
-        if (!values.selectedHead) {
-            toast.error('Please select a Head');
-            return;
-        }
-        if (!values.updateType) {
-            toast.error('Please choose Amount or Percentage');
-            return;
-        }
-        if (!values.updateValue || Number(values.updateValue) <= 0) {
-            toast.error('Please enter a valid value');
+
+        // Validate employee records section - use a partial schema for validation
+        const updateFieldsSchema = z.object({
+            selectedHead: z.string().min(1, 'Head is required'),
+            updateType: z.enum(['Percentage', 'Amount'], {
+                required_error: 'Please select Amount or Percentage'
+            }),
+            updateValue: z.number().min(0, 'Value must be greater than or equal to 0'),
+            earningDeduction: z.enum(['Earning', 'Deduction'], {
+                required_error: 'Please select Earning or Deduction'
+            }),
+            addRemove: z.enum(['Add', 'Remove'], {
+                required_error: 'Please select an Action'
+            })
+        });
+
+        const updateValidation = updateFieldsSchema.safeParse({
+            selectedHead: values.selectedHead,
+            updateType: values.updateType,
+            updateValue: values.updateValue,
+            earningDeduction: values.earningDeduction,
+            addRemove: values.addRemove
+        });
+
+        if (!updateValidation.success) {
+            const firstError = updateValidation.error.errors[0];
+            toast.error(firstError.message);
             return;
         }
 
@@ -380,6 +385,7 @@ export default function MassUpdationPage() {
                                         />
                                     )}
                                 />
+                                {errors.groupType && <FormError>{errors.groupType.message}</FormError>}
                             </div>
 
                             <div className='space-y-2'>
@@ -400,6 +406,7 @@ export default function MassUpdationPage() {
                                         />
                                     )}
                                 />
+                                {errors.department && <FormError>{errors.department.message}</FormError>}
                             </div>
 
                             <div className='space-y-2'>
@@ -420,6 +427,7 @@ export default function MassUpdationPage() {
                                         />
                                     )}
                                 />
+                                {errors.designation && <FormError>{errors.designation.message}</FormError>}
                             </div>
                         </div>
 
@@ -505,7 +513,7 @@ export default function MassUpdationPage() {
 
                                     <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
                                         <div className='space-y-2'>
-                                            <Label>Head</Label>
+                                            <Label>Head *</Label>
                                             <Controller
                                                 name='selectedHead'
                                                 control={control}
@@ -530,15 +538,17 @@ export default function MassUpdationPage() {
                                                     </Select>
                                                 )}
                                             />
+                                            {errors.selectedHead && <FormError>{errors.selectedHead.message}</FormError>}
                                         </div>
 
                                         <div className='space-y-2'>
-                                            <Label>{watch('updateType') === 'Amount' ? 'Amount' : 'Percentage'}</Label>
+                                            <Label>{watch('updateType') === 'Amount' ? 'Amount' : 'Percentage'} *</Label>
                                             <InputText
                                                 type='number'
                                                 step='any'
                                                 placeholder={`Enter ${watch('updateType') === 'Amount' ? 'amount' : 'percentage'}`}
                                                 {...register('updateValue', { valueAsNumber: true })}
+                                                error={errors.updateValue?.message as string | undefined}
                                             />
                                         </div>
                                     </div>
@@ -591,7 +601,10 @@ export default function MassUpdationPage() {
                             {selectedEmployees.length > 0 && (
                                 <div className='flex items-center gap-4 rounded-lg bg-blue-50 p-4'>
                                     <span className='font-medium text-sm'>{selectedEmployees.length} employee(s) selected</span>
-                                    <Button onClick={handleMassUpdate} disabled={saveMutation.isPending} className='flex items-center gap-2'>
+                                    <Button
+                                        onClick={handleMassUpdate}
+                                        disabled={saveMutation.isPending}
+                                        className='flex items-center gap-2'>
                                         <Users className='h-4 w-4' />
                                         {saveMutation.isPending ? 'Saving...' : 'Save'}
                                     </Button>

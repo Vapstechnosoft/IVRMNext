@@ -13,7 +13,8 @@ export default function FOMonthEndReportPage() {
         date: ''
     });
 
-    const { data: reportData, isLoading } = useFOMonthEndReport(filters);
+    // TODO: Use reportData and isLoading when implementing report display
+    useFOMonthEndReport(filters);
 
     const handleSearch = () => {
         // TODO: Implement report generation

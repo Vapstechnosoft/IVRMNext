@@ -8,8 +8,8 @@ import { format } from 'date-fns';
 import { BarChart3, Download, Printer } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';
+import { type EmployeeStrengthRecord as EmployeeStrengthRecordColumn, employeeStrengthColumns } from './_components/columns';
 import { EmployeeStrengthFilters, type StrengthReportFilters } from './_components/filters';
-import { employeeStrengthColumns, type EmployeeStrengthRecord as EmployeeStrengthRecordColumn } from './_components/columns';
 
 // Data interfaces from employee-category masters
 interface GroupType extends BaseEntity {
@@ -48,7 +48,6 @@ interface EmployeeStrengthRecord extends BaseEntity {
     femaleEmployees: number;
     dateRange: string;
 }
-
 
 export default function EmployeeStrengthReportPage() {
     // Database instances
@@ -288,7 +287,6 @@ export default function EmployeeStrengthReportPage() {
             }
         );
     }, [filteredRecords]);
-
 
     return (
         <div className='space-y-6'>

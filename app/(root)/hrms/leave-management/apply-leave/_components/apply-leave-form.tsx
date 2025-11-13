@@ -125,12 +125,7 @@ export function ApplyLeaveForm({ defaultEmployee, onSubmit, onCancel }: ApplyLea
                     <label htmlFor='from-date-input' className='font-medium text-sm'>
                         From Date *
                     </label>
-                    <InputText
-                        id='from-date-input'
-                        type='date'
-                        {...register('fromDate', { required: true })}
-                        min={todayISO}
-                    />
+                    <InputText id='from-date-input' type='date' {...register('fromDate', { required: true })} min={todayISO} />
                     {errors.fromDate && <p className='mt-1 text-red-500 text-xs'>From Date is required</p>}
                 </div>
                 <div>

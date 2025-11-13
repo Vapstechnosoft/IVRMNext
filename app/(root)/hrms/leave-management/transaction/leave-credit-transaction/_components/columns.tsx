@@ -3,9 +3,9 @@
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
 import { ActionButtons } from '@/components/ui/form/action-buttons';
 import { useFormContext } from '@/components/ui/form/form-provider';
-import { type BaseEntity } from '@/lib/localdb';
-import type { ColumnDef } from '@tanstack/react-table';
+import type { BaseEntity } from '@/lib/localdb';
 import { cn } from '@/lib/utils';
+import type { ColumnDef } from '@tanstack/react-table';
 import { useCallback } from 'react';
 
 export interface LeaveCreditTransaction extends BaseEntity {
@@ -105,11 +105,5 @@ function ActionButtonsCell({ rowData }: { rowData: LeaveCreditTransaction }) {
         [openEditForm]
     );
 
-    return (
-        <ActionButtons
-            rowData={rowData}
-            buttons={{ edit: true, toggle: false, delete: false }}
-            onEdit={handleEdit}
-        />
-    );
+    return <ActionButtons rowData={rowData} buttons={{ edit: true, toggle: false, delete: false }} onEdit={handleEdit} />;
 }

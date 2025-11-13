@@ -8,13 +8,13 @@ import { useShiftSettingMaster } from '@/hooks/hrms/attendance-management/useMas
 import { Plus, X } from 'lucide-react';
 import { use } from 'react';
 import AddShiftSettingMasterForm from './_components/add-form';
-import { shiftSettingColumns, type ShiftSetting } from './_components/columns';
+import { type ShiftSetting, shiftSettingColumns } from './_components/columns';
 import UpdateShiftSettingMasterForm from './_components/update-form';
 
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 
 export default function ShiftSettingMasterPage(props: { searchParams: SearchParams }) {
-    const searchParams = use(props.searchParams);
+    const _searchParams = use(props.searchParams);
     const { data: response, isLoading, error } = useShiftSettingMaster();
 
     return (
@@ -81,15 +81,8 @@ function ShiftSettingMasterPageContent({
 }
 
 function FormSections() {
-    const {
-        isAddFormOpen,
-        isEditFormOpen,
-        selectedRow,
-        closeAddForm,
-        closeEditForm,
-        addFormRef,
-        editFormRef
-    } = useFormContext<ShiftSetting>();
+    const { isAddFormOpen, isEditFormOpen, selectedRow, closeAddForm, closeEditForm, addFormRef, editFormRef } =
+        useFormContext<ShiftSetting>();
 
     return (
         <>

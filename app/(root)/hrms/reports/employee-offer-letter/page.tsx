@@ -2,13 +2,19 @@
 
 import { Button } from '@/components/ui/button';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
-import { type BaseEntity, createLocalCrud } from '@/lib/localdb';
+import { createLocalCrud } from '@/lib/localdb';
+import { format } from 'date-fns';
 import { Printer, X } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
-import { format } from 'date-fns';
 import { toast } from 'sonner';
-import { EmployeeOfferLetterFilters, type OfferLetterFilters, type GroupType, type Department, type Designation, type Employee } from './_components/filters';
-
+import {
+    type Department,
+    type Designation,
+    type Employee,
+    EmployeeOfferLetterFilters,
+    type GroupType,
+    type OfferLetterFilters
+} from './_components/filters';
 
 export default function EmployeeOfferLetterPage() {
     // Database instances
@@ -103,10 +109,38 @@ export default function EmployeeOfferLetterPage() {
 
     const generateMockDesignations = (): Omit<Designation, 'id' | 'createdAt'>[] => {
         return [
-            { designationName: 'Senior yoga teacher', basicAmount: '50000', sanctionedSeats: '5', displaySanctionedSeats: true, order: 1, isActive: true },
-            { designationName: 'Principal', basicAmount: '100000', sanctionedSeats: '1', displaySanctionedSeats: true, order: 2, isActive: true },
-            { designationName: 'Assistant Teacher', basicAmount: '40000', sanctionedSeats: '10', displaySanctionedSeats: true, order: 3, isActive: true },
-            { designationName: 'Vice Principal', basicAmount: '80000', sanctionedSeats: '2', displaySanctionedSeats: true, order: 4, isActive: true }
+            {
+                designationName: 'Senior yoga teacher',
+                basicAmount: '50000',
+                sanctionedSeats: '5',
+                displaySanctionedSeats: true,
+                order: 1,
+                isActive: true
+            },
+            {
+                designationName: 'Principal',
+                basicAmount: '100000',
+                sanctionedSeats: '1',
+                displaySanctionedSeats: true,
+                order: 2,
+                isActive: true
+            },
+            {
+                designationName: 'Assistant Teacher',
+                basicAmount: '40000',
+                sanctionedSeats: '10',
+                displaySanctionedSeats: true,
+                order: 3,
+                isActive: true
+            },
+            {
+                designationName: 'Vice Principal',
+                basicAmount: '80000',
+                sanctionedSeats: '2',
+                displaySanctionedSeats: true,
+                order: 4,
+                isActive: true
+            }
         ];
     };
 
@@ -255,8 +289,8 @@ export default function EmployeeOfferLetterPage() {
                                     {/* Certificate Content */}
                                     <div className='mx-auto max-w-3xl space-y-4 text-sm leading-relaxed'>
                                         <p className='text-justify'>
-                                            This is to certify that{' '}
-                                            <strong>{getEmployeeNameWithTitle(selectedEmployeeDetails)}</strong> is a{' '}
+                                            This is to certify that <strong>{getEmployeeNameWithTitle(selectedEmployeeDetails)}</strong> is
+                                            a{' '}
                                             <strong>
                                                 {selectedEmployeeDetails.employmentType === 'Permanent' ||
                                                 selectedEmployeeDetails.employmentType === 'Probationary'
@@ -301,9 +335,7 @@ export default function EmployeeOfferLetterPage() {
                                             <strong>{getEmployeeNameWithTitle(selectedEmployeeDetails)}</strong>
                                         </div>
                                         <div>Employee Code: {selectedEmployeeDetails.employeeCode}</div>
-                                        {selectedEmployeeDetails.departmentName && (
-                                            <div>{selectedEmployeeDetails.departmentName}</div>
-                                        )}
+                                        {selectedEmployeeDetails.departmentName && <div>{selectedEmployeeDetails.departmentName}</div>}
                                     </div>
 
                                     {/* Subject */}
@@ -318,19 +350,19 @@ export default function EmployeeOfferLetterPage() {
                                         <p className='text-justify'>Dear {selectedEmployeeDetails.employeeFirstName},</p>
 
                                         <p className='text-justify'>
-                                            We are pleased to offer you the position of <strong>{selectedEmployeeDetails.designationName}</strong> in the{' '}
+                                            We are pleased to offer you the position of{' '}
+                                            <strong>{selectedEmployeeDetails.designationName}</strong> in the{' '}
                                             <strong>{selectedEmployeeDetails.departmentName}</strong> department at our institution.
                                         </p>
 
                                         <p className='text-justify'>
-                                            Your employment will commence from{' '}
-                                            <strong>{format(filters.currentDate, 'dd-MM-yyyy')}</strong>. We are confident that your skills and
-                                            experience will be a valuable addition to our team.
+                                            Your employment will commence from <strong>{format(filters.currentDate, 'dd-MM-yyyy')}</strong>.
+                                            We are confident that your skills and experience will be a valuable addition to our team.
                                         </p>
 
                                         <p className='text-justify'>
-                                            Please confirm your acceptance of this offer by signing and returning a copy of this letter within 7
-                                            days.
+                                            Please confirm your acceptance of this offer by signing and returning a copy of this letter
+                                            within 7 days.
                                         </p>
 
                                         <p className='text-justify'>We look forward to welcoming you to our organization.</p>
@@ -363,4 +395,3 @@ export default function EmployeeOfferLetterPage() {
         </div>
     );
 }
-

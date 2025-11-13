@@ -1,8 +1,8 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
-import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { InputText } from '@/components/ui/extension/input-text';
+import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { X } from 'lucide-react';
 
@@ -34,19 +34,11 @@ export function OverallReportFilters({ filters, onFilterChange, onReport, onCanc
                 {/* Status Selection */}
                 <div className='flex flex-wrap items-center gap-6'>
                     <label className='flex items-center gap-2 text-sm'>
-                        <input
-                            type='radio'
-                            checked={filters.status === 'Applied'}
-                            onChange={() => onFilterChange('status', 'Applied')}
-                        />
+                        <input type='radio' checked={filters.status === 'Applied'} onChange={() => onFilterChange('status', 'Applied')} />
                         Applied
                     </label>
                     <label className='flex items-center gap-2 text-sm'>
-                        <input
-                            type='radio'
-                            checked={filters.status === 'Approved'}
-                            onChange={() => onFilterChange('status', 'Approved')}
-                        />
+                        <input type='radio' checked={filters.status === 'Approved'} onChange={() => onFilterChange('status', 'Approved')} />
                         Approved
                     </label>
                     <label className='flex items-center gap-2 text-sm'>
@@ -58,11 +50,7 @@ export function OverallReportFilters({ filters, onFilterChange, onReport, onCanc
                         Requested
                     </label>
                     <label className='flex items-center gap-2 text-sm'>
-                        <input
-                            type='radio'
-                            checked={filters.status === 'Rejected'}
-                            onChange={() => onFilterChange('status', 'Rejected')}
-                        />
+                        <input type='radio' checked={filters.status === 'Rejected'} onChange={() => onFilterChange('status', 'Rejected')} />
                         Rejected
                     </label>
                     <label className='flex items-center gap-2 text-sm'>

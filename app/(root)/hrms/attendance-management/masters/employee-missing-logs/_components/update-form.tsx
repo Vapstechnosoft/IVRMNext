@@ -1,9 +1,9 @@
 'use client';
 
 import { useEmployeeMissingLogs, useSaveEmployeeMissingLog } from '@/hooks/hrms/attendance-management/useMasters';
+import type { MissingLog } from './columns';
 import { MissingLogForm } from './missing-log-form';
 import type { MissingLogFormData } from './missing-log-form';
-import type { MissingLog } from './columns';
 
 interface UpdateEmployeeMissingLogFormProps {
     onSuccess?: () => void;
@@ -13,7 +13,7 @@ interface UpdateEmployeeMissingLogFormProps {
 
 export default function UpdateEmployeeMissingLogForm({ onSuccess, className = '', selectedRow: row }: UpdateEmployeeMissingLogFormProps) {
     const { refetchAll } = useEmployeeMissingLogs();
-    const { mutate: saveMissingLog, isPending } = useSaveEmployeeMissingLog();
+    const { mutate: saveMissingLog } = useSaveEmployeeMissingLog();
 
     const editingMissingLog: MissingLog = {
         ...row
@@ -49,4 +49,3 @@ export default function UpdateEmployeeMissingLogForm({ onSuccess, className = ''
         </div>
     );
 }
-

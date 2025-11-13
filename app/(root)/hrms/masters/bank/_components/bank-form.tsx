@@ -39,7 +39,6 @@ export default function BankForm({ selectedRow, onSuccess }: BankFormProps) {
     // Populate form when in edit mode
     useEffect(() => {
         if (selectedRow) {
-            console.log('📝 [BROWSER] Edit mode - ID:', selectedRow.HRMBD_Id, 'IFSC:', selectedRow.HRMBD_IFSCCode);
             reset({
                 HRMBD_Id: selectedRow.HRMBD_Id,
                 MI_Id: selectedRow.MI_Id,
@@ -55,48 +54,30 @@ export default function BankForm({ selectedRow, onSuccess }: BankFormProps) {
 
     const onSubmit = async (data: MasterBankInput) => {
         if (isEditMode) {
-            console.log('🔵 [BROWSER] ========== EDIT BANK ==========');
-            console.log('🔵 [BROWSER] Original Row:', JSON.stringify(selectedRow, null, 2));
-            console.log('🔵 [BROWSER] Form Data:', JSON.stringify(data, null, 2));
-            console.log('🔵 [BROWSER] HRMBD_Id:', data.HRMBD_Id);
-            console.log('🔵 [BROWSER] Original IFSC:', selectedRow?.HRMBD_IFSCCode);
-            console.log('🔵 [BROWSER] New IFSC:', data.HRMBD_IFSCCode);
-            console.log('🔵 [BROWSER] IFSC Changed:', selectedRow?.HRMBD_IFSCCode !== data.HRMBD_IFSCCode);
         } else {
-            console.log('🔵 [BROWSER] Bank submit - Mode: ADD, IFSC:', data.HRMBD_IFSCCode);
         }
-        
+
         if (isEditMode && !data.HRMBD_Id) {
             console.warn('⚠️ [BROWSER] Edit mode but no HRMBD_Id!');
         }
-        
+
         try {
             const res = await saveMutation.mutateAsync(data);
-            
+
             if (isEditMode) {
-                console.log('🟢 [BROWSER] Edit Response:', JSON.stringify(res, null, 2));
-                console.log('🟢 [BROWSER] Response success:', res?.success);
-                console.log('🟢 [BROWSER] Response data:', res?.data);
-                
                 // Check if IFSC was updated in response
                 // For edit, check top-level response first (contains updated record)
                 if (res?.data) {
-                    const topLevelIFSC = res.data.HRMBD_IFSCCode;
+                    const _topLevelIFSC = res.data.HRMBD_IFSCCode;
                     const topLevelId = res.data.HRMBD_Id;
-                    
+
                     // Try to find the updated bank in the list by ID
                     const updatedBankInList = res.data.bankdetailList?.find((bank: any) => bank.HRMBD_Id === data.HRMBD_Id);
-                    const responseBank = updatedBankInList || (topLevelId === data.HRMBD_Id ? res.data : res.data.bankdetailList?.[0] || res.data);
-                    
-                    console.log('🟢 [BROWSER] Top-level IFSC:', topLevelIFSC);
-                    console.log('🟢 [BROWSER] Top-level ID:', topLevelId);
-                    console.log('🟢 [BROWSER] Response Bank IFSC:', responseBank.HRMBD_IFSCCode);
-                    console.log('🟢 [BROWSER] Response Bank ID:', responseBank.HRMBD_Id);
-                    console.log('🟢 [BROWSER] IFSC Match:', responseBank.HRMBD_IFSCCode === data.HRMBD_IFSCCode);
-                    console.log('🟢 [BROWSER] ID Match:', responseBank.HRMBD_Id === data.HRMBD_Id);
+                    const _responseBank =
+                        updatedBankInList || (topLevelId === data.HRMBD_Id ? res.data : res.data.bankdetailList?.[0] || res.data);
                 }
             }
-            
+
             if (res?.success) {
                 toast.success(res?.message || 'Bank saved successfully');
                 if (!isEditMode) {
@@ -110,15 +91,11 @@ export default function BankForm({ selectedRow, onSuccess }: BankFormProps) {
                 console.error('❌ [BROWSER] Save failed:', res?.message);
                 toast.error(res?.message || 'Failed to save bank');
             }
-            
+
             if (isEditMode) {
-                console.log('🔵 [BROWSER] ============================');
             }
         } catch (error: any) {
-            const errorMsg = error?.response?.data?.message 
-                || error?.message 
-                || error?.data?.message
-                || 'Failed to save bank';
+            const errorMsg = error?.response?.data?.message || error?.message || error?.data?.message || 'Failed to save bank';
             console.error('🔴 [BROWSER] Error:', errorMsg);
             toast.error(errorMsg);
         }
@@ -129,7 +106,7 @@ export default function BankForm({ selectedRow, onSuccess }: BankFormProps) {
             {/* Hidden fields for IDs */}
             {isEditMode && <input type='hidden' {...register('HRMBD_Id', { valueAsNumber: true })} />}
             <input type='hidden' {...register('MI_Id', { valueAsNumber: true })} />
-            
+
             <div className='group flex flex-col gap-1.5'>
                 <Label htmlFor='HRMBD_BankName'>
                     Bank Name <span className='text-destructive'>*</span>
@@ -184,17 +161,10 @@ export default function BankForm({ selectedRow, onSuccess }: BankFormProps) {
                 </div>
             </div>
             <div className='col-span-full flex gap-2'>
-                <Button 
-                    type='submit' 
-                    className='mt-2' 
-                    disabled={saveMutation.isPending || (isEditMode && !isDirty)}>
+                <Button type='submit' className='mt-2' disabled={saveMutation.isPending || (isEditMode && !isDirty)}>
                     {saveMutation.isPending ? (isEditMode ? 'Updating...' : 'Saving...') : isEditMode ? 'Update' : 'Save'}
                 </Button>
-                {isEditMode && !isDirty && (
-                    <span className='mt-2 flex items-center text-sm text-muted-foreground'>
-                        No changes made
-                    </span>
-                )}
+                {isEditMode && !isDirty && <span className='mt-2 flex items-center text-muted-foreground text-sm'>No changes made</span>}
             </div>
         </form>
     );

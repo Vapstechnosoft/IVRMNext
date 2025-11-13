@@ -6,10 +6,7 @@ import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { useUnauthorizedLeaveCountReport } from '@/hooks/hrms/leave-management/useReports';
 import { useMemo, useState } from 'react';
 import { getUnauthorizedLeaveCountColumns } from './_components/columns';
-import {
-    UnauthorizedLeaveCountFilters,
-    type UnauthorizedLeaveCountFilters as FiltersType
-} from './_components/filters';
+import { type UnauthorizedLeaveCountFilters as FiltersType, UnauthorizedLeaveCountFilters } from './_components/filters';
 
 export default function UnauthorizedLeaveCountReportPage() {
     const [showReport, setShowReport] = useState(false);

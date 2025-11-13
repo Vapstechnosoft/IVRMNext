@@ -7,8 +7,8 @@ import { InputText } from '@/components/ui/extension/input-text';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useLeaveAuthorization, useUpdateLeaveAuthorization } from '@/hooks/hrms/leave-management/useMasters';
 import { Save } from 'lucide-react';
-import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
 import { useEffect } from 'react';
+import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
 import type { LeaveAuthorization } from './columns';
 
 interface UpdateLeaveAuthorizationFormProps {
@@ -26,7 +26,7 @@ export default function UpdateLeaveAuthorizationForm({ onSuccess, className = ''
         handleSubmit,
         control,
         watch,
-        setValue,
+        setValue: _setValue,
         reset,
         formState: { errors, isSubmitting }
     } = useForm<LeaveAuthorization>({
@@ -235,7 +235,9 @@ export default function UpdateLeaveAuthorizationForm({ onSuccess, className = ''
                                         Order Of Approval <span className='text-red-500'>*</span>
                                     </label>
                                     <Select value={field.value} onValueChange={field.onChange}>
-                                        <SelectTrigger id='order-approval-select' className={errors.orderOfApproval ? 'border-red-500' : ''}>
+                                        <SelectTrigger
+                                            id='order-approval-select'
+                                            className={errors.orderOfApproval ? 'border-red-500' : ''}>
                                             <SelectValue placeholder='--Select--' />
                                         </SelectTrigger>
                                         <SelectContent>
@@ -261,7 +263,9 @@ export default function UpdateLeaveAuthorizationForm({ onSuccess, className = ''
                                         Approval Person <span className='text-red-500'>*</span>
                                     </label>
                                     <Select value={field.value} onValueChange={field.onChange}>
-                                        <SelectTrigger id='approval-person-select' className={errors.approvalPerson ? 'border-red-500' : ''}>
+                                        <SelectTrigger
+                                            id='approval-person-select'
+                                            className={errors.approvalPerson ? 'border-red-500' : ''}>
                                             <SelectValue placeholder='--Select--' />
                                         </SelectTrigger>
                                         <SelectContent>
@@ -280,13 +284,7 @@ export default function UpdateLeaveAuthorizationForm({ onSuccess, className = ''
                             <Controller
                                 name='finalFlag'
                                 control={control}
-                                render={({ field }) => (
-                                    <Checkbox
-                                        id='finalFlag'
-                                        checked={field.value}
-                                        onCheckedChange={field.onChange}
-                                    />
-                                )}
+                                render={({ field }) => <Checkbox id='finalFlag' checked={field.value} onCheckedChange={field.onChange} />}
                             />
                             <label htmlFor='finalFlag' className='font-medium text-gray-700 text-sm'>
                                 Final Flag
@@ -334,4 +332,3 @@ export default function UpdateLeaveAuthorizationForm({ onSuccess, className = ''
         </div>
     );
 }
-

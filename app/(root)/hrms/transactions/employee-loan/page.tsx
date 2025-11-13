@@ -7,7 +7,7 @@ import { DataTable } from '@/components/ui/data-table/data-table';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
 import { useActivateDeactivateEmployeeLoan, useEmployeeLoanList } from '@/hooks/hrms/useTransactions';
-import type { EmployeeDropdown, EmployeeLoanItem, MasterLoanDropdown, ModeOfPaymentDropdown } from '@/types/hrms/employee-loan';
+import type { EmployeeDropdown, EmployeeLoanItem, MasterLoanDropdown } from '@/types/hrms/employee-loan';
 import type { ColumnDef } from '@tanstack/react-table';
 import { format } from 'date-fns';
 import { Plus } from 'lucide-react';
@@ -41,7 +41,7 @@ function EmployeeLoanPageContent({
     const loans = loanData?.emploanList || [];
     const employees = loanData?.employeedropdown || [];
     const loanTypes = loanData?.masterloandropdown || [];
-    const paymentModes = loanData?.modeOfPaymentdropdown || [];
+    const _paymentModes = loanData?.modeOfPaymentdropdown || [];
 
     const handleToggleActive = async (id: number, currentStatus: boolean) => {
         toggleMutation.mutate(

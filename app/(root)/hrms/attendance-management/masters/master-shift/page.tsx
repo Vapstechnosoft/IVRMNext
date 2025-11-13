@@ -8,14 +8,14 @@ import { useMasterShift } from '@/hooks/hrms/attendance-management/useMasters';
 import { Plus, X } from 'lucide-react';
 import { use } from 'react';
 import AddMasterShiftForm from './_components/add-form';
-import { masterShiftColumns, type MasterShift } from './_components/columns';
+import { type MasterShift, masterShiftColumns } from './_components/columns';
 import DeleteMasterShiftForm from './_components/delete-form';
 import UpdateMasterShiftForm from './_components/update-form';
 
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 
 export default function MasterShiftPage(props: { searchParams: SearchParams }) {
-    const searchParams = use(props.searchParams);
+    const _searchParams = use(props.searchParams);
     const { data: response, isLoading, error } = useMasterShift();
 
     return (

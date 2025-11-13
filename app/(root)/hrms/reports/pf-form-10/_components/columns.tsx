@@ -103,4 +103,3 @@ export const form10Columns: ColumnDef<Form10Record>[] = [
         enableHiding: true
     }
 ];
-

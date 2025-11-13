@@ -2,7 +2,6 @@
 
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
-import { FormError } from '@/components/ui/extension/field';
 import { InputText } from '@/components/ui/extension/input-text';
 import { useMasterLeaveYear, useSaveMasterLeaveYear } from '@/hooks/hrms/leave-management/useMasters';
 import { Save } from 'lucide-react';
@@ -22,8 +21,8 @@ export default function AddMasterLeaveYearForm({ onSuccess, className = '' }: Ad
         register,
         handleSubmit,
         control,
-        watch,
-        setValue,
+        watch: _watch,
+        setValue: _setValue,
         reset,
         formState: { errors, isSubmitting }
     } = useForm<LeaveYear>({
@@ -89,13 +88,7 @@ export default function AddMasterLeaveYearForm({ onSuccess, className = '' }: Ad
                         <Controller
                             name='isActive'
                             control={control}
-                            render={({ field }) => (
-                                <Checkbox
-                                    id='isActive'
-                                    checked={field.value}
-                                    onCheckedChange={field.onChange}
-                                />
-                            )}
+                            render={({ field }) => <Checkbox id='isActive' checked={field.value} onCheckedChange={field.onChange} />}
                         />
                         <label htmlFor='isActive' className='font-medium text-sm'>
                             Active
@@ -116,4 +109,3 @@ export default function AddMasterLeaveYearForm({ onSuccess, className = '' }: Ad
         </div>
     );
 }
-

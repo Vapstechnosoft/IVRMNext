@@ -65,4 +65,3 @@ export default function DeleteMasterShiftForm({ rowData, onClose }: DeleteMaster
         </AdaptiveDialog>
     );
 }
-

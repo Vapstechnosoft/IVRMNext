@@ -161,7 +161,7 @@ export function LoanReportFilters({
             {/* Employee Selection - Only show when Individual is selected */}
             {filters.reportScope === 'individual' && (
                 <div className='flex items-center justify-center pt-4'>
-                    <div className='space-y-2 w-80'>
+                    <div className='w-80 space-y-2'>
                         <span className='font-medium text-foreground text-sm'>
                             Employee: <span className='text-red-500'>*</span>
                         </span>
@@ -175,7 +175,8 @@ export function LoanReportFilters({
                             <SelectContent>
                                 {employees.map((emp) => (
                                     <SelectItem key={emp.HRME_Id} value={emp.HRME_Id.toString()}>
-                                        {`${emp.HRME_EmployeeFirstName} ${emp.HRME_EmployeeMiddleName || ''} ${emp.HRME_EmployeeLastName || ''}`.trim()} ({emp.HRME_EmployeeCode})
+                                        {`${emp.HRME_EmployeeFirstName} ${emp.HRME_EmployeeMiddleName || ''} ${emp.HRME_EmployeeLastName || ''}`.trim()}{' '}
+                                        ({emp.HRME_EmployeeCode})
                                     </SelectItem>
                                 ))}
                             </SelectContent>
@@ -198,17 +199,31 @@ export function LoanReportFilters({
                             </SelectTrigger>
                             <SelectContent>
                                 {months.map((month: any) => (
-                                    <SelectItem key={month.IVRM_Month_Id || month.IVRM_Month_Name} value={month.IVRM_Month_Name || month.IVRM_Month_Id?.toString() || ''}>
+                                    <SelectItem
+                                        key={month.IVRM_Month_Id || month.IVRM_Month_Name}
+                                        value={month.IVRM_Month_Name || month.IVRM_Month_Id?.toString() || ''}>
                                         {month.IVRM_Month_Name || month.IVRM_Month_Id}
                                     </SelectItem>
                                 ))}
-                                {months.length === 0 && (
-                                    ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'].map((month) => (
+                                {months.length === 0 &&
+                                    [
+                                        'January',
+                                        'February',
+                                        'March',
+                                        'April',
+                                        'May',
+                                        'June',
+                                        'July',
+                                        'August',
+                                        'September',
+                                        'October',
+                                        'November',
+                                        'December'
+                                    ].map((month) => (
                                         <SelectItem key={month} value={month}>
                                             {month}
                                         </SelectItem>
-                                    ))
-                                )}
+                                    ))}
                             </SelectContent>
                         </Select>
                     </div>
@@ -224,11 +239,14 @@ export function LoanReportFilters({
                             </SelectTrigger>
                             <SelectContent>
                                 {years.map((year: any) => (
-                                    <SelectItem key={year.HRMLY_Id || year.HRMLY_LeaveYear} value={year.HRMLY_LeaveYear || year.HRMLY_Id?.toString() || ''}>
+                                    <SelectItem
+                                        key={year.HRMLY_Id || year.HRMLY_LeaveYear}
+                                        value={year.HRMLY_LeaveYear || year.HRMLY_Id?.toString() || ''}>
                                         {year.HRMLY_LeaveYear || year.HRMLY_Id}
                                     </SelectItem>
                                 ))}
-                                {years.length === 0 && currentYear &&
+                                {years.length === 0 &&
+                                    currentYear &&
                                     Array.from({ length: 5 }, (_, i) => {
                                         const year = currentYear - 2 + i;
                                         return (
@@ -257,4 +275,3 @@ export function LoanReportFilters({
         </CollapsibleSection>
     );
 }
-

@@ -134,4 +134,3 @@ export const esiReportColumns: ColumnDef<ESIRecord>[] = [
         enableHiding: true
     }
 ];
-

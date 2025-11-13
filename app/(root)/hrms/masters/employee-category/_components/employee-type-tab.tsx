@@ -18,9 +18,9 @@ export default function EmployeeTypeTab({ searchParams }: { searchParams?: ApiSe
 
     return (
         <FormProvider<EmployeeTypeDetail>>
-            <EmployeeTypeTabContent 
-                response={listQuery.data} 
-                isLoading={listQuery.isLoading} 
+            <EmployeeTypeTabContent
+                response={listQuery.data}
+                isLoading={listQuery.isLoading}
                 error={listQuery.error}
                 refetch={refetchAll}
             />
@@ -105,11 +105,11 @@ function FormSections({ refetch }: { refetch: () => void }) {
                                 className='-top-[3.5rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
                                 <X className='h-4 w-4 text-destructive' /> Close
                             </Button>
-                            <EmployeeTypeForm 
+                            <EmployeeTypeForm
                                 onSuccess={() => {
                                     closeAddForm();
                                     refetch();
-                                }} 
+                                }}
                             />
                         </div>
                     </CollapsibleSection>
@@ -133,12 +133,12 @@ function FormSections({ refetch }: { refetch: () => void }) {
                                 className='-top-[3.5rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
                                 <X className='h-4 w-4 text-destructive' /> Close
                             </Button>
-                            <EmployeeTypeForm 
-                                selectedRow={selectedRow} 
+                            <EmployeeTypeForm
+                                selectedRow={selectedRow}
                                 onSuccess={() => {
                                     closeEditForm();
                                     refetch();
-                                }} 
+                                }}
                             />
                         </div>
                     </CollapsibleSection>
