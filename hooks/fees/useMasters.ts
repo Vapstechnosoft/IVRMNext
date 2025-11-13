@@ -34,6 +34,7 @@ import {
     getFeeOnlinePaymentHeadGroupTable,
     getGroupNameDropDownList,
     getHeadNameDropDownList,
+    getInstituteDropDownList,
     getOnlinePaymentHeadGroupInstallment,
     getSubMerchantDropDownList
 } from '@/server/fees/masters/online_payment_head_group';
@@ -387,6 +388,24 @@ export const useMasterTerms = (searchParams?: ApiSearchparams) => {
     };
 };
 
+export const useInstituteDropDown = () => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [FEES_QUERY_KEYS.FEE_INSTITUTE_DROPDOWN],
+            queryFn: async () => getInstituteDropDownList(),
+
+            staleTime: 0
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [FEES_QUERY_KEYS.FEE_INSTITUTE_DROPDOWN]
+            });
+        }
+    };
+};
+
 export const useMasterTermsHead = (searchParams?: ApiSearchparams) => {
     const queryClient = useQueryClient();
 
@@ -731,13 +750,13 @@ export const useMasterAllFeeHead = (searchParams?: ApiSearchparams) => {
     };
 };
 
-export const useFeeMasterGroupwiseAutoReceipt = (searchParams?: ApiSearchparams) => {
+export const useFeeMasterGroupwiseAutoReceipt = (asmay_Id: number, searchParams?: ApiSearchparams) => {
     const queryClient = useQueryClient();
 
     return {
         ...useQuery({
-            queryKey: [FEES_QUERY_KEYS.FEE_MASTER_GROUPWISE_AUTO_RECEIPT, searchParams ?? {}],
-            queryFn: async () => getFeeMasterGroupwiseAutoReceipt(searchParams),
+            queryKey: [FEES_QUERY_KEYS.FEE_MASTER_GROUPWISE_AUTO_RECEIPT, asmay_Id, searchParams ?? {}],
+            queryFn: async () => getFeeMasterGroupwiseAutoReceipt(asmay_Id),
             staleTime: 0
         }),
         refetchAll: () =>
@@ -746,7 +765,6 @@ export const useFeeMasterGroupwiseAutoReceipt = (searchParams?: ApiSearchparams)
             })
     };
 };
-
 export const useFeeMasterGroupwiseAutoReceiptDropDown = (academicYear: number) => {
     const queryClient = useQueryClient();
 

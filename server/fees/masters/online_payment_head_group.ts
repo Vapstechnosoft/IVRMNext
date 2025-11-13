@@ -14,6 +14,11 @@ export async function getOnlinePaymentHeadGroupInstallment(academicYears?: numbe
     return await api.get<IMasterClassYearlyList[]>('fees', url);
 }
 
+export async function getInstituteDropDownList() {
+    const url = '/OnlinePaymentHeadGroupMapping/get_institution_name/30';
+
+    return await api.get<IMasterClassYearlyList[]>('fees', url);
+}
 export async function getClassDropDownList(academicYears?: number) {
     //   const urlParams = getSearchParamsUrl(academicYears ?? {}, "asmaY_Id");
     const url = `/OnlinePaymentHeadGroupMapping/class_drop_down_list/30/${academicYears}`;
@@ -29,6 +34,7 @@ export async function getSubMerchantDropDownList(academicYears?: number) {
 export async function getGroupNameDropDownList(academicYears?: number) {
     //   const urlParams = getSearchParamsUrl(academicYears ?? {}, "asmaY_Id");
     const url = `/OnlinePaymentHeadGroupMapping/groupName_drop_down_list/30/${academicYears}`;
+
     return await api.get<IMasterClassYearlyList[]>('fees', url);
 }
 
@@ -48,6 +54,12 @@ export async function getFeeOnlinePaymentHeadGroupTable(searchParams?: ApiSearch
 export async function addMasterOnlinePaymentHeadGroup(data: any) {
     const url = '/OnlinePaymentHeadGroupMapping/AddOrUpdateOnlinePaymentHeadGroupMapping';
     return await api.post<any>('fees', url, data);
+}
+
+export async function GetInstallmentMasterDropdown(payload: any) {
+    const url = '/OnlinePaymentHeadGroupMapping/headwise_installment_dropdown';
+
+    return await api.post<any>('fees', url, payload);
 }
 
 export async function getOnlinePaymentHeadGroupEdit(fopM_Id: number) {

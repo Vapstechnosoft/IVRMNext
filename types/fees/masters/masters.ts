@@ -112,6 +112,7 @@ export interface IModeOfPaymentList {
 
 //used category
 export interface IMasterClassYearlyList {
+    mI_Name: string;
     fmG_GroupName: string;
     fmG_Id: any;
     asmcl_ActiveFlag: boolean;
@@ -384,10 +385,23 @@ export interface IMasterAllFeeHeadList {
     fmG_Id: number;
     fmH_Id: number;
     fmI_Id: number;
+    fyghM_FineApplicableFlag: boolean | null;
+    fyghM_Common_AmountFlag: boolean | null;
+    fyghM_ActiveFlag: boolean | null;
+    fillmastergroup: any;
+    fillcompany: any;
+    fillmasterhead: any;
+    fillinstallment: any;
     returnval: boolean;
+    savetmpdata: any;
+    savetmpdatains: any;
+    savetmpflag: any;
+    alldata: any;
     fmG_GroupName: string;
     fmH_FeeName: string;
     fmI_Name: string;
+    displaymessage: any;
+    academicdrp: any;
     userid: number;
     deleteId: number;
 }
@@ -473,4 +487,22 @@ export interface IMasterGroupWiseAutoReciptList {
 export interface IConcessionCategoryDropdownList {
     fmcC_Id: number;
     fmcC_ConcessionName: string;
+}
+
+export interface IFeeGroupMapping {
+    fyghM_Id: number;
+    mI_Id: number;
+    asmaY_Id: number;
+    fmG_Id: number;
+    fmH_Id: number;
+    fmI_Id: number;
+    fyghM_FineApplicableFlag: boolean | null;
+    fyghM_Common_AmountFlag: boolean | null;
+    fyghM_ActiveFlag: boolean | null;
+    fmG_GroupName: string;
+    fmH_FeeName: string;
+    fmI_Name: string;
+    returnval: boolean;
+    userid: number;
+    deleteId: number;
 }

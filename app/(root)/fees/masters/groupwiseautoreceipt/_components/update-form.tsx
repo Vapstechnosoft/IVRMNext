@@ -3,6 +3,8 @@
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { FormError, Label } from '@/components/ui/extension/field';
+import { InputText } from '@/components/ui/extension/input-text'; // <-- added to match add-form UI
+import { InputTextarea } from '@/components/ui/extension/input-textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useAcademicYearDropdown, useFeeMasterGroupwiseAutoReceiptDropDown } from '@/hooks/fees/useMasters';
 import { cn } from '@/lib/utils';
@@ -47,7 +49,7 @@ interface UpdateMasterClassFormProps {
 export default function UpdateMasterClassForm({ onSuccess, className = '', selectedRow }: UpdateMasterClassFormProps) {
     const { data: academicData, isLoading: loadingAcademic, error: academicError } = useAcademicYearDropdown();
 
-    console.log('selectedRow', selectedRow);
+    // selectedRow provided by parent for pre-filling the form
 
     const {
         handleSubmit,
@@ -76,7 +78,7 @@ export default function UpdateMasterClassForm({ onSuccess, className = '', selec
     const [hasSubmitted, setHasSubmitted] = useState(false);
     const [academicYearOptions, setAcademicYearOptions] = useState<DropdownOption[]>([]);
     const [groupOptions, setGroupOptions] = useState<GroupOption[]>([]);
-    const [selectedGroups, setSelectedGroups] = useState<string[]>([]);
+    const [_selectedGroups, setSelectedGroups] = useState<string[]>([]);
     const [searchTerm, setSearchTerm] = useState('');
     const [isLoadingDropdowns, setIsLoadingDropdowns] = useState(false);
     const [usePrefix, setUsePrefix] = useState(false);
@@ -179,7 +181,7 @@ export default function UpdateMasterClassForm({ onSuccess, className = '', selec
 
     const onSubmit: SubmitHandler<FormFields> = async (data) => {
         try {
-            console.log('Form submitted with data:', data);
+            // form submission initiated
 
             const { academicYear, prefixValue, suffixValue, startingNumber, groups, autoGroupName, address, receiptTemplateFormat } = data;
 
@@ -202,7 +204,7 @@ export default function UpdateMasterClassForm({ onSuccess, className = '', selec
                 fgaR_Template_Name: receiptTemplateFormat || ''
             };
 
-            console.log('Payload being sent:', payload);
+            // payload prepared for update API
 
             const response = await addOrUpdateMasterFeeMasterGroupwiseAutoReceipt(payload);
 
@@ -252,16 +254,12 @@ export default function UpdateMasterClassForm({ onSuccess, className = '', selec
                                     Academic Year <span className='text-red-500'>*</span>
                                 </Label>
                                 <Select
-                                    onValueChange={(value) =>
-                                        setValue('academicYear', value, {
-                                            shouldValidate: hasSubmitted
-                                        })
-                                    }
+                                    onValueChange={(value) => setValue('academicYear', value, { shouldValidate: hasSubmitted })}
                                     value={academicYear}
                                     disabled={isLoadingDropdowns}>
                                     <SelectTrigger
                                         id='academicYear'
-                                        className={`mt-1 w-full transition-colors ${
+                                        className={`mt-1 w-full transition-colors focus:ring-2 focus:ring-primary/20 ${
                                             errors.academicYear ? 'border-red-500' : 'border-gray-300'
                                         }`}>
                                         <SelectValue placeholder='Select Academic Year' />
@@ -281,12 +279,12 @@ export default function UpdateMasterClassForm({ onSuccess, className = '', selec
                                 <Label htmlFor='startingNumber'>
                                     Starting Number <span className='text-red-500'>*</span>
                                 </Label>
-                                <input
+                                <InputText
                                     id='startingNumber'
-                                    type='text'
-                                    {...register('startingNumber')}
                                     placeholder='Enter starting number'
-                                    className='mt-1 w-full rounded-md border border-gray-300 px-3 py-2 transition-colors focus:border-gray-400 focus:ring-0'
+                                    {...register('startingNumber')}
+                                    error={hasSubmitted ? errors.startingNumber?.message : undefined}
+                                    className='transition-colors focus:ring-2 focus:ring-primary/20'
                                 />
                                 {hasSubmitted && errors.startingNumber && <FormError>{errors.startingNumber.message}</FormError>}
                             </div>
@@ -360,12 +358,12 @@ export default function UpdateMasterClassForm({ onSuccess, className = '', selec
                                     <Label htmlFor='prefixValue'>
                                         Prefix <span className='text-red-500'>*</span>
                                     </Label>
-                                    <input
+                                    <InputText
                                         id='prefixValue'
-                                        type='text'
-                                        {...register('prefixValue')}
                                         placeholder='Enter prefix value'
-                                        className='mt-1 w-full rounded-md border border-gray-300 px-3 py-2 transition-colors focus:border-gray-400 focus:ring-0'
+                                        {...register('prefixValue')}
+                                        error={hasSubmitted ? errors.prefixValue?.message : undefined}
+                                        className='transition-colors focus:ring-2 focus:ring-primary/20'
                                     />
                                     {hasSubmitted && errors.prefixValue && <FormError>{errors.prefixValue.message}</FormError>}
                                 </div>
@@ -376,12 +374,12 @@ export default function UpdateMasterClassForm({ onSuccess, className = '', selec
                                     <Label htmlFor='suffixValue'>
                                         Suffix <span className='text-red-500'>*</span>
                                     </Label>
-                                    <input
+                                    <InputText
                                         id='suffixValue'
-                                        type='text'
-                                        {...register('suffixValue')}
                                         placeholder='Enter suffix value'
-                                        className='mt-1 w-full rounded-md border border-gray-300 px-3 py-2 transition-colors focus:border-gray-400 focus:ring-0'
+                                        {...register('suffixValue')}
+                                        error={hasSubmitted ? errors.suffixValue?.message : undefined}
+                                        className='transition-colors focus:ring-2 focus:ring-primary/20'
                                     />
                                     {hasSubmitted && errors.suffixValue && <FormError>{errors.suffixValue.message}</FormError>}
                                 </div>
@@ -391,13 +389,12 @@ export default function UpdateMasterClassForm({ onSuccess, className = '', selec
                                 <Label>
                                     Select Groups <span className='text-red-500'>*</span>
                                 </Label>
-                                <div className='mt-2 rounded-md border border-gray-200 bg-white p-3'>
-                                    <input
-                                        type='text'
+                                <div className='mt-2 rounded-md border border-gray-300 bg-white p-3'>
+                                    <InputText
                                         placeholder='Search Groups...'
                                         value={searchTerm}
                                         onChange={(e) => setSearchTerm(e.target.value)}
-                                        className='mb-3 w-full rounded-md border border-gray-300 px-3 py-1.5 transition-colors focus:border-gray-400 focus:ring-0'
+                                        className='mb-3 transition-colors focus:ring-2 focus:ring-primary/20'
                                     />
                                     <div
                                         onClick={handleSelectAll}
@@ -405,7 +402,7 @@ export default function UpdateMasterClassForm({ onSuccess, className = '', selec
                                             'mb-2 flex cursor-pointer items-center gap-2 rounded-md border px-2 py-1.5 font-medium text-sm transition-all',
                                             (groupsValue || []).length === groupOptions.length && groupOptions.length > 0
                                                 ? 'border-primary bg-primary/5 text-primary'
-                                                : 'border-gray-200 hover:border-primary/40'
+                                                : 'border-gray-300 hover:border-primary/40'
                                         )}>
                                         {(groupsValue || []).length === groupOptions.length && groupOptions.length > 0 ? (
                                             <CheckSquare className='h-4 w-4 text-primary' />
@@ -415,7 +412,7 @@ export default function UpdateMasterClassForm({ onSuccess, className = '', selec
                                         <span>Select All</span>
                                     </div>
 
-                                    <div className='mt-2 max-h-40 overflow-y-auto rounded-md border border-gray-200 p-1'>
+                                    <div className='mt-2 max-h-40 overflow-y-auto rounded-md border border-gray-300 p-1'>
                                         {loadingGroupData && (
                                             <div className='py-4 text-center text-gray-500 text-sm'>Loading groups...</div>
                                         )}
@@ -435,7 +432,7 @@ export default function UpdateMasterClassForm({ onSuccess, className = '', selec
                                                         'mb-1 flex cursor-pointer items-center gap-2 rounded-md border px-2 py-1.5 text-sm transition-all',
                                                         selected
                                                             ? 'border-primary bg-primary/5 text-primary'
-                                                            : 'border-gray-200 hover:border-primary/40'
+                                                            : 'border-gray-300 hover:border-primary/40'
                                                     )}>
                                                     {selected ? (
                                                         <CheckSquare className='h-4 w-4 text-primary' />
@@ -455,37 +452,39 @@ export default function UpdateMasterClassForm({ onSuccess, className = '', selec
                                 <Label htmlFor='autoGroupName'>
                                     Auto Group Name <span className='text-red-500'>*</span>
                                 </Label>
-                                <input
+                                <InputText
                                     id='autoGroupName'
-                                    type='text'
-                                    {...register('autoGroupName')}
                                     placeholder='Enter auto group name'
-                                    className='mt-1 w-full rounded-md border border-gray-300 px-3 py-2 transition-colors focus:border-gray-400 focus:ring-0'
+                                    {...register('autoGroupName')}
+                                    error={hasSubmitted ? errors.autoGroupName?.message : undefined}
+                                    className='transition-colors focus:ring-2 focus:ring-primary/20'
                                 />
                                 {hasSubmitted && errors.autoGroupName && <FormError>{errors.autoGroupName.message}</FormError>}
                             </div>
 
                             <div className='lg:col-span-2'>
                                 <Label htmlFor='address'>Address</Label>
-                                <textarea
+                                <InputTextarea
                                     id='address'
-                                    {...register('address')}
                                     placeholder='Enter address (optional)'
-                                    className='mt-1 h-24 w-full rounded-md border border-gray-300 px-3 py-2 transition-colors focus:border-gray-400 focus:ring-0'
+                                    {...register('address')}
+                                    rows={4}
+                                    className='h-24 transition-colors focus:ring-2 focus:ring-primary/20'
                                 />
                             </div>
 
-                            <div className='lg:col-span-2'>
+                            <div className='pt-10 lg:col-span-2'>
                                 <Label htmlFor='receiptTemplateFormat'>Receipt Template Format</Label>
-                                <textarea
+                                <InputTextarea
                                     id='receiptTemplateFormat'
-                                    {...register('receiptTemplateFormat')}
                                     placeholder='Enter receipt template format (optional)'
-                                    className='mt-1 h-32 w-full rounded-md border border-gray-300 px-3 py-2 transition-colors focus:border-gray-400 focus:ring-0'
+                                    {...register('receiptTemplateFormat')}
+                                    rows={6}
+                                    className='h-32 transition-colors focus:ring-2 focus:ring-primary/20'
                                 />
                             </div>
 
-                            <div className='mt-3 flex justify-end gap-3 border-t pt-5 lg:col-span-2'>
+                            <div className='mt-3 flex justify-start gap-3 border-t pt-5 lg:col-span-2'>
                                 <Button
                                     type='button'
                                     variant='outline'
