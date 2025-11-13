@@ -395,13 +395,13 @@ export default function SubExamModal({
                                 const values = getValues();
                                 const selected = values.subexam_list.filter((r: any) => r.checkedvalue);
 
-                                const parentMax = Number(subject.ECYSES_MaxMarks ?? 0);
-                                const parentMin = Number(subject.ECYSES_MinMarks ?? 0);
+                                const parentMax = Number(subject.EYCES_MaxMarks ?? 0);
+                                const parentMin = Number(subject.EYCES_MinMarks ?? 0);
                                 const totMax = selected.reduce((acc: number, cur: any) => acc + Number(cur.eycessS_MaxMarks || 0), 0);
                                 const totMin = selected.reduce((acc: number, cur: any) => acc + Number(cur.eycessS_MinMarks || 0), 0);
 
                                 if (selected.length > 0 && (totMax !== parentMax || totMin !== parentMin)) {
-                                    alert('Sum of selected sub-exams (max/min) must equal subject max/min marks');
+                                    toast.error('Sum of selected sub-exams (max/min) must equal subject max/min marks');
                                     return;
                                 }
 

@@ -3,14 +3,15 @@
 import { Button } from '@/components/ui/button';
 import { MultiSelect } from '@/components/ui/multi-select';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useAcademicYearDropdown } from '@/hooks/fees/useMasters';
 import { categoryClassMappingSchema } from '@/schemas/exam/exam-module/masters';
 import {
     addOrUpdateCategoryClassMapping,
-    getAcademicYears,
     getCategories,
     getClassMappedSections,
     getClasses
 } from '@/server/exam/exam-module/masters/category-class-mapping';
+import type { IAcademicYearDropDown } from '@/types/admission/preadmission/masters';
 import type { IAcademicYear, ICategory, ICategoryMapping, IClass } from '@/types/exam/exam-module/masters';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Save } from 'lucide-react';
@@ -32,7 +33,7 @@ export default function UpdateCategoryClassForm({ onSuccess, initialData }: Upda
     const [classes, setClasses] = useState<IClass[]>([]);
     const [sections, setSections] = useState<{ asmS_Id: number; asmC_SectionName: string }[]>([]);
     const [loadingSections, setLoadingSections] = useState(false);
-
+    const { data: academicData, isLoading: loadingAcademic, error: academicError } = useAcademicYearDropdown();
     const {
         control,
         handleSubmit,
@@ -46,14 +47,27 @@ export default function UpdateCategoryClassForm({ onSuccess, initialData }: Upda
 
     const watchedYear = watch('asmaY_Id');
     const watchedClass = watch('asmcL_Id');
-
+    useEffect(() => {
+        // Academic Years
+        if (academicError) {
+            toast.error(academicError.message || 'Error fetching academic years');
+            setAcademicYears([]);
+        } else if (academicData?.data && Array.isArray(academicData.data)) {
+            const formattedYears: IAcademicYearDropDown[] = academicData.data.map((item: any) => ({
+                asmaY_Id: item.asmaY_Id?.toString() ?? '',
+                asmaY_Year: item.asmaY_Year ?? '',
+                asmaY_Order: item.asmaY_Order ?? 0
+            }));
+            setAcademicYears(formattedYears);
+        } else {
+            setAcademicYears([]);
+        }
+    }, [academicData, academicError]);
     useEffect(() => {
         async function fetchDropdowns() {
             try {
-                const years = await getAcademicYears();
                 const { data: cats } = await getCategories();
                 const { data: cls } = await getClasses();
-                setAcademicYears(Array.isArray(years) ? years : []);
                 setCategories(Array.isArray(cats) ? cats : []);
                 setClasses(Array.isArray(cls) ? cls : []);
             } catch (err: any) {

@@ -10,7 +10,7 @@ import type { IExamTermAndExamMapping, IExamTermAndExamMappingDetails } from '@/
 // --------------------------------------------
 export async function getExamTermAndExamMapping(searchParams?: ApiSearchparams) {
     const urlParams = getSearchParamsUrl(searchParams ?? {});
-    const url = `exam_term_and_exam_mapping/30?${urlParams}`;
+    const url = `/exam_term_and_exam_mapping/30?${urlParams}`;
     const response = await api.get<IExamTermAndExamMapping>('exam', url);
     return { ...response };
 }

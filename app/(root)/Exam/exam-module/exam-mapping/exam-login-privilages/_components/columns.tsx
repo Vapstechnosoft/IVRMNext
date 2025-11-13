@@ -4,12 +4,12 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
 import { ActionButtons } from '@/components/ui/form/action-buttons';
 import { useFormContext } from '@/components/ui/form/form-provider';
-import type { IExamLoginPrivilegesView } from '@/types/exam/exam-module/exam-mapping';
+import type { IExamLoginPrivileges } from '@/types/exam/exam-module/exam-mapping';
 import type { ColumnDef } from '@tanstack/react-table';
 import { Eye } from 'lucide-react';
 import { useCallback } from 'react';
 
-export const ExamLoginPrivilegesColumns: ColumnDef<IExamLoginPrivilegesView>[] = [
+export const ExamLoginPrivilegesColumns: ColumnDef<IExamLoginPrivileges>[] = [
     {
         id: 'select',
         header: ({ table }) => (
@@ -41,39 +41,24 @@ export const ExamLoginPrivilegesColumns: ColumnDef<IExamLoginPrivilegesView>[] =
         cell: ({ row }) => <div>{row.getValue('asmaY_Year')}</div>
     },
     {
-        accessorKey: 'userName',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='User Name' />,
-        cell: ({ row }) => <div>{row.getValue('userName')}</div>
-    },
-    {
-        accessorKey: 'employeeName',
+        accessorKey: 'hrmE_EmployeeName',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Employee Name' />,
-        cell: ({ row }) => <div>{row.getValue('employeeName')}</div>
+        cell: ({ row }) => <div>{row.getValue('hrmE_EmployeeName')}</div>
     },
     {
-        accessorKey: 'className',
+        accessorKey: 'asmcL_ClassName',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Class' />,
-        cell: ({ row }) => <div>{row.getValue('className')}</div>
+        cell: ({ row }) => <div>{row.getValue('asmcL_ClassName')}</div>
     },
     {
-        accessorKey: 'sectionName',
+        accessorKey: 'asmC_SectionName',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Section' />,
-        cell: ({ row }) => <div>{row.getValue('sectionName')}</div>
+        cell: ({ row }) => <div>{row.getValue('asmC_SectionName')}</div>
     },
     {
-        accessorKey: 'subjectName',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Subject' />,
-        cell: ({ row }) => <div>{row.getValue('subjectName')}</div>
-    },
-    {
-        accessorKey: 'subSubjectName',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Sub Subject' />,
-        cell: ({ row }) => <div>{row.original.subSubjectName || '-'}</div>
-    },
-    {
-        accessorKey: 'activeStatus',
+        accessorKey: 'elP_ActiveFlg',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Active' />,
-        cell: ({ row }) => <div>{row.original.activeStatus ? 'Yes' : 'No'}</div>
+        cell: ({ row }) => <div>{row.original.elP_ActiveFlg ? 'Yes' : 'No'}</div>
     },
     {
         id: 'actions',
@@ -84,8 +69,8 @@ export const ExamLoginPrivilegesColumns: ColumnDef<IExamLoginPrivilegesView>[] =
     }
 ];
 
-function ActionButtonsCell({ rowData }: { rowData: IExamLoginPrivilegesView }) {
-    const { openEditForm, openDetailsView } = useFormContext<IExamLoginPrivilegesView>();
+function ActionButtonsCell({ rowData }: { rowData: IExamLoginPrivileges }) {
+    const { openEditForm, openDetailsView } = useFormContext<IExamLoginPrivileges>();
 
     const handleView = useCallback(() => openDetailsView(rowData), [openDetailsView, rowData]);
     const handleEdit = useCallback(() => openEditForm(rowData), [openEditForm, rowData]);
@@ -100,7 +85,7 @@ function ActionButtonsCell({ rowData }: { rowData: IExamLoginPrivilegesView }) {
                 buttons={{ edit: true, delete: true, toggle: true }}
                 onEdit={handleEdit}
                 onDelete={() => {}}
-                toggleConditionKey='activeStatus'
+                toggleConditionKey='elP_ActiveFlg'
             />
         </div>
     );

@@ -470,8 +470,8 @@ export default function SubSubjectModal({
                                     const values = getValues();
                                     const selected = values.subsubject_list.filter((r) => r.checkedvalue);
 
-                                    const parentMax = Number(subject.ECYSES_MaxMarks ?? 0);
-                                    const parentMin = Number(subject.ECYSES_MinMarks ?? 0);
+                                    const parentMax = Number(subject.EYCES_MaxMarks ?? 0);
+                                    const parentMin = Number(subject.EYCES_MinMarks ?? 0);
                                     const totMax = selected.reduce((acc, cur) => acc + Number(cur.eycessS_MaxMarks || 0), 0);
                                     const totMin = selected.reduce((acc, cur) => acc + Number(cur.eycessS_MinMarks || 0), 0);
 

@@ -271,3 +271,63 @@ export const coScholasticAreaSchema = {
         ecactA_Id: deleteIdSchema('ecactA_Id')
     })
 };
+
+export const masterLifeSkillSchema = {
+    addOrUpdate: z.object({
+        ecS_Id: z.number().int({ message: 'Life Skill ID is required' }).optional(),
+        mI_Id: z.number().int({ message: 'MI ID is required' }).optional(),
+        ecS_SkillName: createCustomStringSchema('Life Skill Name', 1, 100),
+        ecS_SkillCode: createStringSchema('Life Skill Code', 1, 50),
+        ecS_ActiveFlag: z.boolean({ required_error: 'Active Flag is required' }).default(true)
+    }),
+
+    delete: z.object({
+        ecS_Id: deleteIdSchema('ecS_Id')
+    })
+};
+
+export const lifeSkillAreaSchema = {
+    addOrUpdate: z.object({
+        ecS_Id: z.number().default(0),
+        mI_Id: z.number().default(30),
+        ecS_SkillName: z
+            .string()
+            .min(1, { message: 'Skill Name is required' })
+            .max(100, { message: 'Skill Name must be less than 100 characters' }),
+        ecS_SkillCode: z
+            .string()
+            .min(1, { message: 'Skill Code is required' })
+            .max(50, { message: 'Skill Code must be less than 50 characters' }),
+
+        subexamDTO: z
+            .array(
+                z.object({
+                    ecsA_Id: z.number().default(0),
+                    ecsA_SkillOrder: z
+                        .number({ invalid_type_error: 'Skill Order must be a number' })
+                        .min(1, { message: 'Skill Order is required' }),
+                    ecsA_SkillArea: z
+                        .string()
+                        .min(1, { message: 'Skill Area is required' })
+                        .max(100, { message: 'Skill Area must be less than 100 characters' })
+                })
+            )
+            .min(1, { message: 'At least one skill area is required' }),
+
+        mappingDTO: z.array(
+            z.object({
+                ecsaM_Id: z.number().default(0),
+                asmaY_Id: z.number().default(0),
+                mI_Id: z.number().default(30),
+                ecS_Id: z.number().default(0),
+                ecsA_Id: z.number().default(0),
+                ecsaM_IndicatorDescription: z.string().optional().default(''),
+                emgR_Id: z.number().default(0),
+                ecsaM_ActiveFlag: z.boolean().default(true)
+            })
+        )
+    }),
+    delete: z.object({
+        ecsA_Id: deleteIdSchema('ecsA_Id')
+    })
+};

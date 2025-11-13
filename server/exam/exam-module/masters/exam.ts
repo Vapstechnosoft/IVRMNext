@@ -31,6 +31,6 @@ export async function UpdatedOrderdExams(data: any) {
 }
 
 export async function getExamsByCategoryandAcademicYear(mi_id: number, asmaY_Id: number, emcA_Id: number) {
-    const url = `/exam_master/exam_drop_down_by_year_and_category_list/${mi_id}/${asmaY_Id}/${emcA_Id}`;
+    const url = `exam_subject_mapping/exam_drop_down_By_category_list/${mi_id}/${emcA_Id}`;
     return await api.get<any>('exam', url);
 }

@@ -78,7 +78,9 @@ export async function getSubSubjectSubExamList(mI_Id: number) {
 // --------------------------------------------
 export async function getSubSubjectsMappedList(mI_Id: number, eyceS_Id: number) {
     if (!mI_Id) throw new Error('Organization ID is required');
+    console.log(mI_Id, eyceS_Id);
     const url = `exam_subject_mapping/sub_subjects_mapped_popup_list/${mI_Id}/${eyceS_Id}`;
+    console.log(url);
     return await api.get<any>('exam', url);
 }
 
