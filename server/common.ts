@@ -693,6 +693,67 @@ export async function getUserAccessibleModules() {
                                         }
                                     ]
                                 }
+                                // {
+                                //     id: 9,
+                                //     name: 'Reports',
+                                //     icon: 'Settings',
+                                //     pages: [
+                                //         {
+                                //             id: 58,
+                                //             name: 'Cumulative Report',
+                                //             icon: 'BookOpen',
+                                //             url: '/Exam/exam-module/reports/cumulative-report',
+                                //             title: 'Cumulative Report',
+                                //             description: 'Manage Cumulative Report Details'
+                                //         },
+                                //         {
+                                //             id: 59,
+                                //             name: 'VVEHPC_ExamReportCard',
+                                //             icon: 'BookOpen',
+                                //             url: '/Exam/exam-module/reports/vvehpc_exam-repor-card',
+                                //             title: 'VVEHPC_ExamReportCard',
+                                //             description: 'Manage VVEHPC_ExamReportCard Details'
+                                //         }
+
+                                //     ]
+                                // }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    id: 4,
+                    name: 'iFrame',
+                    icon: 'BookOpen',
+                    menu: [
+                        {
+                            id: 4,
+                            name: 'iFrame',
+                            icon: 'BookOpen',
+                            sub_menu: [
+                                {
+                                    id: 10,
+                                    name: 'Dashboards',
+                                    icon: 'Settings',
+                                    pages: [
+                                        {
+                                            id: 1,
+                                            name: 'Question Generator',
+                                            icon: 'BookOpen',
+                                            url: '/iframe/question-generator',
+                                            title: 'Question Generator',
+                                            description: 'Manage Question Generator Details'
+                                        },
+                                        {
+                                            id: 2,
+                                            name: 'AI Assignment',
+                                            icon: 'BookOpen',
+                                            url: '/iframe/ai-assignment',
+                                            title: 'AI Assignment',
+                                            description: 'Manage AI Assignment Details'
+                                        }
+                                    ]
+                                }
                             ]
                         }
                     ]
