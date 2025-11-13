@@ -16,14 +16,13 @@ export default function Page() {
     }, [session?.data?.role]);
     return (
         <main className='container px-0 py-2'>
-            {session?.data?.role.toUpperCase() === ROLES.ADMIN ? (
+            {session?.data?.role !== undefined && session?.data?.role.toUpperCase() === ROLES.ADMIN && (
                 <>
                     <PolygonBanner />
                     <Dashboard />
                 </>
-            ) : (
-                <ParentsDashboard />
             )}
+            {session?.data?.role !== undefined && session?.data?.role.toUpperCase() !== ROLES.ADMIN && <ParentsDashboard />}
         </main>
     );
 }
