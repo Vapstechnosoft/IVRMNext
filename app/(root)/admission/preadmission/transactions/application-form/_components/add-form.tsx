@@ -864,7 +864,7 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
                                             <div className='flex flex-col items-center'>
                                                 <button
                                                     type='button'
-                                                    onClick={() => goToStep(step.id)}
+                                                    // onClick={() => goToStep(step.id)}
                                                     disabled={isSubmitting}
                                                     className={cn(
                                                         'flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full border-2 font-semibold transition-all duration-300 hover:scale-110 disabled:cursor-not-allowed disabled:opacity-50',

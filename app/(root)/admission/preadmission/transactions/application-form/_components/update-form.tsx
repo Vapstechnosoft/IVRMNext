@@ -12,6 +12,7 @@ import { MultiSelect } from '@/components/ui/multi-select';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useAcademicYearMasterConfiguration } from '@/hooks/admission/preadmission/useConfigurations';
 import {
     useActivePreadmissionDetails,
     useCasteDropdown,
@@ -30,13 +31,15 @@ import { studentApplicationFormUpdateSchema } from '@/schemas/admission/preadmis
 import { addStudentApplicationForm } from '@/server/admission/preadmission/transactions/application_form';
 import { deleteDocument, uploadDocument } from '@/server/document_upload';
 import type { CalculatedAgeDetails } from '@/types';
+import type { IPreadmissionClassDropdown } from '@/types/admission/preadmission/transactions';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { format } from 'date-fns';
-import { Calendar, Check, ChevronLeft, ChevronRight, Eye, Save, Trash } from 'lucide-react';
+import { CalendarIcon, Check, ChevronLeft, ChevronRight, Eye, Save, Trash } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import type { z } from 'zod';
+import { IneligibleClassesDialog } from './InEligibleDialog';
 
 type FormFields = z.infer<typeof studentApplicationFormUpdateSchema.update>;
 
@@ -92,6 +95,7 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
         reset,
         trigger,
         setValue,
+        getValues,
         formState: { errors, isSubmitting }
     } = useForm<FormFields>({
         resolver: zodResolver(studentApplicationFormUpdateSchema.update),
@@ -200,6 +204,10 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
     const [isDobOpen, setIsDobOpen] = useState(false);
     const [calculatedAgeDetails, setCalculatedAgeDetails] = useState<CalculatedAgeDetails>();
     const [ageEligibilityError, setAgeEligibilityError] = useState<string | null>(null);
+    const [filteredClasses, setFilteredClasses] = useState<IPreadmissionClassDropdown[]>([]);
+    const [isClassDisabled, setIsClassDisabled] = useState(true);
+    const [showIneligibleDialog, setShowIneligibleDialog] = useState(false);
+    const [ineligibleClasses, setIneligibleClasses] = useState<IPreadmissionClassDropdown[]>([]);
     const [selectedSourceItems, setSelectedSourceItems] = useState<{ pamS_Id: string; pamS_SourceName: string }[]>([]);
     const [selectedReferenceItems, setSelectedReferenceItems] = useState<{ pamR_Id: string; pamR_ReferenceName: string }[]>([]);
     const [sameAsResidential, setSameAsResidential] = useState(false);
@@ -263,6 +271,8 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
 
     const { data: activePreadmission } = useActivePreadmissionDetails();
 
+    const { data: masterConfig } = useAcademicYearMasterConfiguration(activePreadmission?.data?.asmaY_Id ?? 0);
+
     const { data: religion, isLoading: religionLoading, error: religionError, refetchAll: refetchReligion } = useReligionDropdown();
 
     const conConuntryId = watch('pasR_ConCountry');
@@ -295,6 +305,26 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
         isLoading: preadmissionDocumentsLoading,
         refetchAll: refetchPreadmissionDocuments
     } = usePreadmissionDocumentsDropdown();
+
+    // Add this useEffect after the existing useEffect that sets form values
+    useEffect(() => {
+        if (rowData && masterConfig?.data && preadmissionClass?.data) {
+            const dob = new Date(rowData.pasR_DOB);
+            const allClasses = preadmissionClass.data;
+
+            const validClasses: IPreadmissionClassDropdown[] = [];
+
+            allClasses.forEach((classItem: IPreadmissionClassDropdown) => {
+                const validation = validateAgeForClass(dob, classItem, masterConfig.data);
+                if (validation.isValid) {
+                    validClasses.push(classItem);
+                }
+            });
+
+            setFilteredClasses(validClasses);
+            setIsClassDisabled(false);
+        }
+    }, [rowData, masterConfig?.data, preadmissionClass?.data]);
 
     const refetchDropdowns = () => {
         refetchReligion();
@@ -331,6 +361,11 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
             ];
             if (!studentPhoto?.pasR_Student_Pic_Path) {
                 toast.error('Please upload student photo');
+                return;
+            }
+
+            if (watch('asmcL_Id') === 0) {
+                toast.error('Please select class');
                 return;
             }
         } else if (currentStep === 2) {
@@ -886,6 +921,94 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
         return true;
     };
 
+    const validateAgeForClass = (dob: Date, classData: IPreadmissionClassDropdown, config: any): { isValid: boolean; reason?: string } => {
+        const cutOffDate = config.ispaC_ApplCutOffDateFlag === 1 ? new Date(config.asmaY_Cut_Of_Date) : new Date();
+
+        const age = calculateAge(dob, cutOffDate);
+
+        // Check minimum age if flag is enabled
+        if (config.ispaC_DOBMinAgeFlag === 1) {
+            const minAgeInMonths = classData.asmcL_MinAgeYear * 12 + classData.asmcL_MinAgeMonth;
+            const currentAgeInMonths = age.years * 12 + age.months;
+
+            if (currentAgeInMonths < minAgeInMonths) {
+                return {
+                    isValid: false,
+                    reason: `Minimum age required: ${classData.asmcL_MinAgeYear}y ${classData.asmcL_MinAgeMonth}m ${classData.asmcL_MinAgeDays}d`
+                };
+            }
+
+            if (currentAgeInMonths === minAgeInMonths && age.days < classData.asmcL_MinAgeDays) {
+                return {
+                    isValid: false,
+                    reason: `Minimum age required: ${classData.asmcL_MinAgeYear}y ${classData.asmcL_MinAgeMonth}m ${classData.asmcL_MinAgeDays}d`
+                };
+            }
+        }
+
+        // Check maximum age if flag is enabled
+        if (config.ispaC_DOBMaxAgeFlag === 1) {
+            const maxAgeInMonths = classData.asmcL_MaxAgeYear * 12 + classData.asmcL_MaxAgeMonth;
+            const currentAgeInMonths = age.years * 12 + age.months;
+
+            if (currentAgeInMonths > maxAgeInMonths) {
+                return {
+                    isValid: false,
+                    reason: `Maximum age allowed: ${classData.asmcL_MaxAgeYear}y ${classData.asmcL_MaxAgeMonth}m ${classData.asmcL_MaxAgeDays}d`
+                };
+            }
+
+            if (currentAgeInMonths === maxAgeInMonths && age.days > classData.asmcL_MaxAgeDays) {
+                return {
+                    isValid: false,
+                    reason: `Maximum age allowed: ${classData.asmcL_MaxAgeYear}y ${classData.asmcL_MaxAgeMonth}m ${classData.asmcL_MaxAgeDays}d`
+                };
+            }
+        }
+
+        return { isValid: true };
+    };
+
+    const handleDOBChange = (date: Date | undefined) => {
+        if (!date || !masterConfig?.data) {
+            setIsClassDisabled(true);
+            setFilteredClasses([]);
+            setValue('asmcL_Id', 0);
+            return;
+        }
+
+        const allClasses = preadmissionClass?.data || [];
+
+        const validClasses: IPreadmissionClassDropdown[] = [];
+        const invalidClasses: IPreadmissionClassDropdown[] = [];
+
+        allClasses.forEach((classItem: IPreadmissionClassDropdown) => {
+            const validation = validateAgeForClass(date, classItem, masterConfig.data);
+            if (validation.isValid) {
+                validClasses.push(classItem);
+            } else {
+                invalidClasses.push(classItem);
+            }
+        });
+
+        setFilteredClasses(validClasses);
+
+        if (validClasses.length === 0) {
+            setIneligibleClasses(invalidClasses);
+            setShowIneligibleDialog(true);
+            setIsClassDisabled(true);
+            setValue('asmcL_Id', 0);
+        } else {
+            setIsClassDisabled(false);
+            // Don't reset class selection in update form if current class is still valid
+            const currentClassId = getValues('asmcL_Id');
+            const isCurrentClassValid = validClasses.some((c) => c.asmcL_Id === currentClassId);
+            if (!isCurrentClassValid) {
+                setValue('asmcL_Id', 0);
+            }
+        }
+    };
+
     return (
         <>
             <div className={cn('mx-auto w-full max-w-7xl px-4 py-2', className)}>
@@ -1204,51 +1327,53 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                                                 error={errors.pasR_LastName?.message}
                                             />
                                             <div className='flex flex-col gap-1.5'>
-                                                <Label htmlFor='pasR_DOB'>
-                                                    Date Of Birth
-                                                    <span className='ml-1 text-red-500'>*</span>
-                                                </Label>
                                                 <Controller
-                                                    control={control}
                                                     name='pasR_DOB'
-                                                    render={({ field }) => (
-                                                        <Popover open={isDobOpen} onOpenChange={(open) => setIsDobOpen(open)}>
-                                                            <PopoverTrigger asChild>
-                                                                <Button
-                                                                    variant='outline'
-                                                                    className={cn(
-                                                                        'w-full font-normal',
-                                                                        !field.value && 'text-muted-foreground'
-                                                                    )}>
-                                                                    {field.value ? (
-                                                                        format(field.value, 'dd-MM-yyyy')
-                                                                    ) : (
-                                                                        <span>Pick a date</span>
-                                                                    )}
-                                                                    <Calendar className='ml-auto h-4 w-4 opacity-50' />
-                                                                </Button>
-                                                            </PopoverTrigger>
-                                                            <PopoverContent className='flex w-auto items-start p-0' align='start'>
-                                                                <CalendarYear
-                                                                    mode='single'
-                                                                    captionLayout='dropdown'
-                                                                    selected={field.value}
-                                                                    onSelect={(selectedDate) => {
-                                                                        field.onChange(selectedDate);
-                                                                        const ageDetails = calculateAge(selectedDate as Date);
-                                                                        setCalculatedAgeDetails(ageDetails);
-                                                                        validateAgeEligibility(ageDetails, watch('asmcL_Id'));
-                                                                    }}
-                                                                    onDayClick={() => setIsDobOpen(false)}
-                                                                    toDate={new Date()}
-                                                                />
-                                                            </PopoverContent>
-                                                        </Popover>
+                                                    control={control}
+                                                    render={({ field, fieldState: { error } }) => (
+                                                        <div className='flex flex-col space-y-2'>
+                                                            <Label htmlFor='pasR_DOB'>
+                                                                Date of Birth <span className='ml-1 text-red-500'>*</span>
+                                                            </Label>
+                                                            <Popover open={isDobOpen} onOpenChange={(open) => setIsDobOpen(open)}>
+                                                                <PopoverTrigger asChild>
+                                                                    <Button
+                                                                        variant={'outline'}
+                                                                        className={cn(
+                                                                            'w-full justify-start text-left font-normal',
+                                                                            !field.value && 'text-muted-foreground',
+                                                                            error && 'border-red-500'
+                                                                        )}>
+                                                                        <CalendarIcon className='mr-2 h-4 w-4' />
+                                                                        {field.value ? (
+                                                                            format(field.value, 'PPP')
+                                                                        ) : (
+                                                                            <span>Pick a date</span>
+                                                                        )}
+                                                                    </Button>
+                                                                </PopoverTrigger>
+                                                                <PopoverContent className='w-auto p-0' align='start'>
+                                                                    <CalendarYear
+                                                                        mode='single'
+                                                                        selected={field.value}
+                                                                        onSelect={(date: Date | undefined) => {
+                                                                            if (date) {
+                                                                                field.onChange(date);
+                                                                                handleDOBChange(date);
+                                                                                setValue('asmcL_Id', 0);
+                                                                            }
+                                                                        }}
+                                                                        disabled={(date: Date) =>
+                                                                            date > new Date() || date < new Date('1900-01-01')
+                                                                        }
+                                                                        onDayClick={() => setIsDobOpen(false)}
+                                                                        initialFocus
+                                                                    />
+                                                                </PopoverContent>
+                                                            </Popover>
+                                                        </div>
                                                     )}
                                                 />
-                                                {calculatedAgeDetails && (
-                                                    <p className='text-muted-foreground text-sm'>Age: {calculatedAgeDetails.ageString}</p>
-                                                )}
                                                 {errors.pasR_DOB && <FormError>{errors.pasR_DOB.message}</FormError>}
                                             </div>
                                             <div className='flex flex-col gap-1.5'>
@@ -1386,51 +1511,52 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                                                 {errors.pasR_Sex && <FormError>{errors.pasR_Sex.message}</FormError>}
                                             </div>
                                             <div className='flex flex-col gap-1.5'>
-                                                <Label htmlFor='asmcL_Id'>
-                                                    Class <span className='ml-1 text-red-500'>*</span>
-                                                </Label>
                                                 <Controller
                                                     name='asmcL_Id'
                                                     control={control}
-                                                    render={({ field }) => (
-                                                        <Select
-                                                            onValueChange={(value) => {
-                                                                field.onChange(Number(value));
-                                                                validateAgeEligibility(calculatedAgeDetails, Number(value));
-                                                            }}
-                                                            value={field.value?.toString() || undefined}>
-                                                            <SelectTrigger>
-                                                                <SelectValue placeholder='Select class' />
-                                                            </SelectTrigger>
-                                                            <SelectContent>
-                                                                {classLoading ? (
-                                                                    <SelectItem value='loading' disabled>
-                                                                        Loading...
-                                                                    </SelectItem>
-                                                                ) : classError ? (
-                                                                    <SelectItem value='error' disabled>
-                                                                        Error loading
-                                                                    </SelectItem>
-                                                                ) : (
-                                                                    preadmissionClass?.data?.map((item) => (
-                                                                        <SelectItem key={item.asmcL_Id} value={item.asmcL_Id.toString()}>
-                                                                            {item.asmcL_ClassName}
+                                                    render={({ field, fieldState: { error } }) => (
+                                                        <div className='flex flex-col space-y-2'>
+                                                            <Label htmlFor='asmcL_Id'>
+                                                                Applying For Class <span className='ml-1 text-red-500'>*</span>
+                                                            </Label>
+                                                            <Select
+                                                                value={
+                                                                    field.value === null || field.value === 0
+                                                                        ? ''
+                                                                        : field.value?.toString() || ''
+                                                                }
+                                                                onValueChange={(value) => field.onChange(Number(value))}
+                                                                disabled={isClassDisabled}
+                                                                searchable={false}>
+                                                                <SelectTrigger className={cn('w-full', error && 'border-red-500')}>
+                                                                    <SelectValue
+                                                                        placeholder={
+                                                                            isClassDisabled
+                                                                                ? 'Please select Date of Birth first'
+                                                                                : 'Select a class'
+                                                                        }
+                                                                    />
+                                                                </SelectTrigger>
+                                                                <SelectContent>
+                                                                    {filteredClasses.length > 0 ? (
+                                                                        filteredClasses.map((classItem) => (
+                                                                            <SelectItem
+                                                                                key={classItem.asmcL_Id}
+                                                                                value={classItem.asmcL_Id.toString()}>
+                                                                                {classItem.asmcL_ClassName}
+                                                                            </SelectItem>
+                                                                        ))
+                                                                    ) : (
+                                                                        <SelectItem value='0' disabled>
+                                                                            No classes available
                                                                         </SelectItem>
-                                                                    ))
-                                                                )}
-                                                            </SelectContent>
-                                                        </Select>
+                                                                    )}
+                                                                </SelectContent>
+                                                            </Select>
+                                                        </div>
                                                     )}
                                                 />
                                                 {errors.asmcL_Id && <FormError>{errors.asmcL_Id.message}</FormError>}
-                                                {ageEligibilityError && (
-                                                    <div className='mt-2 rounded-md border border-red-200 bg-red-50 p-3'>
-                                                        <p className='flex items-start gap-2 font-medium text-red-700 text-sm'>
-                                                            <span className='mt-0.5 text-red-500'>⚠</span>
-                                                            <span>{ageEligibilityError}</span>
-                                                        </p>
-                                                    </div>
-                                                )}
                                             </div>
                                             <InputText
                                                 label='Email'
@@ -3144,6 +3270,18 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                                 </div>
                             </div>
                         </div>
+                        <IneligibleClassesDialog
+                            open={showIneligibleDialog}
+                            onOpenChange={setShowIneligibleDialog}
+                            classes={ineligibleClasses}
+                            cutOffDate={
+                                masterConfig?.data &&
+                                masterConfig.data.ispaC_ApplCutOffDateFlag === 1 &&
+                                masterConfig.data.asmaY_Cut_Of_Date
+                                    ? new Date(masterConfig.data.asmaY_Cut_Of_Date)
+                                    : new Date()
+                            }
+                        />
                     </div>
                 </div>
             </div>
