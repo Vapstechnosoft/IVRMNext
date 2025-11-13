@@ -7,6 +7,7 @@ import { MobileNumberInput } from '@/components/ui/extension/input-mobile-number
 import { InputText } from '@/components/ui/extension/input-text';
 import { preadmissionRegistrationSchema } from '@/schemas/admission/preadmission/transactions';
 import { addPreadmissionRegistration } from '@/server/admission/preadmission/configuration/configuration';
+import { login } from '@/server/user';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
@@ -32,14 +33,14 @@ export default function AddPreadmissionRegistrationForm({ sub_domain, closeDialo
     });
 
     const onSubmit: SubmitHandler<FormFields | any> = async (data: FormFields) => {
-        try {
-            const { mobileno, ...filteredData } = data;
-            const payload = {
-                sub_domain: sub_domain,
-                ...filteredData,
-                mobileno: mobileno.toString()
-            };
+        const { mobileno, ...filteredData } = data;
+        const payload = {
+            sub_domain: sub_domain,
+            ...filteredData,
+            mobileno: mobileno.toString()
+        };
 
+        try {
             const response = await addPreadmissionRegistration(payload);
 
             if (response.success) {
@@ -48,10 +49,21 @@ export default function AddPreadmissionRegistrationForm({ sub_domain, closeDialo
                 closeDialog();
             } else {
                 toast.error(response.message);
+                return;
             }
         } catch (error: any) {
             toast.error(error.message);
+            return;
         }
+
+        // Auto-login after successful registration (outside try-catch)
+        await login({
+            values: {
+                email: data.username,
+                password: data.password
+            },
+            callbackUrl: '/'
+        });
     };
 
     return (
