@@ -28,16 +28,19 @@ export async function addMasterYearlyGroupMapping(data: any) {
     return await api.post<any>('fees', url, data);
 }
 
-export async function getMasterAllFeeHead(searchParams?: ApiSearchparams) {
-    const page = searchParams?.page || 1;
-    const pageSize = searchParams?.page_size || 10;
-    const asmayId = (searchParams as any)?.ASMAY_Id || '';
+export async function getMasterAllFeeHead(params?: ApiSearchparams) {
+    const fields = 'fyghM_Id,fmG_GroupName,fmH_FeeName,fmI_Name,fyghM_FineApplicableFlag,fyghM_Common_AmountFlag,ASMAY_Id,page,page_size';
 
-    let url = `/YearlyFeeGroupMappingFacade/getallfeehead?MI_Id=30&page=${page}&pageSize=${pageSize}`;
-
-    if (asmayId) {
-        url += `&ASMAY_Id=${asmayId}`;
+    const usp = new URLSearchParams();
+    const safeParams = params ?? {};
+    for (const [key, value] of Object.entries(safeParams)) {
+        if (value !== undefined && value !== null) {
+            usp.append(key, String(value));
+        }
     }
+    usp.append('fields', fields);
+
+    const url = `/YearlyFeeGroupMappingFacade/getallfeehead?MI_Id=30&${usp.toString()}`;
 
     return await api.get<{
         success: boolean;
