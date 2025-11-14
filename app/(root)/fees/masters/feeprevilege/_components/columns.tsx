@@ -1,7 +1,6 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
-import { Checkbox } from '@/components/ui/checkbox';
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
 import type { IFeePrivilegeList } from '@/types/fees/masters/masters';
 import type { ColumnDef } from '@tanstack/react-table';
@@ -35,88 +34,61 @@ function ActionButtonsCell({ rowData, openEditForm }: ActionButtonsCellProps) {
 }
 
 export const feePrivilegeColumns: ColumnDef<IFeePrivilegeList>[] = [
-    {
-        id: 'select',
-        header: ({ table }) => (
-            <Checkbox
-                checked={table.getIsAllPageRowsSelected() || (table.getIsSomePageRowsSelected() && 'indeterminate')}
-                onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
-                aria-label='Select all'
-            />
-        ),
-        cell: ({ row }) => (
-            <Checkbox checked={row.getIsSelected()} onCheckedChange={(value) => row.toggleSelected(!!value)} aria-label='Select row' />
-        ),
-        enableSorting: false,
-        enableHiding: false,
-        size: 24
-    },
+    // {
+    //     id: 'select',
+    //     header: ({ table }) => (
+    //         <Checkbox
+    //             checked={table.getIsAllPageRowsSelected() || (table.getIsSomePageRowsSelected() && 'indeterminate')}
+    //             onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
+    //             aria-label='Select all'
+    //         />
+    //     ),
+    //     cell: ({ row }) => (
+    //         <Checkbox checked={row.getIsSelected()} onCheckedChange={(value) => row.toggleSelected(!!value)} aria-label='Select row' />
+    //     ),
+    //     enableSorting: false,
+    //     enableHiding: false,
+    //     size: 24
+    // },
     {
         accessorKey: 'id',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Sl.No' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Sl.No' className='pl-6' />,
         cell: ({ row, table }) => {
             const pageIndex = table.getState().pagination.pageIndex;
             const pageSize = table.getState().pagination.pageSize;
             const continuousIndex = pageIndex * pageSize + row.index + 1;
-            return <div>{continuousIndex}</div>;
+            return <div className='pl-6'>{continuousIndex}</div>;
         },
         enableSorting: true,
         enableHiding: false
     },
     {
-        accessorKey: 'academicYearName',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Academic Year' />,
-        cell: ({ row }) => <div>{row.getValue('academicYearName') || 'N.A'}</div>,
+        accessorKey: 'normalizedUserName',
+        header: ({ column }) => <DataTableColumnHeader column={column} title=' User Name' />,
+        cell: ({ row }) => <div>{row.getValue('normalizedUserName') || 'N.A'}</div>,
         enableSorting: true,
         enableHiding: true
     },
     {
-        accessorKey: 'groupName',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Group' />,
-        cell: ({ row }) => <div>{row.getValue('groupName') || 'N.A'}</div>,
+        accessorKey: 'fmG_GroupName',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Group Name' />,
+        cell: ({ row }) => <div>{row.getValue('fmG_GroupName') || 'N.A'}</div>,
         enableSorting: true,
         enableHiding: true
     },
     {
-        accessorKey: 'feeGroupNames',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Fee Groups' />,
-        cell: ({ row }) => {
-            const feeGroupNames = row.getValue('feeGroupNames') as string[] | undefined;
-            return (
-                <div className='max-w-[250px] overflow-hidden truncate text-ellipsis'>
-                    {feeGroupNames && feeGroupNames.length > 0 ? feeGroupNames.join(', ') : 'N.A'}
-                </div>
-            );
-        },
-        enableSorting: false,
+        accessorKey: 'fmH_FeeName',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Fee Name' />,
+        cell: ({ row }) => <div>{row.getValue('fmH_FeeName') || 'N.A'}</div>,
+        enableSorting: true,
         enableHiding: true
     },
+
     {
-        accessorKey: 'roleNames',
+        accessorKey: 'ivrmrT_Role',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Roles' />,
-        cell: ({ row }) => {
-            const roleNames = row.getValue('roleNames') as string[] | undefined;
-            return (
-                <div className='max-w-[250px] overflow-hidden truncate text-ellipsis'>
-                    {roleNames && roleNames.length > 0 ? roleNames.join(', ') : 'N.A'}
-                </div>
-            );
-        },
-        enableSorting: false,
-        enableHiding: true
-    },
-    {
-        accessorKey: 'demoNames',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Demo Items' />,
-        cell: ({ row }) => {
-            const demoNames = row.getValue('demoNames') as string[] | undefined;
-            return (
-                <div className='max-w-[200px] overflow-hidden truncate text-ellipsis'>
-                    {demoNames && demoNames.length > 0 ? demoNames.join(', ') : 'N.A'}
-                </div>
-            );
-        },
-        enableSorting: false,
+        cell: ({ row }) => <div>{row.getValue('ivrmrT_Role') || 'N.A'}</div>,
+        enableSorting: true,
         enableHiding: true
     },
     {

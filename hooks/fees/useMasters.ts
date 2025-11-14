@@ -7,7 +7,7 @@ import { getAcademicYearDropdown } from '@/server/fees/masters/class_yearly_cate
 
 import { getFeeTermHeadList, getheadsdropdown, getinstallmentsdropdown, gettermsdropdown } from '@/server/fees/masters/fee-term-heads';
 import { getpaymentgateway_dropdown, getpaymentgatewaydetails } from '@/server/fees/masters/fee_payment_gateway_details';
-import { getFeePrevilegeList, getGroupsDropdown, getRolesDropdown } from '@/server/fees/masters/fee_previlege';
+import { getFeePrevilegeList, getGroupsDropdown, getRolesDropdown, getUserNameDropdown } from '@/server/fees/masters/fee_previlege';
 import { getfeehead } from '@/server/fees/masters/feehead';
 import { getfeeInstallment, getfeeInstallmentyId } from '@/server/fees/masters/feeinstallment';
 import { getfeeInstallmentDueDate } from '@/server/fees/masters/feeinstallmentduedate';
@@ -164,6 +164,22 @@ export const useGroupsDropdown = () => {
         refetchAll: () => {
             return queryClient.invalidateQueries({
                 queryKey: [FEES_QUERY_KEYS.GROUPS_DROPDOWN]
+            });
+        }
+    };
+};
+
+export const useUserNameDropdown = (ivrtmt_Id: number) => {
+    const queryClient = useQueryClient();
+    return {
+        ...useQuery({
+            queryKey: [FEES_QUERY_KEYS.GROUPS_DROPDOWN, ivrtmt_Id],
+            queryFn: () => getUserNameDropdown(ivrtmt_Id),
+            staleTime: 0
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [FEES_QUERY_KEYS.GROUPS_DROPDOWN, ivrtmt_Id]
             });
         }
     };
