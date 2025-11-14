@@ -51,8 +51,14 @@ export const studentApplicationFormSchema = {
         religion_Id: z.number().int({ message: 'Religion is required' }),
         caste_Id: z.number().int({ message: 'Caste is required' }),
         pasR_Sex: createStringSchema('Gender', 1, 50),
-        pasR_DOB: z.date({ message: 'Date Of Birth is required' }),
-        asmcL_Id: z.number().int({ message: 'Applying For is required' }),
+        pasR_DOB: z.date({ message: 'Date Of Birth is required' }).refine((date) => {
+            // This will be validated in the form's custom validation
+            return true;
+        }),
+        asmcL_Id: z
+            .number()
+            .int({ message: 'Applying For is required' })
+            .refine((val) => val > 0, { message: 'Please select a valid class' }),
         pasR_emailId: createEmailSchema('Student Email', 1, 50),
         pasR_MotherTongue: createOptionalStringSchema('Student Mother Tongue', 1, 100),
 

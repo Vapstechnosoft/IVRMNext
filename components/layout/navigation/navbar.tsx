@@ -26,7 +26,7 @@ export default async function Navbar() {
                                 placeholder='Search...'
                                 required
                                 id='search'
-                                className='w-[400px] transition-colors focus:ring-2 focus:ring-primary/20'
+                                className='w-[300px] transition-colors focus:ring-2 focus:ring-primary/20'
                             />
                         </div>
                         <div className='flex cursor-pointer items-center gap-1'>
