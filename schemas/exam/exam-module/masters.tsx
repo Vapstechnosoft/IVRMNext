@@ -254,7 +254,7 @@ export const coScholasticActivitySchema = {
         ecacT_Id: z.number().optional(),
         mI_Id: z.number(),
         ecacT_SkillName: z.string().min(1, { message: 'Co-Scholastic Activity Name is required' }),
-        ecacT_SkillCode: z.string().min(1, { message: 'Co-Scholastic Activity is required' })
+        ecacT_SkillCode: z.string().min(1, { message: 'Co-Scholastic Activity Code is required' })
     }),
     delete: z.object({
         ecacT_Id: deleteIdSchema('ecacT_Id')
@@ -265,7 +265,7 @@ export const coScholasticAreaSchema = {
         ecactA_Id: z.number().optional(),
         mI_Id: z.number(),
         ecactA_SkillArea: z.string().min(1, { message: 'Co-Scholastic Area Name is required' }),
-        ecactA_SkillOrder: z.coerce.number().min(1, { message: 'Co-Scholastic Activity Order is required' })
+        ecactA_SkillOrder: z.coerce.number().min(1, { message: 'Co-Scholastic Area Order is required' })
     }),
     delete: z.object({
         ecactA_Id: deleteIdSchema('ecactA_Id')

@@ -72,12 +72,21 @@ export default function AddCoScholasticActivityForm({ onSuccess, className = '' 
                             required
                             {...register('ecacT_SkillName')}
                             error={errors.ecacT_SkillName?.message}
+                            onInput={(e) => {
+                                const input = e.currentTarget;
+                                input.value = input.value.replace(/[^A-Za-z0-9 ]/g, '');
+                            }}
                         />
+
                         <InputText
                             label='Co-Scholastic Activity Code'
                             required
                             {...register('ecacT_SkillCode')}
                             error={errors.ecacT_SkillCode?.message}
+                            onInput={(e) => {
+                                const input = e.currentTarget;
+                                input.value = input.value.replace(/[^A-Za-z0-9 ]/g, '');
+                            }}
                         />
                     </div>
                 </div>
