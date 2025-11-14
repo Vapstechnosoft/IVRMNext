@@ -265,8 +265,14 @@ export interface IMasterGroupDropdown {
 }
 
 export interface IMasterRoleDropdown {
-    roleId: number;
-    roleName: string;
+    ivrmrT_Id: number;
+    ivrmrT_Role: string;
+}
+
+export interface IMasterGetUserNameDropdown {
+    userId: number;
+    normalizedUserName: string;
+    ivrtmt_Id: number;
 }
 
 export interface IMasterOnlinePaymentHeadgroupList {
@@ -540,4 +546,23 @@ export interface IFeePrivilegeList {
     fmG_GroupName: string;
     fmH_FeeName: string;
     ivrmrT_Role: string;
+}
+
+export interface IFeeOnlinehaedgroupMappingList {
+    length: number;
+    success: boolean;
+    message: string;
+    data: Array<{
+        fopM_Id: number;
+        mI_Id: number;
+        fmH_Id: number;
+        createdDate: string;
+        updatedDate: string;
+        fpgd_id: number;
+        fmg_id: number;
+        fti_id: number;
+        fmt_id: number;
+        asmcL_Id: number;
+        preAdmFlag: boolean;
+    }>;
 }

@@ -2,7 +2,7 @@
 
 import { api, getSearchParamsUrl } from '@/lib/apiService';
 import type { ApiSearchparams } from '@/types';
-import type { IMasterClassYearlyList } from '@/types/fees/masters/masters';
+import type { IFeeOnlinehaedgroupMappingList, IMasterClassYearlyList } from '@/types/fees/masters/masters';
 
 export async function getAcademicYearDropdown() {
     const url = '/fee_class_category/academicyearlist/30';
@@ -20,26 +20,22 @@ export async function getInstituteDropDownList() {
     return await api.get<IMasterClassYearlyList[]>('fees', url);
 }
 export async function getClassDropDownList(academicYears?: number) {
-    //   const urlParams = getSearchParamsUrl(academicYears ?? {}, "asmaY_Id");
     const url = `/OnlinePaymentHeadGroupMapping/class_drop_down_list/30/${academicYears}`;
     return await api.get<IMasterClassYearlyList[]>('fees', url);
 }
 
 export async function getSubMerchantDropDownList(academicYears?: number) {
-    //   const urlParams = getSearchParamsUrl(academicYears ?? {}, "asmaY_Id");
     const url = `/OnlinePaymentHeadGroupMapping/sub_merchant_drop_down_list/30/${academicYears}`;
     return await api.get<IMasterClassYearlyList[]>('fees', url);
 }
 
 export async function getGroupNameDropDownList(academicYears?: number) {
-    //   const urlParams = getSearchParamsUrl(academicYears ?? {}, "asmaY_Id");
     const url = `/OnlinePaymentHeadGroupMapping/groupName_drop_down_list/30/${academicYears}`;
 
     return await api.get<IMasterClassYearlyList[]>('fees', url);
 }
 
 export async function getHeadNameDropDownList(academicYears?: number, groupName?: number) {
-    //   const urlParams = getSearchParamsUrl(academicYears ?? {}, "asmaY_Id");
     const url = `/OnlinePaymentHeadGroupMapping/headname_drop_down_list/30/${academicYears}/${groupName}`;
     return await api.get<IMasterClassYearlyList[]>('fees', url);
 }
@@ -64,22 +60,5 @@ export async function GetInstallmentMasterDropdown(payload: any) {
 
 export async function getOnlinePaymentHeadGroupEdit(fopM_Id: number) {
     const url = `/OnlinePaymentHeadGroupMapping/edit/${fopM_Id}`;
-    return await api.get<{
-        length: number;
-        success: boolean;
-        message: string;
-        data: Array<{
-            fopM_Id: number;
-            mI_Id: number;
-            fmH_Id: number;
-            createdDate: string;
-            updatedDate: string;
-            fpgd_id: number;
-            fmg_id: number;
-            fti_id: number;
-            fmt_id: number;
-            asmcL_Id: number;
-            preAdmFlag: boolean;
-        }>;
-    }>('fees', url);
+    return await api.get<IFeeOnlinehaedgroupMappingList[]>('fees', url);
 }
