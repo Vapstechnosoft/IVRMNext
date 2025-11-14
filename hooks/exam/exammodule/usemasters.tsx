@@ -1,9 +1,20 @@
 import { EXAM_QUERY_KEYS } from '@/constants/query-keys';
 import { getExamMasterCategory } from '@/server/exam/exam-module/masters/category';
-import { getCategoryMappedSections, getExamMasterCategoryMapping } from '@/server/exam/exam-module/masters/category-class-mapping';
+
+import { getExamMasterCategoryMapping } from '@/server/exam/exam-module/masters/category-class-mapping';
+import { getCoScholasticActivities } from '@/server/exam/exam-module/masters/co-scholastic-activity';
+import {
+    getCoScholasticActivity,
+    getCoScholasticActivityArea,
+    getCoScholasticArea
+} from '@/server/exam/exam-module/masters/co-scholastic-area';
+
+import { getCategoryMappedSections } from '@/server/exam/exam-module/masters/category-class-mapping';
+
 import { getMasterExam } from '@/server/exam/exam-module/masters/exam';
 import { getMasterExamPaper } from '@/server/exam/exam-module/masters/exam-paper';
 import { getGradeDetailsById, getMasterGrade } from '@/server/exam/exam-module/masters/grade';
+import { getMasterLifeSkillAreas, getMasterLifeSkillMappings, getMasterLifeSkills } from '@/server/exam/exam-module/masters/life-skills';
 import { getMasterSubExam } from '@/server/exam/exam-module/masters/sub-exam';
 import { getMasterSubject } from '@/server/exam/exam-module/masters/subject';
 import {
@@ -223,6 +234,7 @@ export const useMasterCategoryClassMapping = (searchParams?: ApiSearchparams) =>
         }
     };
 };
+
 export const useMasterCategoryMappedSections = (academicYear: number, category: number, className: number) => {
     const queryClient = useQueryClient();
 
@@ -235,6 +247,128 @@ export const useMasterCategoryMappedSections = (academicYear: number, category: 
         refetchAll: () => {
             return queryClient.invalidateQueries({
                 queryKey: [EXAM_QUERY_KEYS.MASTER_CATEGORY_CLASS_MAPPED_SECTIONS]
+            });
+        }
+    };
+};
+export const useCoScholasticArea = (searchParams?: ApiSearchparams) => {
+    const queryClient = useQueryClient();
+    searchParams?.sort_direction;
+    return {
+        ...useQuery({
+            queryKey: [EXAM_QUERY_KEYS.CO_SCHOLASTIC_AREA, searchParams ?? {}],
+            queryFn: async () => getCoScholasticArea(searchParams),
+            staleTime: 0
+        }),
+
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [EXAM_QUERY_KEYS.CO_SCHOLASTIC_AREA]
+            });
+        }
+    };
+};
+export const useCoScholasticActivityDropDown = (searchParams?: ApiSearchparams) => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [EXAM_QUERY_KEYS.CO_SCHOLASTIC_ACTIVITY_DROPDOWN, searchParams ?? {}],
+            queryFn: async () => getCoScholasticActivity(searchParams),
+            staleTime: 0
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [EXAM_QUERY_KEYS.CO_SCHOLASTIC_ACTIVITY_DROPDOWN]
+            });
+        }
+    };
+};
+export const useCoScholasticActivityAreaDropDown = (searchParams?: ApiSearchparams) => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [EXAM_QUERY_KEYS.CO_SCHOLASTIC_AREA_DROPDOWN, searchParams ?? {}],
+            queryFn: async () => getCoScholasticActivityArea(searchParams),
+
+            staleTime: 0
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [EXAM_QUERY_KEYS.CO_SCHOLASTIC_AREA_DROPDOWN]
+            });
+        }
+    };
+};
+
+export const useCoScholasticActivity = (searchParams?: ApiSearchparams) => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [EXAM_QUERY_KEYS.CO_SCHOLASTIC_ACTIVITY, searchParams ?? {}],
+            queryFn: async () => getCoScholasticActivities(searchParams),
+            staleTime: 0
+        }),
+
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [EXAM_QUERY_KEYS.CO_SCHOLASTIC_ACTIVITY]
+            });
+        }
+    };
+};
+
+export const useMasterLifeSkills = (searchParams?: ApiSearchparams) => {
+    const queryClient = useQueryClient();
+    searchParams?.sort_direction;
+    return {
+        ...useQuery({
+            queryKey: [EXAM_QUERY_KEYS.LIFE_SKILLS, searchParams ?? {}],
+            queryFn: async () => getMasterLifeSkills(30, searchParams),
+            staleTime: 0
+        }),
+
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [EXAM_QUERY_KEYS.LIFE_SKILLS]
+            });
+        }
+    };
+};
+
+export const useMasterLifeSkillArea = (searchParams?: ApiSearchparams) => {
+    const queryClient = useQueryClient();
+    searchParams?.sort_direction;
+    return {
+        ...useQuery({
+            queryKey: [EXAM_QUERY_KEYS.LIFE_SKILLS_AREA, searchParams ?? {}],
+            queryFn: async () => getMasterLifeSkillAreas(30, searchParams),
+            staleTime: 0
+        }),
+
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [EXAM_QUERY_KEYS.LIFE_SKILLS_AREA]
+            });
+        }
+    };
+};
+
+export const useMasterLifeSkillAreaMapping = (searchParams?: ApiSearchparams) => {
+    const queryClient = useQueryClient();
+    searchParams?.sort_direction;
+    return {
+        ...useQuery({
+            queryKey: [EXAM_QUERY_KEYS.LIFE_SKILLS_AREA_MAPPING, searchParams ?? {}],
+            queryFn: async () => getMasterLifeSkillMappings(30, searchParams),
+            staleTime: 0
+        }),
+
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [EXAM_QUERY_KEYS.LIFE_SKILLS_AREA_MAPPING]
             });
         }
     };

@@ -45,9 +45,6 @@ function ExamSubjectWizardPageContent({
     const [isOrderSaving, setIsOrderSaving] = useState(false);
     const [isOrderloading, setIsOrderloading] = useState(true);
     const [orderData, setOrderData] = useState<(IExamSubjectOrder & { id: number })[]>([]);
-    useEffect(() => {
-        console.log(response);
-    }, [response]);
 
     useEffect(() => {
         (async () => {

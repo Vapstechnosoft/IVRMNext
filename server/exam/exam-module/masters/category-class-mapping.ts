@@ -2,7 +2,7 @@
 
 import { api, getSearchParamsUrl } from '@/lib/apiService';
 import type { ApiSearchparams } from '@/types';
-import type { IAcademicYear, ICategory, ICategoryMapping, IClass, ISection } from '@/types/exam/exam-module/masters';
+import type { ICategory, ICategoryMapping, IClass, ISection } from '@/types/exam/exam-module/masters';
 
 /* -------------------------------------------------
    GET EXAM MASTER CATEGORY (with class mapping)
@@ -33,21 +33,6 @@ export async function toggleMasterExamCategory(mi_id: number, id: number) {
     return await api.put('exam', url);
 }
 
-/* -------------------------------------------------
-   GET ACADEMIC YEARS
--------------------------------------------------- */
-export async function getAcademicYears(): Promise<IAcademicYear[]> {
-    try {
-        const res = await api.getArray<IAcademicYear>('exam', '/academic-years');
-        return res?.data ?? [];
-    } catch (error: any) {
-        console.error('Error fetching Academic Years, returning mock data:', error);
-        return Array.from({ length: 5 }).map((_, i) => ({
-            asmaY_Id: 231 + i,
-            asmaY_Year: `202${i}-202${i + 1}`
-        }));
-    }
-}
 /* -------------------------------------------------
    GET CATEGORIES
 -------------------------------------------------- */

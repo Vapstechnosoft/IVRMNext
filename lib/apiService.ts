@@ -121,7 +121,7 @@ class ApiService {
             const instance = this.getOrCreateInstance(baseUrlKey);
             const baseURL = instance.defaults.baseURL;
             const fullUrl = `${baseURL}${url}`;
-            
+
             console.log('🌐 [API SERVICE] Request initiated');
             console.log('📤 [API SERVICE] Request details:', {
                 method,
@@ -131,7 +131,7 @@ class ApiService {
                 hasData: !!data,
                 dataSize: data ? JSON.stringify(data).length : 0
             });
-            
+
             if (data && method === 'POST') {
                 console.log('📦 [API SERVICE] Request payload:', JSON.stringify(data, null, 2));
             }
@@ -144,7 +144,7 @@ class ApiService {
                 ...config
             });
             const duration = Date.now() - startTime;
-            
+
             console.log('✅ [API SERVICE] Response received');
             console.log('📥 [API SERVICE] Response details:', {
                 status: response.status,
@@ -154,7 +154,7 @@ class ApiService {
                 success: response.data?.success,
                 message: response.data?.message
             });
-            
+
             if (response.data) {
                 console.log('📊 [API SERVICE] Response data structure:', {
                     hasSuccess: 'success' in response.data,
@@ -163,7 +163,7 @@ class ApiService {
                     keys: Object.keys(response.data || {})
                 });
             }
-            
+
             return response.data;
         } catch (error: any) {
             console.error('❌ [API SERVICE] Request failed');
@@ -302,7 +302,7 @@ export function getSearchParamsUrl(searchParams: ApiSearchparams | undefined, se
     const page = searchParams?.page || 1;
     const page_size = searchParams?.page_size || 10;
     const sort_column = searchParams?.sort_column || '';
-    const sort_direction = searchParams?.sort_direction || 'asc';
+    const sort_direction = searchParams?.sort_direction || 'desc';
     const search_query = searchParams?.search_query || '';
 
     let url = `page=${page}&page_size=${page_size}&sort_column=${sort_column}&sort_direction=${sort_direction}`;
