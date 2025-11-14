@@ -30,7 +30,6 @@ import { cn } from '@/lib/utils';
 import { studentApplicationFormSchema } from '@/schemas/admission/preadmission/transactions';
 import { addStudentApplicationForm } from '@/server/admission/preadmission/transactions/application_form';
 import { deleteDocument, uploadDocument } from '@/server/document_upload';
-import type { CalculatedAgeDetails } from '@/types';
 import type { IPreadmissionClassDropdown } from '@/types/admission/preadmission/transactions';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { format } from 'date-fns';
@@ -102,7 +101,6 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
         }
     });
 
-    const [calculatedAgeDetails, setCalculatedAgeDetails] = useState<CalculatedAgeDetails>();
     const [selectedSourceItems, setSelectedSourceItems] = useState<{ pamS_Id: string; pamS_SourceName: string }[]>([]);
     const [selectedReferenceItems, setSelectedReferenceItems] = useState<{ pamR_Id: string; pamR_ReferenceName: string }[]>([]);
     const [sameAsResidential, setSameAsResidential] = useState(false);
@@ -302,11 +300,6 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
     };
 
     const onSubmit: SubmitHandler<FormFields | any> = async (data: FormFields) => {
-        if (!calculatedAgeDetails) {
-            toast.error('Please select date of birth');
-            return;
-        }
-
         if (data.pasR_UndertakingFlag === 0) {
             toast.error('Please accept undertaking');
             return;
@@ -328,7 +321,7 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
             const payload = {
                 ...filteredData,
                 pasR_DOB: format(pasR_DOB, 'yyyy-MM-dd'),
-                pasR_Age: calculatedAgeDetails.ageInYears,
+                pasR_Age: 0,
                 pasR_Student_Pic_Path: studentPhoto?.pasR_Student_Pic_Path || '',
                 pasR_FatherPhoto: fatherPhoto?.pasR_FatherPhoto || '',
                 pasR_MotherPhoto: motherPhoto?.pasR_MotherPhoto || '',
@@ -400,7 +393,6 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
     const handleReset = () => {
         reset();
         setCurrentStep(1);
-        setCalculatedAgeDetails(undefined);
         setSelectedSourceItems([]);
         setSelectedReferenceItems([]);
         setSameAsResidential(false);

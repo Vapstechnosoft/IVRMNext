@@ -30,7 +30,6 @@ import { calculateAge, cn } from '@/lib/utils';
 import { studentApplicationFormUpdateSchema } from '@/schemas/admission/preadmission/transactions';
 import { addStudentApplicationForm } from '@/server/admission/preadmission/transactions/application_form';
 import { deleteDocument, uploadDocument } from '@/server/document_upload';
-import type { CalculatedAgeDetails } from '@/types';
 import type { IPreadmissionClassDropdown } from '@/types/admission/preadmission/transactions';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { format } from 'date-fns';
@@ -192,17 +191,10 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                     isUploading: false
                 });
             }
-
-            if (rowData.pasR_DOB) {
-                const dob = new Date(rowData.pasR_DOB);
-                const ageDetails = calculateAge(dob);
-                setCalculatedAgeDetails(ageDetails);
-            }
         }
     }, [rowData, setValue]);
 
     const [isDobOpen, setIsDobOpen] = useState(false);
-    const [calculatedAgeDetails, setCalculatedAgeDetails] = useState<CalculatedAgeDetails>();
     const [filteredClasses, setFilteredClasses] = useState<IPreadmissionClassDropdown[]>([]);
     const [isClassDisabled, setIsClassDisabled] = useState(true);
     const [showIneligibleDialog, setShowIneligibleDialog] = useState(false);
@@ -428,11 +420,6 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
     };
 
     const onSubmit: SubmitHandler<FormFields | any> = async (data: FormFields) => {
-        if (!calculatedAgeDetails) {
-            toast.error('Please select date of birth');
-            return;
-        }
-
         if (data.pasR_UndertakingFlag === 0) {
             toast.error('Please accept undertaking');
             return;
@@ -479,7 +466,7 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                         .map(([k, v]) => [k, nullFields.has(k) ? toNull(v) : toNullOther(v)])
                 ),
                 pasR_DOB: pasR_DOB ? format(pasR_DOB, 'yyyy-MM-dd') : null,
-                pasR_Age: calculatedAgeDetails.ageInYears,
+                pasR_Age: 0,
                 pasR_Student_Pic_Path: toNullOther(studentPhoto?.pasR_Student_Pic_Path),
                 pasR_FatherPhoto: toNullOther(fatherPhoto?.pasR_FatherPhoto),
                 pasR_MotherPhoto: toNullOther(motherPhoto?.pasR_MotherPhoto),
@@ -561,7 +548,6 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
     const handleReset = () => {
         reset();
         setCurrentStep(1);
-        setCalculatedAgeDetails(undefined);
         setSelectedSourceItems([]);
         setSelectedReferenceItems([]);
         setSameAsResidential(false);
