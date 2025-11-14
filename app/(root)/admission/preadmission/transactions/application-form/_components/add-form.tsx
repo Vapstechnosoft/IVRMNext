@@ -103,7 +103,6 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
     });
 
     const [calculatedAgeDetails, setCalculatedAgeDetails] = useState<CalculatedAgeDetails>();
-    const [ageEligibilityError, setAgeEligibilityError] = useState<string | null>(null);
     const [selectedSourceItems, setSelectedSourceItems] = useState<{ pamS_Id: string; pamS_SourceName: string }[]>([]);
     const [selectedReferenceItems, setSelectedReferenceItems] = useState<{ pamR_Id: string; pamR_ReferenceName: string }[]>([]);
     const [sameAsResidential, setSameAsResidential] = useState(false);
@@ -292,14 +291,6 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
         if (isValid) {
             setCurrentStep((prev) => Math.min(prev + 1, steps.length));
         }
-
-        if (currentStep === 1) {
-            const isAgeEligible = validateAgeEligibility(calculatedAgeDetails, watch('asmcL_Id'));
-            if (!isAgeEligible) {
-                toast.error("Please select a class that matches the student's age eligibility");
-                return;
-            }
-        }
     };
 
     const prevStep = () => {
@@ -424,7 +415,6 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
             pasrpS_LeftReason: '',
             pasrpS_Address: ''
         });
-        setAgeEligibilityError(null);
         setUploadedDocuments([]);
         setStudentPhoto(null);
         setStudentPhotoError(null);
@@ -638,37 +628,6 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
 
     const getUploadedDocument = (amsmD_Id: number) => {
         return uploadedDocuments.find((doc) => doc.amsmD_Id === amsmD_Id);
-    };
-
-    const validateAgeEligibility = (ageDetails: CalculatedAgeDetails | undefined, classId: number | undefined) => {
-        if (!ageDetails || !classId || !preadmissionClass?.data) {
-            setAgeEligibilityError(null);
-            return true;
-        }
-
-        const selectedClass = preadmissionClass.data.find((cls) => cls.asmcL_Id === classId);
-        if (!selectedClass) {
-            setAgeEligibilityError(null);
-            return true;
-        }
-
-        // Convert age to total days for accurate comparison
-        const studentTotalDays = ageDetails.years * 365 + ageDetails.months * 30 + ageDetails.days;
-        const minAgeDays = selectedClass.asmcL_MinAgeYear * 365 + selectedClass.asmcL_MinAgeMonth * 30 + selectedClass.asmcL_MinAgeDays;
-        const maxAgeDays = selectedClass.asmcL_MaxAgeYear * 365 + selectedClass.asmcL_MaxAgeMonth * 30 + selectedClass.asmcL_MaxAgeDays;
-
-        if (studentTotalDays < minAgeDays || studentTotalDays > maxAgeDays) {
-            const minAgeString = `${selectedClass.asmcL_MinAgeYear} years, ${selectedClass.asmcL_MinAgeMonth} months, ${selectedClass.asmcL_MinAgeDays} days`;
-            const maxAgeString = `${selectedClass.asmcL_MaxAgeYear} years, ${selectedClass.asmcL_MaxAgeMonth} months, ${selectedClass.asmcL_MaxAgeDays} days`;
-
-            setAgeEligibilityError(
-                `Student age (${ageDetails.ageString}) does not meet eligibility for ${selectedClass.asmcL_ClassName}. Required age range: ${minAgeString} to ${maxAgeString}`
-            );
-            return false;
-        }
-
-        setAgeEligibilityError(null);
-        return true;
     };
 
     // Add this handler where other form handlers are defined
@@ -1311,14 +1270,6 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
                                                     )}
                                                 />
                                                 {errors.asmcL_Id && <FormError>{errors.asmcL_Id.message}</FormError>}
-                                                {ageEligibilityError && (
-                                                    <div className='mt-2 rounded-md border border-red-200 bg-red-50 p-3'>
-                                                        <p className='flex items-start gap-2 font-medium text-red-700 text-sm'>
-                                                            <span className='mt-0.5 text-red-500'>⚠</span>
-                                                            <span>{ageEligibilityError}</span>
-                                                        </p>
-                                                    </div>
-                                                )}
                                             </div>
                                             <InputText
                                                 label='Email'
@@ -2978,7 +2929,7 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
                                     )}
 
                                     {currentStep < steps.length ? (
-                                        <Button type='button' onClick={nextStep} disabled={isSubmitting || ageEligibilityError !== null}>
+                                        <Button type='button' onClick={nextStep} disabled={isSubmitting}>
                                             Next
                                             <ChevronRight className='ml-2 h-4 w-4' />
                                         </Button>

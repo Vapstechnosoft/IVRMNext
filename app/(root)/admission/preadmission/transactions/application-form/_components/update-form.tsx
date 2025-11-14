@@ -203,7 +203,6 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
 
     const [isDobOpen, setIsDobOpen] = useState(false);
     const [calculatedAgeDetails, setCalculatedAgeDetails] = useState<CalculatedAgeDetails>();
-    const [ageEligibilityError, setAgeEligibilityError] = useState<string | null>(null);
     const [filteredClasses, setFilteredClasses] = useState<IPreadmissionClassDropdown[]>([]);
     const [isClassDisabled, setIsClassDisabled] = useState(true);
     const [showIneligibleDialog, setShowIneligibleDialog] = useState(false);
@@ -279,12 +278,7 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
     const perConuntryId = watch('pasR_PerCountry');
     const { data: caste, isLoading: casteLoading, error: casteError, refetchAll: refetchCaste } = useCasteDropdown(watch('religion_Id'));
     const { data: gender, isLoading: genderLoading, error: genderError, refetchAll: refetchGender } = useGenderDropdown();
-    const {
-        data: preadmissionClass,
-        isLoading: classLoading,
-        error: classError,
-        refetchAll: refetchClass
-    } = usePreadmissionClassDropdown();
+    const { data: preadmissionClass, refetchAll: refetchClass } = usePreadmissionClassDropdown();
     const { data: country, isLoading: countryLoading, error: countryError, refetchAll: refetchCountry } = useCountryDropdown();
     const {
         data: conState,
@@ -423,18 +417,14 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
         if (isValid) {
             setCurrentStep((prev) => Math.min(prev + 1, steps.length));
         }
-
-        if (currentStep === 1) {
-            const isAgeEligible = validateAgeEligibility(calculatedAgeDetails, watch('asmcL_Id'));
-            if (!isAgeEligible) {
-                toast.error("Please select a class that matches the student's age eligibility");
-                return;
-            }
-        }
     };
 
     const prevStep = () => {
         setCurrentStep((prev) => Math.max(prev - 1, 1));
+    };
+
+    const goToStep = (step: number) => {
+        setCurrentStep(step);
     };
 
     const onSubmit: SubmitHandler<FormFields | any> = async (data: FormFields) => {
@@ -586,7 +576,6 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
             pasrpS_LeftReason: '',
             pasrpS_Address: ''
         });
-        setAgeEligibilityError(null);
         setUploadedDocuments([]);
         setDocumentErrors({});
     };
@@ -889,36 +878,6 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
 
     const getUploadedDocument = (amsmD_Id: number) => {
         return uploadedDocuments.find((doc) => doc.amsmD_Id === amsmD_Id);
-    };
-
-    const validateAgeEligibility = (ageDetails: CalculatedAgeDetails | undefined, classId: number | undefined) => {
-        if (!ageDetails || !classId || !preadmissionClass?.data) {
-            setAgeEligibilityError(null);
-            return true;
-        }
-
-        const selectedClass = preadmissionClass.data.find((cls) => cls.asmcL_Id === classId);
-        if (!selectedClass) {
-            setAgeEligibilityError(null);
-            return true;
-        }
-
-        const studentTotalDays = ageDetails.years * 365 + ageDetails.months * 30 + ageDetails.days;
-        const minAgeDays = selectedClass.asmcL_MinAgeYear * 365 + selectedClass.asmcL_MinAgeMonth * 30 + selectedClass.asmcL_MinAgeDays;
-        const maxAgeDays = selectedClass.asmcL_MaxAgeYear * 365 + selectedClass.asmcL_MaxAgeMonth * 30 + selectedClass.asmcL_MaxAgeDays;
-
-        if (studentTotalDays < minAgeDays || studentTotalDays > maxAgeDays) {
-            const minAgeString = `${selectedClass.asmcL_MinAgeYear} years, ${selectedClass.asmcL_MinAgeMonth} months, ${selectedClass.asmcL_MinAgeDays} days`;
-            const maxAgeString = `${selectedClass.asmcL_MaxAgeYear} years, ${selectedClass.asmcL_MaxAgeMonth} months, ${selectedClass.asmcL_MaxAgeDays} days`;
-
-            setAgeEligibilityError(
-                `Student age (${ageDetails.ageString}) does not meet eligibility for ${selectedClass.asmcL_ClassName}. Required age range: ${minAgeString} to ${maxAgeString}`
-            );
-            return false;
-        }
-
-        setAgeEligibilityError(null);
-        return true;
     };
 
     const validateAgeForClass = (dob: Date, classData: IPreadmissionClassDropdown, config: any): { isValid: boolean; reason?: string } => {
@@ -3247,7 +3206,7 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                                     )}
 
                                     {currentStep < steps.length ? (
-                                        <Button type='button' onClick={nextStep} disabled={isSubmitting || ageEligibilityError !== null}>
+                                        <Button type='button' onClick={nextStep} disabled={isSubmitting}>
                                             Next
                                             <ChevronRight className='ml-2 h-4 w-4' />
                                         </Button>
