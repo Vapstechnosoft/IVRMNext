@@ -50,8 +50,6 @@ export function EmployeeServiceFilters({
 }: EmployeeServiceFiltersProps) {
     return (
         <CollapsibleSection
-            title='EMPLOYEE OFFER AND EXPERIENCE REPORT'
-            description='Configure filters to generate service certificates and experience reports'
             defaultOpen={true}
             variant='default'
             size='lg'

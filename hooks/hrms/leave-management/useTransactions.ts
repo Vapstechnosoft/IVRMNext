@@ -8,7 +8,8 @@ import { getLeaveCreditDeduction, addOrUpdateLeaveCreditDeduction, deleteLeaveCr
 import { getLeaveCreditAddition, addOrUpdateLeaveCreditAddition, deleteLeaveCreditAddition } from '@/server/hrms/leave-management/transactions/leave-credit-addition';
 import { getLeaveCarryForward, addOrUpdateLeaveCarryForward, deleteLeaveCarryForward } from '@/server/hrms/leave-management/transactions/leave-carryforward';
 import { getCompOffApproval, updateCompOffApprovalStatus } from '@/server/hrms/leave-management/transactions/comp-off-approval';
-import type { LeaveCredit } from '@/app/(root)/hrms/leave-management/transaction/leave-credit/_components/columns';
+import { getCompOffRequestData, submitCompOffRequest, cancelCompOffRequest } from '@/server/hrms/leave-management/transactions/comp-off-request';
+import type { LeaveCredit } from '@/app/(root)/hrms/leave-management/transaction/leave-transfer/_components/columns';
 import type { LeaveCreditTransaction } from '@/app/(root)/hrms/leave-management/transaction/leave-credit-transaction/_components/columns';
 import type { LeaveCreditDetail } from '@/app/(root)/hrms/leave-management/transaction/leave-credit-details/_components/columns';
 import type { LeaveCreditDeduction } from '@/app/(root)/hrms/leave-management/transaction/leave-credit-deduction/_components/columns';
@@ -425,6 +426,54 @@ export const useUpdateCompOffApprovalStatus = () => {
         },
         onError: (error: Error) => {
             toast.error(error.message || 'Failed to update comp off approval status');
+        }
+    });
+};
+
+// Comp Off Request Hooks
+export const useCompOffRequest = (employeeId?: number) => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [HRMS_QUERY_KEYS.COMP_OFF_REQUEST, employeeId],
+            queryFn: async () => getCompOffRequestData(employeeId),
+            staleTime: 0
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [HRMS_QUERY_KEYS.COMP_OFF_REQUEST]
+            });
+        }
+    };
+};
+
+export const useSubmitCompOffRequest = () => {
+    const queryClient = useQueryClient();
+
+    return useMutation({
+        mutationFn: async (selectedIds: number[]) => submitCompOffRequest(selectedIds),
+        onSuccess: (response) => {
+            toast.success(response.message);
+            queryClient.invalidateQueries({ queryKey: [HRMS_QUERY_KEYS.COMP_OFF_REQUEST] });
+        },
+        onError: (error: Error) => {
+            toast.error(error.message || 'Failed to submit comp off request');
+        }
+    });
+};
+
+export const useCancelCompOffRequest = () => {
+    const queryClient = useQueryClient();
+
+    return useMutation({
+        mutationFn: async (selectedIds: number[]) => cancelCompOffRequest(selectedIds),
+        onSuccess: (response) => {
+            toast.success(response.message);
+            queryClient.invalidateQueries({ queryKey: [HRMS_QUERY_KEYS.COMP_OFF_REQUEST] });
+        },
+        onError: (error: Error) => {
+            toast.error(error.message || 'Failed to cancel comp off request');
         }
     });
 };

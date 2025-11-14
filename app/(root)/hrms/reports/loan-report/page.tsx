@@ -1,6 +1,5 @@
 'use client';
 
-import { Heading } from '@/components/layout/heading';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { DataTable } from '@/components/ui/data-table/data-table';
@@ -489,13 +488,6 @@ export default function LoanReportPage() {
 
     return (
         <div className='space-y-6'>
-            <div className='flex-between flex-wrap gap-4'>
-                <Heading
-                    title='Employee Loan Report'
-                    description='Comprehensive report for employee loan applications, approvals, and repayment tracking'
-                />
-            </div>
-
             {/* Report Configuration Section */}
             <LoanReportFilters
                 filters={filters}

@@ -40,8 +40,6 @@ export function HeadWiseReportFilters({
 
     return (
         <CollapsibleSection
-            title='HEAD WISE REPORT'
-            description='Configure filters to generate salary head wise analysis and reports'
             defaultOpen={true}
             variant='default'
             size='lg'

@@ -8,13 +8,15 @@ import { InputText } from '@/components/ui/extension/input-text';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useMasterHoliday, useSaveMasterHoliday } from '@/hooks/hrms/attendance-management/useMasters';
+import type { MasterHolidayGetDataResponseData } from '@/types/hrms/attendance-management/master-holiday';
 import { cn } from '@/lib/utils';
 import { holidayMasterSchema } from '@/schemas/hrms/attendance-management-schemas';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { format } from 'date-fns';
 import { CalendarIcon, Save } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useMemo } from 'react';
 import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
+import { toast } from 'sonner';
 import type { z } from 'zod';
 
 type MasterHolidayForm = z.infer<typeof holidayMasterSchema.addOrUpdate> & {
@@ -23,33 +25,37 @@ type MasterHolidayForm = z.infer<typeof holidayMasterSchema.addOrUpdate> & {
     isActive: boolean;
 };
 
-const departments = ['All', 'Teaching', 'Non Teaching', 'Administrative', 'JUNIOR SCHOOL', 'SENIOR SCHOOL', 'OFFICE STAFF'];
-const holidayTypes = ['PUBLIC HOLIDAY', 'WEEK END', 'WEEK DAY', 'VACATION', 'NATIONAL HOLIDAY', 'FESTIVAL', 'OPTIONAL HOLIDAY'];
-const weekDays = [
-    { value: 'SUN', label: 'SUN' },
-    { value: 'MON', label: 'MON' },
-    { value: 'TUE', label: 'TUE' },
-    { value: 'WED', label: 'WED' },
-    { value: 'THU', label: 'THU' },
-    { value: 'FRI', label: 'FRI' },
-    { value: 'SAT', label: 'SAT' }
-];
-
 interface AddMasterHolidayFormProps {
     onSuccess?: () => void;
     className?: string;
+    dropdownData?: MasterHolidayGetDataResponseData;
 }
 
-export default function AddMasterHolidayForm({ onSuccess, className = '' }: AddMasterHolidayFormProps) {
+export default function AddMasterHolidayForm({ onSuccess, className = '', dropdownData }: AddMasterHolidayFormProps) {
     const { refetchAll } = useMasterHoliday();
     const { mutate: saveMasterHoliday, isPending } = useSaveMasterHoliday();
-    const [currentYear, setCurrentYear] = useState<number | null>(null);
 
-    useEffect(() => {
-        setCurrentYear(new Date().getFullYear());
-    }, []);
+    // Extract dropdown data from API response
+    const calendarYears = useMemo(() => {
+        return dropdownData?.yeardropdown?.map((year) => year.hrmlY_LeaveYear) || [];
+    }, [dropdownData?.yeardropdown]);
 
-    const calendarYears = currentYear ? Array.from({ length: 6 }, (_, i) => (currentYear + i).toString()) : [];
+    const departments = useMemo(() => {
+        return dropdownData?.departmentType?.map((dept) => dept.hrmD_DepartmentName) || [];
+    }, [dropdownData?.departmentType]);
+
+    const holidayTypes = useMemo(() => {
+        return dropdownData?.holidayType?.map((type) => type.fohtwD_HolidayWDType) || [];
+    }, [dropdownData?.holidayType]);
+
+    const weekDays = useMemo(() => {
+        return (
+            dropdownData?.dayslist?.map((day) => ({
+                value: day.fomD_DayCode,
+                label: day.fomD_DayName
+            })) || []
+        );
+    }, [dropdownData?.dayslist]);
 
     const {
         register,
@@ -90,45 +96,185 @@ export default function AddMasterHolidayForm({ onSuccess, className = '' }: AddM
     };
 
     const onSubmit: SubmitHandler<MasterHolidayForm> = async (data) => {
-        // Date validation
-        const today = new Date();
-        today.setHours(0, 0, 0, 0);
+        console.log('🟢 [CLIENT] Form submitted!', data);
+        try {
+            // Date validation - only for PUBLIC HOLIDAY and WEEK END
+            // WEEK DAY doesn't require dates, so skip validation for it
+            const requiresDates = data.holidayType === 'PUBLIC HOLIDAY' || data.holidayType === 'WEEK END';
+            const isWeekDay = data.holidayType === 'WEEK DAY';
+            
+            // For WEEK DAY, validate that at least one day is selected and department is provided
+            if (isWeekDay) {
+                if (!data.selectedDays || data.selectedDays.length === 0) {
+                    console.error('❌ [CLIENT] Validation failed: No days selected for WEEK DAY');
+                    toast.error('At least one day must be selected for WEEK DAY holiday type');
+                    return;
+                }
+                
+                if (!data.department || data.department.trim() === '') {
+                    console.error('❌ [CLIENT] Validation failed: Department required for WEEK DAY');
+                    toast.error('Department is required for WEEK DAY holiday type');
+                    return;
+                }
+            }
+            
+            console.log('🟢 [CLIENT] Holiday type check:', {
+                holidayType: data.holidayType,
+                requiresDates,
+                isWeekDay,
+                hasFromDate: !!data.fromDate,
+                hasToDate: !!data.toDate,
+                selectedDaysCount: data.selectedDays?.length || 0
+            });
+            
+            if (requiresDates && data.fromDate) {
+                const today = new Date();
+                today.setHours(0, 0, 0, 0);
+                today.setMinutes(0, 0, 0);
 
-        const fromDateObj = data.fromDate ? new Date(data.fromDate) : new Date();
-        const toDateObj = data.toDate ? new Date(data.toDate) : new Date();
-        const selectedYear = Number.parseInt(data.calendarYear);
+                // Parse date string with explicit time to avoid timezone issues
+                const fromDateStr = data.fromDate.includes('T') ? data.fromDate : data.fromDate + 'T00:00:00';
+                const toDateStr = data.toDate && data.toDate.includes('T') ? data.toDate : (data.toDate ? data.toDate + 'T00:00:00' : null);
+                
+                const fromDateObj = new Date(fromDateStr);
+                fromDateObj.setHours(0, 0, 0, 0);
+                const toDateObj = toDateStr ? new Date(toDateStr) : null;
+                if (toDateObj) {
+                    toDateObj.setHours(0, 0, 0, 0);
+                }
+                const selectedYear = Number.parseInt(data.calendarYear);
 
-        if (fromDateObj < today) {
-            return;
-        }
+                console.log('🟢 [CLIENT] Date validation:', {
+                    holidayType: data.holidayType,
+                    requiresDates,
+                    today: today.toISOString(),
+                    todayLocal: today.toString(),
+                    fromDate: fromDateObj.toISOString(),
+                    fromDateLocal: fromDateObj.toString(),
+                    toDate: toDateObj?.toISOString(),
+                    toDateLocal: toDateObj?.toString(),
+                    fromDateString: data.fromDate,
+                    toDateString: data.toDate,
+                    selectedYear,
+                    fromDateYear: fromDateObj.getFullYear(),
+                    toDateYear: toDateObj?.getFullYear(),
+                    isFromDatePast: fromDateObj < today,
+                    fromDateTimestamp: fromDateObj.getTime(),
+                    todayTimestamp: today.getTime(),
+                    timeDifference: fromDateObj.getTime() - today.getTime()
+                });
 
-        if (toDateObj < fromDateObj) {
-            return;
-        }
+                if (fromDateObj < today) {
+                    console.error('❌ [CLIENT] Validation failed: Start date is in the past', {
+                        fromDate: fromDateObj.toISOString(),
+                        fromDateLocal: fromDateObj.toString(),
+                        today: today.toISOString(),
+                        todayLocal: today.toString(),
+                        comparison: fromDateObj.getTime() < today.getTime(),
+                        timeDifference: fromDateObj.getTime() - today.getTime()
+                    });
+                    toast.error('Start date cannot be in the past');
+                    return;
+                }
 
-        if (fromDateObj.getFullYear() !== selectedYear || toDateObj.getFullYear() !== selectedYear) {
-            return;
-        }
+                if (toDateObj && toDateObj < fromDateObj) {
+                    console.error('❌ [CLIENT] Validation failed: End date is before start date');
+                    toast.error('End date must be after start date');
+                    return;
+                }
 
-        saveMasterHoliday(
-            {
+                if (fromDateObj.getFullYear() !== selectedYear || (toDateObj && toDateObj.getFullYear() !== selectedYear)) {
+                    console.error('❌ [CLIENT] Validation failed: Dates not in selected year', {
+                        fromDateYear: fromDateObj.getFullYear(),
+                        toDateYear: toDateObj?.getFullYear(),
+                        selectedYear
+                    });
+                    toast.error('Dates must be within the selected calendar year');
+                    return;
+                }
+            } else if (requiresDates && !data.fromDate) {
+                console.error('❌ [CLIENT] Validation failed: Date required for this holiday type');
+                toast.error('Start date is required for this holiday type');
+                return;
+            }
+
+            // Check if dropdown data is available
+            if (!dropdownData) {
+                console.error('❌ [CLIENT] Dropdown data not available');
+                toast.error('Dropdown data not loaded. Please wait and try again.');
+                return;
+            }
+
+            console.log('🟢 [CLIENT] Submitting master holiday:', {
+                data,
+                dropdownData: {
+                    hasYear: !!dropdownData.yeardropdown,
+                    hasDept: !!dropdownData.departmentType,
+                    hasHolidayType: !!dropdownData.holidayType
+                }
+            });
+
+            const submitData = {
                 calendarYear: data.calendarYear,
                 department: data.department,
                 holidayType: data.holidayType,
                 name: data.name || '',
-                selectedDays: data.selectDay ? data.selectedDays || [] : [],
-                fromDate: data.fromDate || '',
-                toDate: data.toDate || '',
+                // Send selectedDays if they exist, regardless of selectDay checkbox state
+                selectedDays: (data.selectedDays && data.selectedDays.length > 0) ? data.selectedDays : [],
+                fromDate: requiresDates ? (data.fromDate || '') : '', // Only include dates if required
+                toDate: requiresDates ? (data.toDate || '') : '', // Only include dates if required
                 isActive: data.isActive
-            },
-            {
-                onSuccess: () => {
-                    reset();
-                    refetchAll();
-                    onSuccess?.();
+            };
+            
+            console.log('🟢 [CLIENT] Selected days check:', {
+                selectDay: data.selectDay,
+                selectedDays: data.selectedDays,
+                selectedDaysLength: data.selectedDays?.length || 0,
+                willSend: (data.selectedDays && data.selectedDays.length > 0) ? data.selectedDays : []
+            });
+
+            console.log('🟢 [CLIENT] Prepared submit data:', submitData);
+            console.log('🚀 [CLIENT] Calling saveMasterHoliday mutation...');
+
+            saveMasterHoliday(
+                {
+                    data: submitData,
+                    dropdownData: dropdownData
+                },
+                {
+                    onSuccess: (response) => {
+                        console.log('✅ [CLIENT] Form onSuccess callback called');
+                        console.log('📥 [CLIENT] Response in form callback:', {
+                            hasResponse: !!response,
+                            success: response?.success,
+                            message: response?.message
+                        });
+                        
+                        console.log('🔄 [CLIENT] Resetting form...');
+                        reset();
+                        
+                        console.log('🔄 [CLIENT] Calling refetchAll...');
+                        refetchAll();
+                        
+                        console.log('✅ [CLIENT] Calling onSuccess prop...');
+                        onSuccess?.();
+                        
+                        console.log('✅ [CLIENT] Form submission completed successfully');
+                    },
+                    onError: (error) => {
+                        console.error('❌ [CLIENT] Form onError callback called');
+                        console.error('💥 [CLIENT] Error in form callback:', {
+                            message: error?.message,
+                            error: error
+                        });
+                        toast.error(error.message || 'Failed to save master holiday');
+                    }
                 }
-            }
-        );
+            );
+        } catch (error: any) {
+            console.error('Form submission error:', error);
+            toast.error(error.message || 'An error occurred while submitting the form');
+        }
     };
 
     const handleReset = () => {
@@ -137,7 +283,17 @@ export default function AddMasterHolidayForm({ onSuccess, className = '' }: AddM
 
     return (
         <div className={`${className}`}>
-            <form onSubmit={handleSubmit(onSubmit)} className='max-w-full space-y-6'>
+            <form
+                onSubmit={handleSubmit(onSubmit, (errors) => {
+                    console.error('Form validation errors:', errors);
+                    const firstError = Object.values(errors)[0];
+                    if (firstError?.message) {
+                        toast.error(firstError.message);
+                    } else {
+                        toast.error('Please fix the form errors');
+                    }
+                })}
+                className='max-w-full space-y-6'>
                 <div className='space-y-4'>
                     <div className='grid grid-cols-1 gap-4 lg:grid-cols-3'>
                         <div className='space-y-2'>

@@ -40,8 +40,6 @@ export function CumulativeSalaryReportFilters({
 }: CumulativeSalaryReportFiltersProps) {
     return (
         <CollapsibleSection
-            title='CUMULATIVE SALARY REPORT'
-            description='Search and filter employee salary records'
             defaultOpen={true}
             variant='outline'
             size='lg'

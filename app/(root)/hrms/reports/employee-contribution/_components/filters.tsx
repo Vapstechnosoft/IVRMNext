@@ -66,8 +66,6 @@ export function EmployeeContributionFilters({
 
     return (
         <CollapsibleSection
-            title='EMPLOYEE CONTRIBUTION REPORT'
-            description='Configure filters to generate employee contribution analysis'
             defaultOpen={true}
             variant='default'
             size='lg'

@@ -28,8 +28,15 @@ export async function getEmployeeLateInEarlyOutReport(filters?: EmployeeLateInEa
                     ? r.employeeCode.includes(filters.query)
                     : r.employeeName.toLowerCase().includes(filters.query.toLowerCase())
                 : true;
-        const okMode =
-            filters.mode === 'Late By' ? r.lateBy : filters.mode === 'Early Out' ? r.earlyOut : r.lateBy || r.earlyOut;
+        const okMode = filters.mode
+            ? filters.mode === 'Late By'
+                ? r.lateBy
+                : filters.mode === 'Early Out'
+                  ? r.earlyOut
+                  : filters.mode === 'Late In Early Out'
+                    ? r.lateBy && r.earlyOut
+                    : true
+            : true;
         return okType && okDept && okDesg && okDateFrom && okDateTo && okQuery && okMode;
     });
 

@@ -97,8 +97,6 @@ function EmployeeLoanPageContent({
                 </div>
 
                 <CollapsibleSection
-                    title='Employee Loan Records'
-                    description='View, search, and manage all employee loans'
                     defaultOpen={true}
                     variant='default'
                     size='lg'

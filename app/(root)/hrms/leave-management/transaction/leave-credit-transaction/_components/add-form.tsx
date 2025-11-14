@@ -1,13 +1,24 @@
 'use client';
 
+import { useEffect } from 'react';
+import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
+import { Save, X } from 'lucide-react';
+
 import { Button } from '@/components/ui/button';
-import { Checkbox } from '@/components/ui/checkbox';
+import { DatePickerWithYear } from '@/components/ui/date-picker-year';
+import { FormError, Label } from '@/components/ui/extension/field';
 import { InputText } from '@/components/ui/extension/input-text';
-import { Label } from '@/components/ui/label';
+import { Input } from '@/components/ui/input';
+import { MultiSelect } from '@/components/ui/multi-select';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useLeaveCreditTransaction, useSaveLeaveCreditTransaction } from '@/hooks/hrms/leave-management/useTransactions';
-import { Save } from 'lucide-react';
-import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
+import { cn } from '@/lib/utils';
+import { format } from 'date-fns';
+import { CalendarIcon } from 'lucide-react';
+import { useState } from 'react';
+
 import type { LeaveCreditTransaction } from './columns';
 
 interface AddLeaveCreditTransactionFormProps {
@@ -15,15 +26,29 @@ interface AddLeaveCreditTransactionFormProps {
     className?: string;
 }
 
-const typeOptions = ['VKS', 'Permanent', 'ELearning', 'Robotic', 'Internship', 'Management Admin'];
-const departmentOptions = ['Hardware and Network', 'Sales', 'Human Resource', 'Admin', 'LEGAL', 'IT Team'];
+const typeOptions = [
+    { label: 'VKS', value: 'VKS' },
+    { label: 'Permanent', value: 'Permanent' },
+    { label: 'ELearning', value: 'ELearning' },
+    { label: 'Robotic', value: 'Robotic' },
+    { label: 'Internship', value: 'Internship' },
+    { label: 'Management Admin', value: 'Management Admin' }
+];
+const departmentOptions = [
+    { label: 'Hardware and Network', value: 'Hardware and Network' },
+    { label: 'Sales', value: 'Sales' },
+    { label: 'Human Resource', value: 'Human Resource' },
+    { label: 'Admin', value: 'Admin' },
+    { label: 'LEGAL', value: 'LEGAL' },
+    { label: 'IT Team', value: 'IT Team' }
+];
 const designationOptions = [
-    'Computer Faculty',
-    'E-learning coordinator',
-    'Accounts and Finance Executive',
-    'Client acquisition manager',
-    'Sr HR Executive',
-    'Manager HR'
+    { label: 'Computer Faculty', value: 'Computer Faculty' },
+    { label: 'E-learning coordinator', value: 'E-learning coordinator' },
+    { label: 'Accounts and Finance Executive', value: 'Accounts and Finance Executive' },
+    { label: 'Client acquisition manager', value: 'Client acquisition manager' },
+    { label: 'Sr HR Executive', value: 'Sr HR Executive' },
+    { label: 'Manager HR', value: 'Manager HR' }
 ];
 const employeeOptions = ['Steffi Halian', 'Shruthi NA', 'Bindhushree N', 'Chaithra NS', 'Balu Prabhakar'];
 const leaveNames = ['CL', 'SL', 'PL', 'LWP', 'OD'];
@@ -31,6 +56,8 @@ const leaveNames = ['CL', 'SL', 'PL', 'LWP', 'OD'];
 export default function AddLeaveCreditTransactionForm({ onSuccess, className = '' }: AddLeaveCreditTransactionFormProps) {
     const { refetchAll } = useLeaveCreditTransaction();
     const { mutate: saveTransaction, isPending } = useSaveLeaveCreditTransaction();
+    const [fromDateOpen, setFromDateOpen] = useState(false);
+    const [toDateOpen, setToDateOpen] = useState(false);
 
     const {
         register,
@@ -38,6 +65,7 @@ export default function AddLeaveCreditTransactionForm({ onSuccess, className = '
         control,
         watch,
         setValue,
+        trigger,
         reset,
         formState: { errors, isSubmitting }
     } = useForm<LeaveCreditTransaction>({
@@ -49,12 +77,62 @@ export default function AddLeaveCreditTransactionForm({ onSuccess, className = '
             leaveYear: '2025',
             fromDate: '',
             toDate: '',
+            totalDays: 0,
             employee: '',
-            lossOfPay: false,
+            lossOfPayType: 'none',
+            lossOfPayAmount: 0,
             leaveName: 'CL',
             availed: 0
         }
     });
+
+    const fromDate = watch('fromDate');
+    const toDate = watch('toDate');
+    const totalDays = watch('totalDays');
+    const lossOfPayType = watch('lossOfPayType');
+
+    // Calculate total days from dates
+    useEffect(() => {
+        if (fromDate && toDate) {
+            const from = new Date(fromDate);
+            const to = new Date(toDate);
+            if (to >= from) {
+                const diffTime = Math.abs(to.getTime() - from.getTime());
+                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1; // +1 to include both start and end dates
+                setValue('totalDays', diffDays);
+            } else {
+                setValue('totalDays', 0);
+            }
+        } else {
+            setValue('totalDays', 0);
+        }
+    }, [fromDate, toDate, setValue]);
+
+    // Calculate loss of pay amount based on type and total days
+    useEffect(() => {
+        if (lossOfPayType && lossOfPayType !== 'none' && totalDays && totalDays > 0) {
+            let multiplier = 0;
+            switch (lossOfPayType) {
+                case 'full':
+                    multiplier = 1.0;
+                    break;
+                case 'half':
+                    multiplier = 0.5;
+                    break;
+                case 'oneFourth':
+                    multiplier = 0.25;
+                    break;
+                case 'threeFourth':
+                    multiplier = 0.75;
+                    break;
+                default:
+                    multiplier = 0;
+            }
+            setValue('lossOfPayAmount', Number.parseFloat(((totalDays || 0) * multiplier).toFixed(2)));
+        } else {
+            setValue('lossOfPayAmount', 0);
+        }
+    }, [lossOfPayType, totalDays, setValue]);
 
     const onSubmit: SubmitHandler<LeaveCreditTransaction> = async (data) => {
         saveTransaction(data, {
@@ -66,16 +144,6 @@ export default function AddLeaveCreditTransactionForm({ onSuccess, className = '
         });
     };
 
-    const toggleMulti = (field: 'type' | 'department' | 'designation', value: string, checked: boolean) => {
-        const current = watch(field);
-        if (checked) setValue(field, [...current, value]);
-        else
-            setValue(
-                field,
-                current.filter((v: string) => v !== value)
-            );
-    };
-
     const handleReset = () => {
         reset();
     };
@@ -83,176 +151,281 @@ export default function AddLeaveCreditTransactionForm({ onSuccess, className = '
     return (
         <div className={`${className}`}>
             <form onSubmit={handleSubmit(onSubmit)} className='space-y-4'>
-                <div className='grid grid-cols-1 gap-4 lg:grid-cols-4'>
-                    <div className='space-y-2'>
-                        <label htmlFor='type-checkboxes' className='font-medium text-sm'>
-                            Type
-                        </label>
-                        <div id='type-checkboxes' className='max-h-44 overflow-y-auto rounded-md border p-2'>
-                            {typeOptions.map((t) => (
-                                <div key={t} className='flex items-center gap-2 text-sm'>
-                                    <Checkbox
-                                        id={`type-${t}`}
-                                        checked={watch('type').includes(t)}
-                                        onCheckedChange={(c) => toggleMulti('type', t, c as boolean)}
-                                    />
-                                    <Label htmlFor={`type-${t}`}>{t}</Label>
-                                </div>
-                            ))}
-                        </div>
-                    </div>
-
-                    <div className='space-y-2'>
-                        <label htmlFor='department-checkboxes' className='font-medium text-sm'>
-                            Department
-                        </label>
-                        <div id='department-checkboxes' className='max-h-44 overflow-y-auto rounded-md border p-2'>
-                            {departmentOptions.map((t) => (
-                                <div key={t} className='flex items-center gap-2 text-sm'>
-                                    <Checkbox
-                                        id={`dept-${t}`}
-                                        checked={watch('department').includes(t)}
-                                        onCheckedChange={(c) => toggleMulti('department', t, c as boolean)}
-                                    />
-                                    <Label htmlFor={`dept-${t}`}>{t}</Label>
-                                </div>
-                            ))}
-                        </div>
-                    </div>
-
-                    <div className='space-y-2'>
-                        <label htmlFor='designation-checkboxes' className='font-medium text-sm'>
-                            Designation
-                        </label>
-                        <div id='designation-checkboxes' className='max-h-44 overflow-y-auto rounded-md border p-2'>
-                            {designationOptions.map((t) => (
-                                <div key={t} className='flex items-center gap-2 text-sm'>
-                                    <Checkbox
-                                        id={`desig-${t}`}
-                                        checked={watch('designation').includes(t)}
-                                        onCheckedChange={(c) => toggleMulti('designation', t, c as boolean)}
-                                    />
-                                    <Label htmlFor={`desig-${t}`}>{t}</Label>
-                                </div>
-                            ))}
-                        </div>
-                    </div>
-
-                    <div className='space-y-4'>
+                {/* Type, Department, Designation - First Row */}
+                <div className='grid grid-cols-1 gap-4 md:grid-cols-3'>
+                    <div>
+                        <Label htmlFor='type-multiselect' className='mb-2 block'>
+                            Type :
+                        </Label>
                         <Controller
-                            name='leaveYear'
+                            name='type'
                             control={control}
                             render={({ field }) => (
-                                <div>
-                                    <label htmlFor='leave-year-select' className='font-medium text-sm'>
-                                        Leave Year
-                                    </label>
-                                    <Select value={field.value} onValueChange={field.onChange}>
-                                        <SelectTrigger id='leave-year-select'>
-                                            <SelectValue placeholder='Year' />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            {['2019', '2020', '2021', '2022', '2023', '2024', '2025'].map((y) => (
-                                                <SelectItem key={y} value={y}>
-                                                    {y}
-                                                </SelectItem>
-                                            ))}
-                                        </SelectContent>
-                                    </Select>
-                                </div>
+                                <MultiSelect
+                                    id='type-multiselect'
+                                    options={typeOptions}
+                                    onValueChange={field.onChange}
+                                    defaultValue={field.value || []}
+                                    placeholder='Select Type'
+                                />
                             )}
                         />
-                        <div className='grid grid-cols-1 gap-2 md:grid-cols-2'>
-                            <InputText
-                                label='From Date'
-                                id='from-date-input'
-                                type='date'
-                                {...register('fromDate')}
-                                error={errors.fromDate?.message}
-                            />
-                            <InputText
-                                label='To Date'
-                                id='to-date-input'
-                                type='date'
-                                {...register('toDate')}
-                                error={errors.toDate?.message}
-                            />
-                        </div>
+                    </div>
+
+                    <div>
+                        <Label htmlFor='department-multiselect' className='mb-2 block'>
+                            Department :
+                        </Label>
                         <Controller
-                            name='employee'
+                            name='department'
                             control={control}
                             render={({ field }) => (
-                                <div>
-                                    <label htmlFor='employee-select' className='font-medium text-sm'>
-                                        Employee
-                                    </label>
-                                    <Select value={field.value} onValueChange={field.onChange}>
-                                        <SelectTrigger id='employee-select'>
-                                            <SelectValue placeholder='Select employee' />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            {employeeOptions.map((e) => (
-                                                <SelectItem key={e} value={e}>
-                                                    {e}
-                                                </SelectItem>
-                                            ))}
-                                        </SelectContent>
-                                    </Select>
-                                </div>
+                                <MultiSelect
+                                    id='department-multiselect'
+                                    options={departmentOptions}
+                                    onValueChange={field.onChange}
+                                    defaultValue={field.value || []}
+                                    placeholder='Select Department'
+                                />
                             )}
                         />
-                        <div className='flex items-center gap-2'>
-                            <Controller
-                                name='lossOfPay'
-                                control={control}
-                                render={({ field }) => <Checkbox checked={field.value} onCheckedChange={field.onChange} />}
-                            />
-                            <span className='text-sm'>Loss of Pay</span>
-                        </div>
+                    </div>
+
+                    <div>
+                        <Label htmlFor='designation-multiselect' className='mb-2 block'>
+                            Designation :
+                        </Label>
+                        <Controller
+                            name='designation'
+                            control={control}
+                            render={({ field }) => (
+                                <MultiSelect
+                                    id='designation-multiselect'
+                                    options={designationOptions}
+                                    onValueChange={field.onChange}
+                                    defaultValue={field.value || []}
+                                    placeholder='Select Designation'
+                                />
+                            )}
+                        />
                     </div>
                 </div>
 
-                <div className='grid grid-cols-1 gap-4 md:grid-cols-3'>
+                {/* Leave Year, Employee, From Date, To Date, Total Days - Second Row */}
+                <div className='grid grid-cols-1 gap-4 md:grid-cols-5'>
                     <Controller
-                        name='leaveName'
+                        name='leaveYear'
                         control={control}
+                        rules={{ required: 'Leave Year is required' }}
                         render={({ field }) => (
                             <div>
-                                <label htmlFor='leave-name-select' className='font-medium text-sm'>
-                                    Leave Name
-                                </label>
+                                <Label htmlFor='leave-year-select'>
+                                    Leave Year :<span className='text-red-500'>*</span>
+                                </Label>
                                 <Select value={field.value} onValueChange={field.onChange}>
-                                    <SelectTrigger id='leave-name-select'>
-                                        <SelectValue placeholder='Leave' />
+                                    <SelectTrigger id='leave-year-select' className={errors.leaveYear ? 'border-red-500' : ''}>
+                                        <SelectValue placeholder='Year' />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        {leaveNames.map((n) => (
-                                            <SelectItem key={n} value={n}>
-                                                {n}
+                                        {['2019', '2020', '2021', '2022', '2023', '2024', '2025'].map((y) => (
+                                            <SelectItem key={y} value={y}>
+                                                {y}
                                             </SelectItem>
                                         ))}
                                     </SelectContent>
                                 </Select>
+                                {errors.leaveYear && <FormError>{errors.leaveYear.message}</FormError>}
                             </div>
                         )}
                     />
-                    <InputText
-                        label='Availed'
-                        id='availed-input'
-                        type='number'
-                        step='0.5'
-                        {...register('availed', { valueAsNumber: true })}
-                        error={errors.availed?.message}
+
+                    <Controller
+                        name='employee'
+                        control={control}
+                        rules={{ required: 'Employee is required' }}
+                        render={({ field }) => (
+                            <div>
+                                <Label htmlFor='employee-select'>
+                                    Employee :<span className='text-red-500'>*</span>
+                                </Label>
+                                <Select value={field.value} onValueChange={field.onChange}>
+                                    <SelectTrigger id='employee-select' className={errors.employee ? 'border-red-500' : ''}>
+                                        <SelectValue placeholder='Select or search employee in the list...' />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {employeeOptions.map((e) => (
+                                            <SelectItem key={e} value={e}>
+                                                {e}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                                {errors.employee && <FormError>{errors.employee.message}</FormError>}
+                            </div>
+                        )}
                     />
+
+                    <Controller
+                        name='fromDate'
+                        control={control}
+                        rules={{ required: 'From Date is required' }}
+                        render={({ field }) => (
+                            <div>
+                                <Label htmlFor='from-date-input'>
+                                    From Date :<span className='text-red-500'>*</span>
+                                </Label>
+                                <Popover open={fromDateOpen} onOpenChange={setFromDateOpen}>
+                                    <PopoverTrigger asChild>
+                                        <Button
+                                            variant='outline'
+                                            id='from-date-input'
+                                            className={cn(
+                                                'w-full justify-start text-left font-normal',
+                                                !field.value && 'text-muted-foreground',
+                                                errors.fromDate && 'border-red-500'
+                                            )}>
+                                            <CalendarIcon className='mr-2 h-4 w-4' />
+                                            {field.value ? format(new Date(field.value), 'PPP') : <span>Pick from date</span>}
+                                        </Button>
+                                    </PopoverTrigger>
+                                    <PopoverContent className='w-auto p-0' align='start'>
+                                        <DatePickerWithYear
+                                            mode='single'
+                                            selected={field.value ? new Date(field.value) : undefined}
+                                            onSelect={(date) => {
+                                                if (date) {
+                                                    const dateStr = format(date, 'yyyy-MM-dd');
+                                                    field.onChange(dateStr);
+                                                    setValue('fromDate', dateStr, { shouldValidate: true });
+                                                    trigger('fromDate');
+                                                    setFromDateOpen(false);
+                                                }
+                                            }}
+                                            initialFocus
+                                        />
+                                    </PopoverContent>
+                                </Popover>
+                                {errors.fromDate && <FormError>{errors.fromDate.message}</FormError>}
+                            </div>
+                        )}
+                    />
+
+                    <Controller
+                        name='toDate'
+                        control={control}
+                        rules={{ required: 'To Date is required' }}
+                        render={({ field }) => (
+                            <div>
+                                <Label htmlFor='to-date-input'>
+                                    To Date :<span className='text-red-500'>*</span>
+                                </Label>
+                                <Popover open={toDateOpen} onOpenChange={setToDateOpen}>
+                                    <PopoverTrigger asChild>
+                                        <Button
+                                            variant='outline'
+                                            id='to-date-input'
+                                            className={cn(
+                                                'w-full justify-start text-left font-normal',
+                                                !field.value && 'text-muted-foreground',
+                                                errors.toDate && 'border-red-500'
+                                            )}>
+                                            <CalendarIcon className='mr-2 h-4 w-4' />
+                                            {field.value ? format(new Date(field.value), 'PPP') : <span>Pick to date</span>}
+                                        </Button>
+                                    </PopoverTrigger>
+                                    <PopoverContent className='w-auto p-0' align='start'>
+                                        <DatePickerWithYear
+                                            mode='single'
+                                            selected={field.value ? new Date(field.value) : undefined}
+                                            onSelect={(date) => {
+                                                if (date) {
+                                                    const dateStr = format(date, 'yyyy-MM-dd');
+                                                    field.onChange(dateStr);
+                                                    setValue('toDate', dateStr, { shouldValidate: true });
+                                                    trigger('toDate');
+                                                    setToDateOpen(false);
+                                                }
+                                            }}
+                                            fromDate={fromDate ? new Date(fromDate) : undefined}
+                                            initialFocus
+                                        />
+                                    </PopoverContent>
+                                </Popover>
+                                {errors.toDate && <FormError>{errors.toDate.message}</FormError>}
+                            </div>
+                        )}
+                    />
+
+                    <div>
+                        <Label htmlFor='total-days-input'>
+                            Total Days :<span className='text-red-500'>*</span>
+                        </Label>
+                        <Input
+                            id='total-days-input'
+                            type='number'
+                            readOnly
+                            value={totalDays || 0}
+                            className='bg-muted'
+                        />
+                    </div>
                 </div>
 
-                <div className='flex justify-end gap-2'>
-                    <Button type='button' variant='outline' onClick={handleReset} disabled={isPending || isSubmitting}>
-                        Reset
-                    </Button>
-                    <Button type='submit' disabled={isPending || isSubmitting}>
+                {/* Loss of Pay Options and Calculated Field */}
+                <div className='space-y-3'>
+                    <Label>Loss Of Pay :</Label>
+                    <Controller
+                        name='lossOfPayType'
+                        control={control}
+                        render={({ field }) => (
+                            <RadioGroup value={field.value || 'none'} onValueChange={field.onChange} className='space-y-2'>
+                                <div className='flex items-center space-x-2'>
+                                    <RadioGroupItem value='full' id='loss-of-pay-full' />
+                                    <Label htmlFor='loss-of-pay-full' className='font-normal cursor-pointer'>
+                                        Loss Of Pay
+                                    </Label>
+                                </div>
+                                <div className='flex items-center space-x-2'>
+                                    <RadioGroupItem value='half' id='loss-of-pay-half' />
+                                    <Label htmlFor='loss-of-pay-half' className='font-normal cursor-pointer'>
+                                        Loss Of Pay Half Day
+                                    </Label>
+                                </div>
+                                <div className='flex items-center space-x-2'>
+                                    <RadioGroupItem value='oneFourth' id='loss-of-pay-one-fourth' />
+                                    <Label htmlFor='loss-of-pay-one-fourth' className='font-normal cursor-pointer'>
+                                        Loss Of Pay One Fourth Day
+                                    </Label>
+                                </div>
+                                <div className='flex items-center space-x-2'>
+                                    <RadioGroupItem value='threeFourth' id='loss-of-pay-three-fourth' />
+                                    <Label htmlFor='loss-of-pay-three-fourth' className='font-normal cursor-pointer'>
+                                        Loss Of Pay Three Fourth Day
+                                    </Label>
+                                </div>
+                            </RadioGroup>
+                        )}
+                    />
+                    <div>
+                        <Input
+                            type='number'
+                            step='0.01'
+                            readOnly
+                            value={watch('lossOfPayAmount') || 0}
+                            className='bg-muted'
+                            placeholder='Auto-calculated'
+                        />
+                    </div>
+                </div>
+
+                {/* Action Buttons */}
+                <div className='flex justify-center gap-4 pt-4'>
+                    <Button type='submit' disabled={isPending || isSubmitting} variant='default'>
                         <Save className='mr-2 h-4 w-4' />
-                        {isPending || isSubmitting ? 'Saving...' : 'Save'}
+                        {isPending || isSubmitting ? 'Saving...' : 'SAVE'}
+                    </Button>
+                    <Button type='button' variant='outline' onClick={handleReset} disabled={isPending || isSubmitting}>
+                        <X className='mr-2 h-4 w-4' />
+                        CANCEL
                     </Button>
                 </div>
             </form>

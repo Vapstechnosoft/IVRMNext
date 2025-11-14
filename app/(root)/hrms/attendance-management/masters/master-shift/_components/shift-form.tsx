@@ -126,7 +126,7 @@ export function ShiftForm({ editingShift, onSubmit, onCancel }: ShiftFormProps) 
                     name='startTime'
                     control={control}
                     render={({ field }) => (
-                        <TimePicker12Hour id='startTime' value={field.value} onChange={field.onChange} name='startTime' required />
+                        <TimePicker12Hour value={field.value} onChange={field.onChange} name='startTime' required />
                     )}
                 />
                 {errors.startTime && <FormError>{errors.startTime.message}</FormError>}
@@ -140,7 +140,7 @@ export function ShiftForm({ editingShift, onSubmit, onCancel }: ShiftFormProps) 
                     name='endTime'
                     control={control}
                     render={({ field }) => (
-                        <TimePicker12Hour id='endTime' value={field.value} onChange={field.onChange} name='endTime' required />
+                        <TimePicker12Hour value={field.value} onChange={field.onChange} name='endTime' required />
                     )}
                 />
                 {errors.endTime && <FormError>{errors.endTime.message}</FormError>}

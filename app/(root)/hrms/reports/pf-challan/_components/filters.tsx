@@ -30,8 +30,6 @@ export function PFChallanFilters({ filters, onFilterChange, onGenerate, onCancel
 
     return (
         <CollapsibleSection
-            title='PF CHALLAN'
-            description='Generate Provident Fund challan for employee and employer contributions'
             defaultOpen={true}
             variant='default'
             size='lg'

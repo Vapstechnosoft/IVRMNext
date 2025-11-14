@@ -235,8 +235,6 @@ function SalaryAdvancePageContent({
                 </div>
 
                 <CollapsibleSection
-                    title='Salary Advance Records'
-                    description={`Found ${filteredAdvances.length} salary advance records`}
                     defaultOpen={true}
                     variant='default'
                     size='lg'

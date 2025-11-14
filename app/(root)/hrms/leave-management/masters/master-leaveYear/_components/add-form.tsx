@@ -4,8 +4,10 @@ import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { InputText } from '@/components/ui/extension/input-text';
 import { useMasterLeaveYear, useSaveMasterLeaveYear } from '@/hooks/hrms/leave-management/useMasters';
+import { LEAVE_YEAR_VALIDATION } from '@/lib/validation/hrms-master-validation';
 import { Save } from 'lucide-react';
-import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
+import { useEffect } from 'react';
+import { Controller, type SubmitHandler, useForm, useWatch } from 'react-hook-form';
 import type { LeaveYear } from './columns';
 
 interface AddMasterLeaveYearFormProps {
@@ -21,9 +23,10 @@ export default function AddMasterLeaveYearForm({ onSuccess, className = '' }: Ad
         register,
         handleSubmit,
         control,
-        watch: _watch,
-        setValue: _setValue,
+        watch,
+        setValue,
         reset,
+        trigger,
         formState: { errors, isSubmitting }
     } = useForm<LeaveYear>({
         mode: 'onChange',
@@ -34,6 +37,23 @@ export default function AddMasterLeaveYearForm({ onSuccess, className = '' }: Ad
             isActive: true
         }
     });
+
+    // Watch dates for cross-validation
+    const fromDate = useWatch({ control, name: 'fromDate' });
+    const toDate = useWatch({ control, name: 'toDate' });
+
+    // Trigger validation when dates change
+    useEffect(() => {
+        if (fromDate && toDate) {
+            trigger('toDate');
+        }
+    }, [fromDate, trigger]);
+
+    useEffect(() => {
+        if (toDate && fromDate) {
+            trigger('fromDate');
+        }
+    }, [toDate, trigger]);
 
     const onSubmit: SubmitHandler<LeaveYear> = async (data) => {
         saveMasterLeaveYear(data, {
@@ -58,7 +78,7 @@ export default function AddMasterLeaveYearForm({ onSuccess, className = '' }: Ad
                             label='Leave Year'
                             required
                             id='leaveYear'
-                            {...register('leaveYear', { required: 'Leave year is required' })}
+                            {...register('leaveYear', LEAVE_YEAR_VALIDATION.leaveYear)}
                             error={errors.leaveYear?.message}
                             className='transition-colors focus:ring-2 focus:ring-primary/20'
                         />
@@ -68,7 +88,18 @@ export default function AddMasterLeaveYearForm({ onSuccess, className = '' }: Ad
                             required
                             id='fromDate'
                             type='date'
-                            {...register('fromDate', { required: 'From date is required' })}
+                            {...register('fromDate', {
+                                ...LEAVE_YEAR_VALIDATION.fromDate,
+                                validate: (value) => {
+                                    if (!value) return LEAVE_YEAR_VALIDATION.fromDate.required;
+                                    const fromDateValue = new Date(value);
+                                    const toDateValue = toDate ? new Date(toDate) : null;
+                                    if (toDateValue && fromDateValue >= toDateValue) {
+                                        return 'From Date must be before To Date';
+                                    }
+                                    return true;
+                                }
+                            })}
                             error={errors.fromDate?.message}
                             className='transition-colors focus:ring-2 focus:ring-primary/20'
                         />
@@ -78,7 +109,18 @@ export default function AddMasterLeaveYearForm({ onSuccess, className = '' }: Ad
                             required
                             id='toDate'
                             type='date'
-                            {...register('toDate', { required: 'To date is required' })}
+                            {...register('toDate', {
+                                ...LEAVE_YEAR_VALIDATION.toDate,
+                                validate: (value) => {
+                                    if (!value) return LEAVE_YEAR_VALIDATION.toDate.required;
+                                    const toDateValue = new Date(value);
+                                    const fromDateValue = fromDate ? new Date(fromDate) : null;
+                                    if (fromDateValue && toDateValue <= fromDateValue) {
+                                        return 'To Date must be on or after From Date';
+                                    }
+                                    return true;
+                                }
+                            })}
                             error={errors.toDate?.message}
                             className='transition-colors focus:ring-2 focus:ring-primary/20'
                         />

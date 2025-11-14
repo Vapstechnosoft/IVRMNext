@@ -42,8 +42,6 @@ export function RetirementReportFilters({
 }: RetirementReportFiltersProps) {
     return (
         <CollapsibleSection
-            title='EMPLOYEE RETIREMENT REPORT'
-            description='Configure filters to analyze employee retirement data and projections'
             defaultOpen={true}
             variant='default'
             size='lg'

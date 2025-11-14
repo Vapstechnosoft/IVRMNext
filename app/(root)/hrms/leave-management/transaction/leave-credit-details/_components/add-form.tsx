@@ -1,30 +1,58 @@
 'use client';
 
+import { useEffect } from 'react';
+import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
+import { Save } from 'lucide-react';
+
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { FormError } from '@/components/ui/extension/field';
 import { InputText } from '@/components/ui/extension/input-text';
-import { Label } from '@/components/ui/label';
+import { Input } from '@/components/ui/input';
+import { MultiSelect } from '@/components/ui/multi-select';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useLeaveCreditDetails, useSaveLeaveCreditDetails } from '@/hooks/hrms/leave-management/useTransactions';
-import { Save } from 'lucide-react';
-import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
+
 import { type LeaveCreditDetail, MONTHS } from './columns';
+
+// Mapping of leave names to leave codes
+const leaveNameToCodeMap: Record<string, string> = {
+    'Casual Leave': 'CL',
+    'Sick Leave': 'SL',
+    'Privilege Leave': 'PL',
+    'Comp Off': 'CO',
+    'Optional Leave': 'OL',
+    'Emergency Leave': 'EL'
+};
 
 interface AddLeaveCreditDetailsFormProps {
     onSuccess?: () => void;
     className?: string;
 }
 
-const typeOptions = ['VKS', 'Permanent', 'ELearning', 'Robotic', 'Internship', 'Management Admin'];
-const departmentOptions = ['Hardware and Network', 'Sales', 'Human Resource', 'Admin', 'LEGAL', 'IT Team'];
+const typeOptions = [
+    { label: 'VKS', value: 'VKS' },
+    { label: 'Permanent', value: 'Permanent' },
+    { label: 'ELearning', value: 'ELearning' },
+    { label: 'Robotic', value: 'Robotic' },
+    { label: 'Internship', value: 'Internship' },
+    { label: 'Management Admin', value: 'Management Admin' }
+];
+const departmentOptions = [
+    { label: 'Hardware and Network', value: 'Hardware and Network' },
+    { label: 'Sales', value: 'Sales' },
+    { label: 'Human Resource', value: 'Human Resource' },
+    { label: 'Admin', value: 'Admin' },
+    { label: 'LEGAL', value: 'LEGAL' },
+    { label: 'IT Team', value: 'IT Team' }
+];
 const designationOptions = [
-    'Computer Faculty',
-    'E-learning coordinator',
-    'Accounts and Finance Executive',
-    'Client acquisition manager',
-    'Sr HR Executive',
-    'Manager HR'
+    { label: 'Computer Faculty', value: 'Computer Faculty' },
+    { label: 'E-learning coordinator', value: 'E-learning coordinator' },
+    { label: 'Accounts and Finance Executive', value: 'Accounts and Finance Executive' },
+    { label: 'Client acquisition manager', value: 'Client acquisition manager' },
+    { label: 'Sr HR Executive', value: 'Sr HR Executive' },
+    { label: 'Manager HR', value: 'Manager HR' }
 ];
 
 export default function AddLeaveCreditDetailsForm({ onSuccess, className = '' }: AddLeaveCreditDetailsFormProps) {
@@ -47,6 +75,10 @@ export default function AddLeaveCreditDetailsForm({ onSuccess, className = '' }:
             designation: [],
             leaveName: '',
             leaveCode: '',
+            noOfDays: 0,
+            leaveCarryForward: false,
+            leaveEncashment: false,
+            leaveCreditMonthWise: false,
             months: MONTHS.reduce(
                 (acc, m) => {
                     acc[m] = 0;
@@ -57,6 +89,16 @@ export default function AddLeaveCreditDetailsForm({ onSuccess, className = '' }:
         }
     });
 
+    // Auto-fill leave code when leave name changes
+    const leaveName = watch('leaveName');
+    useEffect(() => {
+        if (leaveName && leaveNameToCodeMap[leaveName]) {
+            setValue('leaveCode', leaveNameToCodeMap[leaveName]);
+        } else if (!leaveName) {
+            setValue('leaveCode', '');
+        }
+    }, [leaveName, setValue]);
+
     const onSubmit: SubmitHandler<LeaveCreditDetail> = async (data) => {
         saveDetails(data, {
             onSuccess: () => {
@@ -65,16 +107,6 @@ export default function AddLeaveCreditDetailsForm({ onSuccess, className = '' }:
                 onSuccess?.();
             }
         });
-    };
-
-    const toggleMulti = (field: 'type' | 'department' | 'designation', value: string, checked: boolean) => {
-        const current = watch(field);
-        if (checked) setValue(field, [...current, value]);
-        else
-            setValue(
-                field,
-                current.filter((v: string) => v !== value)
-            );
     };
 
     const handleReset = () => {
@@ -87,55 +119,58 @@ export default function AddLeaveCreditDetailsForm({ onSuccess, className = '' }:
                 <div className='grid grid-cols-1 gap-6 xl:grid-cols-3'>
                     <div className='space-y-4'>
                         <div>
-                            <label htmlFor='type-checkboxes' className='font-medium text-sm'>
+                            <label htmlFor='type-multiselect' className='font-medium text-sm mb-2 block'>
                                 Type
                             </label>
-                            <div id='type-checkboxes' className='max-h-40 overflow-y-auto rounded-md border p-2'>
-                                {typeOptions.map((t) => (
-                                    <div key={t} className='flex items-center gap-2 text-sm'>
-                                        <Checkbox
-                                            id={`type-${t}`}
-                                            checked={watch('type').includes(t)}
-                                            onCheckedChange={(c) => toggleMulti('type', t, c as boolean)}
-                                        />
-                                        <Label htmlFor={`type-${t}`}>{t}</Label>
-                                    </div>
-                                ))}
-                            </div>
+                            <Controller
+                                name='type'
+                                control={control}
+                                render={({ field }) => (
+                                    <MultiSelect
+                                        id='type-multiselect'
+                                        options={typeOptions}
+                                        onValueChange={field.onChange}
+                                        defaultValue={field.value || []}
+                                        placeholder='Select Type'
+                                    />
+                                )}
+                            />
                         </div>
                         <div>
-                            <label htmlFor='department-checkboxes' className='font-medium text-sm'>
+                            <label htmlFor='department-multiselect' className='font-medium text-sm mb-2 block'>
                                 Department
                             </label>
-                            <div id='department-checkboxes' className='max-h-40 overflow-y-auto rounded-md border p-2'>
-                                {departmentOptions.map((t) => (
-                                    <div key={t} className='flex items-center gap-2 text-sm'>
-                                        <Checkbox
-                                            id={`dept-${t}`}
-                                            checked={watch('department').includes(t)}
-                                            onCheckedChange={(c) => toggleMulti('department', t, c as boolean)}
-                                        />
-                                        <Label htmlFor={`dept-${t}`}>{t}</Label>
-                                    </div>
-                                ))}
-                            </div>
+                            <Controller
+                                name='department'
+                                control={control}
+                                render={({ field }) => (
+                                    <MultiSelect
+                                        id='department-multiselect'
+                                        options={departmentOptions}
+                                        onValueChange={field.onChange}
+                                        defaultValue={field.value || []}
+                                        placeholder='Select Department'
+                                    />
+                                )}
+                            />
                         </div>
                         <div>
-                            <label htmlFor='designation-checkboxes' className='font-medium text-sm'>
+                            <label htmlFor='designation-multiselect' className='font-medium text-sm mb-2 block'>
                                 Designation
                             </label>
-                            <div id='designation-checkboxes' className='max-h-40 overflow-y-auto rounded-md border p-2'>
-                                {designationOptions.map((t) => (
-                                    <div key={t} className='flex items-center gap-2 text-sm'>
-                                        <Checkbox
-                                            id={`desig-${t}`}
-                                            checked={watch('designation').includes(t)}
-                                            onCheckedChange={(c) => toggleMulti('designation', t, c as boolean)}
-                                        />
-                                        <Label htmlFor={`desig-${t}`}>{t}</Label>
-                                    </div>
-                                ))}
-                            </div>
+                            <Controller
+                                name='designation'
+                                control={control}
+                                render={({ field }) => (
+                                    <MultiSelect
+                                        id='designation-multiselect'
+                                        options={designationOptions}
+                                        onValueChange={field.onChange}
+                                        defaultValue={field.value || []}
+                                        placeholder='Select Designation'
+                                    />
+                                )}
+                            />
                         </div>
                     </div>
 
@@ -151,13 +186,15 @@ export default function AddLeaveCreditDetailsForm({ onSuccess, className = '' }:
                                     </label>
                                     <Select value={field.value} onValueChange={field.onChange}>
                                         <SelectTrigger id='leave-name-select' className={errors.leaveName ? 'border-red-500' : ''}>
-                                            <SelectValue placeholder='Select Leave' />
+                                            <SelectValue placeholder='--Select--' />
                                         </SelectTrigger>
                                         <SelectContent>
                                             <SelectItem value='Casual Leave'>Casual Leave</SelectItem>
                                             <SelectItem value='Sick Leave'>Sick Leave</SelectItem>
                                             <SelectItem value='Privilege Leave'>Privilege Leave</SelectItem>
                                             <SelectItem value='Comp Off'>Comp Off</SelectItem>
+                                            <SelectItem value='Optional Leave'>Optional Leave</SelectItem>
+                                            <SelectItem value='Emergency Leave'>Emergency Leave</SelectItem>
                                         </SelectContent>
                                     </Select>
                                     {errors.leaveName && <FormError>{errors.leaveName.message}</FormError>}
@@ -169,34 +206,113 @@ export default function AddLeaveCreditDetailsForm({ onSuccess, className = '' }:
                             id='leave-code-input'
                             {...register('leaveCode')}
                             error={errors.leaveCode?.message}
-                            placeholder='Enter leave code'
+                            placeholder='Leave code'
+                            readOnly
                         />
-                    </div>
-
-                    <div className='space-y-2'>
-                        <div className='font-medium text-sm'>Monthly Credits</div>
-                        <div className='grid grid-cols-2 gap-3 md:grid-cols-3'>
-                            {MONTHS.map((m) => (
-                                <div key={m} className='flex items-center gap-2'>
-                                    <label htmlFor={`month-${m}`} className='w-24 text-sm'>
-                                        {m}
+                        <Controller
+                            name='noOfDays'
+                            control={control}
+                            rules={{ required: 'No of Days is required' }}
+                            render={({ field }) => (
+                                <div>
+                                    <label htmlFor='no-of-days-input' className='font-medium text-sm'>
+                                        No of Days <span className='text-red-500'>*</span>
                                     </label>
-                                    <InputText
-                                        id={`month-${m}`}
+                                    <Input
+                                        id='no-of-days-input'
                                         type='number'
                                         step='0.5'
-                                        value={watch('months')[m] ?? 0}
-                                        onChange={(e) =>
-                                            setValue('months', {
-                                                ...watch('months'),
-                                                [m]: Number.parseFloat(e.target.value || '0')
-                                            })
-                                        }
+                                        value={field.value ?? 0}
+                                        onChange={(e) => field.onChange(Number.parseFloat(e.target.value || '0'))}
+                                        className={errors.noOfDays ? 'border-red-500' : ''}
                                     />
+                                    {errors.noOfDays && <FormError>{errors.noOfDays.message}</FormError>}
                                 </div>
-                            ))}
+                            )}
+                        />
+                        <div className='space-y-3 rounded-md border p-4'>
+                            <div className='font-medium text-sm mb-2'>Options</div>
+                            <div className='space-y-2'>
+                                <div className='flex items-center space-x-2'>
+                                    <Controller
+                                        name='leaveCarryForward'
+                                        control={control}
+                                        render={({ field }) => (
+                                            <Checkbox
+                                                id='leave-carry-forward'
+                                                checked={field.value || false}
+                                                onCheckedChange={field.onChange}
+                                            />
+                                        )}
+                                    />
+                                    <label htmlFor='leave-carry-forward' className='text-sm font-normal leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70'>
+                                        Leave Carry Forward
+                                    </label>
+                                </div>
+                                <div className='flex items-center space-x-2'>
+                                    <Controller
+                                        name='leaveEncashment'
+                                        control={control}
+                                        render={({ field }) => (
+                                            <Checkbox
+                                                id='leave-encashment'
+                                                checked={field.value || false}
+                                                onCheckedChange={field.onChange}
+                                            />
+                                        )}
+                                    />
+                                    <label htmlFor='leave-encashment' className='text-sm font-normal leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70'>
+                                        Leave Encashment
+                                    </label>
+                                </div>
+                                <div className='flex items-center space-x-2'>
+                                    <Controller
+                                        name='leaveCreditMonthWise'
+                                        control={control}
+                                        render={({ field }) => (
+                                            <Checkbox
+                                                id='leave-credit-monthwise'
+                                                checked={field.value || false}
+                                                onCheckedChange={field.onChange}
+                                            />
+                                        )}
+                                    />
+                                    <label htmlFor='leave-credit-monthwise' className='text-sm font-normal leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70'>
+                                        Leave Credit MonthWise
+                                    </label>
+                                </div>
+                            </div>
                         </div>
                     </div>
+
+                    {/* Monthly Credits - Dynamically rendered when Leave Credit MonthWise is checked */}
+                    {watch('leaveCreditMonthWise') && (
+                        <div className='space-y-3'>
+                            <div className='font-medium text-sm mb-3'>Monthly Credits</div>
+                            <div className='grid grid-cols-3 gap-4 md:grid-cols-4'>
+                                {MONTHS.map((m) => (
+                                    <div key={m} className='flex flex-col gap-1.5'>
+                                        <label htmlFor={`month-${m}`} className='text-xs font-medium text-muted-foreground'>
+                                            {m}
+                                        </label>
+                                        <Input
+                                            id={`month-${m}`}
+                                            type='number'
+                                            step='0.5'
+                                            value={watch('months')[m] ?? 0}
+                                            onChange={(e) =>
+                                                setValue('months', {
+                                                    ...watch('months'),
+                                                    [m]: Number.parseFloat(e.target.value || '0')
+                                                })
+                                            }
+                                            className='w-full'
+                                        />
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    )}
                 </div>
 
                 <div className='flex justify-end gap-2'>

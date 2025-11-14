@@ -7,6 +7,8 @@ import { addOrUpdateMasterDriverShift, deleteMasterDriverShift, getMasterDriverS
 import { addOrUpdateMasterHoliday, deleteMasterHoliday, getMasterHoliday } from '@/server/hrms/attendance-management/masters/master-holiday';
 import { addOrUpdateMasterShift, deleteMasterShift, getMasterShift } from '@/server/hrms/attendance-management/masters/master-shift';
 import { addOrUpdateShiftSettingMaster, deleteShiftSettingMaster, getShiftSettingMaster } from '@/server/hrms/attendance-management/masters/shift-setting-master';
+import type { ApiSearchparams } from '@/types';
+import type { MasterHolidayGetDataResponseData } from '@/types/hrms/attendance-management/master-holiday';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 
@@ -69,19 +71,42 @@ export const useDeleteMasterShift = () => {
     });
 };
 
-export const useMasterHoliday = () => {
+export const useMasterHoliday = (searchParams?: ApiSearchparams) => {
     const queryClient = useQueryClient();
 
+    const queryResult = useQuery({
+        queryKey: [HRMS_QUERY_KEYS.MASTER_HOLIDAY, searchParams ?? {}],
+        queryFn: async () => {
+            console.log('🔄 [HOOK] useMasterHoliday queryFn called');
+            console.log('📤 [HOOK] Fetching with searchParams:', searchParams);
+            const result = await getMasterHoliday(searchParams);
+            console.log('📥 [HOOK] Query result received:', {
+                hasResult: !!result,
+                hasData: !!result?.data,
+                reportListLength: (result?.data as unknown as MasterHolidayGetDataResponseData)?.report_list?.length || 0,
+                total: result?.total,
+                success: result?.success
+            });
+            return result;
+        },
+        staleTime: 0
+    });
+
     return {
-        ...useQuery({
-            queryKey: [HRMS_QUERY_KEYS.MASTER_HOLIDAY],
-            queryFn: async () => getMasterHoliday(),
-            staleTime: 0
-        }),
+        ...queryResult,
         refetchAll: () => {
-            return queryClient.invalidateQueries({
+            console.log('🔄 [HOOK] refetchAll called');
+            console.log('🔑 [HOOK] Invalidating query key:', HRMS_QUERY_KEYS.MASTER_HOLIDAY);
+            const result = queryClient.invalidateQueries({
                 queryKey: [HRMS_QUERY_KEYS.MASTER_HOLIDAY]
             });
+            console.log('✅ [HOOK] Query invalidation promise returned');
+            result.then(() => {
+                console.log('✅ [HOOK] Query invalidation completed, queries should refetch');
+            }).catch((error) => {
+                console.error('❌ [HOOK] Query invalidation error:', error);
+            });
+            return result;
         }
     };
 };
@@ -90,18 +115,57 @@ export const useSaveMasterHoliday = () => {
     const queryClient = useQueryClient();
 
     return useMutation({
-        mutationFn: (data: Parameters<typeof addOrUpdateMasterHoliday>[0]) => addOrUpdateMasterHoliday(data),
+        mutationFn: ({
+            data,
+            dropdownData
+        }: {
+            data: Parameters<typeof addOrUpdateMasterHoliday>[0];
+            dropdownData?: Parameters<typeof addOrUpdateMasterHoliday>[1];
+        }) => {
+            console.log('🔄 [CLIENT] Mutation function called');
+            console.log('📤 [CLIENT] Mutation data:', {
+                hasData: !!data,
+                hasDropdownData: !!dropdownData,
+                dataKeys: data ? Object.keys(data) : []
+            });
+            return addOrUpdateMasterHoliday(data, dropdownData);
+        },
         onSuccess: (response) => {
-            if (response.success) {
+            console.log('✅ [CLIENT] Mutation onSuccess called');
+            console.log('📥 [CLIENT] Response received:', {
+                hasResponse: !!response,
+                hasSuccess: 'success' in response,
+                success: response?.success,
+                hasMessage: 'message' in response,
+                message: response?.message,
+                hasData: 'data' in response,
+                dataType: typeof response?.data,
+                fullResponse: response
+            });
+            
+            if (response?.success) {
+                console.log('✅ [CLIENT] Response indicates success');
+                console.log('📢 [CLIENT] Showing success toast:', response.message);
                 toast.success(response.message);
+                
+                console.log('🔄 [CLIENT] Invalidating queries with key:', HRMS_QUERY_KEYS.MASTER_HOLIDAY);
                 queryClient.invalidateQueries({
                     queryKey: [HRMS_QUERY_KEYS.MASTER_HOLIDAY]
                 });
+                console.log('✅ [CLIENT] Query invalidation completed');
             } else {
-                toast.error(response.message);
+                console.log('❌ [CLIENT] Response indicates failure');
+                console.log('📢 [CLIENT] Showing error toast:', response?.message || 'Unknown error');
+                toast.error(response?.message || 'Save operation failed');
             }
         },
         onError: (error: Error) => {
+            console.error('❌ [CLIENT] Mutation onError called');
+            console.error('💥 [CLIENT] Error details:', {
+                message: error?.message,
+                name: error?.name,
+                stack: error?.stack
+            });
             toast.error(error.message || 'Failed to save master holiday');
         }
     });

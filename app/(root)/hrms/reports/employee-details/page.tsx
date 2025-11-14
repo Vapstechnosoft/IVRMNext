@@ -753,8 +753,6 @@ export default function EmployeeDetailsReportPage() {
             <div className='container space-y-4 p-1'>
                 {/* Report Configuration Section */}
                 <CollapsibleSection
-                    title='EMPLOYEE DETAILS REPORT'
-                    description='Configure report parameters and filters'
                     defaultOpen={true}
                     variant='default'
                     size='lg'

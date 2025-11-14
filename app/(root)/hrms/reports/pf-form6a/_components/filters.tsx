@@ -23,8 +23,6 @@ interface PFForm6AFiltersProps {
 export function PFForm6AFilters({ filters, onDateChange, onGenerate, onCancel }: PFForm6AFiltersProps) {
     return (
         <CollapsibleSection
-            title='PF FORM 6A'
-            description='Generate annual return of PF contributions for the specified period'
             defaultOpen={true}
             variant='default'
             size='lg'

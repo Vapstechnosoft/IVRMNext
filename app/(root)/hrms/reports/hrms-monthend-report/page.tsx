@@ -1,6 +1,5 @@
 'use client';
 
-import { Heading } from '@/components/layout/heading';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { DataTable } from '@/components/ui/data-table/data-table';
@@ -356,12 +355,6 @@ export default function HRMSMonthEndReportPage() {
 
     return (
         <div className='space-y-6'>
-            <div className='flex-between flex-wrap gap-4'>
-                <Heading
-                    title='HRMS Month End Report'
-                    description='Comprehensive monthly report for employee attendance, salary, and performance'
-                />
-            </div>
 
             {/* Report Configuration Section */}
             <HRMSMonthEndFilters

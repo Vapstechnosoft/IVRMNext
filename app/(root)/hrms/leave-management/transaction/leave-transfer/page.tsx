@@ -1,6 +1,5 @@
 'use client';
 
-import { Heading } from '@/components/layout/heading';
 import { Button } from '@/components/ui/button';
 import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/generic-data-table';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
@@ -41,21 +40,20 @@ function LeaveCreditPageContent({
             <div className='container space-y-4 p-1'>
                 {/* Header */}
                 <div className='flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between'>
-                    <div className='space-y-1'>
-                        <Heading title='Leave Management' description='Leave Credit Process' />
-                    </div>
+                    <div className='space-y-1'></div>
                     <Button
                         type='button'
                         onClick={openAddForm}
-                        className='w-fit bg-blue-600 shadow-md transition-all duration-200 hover:scale-105 hover:bg-blue-700 hover:shadow-lg'>
+                        variant='default'
+                        className='w-fit'>
                         <Plus className='h-4 w-4' />
-                        Add Leave Credit
+                        Add
                     </Button>
                 </div>
 
                 {/* Data Table Section */}
                 <CollapsibleSection
-                    title='Leave Transfer Report'
+                    title=''
                     description=''
                     defaultOpen={true}
                     variant='default'

@@ -59,8 +59,6 @@ export function EmployeeProfileFilters({
 }: EmployeeProfileFiltersProps) {
     return (
         <CollapsibleSection
-            title='EMPLOYEE PROFILE REPORT'
-            description='Select group, department, designation, and employee to generate the report'
             defaultOpen={true}
             variant='default'
             size='lg'

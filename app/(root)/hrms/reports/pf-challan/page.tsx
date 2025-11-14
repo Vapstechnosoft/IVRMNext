@@ -1,6 +1,5 @@
 'use client';
 
-import { Heading } from '@/components/layout/heading';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { DataTable } from '@/components/ui/data-table/data-table';
@@ -212,10 +211,6 @@ export default function PFChallanPage() {
 
     return (
         <div className='space-y-6'>
-            <div className='flex-between flex-wrap gap-4'>
-                <Heading title='PF Challan' description='Generate Provident Fund challan for monthly contributions' />
-            </div>
-
             {/* Report Configuration Section */}
             <PFChallanFilters filters={filters} onFilterChange={handleFilterChange} onGenerate={handleGenerate} onCancel={handleCancel} />
 

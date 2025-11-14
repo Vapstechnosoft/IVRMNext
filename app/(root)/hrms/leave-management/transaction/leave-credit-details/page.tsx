@@ -47,7 +47,8 @@ function LeaveCreditDetailsPageContent({
                     <Button
                         type='button'
                         onClick={openAddForm}
-                        className='w-fit bg-blue-600 shadow-md transition-all duration-200 hover:scale-105 hover:bg-blue-700 hover:shadow-lg'>
+                        variant='default'
+                        className='w-fit'>
                         <Plus className='h-4 w-4' />
                         Add Leave Credit Details
                     </Button>

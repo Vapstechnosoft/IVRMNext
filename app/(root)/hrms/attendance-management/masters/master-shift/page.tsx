@@ -100,8 +100,6 @@ function FormSections() {
             {isAddFormOpen && (
                 <div ref={addFormRef}>
                     <CollapsibleSection
-                        title='Add New Master Shift'
-                        description='Fill in the details below to create a new master shift'
                         defaultOpen={true}
                         variant='outline'
                         size='md'
@@ -125,7 +123,6 @@ function FormSections() {
             {isEditFormOpen && selectedRow && (
                 <div ref={editFormRef}>
                     <CollapsibleSection
-                        title='Edit Master Shift'
                         defaultOpen={true}
                         variant='outline'
                         size='md'

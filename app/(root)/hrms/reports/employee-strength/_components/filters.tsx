@@ -53,8 +53,6 @@ export function EmployeeStrengthFilters({
 }: EmployeeStrengthFiltersProps) {
     return (
         <CollapsibleSection
-            title='EMPLOYEE STRENGTH REPORT'
-            description='Configure filters to analyze employee strength distribution'
             defaultOpen={true}
             variant='default'
             size='lg'

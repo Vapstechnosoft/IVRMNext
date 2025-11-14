@@ -260,7 +260,7 @@ export function LeaveCreditForm({ editingCredit, activeTab, onTabChange, onSubmi
 
                         <div>
                             <label htmlFor='leave-credit-input' className='font-medium text-sm'>
-                                Leave Credit
+                                Leave Transfer
                             </label>
                             <InputText
                                 id='leave-credit-input'
@@ -286,7 +286,7 @@ export function LeaveCreditForm({ editingCredit, activeTab, onTabChange, onSubmi
                     </div>
 
                     <div className='flex gap-2'>
-                        <Button type='submit' className='bg-blue-600 hover:bg-blue-700'>
+                        <Button type='submit' variant='default'>
                             {editingCredit ? 'Update' : 'Save'}
                         </Button>
                         <Button type='button' variant='destructive' onClick={onCancel}>
@@ -311,3 +311,4 @@ export function LeaveCreditForm({ editingCredit, activeTab, onTabChange, onSubmi
         </Tabs>
     );
 }
+

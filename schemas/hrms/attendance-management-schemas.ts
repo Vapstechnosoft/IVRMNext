@@ -94,18 +94,71 @@ export const holidayMasterSchema = {
     addOrUpdate: z
         .object({
             calendarYear: z.string().min(1, 'Calendar Year is required'),
+            department: z.string().optional(), // Optional - will be validated conditionally
             holidayType: z.string().min(1, 'Holiday Type is required'),
             selectedDays: z.array(z.string()).optional(), // Optional - Select Day multi-select
-            fromDate: z
-                .string()
-                .min(1, 'Holiday Date is required')
-                .refine((date) => {
-                    const d = new Date(date);
-                    return notPastDate(d);
-                }, 'Holiday Date cannot be a past date'),
+            fromDate: z.string().optional(), // Optional - will be validated conditionally
             toDate: z.string().optional(), // Optional - End Date
-            name: z.string().min(1, 'Holiday Name is required').max(100, 'Holiday Name must not exceed 100 characters'),
+            name: z.string().optional(), // Optional - will be validated conditionally
             remarks: z.string().max(250, 'Remarks must not exceed 250 characters').optional()
+        })
+        .superRefine((data, ctx) => {
+            // Conditional validation for PUBLIC HOLIDAY and WEEK END
+            if (data.holidayType === 'PUBLIC HOLIDAY' || data.holidayType === 'WEEK END') {
+                // Validate fromDate
+                if (!data.fromDate || data.fromDate.length === 0) {
+                    ctx.addIssue({
+                        code: z.ZodIssueCode.custom,
+                        message: 'Holiday Date is required',
+                        path: ['fromDate']
+                    });
+                } else {
+                    const fromDateObj = new Date(data.fromDate);
+                    if (!notPastDate(fromDateObj)) {
+                        ctx.addIssue({
+                            code: z.ZodIssueCode.custom,
+                            message: 'Holiday Date cannot be a past date',
+                            path: ['fromDate']
+                        });
+                    }
+                }
+
+                // Validate name
+                if (!data.name || data.name.length === 0) {
+                    ctx.addIssue({
+                        code: z.ZodIssueCode.custom,
+                        message: 'Holiday Name is required',
+                        path: ['name']
+                    });
+                } else if (data.name.length > 100) {
+                    ctx.addIssue({
+                        code: z.ZodIssueCode.custom,
+                        message: 'Holiday Name must not exceed 100 characters',
+                        path: ['name']
+                    });
+                }
+            }
+            
+            // Conditional validation for WEEK DAY
+            if (data.holidayType === 'WEEK DAY') {
+                // For WEEK DAY, at least one day must be selected
+                if (!data.selectedDays || data.selectedDays.length === 0) {
+                    ctx.addIssue({
+                        code: z.ZodIssueCode.custom,
+                        message: 'At least one day must be selected for WEEK DAY holiday type',
+                        path: ['selectedDays']
+                    });
+                }
+                
+                // For WEEK DAY, department is required
+                if (!data.department || data.department.trim() === '') {
+                    ctx.addIssue({
+                        code: z.ZodIssueCode.custom,
+                        message: 'Department is required for WEEK DAY holiday type',
+                        path: ['department']
+                    });
+                }
+            }
         })
         .refine(
             (data) => {
@@ -315,7 +368,7 @@ export const employeeInOutReportFilterSchema = z
         query: z.string().optional(),
         fromDate: z.string().min(1, 'From Date is required'),
         toDate: z.string().min(1, 'To Date is required'),
-        timeInTimeOut: z.enum(['Time In', 'Time Out']).optional() // Optional - used for filtering
+        timeInTimeOut: z.enum(['Time In', 'Time Out', 'In Out']).optional() // Optional - used for filtering
     })
     .refine(
         (data) => {
@@ -509,7 +562,8 @@ export const employeeYearlyReportFilterSchema = z
         }),
         employee: z.string().optional(),
         fromDate: z.string().min(1, 'From Date is required'),
-        toDate: z.string().min(1, 'To Date is required')
+        toDate: z.string().min(1, 'To Date is required'),
+        mode: z.array(z.enum(['Date Of Joining', 'Show Holiday Punch', 'Total working Day'])).optional()
     })
     .refine(
         (data) => {
@@ -536,39 +590,11 @@ export const employeeYearlyReportFilterSchema = z
 /**
  * FO Month End Report Filter Schema
  */
-export const foMonthEndReportFilterSchema = z
-    .object({
-        mode: z.enum(['Month Wise', 'Date Wise'], {
-            required_error: 'Filter Type is required'
-        }),
-        year: z.string().min(1, 'Year is required'),
-        month: z.string().optional(),
-        date: z.string().optional()
-    })
-    .refine(
-        (data) => {
-            if (data.mode === 'Month Wise') {
-                return !!data.month;
-            }
-            return true;
-        },
-        {
-            message: 'Month is required when Month Wise is selected',
-            path: ['month']
-        }
-    )
-    .refine(
-        (data) => {
-            if (data.mode === 'Date Wise') {
-                return !!data.date;
-            }
-            return true;
-        },
-        {
-            message: 'Date is required when Date Wise is selected',
-            path: ['date']
-        }
-    );
+export const foMonthEndReportFilterSchema = z.object({
+    year: z.string().min(1, 'Year is required'),
+    month: z.string().min(1, 'Month is required'),
+    ieName: z.string().min(1, 'IE Name is required')
+});
 
 /**
  * Holiday Report Filter Schema

@@ -1,6 +1,5 @@
 'use client';
 
-import { Heading } from '@/components/layout/heading';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { type BaseEntity, createLocalCrud } from '@/lib/localdb';
@@ -441,10 +440,6 @@ export default function SalaryCertificatePage() {
 
     return (
         <div className='space-y-6'>
-            <div className='flex-between flex-wrap gap-4'>
-                <Heading title='Salary Certificate' description='Generate official salary certificates for employees' />
-            </div>
-
             {/* Report Configuration Section */}
             <SalaryCertificateFilters
                 filters={filters}

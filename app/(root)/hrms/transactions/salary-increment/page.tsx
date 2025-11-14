@@ -358,8 +358,6 @@ function SalaryIncrementProcessPageContent({
                 </div>
 
                 <CollapsibleSection
-                    title='Employee Increment Records'
-                    description={`View and process salary increments (${selectedEmployees.length} selected)`}
                     defaultOpen={true}
                     variant='default'
                     size='lg'
@@ -377,8 +375,6 @@ function SalaryIncrementProcessPageContent({
                 {isFormOpen && (
                     <div ref={formRef} className='slide-in-from-top-4 animate-in duration-300'>
                         <CollapsibleSection
-                            title='Salary Increment Process'
-                            description='Configure increment parameters for selected employees'
                             defaultOpen={true}
                             variant='outline'
                             size='lg'

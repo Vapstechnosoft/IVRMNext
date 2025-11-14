@@ -1,6 +1,5 @@
 'use client';
 
-import { Heading } from '@/components/layout/heading';
 import { Button } from '@/components/ui/button';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { HRMS_MI_ID } from '@/constants/hrms-config';
@@ -244,10 +243,6 @@ export default function EmployeeProfileReportPage() {
 
     return (
         <div className='space-y-6'>
-            <div className='flex-between flex-wrap gap-4'>
-                <Heading title='Employee Profile Report' description='Generate comprehensive employee profile reports' />
-            </div>
-
             {/* Employee Selection Section */}
             <EmployeeProfileFilters
                 groupTypes={groupTypes}
@@ -281,8 +276,6 @@ export default function EmployeeProfileReportPage() {
                     {employeeReports.map((report, index) => (
                         <CollapsibleSection
                             key={index}
-                            title={`EMPLOYEE PROFILE REPORT - ${report.EmployeeName}`}
-                            description={`Employee Code: ${report.EmployeeCode}`}
                             defaultOpen={true}
                             variant='default'
                             size='lg'

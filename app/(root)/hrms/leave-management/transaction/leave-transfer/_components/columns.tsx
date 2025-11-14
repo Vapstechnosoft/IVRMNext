@@ -48,7 +48,7 @@ export const leaveCreditColumns: ColumnDef<LeaveCredit>[] = [
     },
     {
         accessorKey: 'leaveCredit',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Leave Credit' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Leave Transfer' />,
         cell: ({ row }) => <div className='text-center'>{row.getValue('leaveCredit')}</div>
     },
     {
@@ -77,3 +77,4 @@ function ActionButtonsCell({ rowData }: { rowData: LeaveCredit }) {
 
     return <ActionButtons rowData={rowData} buttons={{ edit: true, toggle: false, delete: false }} onEdit={handleEdit} />;
 }
+

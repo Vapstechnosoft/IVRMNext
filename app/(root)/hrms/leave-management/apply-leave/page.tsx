@@ -1,19 +1,23 @@
 'use client';
 
-import { Heading } from '@/components/layout/heading';
 import { Button } from '@/components/ui/button';
 import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/generic-data-table';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/extension/field';
 import { useLeaveBalance, useLeaveHistory } from '@/hooks/hrms/leave-management/useApplyLeave';
-import { Plus, X } from 'lucide-react';
+import { Plus, Search, X } from 'lucide-react';
+import { useMemo, useState } from 'react';
 import AddApplyLeaveForm from './_components/add-form';
 import { type ApplyLeave, leaveBalanceColumns, leaveHistoryColumns } from './_components/columns';
 
 const defaultEmployee = {
     name: 'R Siddesh Kumar',
     designation: 'Sr. HR Executive',
-    doj: '2020-01-01'
+    doj: '2020-01-01',
+    email: '',
+    phone: '0'
 };
 
 export default function ApplyLeavePage() {
@@ -50,25 +54,38 @@ function ApplyLeavePageContent({
     historyError: any;
 }) {
     const { openAddForm } = useFormContext<ApplyLeave>();
+    const [leaveSearchQuery, setLeaveSearchQuery] = useState('');
+
+    const employeeDetails = defaultEmployee;
+    const leaveBalances = balanceResponse?.data || [];
+    const leaveHistory = historyResponse?.data || [];
+
+    // Filter leave history based on search query
+    const filteredLeaveHistory = useMemo(() => {
+        if (!leaveSearchQuery.trim()) return leaveHistory;
+        const query = leaveSearchQuery.toLowerCase();
+        return leaveHistory.filter(
+            (leave: any) =>
+                leave.leaveType?.toLowerCase().includes(query) ||
+                leave.status?.toLowerCase().includes(query)
+        );
+    }, [leaveHistory, leaveSearchQuery]);
 
     const balanceTableProps = useDataTableProps({
-        data: balanceResponse?.data || [],
-        totalItems: balanceResponse?.data?.length || 0
+        data: leaveBalances,
+        totalItems: leaveBalances.length
     });
 
     const historyTableProps = useDataTableProps({
-        data: historyResponse?.data || [],
-        totalItems: historyResponse?.data?.length || 0
+        data: filteredLeaveHistory,
+        totalItems: filteredLeaveHistory.length
     });
 
     return (
         <div className='min-h-screen'>
             <div className='container space-y-4 p-1'>
                 {/* Header */}
-                <div className='flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between'>
-                    <div className='space-y-1'>
-                        <Heading title='Online Leave Application' description='' />
-                    </div>
+                <div className='flex justify-end'>
                     <Button
                         type='button'
                         onClick={openAddForm}
@@ -78,54 +95,105 @@ function ApplyLeavePageContent({
                     </Button>
                 </div>
 
-                {/* Employee Leave Details */}
+                {/* Employee Details Section */}
                 <CollapsibleSection
-                    title='Employee Leave Details'
-                    description=''
                     defaultOpen={true}
                     variant='default'
                     size='lg'
                     className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
-                    <div className='grid grid-cols-1 gap-6 md:grid-cols-2'>
-                        <div>
-                            <h3 className='mb-2 font-semibold text-sm'>Current Balances</h3>
-                            <GenericDataTable
-                                {...balanceTableProps}
-                                columns={leaveBalanceColumns}
-                                isLoading={isLoadingBalance}
-                                error={balanceError}
-                                showViewOptions={false}
-                                loadingMessage='Loading leave balances...'
-                                noDataTitle='No Leave Balance Found'
-                                noDataDescription='No leave balances available'
-                                errorTitle='Error Loading Leave Balance'
-                            />
+                    <div className='grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-5'>
+                        <div className='space-y-2'>
+                            <Label>Employee Name</Label>
+                            <div className='rounded-md border bg-muted/50 p-2 font-medium'>
+                                {employeeDetails.name || '-'}
+                            </div>
                         </div>
-                        <div>
-                            <h3 className='mb-2 font-semibold text-sm'>Past Applications</h3>
-                            <GenericDataTable
-                                {...historyTableProps}
-                                columns={leaveHistoryColumns}
-                                isLoading={isLoadingHistory}
-                                error={historyError}
-                                showViewOptions={false}
-                                loadingMessage='Loading leave history...'
-                                noDataTitle='No Leave History Found'
-                                noDataDescription='No past leave applications'
-                                errorTitle='Error Loading Leave History'
-                            />
+                        <div className='space-y-2'>
+                            <Label>DOJ</Label>
+                            <div className='rounded-md border bg-muted/50 p-2 font-medium'>
+                                {employeeDetails.doj ? new Date(employeeDetails.doj).toLocaleDateString('en-GB') : '-'}
+                            </div>
+                        </div>
+                        <div className='space-y-2'>
+                            <Label>Designation</Label>
+                            <div className='rounded-md border bg-muted/50 p-2 font-medium'>
+                                {employeeDetails.designation || '-'}
+                            </div>
+                        </div>
+                        <div className='space-y-2'>
+                            <Label>Email</Label>
+                            <div className='rounded-md border bg-muted/50 p-2 font-medium'>
+                                {employeeDetails.email || '-'}
+                            </div>
+                        </div>
+                        <div className='space-y-2'>
+                            <Label>Phone</Label>
+                            <div className='rounded-md border bg-muted/50 p-2 font-medium'>
+                                {employeeDetails.phone || '-'}
+                            </div>
                         </div>
                     </div>
                 </CollapsibleSection>
 
-                {/* Form */}
-                <FormSection />
+                {/* Employee Leave Details Section - Balance Table */}
+                <CollapsibleSection
+                    defaultOpen={true}
+                    variant='default'
+                    size='lg'
+                    className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
+                    <GenericDataTable
+                        {...balanceTableProps}
+                        columns={leaveBalanceColumns}
+                        isLoading={isLoadingBalance}
+                        error={balanceError}
+                        showViewOptions={false}
+                        loadingMessage='Loading leave balances...'
+                        noDataTitle='No Leave Balance Found'
+                        noDataDescription='No leave balances available'
+                        errorTitle='Error Loading Leave Balance'
+                    />
+                </CollapsibleSection>
+
+                {/* Employee Leave Details Section - History Table */}
+                <CollapsibleSection
+                    defaultOpen={true}
+                    variant='default'
+                    size='lg'
+                    className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
+                    <div className='space-y-4'>
+                        <div className='flex justify-end'>
+                            <div className='relative w-full max-w-sm'>
+                                <Search className='absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground' />
+                                <Input
+                                    placeholder='search here...'
+                                    value={leaveSearchQuery}
+                                    onChange={(e) => setLeaveSearchQuery(e.target.value)}
+                                    className='pl-9'
+                                />
+                            </div>
+                        </div>
+                        <GenericDataTable
+                            {...historyTableProps}
+                            columns={leaveHistoryColumns}
+                            isLoading={isLoadingHistory}
+                            error={historyError}
+                            showViewOptions={false}
+                            loadingMessage='Loading leave history...'
+                            noDataTitle='No Leave History Found'
+                            noDataDescription='No past leave applications'
+                            errorTitle='Error Loading Leave History'
+                        />
+                    </div>
+                </CollapsibleSection>
+
+                {/* Forms */}
+                <FormSections employeeDetails={employeeDetails} />
             </div>
         </div>
     );
 }
 
-function FormSection() {
+function FormSections({ employeeDetails }: { employeeDetails: typeof defaultEmployee }) {
     const { isAddFormOpen, closeAddForm, addFormRef } = useFormContext<ApplyLeave>();
 
     return (
@@ -134,8 +202,7 @@ function FormSection() {
             {isAddFormOpen && (
                 <div ref={addFormRef}>
                     <CollapsibleSection
-                        title='Apply for Leave'
-                        description='Fill in the details below to apply for leave'
+                        title='ONLINE LEAVE APPLICATION'
                         defaultOpen={true}
                         variant='outline'
                         size='md'
@@ -149,7 +216,7 @@ function FormSection() {
                                 className='-top-[3.5rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
                                 <X className='h-4 w-4 text-destructive' /> Close
                             </Button>
-                            <AddApplyLeaveForm defaultEmployee={defaultEmployee} onSuccess={closeAddForm} />
+                            <AddApplyLeaveForm defaultEmployee={employeeDetails} onSuccess={closeAddForm} />
                         </div>
                     </CollapsibleSection>
                 </div>

@@ -15,8 +15,11 @@ export interface LeaveCreditTransaction extends BaseEntity {
     leaveYear: string;
     fromDate?: string;
     toDate?: string;
+    totalDays?: number;
     employee?: string;
-    lossOfPay: boolean;
+    lossOfPay?: boolean;
+    lossOfPayType?: 'none' | 'full' | 'half' | 'oneFourth' | 'threeFourth';
+    lossOfPayAmount?: number;
     leaveName: string;
     availed: number;
 }

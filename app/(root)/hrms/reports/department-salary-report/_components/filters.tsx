@@ -48,8 +48,6 @@ export function DepartmentSalaryReportFilters({
 
     return (
         <CollapsibleSection
-            title='DEPARTMENT SALARY REPORT'
-            description='Configure filters to generate departmental salary analysis'
             defaultOpen={true}
             variant='default'
             size='lg'

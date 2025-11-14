@@ -219,8 +219,6 @@ export default function CumulativeSalaryReportPage() {
                 {/* Report Results - Only show after search */}
                 {showReport ? (
                     <CollapsibleSection
-                        title='SALARY REPORT RESULTS'
-                        description={`View comprehensive salary report data (${filteredRecords.length} records)`}
                         defaultOpen={true}
                         variant='default'
                         size='lg'

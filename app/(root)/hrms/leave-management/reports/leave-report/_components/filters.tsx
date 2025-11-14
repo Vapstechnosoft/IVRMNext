@@ -137,8 +137,8 @@ export function LeaveReportFilters({ filters, onFilterChange, onReport, onCancel
 
                     {/* Action Buttons */}
                     <div className='flex gap-2 md:col-span-3'>
-                        <Button onClick={onReport}>Report</Button>
-                        <Button variant='destructive' onClick={onCancel}>
+                        <Button onClick={onReport} variant='default'>Report</Button>
+                        <Button variant='outline' onClick={onCancel}>
                             <X className='mr-2 h-4 w-4' />
                             Clear
                         </Button>

@@ -8,12 +8,13 @@ import { InputText } from '@/components/ui/extension/input-text';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useMasterHoliday, useSaveMasterHoliday } from '@/hooks/hrms/attendance-management/useMasters';
+import type { MasterHolidayGetDataResponseData } from '@/types/hrms/attendance-management/master-holiday';
 import { cn } from '@/lib/utils';
 import { holidayMasterSchema } from '@/schemas/hrms/attendance-management-schemas';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { format } from 'date-fns';
 import { CalendarIcon, Save } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo } from 'react';
 import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
 import type { z } from 'zod';
 import type { MasterHoliday } from './columns';
@@ -24,34 +25,38 @@ type MasterHolidayForm = z.infer<typeof holidayMasterSchema.addOrUpdate> & {
     isActive: boolean;
 };
 
-const departments = ['All', 'Teaching', 'Non Teaching', 'Administrative', 'JUNIOR SCHOOL', 'SENIOR SCHOOL', 'OFFICE STAFF'];
-const holidayTypes = ['PUBLIC HOLIDAY', 'WEEK END', 'WEEK DAY', 'VACATION', 'NATIONAL HOLIDAY', 'FESTIVAL', 'OPTIONAL HOLIDAY'];
-const weekDays = [
-    { value: 'SUN', label: 'SUN' },
-    { value: 'MON', label: 'MON' },
-    { value: 'TUE', label: 'TUE' },
-    { value: 'WED', label: 'WED' },
-    { value: 'THU', label: 'THU' },
-    { value: 'FRI', label: 'FRI' },
-    { value: 'SAT', label: 'SAT' }
-];
-
 interface UpdateMasterHolidayFormProps {
     onSuccess?: () => void;
     className?: string;
     selectedRow: MasterHoliday;
+    dropdownData?: MasterHolidayGetDataResponseData;
 }
 
-export default function UpdateMasterHolidayForm({ onSuccess, className = '', selectedRow: row }: UpdateMasterHolidayFormProps) {
+export default function UpdateMasterHolidayForm({ onSuccess, className = '', selectedRow: row, dropdownData }: UpdateMasterHolidayFormProps) {
     const { refetchAll } = useMasterHoliday();
     const { mutate: saveMasterHoliday, isPending } = useSaveMasterHoliday();
-    const [currentYear, setCurrentYear] = useState<number | null>(null);
 
-    useEffect(() => {
-        setCurrentYear(new Date().getFullYear());
-    }, []);
+    // Extract dropdown data from API response
+    const calendarYears = useMemo(() => {
+        return dropdownData?.yeardropdown?.map((year) => year.hrmlY_LeaveYear) || [];
+    }, [dropdownData?.yeardropdown]);
 
-    const calendarYears = currentYear ? Array.from({ length: 6 }, (_, i) => (currentYear + i).toString()) : [];
+    const departments = useMemo(() => {
+        return dropdownData?.departmentType?.map((dept) => dept.hrmD_DepartmentName) || [];
+    }, [dropdownData?.departmentType]);
+
+    const holidayTypes = useMemo(() => {
+        return dropdownData?.holidayType?.map((type) => type.fohtwD_HolidayWDType) || [];
+    }, [dropdownData?.holidayType]);
+
+    const weekDays = useMemo(() => {
+        return (
+            dropdownData?.dayslist?.map((day) => ({
+                value: day.fomD_DayCode,
+                label: day.fomD_DayName
+            })) || []
+        );
+    }, [dropdownData?.dayslist]);
 
     const {
         register,
@@ -99,15 +104,18 @@ export default function UpdateMasterHolidayForm({ onSuccess, className = '', sel
     const onSubmit: SubmitHandler<MasterHolidayForm> = async (data) => {
         saveMasterHoliday(
             {
-                id: row.id,
-                calendarYear: data.calendarYear,
-                department: data.department,
-                holidayType: data.holidayType,
-                name: data.name || '',
-                selectedDays: data.selectDay ? data.selectedDays || [] : [],
-                fromDate: data.fromDate || '',
-                toDate: data.toDate || '',
-                isActive: data.isActive
+                data: {
+                    id: row.id,
+                    calendarYear: data.calendarYear,
+                    department: data.department,
+                    holidayType: data.holidayType,
+                    name: data.name || '',
+                    selectedDays: data.selectDay ? data.selectedDays || [] : [],
+                    fromDate: data.fromDate || '',
+                    toDate: data.toDate || '',
+                    isActive: data.isActive
+                },
+                dropdownData: dropdownData
             },
             {
                 onSuccess: () => {

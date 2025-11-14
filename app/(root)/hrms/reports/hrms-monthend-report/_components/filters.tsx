@@ -58,8 +58,6 @@ export function HRMSMonthEndFilters({
 
     return (
         <CollapsibleSection
-            title='HRMS MONTH END REPORT'
-            description='Configure filters to generate comprehensive monthly employee attendance and salary reports'
             defaultOpen={true}
             variant='default'
             size='lg'

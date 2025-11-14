@@ -1,17 +1,21 @@
 'use client';
 
-import { Heading } from '@/components/layout/heading';
+import { Button } from '@/components/ui/button';
 import { GenericDataTable } from '@/components/ui/data-table/generic-data-table';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { useEmployeeLateInEarlyOutReport, useEmployeeLateInEarlyOutReportDropdowns } from '@/hooks/hrms/attendance-management/useReports';
+import { FileDown } from 'lucide-react';
 import { useState } from 'react';
 import { employeeLateInEarlyOutReportColumns } from './_components/columns';
 import {
     type EmployeeLateInEarlyOutReportFilters,
     EmployeeLateInEarlyOutReportFilters as EmployeeLateInEarlyOutReportFiltersComponent
 } from './_components/filters';
+import type { LIEORow } from './_components/columns';
 
 export default function EmployeeLateInEarlyOutReportPage() {
+    const [showReport, setShowReport] = useState(false);
+    const [selectedRows, setSelectedRows] = useState<LIEORow[]>([]);
     const [filters, setFilters] = useState<EmployeeLateInEarlyOutReportFilters>({
         type: [],
         department: [],
@@ -21,10 +25,10 @@ export default function EmployeeLateInEarlyOutReportPage() {
         query: '',
         fromDate: '',
         toDate: '',
-        mode: 'Late In Early Out'
+        mode: 'Late By'
     });
 
-    const { data: reportData, isLoading } = useEmployeeLateInEarlyOutReport(filters);
+    const { data: reportData, isLoading } = useEmployeeLateInEarlyOutReport(showReport ? filters : undefined);
     const { data: dropdownData } = useEmployeeLateInEarlyOutReportDropdowns();
 
     const types = dropdownData?.data?.types || [];
@@ -34,7 +38,7 @@ export default function EmployeeLateInEarlyOutReportPage() {
     const filtered = reportData?.data || [];
 
     const handleSearch = () => {
-        /* TODO: implement */
+        setShowReport(true);
     };
 
     const handleCancel = () => {
@@ -47,25 +51,24 @@ export default function EmployeeLateInEarlyOutReportPage() {
             query: '',
             fromDate: '',
             toDate: '',
-            mode: 'Late In Early Out'
+            mode: 'Late By'
         });
+        setShowReport(false);
+        setSelectedRows([]);
     };
 
     const handleExport = () => {
-        /* TODO: implement */
+        /* TODO: implement export functionality */
+        console.log('Exporting selected rows:', selectedRows);
     };
 
-    const handlePrint = () => window.print();
+    const handleRowSelectionChange = (rows: LIEORow[]) => {
+        setSelectedRows(rows);
+    };
 
     return (
         <div className='min-h-screen'>
             <div className='container space-y-4 p-1'>
-                <div className='flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between'>
-                    <div className='space-y-1'>
-                        <Heading title='Employee LateIn EarlyOut Report' description='' />
-                    </div>
-                </div>
-
                 <EmployeeLateInEarlyOutReportFiltersComponent
                     filters={filters}
                     departments={departments}
@@ -75,24 +78,34 @@ export default function EmployeeLateInEarlyOutReportPage() {
                     onSearch={handleSearch}
                     onCancel={handleCancel}
                     onExport={handleExport}
-                    onPrint={handlePrint}
+                    onPrint={() => window.print()}
                 />
 
-                <CollapsibleSection
-                    title='Grid View'
-                    description=''
-                    defaultOpen={true}
-                    variant='default'
-                    size='lg'
-                    className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
-                    <GenericDataTable
-                        isLoading={isLoading}
-                        columns={employeeLateInEarlyOutReportColumns}
-                        data={filtered}
-                        totalItems={filtered.length}
-                        showViewOptions
-                    />
-                </CollapsibleSection>
+                {showReport && (
+                    <CollapsibleSection
+                        defaultOpen={true}
+                        variant='default'
+                        size='lg'
+                        className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
+                        <div className='space-y-4'>
+                            {selectedRows.length > 0 && (
+                                <div className='flex justify-end'>
+                                    <Button variant='default' onClick={handleExport}>
+                                        <FileDown className='mr-2 h-4 w-4' /> EXPORT TO EXCEL
+                                    </Button>
+                                </div>
+                            )}
+                            <GenericDataTable
+                                isLoading={isLoading}
+                                columns={employeeLateInEarlyOutReportColumns}
+                                data={filtered}
+                                totalItems={filtered.length}
+                                showViewOptions
+                                onRowSelectionChange={handleRowSelectionChange}
+                            />
+                        </div>
+                    </CollapsibleSection>
+                )}
             </div>
         </div>
     );

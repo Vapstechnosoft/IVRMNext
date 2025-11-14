@@ -102,8 +102,6 @@ export function SalaryCertificateFilters({
 
     return (
         <CollapsibleSection
-            title='SALARY CERTIFICATE'
-            description='Generate employee salary certificates with detailed breakdown'
             defaultOpen={true}
             variant='default'
             size='lg'

@@ -31,8 +31,6 @@ export function PFForm5Filters({ filters, onFilterChange, onGenerate, onCancel }
 
     return (
         <CollapsibleSection
-            title='PF FORM 5'
-            description='Generate register of employees for Provident Fund'
             defaultOpen={true}
             variant='default'
             size='lg'

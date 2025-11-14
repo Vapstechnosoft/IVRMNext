@@ -31,8 +31,6 @@ export function PFForm10Filters({ filters, onFilterChange, onGenerate, onCancel 
 
     return (
         <CollapsibleSection
-            title='PF FORM 10'
-            description='Generate annual PF statement for employee accounts'
             defaultOpen={true}
             variant='default'
             size='lg'

@@ -13,6 +13,10 @@ export interface LeaveCreditDetail extends BaseEntity {
     designation: string[];
     leaveName: string;
     leaveCode?: string;
+    noOfDays?: number;
+    leaveCarryForward?: boolean;
+    leaveEncashment?: boolean;
+    leaveCreditMonthWise?: boolean;
     months: Record<string, number>;
 }
 

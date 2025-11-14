@@ -14,20 +14,29 @@ export async function getOverallReport(filters?: OverallReportFilters) {
         };
     }
 
+    // Format dates for display
+    const formatDate = (date: Date | undefined, fallback: string) => {
+        if (!date) return fallback;
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
+    };
+
     // Mock data generation based on filters
     const mockData: OverallReportRow[] = [
         {
             employee: 'Steffi Halian',
             leaveName: 'Sick Leave',
-            fromDate: filters.fromDate || '2025-01-03',
-            toDate: filters.toDate || '2025-01-04',
+            fromDate: formatDate(filters.fromDate, '2025-01-03'),
+            toDate: formatDate(filters.toDate, '2025-01-04'),
             status: filters.status
         },
         {
             employee: 'Shruthi NA',
             leaveName: 'Casual Leave',
-            fromDate: filters.fromDate || '2025-02-10',
-            toDate: filters.toDate || '2025-02-11',
+            fromDate: formatDate(filters.fromDate, '2025-02-10'),
+            toDate: formatDate(filters.toDate, '2025-02-11'),
             status: filters.status
         }
     ];

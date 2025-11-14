@@ -90,8 +90,6 @@ function FormSections() {
             {isAddFormOpen && (
                 <div ref={addFormRef}>
                     <CollapsibleSection
-                        title='Add New Master Driver Shift'
-                        description='Fill in the details below to create a new master driver shift'
                         defaultOpen={true}
                         variant='outline'
                         size='md'
@@ -115,7 +113,6 @@ function FormSections() {
             {isEditFormOpen && selectedRow && (
                 <div ref={editFormRef}>
                     <CollapsibleSection
-                        title='Edit Master Driver Shift'
                         defaultOpen={true}
                         variant='outline'
                         size='md'

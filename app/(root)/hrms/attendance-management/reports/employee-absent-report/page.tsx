@@ -1,18 +1,21 @@
 'use client';
 
-import { Heading } from '@/components/layout/heading';
+import { Button } from '@/components/ui/button';
 import { GenericDataTable } from '@/components/ui/data-table/generic-data-table';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { useEmployeeAbsentReport, useEmployeeAbsentReportDropdowns } from '@/hooks/hrms/attendance-management/useReports';
+import { FileDown } from 'lucide-react';
 import { useState } from 'react';
 import { employeeAbsentReportColumns } from './_components/columns';
 import {
     type EmployeeAbsentReportFilters,
     EmployeeAbsentReportFilters as EmployeeAbsentReportFiltersComponent
 } from './_components/filters';
+import type { EmployeeAbsentReportRow } from './_components/columns';
 
 export default function EmployeeAbsentReportPage() {
     const [showReport, setShowReport] = useState(false);
+    const [selectedRows, setSelectedRows] = useState<EmployeeAbsentReportRow[]>([]);
 
     const [filters, setFilters] = useState<EmployeeAbsentReportFilters>({
         type: [],
@@ -35,16 +38,6 @@ export default function EmployeeAbsentReportPage() {
     const filtered = reportData?.data || [];
 
     const handleSearch = () => {
-        // Validate required fields
-        if (filters.type.length === 0 || filters.department.length === 0 || filters.designation.length === 0) {
-            return;
-        }
-        if (!filters.fromDate || !filters.toDate) {
-            return;
-        }
-        if (filters.allOrIndividual === 'Individual' && !filters.employee) {
-            return;
-        }
         setShowReport(true);
     };
 
@@ -59,28 +52,21 @@ export default function EmployeeAbsentReportPage() {
             toDate: ''
         });
         setShowReport(false);
+        setSelectedRows([]);
     };
 
     const handleExport = () => {
-        /* TODO: implement */
+        /* TODO: implement export functionality */
+        console.log('Exporting selected rows:', selectedRows);
     };
 
-    const handlePrint = () => window.print();
-
-    const reportTitle =
-        showReport && filters.fromDate && filters.toDate
-            ? `Monthly Report from ${new Date(filters.fromDate).toLocaleDateString('en-GB')} to ${new Date(filters.toDate).toLocaleDateString('en-GB')}`
-            : 'GRID VIEW';
+    const handleRowSelectionChange = (rows: EmployeeAbsentReportRow[]) => {
+        setSelectedRows(rows);
+    };
 
     return (
         <div className='min-h-screen'>
             <div className='container space-y-4 p-1'>
-                <div className='flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between'>
-                    <div className='space-y-1'>
-                        <Heading title='Employee Absent Detail Report' description='' />
-                    </div>
-                </div>
-
                 <EmployeeAbsentReportFiltersComponent
                     filters={filters}
                     types={types}
@@ -91,24 +77,32 @@ export default function EmployeeAbsentReportPage() {
                     onSearch={handleSearch}
                     onCancel={handleCancel}
                     onExport={handleExport}
-                    onPrint={handlePrint}
+                    onPrint={() => window.print()}
                 />
 
                 {showReport && (
                     <CollapsibleSection
-                        title={reportTitle}
-                        description=''
                         defaultOpen={true}
                         variant='default'
                         size='lg'
                         className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
-                        <GenericDataTable
-                            isLoading={isLoading}
-                            columns={employeeAbsentReportColumns}
-                            data={filtered}
-                            totalItems={filtered.length}
-                            showViewOptions
-                        />
+                        <div className='space-y-4'>
+                            {selectedRows.length > 0 && (
+                                <div className='flex justify-end'>
+                                    <Button variant='default' onClick={handleExport}>
+                                        <FileDown className='mr-2 h-4 w-4' /> EXPORT TO EXCEL
+                                    </Button>
+                                </div>
+                            )}
+                            <GenericDataTable
+                                isLoading={isLoading}
+                                columns={employeeAbsentReportColumns}
+                                data={filtered}
+                                totalItems={filtered.length}
+                                showViewOptions
+                                onRowSelectionChange={handleRowSelectionChange}
+                            />
+                        </div>
                     </CollapsibleSection>
                 )}
             </div>

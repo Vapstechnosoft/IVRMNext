@@ -62,8 +62,6 @@ export function LoanReportFilters({
 
     return (
         <CollapsibleSection
-            title='EMPLOYEE LOAN REPORT'
-            description='Configure filters to generate comprehensive employee loan analysis and tracking reports'
             defaultOpen={true}
             variant='default'
             size='lg'

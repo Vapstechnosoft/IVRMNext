@@ -1,6 +1,5 @@
 'use client';
 
-import { Heading } from '@/components/layout/heading';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { DataTable } from '@/components/ui/data-table/data-table';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
@@ -151,14 +150,8 @@ export default function EmployeeSalaryDetailsReportPage() {
 
     return (
         <div className='space-y-6'>
-            <div className='flex-between flex-wrap gap-4'>
-                <Heading title='Employee Salary Details' description='View detailed salary information with monthly breakdown and charts' />
-            </div>
-
             {/* Salary Details Section */}
             <CollapsibleSection
-                title='SALARY DETAILS'
-                description='Select financial year to view detailed salary breakdown'
                 defaultOpen={true}
                 variant='default'
                 size='lg'
@@ -189,8 +182,6 @@ export default function EmployeeSalaryDetailsReportPage() {
 
             {/* Monthwise Salary Details Section */}
             <CollapsibleSection
-                title='MONTHWISE SALARY DETAILS'
-                description='Detailed monthly salary breakdown with search functionality'
                 defaultOpen={true}
                 variant='outline'
                 size='lg'

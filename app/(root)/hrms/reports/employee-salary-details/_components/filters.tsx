@@ -28,8 +28,6 @@ export function EmployeeSalaryDetailsFilters({
         <>
             {/* Salary Details Section */}
             <CollapsibleSection
-                title='SALARY DETAILS'
-                description='Select financial year to view detailed salary breakdown'
                 defaultOpen={true}
                 variant='default'
                 size='lg'
@@ -60,8 +58,6 @@ export function EmployeeSalaryDetailsFilters({
 
             {/* Monthwise Salary Details Section */}
             <CollapsibleSection
-                title='MONTHWISE SALARY DETAILS'
-                description='Detailed monthly salary breakdown with search functionality'
                 defaultOpen={true}
                 variant='outline'
                 size='lg'

@@ -1,6 +1,5 @@
 'use client';
 
-import { Heading } from '@/components/layout/heading';
 import { GenericDataTable } from '@/components/ui/data-table/generic-data-table';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { useUnauthorizedLeaveCountReport } from '@/hooks/hrms/leave-management/useReports';
@@ -16,6 +15,8 @@ export default function UnauthorizedLeaveCountReportPage() {
         rangeMode: 'Month Wise',
         companyQuery: '',
         selectedCompanies: [],
+        selectedCompany: '',
+        selectedDepartments: [],
         department: '',
         year: '2025',
         month: 'January',
@@ -47,6 +48,8 @@ export default function UnauthorizedLeaveCountReportPage() {
             rangeMode: 'Month Wise',
             companyQuery: '',
             selectedCompanies: [],
+            selectedCompany: '',
+            selectedDepartments: [],
             department: '',
             year: '2025',
             month: 'January',
@@ -59,12 +62,6 @@ export default function UnauthorizedLeaveCountReportPage() {
     return (
         <div className='min-h-screen'>
             <div className='container space-y-4 p-1'>
-                <div className='flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between'>
-                    <div className='space-y-1'>
-                        <Heading title='Leave Management' description='Unauthorized Leave Count Report' />
-                    </div>
-                </div>
-
                 <UnauthorizedLeaveCountFilters
                     filters={filters}
                     onFilterChange={handleFilterChange}
@@ -74,8 +71,6 @@ export default function UnauthorizedLeaveCountReportPage() {
 
                 {showReport && (
                     <CollapsibleSection
-                        title='Unauthorized Leave Report List'
-                        description=''
                         defaultOpen={rows.length > 0}
                         variant='default'
                         size='lg'

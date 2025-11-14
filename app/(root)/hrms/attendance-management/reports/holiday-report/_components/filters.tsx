@@ -46,8 +46,6 @@ export function HolidayReportFilters({ filters, calendarYears, onFilterChange, o
 
     return (
         <CollapsibleSection
-            title='HOLIDAY REPORT'
-            description='Configure filters to generate holiday reports'
             defaultOpen={true}
             variant='default'
             size='lg'

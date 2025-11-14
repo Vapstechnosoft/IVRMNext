@@ -172,7 +172,7 @@ export function LeaveCreditDetailsForm({ editingRow, onSubmit, onCancel }: Leave
                 </div>
             </div>
             <div className='flex gap-2'>
-                <Button type='submit' className='bg-blue-600 hover:bg-blue-700'>
+                <Button type='submit' variant='default'>
                     {editingRow ? 'Update' : 'Save'}
                 </Button>
                 <Button type='button' variant='outline' onClick={onCancel}>

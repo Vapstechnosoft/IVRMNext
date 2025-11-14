@@ -7,6 +7,7 @@ import { InputText } from '@/components/ui/extension/input-text';
 import { InputTextarea } from '@/components/ui/extension/input-textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useMasterLeave, useUpdateMasterLeave } from '@/hooks/hrms/leave-management/useMasters';
+import { MASTER_LEAVE_VALIDATION } from '@/lib/validation/hrms-master-validation';
 import { Save } from 'lucide-react';
 import { useEffect } from 'react';
 import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
@@ -83,7 +84,7 @@ export default function UpdateMasterLeaveForm({ onSuccess, className = '', selec
                             label='Leave Name'
                             required
                             id='leaveName'
-                            {...register('leaveName', { required: 'Leave name is required' })}
+                            {...register('leaveName', MASTER_LEAVE_VALIDATION.leaveName)}
                             error={errors.leaveName?.message}
                             className='transition-colors focus:ring-2 focus:ring-primary/20'
                         />
@@ -92,7 +93,7 @@ export default function UpdateMasterLeaveForm({ onSuccess, className = '', selec
                             label='Leave Code'
                             required
                             id='leaveCode'
-                            {...register('leaveCode', { required: 'Leave code is required' })}
+                            {...register('leaveCode', MASTER_LEAVE_VALIDATION.leaveCode)}
                             error={errors.leaveCode?.message}
                             className='transition-colors focus:ring-2 focus:ring-primary/20'
                         />
@@ -100,7 +101,7 @@ export default function UpdateMasterLeaveForm({ onSuccess, className = '', selec
                         <Controller
                             name='leaveType'
                             control={control}
-                            rules={{ required: 'Leave type is required' }}
+                            rules={MASTER_LEAVE_VALIDATION.leaveType}
                             render={({ field }) => (
                                 <div>
                                     <label htmlFor='leaveType' className='mb-2 block font-medium text-sm'>
@@ -126,7 +127,7 @@ export default function UpdateMasterLeaveForm({ onSuccess, className = '', selec
                         <Controller
                             name='leaveApplyCriteria'
                             control={control}
-                            rules={{ required: 'Leave apply criteria is required' }}
+                            rules={MASTER_LEAVE_VALIDATION.leaveApplyCriteria}
                             render={({ field }) => (
                                 <div>
                                     <label htmlFor='leaveApplyCriteria' className='mb-2 block font-medium text-sm'>
@@ -142,6 +143,8 @@ export default function UpdateMasterLeaveForm({ onSuccess, className = '', selec
                                             <SelectItem value='Before'>Before</SelectItem>
                                             <SelectItem value='After'>After</SelectItem>
                                             <SelectItem value='Same Day'>Same Day</SelectItem>
+                                            <SelectItem value='Month'>Month</SelectItem>
+                                            <SelectItem value='Quarter'>Quarter</SelectItem>
                                         </SelectContent>
                                     </Select>
                                     {errors.leaveApplyCriteria && <FormError>{errors.leaveApplyCriteria.message}</FormError>}
@@ -151,18 +154,20 @@ export default function UpdateMasterLeaveForm({ onSuccess, className = '', selec
 
                         <InputText
                             label='Days for Apply Criteria'
+                            required
                             id='daysForApplyCriteria'
                             type='number'
-                            {...register('daysForApplyCriteria')}
+                            {...register('daysForApplyCriteria', MASTER_LEAVE_VALIDATION.daysForApplyCriteria)}
                             error={errors.daysForApplyCriteria?.message}
                             className='transition-colors focus:ring-2 focus:ring-primary/20'
                         />
 
                         <InputText
                             label='Max Days For Apply'
+                            required
                             id='maxDaysForApply'
                             type='number'
-                            {...register('maxDaysForApply')}
+                            {...register('maxDaysForApply', MASTER_LEAVE_VALIDATION.maxDaysForApply)}
                             error={errors.maxDaysForApply?.message}
                             className='transition-colors focus:ring-2 focus:ring-primary/20'
                         />
@@ -171,8 +176,9 @@ export default function UpdateMasterLeaveForm({ onSuccess, className = '', selec
                     <div className='grid grid-cols-1 gap-4 md:grid-cols-1'>
                         <InputTextarea
                             label='Leave Details'
+                            required
                             id='leaveDetails'
-                            {...register('leaveDetails')}
+                            {...register('leaveDetails', MASTER_LEAVE_VALIDATION.leaveDetails)}
                             error={errors.leaveDetails?.message}
                             rows={3}
                             className='transition-colors focus:ring-2 focus:ring-primary/20'

@@ -1,6 +1,5 @@
 'use client';
 
-import { Heading } from '@/components/layout/heading';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { DataTable } from '@/components/ui/data-table/data-table';
@@ -249,10 +248,6 @@ export default function Form10Page() {
 
     return (
         <div className='space-y-6'>
-            <div className='flex-between flex-wrap gap-4'>
-                <Heading title='PF Form 10' description='Annual Statement of Individual Employee Account in Provident Fund' />
-            </div>
-
             {/* Report Configuration Section */}
             <PFForm10Filters filters={filters} onFilterChange={handleFilterChange} onGenerate={handleGenerate} onCancel={handleCancel} />
 

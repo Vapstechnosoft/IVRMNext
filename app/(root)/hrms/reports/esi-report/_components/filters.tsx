@@ -55,8 +55,6 @@ export function ESIReportFilters({
 
     return (
         <CollapsibleSection
-            title='ESI REPORT'
-            description='Configure filters to generate ESI contribution analysis'
             defaultOpen={true}
             variant='default'
             size='lg'

@@ -359,8 +359,6 @@ export default function MassUpdationPage() {
         <div className='min-h-screen'>
             <div className='container space-y-4 p-1'>
                 <CollapsibleSection
-                    title='Search Criteria'
-                    description='Select filters to search for employees'
                     defaultOpen={true}
                     variant='default'
                     size='lg'
@@ -456,8 +454,6 @@ export default function MassUpdationPage() {
 
                 {hasSearched && (
                     <CollapsibleSection
-                        title='Employee Records'
-                        description={`Found ${filteredEmployees.length} employees`}
                         defaultOpen={true}
                         variant='default'
                         size='lg'

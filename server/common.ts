@@ -1418,38 +1418,14 @@ export async function getUserAccessibleModules() {
                                 pages: [
                                     {
                                         id: 1,
-                                        name: 'Leave Credit',
+                                        name: 'Leave Transfer',
                                         icon: 'Plus',
-                                        url: '/hrms/leave-management/transaction/leave-credit',
-                                        title: 'Leave Credit',
-                                        description: 'Credit Leave Balance'
+                                        url: '/hrms/leave-management/transaction/leave-transfer',
+                                        title: 'Leave Process',
+                                        description: 'Process Leave Balance'
                                     },
                                     {
                                         id: 2,
-                                        name: 'Leave Credit Addition',
-                                        icon: 'PlusCircle',
-                                        url: '/hrms/leave-management/transaction/leave-credit-addition',
-                                        title: 'Leave Credit Addition',
-                                        description: 'Add Leave Credits'
-                                    },
-                                    {
-                                        id: 3,
-                                        name: 'Leave Credit Deduction',
-                                        icon: 'MinusCircle',
-                                        url: '/hrms/leave-management/transaction/leave-credit-deduction',
-                                        title: 'Leave Credit Deduction',
-                                        description: 'Deduct Leave Credits'
-                                    },
-                                    {
-                                        id: 4,
-                                        name: 'Leave Carryforward',
-                                        icon: 'ArrowRight',
-                                        url: '/hrms/leave-management/transaction/leave-carryforward',
-                                        title: 'Leave Carryforward',
-                                        description: 'Carryforward Leave Balance'
-                                    },
-                                    {
-                                        id: 5,
                                         name: 'Comp Off Approval',
                                         icon: 'CheckSquare',
                                         url: '/hrms/leave-management/transaction/comp-off-approval',
@@ -1457,7 +1433,15 @@ export async function getUserAccessibleModules() {
                                         description: 'Approve Compensatory Off'
                                     },
                                     {
-                                        id: 6,
+                                        id: 3,
+                                        name: 'Comp Off Request',
+                                        icon: 'FileText',
+                                        url: '/hrms/leave-management/transaction/comp-off-request',
+                                        title: 'Comp Off Request',
+                                        description: 'Request Compensatory Off'
+                                    },
+                                    {
+                                        id: 4,
                                         name: 'Leave Credit Details',
                                         icon: 'Info',
                                         url: '/hrms/leave-management/transaction/leave-credit-details',
@@ -1465,7 +1449,7 @@ export async function getUserAccessibleModules() {
                                         description: 'View Leave Credit Details'
                                     },
                                     {
-                                        id: 7,
+                                        id: 5,
                                         name: 'Leave Credit Transaction',
                                         icon: 'List',
                                         url: '/hrms/leave-management/transaction/leave-credit-transaction',

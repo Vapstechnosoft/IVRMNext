@@ -251,8 +251,6 @@ export default function SalaryApprovalPage() {
             <div className='container space-y-4 p-1'>
                 {/* Search Form */}
                 <CollapsibleSection
-                    title='SALARY APPROVAL'
-                    description='Search and filter employee salary records for approval'
                     defaultOpen={true}
                     variant='outline'
                     size='lg'
@@ -422,8 +420,6 @@ export default function SalaryApprovalPage() {
                 {/* Employee List Table */}
                 {hasSearched && (
                     <CollapsibleSection
-                        title='EMPLOYEE LIST'
-                        description={`View and approve/reject employee salaries (${selectedEmployees.length} selected)`}
                         defaultOpen={true}
                         variant='default'
                         size='lg'

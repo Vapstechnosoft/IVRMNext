@@ -1,14 +1,17 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
+import { CalendarYear } from '@/components/ui/calendar_year';
 import { FormError } from '@/components/ui/extension/field';
-import { InputText } from '@/components/ui/extension/input-text';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { MultiSelect } from '@/components/ui/multi-select';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { employeeYearlyReportFilterSchema } from '@/schemas/hrms/attendance-management-schemas';
+import { cn } from '@/lib/utils';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { FileDown, Printer, RefreshCw, X } from 'lucide-react';
+import { format } from 'date-fns';
+import { CalendarIcon, FileDown, Printer, RefreshCw, X } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import type { z } from 'zod';
 
@@ -62,8 +65,6 @@ export function EmployeeYearlyReportFilters({
 
     return (
         <CollapsibleSection
-            title='EMPLOYEE YEARLY REPORT'
-            description='Configure filters to generate yearly attendance reports for employees'
             defaultOpen={true}
             variant='default'
             size='lg'
@@ -129,14 +130,17 @@ export function EmployeeYearlyReportFilters({
                         </Select>
                         {errors.allOrIndividual && <FormError>{errors.allOrIndividual.message}</FormError>}
                     </div>
+                    {/* Employee Dropdown - Only show when Individual is selected */}
                     {filters.allOrIndividual === 'Individual' && (
-                        <div className='md:col-span-6'>
+                        <div className='md:col-span-3'>
                             <label htmlFor='employee-select' className='font-medium text-sm'>
-                                Employee Name <span className='text-red-500'>*</span>
+                                Employee <span className='text-red-500'>*</span>
                             </label>
-                            <Select onValueChange={(value) => handleFilterChange('employee', value)} value={filters.employee}>
+                            <Select
+                                value={filters.employee || undefined}
+                                onValueChange={(value) => handleFilterChange('employee', value)}>
                                 <SelectTrigger id='employee-select' className={errors.employee ? 'border-red-500' : ''}>
-                                    <SelectValue placeholder='Select or Search Employee in list' />
+                                    <SelectValue placeholder='--Select--' />
                                 </SelectTrigger>
                                 <SelectContent>
                                     {employees.map((n) => (
@@ -153,36 +157,91 @@ export function EmployeeYearlyReportFilters({
                         <label htmlFor='from-date-input' className='font-medium text-sm'>
                             From Date <span className='text-red-500'>*</span>
                         </label>
-                        <InputText
-                            id='from-date-input'
-                            type='date'
-                            value={filters.fromDate}
-                            onChange={(e) => handleFilterChange('fromDate', e.target.value)}
-                            error={errors.fromDate?.message}
-                        />
+                        <Popover>
+                            <PopoverTrigger asChild>
+                                <Button
+                                    id='from-date-input'
+                                    variant='outline'
+                                    className={cn(
+                                        'mt-0 w-full justify-start text-left font-normal',
+                                        !filters.fromDate && 'text-muted-foreground',
+                                        errors.fromDate && 'border-red-500'
+                                    )}>
+                                    <CalendarIcon className='mr-2 h-4 w-4' />
+                                    {filters.fromDate ? format(new Date(filters.fromDate), 'dd-MM-yyyy') : 'Select date'}
+                                </Button>
+                            </PopoverTrigger>
+                            <PopoverContent className='w-auto p-0'>
+                                <CalendarYear
+                                    mode='single'
+                                    selected={filters.fromDate ? new Date(filters.fromDate) : undefined}
+                                    onDayClick={(day) => {
+                                        if (day) {
+                                            const dateStr = format(day, 'yyyy-MM-dd');
+                                            handleFilterChange('fromDate', dateStr);
+                                        }
+                                    }}
+                                    initialFocus
+                                />
+                            </PopoverContent>
+                        </Popover>
+                        {errors.fromDate && <FormError>{errors.fromDate.message}</FormError>}
                     </div>
                     <div className='md:col-span-3'>
                         <label htmlFor='to-date-input' className='font-medium text-sm'>
                             To Date <span className='text-red-500'>*</span>
                         </label>
-                        <InputText
-                            id='to-date-input'
-                            type='date'
-                            value={filters.toDate}
-                            onChange={(e) => handleFilterChange('toDate', e.target.value)}
-                            error={errors.toDate?.message}
-                            min={filters.fromDate || undefined}
+                        <Popover>
+                            <PopoverTrigger asChild>
+                                <Button
+                                    id='to-date-input'
+                                    variant='outline'
+                                    className={cn(
+                                        'mt-0 w-full justify-start text-left font-normal',
+                                        !filters.toDate && 'text-muted-foreground',
+                                        errors.toDate && 'border-red-500'
+                                    )}>
+                                    <CalendarIcon className='mr-2 h-4 w-4' />
+                                    {filters.toDate ? format(new Date(filters.toDate), 'dd-MM-yyyy') : 'Select date'}
+                                </Button>
+                            </PopoverTrigger>
+                            <PopoverContent className='w-auto p-0'>
+                                <CalendarYear
+                                    mode='single'
+                                    selected={filters.toDate ? new Date(filters.toDate) : undefined}
+                                    onDayClick={(day) => {
+                                        if (day) {
+                                            const dateStr = format(day, 'yyyy-MM-dd');
+                                            handleFilterChange('toDate', dateStr);
+                                        }
+                                    }}
+                                    fromDate={filters.fromDate ? new Date(filters.fromDate) : undefined}
+                                    initialFocus
+                                />
+                            </PopoverContent>
+                        </Popover>
+                        {errors.toDate && <FormError>{errors.toDate.message}</FormError>}
+                    </div>
+                    <div className='md:col-span-3'>
+                        <label htmlFor='mode-select' className='font-medium text-sm'>
+                            Mode
+                        </label>
+                        <MultiSelect
+                            options={[
+                                { label: 'Date Of Joining', value: 'Date Of Joining' },
+                                { label: 'Show Holiday Punch', value: 'Show Holiday Punch' },
+                                { label: 'Total working Day', value: 'Total working Day' }
+                            ]}
+                            onValueChange={(values) => handleFilterChange('mode', values)}
+                            defaultValue={filters.mode || []}
+                            placeholder='Select Mode'
+                            className='w-full'
+                            maxHeight={240}
                         />
                     </div>
-                    <div className='flex gap-2 md:col-span-12'>
-                        <Button type='submit'>
-                            <RefreshCw className='mr-2 h-4 w-4' /> Report
-                        </Button>
-                        <Button type='button' variant='outline' onClick={onExport}>
-                            <FileDown className='mr-2 h-4 w-4' /> Export to Excel
-                        </Button>
-                        <Button type='button' variant='outline' onClick={onPrint}>
-                            <Printer className='mr-2 h-4 w-4' /> Print
+                    <div className='flex items-end gap-2 md:col-span-12'>
+                        <Button type='submit' variant='default'>
+                            <RefreshCw className='mr-2 h-4 w-4' /> REPORT
                         </Button>
                         <Button type='button' variant='outline' onClick={onCancel}>
                             <X className='mr-2 h-4 w-4' /> CANCEL

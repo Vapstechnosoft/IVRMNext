@@ -228,10 +228,9 @@ export function MissingLogForm({ editingMissingLog, onSubmit, onCancel }: Missin
                                                     Input/Output
                                                 </label>
                                                 <Select
-                                                    id={`inOut-${index}`}
                                                     value={watch(`entries.${index}.inOut`)}
                                                     onValueChange={(value) => setValue(`entries.${index}.inOut`, value as 'IN' | 'OUT')}>
-                                                    <SelectTrigger className='w-full'>
+                                                    <SelectTrigger id={`inOut-${index}`} className='w-full'>
                                                         <SelectValue placeholder='Select' />
                                                     </SelectTrigger>
                                                     <SelectContent>
@@ -256,10 +255,9 @@ export function MissingLogForm({ editingMissingLog, onSubmit, onCancel }: Missin
                                             />
                                             <Button
                                                 type='button'
-                                                variant='outline'
+                                                variant='warning'
                                                 size='sm'
-                                                onClick={() => document.getElementById(`upload-${index}`)?.click()}
-                                                className='bg-yellow-500 text-white hover:bg-yellow-600'>
+                                                onClick={() => document.getElementById(`upload-${index}`)?.click()}>
                                                 <Upload className='mr-2 h-4 w-4' /> Choose File
                                             </Button>
                                             {watch(`entries.${index}.file`) && (

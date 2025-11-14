@@ -1,6 +1,5 @@
 'use client';
 
-import { Heading } from '@/components/layout/heading';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { DataTable } from '@/components/ui/data-table/data-table';
@@ -373,12 +372,6 @@ export default function AdvanceReportPage() {
 
     return (
         <div className='space-y-6'>
-            <div className='flex-between flex-wrap gap-4'>
-                <Heading
-                    title='Employee Advance Report'
-                    description='Comprehensive report for employee advance requests, approvals, and recovery status'
-                />
-            </div>
 
             {/* Report Configuration Section */}
             <AdvanceReportFilters

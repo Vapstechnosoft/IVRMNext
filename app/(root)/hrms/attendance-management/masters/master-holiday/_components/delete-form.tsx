@@ -24,8 +24,11 @@ export default function DeleteMasterHolidayForm({ rowData, onClose }: DeleteMast
         reset,
         formState: { errors, isSubmitting }
     } = useForm<{ id: number }>({
-        resolver: zodResolver(z.object({ id: z.number() })),
-        mode: 'onChange'
+        resolver: zodResolver(z.object({ id: z.coerce.number() })),
+        mode: 'onChange',
+        defaultValues: {
+            id: Number(rowData.id) || 0
+        }
     });
 
     function closeDialog() {
@@ -34,7 +37,12 @@ export default function DeleteMasterHolidayForm({ rowData, onClose }: DeleteMast
     }
 
     const onSubmit: SubmitHandler<{ id: number }> = async () => {
-        deleteMasterHoliday(rowData.id, {
+        const idToDelete = Number(rowData.id);
+        if (isNaN(idToDelete) || idToDelete === 0) {
+            console.error('Invalid ID for deletion:', rowData.id);
+            return;
+        }
+        deleteMasterHoliday(idToDelete, {
             onSuccess: () => {
                 refetchAll();
                 closeDialog();
@@ -46,7 +54,7 @@ export default function DeleteMasterHolidayForm({ rowData, onClose }: DeleteMast
         <AdaptiveDialog title='Delete Master Holiday' isOpen={true} onClose={closeDialog}>
             <form onSubmit={handleSubmit(onSubmit)} className='flex flex-col gap-4'>
                 <AdaptiveBody className='flex flex-col gap-5'>
-                    <input type='hidden' {...register('id')} defaultValue={rowData.id} />
+                    <input type='hidden' {...register('id')} />
                     <p>
                         Are you sure you want to delete <strong>{rowData.name}</strong>?
                     </p>

@@ -167,8 +167,6 @@ function SalaryUpdationPageContent({
 
                 {/* Search Form */}
                 <CollapsibleSection
-                    title='SALARY UPDATION'
-                    description='Search and filter employee salary records'
                     defaultOpen={true}
                     variant='outline'
                     size='lg'
@@ -335,8 +333,6 @@ function SalaryUpdationPageContent({
 
                 {hasSearched && (
                     <CollapsibleSection
-                        title='EMPLOYEE SALARY UPDATION'
-                        description={`View and update employee salary records (${selectedEmployees.length} selected)`}
                         defaultOpen={true}
                         variant='default'
                         size='lg'

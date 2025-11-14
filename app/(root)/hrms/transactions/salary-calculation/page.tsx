@@ -224,8 +224,6 @@ export default function SalaryCalculationPage() {
             <div className='container space-y-4 p-1'>
                 {/* Search Form */}
                 <CollapsibleSection
-                    title='SALARY CALCULATION'
-                    description='Search and filter employee salary records'
                     defaultOpen={true}
                     variant='outline'
                     size='lg'
@@ -373,8 +371,6 @@ export default function SalaryCalculationPage() {
                 {/* Employee List Table */}
                 {hasSearched && (
                     <CollapsibleSection
-                        title='EMPLOYEE LIST'
-                        description={`View and calculate employee salaries (${selectedEmployees.length} selected)`}
                         defaultOpen={true}
                         variant='default'
                         size='lg'

@@ -6,6 +6,7 @@ import { FormError } from '@/components/ui/extension/field';
 import { InputText } from '@/components/ui/extension/input-text';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useLeaveAuthorization, useUpdateLeaveAuthorization } from '@/hooks/hrms/leave-management/useMasters';
+import { LEAVE_AUTHORIZATION_VALIDATION } from '@/lib/validation/hrms-master-validation';
 import { Save } from 'lucide-react';
 import { useEffect } from 'react';
 import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
@@ -92,7 +93,7 @@ export default function UpdateLeaveAuthorizationForm({ onSuccess, className = ''
                         <Controller
                             name='gradeName'
                             control={control}
-                            rules={{ required: 'Grade is required' }}
+                            rules={LEAVE_AUTHORIZATION_VALIDATION.gradeName}
                             render={({ field }) => (
                                 <div>
                                     <label htmlFor='grade-select' className='mb-2 block font-medium text-gray-700 text-sm'>
@@ -117,7 +118,7 @@ export default function UpdateLeaveAuthorizationForm({ onSuccess, className = ''
                         <Controller
                             name='groupTypeName'
                             control={control}
-                            rules={{ required: 'Group type is required' }}
+                            rules={LEAVE_AUTHORIZATION_VALIDATION.groupTypeName}
                             render={({ field }) => (
                                 <div>
                                     <label htmlFor='group-type-select' className='mb-2 block font-medium text-gray-700 text-sm'>
@@ -142,7 +143,7 @@ export default function UpdateLeaveAuthorizationForm({ onSuccess, className = ''
                         <Controller
                             name='departmentName'
                             control={control}
-                            rules={{ required: 'Department is required' }}
+                            rules={LEAVE_AUTHORIZATION_VALIDATION.departmentName}
                             render={({ field }) => (
                                 <div>
                                     <label htmlFor='department-select' className='mb-2 block font-medium text-gray-700 text-sm'>
@@ -168,7 +169,7 @@ export default function UpdateLeaveAuthorizationForm({ onSuccess, className = ''
                         <Controller
                             name='designationName'
                             control={control}
-                            rules={{ required: 'Designation is required' }}
+                            rules={LEAVE_AUTHORIZATION_VALIDATION.designationName}
                             render={({ field }) => (
                                 <div>
                                     <label htmlFor='designation-select' className='mb-2 block font-medium text-gray-700 text-sm'>
@@ -201,7 +202,7 @@ export default function UpdateLeaveAuthorizationForm({ onSuccess, className = ''
                         <Controller
                             name='leaveType'
                             control={control}
-                            rules={{ required: 'Leave type is required' }}
+                            rules={LEAVE_AUTHORIZATION_VALIDATION.leaveType}
                             render={({ field }) => (
                                 <div>
                                     <label htmlFor='leave-type-select' className='mb-2 block font-medium text-gray-700 text-sm'>
@@ -225,38 +226,20 @@ export default function UpdateLeaveAuthorizationForm({ onSuccess, className = ''
                             )}
                         />
 
-                        <Controller
-                            name='orderOfApproval'
-                            control={control}
-                            rules={{ required: 'Order of approval is required' }}
-                            render={({ field }) => (
-                                <div>
-                                    <label htmlFor='order-approval-select' className='mb-2 block font-medium text-gray-700 text-sm'>
-                                        Order Of Approval <span className='text-red-500'>*</span>
-                                    </label>
-                                    <Select value={field.value} onValueChange={field.onChange}>
-                                        <SelectTrigger
-                                            id='order-approval-select'
-                                            className={errors.orderOfApproval ? 'border-red-500' : ''}>
-                                            <SelectValue placeholder='--Select--' />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            <SelectItem value='1'>1</SelectItem>
-                                            <SelectItem value='2'>2</SelectItem>
-                                            <SelectItem value='3'>3</SelectItem>
-                                            <SelectItem value='4'>4</SelectItem>
-                                            <SelectItem value='5'>5</SelectItem>
-                                        </SelectContent>
-                                    </Select>
-                                    {errors.orderOfApproval && <FormError>{errors.orderOfApproval.message}</FormError>}
-                                </div>
-                            )}
+                        <InputText
+                            label='Order of Approval'
+                            required
+                            id='orderOfApproval'
+                            type='number'
+                            {...register('orderOfApproval', LEAVE_AUTHORIZATION_VALIDATION.orderOfApproval)}
+                            error={errors.orderOfApproval?.message}
+                            className='transition-colors focus:ring-2 focus:ring-primary/20'
                         />
 
                         <Controller
                             name='approvalPerson'
                             control={control}
-                            rules={{ required: 'Approval person is required' }}
+                            rules={LEAVE_AUTHORIZATION_VALIDATION.approvalPerson}
                             render={({ field }) => (
                                 <div>
                                     <label htmlFor='approval-person-select' className='mb-2 block font-medium text-gray-700 text-sm'>

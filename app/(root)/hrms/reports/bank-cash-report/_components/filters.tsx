@@ -53,8 +53,6 @@ export function BankCashReportFilters({
 
     return (
         <CollapsibleSection
-            title='BANK/CASH REPORT CONFIGURATION'
-            description='Configure filters to generate bank and cash payment reports'
             defaultOpen={true}
             variant='default'
             size='lg'

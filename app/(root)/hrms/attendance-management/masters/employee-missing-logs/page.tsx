@@ -90,8 +90,6 @@ function FormSections() {
             {isAddFormOpen && (
                 <div ref={addFormRef}>
                     <CollapsibleSection
-                        title='Add New Employee Missing Log'
-                        description='Fill in the details below to create a new employee missing log'
                         defaultOpen={true}
                         variant='outline'
                         size='md'
@@ -115,7 +113,6 @@ function FormSections() {
             {isEditFormOpen && selectedRow && (
                 <div ref={editFormRef}>
                     <CollapsibleSection
-                        title='Edit Employee Missing Log'
                         defaultOpen={true}
                         variant='outline'
                         size='md'
@@ -137,3 +134,4 @@ function FormSections() {
         </>
     );
 }
+

@@ -29,7 +29,15 @@ export async function getEmployeeInOutReport(filters?: EmployeeInOutReportFilter
                     ? r.employeeCode.includes(filters.query)
                     : r.employeeName.toLowerCase().includes(filters.query.toLowerCase())
                 : true;
-        const okTimeInOut = filters.timeInTimeOut ? (filters.timeInTimeOut === 'Time In' ? r.timeIn : r.timeOut) : true;
+        const okTimeInOut = filters.timeInTimeOut
+            ? filters.timeInTimeOut === 'Time In'
+                ? r.timeIn
+                : filters.timeInTimeOut === 'Time Out'
+                  ? r.timeOut
+                  : filters.timeInTimeOut === 'In Out'
+                    ? r.timeIn && r.timeOut
+                    : true
+            : true;
         return okBranch && okType && okDept && okDesg && okDateFrom && okDateTo && okQuery && okTimeInOut;
     });
 

@@ -1,6 +1,5 @@
 'use client';
 
-import { Heading } from '@/components/layout/heading';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { DataTable } from '@/components/ui/data-table/data-table';
@@ -303,10 +302,6 @@ export default function Form5Page() {
 
     return (
         <div className='space-y-6'>
-            <div className='flex-between flex-wrap gap-4'>
-                <Heading title='PF Form 5' description='Register of Employees under the Employees Provident Fund Scheme' />
-            </div>
-
             {/* Report Configuration Section */}
             <PFForm5Filters filters={filters} onFilterChange={handleFilterChange} onGenerate={handleGenerate} onCancel={handleCancel} />
 

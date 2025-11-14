@@ -1,9 +1,9 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
-import { Checkbox } from '@/components/ui/checkbox';
 import { FormError } from '@/components/ui/extension/field';
 import { InputText } from '@/components/ui/extension/input-text';
+import { MultiSelect } from '@/components/ui/multi-select';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useLeaveCredit, useUpdateLeaveCredit } from '@/hooks/hrms/leave-management/useTransactions';
@@ -18,15 +18,29 @@ interface UpdateLeaveCreditFormProps {
     selectedRow: LeaveCredit;
 }
 
-const typeOptions = ['VKS', 'Permanent', 'ELearning', 'Robotic', 'Internship', 'Management Admin'];
-const departmentOptions = ['Hardware and Network', 'Sales', 'Human Resource', 'Admin', 'LEGAL', 'IT Team'];
+const typeOptions = [
+    { label: 'VKS', value: 'VKS' },
+    { label: 'Permanent', value: 'Permanent' },
+    { label: 'ELearning', value: 'ELearning' },
+    { label: 'Robotic', value: 'Robotic' },
+    { label: 'Internship', value: 'Internship' },
+    { label: 'Management Admin', value: 'Management Admin' }
+];
+const departmentOptions = [
+    { label: 'Hardware and Network', value: 'Hardware and Network' },
+    { label: 'Sales', value: 'Sales' },
+    { label: 'Human Resource', value: 'Human Resource' },
+    { label: 'Admin', value: 'Admin' },
+    { label: 'LEGAL', value: 'LEGAL' },
+    { label: 'IT Team', value: 'IT Team' }
+];
 const designationOptions = [
-    'Computer Faculty',
-    'E-learning coordinator',
-    'Accounts and Finance Executive',
-    'Client acquisition manager',
-    'Sr HR Executive',
-    'Manager HR'
+    { label: 'Computer Faculty', value: 'Computer Faculty' },
+    { label: 'E-learning coordinator', value: 'E-learning coordinator' },
+    { label: 'Accounts and Finance Executive', value: 'Accounts and Finance Executive' },
+    { label: 'Client acquisition manager', value: 'Client acquisition manager' },
+    { label: 'Sr HR Executive', value: 'Sr HR Executive' },
+    { label: 'Manager HR', value: 'Manager HR' }
 ];
 
 export default function UpdateLeaveCreditForm({ onSuccess, className = '', selectedRow: row }: UpdateLeaveCreditFormProps) {
@@ -77,42 +91,6 @@ export default function UpdateLeaveCreditForm({ onSuccess, className = '', selec
         );
     };
 
-    const handleTypeChange = (type: string, checked: boolean) => {
-        const currentTypes = watch('type');
-        if (checked) {
-            setValue('type', [...currentTypes, type]);
-        } else {
-            setValue(
-                'type',
-                currentTypes.filter((t) => t !== type)
-            );
-        }
-    };
-
-    const handleDepartmentChange = (dept: string, checked: boolean) => {
-        const currentDepts = watch('department');
-        if (checked) {
-            setValue('department', [...currentDepts, dept]);
-        } else {
-            setValue(
-                'department',
-                currentDepts.filter((d) => d !== dept)
-            );
-        }
-    };
-
-    const handleDesignationChange = (desig: string, checked: boolean) => {
-        const currentDesigs = watch('designation');
-        if (checked) {
-            setValue('designation', [...currentDesigs, desig]);
-        } else {
-            setValue(
-                'designation',
-                currentDesigs.filter((d) => d !== desig)
-            );
-        }
-    };
-
     const handleReset = () => {
         reset();
     };
@@ -131,111 +109,60 @@ export default function UpdateLeaveCreditForm({ onSuccess, className = '', selec
                     <form onSubmit={handleSubmit(onSubmit)} className='space-y-4'>
                         <div className='grid grid-cols-1 gap-4 md:grid-cols-3'>
                             <div>
-                                <label htmlFor='type-checkboxes' className='font-medium text-sm'>
+                                <label htmlFor='type-multiselect' className='font-medium text-sm mb-2 block'>
                                     Type
                                 </label>
-                                <div id='type-checkboxes' className='max-h-32 overflow-y-auto rounded-md border border-gray-300 p-2'>
-                                    <div className='mb-2 flex items-center space-x-2'>
-                                        <Checkbox
-                                            id='type-all'
-                                            checked={watch('type').length === typeOptions.length}
-                                            onCheckedChange={(checked) => {
-                                                if (checked) {
-                                                    setValue('type', typeOptions);
-                                                } else {
-                                                    setValue('type', []);
-                                                }
-                                            }}
+                                <Controller
+                                    name='type'
+                                    control={control}
+                                    render={({ field }) => (
+                                        <MultiSelect
+                                            id='type-multiselect'
+                                            options={typeOptions}
+                                            onValueChange={field.onChange}
+                                            defaultValue={field.value || []}
+                                            placeholder='Select Type'
                                         />
-                                        <label htmlFor='type-all' className='font-medium text-sm'>
-                                            Type: All
-                                        </label>
-                                    </div>
-                                    {typeOptions.map((type) => (
-                                        <div key={type} className='flex items-center space-x-2'>
-                                            <Checkbox
-                                                id={`type-${type}`}
-                                                checked={watch('type').includes(type)}
-                                                onCheckedChange={(checked) => handleTypeChange(type, checked as boolean)}
-                                            />
-                                            <label htmlFor={`type-${type}`} className='text-sm'>
-                                                {type}
-                                            </label>
-                                        </div>
-                                    ))}
-                                </div>
+                                    )}
+                                />
                             </div>
 
                             <div>
-                                <label htmlFor='department-checkboxes' className='font-medium text-sm'>
+                                <label htmlFor='department-multiselect' className='font-medium text-sm mb-2 block'>
                                     Department
                                 </label>
-                                <div id='department-checkboxes' className='max-h-32 overflow-y-auto rounded-md border border-gray-300 p-2'>
-                                    <div className='mb-2 flex items-center space-x-2'>
-                                        <Checkbox
-                                            id='dept-all'
-                                            checked={watch('department').length === departmentOptions.length}
-                                            onCheckedChange={(checked) => {
-                                                if (checked) {
-                                                    setValue('department', departmentOptions);
-                                                } else {
-                                                    setValue('department', []);
-                                                }
-                                            }}
+                                <Controller
+                                    name='department'
+                                    control={control}
+                                    render={({ field }) => (
+                                        <MultiSelect
+                                            id='department-multiselect'
+                                            options={departmentOptions}
+                                            onValueChange={field.onChange}
+                                            defaultValue={field.value || []}
+                                            placeholder='Select Department'
                                         />
-                                        <label htmlFor='dept-all' className='font-medium text-sm'>
-                                            Department: All
-                                        </label>
-                                    </div>
-                                    {departmentOptions.map((dept) => (
-                                        <div key={dept} className='flex items-center space-x-2'>
-                                            <Checkbox
-                                                id={`dept-${dept}`}
-                                                checked={watch('department').includes(dept)}
-                                                onCheckedChange={(checked) => handleDepartmentChange(dept, checked as boolean)}
-                                            />
-                                            <label htmlFor={`dept-${dept}`} className='text-sm'>
-                                                {dept}
-                                            </label>
-                                        </div>
-                                    ))}
-                                </div>
+                                    )}
+                                />
                             </div>
 
                             <div>
-                                <label htmlFor='designation-checkboxes' className='font-medium text-sm'>
+                                <label htmlFor='designation-multiselect' className='font-medium text-sm mb-2 block'>
                                     Designation
                                 </label>
-                                <div id='designation-checkboxes' className='max-h-32 overflow-y-auto rounded-md border border-gray-300 p-2'>
-                                    <div className='mb-2 flex items-center space-x-2'>
-                                        <Checkbox
-                                            id='desig-all'
-                                            checked={watch('designation').length === designationOptions.length}
-                                            onCheckedChange={(checked) => {
-                                                if (checked) {
-                                                    setValue('designation', designationOptions);
-                                                } else {
-                                                    setValue('designation', []);
-                                                }
-                                            }}
+                                <Controller
+                                    name='designation'
+                                    control={control}
+                                    render={({ field }) => (
+                                        <MultiSelect
+                                            id='designation-multiselect'
+                                            options={designationOptions}
+                                            onValueChange={field.onChange}
+                                            defaultValue={field.value || []}
+                                            placeholder='Select Designation'
                                         />
-                                        <label htmlFor='desig-all' className='font-medium text-sm'>
-                                            Designation: All
-                                        </label>
-                                    </div>
-                                    {designationOptions.map((desig) => (
-                                        <div key={desig} className='flex items-center space-x-2'>
-                                            <Checkbox
-                                                id={`desig-${desig}`}
-                                                checked={watch('designation').includes(desig)}
-                                                onCheckedChange={(checked) => handleDesignationChange(desig, checked as boolean)}
-                                            />
-                                            <label htmlFor={`desig-${desig}`} className='text-sm'>
-                                                {desig}
-                                            </label>
-                                        </div>
-                                    ))}
-                                </div>
+                                    )}
+                                />
                             </div>
                         </div>
 
@@ -302,7 +229,7 @@ export default function UpdateLeaveCreditForm({ onSuccess, className = '', selec
                             />
 
                             <InputText
-                                label='Leave Credit'
+                                label='Leave Transfer'
                                 id='leave-credit-input'
                                 type='number'
                                 step='0.5'
@@ -326,7 +253,7 @@ export default function UpdateLeaveCreditForm({ onSuccess, className = '', selec
                             <Button type='button' variant='outline' onClick={handleReset} disabled={isPending || isSubmitting}>
                                 Reset
                             </Button>
-                            <Button type='submit' disabled={isPending || isSubmitting} className='bg-blue-600 hover:bg-blue-700'>
+                            <Button type='submit' disabled={isPending || isSubmitting} variant='default'>
                                 <Save className='mr-2 h-4 w-4' />
                                 {isPending || isSubmitting ? 'Updating...' : 'Update'}
                             </Button>
@@ -349,3 +276,4 @@ export default function UpdateLeaveCreditForm({ onSuccess, className = '', selec
         </div>
     );
 }
+
