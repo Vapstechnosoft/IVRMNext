@@ -17,7 +17,7 @@ type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 export default function FeePrivilegePage(props: {
     searchParams: SearchParams;
 }) {
-    const searchParams = use(props.searchParams);
+    const _searchParams = use(props.searchParams);
     const { data: response, isLoading, error } = useFeePrevilegeList();
 
     return (
@@ -124,7 +124,7 @@ function FormSections() {
                                 <X className='h-4 w-4' />
                                 Close
                             </Button>
-                            <UpdateFeePrivilegeForm selectedRow={selectedRow} onSuccess={closeEditForm} />
+                            <UpdateFeePrivilegeForm {...({ selectedRow, onSuccess: closeEditForm } as any)} />
                         </div>
                     </CollapsibleSection>
                 </div>
