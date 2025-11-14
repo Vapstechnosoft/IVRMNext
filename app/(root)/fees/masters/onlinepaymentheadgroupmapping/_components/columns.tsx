@@ -9,22 +9,6 @@ import { useCallback } from 'react';
 import { toast } from 'sonner';
 
 export const masterClassYearlyCategoryColumns: ColumnDef<IMasterOnlinePaymentHeadgroupList>[] = [
-    // {
-    //     id: 'select',
-    //     header: ({ table }) => (
-    //         <Checkbox
-    //             checked={table.getIsAllPageRowsSelected() || (table.getIsSomePageRowsSelected() && 'indeterminate')}
-    //             onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
-    //             aria-label='Select all'
-    //         />
-    //     ),
-    //     cell: ({ row }) => (
-    //         <Checkbox checked={row.getIsSelected()} onCheckedChange={(value) => row.toggleSelected(!!value)} aria-label='Select row' />
-    //     ),
-    //     enableSorting: false,
-    //     enableHiding: false,
-    //     size: 24
-    // },
     {
         accessorKey: 'fopM_Id',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Sl. No' className='pl-6' />,
@@ -79,31 +63,27 @@ function ActionButtonsCell({
 }: {
     rowData: IMasterOnlinePaymentHeadgroupList;
 }) {
-    const { openToggleForm, openEditForm } = useFormContext<IMasterOnlinePaymentHeadgroupList>();
+    const { openToggleForm, openEditForm, openDeleteForm } = useFormContext<IMasterOnlinePaymentHeadgroupList>();
 
     const handleToggle = useCallback((data: IMasterOnlinePaymentHeadgroupList) => openToggleForm(data), [openToggleForm]);
 
     const handleEdit = useCallback(
         async (data: IMasterOnlinePaymentHeadgroupList) => {
             try {
-                // Get the fopM_Id from the data - this is the primary key
                 const fopM_Id = data.fopM_Id;
-
-                // Fetch the complete edit data from API
                 const response = await getOnlinePaymentHeadGroupEdit(fopM_Id);
 
                 if (response?.success && response?.data) {
                     const dataArray = (response as any).data;
                     const apiData = dataArray[0];
 
-                    // Transform the API data to the format expected by the update form
                     const transformedData = {
                         fopM_Id: apiData.fopM_Id,
-                        asmaY_Id: 176, // Replace with actual value from API if available
+                        asmaY_Id: 176,
                         asmcL_ID: apiData.asmcL_Id,
                         className: data.className,
                         fpgd_id: apiData.fpgd_id,
-                        submerchandId: data.subMerchantId,
+                        subMerchantId: data.subMerchantId,
                         fmg_id: apiData.fmg_id,
                         groupName: data.groupName,
                         fmh_HeadId: apiData.fmH_Id,
@@ -127,12 +107,21 @@ function ActionButtonsCell({
         [openEditForm]
     );
 
+    // Delete Handler
+    const handleDelete = useCallback(
+        async (data: IMasterOnlinePaymentHeadgroupList) => {
+            openDeleteForm(data);
+        },
+        [openDeleteForm]
+    );
+
     return (
         <ActionButtons
             rowData={rowData}
-            buttons={{ edit: true }}
+            buttons={{ edit: true, delete: true }} // Delete button added
             onEdit={handleEdit}
             onToggle={handleToggle}
+            onDelete={handleDelete} // Pass delete handler
             toggleConditionKey='fycC_ActiveFlag'
         />
     );

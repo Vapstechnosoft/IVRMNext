@@ -5,6 +5,7 @@ import { FormError, Label } from '@/components/ui/extension/field';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import {
     useInstituteDropDown,
+    useMasterFeeOnlinePaymentHeadGroupTable,
     useMasterOnlinePaymentHeadGroup,
     useMasterOnlinePaymentHeadGroupClass,
     useMasterOnlinePaymentHeadGroupGroupName,
@@ -50,6 +51,7 @@ interface UpdateFormProps {
 
 export default function UpdateMasterOnlinePaymentHeadGroupMappingForm({ onSuccess, className = '', selectedRow }: UpdateFormProps) {
     // Local state
+    const { refetchAll } = useMasterFeeOnlinePaymentHeadGroupTable();
     const [academicYear, setAcademicYear] = useState<number | null>(selectedRow?.asmaY_Id || null);
     const [classId, setClassId] = useState<number | null>(selectedRow?.asmcL_ID || null);
     const [subMerchantId, setSubMerchantId] = useState<number | null>(selectedRow?.fpgd_id || null);
@@ -141,11 +143,8 @@ export default function UpdateMasterOnlinePaymentHeadGroupMappingForm({ onSucces
 
     // Populate institute
     useEffect(() => {
-        const first = instituteData?.data?.[0];
-        if (first) {
-            setValue('institutionName', first.mI_Name ?? '');
-        }
-    }, [instituteData, setValue]);
+        setValue('institutionName', 'vidya_vikas_vidya_samste');
+    }, [setValue]);
 
     // Refetch heads on group/academic year change
     useEffect(() => {
@@ -323,6 +322,7 @@ export default function UpdateMasterOnlinePaymentHeadGroupMappingForm({ onSucces
             const response = await addMasterOnlinePaymentHeadGroup(payload);
             if (response.success) {
                 toast.success(response.message || 'Online Payment Head Group updated successfully');
+                await refetchAll();
                 onSuccess?.();
             } else {
                 toast.error(response.message || 'Failed to update');
@@ -372,24 +372,12 @@ export default function UpdateMasterOnlinePaymentHeadGroupMappingForm({ onSucces
                                 name='institutionName'
                                 control={control}
                                 render={({ field }) => (
-                                    <Select value={field.value} disabled>
+                                    <Select value={field.value || 'vidya_vikas_vidya_samste'} disabled>
                                         <SelectTrigger className='w-full'>
-                                            <SelectValue
-                                                placeholder={
-                                                    instituteLoading
-                                                        ? 'Loading...'
-                                                        : ((instituteData?.data?.[0] as any)?.mI_Name ?? 'Vidya Vikas Vidya Samste (R)')
-                                                }
-                                            />
+                                            <SelectValue placeholder='Vidya Vikas Vidya Samste (R)' />
                                         </SelectTrigger>
                                         <SelectContent>
-                                            {instituteLoading ? (
-                                                <SelectItem value='loading' disabled>
-                                                    Loading...
-                                                </SelectItem>
-                                            ) : (
-                                                <SelectItem value='vidya_vikas_vidya_samste'>Vidya Vikas Vidya Samste (R)</SelectItem>
-                                            )}
+                                            <SelectItem value='vidya_vikas_vidya_samste'>Vidya Vikas Vidya Samste (R)</SelectItem>
                                         </SelectContent>
                                     </Select>
                                 )}

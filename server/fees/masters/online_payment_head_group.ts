@@ -62,3 +62,8 @@ export async function getOnlinePaymentHeadGroupEdit(fopM_Id: number) {
     const url = `/OnlinePaymentHeadGroupMapping/edit/${fopM_Id}`;
     return await api.get<IFeeOnlinehaedgroupMappingList[]>('fees', url);
 }
+
+export async function deleteOnlinePaymentHeadGroup(fopM_Id: number) {
+    const url = `/OnlinePaymentHeadGroupMapping/deleteDetails/${fopM_Id}`;
+    return await api.put('fees', url);
+}

@@ -10,6 +10,7 @@ import { Plus, X } from 'lucide-react';
 import { use } from 'react';
 import AddMasterOnlinePaymentHeadGroupForm from './_components/add-form';
 import { masterClassYearlyCategoryColumns } from './_components/columns';
+import DeleteMasterOnlinePaymentHeadGroupForm from './_components/delete-form';
 import UpdateMasterOnlinePaymentHeadGroupMappingForm from './_components/update-form';
 
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
@@ -81,8 +82,17 @@ function MasterFeeheadPageContent({
 }
 
 function FormSections() {
-    const { isAddFormOpen, isEditFormOpen, selectedRow, closeAddForm, closeEditForm, addFormRef, editFormRef } =
-        useFormContext<IMasterOnlinePaymentHeadgroupList>();
+    const {
+        isAddFormOpen,
+        isEditFormOpen,
+        isDeleteFormOpen,
+        selectedRow,
+        closeAddForm,
+        closeEditForm,
+        closeDeleteForm,
+        addFormRef,
+        editFormRef
+    } = useFormContext<IMasterOnlinePaymentHeadgroupList>();
 
     return (
         <>
@@ -137,11 +147,21 @@ function FormSections() {
 
             {/* Toggle Form */}
             {/* {isToggleFormOpen && selectedRow && (
-        <ToggleMasterOnlinePaymentHeadGroupForm
-          rowData={selectedRow}
-          onClose={closeToggleForm}
-        />
-      )} */}
+                <ToggleMasterOnlinePaymentHeadGroupForm
+                    rowData={selectedRow}
+                    onClose={closeToggleForm}
+                />
+            )} */}
+            {/* Delete Form */}
+            {isDeleteFormOpen && selectedRow && (
+                <DeleteMasterOnlinePaymentHeadGroupForm
+                    rowData={selectedRow}
+                    onClose={closeDeleteForm}
+                    onSuccess={() => {
+                        closeDeleteForm();
+                    }}
+                />
+            )}
         </>
     );
 }

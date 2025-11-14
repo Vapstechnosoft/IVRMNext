@@ -5,6 +5,7 @@ import { FormError, Label } from '@/components/ui/extension/field';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import {
     useInstituteDropDown,
+    useMasterFeeOnlinePaymentHeadGroupTable,
     useMasterOnlinePaymentHeadGroup,
     useMasterOnlinePaymentHeadGroupClass,
     useMasterOnlinePaymentHeadGroupGroupName,
@@ -30,11 +31,9 @@ interface AddMasterOnlinePaymentHeadGroupFormProps {
 }
 
 export default function AddMasterOnlinePaymentHeadGroupForm({ onSuccess, className = '' }: AddMasterOnlinePaymentHeadGroupFormProps) {
-    // Institute dropdown
+    const { refetchAll } = useMasterFeeOnlinePaymentHeadGroupTable();
     const { data: instituteData, isLoading: instituteLoading, error: instituteError } = useInstituteDropDown();
 
-    // populate institution fields when data arrives (show name & set id)
-    // moved below until useForm is initialized so setValue is available
     const [academicYear, setAcademicYear] = useState<number | null>(null);
     const [classId, setClassId] = useState<number | null>(null);
     const [subMerchantId, setSubMerchantId] = useState<number | null>(null);
@@ -294,6 +293,7 @@ export default function AddMasterOnlinePaymentHeadGroupForm({ onSuccess, classNa
 
             if (response.success) {
                 toast.success(response.message || 'Online Payment Head Group added successfully');
+                await refetchAll();
                 handleReset();
                 onSuccess?.();
             } else {

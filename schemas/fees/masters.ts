@@ -547,7 +547,7 @@ export const masterOnlinePaymentHeadGroupSchema = {
         academicYear: z.string().optional()
     }),
     delete: z.object({
-        fmcC_Id: deleteIdSchema('fmcC_Id')
+        fopM_Id: deleteIdSchema('fopM_Id')
     })
 };
 
