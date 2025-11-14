@@ -23,6 +23,7 @@ import type { IAcademicYearDropDown } from '@/types/admission/preadmission/maste
 import type { IExamSubjectWizard } from '@/types/exam/exam-module/exam-mapping';
 import type { ICategory, IMasterGrade } from '@/types/exam/exam-module/masters';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { format, parse } from 'date-fns';
 import { useEffect, useState } from 'react';
 import { Controller, FormProvider, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
@@ -127,20 +128,28 @@ export default function AddExamSubjectWizard({ onSuccess, rowData }: { onSuccess
     // when rowData (edit) is provided, populate top-level fields
     useEffect(() => {
         if (!rowData) return;
+        console.log(rowData);
 
         setValue('EYCE_Id', rowData.eycE_Id || 0);
         setValue('ASMAY_Id', rowData.asmaY_Id ?? rowData.asmaY_Id ?? undefined);
         setValue('EYC_Id', rowData.eyC_Id ?? undefined);
         setValue('EMCA_Id', rowData.emcA_Id ?? undefined);
         setValue('EMGR_Id', rowData.emgR_Id ?? undefined);
-        setValue('EYCE_AttendanceFromDate', rowData.eycE_AttendanceFromDate ?? '');
-        setValue('EYCE_AttendanceToDate', rowData.eycE_AttendanceToDate ?? '');
+        setValue(
+            'EYCE_AttendanceFromDate',
+            rowData.eycE_AttendanceFromDate ? format(parse(rowData.eycE_AttendanceFromDate, 'dd/MM/yyyy', new Date()), 'yyyy-MM-dd') : ''
+        );
+
+        setValue(
+            'EYCE_AttendanceToDate',
+            rowData.eycE_AttendanceToDate ? format(parse(rowData.eycE_AttendanceToDate, 'dd/MM/yyyy', new Date()), 'yyyy-MM-dd') : ''
+        );
         setValue('EYCE_SubExamFlg', rowData.eycE_SubExamFlg ?? false);
         setValue('EYCE_SubSubjectFlg', rowData.eycE_SubSubjectFlg ?? false);
         setValue('EYCE_ActiveFlg', rowData.eycE_ActiveFlg ?? true);
         setValue('EYCE_BestOfApplicableFlg', rowData.eycE_BestOfApplicableFlg ?? false);
         setValue('EYCE_BestOf', rowData.eycE_BestOf ?? undefined);
-    }, [rowData, setValue]);
+    }, [rowData, setValue, academicYears, gradeList, exams]);
 
     // when academic year changes -> fetch categories for that year
     useEffect(() => {

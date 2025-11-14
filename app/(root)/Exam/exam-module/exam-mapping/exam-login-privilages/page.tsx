@@ -76,8 +76,17 @@ function ExamLoginPrivilegesPageContent({
 }
 
 function FormSections() {
-    const { isAddFormOpen, isEditFormOpen, closeAddForm, closeEditForm, addFormRef, editFormRef, selectedRow } =
-        useFormContext<IExamLoginPrivileges>();
+    const {
+        isAddFormOpen,
+        isEditFormOpen,
+        isDetailsViewOpen,
+        closeAddForm,
+        closeEditForm,
+        closeDetailsView,
+        addFormRef,
+        editFormRef,
+        selectedRow
+    } = useFormContext<IExamLoginPrivileges>();
 
     return (
         <>
@@ -129,6 +138,8 @@ function FormSections() {
                     </CollapsibleSection>
                 </div>
             )}
+
+            {/* {isDetailsViewOpen && selectedRow && <ExamSubjectWizardDetailsPage rowData={selectedRow} onClose={closeDetailsView} />} */}
         </>
     );
 }
