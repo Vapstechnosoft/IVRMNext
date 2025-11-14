@@ -10,11 +10,13 @@ import type { IMasterGrade } from '@/types/exam/exam-module/masters';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { List } from 'lucide-react';
 import { useEffect, useState } from 'react';
-import { FormProvider, useForm } from 'react-hook-form';
+import { Controller, FormProvider, useFieldArray, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import type { z } from 'zod';
 
-// ---- Minimal types added to fix checkedvalue typing/updation ----
+// ----------------------------------
+// Interfaces
+// ----------------------------------
 interface SubExamItem {
     emsE_Id: number;
     emsE_SubExamName: string;
@@ -33,40 +35,45 @@ interface SubExamItem {
     eycessS_MarksEntryMax?: string | number;
     EYCESSE_Id?: number;
     EYCESSS_Id?: number;
+    EYCESSE_SubExamOrder?: number;
 }
 
 interface FormData {
     subexam_list: SubExamItem[];
 }
-// ------------------------------------------------------------------
 
-export default function SubExamModal({
-    open,
-    subject,
-    onClose,
-    onSave,
-    schema,
-    gradeList
-}: {
+interface SubExamModalProps {
     open: boolean;
     subject?: any;
     onClose: () => void;
     onSave: (subjectId: number, selectedList: any[]) => void;
     schema: z.ZodType<any>;
     gradeList: IMasterGrade[];
-}) {
+}
+
+// ----------------------------------
+//  Component
+// ----------------------------------
+export default function SubExamModal({ open, subject, onClose, onSave, schema, gradeList }: SubExamModalProps) {
     const methods = useForm<FormData>({
         resolver: zodResolver(schema),
         defaultValues: { subexam_list: [] },
         mode: 'onTouched'
     });
 
-    // <-- extract setValue (was missing previously) along with reset, getValues, trigger
-    const { reset, getValues, trigger, setValue } = methods;
+    const { control, reset, getValues, watch } = methods;
+    const { fields, replace } = useFieldArray({
+        control,
+        name: 'subexam_list'
+    });
+
     const [isOrderDetailsOpen, setIsOrderDetailsOpen] = useState(false);
     const [isOrderSaving, setIsOrderSaving] = useState(false);
     const [isOrderloading, setIsOrderloading] = useState(true);
 
+    // ----------------------------------
+    // Populate initial list
+    // ----------------------------------
     useEffect(() => {
         if (!subject) {
             reset({ subexam_list: [] });
@@ -77,7 +84,7 @@ export default function SubExamModal({
             ...l,
             emsE_SubExamName: l.emsE_SubExamName,
             emsE_SubExamCode: l.emsE_SubExamCode,
-            checkedvalue: Boolean(l.checkedvalue) ?? false,
+            checkedvalue: Boolean(l.checkedvalue),
             eycessS_MaxMarks: l.eycessS_MaxMarks ?? '',
             eycessS_MinMarks: l.eycessS_MinMarks ?? '',
             emgR_Id: l.emgR_Id ?? subject.emgR_Id ?? '',
@@ -91,70 +98,93 @@ export default function SubExamModal({
             eycessS_MarksEntryMax: l.eycessS_MarksEntryMax ?? '',
             EYCESSE_SubExamOrder: l.emsE_SubExamOrder
         }));
-        reset({ subexam_list: list });
 
-        setTimeout(() => {
-            trigger('subexam_list');
-        }, 0);
-    }, [subject, reset, trigger]);
+        replace(list);
+    }, [subject, reset, replace]);
 
-    const handleSetOrder = async () => {
-        try {
-            if (methods.watch('subexam_list').length === 0) {
-                toast.info('subsubjects are loading...');
-            }
-            setIsOrderDetailsOpen(true);
-        } catch (error: any) {
-            setIsOrderloading(false);
-        } finally {
-            setIsOrderloading(false);
+    // ----------------------------------
+    // Set Order Functions
+    // ----------------------------------
+    const handleSetOrder = () => {
+        if (fields.length === 0) {
+            toast.info('Sub-exams are still loading...');
+            return;
         }
+        setIsOrderDetailsOpen(true);
+        setIsOrderloading(false);
     };
 
-    // Save reordered exams
     const handleOrderSave = async (updatedData: any) => {
         setIsOrderSaving(true);
-
         const currentList = getValues('subexam_list') ?? [];
         const reorderedList = (updatedData ?? []).map((item: any, index: number) => {
-            const matchId = item.id ?? item.emsS_Id ?? item.EmsS_Id;
-            const original = currentList.find((x: any) => x.emsS_Id === matchId) ?? item;
-
-            return {
-                ...original,
-                EYCESSE_SubExamOrder: index + 1 // ✅ Update order here
-            };
+            const matchId = item.id ?? item.emsE_Id;
+            const original = currentList.find((x: any) => x.emsE_Id === matchId) ?? item;
+            return { ...original, EYCESSE_SubExamOrder: index + 1 };
         });
 
-        // If the master view returned only IDs (or partial items), ensure we also keep any originals that were not included:
-        // Merge any originals that are missing in reorderedList (append at end with their existing order)
-        const reorderedIds = new Set(reorderedList.map((r: any) => r.emsS_Id));
-        const remaining = currentList.filter((x: any) => !reorderedIds.has(x.emsS_Id));
-        const finalList = [...reorderedList, ...remaining];
+        const reorderedIds = new Set(reorderedList.map((r: any) => r.emsE_Id));
+        const remaining = currentList.filter((x: any) => !reorderedIds.has(x.emsE_Id));
+        const finalList = [...reorderedList, ...remaining].sort(
+            (a, b) => Number(a.EYCESSE_SubExamOrder ?? 0) - Number(b.EYCESSE_SubExamOrder ?? 0)
+        );
 
-        // Optionally sort by the new order so UI is consistent
-        finalList.sort((a: any, b: any) => {
-            const aOrder = Number(a.eycessS_SubSubjectOrder ?? 0);
-            const bOrder = Number(b.eycessS_SubSubjectOrder ?? 0);
-            return aOrder - bOrder;
-        });
-
-        setValue('subexam_list', finalList, {
-            shouldDirty: true,
-            shouldValidate: true
-        });
+        replace(finalList);
+        toast.success('Sub-Exam order saved successfully.');
         setIsOrderSaving(false);
         setIsOrderDetailsOpen(false);
-        toast.info('Sub-Subjects order saved successfully.');
     };
+
     const closeOrderDetails = () => {
         setIsOrderDetailsOpen(false);
-        window.scrollTo({
-            top: 0,
-            behavior: 'smooth'
-        });
+        window.scrollTo({ top: 0, behavior: 'smooth' });
     };
+
     if (!subject) return null;
+
+    // ----------------------------------
+    // Save Handler
+    // ----------------------------------
+    const handleSave = () => {
+        const values = getValues();
+        const selected = values.subexam_list.filter((r) => r.checkedvalue);
+
+        if (selected.length === 0) {
+            toast.error('Select at least one sub-exam before saving.');
+            return;
+        }
+
+        const parentMax = Number(subject.EYCES_MaxMarks ?? 0);
+        const parentMin = Number(subject.EYCES_MinMarks ?? 0);
+        const totMax = selected.reduce((acc, cur) => acc + Number(cur.eycessS_MaxMarks || 0), 0);
+        const totMin = selected.reduce((acc, cur) => acc + Number(cur.eycessS_MinMarks || 0), 0);
+
+        if (selected.length > 0 && (totMax !== parentMax || totMin !== parentMin)) {
+            toast.error('Sum of selected sub-exams (max/min) must equal subject max/min marks.');
+            return;
+        }
+
+        const formatted = selected.map((r, index) => ({
+            EYCESSE_Id: r.EYCESSE_Id ?? 0,
+            EYCES_Id: subject.EYCES_Id,
+            EMSE_Id: r.emsE_Id,
+            EMGR_Id: Number(r.emgR_Id) || null,
+            EYCESSE_MaxMarks: Number(r.eycessS_MaxMarks) || 0,
+            EYCESSE_MinMarks: Number(r.eycessS_MinMarks) || 0,
+            EYCESSE_ExemptedFlg: !!r.eycessS_ExemptedFlg,
+            EYCESSE_ExemptedPer: Number(r.eycessS_ExemptedPer) || 0,
+            EYCESSE_ActiveFlg: !!r.eycessS_ActiveFlg,
+            EYCESSE_SubExamOrder: index + 1,
+            EYCESSS_MarksFlg: !!r.eycessS_MarksFlg,
+            EYCESSS_GradesFlg: !!r.eycessS_GradesFlg,
+            EYCESSS_AplResultFlg: !!r.eycessS_AplResultFlg,
+            EYCESSS_MarksEntryMax: Number(r.eycessS_MarksEntryMax) || 0
+        }));
+
+        onSave(subject.ISMS_Id, formatted);
+        toast.success('Sub-Exam mapping saved successfully.');
+        onClose();
+    };
     const renderSkeletonTable = () => (
         <div className='w-full rounded-md'>
             <table className='w-full table-auto border-collapse border border-gray-200'>
@@ -173,6 +203,9 @@ export default function SubExamModal({
         </div>
     );
 
+    // ----------------------------------
+    // Table UI
+    // ----------------------------------
     return (
         <Dialog open={open} onOpenChange={(val) => !val && onClose()}>
             <DialogContent className='max-h-[80vh] w-full min-w-[80vw] overflow-x-auto overflow-y-auto pt-0 sm:overflow-x-hidden'>
@@ -184,8 +217,8 @@ export default function SubExamModal({
                 <FormProvider {...methods}>
                     <div className='max-h-[55vh] overflow-x-auto overflow-y-auto'>
                         <table className='w-full table-auto border-collapse'>
-                            <thead className='bg-slate-50'>
-                                <tr className='text-sm'>
+                            <thead className='bg-slate-50 text-sm'>
+                                <tr>
                                     <th className='border p-2'>SLNO</th>
                                     <th className='border p-2'>Select</th>
                                     <th className='border p-2'>Sub-Exam</th>
@@ -211,7 +244,7 @@ export default function SubExamModal({
                                     </tr>
                                 )}
 
-                                {/*  No records found */}
+                                {/* ✅ No records found */}
                                 {subject?.list?.length === 0 && (
                                     <tr>
                                         <td colSpan={12} className='py-6 text-center text-muted-foreground text-sm'>
@@ -219,149 +252,173 @@ export default function SubExamModal({
                                         </td>
                                     </tr>
                                 )}
-                                {getValues('subexam_list')?.map((row: SubExamItem, idx: number) => (
-                                    <tr key={row.emsE_Id} className={idx % 2 === 0 ? 'bg-white' : 'bg-slate-50'}>
-                                        <td className='border p-2'>{idx + 1}</td>
+
+                                {fields.map((row, idx) => (
+                                    <tr key={row.id || row.emsE_Id} className={idx % 2 === 0 ? 'bg-white' : 'bg-slate-50'}>
+                                        <td className='border p-2 text-center'>{idx + 1}</td>
+
+                                        {/* Checkbox */}
                                         <td className='border p-2 text-center'>
-                                            <Checkbox
-                                                checked={!!row.checkedvalue}
-                                                onCheckedChange={(v) => {
-                                                    // now setValue exists and updates the form correctly
-                                                    setValue(`subexam_list.${idx}.checkedvalue`, !!v);
-                                                }}
+                                            <Controller
+                                                control={control}
+                                                name={`subexam_list.${idx}.checkedvalue`}
+                                                render={({ field }) => (
+                                                    <Checkbox checked={!!field.value} onCheckedChange={(v) => field.onChange(!!v)} />
+                                                )}
                                             />
                                         </td>
 
-                                        <td className='border p-2'>{row.emsE_SubExamName}</td>
+                                        <td className='border p-2 text-left'>{row.emsE_SubExamName}</td>
 
+                                        {/* Max Marks */}
                                         <td className='w-28 border p-2'>
-                                            <Input
-                                                value={row.eycessS_MaxMarks ?? ''}
-                                                onChange={(e) => {
-                                                    const list = getValues('subexam_list').map((r: any) =>
-                                                        r.emsE_Id === row.emsE_Id ? { ...r, eycessS_MaxMarks: e.target.value } : r
-                                                    );
-                                                    reset({ subexam_list: list });
-                                                }}
+                                            <Controller
+                                                control={control}
+                                                name={`subexam_list.${idx}.eycessS_MaxMarks`}
+                                                render={({ field }) => (
+                                                    <Input
+                                                        {...field}
+                                                        value={field.value ?? ''}
+                                                        onChange={(e) => {
+                                                            if (/^\d*$/.test(e.target.value)) field.onChange(e.target.value);
+                                                        }}
+                                                        className='text-center'
+                                                    />
+                                                )}
                                             />
                                         </td>
 
-                                        <td className='w-24 border p-2'>
-                                            <Input
-                                                value={row.eycessS_MinMarks ?? ''}
-                                                onChange={(e) => {
-                                                    const list = getValues('subexam_list').map((r: any) =>
-                                                        r.emsE_Id === row.emsE_Id ? { ...r, eycessS_MinMarks: e.target.value } : r
-                                                    );
-                                                    reset({ subexam_list: list });
-                                                }}
+                                        {/* Min Marks */}
+                                        <td className='w-28 border p-2'>
+                                            <Controller
+                                                control={control}
+                                                name={`subexam_list.${idx}.eycessS_MinMarks`}
+                                                render={({ field }) => (
+                                                    <Input
+                                                        {...field}
+                                                        value={field.value ?? ''}
+                                                        onChange={(e) => {
+                                                            if (/^\d*$/.test(e.target.value)) field.onChange(e.target.value);
+                                                        }}
+                                                        className='text-center'
+                                                    />
+                                                )}
                                             />
                                         </td>
 
+                                        {/* Grade */}
                                         <td className='w-40 border p-2'>
-                                            <Select
-                                                value={row.emgR_Id?.toString() ?? ''}
-                                                onValueChange={(val) => {
-                                                    const list = getValues('subexam_list').map((r: any) =>
-                                                        r.emsE_Id === row.emsE_Id ? { ...r, emgR_Id: val } : r
-                                                    );
-                                                    reset({ subexam_list: list });
-                                                }}>
-                                                <SelectTrigger>
-                                                    <SelectValue placeholder='Select Grade' />
-                                                </SelectTrigger>
-                                                <SelectContent>
-                                                    {gradeList.map((g) => (
-                                                        <SelectItem key={g.emgR_Id} value={g.emgR_Id.toString()}>
-                                                            {g.emgR_GradeName}
-                                                        </SelectItem>
-                                                    ))}
-                                                </SelectContent>
-                                            </Select>
-                                        </td>
-
-                                        <td className='border p-2 text-center'>
-                                            <Checkbox
-                                                checked={!!row.eycessS_ExemptedFlg}
-                                                onCheckedChange={(v) => {
-                                                    const list = getValues('subexam_list').map((r: any) =>
-                                                        r.emsE_Id === row.emsE_Id ? { ...r, eycessS_ExemptedFlg: !!v } : r
-                                                    );
-                                                    reset({ subexam_list: list });
-                                                }}
+                                            <Controller
+                                                control={control}
+                                                name={`subexam_list.${idx}.emgR_Id`}
+                                                render={({ field }) => (
+                                                    <Select
+                                                        value={field.value?.toString() ?? ''}
+                                                        onValueChange={(val) => field.onChange(val)}>
+                                                        <SelectTrigger>
+                                                            <SelectValue placeholder='Select Grade' />
+                                                        </SelectTrigger>
+                                                        <SelectContent>
+                                                            {gradeList.map((g) => (
+                                                                <SelectItem key={g.emgR_Id} value={g.emgR_Id.toString()}>
+                                                                    {g.emgR_GradeName}
+                                                                </SelectItem>
+                                                            ))}
+                                                        </SelectContent>
+                                                    </Select>
+                                                )}
                                             />
                                         </td>
 
+                                        {/* Exempted */}
+                                        <td className='border p-2 text-center'>
+                                            <Controller
+                                                control={control}
+                                                name={`subexam_list.${idx}.eycessS_ExemptedFlg`}
+                                                render={({ field }) => (
+                                                    <Checkbox checked={!!field.value} onCheckedChange={(v) => field.onChange(!!v)} />
+                                                )}
+                                            />
+                                        </td>
+
+                                        {/* Exempt % */}
                                         <td className='w-24 border p-2'>
-                                            <Input
-                                                disabled={!row.eycessS_ExemptedFlg}
-                                                value={row.eycessS_ExemptedPer ?? ''}
-                                                onChange={(e) => {
-                                                    const list = getValues('subexam_list').map((r: any) =>
-                                                        r.emsE_Id === row.emsE_Id ? { ...r, eycessS_ExemptedPer: e.target.value } : r
-                                                    );
-                                                    reset({ subexam_list: list });
-                                                }}
+                                            <Controller
+                                                control={control}
+                                                name={`subexam_list.${idx}.eycessS_ExemptedPer`}
+                                                render={({ field }) => (
+                                                    <Input
+                                                        {...field}
+                                                        disabled={!watch(`subexam_list.${idx}.eycessS_ExemptedFlg`)}
+                                                        value={field.value ?? ''}
+                                                        onChange={(e) => {
+                                                            if (/^\d*$/.test(e.target.value)) field.onChange(e.target.value);
+                                                        }}
+                                                        className='text-center'
+                                                    />
+                                                )}
                                             />
                                         </td>
 
+                                        {/* Marks Flag */}
                                         <td className='border p-2 text-center'>
-                                            <Checkbox
-                                                checked={!!row.eycessS_MarksFlg}
-                                                onCheckedChange={(v) => {
-                                                    const list = getValues('subexam_list').map((r: any) =>
-                                                        r.emsE_Id === row.emsE_Id ? { ...r, eycessS_MarksFlg: !!v } : r
-                                                    );
-                                                    reset({ subexam_list: list });
-                                                }}
+                                            <Controller
+                                                control={control}
+                                                name={`subexam_list.${idx}.eycessS_MarksFlg`}
+                                                render={({ field }) => (
+                                                    <Checkbox checked={!!field.value} onCheckedChange={(v) => field.onChange(!!v)} />
+                                                )}
                                             />
                                         </td>
 
+                                        {/* Grades Flag */}
                                         <td className='border p-2 text-center'>
-                                            <Checkbox
-                                                checked={!!row.eycessS_GradesFlg}
-                                                onCheckedChange={(v) => {
-                                                    const list = getValues('subexam_list').map((r: any) =>
-                                                        r.emsE_Id === row.emsE_Id ? { ...r, eycessS_GradesFlg: !!v } : r
-                                                    );
-                                                    reset({ subexam_list: list });
-                                                }}
+                                            <Controller
+                                                control={control}
+                                                name={`subexam_list.${idx}.eycessS_GradesFlg`}
+                                                render={({ field }) => (
+                                                    <Checkbox checked={!!field.value} onCheckedChange={(v) => field.onChange(!!v)} />
+                                                )}
                                             />
                                         </td>
 
+                                        {/* Apl Result */}
                                         <td className='border p-2 text-center'>
-                                            <Checkbox
-                                                checked={!!row.eycessS_AplResultFlg}
-                                                onCheckedChange={(v) => {
-                                                    const list = getValues('subexam_list').map((r: any) =>
-                                                        r.emsE_Id === row.emsE_Id ? { ...r, eycessS_AplResultFlg: !!v } : r
-                                                    );
-                                                    reset({ subexam_list: list });
-                                                }}
+                                            <Controller
+                                                control={control}
+                                                name={`subexam_list.${idx}.eycessS_AplResultFlg`}
+                                                render={({ field }) => (
+                                                    <Checkbox checked={!!field.value} onCheckedChange={(v) => field.onChange(!!v)} />
+                                                )}
                                             />
                                         </td>
 
+                                        {/* Marks Entry Max */}
                                         <td className='w-28 border p-2'>
-                                            <Input
-                                                value={row.eycessS_MarksEntryMax ?? ''}
-                                                onChange={(e) => {
-                                                    const list = getValues('subexam_list').map((r: any) =>
-                                                        r.emsE_Id === row.emsE_Id ? { ...r, eycessS_MarksEntryMax: e.target.value } : r
-                                                    );
-                                                    reset({ subexam_list: list });
-                                                }}
+                                            <Controller
+                                                control={control}
+                                                name={`subexam_list.${idx}.eycessS_MarksEntryMax`}
+                                                render={({ field }) => (
+                                                    <Input
+                                                        {...field}
+                                                        value={field.value ?? ''}
+                                                        onChange={(e) => {
+                                                            if (/^\d*$/.test(e.target.value)) field.onChange(e.target.value);
+                                                        }}
+                                                        className='text-center'
+                                                    />
+                                                )}
                                             />
                                         </td>
 
+                                        {/* Active */}
                                         <td className='border p-2 text-center'>
-                                            <Checkbox
-                                                checked={!!row.eycessS_ActiveFlg}
-                                                onCheckedChange={(v) => {
-                                                    const list = getValues('subexam_list').map((r: any) =>
-                                                        r.emsE_Id === row.emsE_Id ? { ...r, eycessS_ActiveFlg: !!v } : r
-                                                    );
-                                                    reset({ subexam_list: list });
-                                                }}
+                                            <Controller
+                                                control={control}
+                                                name={`subexam_list.${idx}.eycessS_ActiveFlg`}
+                                                render={({ field }) => (
+                                                    <Checkbox checked={!!field.value} onCheckedChange={(v) => field.onChange(!!v)} />
+                                                )}
                                             />
                                         </td>
                                     </tr>
@@ -370,79 +427,40 @@ export default function SubExamModal({
                         </table>
                     </div>
 
-                    {/* ✅ SAVE & CLOSE BUTTON - no onSubmit */}
+                    {/* Footer Buttons */}
                     <div className='z-10 mt-4 flex w-fit justify-end gap-2 border-t bg-white p-2'>
                         <Button type='button' variant='ghost' onClick={onClose}>
                             Cancel
                         </Button>
-                        <Button
-                            type='button'
-                            variant='secondary'
-                            onClick={handleSetOrder}
-                            className='order-2 w-fit transition-all duration-200 hover:scale-105 sm:order-3'>
+                        <Button type='button' variant='secondary' onClick={handleSetOrder}>
                             <div className='flex items-center'>
                                 <List className='mr-2 h-4 w-4' />
                                 Set Order
                             </div>
                         </Button>
-                        <Button
-                            className='w-fit'
-                            type='button'
-                            onClick={() => {
-                                const values = getValues();
-                                const selected = values.subexam_list.filter((r: any) => r.checkedvalue);
-
-                                const parentMax = Number(subject.EYCES_MaxMarks ?? 0);
-                                const parentMin = Number(subject.EYCES_MinMarks ?? 0);
-                                const totMax = selected.reduce((acc: number, cur: any) => acc + Number(cur.eycessS_MaxMarks || 0), 0);
-                                const totMin = selected.reduce((acc: number, cur: any) => acc + Number(cur.eycessS_MinMarks || 0), 0);
-
-                                if (selected.length > 0 && (totMax !== parentMax || totMin !== parentMin)) {
-                                    toast.error('Sum of selected sub-exams (max/min) must equal subject max/min marks');
-                                    return;
-                                }
-
-                                // ✅ Map to final structure
-                                const formatted = selected.map((r: any, index: number) => ({
-                                    EYCESSE_Id: r.EYCESSE_Id ?? 0,
-                                    EYCES_Id: subject.EYCES_Id,
-                                    EMSE_Id: r.emsE_Id,
-                                    EMGR_Id: Number(r.emgR_Id) || null,
-                                    EYCESSE_MaxMarks: Number(r.eycessS_MaxMarks) || 0,
-                                    EYCESSE_MinMarks: Number(r.eycessS_MinMarks) || 0,
-                                    EYCESSE_ExemptedFlg: !!r.eycessS_ExemptedFlg,
-                                    EYCESSE_ExemptedPer: Number(r.eycessS_ExemptedPer) || 0,
-                                    EYCESSE_ActiveFlg: !!r.eycessS_ActiveFlg,
-                                    EYCESSE_SubExamOrder: index + 1,
-                                    EYCESSS_MarksFlg: !!r.eycessS_MarksFlg,
-                                    EYCESSS_GradesFlg: !!r.eycessS_GradesFlg,
-                                    EYCESSS_AplResultFlg: !!r.eycessS_AplResultFlg,
-                                    EYCESSS_MarksEntryMax: Number(r.eycessS_MarksEntryMax) || 0
-                                }));
-
-                                onSave(subject.ISMS_Id, formatted);
-                                onClose();
-                            }}>
+                        <Button type='button' className='w-fit' onClick={handleSave}>
                             Save & Close
                         </Button>
                     </div>
                 </FormProvider>
+
+                {/* Order Modal */}
                 {isOrderDetailsOpen && (
                     <MasterViewDetails
                         isOpen={isOrderDetailsOpen}
                         onClose={closeOrderDetails}
-                        data={methods.watch('subexam_list').map((d) => ({ ...d, id: d.emsE_Id }))}
+                        data={watch('subexam_list').map((d) => ({ ...d, id: d.emsE_Id }))}
                         isLoading={isOrderloading}
                         isSaving={isOrderSaving}
                         columns={[
                             { key: 'id', label: 'SLNO', className: 'text-center w-12' },
-                            { key: 'emsS_SubSubjectName', label: 'Sub-Subject Name', className: 'text-left' },
-                            { key: 'emsS_SubSubjectCode', label: 'Sub-Subject Code', className: 'text-left' },
-                            { key: 'eycessS_SubSubjectOrder', label: 'Sub-Subject Order', className: 'text-left' }
+                            { key: 'emsE_SubExamName', label: 'Sub-Exam Name', className: 'text-left' },
+                            { key: 'emsE_SubExamCode', label: 'Sub-Exam Code', className: 'text-left' },
+                            { key: 'EYCESSE_SubExamOrder', label: 'Sub-Exam Order', className: 'text-left' }
                         ]}
                         onSave={handleOrderSave}
                         tableHeight='500px'
-                        title='Set Master Subject Order'
+                        title='Set Sub-Exam Order'
                     />
                 )}
             </DialogContent>

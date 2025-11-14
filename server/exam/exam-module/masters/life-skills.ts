@@ -2,13 +2,13 @@
 
 import { api, getSearchParamsUrl } from '@/lib/apiService';
 import type { ApiSearchparams } from '@/types';
-import type { IMasterLifeSkillMapping } from '@/types/exam/exam-module/masters';
+import type { ILifeSkill, ILifeSkillArea, IMasterLifeSkillMapping } from '@/types/exam/exam-module/masters';
 
 // fetch all life skills
 export async function getMasterLifeSkills(mi_id: number, searchParams?: ApiSearchparams) {
     const urlParams = getSearchParamsUrl(searchParams ?? {});
     const url = `/MasterLifeSkillFacade/${mi_id}?${urlParams}`;
-    return await api.get<IMasterLifeSkillMapping>('exam', url);
+    return await api.get<ILifeSkill>('exam', url);
 }
 
 // fetch edit details of a life skill
@@ -39,7 +39,7 @@ export async function addOrUpdateMasterLifeSkillArea(data: any) {
 export async function getMasterLifeSkillAreas(mi_id: number, searchParams?: ApiSearchparams) {
     const urlParams = getSearchParamsUrl(searchParams ?? {});
     const url = `/MasterLifeSkillFacade/get_master_life_skill_Area_details/${mi_id}?${urlParams}`;
-    return await api.get<IMasterLifeSkillMapping>('exam', url);
+    return await api.get<ILifeSkillArea>('exam', url);
 }
 
 // fetch edit details of a life skill area

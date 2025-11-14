@@ -690,6 +690,14 @@ export async function getUserAccessibleModules() {
                                             url: '/Exam/exam-module/exam-mapping/co-scholastic-activitiy-area-mapping',
                                             title: 'Co-Scholastic Activity Area Mapping',
                                             description: 'Manage Co-Scholastic Activity Area Mapping Details'
+                                        },
+                                        {
+                                            id: 60,
+                                            name: 'Life Skill Area Mapping',
+                                            icon: 'BookOpen',
+                                            url: '/Exam/exam-module/exam-mapping/lifeskill-area-mapping',
+                                            title: 'Life Skill Area Mapping',
+                                            description: 'Manage Life Skill Area Mapping Details'
                                         }
                                     ]
                                 }

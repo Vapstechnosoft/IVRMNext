@@ -331,3 +331,47 @@ export const lifeSkillAreaSchema = {
         ecsA_Id: deleteIdSchema('ecsA_Id')
     })
 };
+
+export const lifeSkillAreaMappingSchema = {
+    addOrUpdate: z.object({
+        ecS_Id: z.number().default(0),
+        mI_Id: z.number().default(30),
+        ecS_SkillName: createCustomStringSchema('Skill Name', 1, 100),
+        ecS_SkillCode: createStringSchema('Skill Code', 1, 50),
+
+        subexamDTO: z
+            .array(
+                z.object({
+                    ecsA_Id: z.number().default(0),
+                    ecsA_SkillOrder: z
+                        .number({
+                            required_error: 'Skill Area Order is required',
+                            invalid_type_error: 'Skill Area Order must be a number'
+                        })
+                        .int()
+                        .min(1, { message: 'Skill Area Order must be at least 1' }),
+                    ecsA_SkillArea: createCustomStringSchema('Skill Area Name', 1, 100)
+                })
+            )
+            .min(1, { message: 'At least one Skill Area entry is required' }),
+
+        mappingDTO: z
+            .array(
+                z.object({
+                    ecsaM_Id: z.number().default(0),
+                    asmaY_Id: z.number({ required_error: 'Academic Year is required' }).int({ message: 'Academic Year must be integer' }),
+                    mI_Id: z.number({ required_error: 'MI ID is required' }).int(),
+                    ecS_Id: z.number({ required_error: 'Life Skill ID is required' }).int(),
+                    ecsA_Id: z.number({ required_error: 'Skill Area ID is required' }).int(),
+                    ecsaM_IndicatorDescription: createCustomStringSchema('Indicator Description', 1, 300),
+                    emgR_Id: z.number({ required_error: 'Grade ID is required' }).int(),
+                    ecsaM_ActiveFlag: z.boolean().default(true)
+                })
+            )
+            .min(1, { message: 'At least one mapping record is required' })
+    }),
+
+    delete: z.object({
+        ecsaM_Id: deleteIdSchema('ecsaM_Id')
+    })
+};

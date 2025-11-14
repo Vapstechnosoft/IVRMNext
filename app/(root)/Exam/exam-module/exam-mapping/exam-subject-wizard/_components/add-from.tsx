@@ -228,14 +228,49 @@ export default function AddExamSubjectWizard({ onSuccess, rowData }: { onSuccess
                 toast.error('Failed to load subjects.');
             }
         })();
-    }, [watchCategory, watchEMCA_ID, watchGrade, setValue]);
-
-    // propagate grade changes into subjects state
+    }, [watchCategory, watchEMCA_ID, setValue]);
     useEffect(() => {
-        if (watchGrade) {
-            setSubjects((prev) => prev.map((s) => ({ ...s, EMGR_Id: Number(watchGrade) || s.EMGR_Id })));
+        if (formState.isSubmitted) {
+            // 1️ No subject selected
+            const hasSelectedSubject = Array.isArray(subjects) && subjects.some((s: any) => s.checkedvalue === true);
+            if (!hasSelectedSubject) {
+                toast.error('Select at least one subject before saving');
+                return; // stop here — don’t show other errors
+            }
+            // 2️ Extract first validation error
+            const errors = formState.errors as Record<string, any>;
+            const firstErrorKey = Object.keys(errors)[0];
+            if (firstErrorKey) {
+                const errorObj = errors[firstErrorKey];
+                let errorMessage = '';
+
+                // Try different structures (string / nested / array)
+                if (typeof errorObj?.message === 'string') {
+                    errorMessage = errorObj.message;
+                } else if (Array.isArray(errorObj)) {
+                    for (const item of errorObj) {
+                        if (item && typeof item.message === 'string') {
+                            errorMessage = item.message;
+                            break;
+                        }
+                    }
+                } else if (errorObj && typeof errorObj === 'object') {
+                    for (const key in errorObj) {
+                        const nested = errorObj[key];
+                        if (nested?.message) {
+                            errorMessage = nested.message;
+                            break;
+                        }
+                    }
+                }
+
+                if (errorMessage) {
+                    toast.error(errorMessage);
+                    return; // show only the first one
+                }
+            }
         }
-    }, [watchGrade]);
+    }, [formState.isSubmitted, formState.errors, getValues]);
 
     // ------------------- Modal open/prepare handlers -------------------
     const onOpenSubExamModal = async (subject: any) => {
@@ -630,6 +665,7 @@ export default function AddExamSubjectWizard({ onSuccess, rowData }: { onSuccess
                             onOpenSubSubjectModal={onOpenSubSubjectModal}
                             onOpenSubSubjectSubExamModal={onOpenSubSubjectSubExamModal}
                             gradeList={gradeList}
+                            selectedGrade={watchGrade}
                         />
                     </div>
 

@@ -313,3 +313,21 @@ export interface ISubSubjectSubExamMapped {
     eycessS_AplResultFlg?: boolean;
     eycessS_MarksEntryMax?: number;
 }
+
+export interface ILifeSkillAreaMapping {
+    ecsaM_Id: number;
+    ecsA_Id: number;
+    ecS_Id: number;
+    mI_Id: number;
+    asmaY_Id: number;
+    emgR_Id: number;
+    ecS_SkillName: string;
+    ecsA_SkillArea: string;
+    ecsaM_IndicatorDescription: string;
+    emgR_NAME: string;
+    asmaY_Year: string;
+    asmaY_Order?: number;
+    ecsaM_ActiveFlag: boolean;
+    createdDate?: string;
+    updatedDate?: string;
+}

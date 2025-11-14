@@ -258,13 +258,12 @@ export default function SubSubjectModal({
                                                         name={`subsubject_list.${idx}.eycessS_MaxMarks`}
                                                         render={({ field }) => (
                                                             <Input
-                                                                type='number'
+                                                                type='text'
                                                                 {...field}
                                                                 value={field.value ?? ''}
                                                                 onChange={(e) => {
-                                                                    const val = e.target.value === '' ? '' : Number(e.target.value);
-                                                                    field.onChange(val);
-                                                                    updateRowValue(idx, 'eycessS_MaxMarks', val);
+                                                                    if (/^\d*$/.test(e.target.value))
+                                                                        field.onChange(Number(e.target.value) || '');
                                                                 }}
                                                             />
                                                         )}
@@ -283,13 +282,12 @@ export default function SubSubjectModal({
                                                         name={`subsubject_list.${idx}.eycessS_MinMarks`}
                                                         render={({ field }) => (
                                                             <Input
-                                                                type='number'
+                                                                type='text'
                                                                 {...field}
                                                                 value={field.value ?? ''}
                                                                 onChange={(e) => {
-                                                                    const val = e.target.value === '' ? '' : Number(e.target.value);
-                                                                    field.onChange(val);
-                                                                    updateRowValue(idx, 'eycessS_MinMarks', val);
+                                                                    if (/^\d*$/.test(e.target.value))
+                                                                        field.onChange(Number(e.target.value) || '');
                                                                 }}
                                                             />
                                                         )}
@@ -308,13 +306,15 @@ export default function SubSubjectModal({
                                                         name={`subsubject_list.${idx}.eycessS_MarksEntryMax`}
                                                         render={({ field }) => (
                                                             <Input
-                                                                type='number'
+                                                                type='text'
                                                                 {...field}
                                                                 value={field.value ?? ''}
                                                                 onChange={(e) => {
-                                                                    const val = e.target.value === '' ? '' : Number(e.target.value);
-                                                                    field.onChange(val);
-                                                                    updateRowValue(idx, 'eycessS_MarksEntryMax', val);
+                                                                    if (/^\d*$/.test(e.target.value)) {
+                                                                        const val = Number(e.target.value) || '';
+                                                                        field.onChange(val);
+                                                                        updateRowValue(idx, 'eycessS_MarksEntryMax', val);
+                                                                    }
                                                                 }}
                                                             />
                                                         )}
@@ -373,14 +373,16 @@ export default function SubSubjectModal({
                                                         name={`subsubject_list.${idx}.eycessS_ExemptedPer`}
                                                         render={({ field }) => (
                                                             <Input
-                                                                type='number'
+                                                                type='text'
                                                                 disabled={!getValues(`subsubject_list.${idx}.eycessS_ExemptedFlg`)}
                                                                 {...field}
                                                                 value={field.value ?? ''}
                                                                 onChange={(e) => {
-                                                                    const val = e.target.value === '' ? '' : Number(e.target.value);
-                                                                    field.onChange(val);
-                                                                    updateRowValue(idx, 'eycessS_ExemptedPer', val);
+                                                                    if (/^\d*$/.test(e.target.value)) {
+                                                                        const val = Number(e.target.value) || '';
+                                                                        field.onChange(val);
+                                                                        updateRowValue(idx, 'eycessS_ExemptedPer', val);
+                                                                    }
                                                                 }}
                                                             />
                                                         )}

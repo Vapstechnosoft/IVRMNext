@@ -4,6 +4,7 @@
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import type { IMasterGrade } from '@/types/exam/exam-module/masters';
 import { useEffect, useMemo, useRef, useState } from 'react';
@@ -158,7 +159,8 @@ export default function SubjectTableWithValidation({
     onOpenSubExamModal,
     onOpenSubSubjectModal,
     onOpenSubSubjectSubExamModal,
-    gradeList
+    gradeList,
+    selectedGrade = 0
 }: {
     initialSubjects: SubjectRowRaw[];
     setParentSubjects: (s: SubjectRowRaw[]) => void;
@@ -168,6 +170,7 @@ export default function SubjectTableWithValidation({
     onOpenSubSubjectModal: (subject: any) => void;
     onOpenSubSubjectSubExamModal: (subject: any) => void;
     gradeList: IMasterGrade[];
+    selectedGrade?: number;
 }) {
     // ---------- local state ----------
     const [subjects, setSubjects] = useState<NormalizedSubject[]>([]);
@@ -288,6 +291,12 @@ export default function SubjectTableWithValidation({
             setParentSubjects(mappedBack);
         }
     }, [subjects, setParentSubjects]);
+    // propagate grade changes into subjects state
+    useEffect(() => {
+        if (selectedGrade) {
+            setSubjects((prev) => prev.map((s) => ({ ...s, EMGR_Id: Number(selectedGrade) || s.EMGR_Id })));
+        }
+    }, [selectedGrade]);
 
     // ---------- Derived header logic ----------
     const derivedHeader = useMemo(() => {
@@ -508,8 +517,13 @@ export default function SubjectTableWithValidation({
                                     <div className='mb-1 text-[13px]'>Max. Marks</div>
                                     <Input
                                         value={globalHeader.maxMarks ?? ''}
-                                        onChange={(e) => handleHeaderChange('maxMarks', e.target.value)}
+                                        onChange={(e) => {
+                                            const val = e.target.value;
+                                            if (/^\d*$/.test(val)) handleHeaderChange('maxMarks', val === '' ? '' : val);
+                                        }}
                                         className='h-7 text-center text-sm'
+                                        inputMode='numeric'
+                                        placeholder='Enter Max Marks'
                                     />
                                 </div>
                             </th>
@@ -519,8 +533,13 @@ export default function SubjectTableWithValidation({
                                     <div className='mb-1 text-[13px]'>Min. Marks</div>
                                     <Input
                                         value={globalHeader.minMarks ?? ''}
-                                        onChange={(e) => handleHeaderChange('minMarks', e.target.value)}
+                                        onChange={(e) => {
+                                            const val = e.target.value;
+                                            if (/^\d*$/.test(val)) handleHeaderChange('minMarks', val === '' ? '' : val);
+                                        }}
                                         className='h-7 text-center text-sm'
+                                        inputMode='numeric'
+                                        placeholder='Enter Min Marks'
                                     />
                                 </div>
                             </th>
@@ -530,8 +549,13 @@ export default function SubjectTableWithValidation({
                                     <div className='mb-1 text-[13px]'>Max. Entry Marks</div>
                                     <Input
                                         value={globalHeader.maxEntry ?? ''}
-                                        onChange={(e) => handleHeaderChange('maxEntry', e.target.value)}
+                                        onChange={(e) => {
+                                            const val = e.target.value;
+                                            if (/^\d*$/.test(val)) handleHeaderChange('maxEntry', val === '' ? '' : val);
+                                        }}
                                         className='h-7 text-center text-sm'
+                                        inputMode='numeric'
+                                        placeholder='Enter Max Entry Marks'
                                     />
                                 </div>
                             </th>
@@ -622,7 +646,12 @@ export default function SubjectTableWithValidation({
                                     <td className='w-28 border p-2'>
                                         <Input
                                             value={s.EYCES_MaxMarks ?? ''}
-                                            onChange={(e) => updateSubjectField(s.ISMS_Id, 'EYCES_MaxMarks', Number(e.target.value || 0))}
+                                            onChange={(e) => {
+                                                const val = e.target.value;
+                                                if (/^\d*$/.test(val)) {
+                                                    updateSubjectField(s.ISMS_Id, 'EYCES_MaxMarks', val === '' ? '' : Number(val));
+                                                }
+                                            }}
                                             className='text-center'
                                         />
                                         {errors[s.ISMS_Id]?.EYCES_MaxMarks && (
@@ -634,7 +663,12 @@ export default function SubjectTableWithValidation({
                                     <td className='w-24 border p-2'>
                                         <Input
                                             value={s.EYCES_MinMarks ?? ''}
-                                            onChange={(e) => updateSubjectField(s.ISMS_Id, 'EYCES_MinMarks', Number(e.target.value || 0))}
+                                            onChange={(e) => {
+                                                const val = e.target.value;
+                                                if (/^\d*$/.test(val)) {
+                                                    updateSubjectField(s.ISMS_Id, 'EYCES_MinMarks', val === '' ? '' : Number(val));
+                                                }
+                                            }}
                                             className='text-center'
                                         />
                                         {errors[s.ISMS_Id]?.EYCES_MinMarks && (
@@ -646,9 +680,12 @@ export default function SubjectTableWithValidation({
                                     <td className='w-28 border p-2'>
                                         <Input
                                             value={s.EYCES_MarksEntryMax ?? ''}
-                                            onChange={(e) =>
-                                                updateSubjectField(s.ISMS_Id, 'EYCES_MarksEntryMax', Number(e.target.value || 0))
-                                            }
+                                            onChange={(e) => {
+                                                const val = e.target.value;
+                                                if (/^\d*$/.test(val)) {
+                                                    updateSubjectField(s.ISMS_Id, 'EYCES_MarksEntryMax', val === '' ? '' : Number(val));
+                                                }
+                                            }}
                                             className='text-center'
                                         />
                                         {errors[s.ISMS_Id]?.EYCES_MarksEntryMax && (
@@ -690,27 +727,30 @@ export default function SubjectTableWithValidation({
                                     )}
 
                                     {/* Marks / Grade options */}
+                                    {/* Marks / Grade options */}
                                     <td className='border p-2'>
-                                        <div className='flex items-center gap-3'>
-                                            <label className='flex items-center gap-1 text-sm'>
-                                                <input
-                                                    type='radio'
-                                                    name={`marksGrade-${s.ISMS_Id}`}
-                                                    checked={s.EYCES_MarksGradeEntryFlg === 'M'}
-                                                    onChange={() => updateSubjectField(s.ISMS_Id, 'EYCES_MarksGradeEntryFlg', 'M')}
-                                                />
-                                                <span>Marks</span>
-                                            </label>
-                                            <label className='flex items-center gap-1 text-sm'>
-                                                <input
-                                                    type='radio'
-                                                    name={`marksGrade-${s.ISMS_Id}`}
-                                                    checked={s.EYCES_MarksGradeEntryFlg === 'G'}
-                                                    onChange={() => updateSubjectField(s.ISMS_Id, 'EYCES_MarksGradeEntryFlg', 'G')}
-                                                />
-                                                <span>Grade</span>
-                                            </label>
-                                        </div>
+                                        <RadioGroup
+                                            value={s.EYCES_MarksGradeEntryFlg ?? ''}
+                                            onValueChange={(val) => updateSubjectField(s.ISMS_Id, 'EYCES_MarksGradeEntryFlg', val)}
+                                            className='flex items-center justify-center gap-6'>
+                                            <div className='flex items-center gap-2'>
+                                                <RadioGroupItem value='M' id={`marks-${s.ISMS_Id}`} />
+                                                <label
+                                                    htmlFor={`marks-${s.ISMS_Id}`}
+                                                    className='cursor-pointer select-none font-medium text-sm leading-none'>
+                                                    Marks
+                                                </label>
+                                            </div>
+
+                                            <div className='flex items-center gap-2'>
+                                                <RadioGroupItem value='G' id={`grade-${s.ISMS_Id}`} />
+                                                <label
+                                                    htmlFor={`grade-${s.ISMS_Id}`}
+                                                    className='cursor-pointer select-none font-medium text-sm leading-none'>
+                                                    Grade
+                                                </label>
+                                            </div>
+                                        </RadioGroup>
                                     </td>
 
                                     <td className='border p-2 text-center'>
