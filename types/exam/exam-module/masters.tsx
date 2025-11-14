@@ -222,3 +222,34 @@ export interface ICoScholasticArea {
     createdDate: string;
     updatedDate: string;
 }
+export interface IMasterLifeSkillMapping {
+    ecsaM_Id: number;
+    ecsA_Id: number;
+    ecS_Id: number;
+    mI_Id: number;
+    asmaY_Id: number;
+    ecsaM_IndicatorDescription: string;
+    emgR_Id: number;
+    ecsaM_ActiveFlag: boolean;
+    ecsA_SkillArea: string;
+    ecS_SkillName: string;
+    emgR_NAME: string;
+    asmaY_Year: string;
+    asmaY_Order: number;
+}
+
+export interface ILifeSkill {
+    ecS_Id: number;
+    mI_Id: number;
+    ecS_SkillName: string;
+    ecS_SkillCode: string;
+    ecS_ActiveFlag: boolean;
+}
+
+export interface ILifeSkillArea {
+    ecsA_Id: number;
+    mI_Id: number;
+    ecsA_SkillArea: string;
+    ecsA_SkillOrder: number;
+    ecsA_ActiveFlag: boolean;
+}

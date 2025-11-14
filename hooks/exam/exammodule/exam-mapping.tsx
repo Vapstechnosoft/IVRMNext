@@ -182,9 +182,6 @@ export const useExamSubjectWizardDetails = (org_Id: number, ecycE_Id: number) =>
     };
 };
 
-
-
-
 export const useSubExamsMappedList = (org_Id: number, eyceS_Id: number) => {
     const queryClient = useQueryClient();
 
@@ -256,4 +253,3 @@ export const useCoScholasticActivityAreaMapping = (searchParams?: ApiSearchparam
         }
     };
 };
-

@@ -129,7 +129,6 @@ export default function AddCategorySubjectMappingForm({ onSuccess }: { onSuccess
 
     const onSubmit = async (data: FormFields) => {
         try {
-            console.log(data);
             const res = await addOrUpdateYearlyCategorySubjectMapping(data);
             if (res?.success) {
                 toast.success('Yearly category dates mapping saved successfully');

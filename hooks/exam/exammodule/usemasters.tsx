@@ -14,6 +14,7 @@ import { getCategoryMappedSections } from '@/server/exam/exam-module/masters/cat
 import { getMasterExam } from '@/server/exam/exam-module/masters/exam';
 import { getMasterExamPaper } from '@/server/exam/exam-module/masters/exam-paper';
 import { getGradeDetailsById, getMasterGrade } from '@/server/exam/exam-module/masters/grade';
+import { getMasterLifeSkillAreas, getMasterLifeSkillMappings, getMasterLifeSkills } from '@/server/exam/exam-module/masters/life-skills';
 import { getMasterSubExam } from '@/server/exam/exam-module/masters/sub-exam';
 import { getMasterSubject } from '@/server/exam/exam-module/masters/subject';
 import {
@@ -314,6 +315,60 @@ export const useCoScholasticActivity = (searchParams?: ApiSearchparams) => {
         refetchAll: () => {
             return queryClient.invalidateQueries({
                 queryKey: [EXAM_QUERY_KEYS.CO_SCHOLASTIC_ACTIVITY]
+            });
+        }
+    };
+};
+
+export const useMasterLifeSkills = (searchParams?: ApiSearchparams) => {
+    const queryClient = useQueryClient();
+    searchParams?.sort_direction;
+    return {
+        ...useQuery({
+            queryKey: [EXAM_QUERY_KEYS.LIFE_SKILLS, searchParams ?? {}],
+            queryFn: async () => getMasterLifeSkills(30, searchParams),
+            staleTime: 0
+        }),
+
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [EXAM_QUERY_KEYS.LIFE_SKILLS]
+            });
+        }
+    };
+};
+
+export const useMasterLifeSkillArea = (searchParams?: ApiSearchparams) => {
+    const queryClient = useQueryClient();
+    searchParams?.sort_direction;
+    return {
+        ...useQuery({
+            queryKey: [EXAM_QUERY_KEYS.LIFE_SKILLS_AREA, searchParams ?? {}],
+            queryFn: async () => getMasterLifeSkillAreas(30, searchParams),
+            staleTime: 0
+        }),
+
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [EXAM_QUERY_KEYS.LIFE_SKILLS_AREA]
+            });
+        }
+    };
+};
+
+export const useMasterLifeSkillAreaMapping = (searchParams?: ApiSearchparams) => {
+    const queryClient = useQueryClient();
+    searchParams?.sort_direction;
+    return {
+        ...useQuery({
+            queryKey: [EXAM_QUERY_KEYS.LIFE_SKILLS_AREA_MAPPING, searchParams ?? {}],
+            queryFn: async () => getMasterLifeSkillMappings(30, searchParams),
+            staleTime: 0
+        }),
+
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [EXAM_QUERY_KEYS.LIFE_SKILLS_AREA_MAPPING]
             });
         }
     };
