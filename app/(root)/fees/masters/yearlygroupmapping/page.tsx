@@ -16,6 +16,7 @@ import { parseAsString, useQueryState } from 'nuqs';
 import { useRef, useState } from 'react';
 import YearlyFeeGroupMapping from './_components/add-form';
 import { yearlyGroupMappingColumns } from './_components/columns';
+import DeleteMasterYearlyGroupForm from './_components/delete-form';
 
 type SearchParams = { [key: string]: string | string[] | undefined };
 
@@ -33,21 +34,18 @@ function FeeGroupMappingContent() {
 
     const { data: academicYearData, isLoading: academicYearLoading, error: academicYearError } = useAcademicYearDropdown();
 
-    const apiSearchParams = academicYearId > 0 ? { ASMAY_Id: academicYearId } : undefined;
-
     const {
         data: feeHeadResponse,
         isLoading: feeHeadLoading,
         error: feeHeadError,
         isFetching
-    } = useMasterAllFeeHead(apiSearchParams as unknown as any);
+    } = useMasterAllFeeHead(academicYearId > 0 ? academicYearId : 0, searchQuery ? { search_query: searchQuery } : undefined);
 
-    // Extract actual data array safely
-    const feeGroupData = Array.isArray(feeHeadResponse?.data) ? feeHeadResponse.data : [];
+    const feeGroupData = academicYearId > 0 && Array.isArray(feeHeadResponse?.data) ? feeHeadResponse.data : [];
 
     const tableProps = useDataTableProps({
         ...feeHeadResponse,
-        data: feeGroupData // Override with safe data
+        data: feeGroupData
     });
 
     return (
@@ -61,11 +59,11 @@ function FeeGroupMappingContent() {
                             Academic Year
                         </Label>
                         <Select
-                            value={academicYearId > 0 ? String(academicYearId) : ''}
+                            value={String(academicYearId)}
                             onValueChange={(val) => setAcademicYearId(Number(val) || 0)}
                             disabled={academicYearLoading}>
                             <SelectTrigger id='academic-year' className='w-full'>
-                                <SelectValue placeholder='All' />
+                                <SelectValue placeholder='Select Academic Year' />
                             </SelectTrigger>
                             <SelectContent>
                                 {academicYearLoading ? (
@@ -81,11 +79,16 @@ function FeeGroupMappingContent() {
                                         No academic years
                                     </SelectItem>
                                 ) : (
-                                    academicYearData.data.map((item: AcademicYearOption) => (
-                                        <SelectItem key={item.asmaY_Id} value={String(item.asmaY_Id)}>
-                                            {item.asmaY_Year}
+                                    <>
+                                        <SelectItem value='0' disabled>
+                                            Select Academic Year
                                         </SelectItem>
-                                    ))
+                                        {academicYearData.data.map((item: AcademicYearOption) => (
+                                            <SelectItem key={item.asmaY_Id} value={String(item.asmaY_Id)}>
+                                                {item.asmaY_Year}
+                                            </SelectItem>
+                                        ))}
+                                    </>
                                 )}
                             </SelectContent>
                         </Select>
@@ -146,7 +149,7 @@ export default function FeeGroupMappingView({
 }
 
 function FormSections() {
-    const { isAddFormOpen, closeAddForm, addFormRef } = useFormContext<IFeeGroupMapping>();
+    const { isAddFormOpen, closeAddForm, addFormRef, isDeleteFormOpen, closeDeleteForm, selectedRow } = useFormContext<IFeeGroupMapping>();
 
     return (
         <>
@@ -172,6 +175,9 @@ function FormSections() {
                         </div>
                     </CollapsibleSection>
                 </div>
+            )}
+            {isDeleteFormOpen && selectedRow && (
+                <DeleteMasterYearlyGroupForm rowData={selectedRow} fyghM_Id={selectedRow.fyghM_Id} onClose={closeDeleteForm} />
             )}
         </>
     );

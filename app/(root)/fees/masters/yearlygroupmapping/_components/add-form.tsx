@@ -15,6 +15,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import type { ColumnDef } from '@tanstack/react-table';
 import { useEffect, useMemo, useState } from 'react';
 import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
+import { toast } from 'sonner';
 import type { z } from 'zod';
 
 type FormFields = z.infer<typeof masterClassSchema.addOrUpdate>;
@@ -116,7 +117,10 @@ export default function YearlyFeeGroupMapping() {
         return null;
     }, [academicYear, feeGroup]);
 
-    const { refetch: refetchAll } = useMasterAllFeeHead(apiSearchParams || undefined);
+    const { refetch: refetchAll } = useMasterAllFeeHead(
+        academicYear ? Number(academicYear) : 0,
+        apiSearchParams ? apiSearchParams : undefined
+    );
 
     useEffect(() => {
         if (academicYear && feeGroup) {
@@ -320,25 +324,30 @@ export default function YearlyFeeGroupMapping() {
             feeHeads: data.headInstallments.map((h) => ({
                 fmH_Id: Number(h.fmH_Id),
                 fmI_Id: Number(h.fmI_Id),
-                fineApplicable: h.fineApplicable,
-                commonAmount: h.commonAmount,
-                active: h.active,
+                fineApplicable: h.fineApplicable ? 'Y' : 'N',
+                commonAmount: h.commonAmount ? 'Y' : 'N',
+                active: h.active ? '1' : '0',
                 fyghM_Id: 0
             }))
         };
 
         try {
             const res = await addMasterYearlyGroupMapping(payload);
-            if (res) {
-                alert('Saved successfully!');
+            const ok = res && (res.success === undefined || res.success === true);
+            if (ok) {
+                toast.success(res?.message || 'Saved successfully! Refer Groupwise Auto Receipt');
                 clearRows();
-                refetchAll();
+                try {
+                    await refetchAll();
+                } catch (fetchErr) {
+                    console.error('Error fetching table after save:', fetchErr);
+                }
             } else {
-                alert('Failed to save: Unknown error');
+                toast.error(res?.message || 'Failed to save: Unknown error');
             }
         } catch (err) {
             console.error(err);
-            alert('Error saving data');
+            toast.error((err as any)?.message || 'Error saving data');
         }
     };
 

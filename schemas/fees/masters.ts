@@ -167,7 +167,7 @@ export const masterClassSchema = {
     }),
 
     delete: z.object({
-        fycC_Id: z.number().min(1, {
+        fyghm_id: z.number().min(1, {
             message: 'Valid Class Yearly Category ID is required for deletion'
         })
     })

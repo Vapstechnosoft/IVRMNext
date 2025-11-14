@@ -755,20 +755,19 @@ export const useFeeMasterInstallment = () => {
     };
 };
 
-export const useMasterAllFeeHead = (searchParams?: ApiSearchparams) => {
+export const useMasterAllFeeHead = (asmay_Id: number, searchParams?: ApiSearchparams) => {
     const queryClient = useQueryClient();
 
     return {
         ...useQuery({
-            queryKey: [FEES_QUERY_KEYS.FEE_ALL_HEAD, searchParams ?? {}],
-            queryFn: async () => getMasterAllFeeHead(searchParams),
+            queryKey: [FEES_QUERY_KEYS.FEE_MASTER_GROUPWISE_AUTO_RECEIPT, asmay_Id, searchParams ?? {}],
+            queryFn: async () => getMasterAllFeeHead(asmay_Id, searchParams),
             staleTime: 0
         }),
-        refetchAll: () => {
-            return queryClient.invalidateQueries({
-                queryKey: [FEES_QUERY_KEYS.FEE_ALL_HEAD]
-            });
-        }
+        refetchAll: () =>
+            queryClient.invalidateQueries({
+                queryKey: [FEES_QUERY_KEYS.FEE_MASTER_GROUPWISE_AUTO_RECEIPT]
+            })
     };
 };
 
