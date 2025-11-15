@@ -4,6 +4,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useacademicyerdropdowndatafee } from '@/hooks/fees/useTrasactions';
 import { feePreadmissionTransactionSchema } from '@/schemas/fees/trasactions';
 import {
+    addOrUpdatepaymentgatewaydetails,
     getPreadmissionStudentDropdownData,
     getPreadmissionStudentInformation,
     getPreadmissionStudentTermsData,
@@ -29,13 +30,13 @@ interface AddFeePreAdmissionTransactionProps {
     onSuccess?: () => void;
     headname?: string;
 }
-
-export default function AddFeePreAdmissionTransactionForm({ onSuccess, headname = '' }: AddFeePreAdmissionTransactionProps) {
+//, headname = ''
+export default function AddFeePreAdmissionTransactionForm({ onSuccess }: AddFeePreAdmissionTransactionProps) {
     const { data: academicYeardata, isLoading: academicYearLoading, error: academicYearError } = useacademicyerdropdowndatafee();
 
     const [date, setDate] = useState('2025-11-06');
     const [admissionType, setAdmissionType] = useState<'prospectus' | 'Preadmission'>('Preadmission');
-    const [academicYear, setAcademicYear] = useState('');
+    //const [academicYear, setAcademicYear] = useState('');
     const [termName, setTermName] = useState(false);
     const [studentSearch, setStudentSearch] = useState('');
     const [selectedStudent, setSelectedStudent] = useState<IFeePreAdmissionStudentsDropDownList | null>(null);
@@ -79,8 +80,6 @@ export default function AddFeePreAdmissionTransactionForm({ onSuccess, headname 
             try {
                 const studentsArray = await getPreadmissionStudentDropdownData(studentSearch, admissionType);
                 setStudents(studentsArray);
-
-                console.log('Fetched students:', studentsArray);
             } catch (error) {
                 console.error('Failed to fetch students:', error);
                 setStudents([]);
@@ -109,7 +108,6 @@ export default function AddFeePreAdmissionTransactionForm({ onSuccess, headname 
             setLoadingStudentTerms(true);
             try {
                 const information = await getPreadmissionStudentTermsData(Number(selectedStudent.amsT_Id));
-                console.log('Fetched student terms:', information);
 
                 //setSelectedStudentTerms(information);
 
@@ -142,7 +140,7 @@ export default function AddFeePreAdmissionTransactionForm({ onSuccess, headname 
             setLoadingStudentInfo(true);
             try {
                 const information = await getPreadmissionStudentInformation(Number(selectedStudent.amsT_Id), admissionType);
-                console.log('Fetched student info:', information);
+
                 // info is already an object
                 const info = JSON.parse(JSON.stringify(information));
                 setStudentInfo(info);
@@ -197,13 +195,12 @@ export default function AddFeePreAdmissionTransactionForm({ onSuccess, headname 
         const fetchTransactions = async () => {
             setLoadingTransactions(true);
             try {
-                const res = await getPreadmissionStudentTrasactionData(
-                    Number(selectedStudent.amsT_Id),
-                    Number(selectedAcademicYear)
-                    //,selectedTermIds // ✅ pass term IDs
-                );
-
-                console.log('Fetched transactions for selected terms:', res);
+                const res =
+                    await getPreadmissionStudentTrasactionData(
+                        // Number(selectedStudent.amsT_Id),
+                        // Number(selectedAcademicYear)
+                        //,selectedTermIds // ✅ pass term IDs
+                    );
                 setTransactionData(res);
             } catch (err) {
                 console.error('Failed to fetch transactions', err);
@@ -220,16 +217,15 @@ export default function AddFeePreAdmissionTransactionForm({ onSuccess, headname 
         selected?: boolean;
     };
 
-    const selectedTermIds = selectedStudentTerms.filter((t) => t.selected).map((t) => t.fmT_Id);
-    console.log('Selected Term IDs:', selectedTermIds);
+    // const selectedTermIds = selectedStudentTerms.filter((t) => t.selected).map((t) => t.fmT_Id);
 
-    const academicYears = ['2024-2025', '2025-2026', '2026-2027'];
+    // const academicYears = ['2024-2025', '2025-2026', '2026-2027'];
 
-    const handleStudentSelect = (id: number) => {
-        const student = students.find((s) => s.amsT_Id === id) ?? null;
-        setSelectedStudent(student);
-        setStudentSearch(student ? student.studentName : '');
-    };
+    // const handleStudentSelect = (id: number) => {
+    //     const student = students.find((s) => s.amsT_Id === id) ?? null;
+    //     setSelectedStudent(student);
+    //     setStudentSearch(student ? student.studentName : '');
+    // };
 
     const [selectedRows, setSelectedRows] = useState<number[]>([]);
 
@@ -295,62 +291,66 @@ export default function AddFeePreAdmissionTransactionForm({ onSuccess, headname 
 
     const onSubmit: SubmitHandler<FormFields | any> = async (data: FormFields) => {
         try {
-            // Validate that at least one row is selected
+            // ---- 1. Validate selection -------------------------------------------------
             if (selectedRows.length === 0) {
                 toast.error('Please select at least one transaction row');
                 return;
             }
 
-            // Get only the selected transactions
-            const selectedTransactions = transactionData.filter((_, index) => selectedRows.includes(index));
+            // ---- 2. Selected rows ------------------------------------------------------
+            const selectedTransactions = transactionData.filter((_, idx) => selectedRows.includes(idx));
 
-            // Build headInstallments array from selected rows
+            // ---- 3. Build headInstallments --------------------------------------------
             const headInstallments = selectedTransactions.map((row) => ({
-                fmA_Id: row.fmA_Id || 0,
-                fmH_Id: row.fmH_Id || 0,
-                fmG_Id: row.fmG_Id || 0,
-                ftI_Id: row.ftI_Id || 0,
-                toBePaid: row.payableAmount || 0,
-                concessionAmount: row.concession || 0,
-                fineAmount: row.fine || 0
+                FMG_Id: row.fmG_Id ?? 0, // renamed to match the JSON
+                FMH_Id: row.fmH_Id ?? 0,
+                FMA_Id: row.fmA_Id ?? 0,
+                ToBePaid: row.toBePaid ?? 0,
+                ConcessionAmount: row.concessionAmount ?? 0,
+                FineAmount: row.fineAmount ?? 0
             }));
 
-            // Calculate totals from selected transactions
-            const totalAmount = selectedTransactions.reduce((sum, row) => sum + (row.payableAmount || 0), 0);
-            const totalConcession = selectedTransactions.reduce((sum, row) => sum + (row.concession || 0), 0);
-            const totalFine = selectedTransactions.reduce((sum, row) => sum + (row.fine || 0), 0);
+            // ---- 4. Totals -------------------------------------------------------------
+            const totalAmount = selectedTransactions.reduce((sum, r) => sum + (r.toBePaid ?? 0), 0);
+            const totalConcession = selectedTransactions.reduce((sum, r) => sum + (r.concessionAmount ?? 0), 0);
+            const totalFine = selectedTransactions.reduce((sum, r) => sum + (r.fineAmount ?? 0), 0);
 
+            // ---- 5. Payload ------------------------------------------------------------
             const payload = {
-                mI_Id: 0, // You may need to get this from context/session
-                asmaY_Id: data.asmaY_Id || selectedAcademicYear || 0,
-                pasR_Id: selectedStudent?.amsT_Id || 0,
-                userId: 0, // Get from user session
+                asmaY_Id: data.asmaY_Id ?? selectedAcademicYear ?? 0,
+                auto_receipt_flag: 1,
+                automanualreceiptno: '',
                 filterInitialData: admissionType,
-                fyP_Date: new Date(date).toISOString(),
-                fyP_Bank_Or_Cash: paymentMode,
                 fyP_Bank_Name: paymentMode !== 'Cash' ? paymentData.bankName : '',
+                fyP_Bank_Or_Cash: paymentMode,
+                fyP_DD_Cheque_Date: paymentMode !== 'Cash' ? new Date(paymentData.chequeDate).toISOString() : new Date(date).toISOString(),
                 fyP_DD_Cheque_No: paymentMode !== 'Cash' ? paymentData.chequeNo : '',
-                fyP_DD_Cheque_Date: paymentMode !== 'Cash' ? new Date(paymentData.chequeDate).toISOString() : new Date().toISOString(),
+                fyP_Date: new Date(date).toISOString(),
                 fyP_Remarks: paymentData.narration,
                 fyP_Tot_Amount: totalAmount,
                 fyP_Tot_Concession_Amt: totalConcession,
                 fyP_Tot_Fine_Amt: totalFine,
                 fyP_Tot_Waived_Amt: 0,
-                auto_receipt_flag: 1, // Adjust based on your requirement
-                automanualreceiptno: '', // Generate or leave empty
                 grp_count: selectedTransactions.length,
-                headInstallments: headInstallments
+                head_installments: headInstallments, // camelCase + underscore
+                mI_Id: 30,
+                pasR_Id: selectedStudent?.amsT_Id ?? 0,
+                userId: 0
             };
+            // -----------------------------------------------------------------------
+            // (rest of the function – loading toast, API call, success/error handling)
+            const loadingToast = toast.loading('Saving transaction...');
+            const response = await addOrUpdatepaymentgatewaydetails(payload);
+            toast.dismiss(loadingToast);
+            toast.success('Transaction saved successfully!');
 
-            console.log('Submitting payload:', payload);
-
-            toast.success('Payload prepared successfully! Check console.');
+            onSuccess?.();
         } catch (error: any) {
-            toast.error(error.message || 'Failed to submit transaction');
+            const msg = error?.response?.data?.message ?? error?.message ?? 'Failed to save transaction';
+            toast.error(msg);
             console.error('Submit error:', error);
         }
     };
-
     const handleReset = () => {
         reset();
     };
@@ -727,20 +727,20 @@ export default function AddFeePreAdmissionTransactionForm({ onSuccess, headname 
                                                 </td>
 
                                                 {/* 🔹 Fee Group */}
-                                                <td className='select-none border border-gray-400 px-2 py-2'>{row?.feeGroup ?? ''}</td>
+                                                <td className='select-none border border-gray-400 px-2 py-2'>{row?.fmG_GroupName ?? ''}</td>
 
                                                 {/* 🔹 Fee Head */}
-                                                <td className='select-none border border-gray-400 px-2 py-2'>{row?.feeHead ?? ''}</td>
+                                                <td className='select-none border border-gray-400 px-2 py-2'>{row?.fmH_FeeName ?? ''}</td>
 
                                                 {/* 🔹 Installment */}
-                                                <td className='select-none border border-gray-400 px-2 py-2'>{row?.installment ?? ''}</td>
+                                                <td className='select-none border border-gray-400 px-2 py-2'>{row?.ftI_Id ?? ''}</td>
 
                                                 {/* 🔹 Current Charges */}
                                                 <td className='border border-gray-400 px-2 py-2'>
                                                     <input
                                                         type='text'
                                                         readOnly
-                                                        value={row?.currentCharges ?? ''}
+                                                        value={row?.currentYrCharges ?? ''}
                                                         className='w-full rounded border border-gray-300 bg-gray-50 text-center outline-none focus:outline-none'
                                                     />
                                                 </td>
@@ -760,7 +760,7 @@ export default function AddFeePreAdmissionTransactionForm({ onSuccess, headname 
                                                     <input
                                                         type='text'
                                                         readOnly
-                                                        value={row?.concession ?? ''}
+                                                        value={row?.concessionAmount ?? ''}
                                                         className='w-full rounded border border-gray-300 bg-gray-50 text-center outline-none focus:outline-none'
                                                     />
                                                 </td>
@@ -770,7 +770,7 @@ export default function AddFeePreAdmissionTransactionForm({ onSuccess, headname 
                                                     <input
                                                         type='text'
                                                         readOnly
-                                                        value={row?.fine ?? ''}
+                                                        value={row?.fineAmount ?? ''}
                                                         className='w-full rounded border border-gray-300 bg-gray-50 text-center outline-none focus:outline-none'
                                                     />
                                                 </td>
@@ -782,7 +782,7 @@ export default function AddFeePreAdmissionTransactionForm({ onSuccess, headname 
                                                         readOnly={!isSelected}
                                                         min={0}
                                                         step='0.01'
-                                                        value={row?.payableAmount ?? ''}
+                                                        value={row?.toBePaid ?? ''}
                                                         onKeyDown={(e) => {
                                                             // ❌ Block unwanted keys
                                                             if (['-', 'e', 'E', '+'].includes(e.key)) e.preventDefault();

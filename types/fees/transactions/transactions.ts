@@ -162,16 +162,26 @@ export interface IFeePreAdmissionTransactionDetails {
     fmA_Id: number;
     fyP_Id: number;
     termId: number;
-    installment: string;
-    feeHead: string;
-    feeGroup: string;
-    feeType: string;
-    currentCharges: number;
+
+    // New field names from backend
+    fmG_GroupName: string;
+    fmH_FeeName: string;
+    ftI_Name: string;
+
+    currentYrCharges: number;
     totalCharges: number;
-    concession: number;
-    fine: number;
-    payableAmount: number;
+    concessionAmount: number;
+    fineAmount: number;
+    toBePaid: number;
     netAmount: number;
+
+    fmH_Order?: number;
+
+    // Optional for UI
+    className?: string;
+    academicYear?: string;
+    bankName?: string;
+    chequeNo?: string;
 }
 
 export interface IFeeTransactionApiResponse {

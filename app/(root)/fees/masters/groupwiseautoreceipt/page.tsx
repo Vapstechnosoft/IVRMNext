@@ -8,26 +8,31 @@ import { FormProvider, useFormContext } from '@/components/ui/form/form-provider
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useAcademicYearDropdown, useFeeMasterGroupwiseAutoReceipt } from '@/hooks/fees/useMasters';
+import { tableSearchVariables } from '@/lib/data-table.config';
 import type { IMasterGroupWiseAutoReciptList } from '@/types/fees/masters/masters';
 import { Plus, X } from 'lucide-react';
-import { use, useEffect, useState } from 'react';
+import { parseAsString, useQueryState } from 'nuqs';
+import { useEffect, useState } from 'react';
 import AddMasterClassForm from './_components/add-form';
 import { masterGroupWiseAutoReciptColumns } from './_components/columns';
 import DeleteMasterAutoReceiptForm from './_components/delete-form';
 import UpdateMasterClassForm from './_components/update-form';
 
-type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
-
-export default function MasterClassPage(props: { searchParams: SearchParams }) {
-    const searchParams = use(props.searchParams);
+export default function MasterClassPage() {
     const [academicYearId, setAcademicYearId] = useState<number | null>(null);
+    const [searchQuery] = useQueryState(tableSearchVariables.search, parseAsString.withOptions({ shallow: false }).withDefault(''));
 
-    const { data: response, isLoading, error, refetch } = useFeeMasterGroupwiseAutoReceipt(academicYearId || 0, searchParams as any);
+    const {
+        data: response,
+        isLoading,
+        error,
+        refetch
+    } = useFeeMasterGroupwiseAutoReceipt(academicYearId || 0, searchQuery ? { search_query: searchQuery } : undefined);
 
-    // Refetch whenever academicYearId changes
+    // Refetch whenever academicYearId or searchQuery changes
     useEffect(() => {
         refetch();
-    }, [academicYearId, refetch]);
+    }, [academicYearId, searchQuery, refetch]);
 
     return (
         <FormProvider<IMasterGroupWiseAutoReciptList>>
@@ -38,6 +43,7 @@ export default function MasterClassPage(props: { searchParams: SearchParams }) {
                 refetch={refetch}
                 academicYearId={academicYearId}
                 setAcademicYearId={setAcademicYearId}
+                searchQuery={searchQuery}
             />
         </FormProvider>
     );
@@ -48,7 +54,8 @@ function MasterClassPageContent({
     error,
     refetch,
     academicYearId,
-    setAcademicYearId
+    setAcademicYearId,
+    searchQuery
 }: {
     response: any;
     isLoading: boolean;
@@ -56,6 +63,7 @@ function MasterClassPageContent({
     refetch: () => void;
     academicYearId: number | null;
     setAcademicYearId: (id: number | null) => void;
+    searchQuery: string;
 }) {
     const { openAddForm } = useFormContext<IMasterGroupWiseAutoReciptList>();
     const tableProps = useDataTableProps(response);
@@ -129,6 +137,7 @@ function MasterClassPageContent({
                         columns={masterGroupWiseAutoReciptColumns}
                         isLoading={isLoading}
                         error={error}
+                        searchQuery={searchQuery}
                         columnPinning={{ right: ['actions'] }}
                         loadingMessage='Loading group receipt settings...'
                         noDataTitle='No Records Found'

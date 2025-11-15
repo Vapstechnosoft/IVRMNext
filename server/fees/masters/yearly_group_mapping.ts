@@ -1,6 +1,6 @@
 'use server';
 
-import { api } from '@/lib/apiService';
+import { api, getSearchParamsUrl } from '@/lib/apiService';
 import type { ApiSearchparams } from '@/types';
 import type { IMasterAllFeeHeadList, IMasterFeeHeadDropdownList, IMasterFeeInstallmentDropdownList } from '@/types/fees/masters/masters';
 
@@ -28,23 +28,16 @@ export async function addMasterYearlyGroupMapping(data: any) {
     return await api.post<any>('fees', url, data);
 }
 
-export async function getMasterAllFeeHead(params?: ApiSearchparams) {
-    const fields = 'fyghM_Id,fmG_GroupName,fmH_FeeName,fmI_Name,fyghM_FineApplicableFlag,fyghM_Common_AmountFlag,ASMAY_Id,page,page_size';
+export async function getMasterAllFeeHead(asmay_Id: number, searchParams?: ApiSearchparams) {
+    const urlParams = getSearchParamsUrl(
+        searchParams ?? {},
+        'mG_GroupName,fyghM_Id,fmH_FeeName,fmI_Name,fyghM_FineApplicableFlag,fyghM_Common_AmountFlag'
+    );
+    const url = `/YearlyFeeGroupMappingFacade/getallfeehead?asmay_Id=${asmay_Id}&${urlParams}`;
 
-    const usp = new URLSearchParams();
-    const safeParams = params ?? {};
-    for (const [key, value] of Object.entries(safeParams)) {
-        if (value !== undefined && value !== null) {
-            usp.append(key, String(value));
-        }
-    }
-    usp.append('fields', fields);
-
-    const url = `/YearlyFeeGroupMappingFacade/getallfeehead?MI_Id=30&${usp.toString()}`;
-
-    return await api.get<{
-        success: boolean;
-        message: string;
-        data: IMasterAllFeeHeadList[];
-    }>('fees', url);
+    return await api.get<IMasterAllFeeHeadList[]>('fees', url);
+}
+export async function deleteYearlyGroupMapping(id: number) {
+    const url = `/YearlyFeeGroupMappingFacade/deletefeeheadsinstallment/${id}`;
+    return await api.delete('fees', url);
 }
