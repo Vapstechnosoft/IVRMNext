@@ -168,6 +168,19 @@ export default function UpdateCoScholasticActivityAreaMapping({ rowData, onSucce
         }
     }, [rowData, reset]);
 
+    const handleReset = () => {
+        if (rowData) {
+            reset({
+                ecacT_Id: rowData.ecacT_Id ?? 0,
+                mI_Id: orgId,
+                asmaY_Id: rowData.asmaY_Id ?? 0,
+                ecactA_Id: rowData.ecactA_Id ?? 0,
+                ecactaM_Id: rowData.ecactaM_Id ?? 0,
+                ecactaM_IndicatorDescription: rowData.ecactaM_IndicatorDescription ?? '',
+                emgR_Id: rowData.emgR_Id ?? 0
+            });
+        }
+    };
     // On final submit - update call (keeps same payload mapping you used in Add)
     const onSubmit = async (data: FormFields) => {
         await new Promise((resolve) => setTimeout(resolve, 0));
@@ -185,7 +198,8 @@ export default function UpdateCoScholasticActivityAreaMapping({ rowData, onSucce
                 ecactA_Id: data.ecactA_Id ?? 0,
                 ecactaM_Id: data.ecactaM_Id ?? 0,
                 ecactaM_IndicatorDescription: data.ecactaM_IndicatorDescription ?? '',
-                emgR_Id: data.emgR_Id ?? 0
+                emgR_Id: data.emgR_Id ?? 0,
+                ecactaM_ActiveFlag: rowData.ecactaM_ActiveFlag ?? true
             };
 
             const res = await addOrUpdateCoScholasticActivityAreaMapping(payload);
@@ -346,26 +360,22 @@ export default function UpdateCoScholasticActivityAreaMapping({ rowData, onSucce
                     </div>
 
                     <div className='flex w-fit gap-4'>
-                        <Button type='submit' disabled={isSubmitting}>
-                            {isSubmitting ? 'Saving...' : 'Save'}
+                        <Button
+                            type='submit'
+                            disabled={isSubmitting}
+                            className='order-1 w-fit transition-all duration-200 hover:scale-105 sm:order-2'
+                            isLoading={isSubmitting}
+                            loadingText='Saving...'>
+                            <div className='flex items-center'>Update</div>
                         </Button>
+
                         <Button
                             type='button'
                             variant='outline'
-                            onClick={() =>
-                                reset({
-                                    mI_Id: orgId,
-                                    asmaY_Id: 0,
-                                    ecacT_Id: 0,
-                                    ecactA_Id: 0,
-                                    ecactaM_Id: 0,
-                                    emgR_Id: 0,
-                                    ecactaM_IndicatorDescription: '',
-                                    ecactaM_ActiveFlag: true
-                                })
-                            }>
-                            {' '}
-                            Reset{' '}
+                            onClick={handleReset}
+                            disabled={isSubmitting}
+                            className='order-2 w-fit transition-all duration-200 hover:scale-105 sm:order-1'>
+                            Reset
                         </Button>
                     </div>
                 </form>
