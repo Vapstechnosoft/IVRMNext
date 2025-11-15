@@ -134,7 +134,7 @@ function ActionButtonsCell({ rowData }: { rowData: IExamSubjectWizard }) {
 
             <ActionButtons
                 rowData={rowData}
-                buttons={{ edit: true, delete: false, toggle: true }}
+                buttons={{ edit: false, delete: false, toggle: true }}
                 onEdit={handleEdit}
                 onToggle={handleToggle}
                 toggleConditionKey='eycE_ActiveFlg'

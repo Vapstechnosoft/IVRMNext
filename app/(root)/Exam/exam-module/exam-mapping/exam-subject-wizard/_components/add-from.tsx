@@ -7,20 +7,24 @@ import { DateField } from '@/components/ui/dateField';
 import { FormError, Label } from '@/components/ui/extension/field';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useExamSubjectWizardDetails } from '@/hooks/exam/exammodule/exam-mapping';
 import { useMasterGrade } from '@/hooks/exam/exammodule/usemasters';
 import { useAcademicYearDropdown } from '@/hooks/fees/useMasters';
 import { ExamSubjectWizardSchema, SubSubjectSubExamSchema } from '@/schemas/exam/exam-module/exam-mapping';
 import { getCategoryDropDownByAcademicYearlist } from '@/server/exam/exam-module/exam-mapping/exam-subject-group-mapping';
 import {
     addOrUpdateExamSubjectWizard,
+    getSubExamsMappedList,
     getSubSubjectSubExamList,
+    getSubSubjectsAndSubExamsMappedList,
+    getSubSubjectsMappedList,
     getSubjectsByCategory
 } from '@/server/exam/exam-module/exam-mapping/exam-subject-wizard';
 import { getExamsByCategoryandAcademicYear } from '@/server/exam/exam-module/masters/exam';
 import { getMasterSubExamDropdownList } from '@/server/exam/exam-module/masters/sub-exam';
 import { getMasterSubSubjectDropdownList } from '@/server/exam/exam-module/masters/sus-subject';
 import type { IAcademicYearDropDown } from '@/types/admission/preadmission/masters';
-import type { IExamSubjectWizard } from '@/types/exam/exam-module/exam-mapping';
+import type { IExamSubjectWizard, IExamSubjectWizardDetails } from '@/types/exam/exam-module/exam-mapping';
 import type { ICategory, IMasterGrade } from '@/types/exam/exam-module/masters';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { format, parse } from 'date-fns';
@@ -75,6 +79,7 @@ export default function AddExamSubjectWizard({ onSuccess, rowData }: { onSuccess
     const [categories, setCategories] = useState<ICategory[]>([]);
     const [exams, setExams] = useState<{ EME_Id: number; EME_ExamName: string; checked?: boolean }[]>([]);
     const [subjects, setSubjects] = useState<any[]>([]);
+    const [rowSubjects, setRowSubjects] = useState<any[]>([]);
     const [gradeList, setGradeList] = useState<IMasterGrade[]>([]);
 
     const watchYear = watch('ASMAY_Id');
@@ -90,7 +95,8 @@ export default function AddExamSubjectWizard({ onSuccess, rowData }: { onSuccess
     const [subSubjectSubExamModalState, setSubSubjectSubExamModalState] = useState<{ open: boolean; subject?: any }>({ open: false });
 
     const { data: academicData, isLoading: loadingAcademic, error: academicError } = useAcademicYearDropdown();
-    const { data: gradeData, isLoading: loadingGrade, error: gradeError } = useMasterGrade();
+    const { data: gradeData, error: gradeError } = useMasterGrade();
+    const { data: response } = useExamSubjectWizardDetails(30, rowData?.eycE_Id ? rowData?.eycE_Id : 0);
     // populate controlled dropdowns on mount / when data arrives
     useEffect(() => {
         if (academicError) {
@@ -128,8 +134,6 @@ export default function AddExamSubjectWizard({ onSuccess, rowData }: { onSuccess
     // when rowData (edit) is provided, populate top-level fields
     useEffect(() => {
         if (!rowData) return;
-        console.log(rowData);
-
         setValue('EYCE_Id', rowData.eycE_Id || 0);
         setValue('ASMAY_Id', rowData.asmaY_Id ?? rowData.asmaY_Id ?? undefined);
         setValue('EYC_Id', rowData.eyC_Id ?? undefined);
@@ -149,7 +153,7 @@ export default function AddExamSubjectWizard({ onSuccess, rowData }: { onSuccess
         setValue('EYCE_ActiveFlg', rowData.eycE_ActiveFlg ?? true);
         setValue('EYCE_BestOfApplicableFlg', rowData.eycE_BestOfApplicableFlg ?? false);
         setValue('EYCE_BestOf', rowData.eycE_BestOf ?? undefined);
-    }, [rowData, setValue, academicYears, gradeList, exams]);
+    }, [rowData, setValue, academicYears, gradeList]);
 
     // when academic year changes -> fetch categories for that year
     useEffect(() => {
@@ -168,7 +172,7 @@ export default function AddExamSubjectWizard({ onSuccess, rowData }: { onSuccess
 
     // when category (and EMCA_Id) changes -> fetch exams and subjects
     useEffect(() => {
-        if (!watchEMCA_ID) return;
+        if (!watchEMCA_ID || !rowData) return;
 
         // Fetch exams only when Category or EMCA changes
         (async () => {
@@ -182,13 +186,21 @@ export default function AddExamSubjectWizard({ onSuccess, rowData }: { onSuccess
                       }))
                     : [];
                 setExams(mappedExams);
+                const selectedExam = mappedExams.find((ex) => ex.EME_Id === rowData.emE_Id);
+                if (selectedExam) {
+                    setValue('exams_list', [
+                        {
+                            EME_Id: selectedExam.EME_Id
+                        }
+                    ]);
+                }
                 if (mappedExams.length === 0) toast.info('No Exams mapped to this Category.');
             } catch (err) {
                 setExams([]);
                 toast.error('Failed to load exams.');
             }
         })();
-    }, [watchCategory, watchEMCA_ID]);
+    }, [watchCategory, watchEMCA_ID, rowData]);
 
     useEffect(() => {
         if (!watchCategory || !watchEMCA_ID) return;
@@ -203,17 +215,74 @@ export default function AddExamSubjectWizard({ onSuccess, rowData }: { onSuccess
                           ISMS_SubjectName: s.ismS_SubjectName ?? s.ISMS_SubjectName,
                           EYCES_MaxMarks: s.EYCES_MaxMarks ?? 0,
                           EYCES_MinMarks: s.EYCES_MinMarks ?? 0,
+                          EYCES_MarksEntryMax: s.EYCES_MarksEntryMax ?? 0,
                           EMGR_Id: watchGrade ?? s.EMGR_Id ?? undefined,
+                          EYCES_Id: s.eyceS_Id ?? s.EYCES_Id,
                           EYCES_SubExamFlg: false,
                           EYCES_SubSubjectFlg: false,
                           EYCES_ActiveFlg: true,
+                          EYCES_MarksGradeEntryFlg: s.eyceS_MarksDisplayFlg ? 'M' : '',
+                          EYCES_MarksDisplayFlg: s.eyceS_MarksDisplayFlg ?? false,
+                          EYCES_GradeDisplayFlg: s.eyceS_GradeDisplayFlg ?? false,
+                          EYCES_AplResultFlg: s.eyceS_AplResultFlg ?? false,
                           subExamConfig: s.subExamConfig ?? [],
+                          EYCES_SubjectOrder: s.eyceS_SubjectOrder ?? 0,
                           subSubjectConfig: s.subSubjectConfig ?? [],
                           subSubjectSubExamConfig: s.subSubjectSubExamConfig ?? [],
                           Exam_Subject_PT_GradeList: []
                       }))
                     : [];
-                setSubjects(formattedSubjects);
+                if (rowData) {
+                    if (rowData?.eycE_Id && response) {
+                        const apiResponse = response as unknown as {
+                            success: boolean;
+                            message: string;
+                            data: IExamSubjectWizardDetails[];
+                        };
+                        const data = apiResponse?.data || [];
+                        const updatedSubjects: any[] = [];
+
+                        formattedSubjects.forEach((s: any) => {
+                            const dataObject = data.find((d: any) => d.ismS_Id === s.ISMS_Id);
+
+                            // Build updated subject
+                            const updated = {
+                                ISMS_Id: s.ISMS_Id,
+                                ISMS_SubjectName: s.ISMS_SubjectName,
+                                EYCES_Id: dataObject?.eyceS_Id ?? s.EYCES_Id ?? 0,
+
+                                // If API has value → use it, else use formattedSubjects value, else default
+                                EYCES_MaxMarks: dataObject?.eyceS_MaxMarks ?? s.EYCES_MaxMarks ?? 0,
+                                EYCES_MinMarks: dataObject?.eyceS_MinMarks ?? s.EYCES_MinMarks ?? 0,
+                                EYCES_MarksEntryMax: dataObject?.eyceS_MarksEntryMax ?? s.EYCES_MarksEntryMax ?? 0,
+                                checkedvalue: !!dataObject,
+                                //EMGR_Id: dataObject?.emgR_Id ?? s.EMGR_Id ?? watchGrade ?? 0,
+
+                                EYCES_SubExamFlg: dataObject?.eyceS_SubExamFlg ?? s.EYCES_SubExamFlg ?? false,
+                                EYCES_SubSubjectFlg: dataObject?.eyceS_SubSubjectFlg ?? s.EYCES_SubSubjectFlg ?? false,
+                                EYCES_ActiveFlg: dataObject?.eyceS_ActiveFlg ?? s.EYCES_ActiveFlg ?? true,
+
+                                EYCES_SubjectOrder: dataObject?.eyceS_SubjectOrder ?? s.EYCES_SubjectOrder ?? 0,
+                                EYCES_MarksGradeEntryFlg: dataObject?.eyceS_MarksGradeEntryFlg ?? s.EYCES_MarksGradeEntryFlg ?? 'M',
+
+                                EYCES_MarksDisplayFlg: dataObject?.eyceS_MarksDisplayFlg ?? s.EYCES_MarksDisplayFlg ?? false,
+                                EYCES_GradeDisplayFlg: dataObject?.eyceS_GradeDisplayFlg ?? s.EYCES_GradeDisplayFlg ?? false,
+                                EYCES_AplResultFlg: dataObject?.eyceS_AplResultFlg ?? s.EYCES_AplResultFlg ?? false,
+
+                                subExamConfig: s.subExamConfig ?? [],
+                                subSubjectConfig: s.subSubjectConfig ?? [],
+                                subSubjectSubExamConfig: s.subSubjectSubExamConfig ?? [],
+                                Exam_Subject_PT_GradeList: s.Exam_Subject_PT_GradeList ?? []
+                            };
+
+                            updatedSubjects.push(updated);
+                        });
+                        setSubjects(updatedSubjects);
+                    } else {
+                        setSubjects(formattedSubjects);
+                    }
+                }
+
                 setValue('yearly_category_exam_subjects', formattedSubjects);
             } catch (err) {
                 const fallback = [
@@ -237,7 +306,7 @@ export default function AddExamSubjectWizard({ onSuccess, rowData }: { onSuccess
                 toast.error('Failed to load subjects.');
             }
         })();
-    }, [watchCategory, watchEMCA_ID, setValue]);
+    }, [rowData, watchCategory, watchEMCA_ID, response, setValue]);
     useEffect(() => {
         if (formState.isSubmitted) {
             // 1️ No subject selected
@@ -285,8 +354,37 @@ export default function AddExamSubjectWizard({ onSuccess, rowData }: { onSuccess
     const onOpenSubExamModal = async (subject: any) => {
         try {
             setSubExamModalState({ open: true, subject });
+
             const { data: list } = await getMasterSubExamDropdownList(30);
-            setSubExamModalState({ open: true, subject: { ...subject, list } });
+            const { data: mappedList } = await getSubExamsMappedList(30, subject.EYCES_Id);
+
+            const safeList = Array.isArray(list) ? list : [];
+            const safeMapped = Array.isArray(mappedList) ? mappedList : [];
+
+            const updatedList = safeList.map((item: any) => {
+                const matched = safeMapped.find((m: any) => m.emsE_Id === item.emsE_Id);
+
+                if (matched) {
+                    return {
+                        ...item,
+                        ...matched,
+                        checkedvalue: true
+                    };
+                }
+
+                return {
+                    ...item,
+                    checkedvalue: false
+                };
+            });
+
+            setSubExamModalState({
+                open: true,
+                subject: {
+                    ...subject,
+                    list: updatedList
+                }
+            });
         } catch {
             setSubExamModalState({
                 open: true,
@@ -305,7 +403,37 @@ export default function AddExamSubjectWizard({ onSuccess, rowData }: { onSuccess
         try {
             setSubSubjectModalState({ open: true, subject });
             const { data: list } = await getMasterSubSubjectDropdownList(30);
-            setSubSubjectModalState({ open: true, subject: { ...subject, list } });
+            const { data: subSubjectList } = await getSubSubjectsMappedList(30, subject.EYCES_Id);
+            console.log(list);
+            console.log('subSubjectList', subSubjectList);
+            const safeList = Array.isArray(list) ? list : [];
+
+            // If subSubjectList is null → assign empty array
+            const safeSubSubjectList = Array.isArray(subSubjectList) ? subSubjectList : [];
+
+            // Build updated list
+            const updatedList = safeList.map((item: any) => {
+                const matched = safeSubSubjectList.find((ss: any) => ss.emsS_Id === item.emsS_Id);
+                if (matched) {
+                    return {
+                        ...item,
+                        ...matched,
+                        checkedvalue: !!matched
+                    };
+                }
+                return {
+                    ...item,
+                    checkedvalue: false
+                };
+            });
+
+            setSubSubjectModalState({
+                open: true,
+                subject: {
+                    ...subject,
+                    list: updatedList
+                }
+            });
         } catch {
             setSubSubjectModalState({
                 open: true,
@@ -323,8 +451,37 @@ export default function AddExamSubjectWizard({ onSuccess, rowData }: { onSuccess
     const onOpenSubSubjectSubExamModal = async (subject: any) => {
         try {
             setSubSubjectSubExamModalState({ open: true, subject });
+
             const { data: list } = await getSubSubjectSubExamList(30);
-            setSubSubjectSubExamModalState({ open: true, subject: { ...subject, list } });
+            const { data: mappedList } = await getSubSubjectsAndSubExamsMappedList(30, subject.EMSS_Id);
+
+            const safeList = Array.isArray(list) ? list : [];
+            const safeMapped = Array.isArray(mappedList) ? mappedList : [];
+
+            const updatedList = safeList.map((item: any) => {
+                const matched = safeMapped.find((m: any) => m.emsE_Id === item.emsE_Id);
+
+                if (matched) {
+                    return {
+                        ...item,
+                        ...matched,
+                        checkedvalue: true
+                    };
+                }
+
+                return {
+                    ...item,
+                    checkedvalue: false
+                };
+            });
+
+            setSubSubjectSubExamModalState({
+                open: true,
+                subject: {
+                    ...subject,
+                    list: updatedList
+                }
+            });
         } catch {
             setSubSubjectSubExamModalState({
                 open: true,
@@ -338,6 +495,7 @@ export default function AddExamSubjectWizard({ onSuccess, rowData }: { onSuccess
             });
         }
     };
+
     const toBackendDate = (d?: string | null) => {
         if (!d) return '';
         if (d.includes('T')) return d;
@@ -565,25 +723,35 @@ export default function AddExamSubjectWizard({ onSuccess, rowData }: { onSuccess
                                 {errors.EYC_Id && <FormError>{errors.EYC_Id.message}</FormError>}
                             </div>
 
-                            <div>
-                                <CustomMultiSelectBox
-                                    label='Exam *'
-                                    options={exams.map((ex) => ({
-                                        label: ex.EME_ExamName,
-                                        value: ex.EME_Id.toString()
-                                    }))}
-                                    value={exams.filter((ex) => ex.checked).map((ex) => ex.EME_Id.toString())}
-                                    onChange={(selectedValues) => {
-                                        const updatedExams = exams.map((ex) => ({
-                                            ...ex,
-                                            checked: selectedValues.includes(ex.EME_Id.toString())
-                                        }));
-                                        setExams(updatedExams);
-                                    }}
-                                    isSearchRequired={true}
-                                    height='220px'
-                                />
-                            </div>
+                            <Controller
+                                name='exams_list'
+                                control={methods.control}
+                                render={({ field, fieldState }) => (
+                                    <CustomMultiSelectBox
+                                        label='Exam *'
+                                        options={exams.map((ex) => ({
+                                            label: ex.EME_ExamName,
+                                            value: ex.EME_Id.toString()
+                                        }))}
+                                        // Map field.value (form value) to array of string IDs for CustomMultiSelectBox
+                                        value={field.value?.map((s: { EME_Id: number }) => s.EME_Id.toString()) || []}
+                                        onChange={(selectedValues: string[]) => {
+                                            // Update both the form value and local checked state
+                                            const updatedExams = exams.map((ex) => ({
+                                                ...ex,
+                                                checked: selectedValues.includes(ex.EME_Id.toString())
+                                            }));
+                                            setExams(updatedExams);
+
+                                            // Update the form's value: array of selected exam objects
+                                            const selectedExams = exams.filter((ex) => selectedValues.includes(ex.EME_Id.toString()));
+                                            field.onChange(selectedExams);
+                                        }}
+                                        isSearchRequired={true}
+                                        height='220px'
+                                    />
+                                )}
+                            />
                         </div>
 
                         {/* Right */}

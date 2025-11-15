@@ -3,6 +3,7 @@
 import { Button } from '@/components/ui/button';
 import { CustomMultiSelectBox } from '@/components/ui/custom-multiselect';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useMasterCategoryClassMapping } from '@/hooks/exam/exammodule/usemasters';
 import { useAcademicYearDropdown } from '@/hooks/fees/useMasters';
 import { categoryClassMappingSchema } from '@/schemas/exam/exam-module/masters';
 import {
@@ -34,6 +35,7 @@ export default function AddCategoryClassForm({ onSuccess, initialData }: AddCate
     const [sections, setSections] = useState<{ asmS_Id: number; asmC_SectionName: string }[]>([]);
     const [loadingSections, setLoadingSections] = useState(false);
     const { data: academicData, isLoading: loadingAcademic, error: academicError } = useAcademicYearDropdown();
+    const { refetchAll } = useMasterCategoryClassMapping();
     const {
         control,
         handleSubmit,
@@ -128,6 +130,7 @@ export default function AddCategoryClassForm({ onSuccess, initialData }: AddCate
             if (res.success) {
                 toast.success(res.message);
                 onSuccess?.();
+                refetchAll();
             } else {
                 toast.error(res.message);
             }
