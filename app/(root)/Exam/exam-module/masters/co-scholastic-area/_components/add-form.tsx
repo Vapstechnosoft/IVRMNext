@@ -71,13 +71,20 @@ export default function AddCoScholasticAreaForm({ onSuccess, className = '' }: A
                             required
                             {...register('ecactA_SkillArea')}
                             error={errors.ecactA_SkillArea?.message}
+                            onInput={(e) => {
+                                const input = e.currentTarget; // <-- HTMLInputElement
+                                input.value = input.value.replace(/[^A-Za-z0-9 ]/g, '');
+                            }}
                         />
                         <InputText
                             label='Co-Scholastic Area Order'
-                            type='number'
                             required
                             {...register('ecactA_SkillOrder')}
                             error={errors.ecactA_SkillOrder?.message}
+                            onInput={(e) => {
+                                const input = e.currentTarget; // <-- HTMLInputElement
+                                input.value = input.value.replace(/[^0-9]/g, '');
+                            }}
                         />
                     </div>
                 </div>
