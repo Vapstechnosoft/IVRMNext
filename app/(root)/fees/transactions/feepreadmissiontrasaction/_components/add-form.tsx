@@ -140,7 +140,7 @@ export default function AddFeePreAdmissionTransactionForm({ onSuccess }: AddFeeP
             setLoadingStudentInfo(true);
             try {
                 const information = await getPreadmissionStudentInformation(Number(selectedStudent.amsT_Id), admissionType);
-                console.log('Fetched student info:', information);
+
                 // info is already an object
                 const info = JSON.parse(JSON.stringify(information));
                 setStudentInfo(info);
@@ -195,11 +195,12 @@ export default function AddFeePreAdmissionTransactionForm({ onSuccess }: AddFeeP
         const fetchTransactions = async () => {
             setLoadingTransactions(true);
             try {
-                const res = await getPreadmissionStudentTrasactionData(
-                    Number(selectedStudent.amsT_Id),
-                    Number(selectedAcademicYear)
-                    //,selectedTermIds // ✅ pass term IDs
-                );
+                const res =
+                    await getPreadmissionStudentTrasactionData(
+                        // Number(selectedStudent.amsT_Id),
+                        // Number(selectedAcademicYear)
+                        //,selectedTermIds // ✅ pass term IDs
+                    );
                 setTransactionData(res);
             } catch (err) {
                 console.error('Failed to fetch transactions', err);
@@ -216,15 +217,15 @@ export default function AddFeePreAdmissionTransactionForm({ onSuccess }: AddFeeP
         selected?: boolean;
     };
 
-    const selectedTermIds = selectedStudentTerms.filter((t) => t.selected).map((t) => t.fmT_Id);
+    // const selectedTermIds = selectedStudentTerms.filter((t) => t.selected).map((t) => t.fmT_Id);
 
-    const academicYears = ['2024-2025', '2025-2026', '2026-2027'];
+    // const academicYears = ['2024-2025', '2025-2026', '2026-2027'];
 
-    const handleStudentSelect = (id: number) => {
-        const student = students.find((s) => s.amsT_Id === id) ?? null;
-        setSelectedStudent(student);
-        setStudentSearch(student ? student.studentName : '');
-    };
+    // const handleStudentSelect = (id: number) => {
+    //     const student = students.find((s) => s.amsT_Id === id) ?? null;
+    //     setSelectedStudent(student);
+    //     setStudentSearch(student ? student.studentName : '');
+    // };
 
     const [selectedRows, setSelectedRows] = useState<number[]>([]);
 
@@ -343,7 +344,6 @@ export default function AddFeePreAdmissionTransactionForm({ onSuccess }: AddFeeP
             toast.dismiss(loadingToast);
             toast.success('Transaction saved successfully!');
 
-            console.log('API response:', response);
             onSuccess?.();
         } catch (error: any) {
             const msg = error?.response?.data?.message ?? error?.message ?? 'Failed to save transaction';

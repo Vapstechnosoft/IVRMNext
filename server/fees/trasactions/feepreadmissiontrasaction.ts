@@ -21,7 +21,7 @@ export async function getFeePreadmissionTransactionList(searchParams?: ApiSearch
         'modeOfPayment,paidAmount,paidDate,receiptNo,studentEmail,studentMobile,studentRegNo,studentName'
     );
     const url = '/FeePreadmission/gettransactionlist?MI_Id=30&ASMAY_Id=231';
-    console.info('preadmissiontransactiondetials api', url);
+    console.info('preadmissiontransactiondetials api', url, urlParams);
     return await api.get<IFeePreAdmissionTransactionDetails[]>('fees', url);
 }
 
@@ -55,10 +55,10 @@ export async function getPreadmissionStudentTermsData(studentId: number): Promis
 }
 
 export async function getPreadmissionStudentTrasactionData(
-    studentId: number,
-    academicYear: number
+    // studentId: number,
+    // academicYear: number
 ): Promise<IFeePreAdmissionTransactionDetails[]> {
-    const url = `FeePreadmission/feedashboard?pasR_Id=${studentId}&asmaY_Id=${academicYear}&Grp_Term_flg=T&filterinitialdata=Preadmission&terms_groups=62`;
+    const url = 'FeePreadmission/feedashboard?pasR_Id=1625&Grp_Term_flg=T&filterinitialdata=Preadmission&terms_groups=62';
 
     console.info('Requesting preadmission transaction details:', { baseUrlKey: 'fees', url });
 
