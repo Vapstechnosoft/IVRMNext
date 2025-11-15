@@ -58,7 +58,7 @@ export async function getPreadmissionStudentTrasactionData(
     studentId: number,
     academicYear: number
 ): Promise<IFeePreAdmissionTransactionDetails[]> {
-    const url = `FeePreadmission/feedashboard?MIId=30&ASMAY_Id=${academicYear}&StudentId=${studentId}`;
+    const url = `FeePreadmission/feedashboard?pasR_Id=${studentId}&asmaY_Id=${academicYear}&Grp_Term_flg=T&filterinitialdata=Preadmission&terms_groups=62`;
 
     console.info('Requesting preadmission transaction details:', { baseUrlKey: 'fees', url });
 
@@ -80,7 +80,8 @@ export async function addOrUpdateAmountEntry(data: any) {
     return await api.post<any>('fees', url, data);
 }
 
-export async function deleteAmountEntry(mi_id: number, asmay_id: number, id: number) {
+export async function deleteAmountEntry(asmay_id: number, id: number) {
+    //mi_id: number,
     const url = `/fee_amount_entry/deletedetails/30/${asmay_id}/${id}`;
     console.info(url);
     return await api.put('fees', url);
@@ -92,7 +93,8 @@ export async function getCategorydrodowndata(academicYear_Id: number) {
     return await api.post<IFeeClassCategoryDropDownList>('fees', url);
 }
 
-export async function getgroupdrodown(academicYear_Id: number) {
+export async function getgroupdrodown() {
+    //academicYear_Id: number
     //const url = `fee_amount_entry/fee_grouplist?mi_id=30&asmay_id=${academicYear_Id}`;
 
     const url = 'fee_amount_entry/fee_grouplist?mi_id=30&asmay_id=231';
@@ -105,11 +107,11 @@ export async function getAcademicYearDropdownData() {
 }
 
 export async function addOrUpdatepaymentgatewaydetails(data: any) {
-    const url = '/FeePaymentGatewayDetailsFacade';
+    const url = '/FeePreadmission/save_fee_preadmission_transaction';
     return await api.post<any>('fees', url, data);
 }
 
-export async function togglepaymentgatewaydetails(mi_id: number, id: number) {
+export async function togglepaymentgatewaydetails(id: number) {
     const url = `/FeePaymentGatewayDetailsFacade/deletePaymentGatewayDetails/${id}`;
     return await api.put('fees', url);
 }
@@ -123,4 +125,9 @@ export async function getpaymentgateway_dropdown(searchParams?: ApiSearchparams)
 export async function getAmountentrydetails(mi_id: number, asmay_id: number, fmcC_id: number, fmG_id: number) {
     const url = `/fee_amount_entry/getgroupmappedheads/${mi_id}/${asmay_id}/${fmcC_id}/${fmG_id}`;
     return await api.get<IMasterAmountEntryDetails[]>('fees', url);
+}
+
+export async function getPrintdetails(data: any) {
+    const url = '/FeePreadmission/print_receipt';
+    return await api.get<IMasterAmountEntryDetails[]>('fees', url, data);
 }

@@ -477,7 +477,7 @@ export async function getUserAccessibleModules() {
                                             url: '/fees/transactions/feeamountentry',
                                             title: 'Fee Amount Entry',
                                             description: 'Manage Fee Amount Entry Details'
-                                        }
+                                        },
                                         // {
                                         //     id: 41,
                                         //     name: 'Third Party Transaction',
@@ -502,15 +502,14 @@ export async function getUserAccessibleModules() {
                                         //     title: 'Fee waivedoff',
                                         //     description: 'Fee waivedoff'
                                         // }
-                                        //  ,
-                                        // {
-                                        //     id: 500,
-                                        //     name: 'Fee Preadmission Transaction',
-                                        //     icon: 'Settings',
-                                        //     url: '/fees/transactions/feepreadmissiontrasaction',
-                                        //     title: 'Fee Preadmission Transaction',
-                                        //     description: 'Fee Preadmission Transaction'
-                                        // }
+                                        {
+                                            id: 500,
+                                            name: 'Fee Preadmission Transaction',
+                                            icon: 'Settings',
+                                            url: '/fees/transactions/feepreadmissiontrasaction',
+                                            title: 'Fee Preadmission Transaction',
+                                            description: 'Fee Preadmission Transaction'
+                                        }
                                     ]
                                 }
                             ]
