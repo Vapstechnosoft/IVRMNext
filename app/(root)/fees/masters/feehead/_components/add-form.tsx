@@ -50,7 +50,7 @@ export default function AddMasterFeeHeadForm({ onSuccess, headname = '' }: AddMa
             const payload = {
                 mi_id: 30,
                 fmH_FeeName: fmH_FeeName,
-                //fmH_Flag:true,
+                fmH_Flag: fmH_Flag,
                 fmH_RefundFlag: fmH_RefundFlag,
                 fmH_PDAFlag: fmH_PDAFlag,
                 fmH_SpecialFeeFlag: fmH_SpecialFeeFlag

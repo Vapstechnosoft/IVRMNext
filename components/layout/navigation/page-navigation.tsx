@@ -6,11 +6,62 @@ import { PolygonBanner } from '@/components/ui/extension/polygon-banner';
 import { getIconByName } from '@/lib/lucide-icon-registry';
 import { cn } from '@/lib/utils';
 import { AnimatePresence, motion } from 'framer-motion';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { ChevronLeft, ChevronRight, CheckSquare, RefreshCw, User, ReceiptText, DollarSign, Building2, FileText, Calendar, CreditCard, Users, Shield, List, Briefcase, Award, Clock, Search } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
 import { getNavigationContext } from './navigation-context';
+
+// Helper function to get icon with fallback for known page names
+const getPageIconWithFallback = (iconName: string | null | undefined, pageName: string): any => {
+    if (iconName) {
+        const icon = getIconByName(iconName);
+        if (icon) return icon;
+    }
+    
+    // Fallback icons for Transaction pages
+    const transactionFallbacks: Record<string, any> = {
+        'Salary Approval': CheckSquare,
+        'Salary Calculation': DollarSign,
+        'Salary Increment Process': DollarSign,
+        'Salary Updation': FileText,
+        'Mass Updation': RefreshCw,
+        'Salary Advance': DollarSign,
+        'Employee Loan': CreditCard
+    };
+    
+    // Fallback icons for Report pages
+    const reportFallbacks: Record<string, any> = {
+        'Cumulative Salary Report': DollarSign,
+        'Employee Details': User,
+        'Employee Profile': Users,
+        'Salary Slip': ReceiptText,
+        'Employee Contribution': DollarSign,
+        'Employee Salary Details': DollarSign,
+        'Employee Strength': Users,
+        'ESI Report': Shield,
+        'Head Wise Report': List,
+        'Bank Cash Report': Building2,
+        'Employee Service Report': Briefcase,
+        'Salary Certificate': Award,
+        'PF Challan': FileText,
+        'Form 10': FileText,
+        'Form 5': FileText,
+        'PF Form6A': FileText,
+        'PF Form3A': FileText,
+        'HRMS Monthend Report': Calendar,
+        'Retirement Report': Clock,
+        'Department Salary Report': Building2,
+        'Advance Report': Search,
+        'Employee offer letter': FileText,
+        'Loan Report': CreditCard
+    };
+    
+    // Combine all fallbacks
+    const allFallbacks = { ...transactionFallbacks, ...reportFallbacks };
+    
+    return allFallbacks[pageName] || null;
+};
 
 export function PageNavigation() {
     const [pageScrollPosition, setPageScrollPosition] = useState(0);
@@ -112,7 +163,7 @@ export function PageNavigation() {
                                 style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
                                 {activeNavigation.pages.map((page: any) => {
                                     const isCurrentPage = pathname === page.url;
-                                    const IconComponent = getIconByName(page.icon);
+                                    const IconComponent = getPageIconWithFallback(page.icon, page.name);
 
                                     return (
                                         <Link

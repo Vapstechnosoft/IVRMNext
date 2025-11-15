@@ -78,7 +78,6 @@ export default function UpdateMasterFeeGroupGroupingForm({
                 selectedFeeGroupIds: selectedIds
             };
             reset(initialData);
-            // Ensure the selectedFeeGroupIds is set correctly
             setValue('selectedFeeGroupIds', selectedIds);
         }
     }, [selectedRow, reset, setValue]);
@@ -189,7 +188,6 @@ export default function UpdateMasterFeeGroupGroupingForm({
 
                                         {/* Scrollable List */}
                                         <div className='max-h-[260px] overflow-y-auto rounded-md border p-1'>
-                                            {/* Individual Items */}
                                             {filteredFeeGroups.map((fg) => {
                                                 const isSelected = selectedIds.includes(fg.fmG_Id);
 
@@ -197,26 +195,12 @@ export default function UpdateMasterFeeGroupGroupingForm({
                                                     <div
                                                         key={fg.fmG_Id}
                                                         onClick={() => {
-                                                            if (isSelected) {
-                                                                // Only allow unselecting one item at a time
-                                                                const newSelected = selectedIds.filter((id) => id !== fg.fmG_Id);
-                                                                setValue('selectedFeeGroupIds', newSelected);
-                                                            } else {
-                                                                // Count how many originally selected items are currently unselected
-                                                                const unselectedOriginalCount =
-                                                                    selectedRow.selectedFeeGroups?.filter(
-                                                                        (group: { fmG_Id: number }) => !selectedIds.includes(group.fmG_Id)
-                                                                    ).length || 0;
+                                                            // FREE TOGGLE: add or remove the ID
+                                                            const newSelected = isSelected
+                                                                ? selectedIds.filter((id) => id !== fg.fmG_Id)
+                                                                : [...selectedIds, fg.fmG_Id];
 
-                                                                // Only allow selecting if exactly one original item is unselected
-                                                                if (unselectedOriginalCount === 1) {
-                                                                    setValue('selectedFeeGroupIds', [...selectedIds, fg.fmG_Id]);
-                                                                } else if (unselectedOriginalCount === 0) {
-                                                                    toast.error('Please unselect one item first');
-                                                                } else {
-                                                                    toast.error('You can only replace one item at a time');
-                                                                }
-                                                            }
+                                                            setValue('selectedFeeGroupIds', newSelected);
                                                         }}
                                                         className={cn(
                                                             'mb-1 flex cursor-pointer items-center gap-2 rounded-md border px-2 py-1.5 text-sm transition-all',
@@ -260,7 +244,7 @@ export default function UpdateMasterFeeGroupGroupingForm({
                             isLoading={isSubmitting}
                             loadingText='Updating...'>
                             <Save className='mr-2 h-4 w-4' />
-                            Update Fee Group Grouping
+                            Update Group Grouping
                         </Button>
                     </div>
                 </div>

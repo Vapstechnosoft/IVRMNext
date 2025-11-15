@@ -5,59 +5,125 @@ import { Button } from '@/components/ui/button';
 import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/generic-data-table';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
-import { useFeeMasterGroupwiseAutoReceipt } from '@/hooks/fees/useMasters';
+import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useAcademicYearDropdown, useFeeMasterGroupwiseAutoReceipt } from '@/hooks/fees/useMasters';
+import { tableSearchVariables } from '@/lib/data-table.config';
 import type { IMasterGroupWiseAutoReciptList } from '@/types/fees/masters/masters';
 import { Plus, X } from 'lucide-react';
-import { use, useEffect } from 'react';
+import { parseAsString, useQueryState } from 'nuqs';
+import { useEffect, useState } from 'react';
 import AddMasterClassForm from './_components/add-form';
 import { masterGroupWiseAutoReciptColumns } from './_components/columns';
-import ToggleMasterClassForm from './_components/toggle-form';
+import DeleteMasterAutoReceiptForm from './_components/delete-form';
 import UpdateMasterClassForm from './_components/update-form';
 
-type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
+export default function MasterClassPage() {
+    const [academicYearId, setAcademicYearId] = useState<number | null>(null);
+    const [searchQuery] = useQueryState(tableSearchVariables.search, parseAsString.withOptions({ shallow: false }).withDefault(''));
 
-export default function MasterClassPage(props: { searchParams: SearchParams }) {
-    const searchParams = use(props.searchParams);
-    const { data: response, isLoading, error, refetch } = useFeeMasterGroupwiseAutoReceipt(searchParams);
+    const {
+        data: response,
+        isLoading,
+        error,
+        refetch
+    } = useFeeMasterGroupwiseAutoReceipt(academicYearId || 0, searchQuery ? { search_query: searchQuery } : undefined);
 
-    useEffect(() => {}, [response]);
+    // Refetch whenever academicYearId or searchQuery changes
+    useEffect(() => {
+        refetch();
+    }, [academicYearId, searchQuery, refetch]);
 
     return (
         <FormProvider<IMasterGroupWiseAutoReciptList>>
-            <MasterClassPageContent response={response} isLoading={isLoading} error={error} refetch={refetch} />
+            <MasterClassPageContent
+                response={response}
+                isLoading={isLoading}
+                error={error}
+                refetch={refetch}
+                academicYearId={academicYearId}
+                setAcademicYearId={setAcademicYearId}
+                searchQuery={searchQuery}
+            />
         </FormProvider>
     );
 }
-
 function MasterClassPageContent({
     response,
     isLoading,
     error,
-    refetch
+    refetch,
+    academicYearId,
+    setAcademicYearId,
+    searchQuery
 }: {
     response: any;
     isLoading: boolean;
     error: any;
     refetch: () => void;
+    academicYearId: number | null;
+    setAcademicYearId: (id: number | null) => void;
+    searchQuery: string;
 }) {
     const { openAddForm } = useFormContext<IMasterGroupWiseAutoReciptList>();
     const tableProps = useDataTableProps(response);
 
+    // Fetch academic year dropdown data
+    const { data: academicYearOptions, isLoading: academicYearLoading, error: academicYearError } = useAcademicYearDropdown();
+
     return (
         <div className='min-h-screen'>
             <div className='container space-y-4 p-1'>
-                {/* Header */}
-                <div className='flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between'>
-                    <div className='space-y-1'>
-                        <Heading title='' description='' />
+                {/* Top row: filter on the left, heading + action on the right */}
+                <div className='flex w-full flex-col gap-4 sm:flex-row sm:items-center sm:justify-between'>
+                    <div className='flex items-center gap-4 rounded-xl border p-4 shadow-xl'>
+                        {/* Academic Year Filter */}
+                        <div className='flex w-full flex-col gap-2 sm:w-56'>
+                            <Label htmlFor='academic-year' className='mb-1 font-semibold'>
+                                Academic Year
+                            </Label>
+                            <Select
+                                value={academicYearId !== null ? String(academicYearId) : ''}
+                                onValueChange={(value) => {
+                                    setAcademicYearId(Number(value));
+                                }}>
+                                <SelectTrigger id='academic-year'>
+                                    <SelectValue placeholder='Select Academic Year' />
+                                </SelectTrigger>
+
+                                <SelectContent>
+                                    {academicYearLoading ? (
+                                        <SelectItem value='loading' disabled>
+                                            Loading...
+                                        </SelectItem>
+                                    ) : academicYearError ? (
+                                        <SelectItem value='error' disabled>
+                                            Error loading
+                                        </SelectItem>
+                                    ) : (
+                                        academicYearOptions?.data?.map((item: any) => (
+                                            <SelectItem key={item.asmaY_Id} value={String(item.asmaY_Id)}>
+                                                {item.asmaY_Year}
+                                            </SelectItem>
+                                        ))
+                                    )}
+                                </SelectContent>
+                            </Select>
+                        </div>
                     </div>
-                    <Button
-                        type='button'
-                        onClick={openAddForm}
-                        className='w-fit shadow-md transition-all duration-200 hover:scale-105 hover:shadow-lg'>
-                        <Plus className='h-4 w-4' />
-                        Add Group Receipt
-                    </Button>
+
+                    <div className='flex items-center justify-end gap-4'>
+                        <div className='hidden space-y-1 sm:block'>
+                            <Heading title='' description='' />
+                        </div>
+                        <Button
+                            type='button'
+                            onClick={openAddForm}
+                            className='w-fit shadow-md transition-all duration-200 hover:scale-105 hover:shadow-lg'>
+                            <Plus className='h-4 w-4' />
+                            Add Group Receipt
+                        </Button>
+                    </div>
                 </div>
 
                 {/* Data Table Section */}
@@ -71,6 +137,7 @@ function MasterClassPageContent({
                         columns={masterGroupWiseAutoReciptColumns}
                         isLoading={isLoading}
                         error={error}
+                        searchQuery={searchQuery}
                         columnPinning={{ right: ['actions'] }}
                         loadingMessage='Loading group receipt settings...'
                         noDataTitle='No Records Found'
@@ -90,11 +157,11 @@ function FormSections({ refetch }: { refetch: () => void }) {
     const {
         isAddFormOpen,
         isEditFormOpen,
-        isToggleFormOpen,
+        isDeleteFormOpen,
         selectedRow,
         closeAddForm,
         closeEditForm,
-        closeToggleForm,
+        closeDeleteForm,
         addFormRef,
         editFormRef
     } = useFormContext<IMasterGroupWiseAutoReciptList>();
@@ -105,7 +172,6 @@ function FormSections({ refetch }: { refetch: () => void }) {
         }
     }, [isEditFormOpen, selectedRow]);
 
-    // Success handler that refetches data
     const handleSuccess = () => {
         refetch();
     };
@@ -147,7 +213,7 @@ function FormSections({ refetch }: { refetch: () => void }) {
                 <div ref={editFormRef}>
                     <CollapsibleSection
                         title='Edit Group Receipt Configuration'
-                        description={`Editing: ${selectedRow.fmcC_ClassCategoryName} (${selectedRow.asmaY_Year})`}
+                        // description={`Editing: ${selectedRow.fmcC_ClassCategoryName} (${selectedRow.asmaY_Year})`}
                         defaultOpen
                         variant='outline'
                         size='md'
@@ -177,14 +243,14 @@ function FormSections({ refetch }: { refetch: () => void }) {
                 </div>
             ) : null}
 
-            {/* Toggle Form */}
-            {isToggleFormOpen && selectedRow && (
-                <ToggleMasterClassForm
+            {/* Delete Form */}
+            {isDeleteFormOpen && selectedRow && (
+                <DeleteMasterAutoReceiptForm
                     rowData={selectedRow}
-                    onClose={closeToggleForm}
+                    onClose={closeDeleteForm}
                     onSuccess={() => {
                         handleSuccess();
-                        closeToggleForm();
+                        closeDeleteForm();
                     }}
                 />
             )}

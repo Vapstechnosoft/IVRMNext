@@ -85,6 +85,7 @@ export const FEES_QUERY_KEYS = {
     MASTER_INSTALLMENT_DROPDOWN: 'masterInstallmentsDropdown',
     FEE_MASTER_CONCESSION_DETAILS: 'masterfeeconcessiondetails',
     FEE_PAYMENTGATEWAY_DROPDOWN: 'paymentGatewayDropdown',
+    FEE_INSTITUTE_DROPDOWN: 'fee_institute_dropdown',
 
     FEE_AMOUNT_ENTRY: 'fee_amount_entry',
     FEE_CATEGORY_DROPDOWN: 'fee_category_dropdown',
@@ -113,7 +114,11 @@ export const FEES_QUERY_KEYS = {
     FEE_PREADMISSION_TRANSACTION_DETAILS: 'fee_preadmission_transaction_details',
     FEE_PREADMISSION_STUDENT_DROPDOWN: 'fee_preadmission_student_dropdown',
     FEE_TERM_HEAD_DUEDATE: 'fee_term_head_duedate',
-    FEE_CONCESSION_CATEGORY_DROPDOWN: 'fee_concession_category_dropdown'
+    FEE_CONCESSION_CATEGORY_DROPDOWN: 'fee_concession_category_dropdown',
+    FEE_CONCESSION_CATEGORY_GROUP_HEAD_MAPPING: 'fee_concession_category_group_head_mapping',
+    FEE_CONCESSION_CATEGORY_GROUP__DROPDOWN: 'fee_concession_category_group_dropdown',
+    FEE_CONCESSION_CATEGORY_HEADS__DROPDOWN: 'fee_concession_category_heads_dropdown',
+    FEE_CONCESSION_CATEGORY_DROPDOWNDATADETAILS: 'fee_concession_category_dropdowndetails'
 };
 
 export const EXAM_QUERY_KEYS = {
@@ -154,4 +159,52 @@ export const EXAM_QUERY_KEYS = {
     LIFE_SKILLS_AREA: 'life-skills-area',
     LIFE_SKILLS_MAPPING: 'life-skills-mapping',
     LIFE_SKILLS_AREA_MAPPING: 'life-skills-area-mapping'
+};
+
+export const HRMS_QUERY_KEYS = {
+    MASTER_DESIGNATION: 'hrms_master_designation',
+    MASTER_DEPARTMENT: 'hrms_master_department',
+    MASTER_EMPLOYEE_TYPE: 'hrms_master_employee_type',
+    MASTER_GRADE: 'hrms_master_grade',
+    MASTER_GENDER: 'hrms_master_gender',
+    MASTER_MARITAL_STATUS: 'hrms_master_marital_status',
+    MASTER_GROUP_TYPE: 'hrms_master_group_type',
+    MASTER_BANK: 'hrms_master_bank',
+    MASTER_COURSE: 'hrms_master_course',
+    MASTER_LEAVE_YEAR: 'hrms_master_leave_year',
+    MASTER_LOAN: 'hrms_master_loan',
+    MASTER_SPECIALIZATION: 'hrms_master_specialization',
+    MASTER_PROFESSIONAL_TAX: 'hrms_master_professional_tax',
+    MASTER_EARNINGS_DEDUCTIONS: 'hrms_master_earnings_deductions',
+    MASTER_PAYROLL_STANDARD: 'hrms_master_payroll_standard',
+    GROUP_DEPT_DESSG_MAPPING: 'hrms_group_dept_dessg_mapping',
+    RELIGION_CATEGORY_MAPPING: 'hrms_religion_category_mapping',
+    EMPLOYEE: 'hrms_employee',
+    EMPLOYEE_ONLOAD: 'hrms_employee_onload',
+    SALARY_CALCULATION_ONLOAD: 'hrms_salary_calculation_onload',
+    SALARY_CALCULATION_EMPLOYEES: 'hrms_salary_calculation_employees',
+    SALARY_APPROVAL_ONLOAD: 'hrms_salary_approval_onload',
+    SALARY_APPROVAL_EMPLOYEES: 'hrms_salary_approval_employees',
+    SALARY_INCREMENT_ONLOAD: 'hrms_salary_increment_onload',
+    SALARY_UPDATION_ONLOAD: 'hrms_salary_updation_onload',
+    MASS_UPDATION_ONLOAD: 'hrms_mass_updation_onload',
+    SALARY_ADVANCE_ONLOAD: 'hrms_salary_advance_onload',
+    SALARY_ADVANCE_LIST: 'hrms_salary_advance_list',
+    EMPLOYEE_LOAN_ONLOAD: 'hrms_employee_loan_onload',
+    EMPLOYEE_LOAN_LIST: 'hrms_employee_loan_list',
+    // Reports
+    CUMULATIVE_SALARY_REPORT_ONLOAD: 'hrms_cumulative_salary_report_onload',
+    CUMULATIVE_SALARY_REPORT_SEARCH: 'hrms_cumulative_salary_report_search',
+    EMPLOYEE_PROFILE_REPORT_ONLOAD: 'hrms_employee_profile_report_onload',
+    EMPLOYEE_PROFILE_REPORT_FILTER: 'hrms_employee_profile_report_filter',
+    EMPLOYEE_PROFILE_REPORT_SEARCH: 'hrms_employee_profile_report_search',
+    EMPLOYEE_DETAILS_REPORT_ONLOAD: 'hrms_employee_details_report_onload',
+    EMPLOYEE_DETAILS_REPORT_FILTER: 'hrms_employee_details_report_filter',
+    EMPLOYEE_DETAILS_REPORT_SEARCH: 'hrms_employee_details_report_search',
+    SALARY_SLIP_ONLOAD: 'hrms_salary_slip_onload',
+    SALARY_SLIP_FILTER: 'hrms_salary_slip_filter',
+    SALARY_SLIP_GENERATE: 'hrms_salary_slip_generate',
+    LOAN_REPORT_ONLOAD: 'hrms_loan_report_onload',
+    LOAN_REPORT_FILTER: 'hrms_loan_report_filter',
+    LOAN_REPORT_SEARCH: 'hrms_loan_report_search'
 };

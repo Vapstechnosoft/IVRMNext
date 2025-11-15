@@ -4,6 +4,8 @@ import { Button } from '@/components/ui/button';
 import { FormError, Label } from '@/components/ui/extension/field';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import {
+    useInstituteDropDown,
+    useMasterFeeOnlinePaymentHeadGroupTable,
     useMasterOnlinePaymentHeadGroup,
     useMasterOnlinePaymentHeadGroupClass,
     useMasterOnlinePaymentHeadGroupGroupName,
@@ -13,7 +15,7 @@ import {
     useMasterTerms
 } from '@/hooks/fees/useMasters';
 import { masterOnlinePaymentHeadGroupSchema } from '@/schemas/fees/masters';
-import { addMasterOnlinePaymentHeadGroup } from '@/server/fees/masters/online_payment_head_group';
+import { GetInstallmentMasterDropdown, addMasterOnlinePaymentHeadGroup } from '@/server/fees/masters/online_payment_head_group';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Save } from 'lucide-react';
 import { useEffect, useState } from 'react';
@@ -48,44 +50,44 @@ interface UpdateFormProps {
 }
 
 export default function UpdateMasterOnlinePaymentHeadGroupMappingForm({ onSuccess, className = '', selectedRow }: UpdateFormProps) {
+    // Local state
+    const { refetchAll } = useMasterFeeOnlinePaymentHeadGroupTable();
     const [academicYear, setAcademicYear] = useState<number | null>(selectedRow?.asmaY_Id || null);
     const [classId, setClassId] = useState<number | null>(selectedRow?.asmcL_ID || null);
     const [subMerchantId, setSubMerchantId] = useState<number | null>(selectedRow?.fpgd_id || null);
     const [groupId, setGroupId] = useState<number | null>(selectedRow?.fmg_id || null);
-    const [selectedHeads, setSelectedHeads] = useState<number[]>(selectedRow?.fmh_HeadId ? [selectedRow.fmh_HeadId] : []);
+    const [selectedHeads, setSelectedHeads] = useState<number[]>([]);
     const [installmentId, setInstallmentId] = useState<number | null>(selectedRow?.fti_id || null);
     const [termId, setTermId] = useState<number | null>(selectedRow?.fmt_id || null);
     const [headSearchTerm, setHeadSearchTerm] = useState('');
 
+    // Data hooks
+    const { data: instituteData, isLoading: instituteLoading } = useInstituteDropDown();
     const { data: academicYearData, isLoading: academicYearLoading, error: academicYearError } = useMasterOnlinePaymentHeadGroup();
-
     const { data: masterClass, isLoading: masterClassLoading } = useMasterOnlinePaymentHeadGroupClass(academicYear ?? undefined);
-
     const { data: masterSubMerchant, isLoading: masterSubMerchantLoading } = useMasterOnlinePaymentHeadGroupSubMerchant(
         academicYear ?? undefined
     );
-
     const { data: masterGroupName, isLoading: masterGroupNameLoading } = useMasterOnlinePaymentHeadGroupGroupName(
         academicYear ?? undefined
     );
-
     const {
         data: masterHeadName,
         isLoading: masterHeadNameLoading,
         refetch: refetchHeadNames
     } = useMasterOnlinePaymentHeadGroupHeadName(academicYear ?? undefined, groupId ?? undefined);
-
     const { data: masterInstallment, isLoading: masterInstallmentLoading } = useMasterOnlinePaymentHeadGroupInstallment(
         academicYear ?? undefined
     );
-
     const { data: masterTerms, isLoading: masterTermsLoading } = useMasterTerms();
 
+    // Form
     const {
         control,
         handleSubmit,
         reset,
         setValue,
+        getValues,
         formState: { errors, isSubmitting }
     } = useForm<FormFields>({
         resolver: zodResolver(masterOnlinePaymentHeadGroupSchema.addOrUpdate),
@@ -103,6 +105,7 @@ export default function UpdateMasterOnlinePaymentHeadGroupMappingForm({ onSucces
         }
     });
 
+    // Options state
     const [classCategoryOptions, setClassCategoryOptions] = useState<{ value: string; label: string }[]>([]);
     const [subMerchantIdOptions, setSubMerchantIdOptions] = useState<{ value: string; label: string }[]>([]);
     const [groupNameOptions, setGroupNameOptions] = useState<{ value: string; label: string }[]>([]);
@@ -110,160 +113,249 @@ export default function UpdateMasterOnlinePaymentHeadGroupMappingForm({ onSucces
     const [installmentOptions, setInstallmentOptions] = useState<{ value: string; label: string }[]>([]);
     const [termsOptions, setTermsOptions] = useState<{ value: string; label: string }[]>([]);
 
+    const filteredHeadOptions = headOptions.filter((o) => o.label.toLowerCase().includes(headSearchTerm.toLowerCase()));
+
+    // Sync selectedRow → state & form
     useEffect(() => {
-        if (selectedRow) {
-            setAcademicYear(selectedRow.asmaY_Id || null);
-            setClassId(selectedRow.asmcL_ID || null);
-            setSubMerchantId(selectedRow.fpgd_id || null);
-            setGroupId(selectedRow.fmg_id || null);
-            setInstallmentId(selectedRow.fti_id || null);
-            setTermId(selectedRow.fmt_id || null);
+        if (!selectedRow) return;
 
-            if (selectedRow.fmh_HeadId) {
-                setSelectedHeads([selectedRow.fmh_HeadId]);
-            }
+        const heads = selectedRow.fmh_HeadId ? [selectedRow.fmh_HeadId] : [];
+        setAcademicYear(selectedRow.asmaY_Id || null);
+        setClassId(selectedRow.asmcL_ID || null);
+        setSubMerchantId(selectedRow.fpgd_id || null);
+        setGroupId(selectedRow.fmg_id || null);
+        setSelectedHeads(heads);
+        setInstallmentId(selectedRow.fti_id || null);
+        setTermId(selectedRow.fmt_id || null);
 
-            // Set form values
-            setValue('classCategory', selectedRow.asmcL_ID?.toString() || '');
-            setValue('subMerchantId', selectedRow.fpgd_id?.toString() || '');
-            setValue('groupName', selectedRow.fmg_id?.toString() || '');
-            setValue('installmentName', selectedRow.fti_id?.toString() || '');
-            setValue('terms', selectedRow.fmt_id?.toString() || '');
-        }
-    }, [selectedRow, setValue]);
+        reset({
+            mI_Id: '30',
+            institutionName: 'vidya_vikas_vidya_samste',
+            asmaY_Id: selectedRow.asmaY_Id,
+            classCategory: selectedRow.asmcL_ID?.toString() || '',
+            subMerchantId: selectedRow.fpgd_id?.toString() || '',
+            groupName: selectedRow.fmg_id?.toString() || '',
+            installmentName: selectedRow.fti_id?.toString() || '',
+            terms: selectedRow.fmt_id?.toString() || '',
+            academicYear: selectedRow.asmaY_Id?.toString() || ''
+        });
+    }, [selectedRow, reset]);
 
-    // Refetch heads when group changes
+    // Populate institute
+    useEffect(() => {
+        setValue('institutionName', 'vidya_vikas_vidya_samste');
+    }, [setValue]);
+
+    // Refetch heads on group/academic year change
     useEffect(() => {
         if (academicYear && groupId) {
             refetchHeadNames();
+        } else {
+            setHeadOptions([]);
+            setSelectedHeads([]);
         }
     }, [academicYear, groupId, refetchHeadNames]);
 
-    const filteredHeadOptions = headOptions.filter((o) => o.label.toLowerCase().includes(headSearchTerm.toLowerCase()));
-
-    // Set Class options
+    // Fetch installments dynamically when heads change
     useEffect(() => {
-        if (masterClass?.data && Array.isArray(masterClass.data)) {
-            const opts = masterClass.data.map((c: any) => ({
-                value: c.asmcL_ID.toString(),
-                label: c.asmcL_ClassName
-            }));
-            setClassCategoryOptions(opts);
-        }
-    }, [masterClass?.data]);
-
-    // Set Sub Merchant options
-    useEffect(() => {
-        if (masterSubMerchant?.data && Array.isArray(masterSubMerchant.data)) {
-            const opts = masterSubMerchant.data.map((c: any) => ({
-                value: c.fpgD_Id.toString(),
-                label: c.fpgD_MerchantId
-            }));
-            setSubMerchantIdOptions(opts);
-        }
-    }, [masterSubMerchant?.data]);
-
-    // Set Group Name options
-    useEffect(() => {
-        if (masterGroupName?.data && Array.isArray(masterGroupName.data)) {
-            const opts = masterGroupName.data.map((c: any) => ({
-                value: c.fmg_id.toString(),
-                label: c.groupName
-            }));
-            setGroupNameOptions(opts);
-        }
-    }, [masterGroupName?.data]);
-
-    // Set Head Name options
-    useEffect(() => {
-        if (masterHeadName?.data && Array.isArray(masterHeadName.data)) {
-            const opts = masterHeadName.data.map((c: any) => ({
-                value: c.fmh_HeadId.toString(),
-                label: c.fmh_HeadName
-            }));
-            setHeadOptions(opts);
-        }
-    }, [masterHeadName?.data]);
-
-    // Set Installment options
-    useEffect(() => {
-        if (masterInstallment?.data && Array.isArray(masterInstallment.data)) {
-            const opts = masterInstallment.data.map((c: any) => ({
-                value: c.ftI_ID.toString(),
-                label: c.ftI_NAME
-            }));
-            const uniqueOpts = opts.filter((opt, index, self) => index === self.findIndex((o) => o.value === opt.value));
-            setInstallmentOptions(uniqueOpts);
-        }
-    }, [masterInstallment?.data]);
-
-    // Set Terms options
-    useEffect(() => {
-        if (masterTerms?.data && Array.isArray(masterTerms.data)) {
-            const opts = masterTerms.data.map((c: any) => ({
-                value: c.fmT_Id.toString(),
-                label: c.fmT_Name
-            }));
-            setTermsOptions(opts);
-        }
-    }, [masterTerms?.data]);
-
-    const onSubmit: SubmitHandler<FormFields> = async (data) => {
-        try {
-            if (!academicYear || !classId || !subMerchantId || !groupId || selectedHeads.length === 0 || !termId || !installmentId) {
-                toast.error('Please fill all required fields');
+        const fetchInstallments = async () => {
+            if (!academicYear || (!groupId && !classId)) {
+                setInstallmentOptions([]);
                 return;
             }
 
-            const payload = {
-                fopM_Id: selectedRow.fopM_Id,
-                mI_Id: 30,
-                asmaY_Id: academicYear,
-                asmcL_ID: classId,
-                fpgd_id: subMerchantId,
-                fmg_id: groupId,
-                selectedheadList: selectedHeads.map((headId) => ({ fmH_Id: headId })),
-                fmt_id: termId,
-                fti_id: installmentId,
-                user_id: 1001
-            };
+            try {
+                const payload: any = {
+                    mi_Id: Number(getValues('mI_Id') ?? 30),
+                    asmaY_Id: academicYear,
+                    fmg_Id: groupId ?? classId
+                };
 
+                if (selectedHeads.length > 0) {
+                    payload.selectedheadList = selectedHeads.map((h) => ({ fmH_Id: h }));
+                }
+
+                const res = await GetInstallmentMasterDropdown(payload);
+                if (res?.data && Array.isArray(res.data)) {
+                    const opts = res.data.map((c: any) => ({
+                        value: String(c.ftI_Id ?? c.ftI_ID ?? c.fti_id),
+                        label: c.ftI_Name ?? c.ftI_NAME ?? c.fti_name ?? c.Name ?? ''
+                    }));
+                    const unique = opts.filter((o, i, a) => a.findIndex((t) => t.value === o.value) === i);
+                    setInstallmentOptions(unique);
+                } else {
+                    setInstallmentOptions([]);
+                }
+            } catch (err) {
+                console.error('Error fetching installments:', err);
+                setInstallmentOptions([]);
+            }
+        };
+
+        fetchInstallments();
+    }, [academicYear, classId, groupId, selectedHeads, getValues]);
+
+    // Map options
+    useEffect(() => {
+        if (masterClass?.data && Array.isArray(masterClass.data)) {
+            setClassCategoryOptions(
+                masterClass.data.map((c: any) => ({
+                    value: c.asmcL_ID.toString(),
+                    label: c.asmcL_ClassName
+                }))
+            );
+        } else {
+            setClassCategoryOptions([]);
+        }
+    }, [masterClass?.data]);
+
+    useEffect(() => {
+        if (masterSubMerchant?.data && Array.isArray(masterSubMerchant.data)) {
+            setSubMerchantIdOptions(
+                masterSubMerchant.data.map((c: any) => ({
+                    value: c.fpgD_Id.toString(),
+                    label: c.fpgD_MerchantId
+                }))
+            );
+        } else {
+            setSubMerchantIdOptions([]);
+        }
+    }, [masterSubMerchant?.data]);
+
+    useEffect(() => {
+        if (masterGroupName?.data && Array.isArray(masterGroupName.data)) {
+            setGroupNameOptions(
+                masterGroupName.data.map((c: any) => ({
+                    value: c.fmg_id.toString(),
+                    label: c.groupName
+                }))
+            );
+        } else {
+            setGroupNameOptions([]);
+        }
+    }, [masterGroupName?.data]);
+
+    useEffect(() => {
+        if (masterHeadName?.data && Array.isArray(masterHeadName.data)) {
+            setHeadOptions(
+                masterHeadName.data.map((c: any) => ({
+                    value: c.fmh_HeadId.toString(),
+                    label: c.fmh_HeadName
+                }))
+            );
+        } else {
+            setHeadOptions([]);
+        }
+    }, [masterHeadName?.data]);
+
+    useEffect(() => {
+        if (masterInstallment?.data && Array.isArray(masterInstallment.data)) {
+            const opts = masterInstallment.data.map((c: any) => ({
+                value: String(c.ftI_Id ?? c.ftI_ID ?? c.fti_id),
+                label: c.ftI_Name ?? c.ftI_NAME ?? c.fti_name ?? c.Name ?? ''
+            }));
+            const unique = opts.filter((o, i, a) => a.findIndex((t) => t.value === o.value) === i);
+            setInstallmentOptions(unique);
+        } else {
+            setInstallmentOptions([]);
+        }
+    }, [masterInstallment?.data]);
+
+    useEffect(() => {
+        if (masterTerms?.data && Array.isArray(masterTerms.data)) {
+            setTermsOptions(
+                masterTerms.data.map((c: any) => ({
+                    value: c.fmT_Id.toString(),
+                    label: c.fmT_Name
+                }))
+            );
+        } else {
+            setTermsOptions([]);
+        }
+    }, [masterTerms?.data]);
+
+    // Submit
+    const onSubmit: SubmitHandler<FormFields> = async () => {
+        if (!academicYear) {
+            toast.error('Please select Academic Year');
+            return;
+        }
+        if (!classId) {
+            toast.error('Please select Class');
+            return;
+        }
+        if (!subMerchantId) {
+            toast.error('Please select Sub Merchant Id');
+            return;
+        }
+        if (!groupId) {
+            toast.error('Please select Group Name');
+            return;
+        }
+        if (selectedHeads.length === 0) {
+            toast.error('Please select at least one Head Name');
+            return;
+        }
+        if (!termId) {
+            toast.error('Please select Terms');
+            return;
+        }
+        if (!installmentId) {
+            toast.error('Please select Installment');
+            return;
+        }
+
+        const payload = {
+            fopM_Id: selectedRow.fopM_Id,
+            mI_Id: Number(getValues('mI_Id') ?? 30),
+            asmaY_Id: academicYear,
+            asmcL_ID: classId,
+            fpgd_id: subMerchantId,
+            fmg_id: groupId,
+            selectedheadList: selectedHeads.map((headId) => ({ fmH_Id: headId })),
+            fmt_id: termId,
+            fti_id: installmentId,
+            user_id: 1001
+        };
+
+        try {
             const response = await addMasterOnlinePaymentHeadGroup(payload);
-
             if (response.success) {
                 toast.success(response.message || 'Online Payment Head Group updated successfully');
+                await refetchAll();
                 onSuccess?.();
             } else {
-                toast.error(response.message || 'Failed to update Online Payment Head Group');
+                toast.error(response.message || 'Failed to update');
             }
         } catch (error: any) {
-            console.error('Error submitting form:', error);
+            console.error('Error updating:', error);
             toast.error(error.message || 'An error occurred while updating');
         }
     };
 
     const handleReset = () => {
-        if (selectedRow) {
-            setClassId(selectedRow.asmcL_ID || null);
-            setSubMerchantId(selectedRow.fpgd_id || null);
-            setGroupId(selectedRow.fmg_id || null);
-            setInstallmentId(selectedRow.fti_id || null);
-            setTermId(selectedRow.fmt_id || null);
-            setSelectedHeads(selectedRow.fmh_HeadId ? [selectedRow.fmh_HeadId] : []);
-            setHeadSearchTerm('');
+        if (!selectedRow) return;
 
-            reset({
-                mI_Id: '30',
-                institutionName: 'vidya_vikas_vidya_samste',
-                asmaY_Id: selectedRow.asmaY_Id,
-                classCategory: selectedRow.asmcL_ID?.toString() || '',
-                subMerchantId: selectedRow.fpgd_id?.toString() || '',
-                groupName: selectedRow.fmg_id?.toString() || '',
-                installmentName: selectedRow.fti_id?.toString() || '',
-                terms: selectedRow.fmt_id?.toString() || '',
-                academicYear: selectedRow.asmaY_Id?.toString() || ''
-            });
-        }
+        setAcademicYear(selectedRow.asmaY_Id || null);
+        setClassId(selectedRow.asmcL_ID || null);
+        setSubMerchantId(selectedRow.fpgd_id || null);
+        setGroupId(selectedRow.fmg_id || null);
+        setSelectedHeads(selectedRow.fmh_HeadId ? [selectedRow.fmh_HeadId] : []);
+        setInstallmentId(selectedRow.fti_id || null);
+        setTermId(selectedRow.fmt_id || null);
+        setHeadSearchTerm('');
+
+        reset({
+            mI_Id: '30',
+            institutionName: 'vidya_vikas_vidya_samste',
+            asmaY_Id: selectedRow.asmaY_Id,
+            classCategory: selectedRow.asmcL_ID?.toString() || '',
+            subMerchantId: selectedRow.fpgd_id?.toString() || '',
+            groupName: selectedRow.fmg_id?.toString() || '',
+            installmentName: selectedRow.fti_id?.toString() || '',
+            terms: selectedRow.fmt_id?.toString() || '',
+            academicYear: selectedRow.asmaY_Id?.toString() || ''
+        });
     };
 
     return (
@@ -271,16 +363,16 @@ export default function UpdateMasterOnlinePaymentHeadGroupMappingForm({ onSucces
             <form onSubmit={handleSubmit(onSubmit)} className='space-y-6'>
                 <div className='space-y-4'>
                     <div className='grid grid-cols-1 gap-5 md:grid-cols-2'>
-                        {/* Institution Name */}
+                        {/* Institute */}
                         <div className='group flex flex-col gap-1.5'>
-                            <Label aria-label='Institution Name' htmlFor='institutionName'>
-                                Institution Name <span className='ml-1 text-red-500'>*</span>
+                            <Label htmlFor='institutionName'>
+                                Institute <span className='ml-1 text-red-500'>*</span>
                             </Label>
                             <Controller
                                 name='institutionName'
                                 control={control}
                                 render={({ field }) => (
-                                    <Select value={field.value} disabled>
+                                    <Select value={field.value || 'vidya_vikas_vidya_samste'} disabled>
                                         <SelectTrigger className='w-full'>
                                             <SelectValue placeholder='Vidya Vikas Vidya Samste (R)' />
                                         </SelectTrigger>
@@ -292,8 +384,9 @@ export default function UpdateMasterOnlinePaymentHeadGroupMappingForm({ onSucces
                             />
                         </div>
 
+                        {/* Academic Year */}
                         <div className='group flex flex-col gap-1.5'>
-                            <Label aria-label='Academic Year' htmlFor='asmaY_Id'>
+                            <Label htmlFor='asmaY_Id'>
                                 Academic Year <span className='ml-1 text-red-500'>*</span>
                             </Label>
                             <Controller
@@ -305,7 +398,6 @@ export default function UpdateMasterOnlinePaymentHeadGroupMappingForm({ onSucces
                                             const numValue = Number(value);
                                             field.onChange(numValue);
                                             setAcademicYear(numValue);
-                                            // Reset dependent fields
                                             setClassId(null);
                                             setSubMerchantId(null);
                                             setGroupId(null);
@@ -341,7 +433,7 @@ export default function UpdateMasterOnlinePaymentHeadGroupMappingForm({ onSucces
 
                         {/* Class */}
                         <div className='group flex flex-col gap-1.5'>
-                            <Label aria-label='Class' htmlFor='classCategory'>
+                            <Label htmlFor='classCategory'>
                                 Class <span className='ml-1 text-red-500'>*</span>
                             </Label>
                             <Controller
@@ -353,7 +445,8 @@ export default function UpdateMasterOnlinePaymentHeadGroupMappingForm({ onSucces
                                             field.onChange(value);
                                             setClassId(Number(value));
                                         }}
-                                        value={field.value}>
+                                        value={field.value}
+                                        disabled={!academicYear}>
                                         <SelectTrigger className='w-full'>
                                             <SelectValue placeholder='Select Class' />
                                         </SelectTrigger>
@@ -362,16 +455,16 @@ export default function UpdateMasterOnlinePaymentHeadGroupMappingForm({ onSucces
                                                 <SelectItem value='loading' disabled>
                                                     Loading...
                                                 </SelectItem>
-                                            ) : classCategoryOptions.length > 0 ? (
+                                            ) : classCategoryOptions.length === 0 ? (
+                                                <SelectItem value='no-data' disabled>
+                                                    No classes available
+                                                </SelectItem>
+                                            ) : (
                                                 classCategoryOptions.map((opt) => (
                                                     <SelectItem key={opt.value} value={opt.value}>
                                                         {opt.label}
                                                     </SelectItem>
                                                 ))
-                                            ) : (
-                                                <SelectItem value='no-data' disabled>
-                                                    No classes available
-                                                </SelectItem>
                                             )}
                                         </SelectContent>
                                     </Select>
@@ -382,7 +475,7 @@ export default function UpdateMasterOnlinePaymentHeadGroupMappingForm({ onSucces
 
                         {/* Sub Merchant Id */}
                         <div className='group flex flex-col gap-1.5'>
-                            <Label aria-label='Sub Merchant Id' htmlFor='subMerchantId'>
+                            <Label htmlFor='subMerchantId'>
                                 Sub Merchant Id <span className='ml-1 text-red-500'>*</span>
                             </Label>
                             <Controller
@@ -394,7 +487,8 @@ export default function UpdateMasterOnlinePaymentHeadGroupMappingForm({ onSucces
                                             field.onChange(value);
                                             setSubMerchantId(Number(value));
                                         }}
-                                        value={field.value}>
+                                        value={field.value}
+                                        disabled={!academicYear}>
                                         <SelectTrigger className='w-full'>
                                             <SelectValue placeholder='Select Sub Merchant Id' />
                                         </SelectTrigger>
@@ -403,16 +497,16 @@ export default function UpdateMasterOnlinePaymentHeadGroupMappingForm({ onSucces
                                                 <SelectItem value='loading' disabled>
                                                     Loading...
                                                 </SelectItem>
-                                            ) : subMerchantIdOptions.length > 0 ? (
+                                            ) : subMerchantIdOptions.length === 0 ? (
+                                                <SelectItem value='no-data' disabled>
+                                                    No sub merchants available
+                                                </SelectItem>
+                                            ) : (
                                                 subMerchantIdOptions.map((opt) => (
                                                     <SelectItem key={opt.value} value={opt.value}>
                                                         {opt.label}
                                                     </SelectItem>
                                                 ))
-                                            ) : (
-                                                <SelectItem value='no-data' disabled>
-                                                    No sub merchants available
-                                                </SelectItem>
                                             )}
                                         </SelectContent>
                                     </Select>
@@ -423,7 +517,7 @@ export default function UpdateMasterOnlinePaymentHeadGroupMappingForm({ onSucces
 
                         {/* Group Name */}
                         <div className='group flex flex-col gap-1.5'>
-                            <Label aria-label='Group Name' htmlFor='groupName'>
+                            <Label htmlFor='groupName'>
                                 Group Name <span className='ml-1 text-red-500'>*</span>
                             </Label>
                             <Controller
@@ -437,7 +531,8 @@ export default function UpdateMasterOnlinePaymentHeadGroupMappingForm({ onSucces
                                             setSelectedHeads([]);
                                             setHeadSearchTerm('');
                                         }}
-                                        value={field.value}>
+                                        value={field.value}
+                                        disabled={!academicYear}>
                                         <SelectTrigger className='w-full'>
                                             <SelectValue placeholder='Select Group Name' />
                                         </SelectTrigger>
@@ -446,16 +541,16 @@ export default function UpdateMasterOnlinePaymentHeadGroupMappingForm({ onSucces
                                                 <SelectItem value='loading' disabled>
                                                     Loading...
                                                 </SelectItem>
-                                            ) : groupNameOptions.length > 0 ? (
+                                            ) : groupNameOptions.length === 0 ? (
+                                                <SelectItem value='no-data' disabled>
+                                                    No groups available
+                                                </SelectItem>
+                                            ) : (
                                                 groupNameOptions.map((opt) => (
                                                     <SelectItem key={opt.value} value={opt.value}>
                                                         {opt.label}
                                                     </SelectItem>
                                                 ))
-                                            ) : (
-                                                <SelectItem value='no-data' disabled>
-                                                    No groups available
-                                                </SelectItem>
                                             )}
                                         </SelectContent>
                                     </Select>
@@ -464,59 +559,91 @@ export default function UpdateMasterOnlinePaymentHeadGroupMappingForm({ onSucces
                             {errors.groupName && <FormError>{errors.groupName.message}</FormError>}
                         </div>
 
-                        {/* Head Name */}
+                        {/* Head Name (Multi-select) */}
                         <div className='group flex flex-col gap-1.5 md:col-span-2'>
-                            <Label aria-label='Head Name'>
+                            <Label>
                                 Head Name <span className='ml-1 text-red-500'>*</span>
                             </Label>
                             <div className='min-h-[40px] rounded-md border bg-white px-3 py-2'>
                                 <input
                                     type='text'
                                     placeholder='Search Head Name'
-                                    className='mb-2 w-full rounded border px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500'
+                                    className='mb-2 w-full rounded border px-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-500'
                                     value={headSearchTerm}
                                     onChange={(e) => setHeadSearchTerm(e.target.value)}
-                                    disabled={!groupId}
+                                    disabled={!academicYear || !groupId}
                                 />
                                 <div className='flex max-h-40 flex-col gap-2 overflow-y-auto'>
                                     {masterHeadNameLoading ? (
                                         <span className='text-gray-400 text-sm'>Loading heads...</span>
-                                    ) : !groupId ? (
-                                        <span className='text-gray-400 text-sm'>Please select a Group Name first</span>
                                     ) : filteredHeadOptions.length > 0 ? (
-                                        filteredHeadOptions.map((option) => (
-                                            <label
-                                                key={option.value}
-                                                className='flex cursor-pointer items-center rounded p-1 hover:bg-gray-50'>
-                                                <input
-                                                    type='checkbox'
-                                                    value={option.value}
-                                                    checked={selectedHeads.includes(Number(option.value))}
-                                                    onChange={(e) => {
-                                                        const value = Number(e.target.value);
-                                                        setSelectedHeads((prev) =>
-                                                            prev.includes(value) ? prev.filter((p) => p !== value) : [...prev, value]
-                                                        );
-                                                    }}
-                                                    className='mr-2 h-4 w-4 accent-blue-600'
-                                                />
-                                                <span className='text-sm'>{option.label}</span>
-                                            </label>
-                                        ))
+                                        filteredHeadOptions.map((option) => {
+                                            const optVal = Number(option.value);
+                                            return (
+                                                <label
+                                                    key={option.value}
+                                                    className='flex cursor-pointer items-center rounded p-1 hover:bg-gray-50'>
+                                                    <input
+                                                        type='checkbox'
+                                                        value={option.value}
+                                                        checked={selectedHeads.includes(optVal)}
+                                                        onChange={async (e) => {
+                                                            const checked = e.target.checked;
+                                                            const newSelected = checked
+                                                                ? [...selectedHeads, optVal]
+                                                                : selectedHeads.filter((p) => p !== optVal);
+                                                            setSelectedHeads(newSelected);
+
+                                                            // Fetch installments immediately
+                                                            if (academicYear && (groupId ?? classId)) {
+                                                                try {
+                                                                    const payload: any = {
+                                                                        mi_Id: Number(getValues('mI_Id') ?? 30),
+                                                                        asmaY_Id: academicYear,
+                                                                        fmg_Id: groupId ?? classId
+                                                                    };
+                                                                    if (newSelected.length > 0) {
+                                                                        payload.selectedheadList = newSelected.map((h) => ({ fmH_Id: h }));
+                                                                    }
+                                                                    const res = await GetInstallmentMasterDropdown(payload);
+                                                                    if (res?.data && Array.isArray(res.data)) {
+                                                                        const opts = res.data.map((c: any) => ({
+                                                                            value: String(c.ftI_Id ?? c.ftI_ID ?? c.fti_id),
+                                                                            label: c.ftI_Name ?? c.ftI_NAME ?? c.fti_name ?? c.Name ?? ''
+                                                                        }));
+                                                                        const unique = opts.filter(
+                                                                            (o, i, a) => a.findIndex((t) => t.value === o.value) === i
+                                                                        );
+                                                                        setInstallmentOptions(unique);
+                                                                    } else {
+                                                                        setInstallmentOptions([]);
+                                                                    }
+                                                                } catch (err) {
+                                                                    console.error('Error fetching installments on head toggle:', err);
+                                                                }
+                                                            }
+                                                        }}
+                                                        className='mr-2 h-4 w-4 accent-blue-600'
+                                                    />
+                                                    <span className='truncate'>{option.label}</span>
+                                                </label>
+                                            );
+                                        })
                                     ) : (
-                                        <span className='text-gray-400 text-sm'>No heads found for selected group</span>
+                                        <span className='text-gray-400 text-sm'>
+                                            {!academicYear || !groupId ? 'Select Academic Year and Group Name first' : 'No Head Name found'}
+                                        </span>
                                     )}
                                 </div>
                                 {selectedHeads.length > 0 && (
                                     <div className='mt-2 text-blue-600 text-sm'>{selectedHeads.length} head(s) selected</div>
                                 )}
                             </div>
-                            {selectedHeads.length === 0 && <FormError>Please select at least one head</FormError>}
                         </div>
 
                         {/* Installment */}
                         <div className='group flex flex-col gap-1.5'>
-                            <Label aria-label='Installment' htmlFor='installment'>
+                            <Label htmlFor='installment'>
                                 Installment <span className='ml-1 text-red-500'>*</span>
                             </Label>
                             <Controller
@@ -558,7 +685,7 @@ export default function UpdateMasterOnlinePaymentHeadGroupMappingForm({ onSucces
 
                         {/* Terms */}
                         <div className='group flex flex-col gap-1.5'>
-                            <Label aria-label='Terms' htmlFor='terms'>
+                            <Label htmlFor='terms'>
                                 Terms <span className='ml-1 text-red-500'>*</span>
                             </Label>
                             <Controller
@@ -579,16 +706,16 @@ export default function UpdateMasterOnlinePaymentHeadGroupMappingForm({ onSucces
                                                 <SelectItem value='loading' disabled>
                                                     Loading...
                                                 </SelectItem>
-                                            ) : termsOptions.length > 0 ? (
+                                            ) : termsOptions.length === 0 ? (
+                                                <SelectItem value='no-data' disabled>
+                                                    No terms available
+                                                </SelectItem>
+                                            ) : (
                                                 termsOptions.map((opt) => (
                                                     <SelectItem key={opt.value} value={opt.value}>
                                                         {opt.label}
                                                     </SelectItem>
                                                 ))
-                                            ) : (
-                                                <SelectItem value='no-data' disabled>
-                                                    No terms available
-                                                </SelectItem>
                                             )}
                                         </SelectContent>
                                     </Select>
@@ -619,7 +746,7 @@ export default function UpdateMasterOnlinePaymentHeadGroupMappingForm({ onSucces
                         loadingText='Updating...'>
                         <div className='flex items-center'>
                             <Save className='mr-2 h-4 w-4' />
-                            Update
+                            Update Online Payment Head Group
                         </div>
                     </Button>
                 </div>

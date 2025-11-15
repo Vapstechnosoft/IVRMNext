@@ -13,7 +13,7 @@ export const exportToExcel = (fileName: string, columns: any, content: any, date
     ];
 
     const settings = {
-        fileName: date_required ? fileName + '_' + formatDate(new Date(), 'yyyyMMdd') : fileName
+        fileName: date_required ? `${fileName}_${formatDate(new Date(), 'yyyyMMdd')}` : fileName
     };
     xlsx(data, settings);
 };
@@ -39,5 +39,5 @@ export const exportToPdf = (fileName: string, columns: any, content: any) => {
         styles: { halign: 'center', lineWidth: 0.2, lineColor: 'black' }
     });
 
-    doc.save(title + '.pdf');
+    doc.save(`${title}.pdf`);
 };

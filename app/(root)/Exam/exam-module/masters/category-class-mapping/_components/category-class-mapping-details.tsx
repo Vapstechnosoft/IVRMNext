@@ -6,6 +6,7 @@ import { FormProvider, useFormContext } from '@/components/ui/form/form-provider
 import { GenericDataTable, useDataTableProps } from '@/components/ui/view-data-table/view-generic-data-table';
 import { useMasterCategoryMappedSections } from '@/hooks/exam/exammodule/usemasters';
 import type { ICategoryClassMappingDetails, ICategoryMapping } from '@/types/exam/exam-module/masters';
+import { useEffect } from 'react';
 import { CategoryClassMappingDetalisColumns } from './subject-group-details-columns';
 import ToggleCategoryClassMappingForm from './toggle-form';
 
@@ -43,6 +44,9 @@ export default function CategoryClassMappingDetailsPage({ rowData, onClose }: Ca
         pageIndex: 0,
         pageSize: 5
     });
+    useEffect(() => {
+        refetchAll();
+    }, [rowData.asmaY_Id, rowData.emcA_Id, rowData.asmcL_Id]);
 
     return (
         <FormProvider<ICategoryClassMappingDetails>>

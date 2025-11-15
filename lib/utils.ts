@@ -102,7 +102,7 @@ export const formatDBDate = (dateString: Date | null | undefined) => {
     try {
         const dateWithOffset = add(new Date(dateString), { hours: 5, minutes: 30 });
         return format(dateWithOffset, 'dd-MMM-yyyy hh:mm a');
-    } catch (error) {
+    } catch (_error) {
         return 'N.A';
     }
 };

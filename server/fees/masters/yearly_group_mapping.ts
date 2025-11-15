@@ -28,13 +28,16 @@ export async function addMasterYearlyGroupMapping(data: any) {
     return await api.post<any>('fees', url, data);
 }
 
-export async function getMasterAllFeeHead(searchParams?: ApiSearchparams) {
-    const urlParams = getSearchParamsUrl(searchParams ?? {}, 'ASMAY_Id,FMG_Id');
-    const url = `/YearlyFeeGroupMappingFacade/getallfeehead?MI_Id=30${urlParams ? `&${urlParams}` : ''}`;
+export async function getMasterAllFeeHead(asmay_Id: number, searchParams?: ApiSearchparams) {
+    const urlParams = getSearchParamsUrl(
+        searchParams ?? {},
+        'mG_GroupName,fyghM_Id,fmH_FeeName,fmI_Name,fyghM_FineApplicableFlag,fyghM_Common_AmountFlag'
+    );
+    const url = `/YearlyFeeGroupMappingFacade/getallfeehead?asmay_Id=${asmay_Id}&${urlParams}`;
 
-    return await api.get<{
-        success: boolean;
-        message: string;
-        data: IMasterAllFeeHeadList[];
-    }>('fees', url);
+    return await api.get<IMasterAllFeeHeadList[]>('fees', url);
+}
+export async function deleteYearlyGroupMapping(id: number) {
+    const url = `/YearlyFeeGroupMappingFacade/deletefeeheadsinstallment/${id}`;
+    return await api.delete('fees', url);
 }

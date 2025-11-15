@@ -1,4 +1,5 @@
 'use client';
+
 import { Button } from '@/components/ui/button';
 import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/generic-data-table';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
@@ -15,13 +16,11 @@ type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 
 export default function FeePreadmissionTransactionPage(props: { searchParams: SearchParams }) {
     const searchParams = use(props.searchParams);
-    const { data: response, isLoading, error } = useFeePreadmissionTransactionList(searchParams);
-
-    console.log(response);
+    const { data: response, isLoading, error, refetch } = useFeePreadmissionTransactionList(searchParams);
 
     return (
         <FormProvider<IFeePreAdmissionTransactionDetails>>
-            <PreadmissionTransactionContent response={response} isLoading={isLoading} error={error} />
+            <PreadmissionTransactionContent response={response} isLoading={isLoading} error={error} refetch={refetch} />
         </FormProvider>
     );
 }
@@ -29,11 +28,13 @@ export default function FeePreadmissionTransactionPage(props: { searchParams: Se
 function PreadmissionTransactionContent({
     response,
     isLoading,
-    error
+    error,
+    refetch
 }: {
     response: any;
     isLoading: boolean;
     error: any;
+    refetch: () => void;
 }) {
     const { openAddForm } = useFormContext<IFeePreAdmissionTransactionDetails>();
     const tableProps = useDataTableProps(response);
@@ -43,12 +44,14 @@ function PreadmissionTransactionContent({
             <div className='container space-y-4 p-1'>
                 {/* Header */}
                 <div className='flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between'>
-                    <div className='space-y-1'>{/* <Heading title='Fee Amount Entries' description='' /> */}</div>
+                    <div className='space-y-1'>
+                        <h1 className='font-bold text-2xl'>Fee Preadmission Transactions</h1>
+                    </div>
                     <Button
                         type='button'
                         onClick={openAddForm}
                         className='w-fit shadow-md transition-all duration-200 hover:scale-105 hover:shadow-lg'>
-                        <Plus className='h-4 w-4' />
+                        <Plus className='mr-2 h-4 w-4' />
                         Add Pre Admission Transaction
                     </Button>
                 </div>
@@ -71,34 +74,22 @@ function PreadmissionTransactionContent({
                     />
                 </CollapsibleSection>
 
-                <FormSections />
+                <FormSections refetch={refetch} />
             </div>
         </div>
     );
 }
 
-function FormSections() {
-    const {
-        isAddFormOpen,
-        isEditFormOpen,
-        isToggleFormOpen,
-        selectedRow,
-        isDeleteFormOpen,
-        closeAddForm,
-        closeEditForm,
-        closeToggleForm,
-        addFormRef,
-        editFormRef,
-        isDetailsViewOpen,
-        closeDetailsView
-    } = useFormContext<IFeePreAdmissionTransactionDetails>();
+function FormSections({ refetch }: { refetch: () => void }) {
+    const { isAddFormOpen, closeAddForm, isDetailsViewOpen, closeDetailsView, selectedRow } =
+        useFormContext<IFeePreAdmissionTransactionDetails>();
 
     return (
         <>
             {isAddFormOpen && (
-                <div ref={addFormRef}>
+                <div>
                     <CollapsibleSection
-                        title='Add New Fee preadmission Transaction'
+                        title='Add New Fee Preadmission Transaction'
                         description='Fill in the details below to create a new fee preadmission transaction.'
                         defaultOpen={true}
                         variant='outline'
@@ -113,36 +104,16 @@ function FormSections() {
                                 className='-top-[3.5rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
                                 <X className='h-4 w-4 text-destructive' /> Close
                             </Button>
-                            <AddFeePreAdmissionTransactionForm onSuccess={closeAddForm} />
+                            <AddFeePreAdmissionTransactionForm
+                                onSuccess={() => {
+                                    closeAddForm();
+                                    refetch(); // Refetch grid after save
+                                }}
+                            />
                         </div>
                     </CollapsibleSection>
                 </div>
             )}
-
-            {/* {isEditFormOpen && selectedRow && (
-                <div ref={editFormRef}>
-                    <CollapsibleSection
-                        title='Edit Master Fees Head'
-                        defaultOpen={true}
-                        variant='outline'
-                        size='md'
-                        className='slide-in-from-top-4 animate-in border-primary/20 shadow-lg duration-300'>
-                        <div className='relative'>
-                            <Button
-                                type='button'
-                                onClick={closeEditForm}
-                                variant='ghost'
-                                size='sm'
-                                className='-top-[3.5rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
-                                <X className='h-4 w-4 text-destructive' /> Close
-                            </Button>
-                            <UpdateMasterFeeheadForm selectedRow={selectedRow} onSuccess={closeEditForm} />
-                        </div>
-                    </CollapsibleSection>
-                </div>
-            )} */}
-
-            {/* {isDeleteFormOpen && selectedRow && <ToggleMasterAmountEntryForm rowData={selectedRow} onClose={closeToggleForm} />} */}
 
             {isDetailsViewOpen && selectedRow && <ReceiptViewPage rowData={selectedRow} onClose={closeDetailsView} />}
         </>
