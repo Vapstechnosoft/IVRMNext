@@ -478,6 +478,14 @@ export async function getUserAccessibleModules() {
                                             url: '/fees/transactions/feeamountentry',
                                             title: 'Fee Amount Entry',
                                             description: 'Manage Fee Amount Entry Details'
+                                        },
+                                        {
+                                            id: 41,
+                                            name: 'Fee Student Transaction',
+                                            icon: 'Settings',
+                                            url: '/fees/transactions/feetransaction',
+                                            title: 'Fee Student Transaction',
+                                            description: 'Manage Fee Student Transaction '
                                         }
                                         // {
                                         //     id: 41,
