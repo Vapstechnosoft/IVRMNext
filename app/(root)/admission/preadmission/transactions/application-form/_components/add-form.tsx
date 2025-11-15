@@ -254,25 +254,8 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
                 return;
             }
         } else if (currentStep === 4) {
-            // Get selected religion details
-            const selectedReligionId = watch('religion_Id');
-            const selectedReligion = religion?.data?.find((r) => r.ivrmmR_Id === selectedReligionId);
-            const isRomanCatholic = selectedReligion?.ivrmmR_Name === 'Roman Catholic';
-
-            // Validate document uploads with conditional logic for Baptism Certificate
-            const mandatoryDocs =
-                preadmissionDocuments?.data?.filter((doc) => {
-                    // Check if document is mandatory by default
-                    if (doc.amsmD_FLAG) return true;
-
-                    // Make Baptism Certificate mandatory for Roman Catholic religion
-                    if (doc.amsmD_DocumentName === 'Baptism Certificate' && isRomanCatholic) {
-                        return true;
-                    }
-
-                    return false;
-                }) || [];
-
+            // Validate document uploads
+            const mandatoryDocs = preadmissionDocuments?.data?.filter((doc) => doc.amsmD_FLAG) || [];
             const missingDocs = mandatoryDocs.filter((doc) => !isDocumentUploaded(doc.amsmD_Id));
 
             if (missingDocs.length > 0) {
@@ -823,7 +806,7 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
                                             <div className='flex flex-col items-center'>
                                                 <button
                                                     type='button'
-                                                    onClick={() => goToStep(step.id)}
+                                                    // onClick={() => goToStep(step.id)}
                                                     disabled={isSubmitting}
                                                     className={cn(
                                                         'flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full border-2 font-semibold transition-all duration-300 hover:scale-110 disabled:cursor-not-allowed disabled:opacity-50',
@@ -1984,7 +1967,7 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
                                                                     label='Father Income'
                                                                     id='pasR_FatherIncome'
                                                                     value={field.value || 0}
-                                                                    onChange={(value) => field.onChange(Number.isNaN(value) ? 0 : value)}
+                                                                    onChange={(value) => field.onChange(value)}
                                                                     minValue={0}
                                                                 />
                                                             )}
@@ -2275,7 +2258,7 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
                                                                     label='Mother Income'
                                                                     id='pasR_MotherIncome'
                                                                     value={field.value || 0}
-                                                                    onChange={(value) => field.onChange(Number.isNaN(value) ? 0 : value)}
+                                                                    onChange={(value) => field.onChange(value)}
                                                                     minValue={0}
                                                                 />
                                                             )}
@@ -2404,65 +2387,23 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
                                                             return (
                                                                 <tr
                                                                     key={document.amsmD_Id}
-                                                                    className={(() => {
-                                                                        // Get selected religion details
-                                                                        const selectedReligionId = watch('religion_Id');
-                                                                        const selectedReligion = religion?.data?.find(
-                                                                            (r) => r.ivrmmR_Id === selectedReligionId
-                                                                        );
-                                                                        const isRomanCatholic =
-                                                                            selectedReligion?.ivrmmR_Name === 'Roman Catholic';
-
-                                                                        // Check if this document is conditionally mandatory
-                                                                        const isConditionallyMandatory =
-                                                                            document.amsmD_DocumentName === 'Baptism Certificate' &&
-                                                                            isRomanCatholic;
-
-                                                                        const isMandatory = document.amsmD_FLAG || isConditionallyMandatory;
-
-                                                                        if (uploadedDoc && !isUploading) return 'bg-green-50';
-                                                                        if (isMandatory) return 'bg-orange-50';
-                                                                        return '';
-                                                                    })()}>
+                                                                    className={
+                                                                        uploadedDoc && !isUploading
+                                                                            ? 'bg-green-50'
+                                                                            : document.amsmD_FLAG
+                                                                              ? 'bg-orange-50'
+                                                                              : ''
+                                                                    }>
                                                                     <td className='whitespace-nowrap px-6 py-4'>
-                                                                        {(() => {
-                                                                            // Get selected religion details
-                                                                            const selectedReligionId = watch('religion_Id');
-                                                                            const selectedReligion = religion?.data?.find(
-                                                                                (r) => r.ivrmmR_Id === selectedReligionId
-                                                                            );
-                                                                            const isRomanCatholic =
-                                                                                selectedReligion?.ivrmmR_Name === 'Roman Catholic';
-
-                                                                            // Check if this document is conditionally mandatory
-                                                                            const isConditionallyMandatory =
-                                                                                document.amsmD_DocumentName === 'Baptism Certificate' &&
-                                                                                isRomanCatholic;
-
-                                                                            const isMandatory =
-                                                                                document.amsmD_FLAG || isConditionallyMandatory;
-
-                                                                            return (
-                                                                                <>
-                                                                                    <div className='flex items-center gap-2'>
-                                                                                        <span className='font-semibold text-gray-900 text-sm'>
-                                                                                            {document.amsmD_DocumentName}
-                                                                                        </span>
-                                                                                        {isMandatory && (
-                                                                                            <span className='text-red-500'>*</span>
-                                                                                        )}
-                                                                                    </div>
-                                                                                    <p className='mt-0.5 text-gray-500 text-xs'>
-                                                                                        {isMandatory ? 'Required' : 'Optional'}
-                                                                                        {isConditionallyMandatory && (
-                                                                                            <span className='ml-1 text-orange-600'>
-                                                                                                (for Roman Catholic)
-                                                                                            </span>
-                                                                                        )}
-                                                                                    </p>
-                                                                                </>
-                                                                            );
-                                                                        })()}
+                                                                        <div className='flex items-center gap-2'>
+                                                                            <span className='font-semibold text-gray-900 text-sm'>
+                                                                                {document.amsmD_DocumentName}
+                                                                            </span>
+                                                                            {document.amsmD_FLAG && <span className='text-red-500'>*</span>}
+                                                                        </div>
+                                                                        <p className='mt-0.5 text-gray-500 text-xs'>
+                                                                            {document.amsmD_FLAG ? 'Required' : 'Optional'}
+                                                                        </p>
                                                                     </td>
 
                                                                     <td className='whitespace-nowrap px-6 py-4'>

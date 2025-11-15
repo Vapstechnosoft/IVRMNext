@@ -8,7 +8,7 @@ import { Plus, Trash2, Upload } from 'lucide-react';
 import { useFieldArray } from 'react-hook-form';
 import { StandardTabActions } from './standard-tab-actions';
 
-export function UploadDocumentTab({ control, register, errors, isSubmitting, watch, onClear }: any) {
+export function UploadDocumentTab({ control, register, errors, isSubmitting, watch }: any) {
     const { fields, append, remove } = useFieldArray({
         control,
         name: 'documentList'
@@ -116,7 +116,7 @@ export function UploadDocumentTab({ control, register, errors, isSubmitting, wat
                 })}
             </div>
 
-            <StandardTabActions errors={errors} isSubmitting={isSubmitting} onClear={onClear} />
+            <StandardTabActions errors={errors} isSubmitting={isSubmitting} />
         </div>
     );
 }

@@ -3,17 +3,16 @@
 import { Button } from '@/components/ui/button';
 import { GenericDataTable } from '@/components/ui/data-table/generic-data-table';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
-import { useEmployeeYearlyReport, useEmployeeYearlyReportDropdowns } from '@/hooks/hrms/attendance-management/useReports';
-import { FileDown } from 'lucide-react';
-import { useState } from 'react';
-import { employeeYearlyReportColumns } from './_components/columns';
+import { createLocalCrud } from '@/lib/localdb';
+import { useMemo, useState } from 'react';
+import { type YearRow, employeeYearlyReportColumns } from './_components/columns';
 import {
     type EmployeeYearlyReportFilters,
     EmployeeYearlyReportFilters as EmployeeYearlyReportFiltersComponent
 } from './_components/filters';
-import type { YearRow } from './_components/columns';
 
 export default function EmployeeYearlyReportPage() {
+    const db = createLocalCrud<YearRow>('attendance:year');
     const [showReport, setShowReport] = useState(false);
     const [selectedRows, setSelectedRows] = useState<YearRow[]>([]);
     const [filters, setFilters] = useState<EmployeeYearlyReportFilters>({
@@ -27,15 +26,24 @@ export default function EmployeeYearlyReportPage() {
         mode: []
     });
 
-    const { data: reportData, isLoading } = useEmployeeYearlyReport(showReport ? filters : undefined);
-    const { data: dropdownData } = useEmployeeYearlyReportDropdowns();
+    const data = useMemo(() => db.list(), []);
 
-    const employees = dropdownData?.data?.employees || [];
-    const types = dropdownData?.data?.types || [];
-    const departments = dropdownData?.data?.departments || [];
-    const designations = dropdownData?.data?.designations || [];
+    const employees = useMemo(() => [...new Set(data.map((d) => d.employeeName))], [data]);
+    const types = useMemo(() => [...new Set(data.map((d: any) => d.type).filter(Boolean))], [data]);
+    const departments = useMemo(() => [...new Set(data.map((d: any) => d.department).filter(Boolean))], [data]);
+    const designations = useMemo(() => [...new Set(data.map((d) => d.designation).filter(Boolean))], [data]);
 
-    const filtered = reportData?.data || [];
+    const filtered = useMemo(() => {
+        return data.filter((r: any) => {
+            const okType = filters.type && filters.type.length > 0 ? filters.type.includes(r.type) : true;
+            const okDept = filters.department && filters.department.length > 0 ? filters.department.includes(r.department) : true;
+            const okDesg = filters.designation && filters.designation.length > 0 ? filters.designation.includes(r.designation) : true;
+            const okEmp = filters.allOrIndividual === 'Individual' && filters.employee ? r.employeeName === filters.employee : true;
+            const okDateFrom = filters.fromDate ? new Date(r.dateOfJoining) >= new Date(filters.fromDate) : true;
+            const okDateTo = filters.toDate ? new Date(r.dateOfJoining) <= new Date(filters.toDate) : true;
+            return okType && okDept && okDesg && okEmp && okDateFrom && okDateTo;
+        });
+    }, [data, filters]);
 
     const handleSearch = () => {
         setShowReport(true);
@@ -83,27 +91,19 @@ export default function EmployeeYearlyReportPage() {
 
                 {showReport && (
                     <CollapsibleSection
+                        title='Grid View'
+                        description=''
                         defaultOpen={true}
                         variant='default'
                         size='lg'
                         className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
-                        <div className='space-y-4'>
-                            {selectedRows.length > 0 && (
-                                <div className='flex justify-end'>
-                                    <Button variant='default' onClick={handleExport}>
-                                        <FileDown className='mr-2 h-4 w-4' /> EXPORT TO EXCEL
-                                    </Button>
-                                </div>
-                            )}
-                            <GenericDataTable
-                                isLoading={isLoading}
-                                columns={employeeYearlyReportColumns}
-                                data={filtered}
-                                totalItems={filtered.length}
-                                showViewOptions
-                                onRowSelectionChange={handleRowSelectionChange}
-                            />
-                        </div>
+                        <GenericDataTable
+                            isLoading={false}
+                            columns={employeeYearlyReportColumns}
+                            data={filtered}
+                            totalItems={filtered.length}
+                            showViewOptions
+                        />
                     </CollapsibleSection>
                 )}
             </div>

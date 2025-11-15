@@ -1,57 +1,119 @@
 'use client';
 
+import { Heading } from '@/components/layout/heading';
 import { Button } from '@/components/ui/button';
-import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/generic-data-table';
+import { GenericDataTable } from '@/components/ui/data-table/generic-data-table';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
-import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
-import { useLeaveCredit } from '@/hooks/hrms/leave-management/useTransactions';
-import { Plus, X } from 'lucide-react';
-import AddLeaveCreditForm from './_components/add-form';
-import { type LeaveCredit, leaveCreditColumns } from './_components/columns';
-import UpdateLeaveCreditForm from './_components/update-form';
+import { createLocalCrud } from '@/lib/localdb';
+import { Plus } from 'lucide-react';
+import { useEffect, useMemo, useState } from 'react';
+import { toast } from 'sonner';
+import { getLeaveCreditColumns, type LeaveCredit } from './_components/columns';
+import { LeaveCreditForm } from './_components/leave-credit-form';
+
+const leaveCreditDB = createLocalCrud<LeaveCredit>('leaveCredit');
 
 export default function LeaveCreditPage() {
-    const { data: response, isLoading, error } = useLeaveCredit();
+    const [data, setData] = useState<LeaveCredit[]>([]);
+    const [isFormOpen, setIsFormOpen] = useState(false);
+    const [editingCredit, setEditingCredit] = useState<LeaveCredit | null>(null);
+    const [activeTab, setActiveTab] = useState('Leave Credit');
 
-    return (
-        <FormProvider<LeaveCredit>>
-            <LeaveCreditPageContent response={response} isLoading={isLoading} error={error} />
-        </FormProvider>
+    const loadData = () => {
+        try {
+            const result = leaveCreditDB.list();
+            setData(result);
+        } catch (error) {
+            console.error('Error loading leave credits:', error);
+            toast.error('Failed to load leave credits');
+        }
+    };
+
+    useEffect(() => {
+        loadData();
+    }, []);
+
+    const handleAddClick = () => {
+        setIsFormOpen(true);
+        setEditingCredit(null);
+        setActiveTab('Leave Credit');
+        // Scroll to form
+        setTimeout(() => {
+            const formElement = document.getElementById('leave-credit-form');
+            if (formElement) {
+                formElement.scrollIntoView({ behavior: 'smooth' });
+            }
+        }, 100);
+    };
+
+    const handleFormClose = () => {
+        setIsFormOpen(false);
+        setEditingCredit(null);
+        setActiveTab('Leave Credit');
+    };
+
+    const handleFormSubmit = (formData: LeaveCredit) => {
+        try {
+            if (editingCredit) {
+                leaveCreditDB.update(editingCredit.id, formData);
+                toast.success('Leave credit updated successfully');
+            } else {
+                leaveCreditDB.create(formData);
+                toast.success('Leave credit created successfully');
+            }
+            loadData();
+            handleFormClose();
+        } catch (error) {
+            console.error('Error saving leave credit:', error);
+            toast.error('Failed to save leave credit');
+        }
+    };
+
+    const handleEdit = (credit: LeaveCredit) => {
+        setEditingCredit(credit);
+        setIsFormOpen(true);
+        setActiveTab('Leave Credit');
+        // Scroll to form
+        setTimeout(() => {
+            const formElement = document.getElementById('leave-credit-form');
+            if (formElement) {
+                formElement.scrollIntoView({ behavior: 'smooth' });
+            }
+        }, 100);
+    };
+
+    const handleDelete = (id: number) => {
+        if (window.confirm('Are you sure you want to delete this leave credit?')) {
+            try {
+                leaveCreditDB.remove(id);
+                toast.success('Leave credit deleted successfully');
+                loadData();
+            } catch (error) {
+                console.error('Error deleting leave credit:', error);
+                toast.error('Failed to delete leave credit');
+            }
+        }
+    };
+
+    const columns = useMemo(
+        () => getLeaveCreditColumns({ onEdit: handleEdit, onDelete: handleDelete }),
+        [handleEdit, handleDelete]
     );
-}
-
-function LeaveCreditPageContent({
-    response,
-    isLoading,
-    error
-}: {
-    response: any;
-    isLoading: boolean;
-    error: any;
-}) {
-    const { openAddForm } = useFormContext<LeaveCredit>();
-    const tableProps = useDataTableProps({
-        data: response?.data || [],
-        totalItems: response?.data?.length || 0
-    });
 
     return (
         <div className='min-h-screen'>
             <div className='container space-y-4 p-1'>
-                {/* Header */}
                 <div className='flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between'>
-                    <div className='space-y-1'></div>
-                    <Button
-                        type='button'
-                        onClick={openAddForm}
-                        variant='default'
-                        className='w-fit'>
-                        <Plus className='h-4 w-4' />
-                        Add
+                    <div className='space-y-1'>
+                        <Heading title='Leave Management' description='Leave Credit Process' />
+                    </div>
+                    <Button onClick={handleAddClick} className='bg-blue-600 hover:bg-blue-700'>
+                        <Plus className='mr-2 h-4 w-4' />
+                        Add Leave Credit
                     </Button>
                 </div>
 
-                {/* Data Table Section */}
+                {/* Table Section */}
                 <CollapsibleSection
                     title=''
                     description=''
@@ -60,83 +122,32 @@ function LeaveCreditPageContent({
                     size='lg'
                     className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
                     <div className='mb-4'>
-                        <p className='text-gray-600 text-sm'>Total grid records: {response?.data?.length || 0}</p>
+                        <p className='text-gray-600 text-sm'>Total grid records: {data.length}</p>
                     </div>
-                    <GenericDataTable<LeaveCredit>
-                        {...tableProps}
-                        columns={leaveCreditColumns}
-                        isLoading={isLoading}
-                        error={error}
-                        showViewOptions={false}
-                        columnPinning={{ right: ['actions'] }}
-                        loadingMessage='Loading leave credits...'
-                        noDataTitle='No Leave Credit Found'
-                        noDataDescription='Get started by creating your first leave credit'
-                        errorTitle='Error Loading Leave Credit'
-                    />
+                    <GenericDataTable data={data} columns={columns} totalItems={data.length} isLoading={false} />
                 </CollapsibleSection>
 
-                {/* Forms */}
-                <FormSections />
+                {/* Form Section */}
+                {isFormOpen && (
+                    <div id='leave-credit-form'>
+                        <CollapsibleSection
+                            title={editingCredit ? 'Edit Leave Credit' : 'Add Leave Credit'}
+                            description=''
+                            defaultOpen={true}
+                            variant='default'
+                            size='lg'
+                            className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
+                            <LeaveCreditForm
+                                editingCredit={editingCredit}
+                                activeTab={activeTab}
+                                onTabChange={setActiveTab}
+                                onSubmit={handleFormSubmit}
+                                onCancel={handleFormClose}
+                            />
+                        </CollapsibleSection>
+                    </div>
+                )}
             </div>
         </div>
-    );
-}
-
-function FormSections() {
-    const { isAddFormOpen, isEditFormOpen, selectedRow, closeAddForm, closeEditForm, addFormRef, editFormRef } =
-        useFormContext<LeaveCredit>();
-
-    return (
-        <>
-            {/* Add Form */}
-            {isAddFormOpen && (
-                <div ref={addFormRef}>
-                    <CollapsibleSection
-                        title='Add New Leave Credit'
-                        description='Fill in the details below to create a new leave credit'
-                        defaultOpen={true}
-                        variant='outline'
-                        size='md'
-                        className='slide-in-from-top-4 animate-in shadow-lg duration-300'>
-                        <div className='relative'>
-                            <Button
-                                type='button'
-                                onClick={closeAddForm}
-                                variant='ghost'
-                                size='sm'
-                                className='-top-[3.5rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
-                                <X className='h-4 w-4 text-destructive' /> Close
-                            </Button>
-                            <AddLeaveCreditForm onSuccess={closeAddForm} />
-                        </div>
-                    </CollapsibleSection>
-                </div>
-            )}
-
-            {/* Edit Form */}
-            {isEditFormOpen && selectedRow && (
-                <div ref={editFormRef}>
-                    <CollapsibleSection
-                        title='Edit Leave Credit'
-                        defaultOpen={true}
-                        variant='outline'
-                        size='md'
-                        className='slide-in-from-top-4 animate-in border-primary/20 shadow-lg duration-300'>
-                        <div className='relative'>
-                            <Button
-                                type='button'
-                                onClick={closeEditForm}
-                                variant='ghost'
-                                size='sm'
-                                className='-top-[3.5rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
-                                <X className='h-4 w-4 text-destructive' /> Close
-                            </Button>
-                            <UpdateLeaveCreditForm selectedRow={selectedRow} onSuccess={closeEditForm} />
-                        </div>
-                    </CollapsibleSection>
-                </div>
-            )}
-        </>
     );
 }

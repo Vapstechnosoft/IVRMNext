@@ -3,7 +3,6 @@
 import { Button } from '@/components/ui/button';
 import { GenericDataTable } from '@/components/ui/data-table/generic-data-table';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
-import { useFOMonthEndReport } from '@/hooks/hrms/attendance-management/useReports';
 import { FileDown } from 'lucide-react';
 import { useState } from 'react';
 import { foMonthEndReportColumns } from './_components/columns';
@@ -19,10 +18,7 @@ export default function FOMonthEndReportPage() {
         ieName: ''
     });
 
-    const { data: reportData, isLoading } = useFOMonthEndReport(showReport ? filters : undefined);
-
-    const filtered = reportData?.data || [];
-
+    const filtered: FOMonthEndReportRow[] = [];
     const handleSearch = () => {
         setShowReport(true);
     };
@@ -71,12 +67,11 @@ export default function FOMonthEndReportPage() {
                                 </div>
                             )}
                             <GenericDataTable
-                                isLoading={isLoading}
+                                isLoading={false}
                                 columns={foMonthEndReportColumns}
                                 data={filtered}
                                 totalItems={filtered.length}
                                 showViewOptions
-                                onRowSelectionChange={handleRowSelectionChange}
                             />
                         </div>
                     </CollapsibleSection>

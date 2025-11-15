@@ -1,7 +1,6 @@
 'use server';
 
 import { api } from '@/lib/apiService';
-import type { ApiSearchparams } from '@/types';
 import type {
     DesignationDetail,
     MasterDesignationInput,
@@ -10,69 +9,9 @@ import type {
     SaveDesignationRequest
 } from '@/types/hrms/master-designation';
 
-/**
- * Helper function to convert searchParams from URL (strings) to proper types
- */
-function normalizeSearchParams(searchParams?: ApiSearchparams | Record<string, string | string[] | undefined>): ApiSearchparams {
-    if (!searchParams) return {};
-    
-    // Helper to get first value if array, or the value itself
-    const getValue = (value: string | string[] | number | undefined, defaultValue: string | number): string | number => {
-        if (value === undefined) return defaultValue;
-        if (typeof value === 'number') return value;
-        if (Array.isArray(value)) return value[0] || defaultValue;
-        return value;
-    };
-    
-    return {
-        page: typeof getValue(searchParams.page, 1) === 'string' ? parseInt(getValue(searchParams.page, 1) as string, 10) || 1 : (getValue(searchParams.page, 1) as number) || 1,
-        page_size: typeof getValue(searchParams.page_size, 10) === 'string' ? parseInt(getValue(searchParams.page_size, 10) as string, 10) || 10 : (getValue(searchParams.page_size, 10) as number) || 10,
-        search_query: (getValue(searchParams.search_query, '') as string) || '',
-        search_column: (getValue(searchParams.search_column, '') as string) || '',
-        sort_column: (getValue(searchParams.sort_column, '') as string) || '',
-        sort_direction: (getValue(searchParams.sort_direction, '') as string) || ''
-    };
-}
-
-/**
- * Get all master designation records with search, sort, and pagination
- * POST /api/MasterDesignationFacade/onloadgetdetails
- */
-export async function getMasterDesignationList(roleId = 0, searchParams?: ApiSearchparams | Record<string, string | string[] | undefined>) {
+export async function getMasterDesignationList(roleId: number) {
     const url = '/api/MasterDesignationFacade/onloadgetdetails';
-    
-    // Normalize searchParams (convert strings to proper types)
-    const normalizedParams = normalizeSearchParams(searchParams);
-    
-    // Extract pagination, search, and sort parameters
-    const page = normalizedParams.page || 1;
-    const page_size = normalizedParams.page_size || 10;
-    const search_query = normalizedParams.search_query || '';
-    
-    // Define searchable columns
-    // These are the columns that can be searched when search_query is provided
-    const searchableColumns = 'HRMDES_DesignationName';
-    const search_column = normalizedParams.search_column || (search_query ? searchableColumns : '');
-    
-    // If sort_column is provided but sort_direction is empty, default to 'asc'
-    // The API requires sort_direction to be 'asc' or 'desc' when sort_column is provided
-    const sort_column = normalizedParams.sort_column || '';
-    const sort_direction = sort_column && !normalizedParams.sort_direction 
-        ? 'asc' 
-        : (normalizedParams.sort_direction || '');
-    
-    const requestBody = {
-        page,
-        page_size,
-        search_query,
-        search_column,
-        sort_column,
-        sort_direction,
-        is_export: false,
-        MIID: 30,
-        LoginUserId: 0,
-        UserRole: '',
-        // Required fields by API model (even for list operations)
+    const requestBody: OnloadGetDesignationDetailsRequest = {
         CreatedDate: new Date().toISOString(),
         UpdatedDate: new Date().toISOString(),
         HRMDES_Id: 0,
@@ -88,33 +27,7 @@ export async function getMasterDesignationList(roleId = 0, searchParams?: ApiSea
         roleId: roleId,
         DesignationDTO: []
     };
-    
-    try {
-        const response = await api.post<MasterDesignationResponse>('hrms', url, requestBody);
-        
-        // Extract data from response - support both new structure (data) and old structure (designationlList)
-        const designationlList = Array.isArray(response?.data) 
-            ? response.data 
-            : (response as any)?.designationlList || (response as any)?.data?.designationlList || [];
-        
-        const total = response?.total ?? (Array.isArray(designationlList) ? designationlList.length : 0);
-        
-        // Transform response to match expected structure
-        const transformedResponse = {
-            ...response,
-            success: response?.success ?? true,
-            message: response?.message || 'Data fetched successfully',
-            data: designationlList,
-            total: total,
-            page: response?.page ?? page,
-            page_size: response?.page_size ?? page_size
-        } as MasterDesignationResponse;
-        
-        return transformedResponse;
-    } catch (error: any) {
-        console.error('🔴 [ERROR] getMasterDesignationList - Error Details:', error);
-        throw error;
-    }
+    return await api.post<MasterDesignationResponse>('hrms', url, requestBody);
 }
 
 export async function saveMasterDesignation(data: MasterDesignationInput) {

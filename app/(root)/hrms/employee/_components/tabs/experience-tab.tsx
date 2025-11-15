@@ -12,7 +12,7 @@ import { useState } from 'react';
 import { Controller, useFieldArray } from 'react-hook-form';
 import { StandardTabActions } from './standard-tab-actions';
 
-export function ExperienceTab({ control, register, errors, isSubmitting, onClear }: any) {
+export function ExperienceTab({ control, register, errors, isSubmitting }: any) {
     const { fields, append, remove } = useFieldArray({
         control,
         name: 'experienceDetails'
@@ -183,7 +183,7 @@ export function ExperienceTab({ control, register, errors, isSubmitting, onClear
                 ))}
             </div>
 
-            <StandardTabActions errors={errors} isSubmitting={isSubmitting} onClear={onClear} />
+            <StandardTabActions errors={errors} isSubmitting={isSubmitting} />
         </div>
     );
 }

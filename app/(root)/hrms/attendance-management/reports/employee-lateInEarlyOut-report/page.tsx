@@ -3,17 +3,16 @@
 import { Button } from '@/components/ui/button';
 import { GenericDataTable } from '@/components/ui/data-table/generic-data-table';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
-import { useEmployeeLateInEarlyOutReport, useEmployeeLateInEarlyOutReportDropdowns } from '@/hooks/hrms/attendance-management/useReports';
-import { FileDown } from 'lucide-react';
-import { useState } from 'react';
-import { employeeLateInEarlyOutReportColumns } from './_components/columns';
+import { createLocalCrud } from '@/lib/localdb';
+import { useMemo, useState } from 'react';
+import { type LIEORow, employeeLateInEarlyOutReportColumns } from './_components/columns';
 import {
     type EmployeeLateInEarlyOutReportFilters,
     EmployeeLateInEarlyOutReportFilters as EmployeeLateInEarlyOutReportFiltersComponent
 } from './_components/filters';
-import type { LIEORow } from './_components/columns';
 
 export default function EmployeeLateInEarlyOutReportPage() {
+    const db = createLocalCrud<LIEORow>('attendance:lieo');
     const [showReport, setShowReport] = useState(false);
     const [selectedRows, setSelectedRows] = useState<LIEORow[]>([]);
     const [filters, setFilters] = useState<EmployeeLateInEarlyOutReportFilters>({
@@ -28,14 +27,30 @@ export default function EmployeeLateInEarlyOutReportPage() {
         mode: 'Late By'
     });
 
-    const { data: reportData, isLoading } = useEmployeeLateInEarlyOutReport(showReport ? filters : undefined);
-    const { data: dropdownData } = useEmployeeLateInEarlyOutReportDropdowns();
+    const data = useMemo(() => db.list(), []);
 
-    const types = dropdownData?.data?.types || [];
-    const departments = dropdownData?.data?.departments || [];
-    const designations = dropdownData?.data?.designations || [];
+    const types = useMemo(() => [...new Set(data.map((d) => d.type).filter(Boolean))], [data]);
+    const departments = useMemo(() => [...new Set(data.map((d) => d.department))], [data]);
+    const designations = useMemo(() => [...new Set(data.map((d) => d.designation))], [data]);
 
-    const filtered = reportData?.data || [];
+    const filtered = useMemo(() => {
+        return data.filter((r) => {
+            const okType = filters.type && filters.type.length > 0 ? filters.type.includes(r.type) : true;
+            const okDept = filters.department && filters.department.length > 0 ? filters.department.includes(r.department) : true;
+            const okDesg = filters.designation && filters.designation.length > 0 ? filters.designation.includes(r.designation) : true;
+            const okDateFrom = filters.fromDate ? new Date(r.date) >= new Date(filters.fromDate) : true;
+            const okDateTo = filters.toDate ? new Date(r.date) <= new Date(filters.toDate) : true;
+            const okQuery =
+                filters.allOrIndividual === 'Individual' && filters.query
+                    ? filters.codeOrName === 'Code'
+                        ? r.employeeCode.includes(filters.query)
+                        : r.employeeName.toLowerCase().includes(filters.query.toLowerCase())
+                    : true;
+            const okMode =
+                filters.mode === 'Late By' ? r.lateBy : filters.mode === 'Early Out' ? r.earlyOut : r.lateBy || r.earlyOut;
+            return okType && okDept && okDesg && okDateFrom && okDateTo && okQuery && okMode;
+        });
+    }, [data, filters]);
 
     const handleSearch = () => {
         setShowReport(true);
@@ -83,27 +98,19 @@ export default function EmployeeLateInEarlyOutReportPage() {
 
                 {showReport && (
                     <CollapsibleSection
+                        title='Grid View'
+                        description=''
                         defaultOpen={true}
                         variant='default'
                         size='lg'
                         className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
-                        <div className='space-y-4'>
-                            {selectedRows.length > 0 && (
-                                <div className='flex justify-end'>
-                                    <Button variant='default' onClick={handleExport}>
-                                        <FileDown className='mr-2 h-4 w-4' /> EXPORT TO EXCEL
-                                    </Button>
-                                </div>
-                            )}
-                            <GenericDataTable
-                                isLoading={isLoading}
-                                columns={employeeLateInEarlyOutReportColumns}
-                                data={filtered}
-                                totalItems={filtered.length}
-                                showViewOptions
-                                onRowSelectionChange={handleRowSelectionChange}
-                            />
-                        </div>
+                        <GenericDataTable
+                            isLoading={false}
+                            columns={employeeLateInEarlyOutReportColumns}
+                            data={filtered}
+                            totalItems={filtered.length}
+                            showViewOptions
+                        />
                     </CollapsibleSection>
                 )}
             </div>

@@ -85,6 +85,7 @@ export const FEES_QUERY_KEYS = {
     MASTER_INSTALLMENT_DROPDOWN: 'masterInstallmentsDropdown',
     FEE_MASTER_CONCESSION_DETAILS: 'masterfeeconcessiondetails',
     FEE_PAYMENTGATEWAY_DROPDOWN: 'paymentGatewayDropdown',
+    FEE_INSTITUTE_DROPDOWN: 'fee_institute_dropdown',
 
     FEE_AMOUNT_ENTRY: 'fee_amount_entry',
     FEE_CATEGORY_DROPDOWN: 'fee_category_dropdown',
@@ -113,7 +114,11 @@ export const FEES_QUERY_KEYS = {
     FEE_PREADMISSION_TRANSACTION_DETAILS: 'fee_preadmission_transaction_details',
     FEE_PREADMISSION_STUDENT_DROPDOWN: 'fee_preadmission_student_dropdown',
     FEE_TERM_HEAD_DUEDATE: 'fee_term_head_duedate',
-    FEE_CONCESSION_CATEGORY_DROPDOWN: 'fee_concession_category_dropdown'
+    FEE_CONCESSION_CATEGORY_DROPDOWN: 'fee_concession_category_dropdown',
+    FEE_CONCESSION_CATEGORY_GROUP_HEAD_MAPPING: 'fee_concession_category_group_head_mapping',
+    FEE_CONCESSION_CATEGORY_GROUP__DROPDOWN: 'fee_concession_category_group_dropdown',
+    FEE_CONCESSION_CATEGORY_HEADS__DROPDOWN: 'fee_concession_category_heads_dropdown',
+    FEE_CONCESSION_CATEGORY_DROPDOWNDATADETAILS: 'fee_concession_category_dropdowndetails'
 };
 
 export const EXAM_QUERY_KEYS = {

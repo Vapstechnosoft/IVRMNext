@@ -1,15 +1,14 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
-import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/generic-data-table';
+import { GenericDataTable } from '@/components/ui/data-table/generic-data-table';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
 import { HRMS_MI_ID } from '@/constants/hrms-config';
 import { useMasterCourse } from '@/hooks/hrms/useMasters';
-import type { ApiSearchparams } from '@/types';
 import type { CourseDetail } from '@/types/hrms/master-course';
 import { ListOrdered, Plus, Save, X } from 'lucide-react';
-import { use, useState } from 'react';
+import { use, useMemo, useState } from 'react';
 import { toast } from 'sonner';
 import { columns, getEditableColumns } from './_components/columns';
 import CourseForm from './_components/course-form';
@@ -17,54 +16,9 @@ import CourseForm from './_components/course-form';
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 
 export default function MasterCoursePage(props: { searchParams: SearchParams }) {
-    const rawSearchParams = use(props.searchParams);
-
-    // Convert Next.js searchParams (string | string[]) to ApiSearchparams format
-    // This matches how preadmission and bank handle it
-    const searchParams: ApiSearchparams = {
-        page:
-            typeof rawSearchParams?.page === 'string'
-                ? Number.parseInt(rawSearchParams.page, 10)
-                : Array.isArray(rawSearchParams?.page)
-                  ? Number.parseInt(rawSearchParams.page[0], 10)
-                  : typeof rawSearchParams?.page === 'number'
-                    ? rawSearchParams.page
-                    : undefined,
-        page_size:
-            typeof rawSearchParams?.page_size === 'string'
-                ? Number.parseInt(rawSearchParams.page_size, 10)
-                : Array.isArray(rawSearchParams?.page_size)
-                  ? Number.parseInt(rawSearchParams.page_size[0], 10)
-                  : typeof rawSearchParams?.page_size === 'number'
-                    ? rawSearchParams.page_size
-                    : undefined,
-        search_query:
-            typeof rawSearchParams?.search_query === 'string'
-                ? rawSearchParams.search_query
-                : Array.isArray(rawSearchParams?.search_query)
-                  ? rawSearchParams.search_query[0]
-                  : undefined,
-        search_column:
-            typeof rawSearchParams?.search_column === 'string'
-                ? rawSearchParams.search_column
-                : Array.isArray(rawSearchParams?.search_column)
-                  ? rawSearchParams.search_column[0]
-                  : undefined,
-        sort_column:
-            typeof rawSearchParams?.sort_column === 'string'
-                ? rawSearchParams.sort_column
-                : Array.isArray(rawSearchParams?.sort_column)
-                  ? rawSearchParams.sort_column[0]
-                  : undefined,
-        sort_direction:
-            typeof rawSearchParams?.sort_direction === 'string'
-                ? rawSearchParams.sort_direction
-                : Array.isArray(rawSearchParams?.sort_direction)
-                  ? rawSearchParams.sort_direction[0]
-                  : undefined
-    };
-
-    const { listQuery, refetchAll } = useMasterCourse(HRMS_MI_ID, searchParams);
+    const _rawSearchParams = use(props.searchParams);
+    const roleId = HRMS_MI_ID;
+    const { listQuery, refetchAll } = useMasterCourse(roleId);
 
     return (
         <FormProvider<CourseDetail>>
@@ -91,10 +45,8 @@ function MasterCoursePageContent({
 }) {
     const { openAddForm } = useFormContext<CourseDetail>();
     const { saveOrderMutation } = useMasterCourse(HRMS_MI_ID);
-    const tableProps = useDataTableProps(response);
-
-    // Get the data array from response (could be in data or CourseList)
-    const rows: CourseDetail[] = Array.isArray(response?.data) ? response.data : (response?.CourseList ?? []);
+    // Memoize array to prevent unnecessary re-renders
+    const rows: CourseDetail[] = useMemo(() => response?.CourseList ?? [], [response?.CourseList]);
 
     const [isEditOrderMode, setIsEditOrderMode] = useState(false);
     const [editedRows, setEditedRows] = useState<CourseDetail[]>([]);
@@ -178,9 +130,8 @@ function MasterCoursePageContent({
                     size='lg'
                     className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
                     <GenericDataTable<CourseDetail>
-                        {...(isEditOrderMode ? {} : tableProps)}
                         data={displayData}
-                        totalItems={isEditOrderMode ? displayData.length : (tableProps.totalItems ?? 0)}
+                        totalItems={displayData.length}
                         columns={displayColumns}
                         isLoading={isLoading}
                         error={error}

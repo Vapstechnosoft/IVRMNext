@@ -1,12 +1,11 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
-import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/generic-data-table';
+import { GenericDataTable } from '@/components/ui/data-table/generic-data-table';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
 import { HRMS_MI_ID } from '@/constants/hrms-config';
 import { useMasterGroupType } from '@/hooks/hrms/useMasters';
-import type { ApiSearchparams } from '@/types';
 import type { GroupTypeDetail } from '@/types/hrms/master-group-type';
 import { ListOrdered, Plus, Save, X } from 'lucide-react';
 import { useMemo, useState } from 'react';
@@ -14,9 +13,9 @@ import { toast } from 'sonner';
 import { columns, getEditableColumns } from '../../group-type/_components/columns';
 import GroupTypeForm from '../../group-type/_components/group-type-form';
 
-export default function GroupTypeTab({ searchParams }: { searchParams?: ApiSearchparams }) {
+export default function GroupTypeTab() {
     const roleId = HRMS_MI_ID;
-    const { listQuery, refetchAll } = useMasterGroupType(roleId, searchParams);
+    const { listQuery, refetchAll } = useMasterGroupType(roleId);
 
     return (
         <FormProvider<GroupTypeDetail>>
@@ -38,12 +37,8 @@ function GroupTypeTabContent({
 }) {
     const { openAddForm } = useFormContext<GroupTypeDetail>();
     const { saveOrderMutation } = useMasterGroupType(HRMS_MI_ID);
-    const tableProps = useDataTableProps(response, { dataKey: 'data' });
-    // Extract data for order editing mode - support both new structure (data) and old structure (grouptypeList)
-    const rows: GroupTypeDetail[] = useMemo(() => {
-        const data = response?.data ?? response?.grouptypeList ?? [];
-        return Array.isArray(data) ? data : [];
-    }, [response?.data, response?.grouptypeList]);
+    // Memoize array to prevent unnecessary re-renders
+    const rows: GroupTypeDetail[] = useMemo(() => response?.grouptypeList ?? [], [response?.grouptypeList]);
 
     const [isEditOrderMode, setIsEditOrderMode] = useState(false);
     const [editedRows, setEditedRows] = useState<GroupTypeDetail[]>([]);
@@ -134,7 +129,8 @@ function GroupTypeTabContent({
                 size='lg'
                 className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
                 <GenericDataTable<GroupTypeDetail>
-                    {...(isEditOrderMode ? { data: displayData, totalItems: displayData.length } : tableProps)}
+                    data={displayData}
+                    totalItems={displayData.length}
                     columns={displayColumns}
                     isLoading={isLoading}
                     error={error}

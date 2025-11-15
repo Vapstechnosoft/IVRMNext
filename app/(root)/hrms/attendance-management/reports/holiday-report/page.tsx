@@ -2,12 +2,17 @@
 
 import { GenericDataTable } from '@/components/ui/data-table/generic-data-table';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
-import { useHolidayReport } from '@/hooks/hrms/attendance-management/useReports';
-import { useEffect, useState } from 'react';
-import { holidayReportColumns } from './_components/columns';
-import { type HolidayReportFilters, HolidayReportFilters as HolidayReportFiltersComponent } from './_components/filters';
+import { createLocalCrud } from '@/lib/localdb';
+import { useEffect, useMemo, useState } from 'react';
+import { type HolidayReportRow, holidayReportColumns } from './_components/columns';
+import {
+    type HolidayReportFilters,
+    HolidayReportFilters as HolidayReportFiltersComponent
+} from './_components/filters';
+import type { MasterHoliday } from '../../masters/master-holiday/_components/columns';
 
 export default function HolidayReportPage() {
+    const holidayDB = createLocalCrud<MasterHoliday>('master:holiday');
     const [currentYear, setCurrentYear] = useState<number | null>(null);
     const [showReport, setShowReport] = useState(false);
 
@@ -24,9 +29,28 @@ export default function HolidayReportPage() {
         holidayType: ''
     });
 
-    const { data: reportData, isLoading } = useHolidayReport(showReport ? filters : undefined);
+    const allHolidays = useMemo(() => holidayDB.list(), []);
 
-    const filtered = reportData?.data || [];
+    const filtered = useMemo(() => {
+        if (!showReport) return [];
+        return allHolidays
+            .filter((holiday) => {
+                const okYear = filters.calendarYear ? holiday.calendarYear === filters.calendarYear : true;
+                const okType = filters.holidayType ? holiday.holidayType === filters.holidayType : true;
+                return okYear && okType;
+            })
+            .map((holiday) => ({
+                id: holiday.id,
+                createdAt: holiday.createdAt,
+                calendarYear: holiday.calendarYear,
+                department: holiday.department,
+                holidayType: holiday.holidayType,
+                name: holiday.name,
+                fromDate: holiday.fromDate,
+                toDate: holiday.toDate,
+                isActive: holiday.isActive
+            })) as HolidayReportRow[];
+    }, [allHolidays, filters, showReport]);
 
     const handleSearch = () => {
         if (filters.calendarYear && filters.holidayType) {
@@ -60,7 +84,7 @@ export default function HolidayReportPage() {
                         size='lg'
                         className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
                         <GenericDataTable
-                            isLoading={isLoading}
+                            isLoading={false}
                             columns={holidayReportColumns}
                             data={filtered}
                             totalItems={filtered.length}

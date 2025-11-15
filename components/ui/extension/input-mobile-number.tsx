@@ -42,7 +42,7 @@ function MobileNumberInput({
                     type='tel'
                     pattern='[0-9]*'
                     inputMode='numeric'
-                    className='w-fit min-w-0 flex-1 border-transparent bg-background pr-2 outline-none placeholder:text-muted-foreground disabled:text-muted-foreground [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none'
+                    className='w-fit min-w-0 flex-1 border-transparent bg-background pr-2 outline-none placeholder:text-muted-foreground disabled:text-muted-foreground'
                     onInput={handleNumericInput}
                     value={value ?? ''}
                     {...props}

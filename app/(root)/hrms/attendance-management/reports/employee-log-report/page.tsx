@@ -3,14 +3,13 @@
 import { Button } from '@/components/ui/button';
 import { GenericDataTable } from '@/components/ui/data-table/generic-data-table';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
-import { useEmployeeLogReport } from '@/hooks/hrms/attendance-management/useReports';
-import { FileDown } from 'lucide-react';
-import { useState } from 'react';
-import { logReportColumns } from './_components/columns';
+import { type BaseEntity, createLocalCrud } from '@/lib/localdb';
+import { useMemo, useState } from 'react';
 import { LogReportFilters, type LogReportFiltersState } from './_components/filters';
-import type { LogRow } from './_components/columns';
+import { logReportColumns, type LogRow } from './_components/columns';
 
 export default function EmployeeLogReportPage() {
+    const db = createLocalCrud<LogRow & BaseEntity>('attendance:log');
     const [showReport, setShowReport] = useState(false);
     const [selectedRows, setSelectedRows] = useState<LogRow[]>([]);
     const [filters, setFilters] = useState<LogReportFiltersState>({
@@ -28,10 +27,35 @@ export default function EmployeeLogReportPage() {
         metric: 'Punch Time'
     });
 
-    const { data: reportData, isLoading } = useEmployeeLogReport(showReport ? filters : undefined);
+    const data = useMemo(() => db.list(), []);
 
-    const filtered = reportData?.data || [];
-    const data = filtered; // For filter component compatibility
+    const filtered = useMemo(() => {
+        return data.filter((r) => {
+            const okType = filters.type && filters.type.length > 0 ? filters.type.includes(r.type) : true;
+            const okDept = filters.department && filters.department.length > 0 ? filters.department.includes(r.department) : true;
+            const okDesg = filters.designation && filters.designation.length > 0 ? filters.designation.includes(r.designation) : true;
+            const okQuery =
+                filters.allOrIndividual === 'Individual' && filters.query
+                    ? filters.codeOrName === 'Code'
+                        ? r.employeeCode.includes(filters.query)
+                        : r.employeeName.toLowerCase().includes(filters.query.toLowerCase())
+                    : true;
+            const okDate =
+                filters.dateMode === 'Date'
+                    ? filters.date
+                        ? r.date === filters.date
+                        : true
+                    : filters.dateMode === 'Monthly'
+                      ? filters.month
+                          ? r.date.startsWith(filters.month)
+                          : true
+                      : (filters.fromDate ? new Date(r.date) >= new Date(filters.fromDate) : true) &&
+                        (filters.toDate ? new Date(r.date) <= new Date(filters.toDate) : true);
+            const okMetric =
+                filters.metric === 'Punch Time' ? r.punchTime : filters.metric === 'Late In' ? r.lateIn : r.earlyOut;
+            return okType && okDept && okDesg && okQuery && okDate && okMetric;
+        });
+    }, [data, filters]);
 
     const handleReport = () => {
         setShowReport(true);
@@ -80,27 +104,13 @@ export default function EmployeeLogReportPage() {
 
                 {showReport && (
                     <CollapsibleSection
+                        title='Employee Log Report'
+                        description=''
                         defaultOpen={true}
                         variant='default'
                         size='lg'
                         className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
-                        <div className='space-y-4'>
-                            {selectedRows.length > 0 && (
-                                <div className='flex justify-end'>
-                                    <Button variant='default' onClick={handleExport}>
-                                        <FileDown className='mr-2 h-4 w-4' /> EXPORT TO EXCEL
-                                    </Button>
-                                </div>
-                            )}
-                            <GenericDataTable
-                                isLoading={isLoading}
-                                columns={logReportColumns}
-                                data={filtered}
-                                totalItems={filtered.length}
-                                showViewOptions
-                                onRowSelectionChange={handleRowSelectionChange}
-                            />
-                        </div>
+                        <GenericDataTable isLoading={false} columns={logReportColumns} data={filtered} totalItems={filtered.length} showViewOptions />
                     </CollapsibleSection>
                 )}
             </div>

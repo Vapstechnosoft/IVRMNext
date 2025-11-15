@@ -1412,148 +1412,6 @@ export default function EmployeeRegisterForm({ selectedRow, onSuccess, className
         }
     };
 
-    // Clear form function - resets only the current tab's fields
-    const clearForm = () => {
-        const fieldsToClear: Partial<FormFields> = {};
-
-        switch (activeTab) {
-            case 'employee': {
-                // Clear only employee tab fields
-                fieldsToClear.firstName = '';
-                fieldsToClear.middleName = '';
-                fieldsToClear.lastName = '';
-                fieldsToClear.employeeCode = '';
-                fieldsToClear.typeOfEmployment = '';
-                fieldsToClear.employeeGroup = '';
-                fieldsToClear.school = '';
-                fieldsToClear.designation = '';
-                fieldsToClear.grade = '';
-                fieldsToClear.fatherName = '';
-                fieldsToClear.motherName = '';
-                fieldsToClear.dateOfBirth = '';
-                fieldsToClear.dateOfJoining = '';
-                fieldsToClear.dateOfConfirmation = '';
-                fieldsToClear.dateOfRetirement = '';
-                fieldsToClear.gender = '';
-                fieldsToClear.maritalStatus = '';
-                fieldsToClear.religion = '';
-                fieldsToClear.casteCategory = '';
-                fieldsToClear.caste = '';
-                fieldsToClear.bloodGroup = '';
-                fieldsToClear.salaryType = '';
-                fieldsToClear.modeOfPayment = '';
-                fieldsToClear.subjectTaught = '';
-                fieldsToClear.epf = false;
-                fieldsToClear.ppf = false;
-                fieldsToClear.phdResearchGuide = false;
-                fieldsToClear.recognitionYear = '';
-                fieldsToClear.teachingNonTeaching = '';
-                fieldsToClear.pfApplicable = false;
-                fieldsToClear.pfMaxAmount = false;
-                fieldsToClear.pfFixedAmount = false;
-                fieldsToClear.pfAccNo = '';
-                fieldsToClear.uanNumber = '';
-                fieldsToClear.pfDate = '';
-                fieldsToClear.esiApplicable = false;
-                fieldsToClear.esiAccNo = '';
-                fieldsToClear.gratuityAccNo = '';
-                fieldsToClear.esiDate = '';
-                fieldsToClear.nationalSSN = '';
-                fieldsToClear.aadharNo = '';
-                fieldsToClear.panCardNo = '';
-                fieldsToClear.mobileDetails = [];
-                fieldsToClear.emailDetails = [];
-                fieldsToClear.bankDetails = [];
-
-                // Clear photo only for employee tab
-                setSelectedPhoto(null);
-                setPhotoFile(null);
-                const fileInput = document.getElementById('employeePhoto') as HTMLInputElement;
-                if (fileInput) fileInput.value = '';
-                break;
-            }
-
-            case 'address':
-                // Clear only address tab fields
-                fieldsToClear.contactAddress = '';
-                fieldsToClear.contactArea = '';
-                fieldsToClear.contactCountry = '';
-                fieldsToClear.contactState = '';
-                fieldsToClear.contactCity = '';
-                fieldsToClear.contactPincode = '';
-                fieldsToClear.permanentAddress = '';
-                fieldsToClear.permanentArea = '';
-                fieldsToClear.permanentCountry = '';
-                fieldsToClear.permanentState = '';
-                fieldsToClear.permanentCity = '';
-                fieldsToClear.permanentPincode = '';
-                fieldsToClear.sameAsCommunicationAddress = false;
-                break;
-
-            case 'qualification':
-                // Clear only qualification tab fields
-                fieldsToClear.qualificationDetails = [];
-                break;
-
-            case 'experience':
-                // Clear only experience tab fields
-                fieldsToClear.experienceDetails = [];
-                break;
-
-            case 'document':
-                // Clear only document tab fields
-                fieldsToClear.documentList = [];
-                break;
-
-            case 'medical':
-                // Clear only medical tab fields
-                fieldsToClear.employeeHeight = '';
-                fieldsToClear.employeeHeightUnit = '';
-                fieldsToClear.employeeWeight = '';
-                fieldsToClear.employeeWeightUnit = '';
-                fieldsToClear.eyeSightIssue = '';
-                fieldsToClear.anyHealthIssue = '';
-                fieldsToClear.identificationMark = '';
-                break;
-
-            case 'other':
-                // Clear only other details tab fields
-                fieldsToClear.biometricCode = '';
-                fieldsToClear.rfCardId = '';
-                fieldsToClear.punchRelaxation = false;
-                fieldsToClear.stopPension = false;
-                fieldsToClear.dateOfStopPension = '';
-                fieldsToClear.msTeamsUserName = '';
-                fieldsToClear.msTeamsPassword = '';
-                fieldsToClear.employeeLeft = false;
-                fieldsToClear.lastWorkingDay = '';
-                fieldsToClear.reasonForLeaving = '';
-                break;
-
-            default:
-                toast.info('No fields to clear in this tab');
-                return;
-        }
-
-        // Reset only the specific fields for the current tab
-        Object.keys(fieldsToClear).forEach((key) => {
-            setValue(key as keyof FormFields, fieldsToClear[key as keyof FormFields] as any, { shouldValidate: false });
-        });
-
-        // Format tab name for toast message
-        const tabNames: Record<string, string> = {
-            employee: 'Employee',
-            address: 'Address',
-            qualification: 'Qualification',
-            experience: 'Experience',
-            document: 'Document',
-            medical: 'Medical',
-            other: 'Other Details'
-        };
-
-        toast.success(`${tabNames[activeTab] || activeTab} tab cleared successfully`);
-    };
-
     // Prepare options for EmployeeTab and AddressTab (memoized to prevent unnecessary re-renders)
     const options = useMemo(() => {
         const opts = {
@@ -1625,7 +1483,6 @@ export default function EmployeeRegisterForm({ selectedRow, onSuccess, className
                             options={options}
                             isSubmitting={isSubmitting || isPending}
                             watch={watch}
-                            onClear={clearForm}
                         />
                     </TabsContent>
 
@@ -1639,7 +1496,6 @@ export default function EmployeeRegisterForm({ selectedRow, onSuccess, className
                             setValue={setValue}
                             countries={options.countries}
                             states={options.states}
-                            onClear={clearForm}
                         />
                     </TabsContent>
 
@@ -1652,7 +1508,6 @@ export default function EmployeeRegisterForm({ selectedRow, onSuccess, className
                             options={options}
                             countries={options.countries}
                             states={options.states}
-                            onClear={clearForm}
                         />
                     </TabsContent>
 
@@ -1662,7 +1517,6 @@ export default function EmployeeRegisterForm({ selectedRow, onSuccess, className
                             register={register}
                             errors={errors}
                             isSubmitting={isSubmitting || isSavingExperience}
-                            onClear={clearForm}
                         />
                     </TabsContent>
 
@@ -1673,7 +1527,6 @@ export default function EmployeeRegisterForm({ selectedRow, onSuccess, className
                             errors={errors}
                             isSubmitting={isSubmitting || isSavingDocument}
                             watch={watch}
-                            onClear={clearForm}
                         />
                     </TabsContent>
 
@@ -1683,7 +1536,6 @@ export default function EmployeeRegisterForm({ selectedRow, onSuccess, className
                             register={register}
                             errors={errors}
                             isSubmitting={isSubmitting || isSavingMedical}
-                            onClear={clearForm}
                         />
                     </TabsContent>
 
@@ -1694,7 +1546,6 @@ export default function EmployeeRegisterForm({ selectedRow, onSuccess, className
                             errors={errors}
                             isSubmitting={isSubmitting || isPending}
                             watch={watch}
-                            onClear={clearForm}
                         />
                     </TabsContent>
 

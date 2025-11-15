@@ -12,16 +12,7 @@ import { useState } from 'react';
 import { Controller } from 'react-hook-form';
 import { StandardTabActions } from './standard-tab-actions';
 
-interface OtherDetailsTabProps {
-    control: any;
-    register: any;
-    errors: any;
-    isSubmitting: boolean;
-    watch: any;
-    onClear?: () => void;
-}
-
-export function OtherDetailsTab({ control, register, errors, isSubmitting, watch, onClear }: OtherDetailsTabProps) {
+export function OtherDetailsTab({ control, register, errors, isSubmitting, watch }: any) {
     const stopPension = watch('stopPension');
     const employeeLeft = watch('employeeLeft');
     const [stopPensionDateOpen, setStopPensionDateOpen] = useState(false);
@@ -196,9 +187,8 @@ export function OtherDetailsTab({ control, register, errors, isSubmitting, watch
                 </div>
             )}
 
-            <StandardTabActions errors={errors} isSubmitting={isSubmitting} onClear={onClear} />
+            <StandardTabActions errors={errors} isSubmitting={isSubmitting} />
         </div>
     );
 }
 
-// Upload Document Tab Component

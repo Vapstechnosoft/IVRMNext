@@ -28,13 +28,6 @@ function NumberFieldInput({ className, ...props }: AriaInputProps) {
                     className
                 )
             )}
-            onBlur={(e) => {
-                const value = e.currentTarget.value.trim();
-                if (value === '' || Number.isNaN(Number(value))) {
-                    e.currentTarget.value = '0';
-                }
-                props.onBlur?.(e);
-            }}
             {...props}
         />
     );
@@ -88,14 +81,11 @@ function InputNumber({
     formatOptions = { minimumFractionDigits: 0, maximumFractionDigits: 1 },
     ...props
 }: NumberFieldProps) {
-    // Ensure defaultValue is never NaN
-    const safeDefaultValue = props.defaultValue === undefined || Number.isNaN(Number(props.defaultValue)) ? 0 : props.defaultValue;
     return (
         <NumberField
             className={composeRenderProps(className, (className) => cn('group flex flex-col gap-1.5', className))}
             step={step}
             formatOptions={formatOptions}
-            defaultValue={safeDefaultValue}
             {...props}>
             <Label aria-label={label}>
                 {label}

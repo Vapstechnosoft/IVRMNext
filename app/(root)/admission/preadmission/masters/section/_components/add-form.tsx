@@ -100,7 +100,7 @@ export default function AddMasterSectionForm({ onSuccess, className = '' }: AddM
                                         required
                                         id='asmc_maxcapacity'
                                         value={field.value || 0}
-                                        onChange={(value) => field.onChange(Number.isNaN(value) ? 0 : value)}
+                                        onChange={(value) => field.onChange(value)}
                                         minValue={0}
                                         step={1}
                                     />
@@ -118,7 +118,7 @@ export default function AddMasterSectionForm({ onSuccess, className = '' }: AddM
                                         required
                                         id='asmc_order'
                                         value={field.value || 0}
-                                        onChange={(value) => field.onChange(Number.isNaN(value) ? 0 : value)}
+                                        onChange={(value) => field.onChange(value)}
                                         minValue={0}
                                         step={1}
                                     />

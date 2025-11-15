@@ -1,12 +1,11 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
-import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/generic-data-table';
+import { GenericDataTable } from '@/components/ui/data-table/generic-data-table';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
 import { HRMS_MI_ID } from '@/constants/hrms-config';
 import { useMasterDesignation } from '@/hooks/hrms/useMasters';
-import type { ApiSearchparams } from '@/types';
 import type { DesignationDetail } from '@/types/hrms/master-designation';
 import { ListOrdered, Plus, Save, X } from 'lucide-react';
 import { useMemo, useState } from 'react';
@@ -14,9 +13,9 @@ import { toast } from 'sonner';
 import { columns, getEditableColumns } from '../../designation/_components/columns';
 import DesignationForm from '../../designation/_components/designation-form';
 
-export default function DesignationTab({ searchParams }: { searchParams?: ApiSearchparams }) {
+export default function DesignationTab() {
     const roleId = HRMS_MI_ID;
-    const { listQuery, refetchAll } = useMasterDesignation(roleId, searchParams);
+    const { listQuery, refetchAll } = useMasterDesignation(roleId);
 
     return (
         <FormProvider<DesignationDetail>>
@@ -38,12 +37,8 @@ function DesignationTabContent({
 }) {
     const { openAddForm } = useFormContext<DesignationDetail>();
     const { saveOrderMutation } = useMasterDesignation(HRMS_MI_ID);
-    const tableProps = useDataTableProps(response, { dataKey: 'data' });
-    // Extract data for order editing mode - support both new structure (data) and old structure (designationlList)
-    const rows: DesignationDetail[] = useMemo(() => {
-        const data = response?.data ?? response?.designationlList ?? [];
-        return Array.isArray(data) ? data : [];
-    }, [response?.data, response?.designationlList]);
+    // Memoize array to prevent unnecessary re-renders
+    const rows: DesignationDetail[] = useMemo(() => response?.designationlList ?? [], [response?.designationlList]);
 
     const [isEditOrderMode, setIsEditOrderMode] = useState(false);
     const [editedRows, setEditedRows] = useState<DesignationDetail[]>([]);
@@ -131,7 +126,8 @@ function DesignationTabContent({
                 size='lg'
                 className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
                 <GenericDataTable<DesignationDetail>
-                    {...(isEditOrderMode ? { data: displayData, totalItems: displayData.length } : tableProps)}
+                    data={displayData}
+                    totalItems={displayData.length}
                     columns={displayColumns}
                     isLoading={isLoading}
                     error={error}

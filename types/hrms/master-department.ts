@@ -1,26 +1,17 @@
 export interface MasterDepartmentResponse {
-    success?: boolean;
-    message?: string;
-    data?: DepartmentDetail[] | {
-        departmentList: DepartmentDetail[];
-    };
-    departmentList?: DepartmentDetail[];
-    retrunMsg?: string;
-    total?: number;
-    page?: number;
-    page_size?: number;
-    // Legacy fields (for backward compatibility)
-    HRMD_Id?: number;
-    MI_Id?: number;
-    HRMD_DepartmentName?: string | null;
-    HRMD_Order?: number | null;
-    HRMD_ActiveFlag?: boolean;
-    HRMDC_ID?: any;
-    roleId?: number;
-    HRMD_InternalTrainingMinimumHrs?: number | null;
-    DeraptmentDTO?: any;
-    CreatedDate?: string | null;
-    UpdatedDate?: string | null;
+    HRMD_Id: number;
+    MI_Id: number;
+    HRMD_DepartmentName: string | null;
+    HRMD_Order: number | null;
+    HRMD_ActiveFlag: boolean;
+    departmentList: DepartmentDetail[];
+    retrunMsg: string;
+    HRMDC_ID: any;
+    roleId: number;
+    HRMD_InternalTrainingMinimumHrs: number | null;
+    DeraptmentDTO: any;
+    CreatedDate: string | null;
+    UpdatedDate: string | null;
 }
 
 export interface DepartmentDetail {

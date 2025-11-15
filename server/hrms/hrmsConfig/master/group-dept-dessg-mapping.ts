@@ -1,39 +1,13 @@
 'use server';
 
 import { api, type ApiResponse } from '@/lib/apiService';
-import type { ApiSearchparams } from '@/types';
 import type { GroupDeptDessgMappingDetail, GroupDeptDessgMappingInput, GroupDeptDessgMappingResponse, LoadDataRequest } from '@/types/hrms/group-dept-dessg-mapping';
 
 /**
- * Helper function to convert searchParams from URL (strings) to proper types
- */
-function normalizeSearchParams(searchParams?: ApiSearchparams | Record<string, string | string[] | undefined>): ApiSearchparams {
-    if (!searchParams) return {};
-    
-    // Helper to get first value if array, or the value itself
-    const getValue = (value: string | string[] | number | undefined, defaultValue: string | number): string | number => {
-        if (value === undefined) return defaultValue;
-        if (typeof value === 'number') return value;
-        if (Array.isArray(value)) return value[0] || defaultValue;
-        return value;
-    };
-    
-    return {
-        page: typeof getValue(searchParams.page, 1) === 'string' ? parseInt(getValue(searchParams.page, 1) as string, 10) || 1 : (getValue(searchParams.page, 1) as number) || 1,
-        page_size: typeof getValue(searchParams.page_size, 10) === 'string' ? parseInt(getValue(searchParams.page_size, 10) as string, 10) || 10 : (getValue(searchParams.page_size, 10) as number) || 10,
-        search_query: (getValue(searchParams.search_query, '') as string) || '',
-        search_column: (getValue(searchParams.search_column, '') as string) || '',
-        sort_column: (getValue(searchParams.sort_column, '') as string) || '',
-        sort_direction: (getValue(searchParams.sort_direction, '') as string) || ''
-    };
-}
-
-/**
- * Get onload details for group department designation mapping with search, sort, and pagination
- * POST /api/GroupDeptDessgFacade/onloadgetdetails
+ * Get onload details for group department designation mapping
+ * POST /api/GroupDeptDessgFacade/loaddata
  */
 export async function getGroupDeptDessgMappingList(
-    searchParams?: ApiSearchparams | Record<string, string | string[] | undefined>,
     params?: {
         HRGTDDS_Id?: number;
         HRMGT_Id?: number;
@@ -42,40 +16,8 @@ export async function getGroupDeptDessgMappingList(
         LogInUserId?: number;
     }
 ) {
-    const url = '/api/GroupDeptDessgFacade/onloadgetdetails';
-    
-    // Normalize searchParams (convert strings to proper types)
-    const normalizedParams = normalizeSearchParams(searchParams);
-    
-    // Extract pagination, search, and sort parameters
-    const page = normalizedParams.page || 1;
-    const page_size = normalizedParams.page_size || 10;
-    const search_query = normalizedParams.search_query || '';
-    
-    // Define searchable columns
-    // These are the columns that can be searched when search_query is provided
-    const searchableColumns = 'HRMGT_EmployeeGroupType,HRMD_DepartmentName,HRMDES_DesignationName';
-    const search_column = normalizedParams.search_column || (search_query ? searchableColumns : '');
-    
-    // If sort_column is provided but sort_direction is empty, default to 'asc'
-    // The API requires sort_direction to be 'asc' or 'desc' when sort_column is provided
-    const sort_column = normalizedParams.sort_column || '';
-    const sort_direction = sort_column && !normalizedParams.sort_direction 
-        ? 'asc' 
-        : (normalizedParams.sort_direction || '');
-    
-    const requestBody = {
-        page,
-        page_size,
-        search_query,
-        search_column,
-        sort_column,
-        sort_direction,
-        is_export: false,
-        MIID: 30,
-        LoginUserId: params?.LogInUserId ?? 0,
-        UserRole: '',
-        // Required fields by API model (even for list operations)
+    const url = '/api/GroupDeptDessgFacade/loaddata';
+    const requestBody: LoadDataRequest = {
         HRGTDDS_Id: params?.HRGTDDS_Id ?? 0,
         MI_Id: 30,
         HRMGT_Id: params?.HRMGT_Id ?? 0,
@@ -98,51 +40,21 @@ export async function getGroupDeptDessgMappingList(
         returnval: false,
         msg: ''
     };
+    const response = await api.post<GroupDeptDessgMappingResponse>('hrms', url, requestBody);
     
-    try {
-        const response = await api.post<GroupDeptDessgMappingResponse>('hrms', url, requestBody);
-        
-        // Extract data from response - the API returns:
-        // { success, message, data: { gridviewdata: [...], groupTypedropdown: [...], ... }, total, page, page_size }
-        // OR
-        // { success, message, data: [...], total, page, page_size }
-        const responseData = response?.data;
-        
-        // Check if data is an array (direct list) or an object with gridviewdata
-        const gridviewdata = Array.isArray(responseData)
-            ? responseData
-            : (responseData as any)?.gridviewdata || [];
-        
-        // Extract total, page, page_size - they might be at root level or inside data object
-        const total = response?.total ?? (responseData as any)?.total ?? (Array.isArray(gridviewdata) ? gridviewdata.length : 0);
-        const responsePage = response?.page ?? (responseData as any)?.page ?? page;
-        const responsePageSize = response?.page_size ?? (responseData as any)?.page_size ?? page_size;
-        
-        // Transform response to match expected structure
-        const transformedResponse = {
-            ...response,
-            success: response?.success ?? true,
-            message: response?.message || 'Data fetched successfully',
-            data: gridviewdata,
-            total: total,
-            page: responsePage,
-            page_size: responsePageSize,
-            // Preserve dropdown data if available (they are inside data object)
-            groupTypedropdown: (responseData as any)?.groupTypedropdown || [],
-            departmentdropdown: (responseData as any)?.departmentdropdown || [],
-            designationdropdown: (responseData as any)?.designationdropdown || []
-        } as GroupDeptDessgMappingResponse;
-        
-        // Wrap in ApiResponse format
-        return {
-            success: transformedResponse.success,
-            message: transformedResponse.message,
-            data: transformedResponse
-        } as ApiResponse<GroupDeptDessgMappingResponse>;
-    } catch (error: any) {
-        console.error('🔴 [ERROR] getGroupDeptDessgMappingList - Error Details:', error);
-        throw error;
+    // Handle case where backend returns data directly (not wrapped in ApiResponse)
+    // The backend API might return the data directly, but api.post expects ApiResponse format
+    if (response && typeof response === 'object' && 'success' in response && 'data' in response) {
+        // Already wrapped in ApiResponse format
+        return response as ApiResponse<GroupDeptDessgMappingResponse>;
     }
+    
+    // Wrap raw response data if backend returns it directly
+    return {
+        success: true,
+        message: 'Data loaded successfully',
+        data: response as unknown as GroupDeptDessgMappingResponse
+    } as ApiResponse<GroupDeptDessgMappingResponse>;
 }
 
 /**

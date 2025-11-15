@@ -1,12 +1,10 @@
 'use client';
 
+import { Button } from '@/components/ui/button';
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
-import { ActionButtons } from '@/components/ui/form/action-buttons';
-import { useFormContext } from '@/components/ui/form/form-provider';
-import type { BaseEntity } from '@/lib/localdb';
+import { type BaseEntity } from '@/lib/localdb';
 import type { ColumnDef } from '@tanstack/react-table';
-import { Check, X } from 'lucide-react';
-import { useCallback } from 'react';
+import { Check, Edit, Trash2, X } from 'lucide-react';
 
 export interface MasterLeave extends BaseEntity {
     leaveName: string;
@@ -25,19 +23,17 @@ export interface MasterLeave extends BaseEntity {
 
 export type Leave = MasterLeave;
 
-export const masterLeaveColumns: ColumnDef<MasterLeave>[] = [
-    {
-        accessorKey: 'id',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Sl.No' />,
-        cell: ({ row, table }) => {
-            const pageIndex = table.getState().pagination.pageIndex;
-            const pageSize = table.getState().pagination.pageSize;
-            const continuousIndex = pageIndex * pageSize + row.index + 1;
-            return <div>{continuousIndex}</div>;
-        },
-        enableSorting: true,
-        enableHiding: false
-    },
+interface MasterLeaveColumnsProps {
+    onEdit: (row: MasterLeave) => void;
+    onDelete: (id: number) => void;
+    onToggleStatus: (row: MasterLeave) => void;
+}
+
+export const getMasterLeaveColumns = ({
+    onEdit,
+    onDelete,
+    onToggleStatus
+}: MasterLeaveColumnsProps): ColumnDef<MasterLeave>[] => [
     {
         accessorKey: 'leaveName',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Leave Name' />,
@@ -91,22 +87,25 @@ export const masterLeaveColumns: ColumnDef<MasterLeave>[] = [
     },
     {
         id: 'actions',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Actions' className='text-start' />,
-        accessorFn: (row: any) => row,
-        enableSorting: false,
-        cell: ({ row }) => <ActionButtonsCell rowData={row.original} />
+        header: 'Action',
+        cell: ({ row }) => {
+            const entity = row.original;
+            return (
+                <div className='flex gap-2'>
+                    <Button variant='outline' size='sm' onClick={() => onEdit(entity)}>
+                        <Edit className='h-4 w-4' />
+                    </Button>
+                    <Button variant='outline' size='sm' onClick={() => onDelete(entity.id)}>
+                        <Trash2 className='h-4 w-4' />
+                    </Button>
+                    <Button
+                        variant={entity.isActive ? 'destructive' : 'default'}
+                        size='sm'
+                        onClick={() => onToggleStatus(entity)}>
+                        {entity.isActive ? 'Deactivate' : 'Activate'}
+                    </Button>
+                </div>
+            );
+        }
     }
 ];
-
-function ActionButtonsCell({ rowData }: { rowData: MasterLeave }) {
-    const { openEditForm } = useFormContext<MasterLeave>();
-
-    const handleEdit = useCallback(
-        (data: MasterLeave) => {
-            openEditForm(data);
-        },
-        [openEditForm]
-    );
-
-    return <ActionButtons rowData={rowData} buttons={{ edit: true, toggle: false, delete: false }} onEdit={handleEdit} />;
-}

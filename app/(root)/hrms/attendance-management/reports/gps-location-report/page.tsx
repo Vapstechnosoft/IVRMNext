@@ -3,14 +3,13 @@
 import { Button } from '@/components/ui/button';
 import { GenericDataTable } from '@/components/ui/data-table/generic-data-table';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
-import { useGPSLocationReport, useGPSLocationReportDropdowns } from '@/hooks/hrms/attendance-management/useReports';
-import { FileDown } from 'lucide-react';
-import { useState } from 'react';
-import { gpsLocationReportColumns } from './_components/columns';
+import { createLocalCrud } from '@/lib/localdb';
+import { useMemo, useState } from 'react';
+import { type GPSLog, gpsLocationReportColumns } from './_components/columns';
 import { type GPSLocationReportFilters, GPSLocationReportFilters as GPSLocationReportFiltersComponent } from './_components/filters';
-import type { GPSLog } from './_components/columns';
 
 export default function GPSLocationReportPage() {
+    const db = createLocalCrud<GPSLog>('attendance:gps-location-attendance'); // reuse same storage
     const [showReport, setShowReport] = useState(false);
     const [selectedRows, setSelectedRows] = useState<GPSLog[]>([]);
     const [filters, setFilters] = useState<GPSLocationReportFilters>({
@@ -20,12 +19,21 @@ export default function GPSLocationReportPage() {
         employee: ''
     });
 
-    const { data: reportData, isLoading } = useGPSLocationReport(showReport ? filters : undefined);
-    const { data: dropdownData } = useGPSLocationReportDropdowns();
+    const data = useMemo(() => db.list(), []);
 
-    const employees = dropdownData?.data?.employees || [];
+    const employees = useMemo(() => [...new Set(data.map((d) => d.employeeName))], [data]);
 
-    const filtered = reportData?.data || [];
+    const filtered = useMemo(() => {
+        return data.filter((r) => {
+            if (filters.filterType === 'Employee Wise') {
+                return filters.employee ? r.employeeName === filters.employee : false;
+            } else {
+                const okFrom = filters.fromDate ? new Date(r.gpsDate) >= new Date(filters.fromDate) : true;
+                const okTo = filters.toDate ? new Date(r.gpsDate) <= new Date(filters.toDate) : true;
+                return okFrom && okTo;
+            }
+        });
+    }, [data, filters]);
 
     const handleSearch = () => {
         setShowReport(true);
@@ -66,27 +74,19 @@ export default function GPSLocationReportPage() {
 
                 {showReport && (
                     <CollapsibleSection
+                        title='Attendance GPS Location Report'
+                        description=''
                         defaultOpen={true}
                         variant='default'
                         size='lg'
                         className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
-                        <div className='space-y-4'>
-                            {selectedRows.length > 0 && (
-                                <div className='flex justify-end'>
-                                    <Button variant='default' onClick={handleExport}>
-                                        <FileDown className='mr-2 h-4 w-4' /> EXPORT TO EXCEL
-                                    </Button>
-                                </div>
-                            )}
-                            <GenericDataTable
-                                isLoading={isLoading}
-                                columns={gpsLocationReportColumns}
-                                data={filtered}
-                                totalItems={filtered.length}
-                                showViewOptions
-                                onRowSelectionChange={handleRowSelectionChange}
-                            />
-                        </div>
+                        <GenericDataTable
+                            isLoading={false}
+                            columns={gpsLocationReportColumns}
+                            data={filtered}
+                            totalItems={filtered.length}
+                            showViewOptions
+                        />
                     </CollapsibleSection>
                 )}
             </div>

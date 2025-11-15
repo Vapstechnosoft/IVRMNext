@@ -23,7 +23,10 @@ interface CompOffApprovalColumnsProps {
     onReject: (row: CompOffApproval) => void;
 }
 
-export const compOffApprovalColumns = ({ onApprove, onReject }: CompOffApprovalColumnsProps): ColumnDef<CompOffApproval>[] => [
+export const getCompOffApprovalColumns = ({
+    onApprove,
+    onReject
+}: CompOffApprovalColumnsProps): ColumnDef<CompOffApproval>[] => [
     {
         accessorKey: 'employeeName',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Employee Name' />,

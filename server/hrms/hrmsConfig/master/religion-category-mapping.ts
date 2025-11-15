@@ -1,39 +1,13 @@
 'use server';
 
 import { api, type ApiResponse } from '@/lib/apiService';
-import type { ApiSearchparams } from '@/types';
 import type { ReligionCategoryMappingInput, ReligionCategoryMappingResponse, ReligionCategoryMappingRequest, ReligionCategoryMappingDetail } from '@/types/hrms/religion-category-mapping';
 
 /**
- * Helper function to convert searchParams from URL (strings) to proper types
- */
-function normalizeSearchParams(searchParams?: ApiSearchparams | Record<string, string | string[] | undefined>): ApiSearchparams {
-    if (!searchParams) return {};
-    
-    // Helper to get first value if array, or the value itself
-    const getValue = (value: string | string[] | number | undefined, defaultValue: string | number): string | number => {
-        if (value === undefined) return defaultValue;
-        if (typeof value === 'number') return value;
-        if (Array.isArray(value)) return value[0] || defaultValue;
-        return value;
-    };
-    
-    return {
-        page: typeof getValue(searchParams.page, 1) === 'string' ? parseInt(getValue(searchParams.page, 1) as string, 10) || 1 : (getValue(searchParams.page, 1) as number) || 1,
-        page_size: typeof getValue(searchParams.page_size, 10) === 'string' ? parseInt(getValue(searchParams.page_size, 10) as string, 10) || 10 : (getValue(searchParams.page_size, 10) as number) || 10,
-        search_query: (getValue(searchParams.search_query, '') as string) || '',
-        search_column: (getValue(searchParams.search_column, '') as string) || '',
-        sort_column: (getValue(searchParams.sort_column, '') as string) || '',
-        sort_direction: (getValue(searchParams.sort_direction, '') as string) || ''
-    };
-}
-
-/**
- * Get onload details for religion category mapping with search, sort, and pagination
- * POST /api/ReligionCategory_MappingFacade/onloadgetdetails
+ * Get onload details for religion category mapping
+ * POST /api/ReligionCategory_MappingFacade/loaddata
  */
 export async function getReligionCategoryMappingList(
-    searchParams?: ApiSearchparams | Record<string, string | string[] | undefined>,
     params?: {
         IRCC_Id?: number;
         IVRMMR_Id?: number;
@@ -41,41 +15,14 @@ export async function getReligionCategoryMappingList(
         UserId?: number;
     }
 ) {
-    const url = '/api/ReligionCategory_MappingFacade/onloadgetdetails';
+    const url = '/api/ReligionCategory_MappingFacade/loaddata';
     
-    // Normalize searchParams (convert strings to proper types)
-    const normalizedParams = normalizeSearchParams(searchParams);
-    
-    // Extract pagination, search, and sort parameters
-    const page = normalizedParams.page || 1;
-    const page_size = normalizedParams.page_size || 10;
-    const search_query = normalizedParams.search_query || '';
-    
-    // Define searchable columns
-    // These are the columns that can be searched when search_query is provided
-    const searchableColumns = 'IVRMMR_Name,IMCC_CategoryName';
-    const search_column = normalizedParams.search_column || (search_query ? searchableColumns : '');
-    
-    // If sort_column is provided but sort_direction is empty, default to 'asc'
-    // The API requires sort_direction to be 'asc' or 'desc' when sort_column is provided
-    const sort_column = normalizedParams.sort_column || '';
-    const sort_direction = sort_column && !normalizedParams.sort_direction 
-        ? 'asc' 
-        : (normalizedParams.sort_direction || '');
+    console.log('🟠 ========== RELIGION-CATEGORY ONLOAD API ==========');
+    console.log('🟠 [API] getReligionCategoryMappingList called');
+    console.log('🟠 [API] Params:', JSON.stringify(params, null, 2));
     
     const now = new Date().toISOString();
-    const requestBody = {
-        page,
-        page_size,
-        search_query,
-        search_column,
-        sort_column,
-        sort_direction,
-        is_export: false,
-        MIID: 30,
-        LoginUserId: params?.UserId ?? 0,
-        UserRole: '',
-        // Required fields by API model (even for list operations)
+    const requestBody: ReligionCategoryMappingRequest = {
         IRCC_Id: params?.IRCC_Id ?? 0,
         MI_Id: 30,
         UserId: params?.UserId ?? 2,
@@ -115,47 +62,50 @@ export async function getReligionCategoryMappingList(
         msg: 'string'
     };
     
+    console.log('🟠 [API] Request URL:', url);
+    console.log('🟠 [API] Request Body:', JSON.stringify(requestBody, null, 2));
+    console.log('🟠 [API] Calling api.post...');
+    
     try {
         const response = await api.post<ReligionCategoryMappingResponse>('hrms', url, requestBody);
         
-        // Extract data from response - the API returns:
-        // { success, message, data: { mapping: [...], religion_list: [...], caste_list: [...] }, total, page, page_size }
-        // OR
-        // { success, message, data: [...], total, page, page_size }
-        const responseData = response?.data;
+        console.log('🟢 ========== RELIGION-CATEGORY ONLOAD RESPONSE ==========');
+        console.log('🟢 [API] Raw response received:', JSON.stringify(response, null, 2));
+        console.log('🟢 [API] Response type:', typeof response);
+        console.log('🟢 [API] Response has "success" key:', 'success' in (response || {}));
+        console.log('🟢 [API] Response has "data" key:', 'data' in (response || {}));
         
-        // Check if data is an array (direct list) or an object with mapping/get_masterlist
-        const mappingData = Array.isArray(responseData)
-            ? responseData
-            : (responseData as any)?.mapping || (responseData as any)?.get_masterlist || [];
+        // Handle case where backend returns data directly (not wrapped in ApiResponse)
+        // The backend API might return the data directly, but api.post expects ApiResponse format
+        if (response && typeof response === 'object' && 'success' in response && 'data' in response) {
+            console.log('🟢 [API] Response is already in ApiResponse format');
+            console.log('🟢 [API] response.data:', response.data);
+            console.log('🟢 [API] response.data.get_masterlist:', (response.data as any)?.get_masterlist);
+            console.log('🟢 [API] response.data.get_masterlist length:', (response.data as any)?.get_masterlist?.length || 0);
+            // Already wrapped in ApiResponse format
+            return response as ApiResponse<ReligionCategoryMappingResponse>;
+        }
         
-        // Extract total, page, page_size - they are at root level (may be null)
-        const total = response?.total ?? (responseData as any)?.total ?? (Array.isArray(mappingData) ? mappingData.length : 0);
-        const responsePage = response?.page ?? (responseData as any)?.page ?? page;
-        const responsePageSize = response?.page_size ?? (responseData as any)?.page_size ?? page_size;
+        console.log('🟢 [API] Response is raw data - wrapping in ApiResponse format');
+        console.log('🟢 [API] response.get_masterlist:', (response as any)?.get_masterlist);
+        console.log('🟢 [API] response.get_masterlist length:', (response as any)?.get_masterlist?.length || 0);
+        console.log('🟢 [API] response.religion_list:', (response as any)?.religion_list);
+        console.log('🟢 [API] response.caste_list:', (response as any)?.caste_list);
         
-        // Transform response to match expected structure
-        const transformedResponse = {
-            ...response,
-            success: response?.success ?? true,
-            message: response?.message || 'Data fetched successfully',
-            data: mappingData,
-            total: total,
-            page: responsePage,
-            page_size: responsePageSize,
-            // Preserve dropdown data if available (they are inside data object)
-            religion_list: (responseData as any)?.religion_list || [],
-            caste_list: (responseData as any)?.caste_list || []
-        } as ReligionCategoryMappingResponse;
-        
-        // Wrap in ApiResponse format
-        return {
-            success: transformedResponse.success,
-            message: transformedResponse.message,
-            data: transformedResponse
+        // Wrap raw response data if backend returns it directly
+        const wrappedResponse = {
+            success: true,
+            message: 'Data loaded successfully',
+            data: response as unknown as ReligionCategoryMappingResponse
         } as ApiResponse<ReligionCategoryMappingResponse>;
+        
+        console.log('🟢 [API] Wrapped response:', JSON.stringify(wrappedResponse, null, 2));
+        console.log('🟢 ========== RELIGION-CATEGORY ONLOAD END ==========');
+        
+        return wrappedResponse;
     } catch (error: any) {
-        console.error('🔴 [ERROR] getReligionCategoryMappingList - Error Details:', error);
+        console.log('🔴 [API] Error occurred');
+        console.error('🔴 [API] Error:', error);
         throw error;
     }
 }

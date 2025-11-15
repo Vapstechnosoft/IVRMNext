@@ -3,17 +3,17 @@
 import { Button } from '@/components/ui/button';
 import { GenericDataTable } from '@/components/ui/data-table/generic-data-table';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
-import { useEmployeeAbsentReport, useEmployeeAbsentReportDropdowns } from '@/hooks/hrms/attendance-management/useReports';
-import { FileDown } from 'lucide-react';
-import { useState } from 'react';
-import { employeeAbsentReportColumns } from './_components/columns';
+import { createLocalCrud } from '@/lib/localdb';
+import { useMemo, useState } from 'react';
+import { type EmployeeAbsentReportRow, employeeAbsentReportColumns } from './_components/columns';
 import {
     type EmployeeAbsentReportFilters,
     EmployeeAbsentReportFilters as EmployeeAbsentReportFiltersComponent
 } from './_components/filters';
-import type { EmployeeAbsentReportRow } from './_components/columns';
+import type { InOutRow } from '../employee-inout-report/_components/columns';
 
 export default function EmployeeAbsentReportPage() {
+    const db = createLocalCrud<InOutRow>('attendance:inout');
     const [showReport, setShowReport] = useState(false);
     const [selectedRows, setSelectedRows] = useState<EmployeeAbsentReportRow[]>([]);
 
@@ -27,15 +27,63 @@ export default function EmployeeAbsentReportPage() {
         toDate: ''
     });
 
-    const { data: reportData, isLoading } = useEmployeeAbsentReport(showReport ? filters : undefined);
-    const { data: dropdownData } = useEmployeeAbsentReportDropdowns();
+    const data = useMemo(() => db.list(), []);
 
-    const types = dropdownData?.data?.types || [];
-    const departments = dropdownData?.data?.departments || [];
-    const designations = dropdownData?.data?.designations || [];
-    const employees = dropdownData?.data?.employees || [];
+    // Extract unique values for dropdowns
+    const types = useMemo(() => [...new Set(data.map((d) => d.type).filter(Boolean))], [data]);
+    const departments = useMemo(() => [...new Set(data.map((d) => d.department).filter(Boolean))], [data]);
+    const designations = useMemo(() => [...new Set(data.map((d) => d.designation).filter(Boolean))], [data]);
+    const employees = useMemo(() => [...new Set(data.map((d) => d.employeeName).filter(Boolean))], [data]);
 
-    const filtered = reportData?.data || [];
+    // Calculate absent days - this is a mock calculation
+    // In real scenario, you'd compare attendance records with expected working days
+    const filtered = useMemo(() => {
+        if (!showReport) return [];
+
+        // Group by employee and calculate absent days
+        const employeeMap = new Map<string, EmployeeAbsentReportRow>();
+
+        data.forEach((record) => {
+            // Filter by type
+            const okType = filters.type.length === 0 || filters.type.includes(record.type);
+            // Filter by department
+            const okDept = filters.department.length === 0 || filters.department.includes(record.department);
+            // Filter by designation
+            const okDesg = filters.designation.length === 0 || filters.designation.includes(record.designation);
+            // Filter by date range
+            const okDateFrom = filters.fromDate ? new Date(record.date) >= new Date(filters.fromDate) : true;
+            const okDateTo = filters.toDate ? new Date(record.date) <= new Date(filters.toDate) : true;
+            // Filter by employee if Individual is selected
+            const okEmp =
+                filters.allOrIndividual === 'All' ||
+                (filters.allOrIndividual === 'Individual' && filters.employee
+                    ? record.employeeName === filters.employee
+                    : false);
+
+            if (okType && okDept && okDesg && okDateFrom && okDateTo && okEmp) {
+                const key = `${record.employeeCode}-${record.employeeName}`;
+                if (!employeeMap.has(key)) {
+                    employeeMap.set(key, {
+                        id: record.id,
+                        createdAt: record.createdAt,
+                        employeeCode: record.employeeCode,
+                        employeeName: record.employeeName,
+                        designation: record.designation,
+                        totalAbsent: 0
+                    });
+                }
+            }
+        });
+
+        // For this mock, we'll assume absence is when there's no attendance record
+        // In a real scenario, you'd need to compare with expected working days
+        const result = Array.from(employeeMap.values()).map((emp) => ({
+            ...emp,
+            totalAbsent: 1 // Mock value - in real scenario calculate actual absent days
+        }));
+
+        return result;
+    }, [data, filters, showReport]);
 
     const handleSearch = () => {
         setShowReport(true);
@@ -86,23 +134,13 @@ export default function EmployeeAbsentReportPage() {
                         variant='default'
                         size='lg'
                         className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
-                        <div className='space-y-4'>
-                            {selectedRows.length > 0 && (
-                                <div className='flex justify-end'>
-                                    <Button variant='default' onClick={handleExport}>
-                                        <FileDown className='mr-2 h-4 w-4' /> EXPORT TO EXCEL
-                                    </Button>
-                                </div>
-                            )}
-                            <GenericDataTable
-                                isLoading={isLoading}
-                                columns={employeeAbsentReportColumns}
-                                data={filtered}
-                                totalItems={filtered.length}
-                                showViewOptions
-                                onRowSelectionChange={handleRowSelectionChange}
-                            />
-                        </div>
+                        <GenericDataTable
+                            isLoading={false}
+                            columns={employeeAbsentReportColumns}
+                            data={filtered}
+                            totalItems={filtered.length}
+                            showViewOptions
+                        />
                     </CollapsibleSection>
                 )}
             </div>

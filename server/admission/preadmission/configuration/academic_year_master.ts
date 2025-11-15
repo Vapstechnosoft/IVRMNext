@@ -23,8 +23,3 @@ export async function togglePreAdmissionAcademicYear(id: number) {
     const url = `/configuration/academic_year/toggle/${id}`;
     return await api.put('preadmission', url);
 }
-
-export async function updateAcademicYearSetorder(data: any) {
-    const url = '/configuration/academic_year/set_order';
-    return await api.put<any>('preadmission', url, data);
-}

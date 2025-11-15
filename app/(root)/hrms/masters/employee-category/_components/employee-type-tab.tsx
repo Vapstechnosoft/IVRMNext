@@ -1,20 +1,20 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
-import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/generic-data-table';
+import { GenericDataTable } from '@/components/ui/data-table/generic-data-table';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
 import { HRMS_MI_ID } from '@/constants/hrms-config';
 import { useMasterEmployeeType } from '@/hooks/hrms/useMasters';
-import type { ApiSearchparams } from '@/types';
 import type { EmployeeTypeDetail } from '@/types/hrms/master-employee-type';
 import { Plus, X } from 'lucide-react';
+import { useMemo } from 'react';
 import { columns } from '../../employee-type/_components/columns';
 import EmployeeTypeForm from '../../employee-type/_components/employee-type-form';
 
-export default function EmployeeTypeTab({ searchParams }: { searchParams?: ApiSearchparams }) {
+export default function EmployeeTypeTab() {
     const roleId = HRMS_MI_ID;
-    const { listQuery, refetchAll } = useMasterEmployeeType(roleId, searchParams);
+    const { listQuery, refetchAll } = useMasterEmployeeType(roleId);
 
     return (
         <FormProvider<EmployeeTypeDetail>>
@@ -40,7 +40,8 @@ function EmployeeTypeTabContent({
     refetch: () => void;
 }) {
     const { openAddForm } = useFormContext<EmployeeTypeDetail>();
-    const tableProps = useDataTableProps(response, { dataKey: 'data' });
+    // Memoize array to prevent unnecessary re-renders
+    const rows: EmployeeTypeDetail[] = useMemo(() => response?.employeeTypeList ?? [], [response?.employeeTypeList]);
 
     return (
         <div className='space-y-4'>
@@ -64,7 +65,8 @@ function EmployeeTypeTabContent({
                 size='lg'
                 className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
                 <GenericDataTable<EmployeeTypeDetail>
-                    {...tableProps}
+                    data={rows}
+                    totalItems={rows.length}
                     columns={columns}
                     isLoading={isLoading}
                     error={error}

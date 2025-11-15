@@ -1,24 +1,9 @@
 export interface MasterGroupTypeResponse {
-    success?: boolean;
-    message?: string;
-    data?: GroupTypeDetail[] | {
+    success: boolean;
+    message: string;
+    data: {
         grouptypeList: GroupTypeDetail[];
     };
-    grouptypeList?: GroupTypeDetail[];
-    retrunMsg?: string;
-    total?: number;
-    page?: number;
-    page_size?: number;
-    // Legacy fields (for backward compatibility)
-    HRMGT_Id?: number;
-    MI_Id?: number;
-    HRMGT_EmployeeGroupType?: string | null;
-    HRMGT_Code?: string | null;
-    HRMGT_Order?: number;
-    HRMGT_ActiveFlag?: boolean;
-    roleId?: number;
-    CreatedDate?: string | null;
-    UpdatedDate?: string | null;
 }
 
 export interface GroupTypeDetail {

@@ -3,14 +3,16 @@
 import { Button } from '@/components/ui/button';
 import { GenericDataTable } from '@/components/ui/data-table/generic-data-table';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
-import { useEmployeeInOutReport, useEmployeeInOutReportDropdowns } from '@/hooks/hrms/attendance-management/useReports';
-import { FileDown } from 'lucide-react';
-import { useState } from 'react';
-import { employeeInOutReportColumns } from './_components/columns';
-import { type EmployeeInOutReportFilters, EmployeeInOutReportFilters as EmployeeInOutReportFiltersComponent } from './_components/filters';
-import type { InOutRow } from './_components/columns';
+import { createLocalCrud } from '@/lib/localdb';
+import { useMemo, useState } from 'react';
+import { type InOutRow, employeeInOutReportColumns } from './_components/columns';
+import {
+    type EmployeeInOutReportFilters,
+    EmployeeInOutReportFilters as EmployeeInOutReportFiltersComponent
+} from './_components/filters';
 
 export default function EmployeeInOutReportPage() {
+    const db = createLocalCrud<InOutRow>('attendance:inout');
     const [showReport, setShowReport] = useState(false);
     const [selectedRows, setSelectedRows] = useState<InOutRow[]>([]);
     const [filters, setFilters] = useState<EmployeeInOutReportFilters>({
@@ -26,13 +28,30 @@ export default function EmployeeInOutReportPage() {
         timeInTimeOut: undefined
     });
 
-    const { data: reportData, isLoading } = useEmployeeInOutReport(showReport ? filters : undefined);
-    const { data: dropdownData } = useEmployeeInOutReportDropdowns();
+    const data = useMemo(() => db.list(), []);
 
-    const departments = dropdownData?.data?.departments || [];
-    const designations = dropdownData?.data?.designations || [];
+    const branches = useMemo(() => [...new Set(data.map((d) => d.branch))], [data]);
+    const departments = useMemo(() => [...new Set(data.map((d) => d.department))], [data]);
+    const designations = useMemo(() => [...new Set(data.map((d) => d.designation))], [data]);
 
-    const filtered = reportData?.data || [];
+    const filtered = useMemo(() => {
+        return data.filter((r) => {
+            const okBranch = filters.branch ? r.branch === filters.branch : true;
+            const okType = filters.type && filters.type.length > 0 ? filters.type.includes(r.type) : true;
+            const okDept = filters.department && filters.department.length > 0 ? filters.department.includes(r.department) : true;
+            const okDesg = filters.designation && filters.designation.length > 0 ? filters.designation.includes(r.designation) : true;
+            const okDateFrom = filters.fromDate ? new Date(r.date) >= new Date(filters.fromDate) : true;
+            const okDateTo = filters.toDate ? new Date(r.date) <= new Date(filters.toDate) : true;
+            const okQuery =
+                filters.allOrIndividual === 'Individual' && filters.query
+                    ? filters.codeOrName === 'Code'
+                        ? r.employeeCode.includes(filters.query)
+                        : r.employeeName.toLowerCase().includes(filters.query.toLowerCase())
+                    : true;
+            const okTimeInOut = filters.timeInTimeOut ? (filters.timeInTimeOut === 'Time In' ? r.timeIn : r.timeOut) : true;
+            return okBranch && okType && okDept && okDesg && okDateFrom && okDateTo && okQuery && okTimeInOut;
+        });
+    }, [data, filters]);
 
     const handleSearch = () => {
         setShowReport(true);
@@ -81,27 +100,19 @@ export default function EmployeeInOutReportPage() {
 
                 {showReport && (
                     <CollapsibleSection
+                        title='Employee In/Out Report'
+                        description=''
                         defaultOpen={true}
                         variant='default'
                         size='lg'
                         className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
-                        <div className='space-y-4'>
-                            {selectedRows.length > 0 && (
-                                <div className='flex justify-end'>
-                                    <Button variant='default' onClick={handleExport}>
-                                        <FileDown className='mr-2 h-4 w-4' /> EXPORT TO EXCEL
-                                    </Button>
-                                </div>
-                            )}
-                            <GenericDataTable
-                                isLoading={isLoading}
-                                columns={employeeInOutReportColumns}
-                                data={filtered}
-                                totalItems={filtered.length}
-                                showViewOptions
-                                onRowSelectionChange={handleRowSelectionChange}
-                            />
-                        </div>
+                        <GenericDataTable
+                            isLoading={false}
+                            columns={employeeInOutReportColumns}
+                            data={filtered}
+                            totalItems={filtered.length}
+                            showViewOptions
+                        />
                     </CollapsibleSection>
                 )}
             </div>

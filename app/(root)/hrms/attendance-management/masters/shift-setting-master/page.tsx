@@ -1,136 +1,181 @@
 'use client';
 
+import { Heading } from '@/components/layout/heading';
 import { Button } from '@/components/ui/button';
-import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/generic-data-table';
+import { GenericDataTable } from '@/components/ui/data-table/generic-data-table';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
-import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
-import { useShiftSettingMaster } from '@/hooks/hrms/attendance-management/useMasters';
+import { createLocalCrud } from '@/lib/localdb';
 import { Plus, X } from 'lucide-react';
-import { use } from 'react';
-import AddShiftSettingMasterForm from './_components/add-form';
-import { type ShiftSetting, shiftSettingColumns } from './_components/columns';
-import UpdateShiftSettingMasterForm from './_components/update-form';
+import { useEffect, useRef, useState } from 'react';
+import { toast } from 'sonner';
+import { type ShiftSetting, getShiftSettingColumns } from './_components/columns';
+import { type ShiftSettingForm, ShiftSettingForm as ShiftSettingFormComponent } from './_components/shift-setting-form';
 
-type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
+export default function ShiftSettingMasterPage() {
+    const [isFormOpen, setIsFormOpen] = useState(false);
+    const [editingId, setEditingId] = useState<number | null>(null);
+    const [shiftSettings, setShiftSettings] = useState<ShiftSetting[]>([]);
+    const [isLoading, setIsLoading] = useState(true);
+    const formRef = useRef<HTMLDivElement>(null);
+    const shiftSettingDB = createLocalCrud<ShiftSetting>('master:shiftSetting');
 
-export default function ShiftSettingMasterPage(props: { searchParams: SearchParams }) {
-    const _searchParams = use(props.searchParams);
-    const { data: response, isLoading, error } = useShiftSettingMaster();
+    // Load data on component mount
+    useEffect(() => {
+        loadShiftSettings();
+    }, []);
 
-    return (
-        <FormProvider<ShiftSetting>>
-            <ShiftSettingMasterPageContent response={response} isLoading={isLoading} error={error} />
-        </FormProvider>
-    );
-}
+    const loadShiftSettings = () => {
+        try {
+            setShiftSettings(shiftSettingDB.list());
+        } catch (_error) {
+            toast.error('Failed to load shift settings');
+        } finally {
+            setIsLoading(false);
+        }
+    };
 
-function ShiftSettingMasterPageContent({
-    response,
-    isLoading,
-    error
-}: {
-    response: any;
-    isLoading: boolean;
-    error: any;
-}) {
-    const { openAddForm } = useFormContext<ShiftSetting>();
-    const tableProps = useDataTableProps({
-        data: response?.data || [],
-        totalItems: response?.data?.length || 0
-    });
+    const [editingShiftSetting, setEditingShiftSetting] = useState<ShiftSettingForm | null>(null);
+
+    const handleAddClick = () => {
+        setIsFormOpen(true);
+        setEditingId(null);
+        setEditingShiftSetting(null);
+        // Scroll to form after state update
+        setTimeout(() => {
+            formRef.current?.scrollIntoView({
+                behavior: 'smooth',
+                block: 'end'
+            });
+        }, 100);
+    };
+
+    const handleFormClose = () => {
+        setIsFormOpen(false);
+        setEditingId(null);
+        setEditingShiftSetting(null);
+    };
+
+    const handleFormSubmit = (data: ShiftSettingForm) => {
+        try {
+            const shiftSettingData = {
+                ...data,
+                isActive: true // Always active by default
+            };
+            if (editingId) {
+                shiftSettingDB.update(editingId, shiftSettingData);
+                toast.success('Shift setting updated successfully');
+            } else {
+                shiftSettingDB.create(shiftSettingData as Omit<ShiftSetting, 'id' | 'createdAt'>);
+                toast.success('Shift setting created successfully');
+            }
+            loadShiftSettings();
+            handleFormClose();
+        } catch (error: any) {
+            toast.error(error.message || 'Operation failed');
+        }
+    };
+
+    const handleEdit = (shiftSetting: ShiftSetting) => {
+        setEditingId(shiftSetting.id);
+        setEditingShiftSetting({
+            shiftName: shiftSetting.shiftName,
+            shiftStartTime: shiftSetting.shiftStartTime,
+            shiftEndTime: shiftSetting.shiftEndTime,
+            lunchStartTime: shiftSetting.lunchStartTime,
+            lunchEndTime: shiftSetting.lunchEndTime,
+            totalWorkingHours: shiftSetting.totalWorkingHours,
+            halfDayWorkingHours: shiftSetting.halfDayWorkingHours,
+            lunchHours: shiftSetting.lunchHours,
+            delayPerShift: shiftSetting.delayPerShift,
+            earlyPerShift: shiftSetting.earlyPerShift,
+            isActive: shiftSetting.isActive
+        });
+        setIsFormOpen(true);
+
+        // Scroll to form after state update
+        setTimeout(() => {
+            formRef.current?.scrollIntoView({
+                behavior: 'smooth',
+                block: 'end'
+            });
+        }, 100);
+    };
+
+    const handleDelete = (id: number) => {
+        try {
+            shiftSettingDB.remove(id);
+            toast.success('Shift setting deleted successfully');
+            loadShiftSettings();
+        } catch (_error: any) {
+            toast.error('Failed to delete shift setting');
+        }
+    };
 
     return (
         <div className='min-h-screen'>
             <div className='container space-y-4 p-1'>
                 {/* Header */}
-                <div className='flex justify-end'>
+                <div className='flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between'>
+                    <div className='space-y-1'>
+                        <Heading title='Shift Setting Master' description='Manage shift timings and working hours configuration' />
+                    </div>
                     <Button
                         type='button'
-                        onClick={openAddForm}
+                        onClick={handleAddClick}
+                        size='lg'
                         className='w-fit shadow-md transition-all duration-200 hover:scale-105 hover:shadow-lg'>
                         <Plus className='h-4 w-4' />
                         Add Shift Setting
                     </Button>
                 </div>
 
-                {/* Data Table Section */}
+                {/* Data Table Section - Collapsible but default open */}
                 <CollapsibleSection
+                    title='Shift Settings Data'
+                    description='View, search, and manage all shift configurations in the system'
                     defaultOpen={true}
                     variant='default'
                     size='lg'
-                    className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
-                    <GenericDataTable<ShiftSetting>
-                        {...tableProps}
-                        columns={shiftSettingColumns}
+                    className='shadow-lg transition-shadow duration-300 hover:shadow-xl'
+                    headerClassName=''>
+                    <GenericDataTable
                         isLoading={isLoading}
-                        error={error}
-                        showViewOptions={false}
-                        columnPinning={{ right: ['actions'] }}
-                        loadingMessage='Loading shift setting...'
-                        noDataTitle='No Shift Setting Found'
-                        noDataDescription='Get started by creating your first shift setting'
-                        errorTitle='Error Loading Shift Setting'
+                        columns={getShiftSettingColumns({ onEdit: handleEdit, onDelete: handleDelete })}
+                        data={shiftSettings}
+                        totalItems={shiftSettings.length}
+                        showViewOptions={true}
                     />
                 </CollapsibleSection>
 
-                {/* Forms */}
-                <FormSections />
+                {/* Add Form Section - Conditionally Rendered */}
+                {isFormOpen && (
+                    <div ref={formRef} className='slide-in-from-top-4 animate-in duration-300'>
+                        <CollapsibleSection
+                            title={editingId ? 'Update Shift Setting' : 'Add New Shift Setting'}
+                            description='Fill in the details below to create a new shift configuration'
+                            defaultOpen={true}
+                            variant='outline'
+                            size='md'
+                            className='shadow-lg'
+                            headerClassName=''>
+                            <div className='relative'>
+                                <Button
+                                    onClick={handleFormClose}
+                                    variant='ghost'
+                                    size='sm'
+                                    className='-top-[4rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
+                                    <X className='h-4 w-4 text-destructive' /> Close
+                                </Button>
+                                <ShiftSettingFormComponent
+                                    editingShiftSetting={editingShiftSetting}
+                                    onSubmit={handleFormSubmit}
+                                    onCancel={handleFormClose}
+                                />
+                            </div>
+                        </CollapsibleSection>
+                    </div>
+                )}
             </div>
         </div>
-    );
-}
-
-function FormSections() {
-    const { isAddFormOpen, isEditFormOpen, selectedRow, closeAddForm, closeEditForm, addFormRef, editFormRef } =
-        useFormContext<ShiftSetting>();
-
-    return (
-        <>
-            {/* Add Form */}
-            {isAddFormOpen && (
-                <div ref={addFormRef}>
-                    <CollapsibleSection
-                        defaultOpen={true}
-                        variant='outline'
-                        size='md'
-                        className='slide-in-from-top-4 animate-in shadow-lg duration-300'>
-                        <div className='relative'>
-                            <Button
-                                type='button'
-                                onClick={closeAddForm}
-                                variant='ghost'
-                                size='sm'
-                                className='-top-[3.5rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
-                                <X className='h-4 w-4 text-destructive' /> Close
-                            </Button>
-                            <AddShiftSettingMasterForm onSuccess={closeAddForm} />
-                        </div>
-                    </CollapsibleSection>
-                </div>
-            )}
-
-            {/* Edit Form */}
-            {isEditFormOpen && selectedRow && (
-                <div ref={editFormRef}>
-                    <CollapsibleSection
-                        defaultOpen={true}
-                        variant='outline'
-                        size='md'
-                        className='slide-in-from-top-4 animate-in border-primary/20 shadow-lg duration-300'>
-                        <div className='relative'>
-                            <Button
-                                type='button'
-                                onClick={closeEditForm}
-                                variant='ghost'
-                                size='sm'
-                                className='-top-[3.5rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
-                                <X className='h-4 w-4 text-destructive' /> Close
-                            </Button>
-                            <UpdateShiftSettingMasterForm selectedRow={selectedRow} onSuccess={closeEditForm} />
-                        </div>
-                    </CollapsibleSection>
-                </div>
-            )}
-        </>
     );
 }

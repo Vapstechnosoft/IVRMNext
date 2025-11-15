@@ -59,7 +59,6 @@ const InputPassword = React.forwardRef<HTMLInputElement, InputPasswordProps>(
                         onChange={onChange}
                         aria-invalid={strengthScore < 4}
                         aria-describedby={showStrength ? 'password-strength' : undefined}
-                        className={`[&::-ms-clear]:hidden [&::-ms-reveal]:hidden ${className || ''}`}
                         ref={ref}
                         {...props}
                     />

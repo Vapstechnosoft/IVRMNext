@@ -1,12 +1,11 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
-import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/generic-data-table';
+import { GenericDataTable } from '@/components/ui/data-table/generic-data-table';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
 import { HRMS_MI_ID } from '@/constants/hrms-config';
 import { useMasterDepartment } from '@/hooks/hrms/useMasters';
-import type { ApiSearchparams } from '@/types';
 import type { DepartmentDetail } from '@/types/hrms/master-department';
 import { ListOrdered, Plus, Save, X } from 'lucide-react';
 import { useMemo, useState } from 'react';
@@ -14,9 +13,9 @@ import { toast } from 'sonner';
 import { columns, getEditableColumns } from '../../department/_components/columns';
 import DepartmentForm from '../../department/_components/department-form';
 
-export default function DepartmentTab({ searchParams }: { searchParams?: ApiSearchparams }) {
+export default function DepartmentTab() {
     const roleId = HRMS_MI_ID;
-    const { listQuery, refetchAll } = useMasterDepartment(roleId, searchParams);
+    const { listQuery, refetchAll } = useMasterDepartment(roleId);
 
     return (
         <FormProvider<DepartmentDetail>>
@@ -38,12 +37,8 @@ function DepartmentTabContent({
 }) {
     const { openAddForm } = useFormContext<DepartmentDetail>();
     const { saveOrderMutation } = useMasterDepartment(HRMS_MI_ID);
-    const tableProps = useDataTableProps(response, { dataKey: 'data' });
-    // Extract data for order editing mode - support both new structure (data) and old structure (departmentList)
-    const rows: DepartmentDetail[] = useMemo(() => {
-        const data = response?.data ?? response?.departmentList ?? [];
-        return Array.isArray(data) ? data : [];
-    }, [response?.data, response?.departmentList]);
+    // Memoize array to prevent unnecessary re-renders
+    const rows: DepartmentDetail[] = useMemo(() => response?.departmentList ?? [], [response?.departmentList]);
 
     const [isEditOrderMode, setIsEditOrderMode] = useState(false);
     const [editedRows, setEditedRows] = useState<DepartmentDetail[]>([]);
@@ -131,7 +126,8 @@ function DepartmentTabContent({
                 size='lg'
                 className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
                 <GenericDataTable<DepartmentDetail>
-                    {...(isEditOrderMode ? { data: displayData, totalItems: displayData.length } : tableProps)}
+                    data={displayData}
+                    totalItems={displayData.length}
                     columns={displayColumns}
                     isLoading={isLoading}
                     error={error}

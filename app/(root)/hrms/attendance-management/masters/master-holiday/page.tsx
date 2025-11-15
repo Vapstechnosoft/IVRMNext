@@ -1,248 +1,227 @@
 'use client';
 
+import { Heading } from '@/components/layout/heading';
 import { Button } from '@/components/ui/button';
-import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/generic-data-table';
+import { GenericDataTable } from '@/components/ui/data-table/generic-data-table';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
-import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
-import { useMasterHoliday } from '@/hooks/hrms/attendance-management/useMasters';
-import type { ApiSearchparams } from '@/types';
-import type { MasterHolidayGetDataResponseData, ReportListItem } from '@/types/hrms/attendance-management/master-holiday';
+import { createLocalCrud } from '@/lib/localdb';
 import { Plus, X } from 'lucide-react';
-import { use, useMemo } from 'react';
-import AddMasterHolidayForm from './_components/add-form';
-import { type MasterHoliday, masterHolidayColumns } from './_components/columns';
-import DeleteMasterHolidayForm from './_components/delete-form';
-import UpdateMasterHolidayForm from './_components/update-form';
+import { useEffect, useRef, useState } from 'react';
+import { toast } from 'sonner';
+import { type MasterHoliday, getMasterHolidayColumns } from './_components/columns';
+import { type MasterHolidayForm, HolidayForm } from './_components/holiday-form';
 
-type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
+export default function MasterHolidayPage() {
+    const [isFormOpen, setIsFormOpen] = useState(false);
+    const [editingId, setEditingId] = useState<number | null>(null);
+    const [holidays, setHolidays] = useState<MasterHoliday[]>([]);
+    const [isLoading, setIsLoading] = useState(true);
+    const [currentYear, setCurrentYear] = useState<number | null>(null);
+    const formRef = useRef<HTMLDivElement>(null);
 
-export default function MasterHolidayPage(props: { searchParams: SearchParams }) {
-    const rawSearchParams = use(props.searchParams);
+    // Set current year client-side only to prevent hydration mismatch
+    useEffect(() => {
+        setCurrentYear(new Date().getFullYear());
+    }, []);
 
-    // Convert Next.js searchParams (string | string[]) to ApiSearchparams format
-    // This matches how preadmission handles it
-    const searchParams: ApiSearchparams = {
-        page:
-            typeof rawSearchParams?.page === 'string'
-                ? Number.parseInt(rawSearchParams.page, 10)
-                : Array.isArray(rawSearchParams?.page)
-                  ? Number.parseInt(rawSearchParams.page[0], 10)
-                  : typeof rawSearchParams?.page === 'number'
-                    ? rawSearchParams.page
-                    : undefined,
-        page_size:
-            typeof rawSearchParams?.page_size === 'string'
-                ? Number.parseInt(rawSearchParams.page_size, 10)
-                : Array.isArray(rawSearchParams?.page_size)
-                  ? Number.parseInt(rawSearchParams.page_size[0], 10)
-                  : typeof rawSearchParams?.page_size === 'number'
-                    ? rawSearchParams.page_size
-                    : undefined,
-        search_query:
-            typeof rawSearchParams?.search_query === 'string'
-                ? rawSearchParams.search_query
-                : Array.isArray(rawSearchParams?.search_query)
-                  ? rawSearchParams.search_query[0]
-                  : undefined,
-        search_column:
-            typeof rawSearchParams?.search_column === 'string'
-                ? rawSearchParams.search_column
-                : Array.isArray(rawSearchParams?.search_column)
-                  ? rawSearchParams.search_column[0]
-                  : undefined,
-        sort_column:
-            typeof rawSearchParams?.sort_column === 'string'
-                ? rawSearchParams.sort_column
-                : Array.isArray(rawSearchParams?.sort_column)
-                  ? rawSearchParams.sort_column[0]
-                  : undefined,
-        sort_direction:
-            typeof rawSearchParams?.sort_direction === 'string'
-                ? rawSearchParams.sort_direction
-                : Array.isArray(rawSearchParams?.sort_direction)
-                  ? rawSearchParams.sort_direction[0]
-                  : undefined
+    // Generate calendar years starting from current year
+    const calendarYears = currentYear
+        ? Array.from({ length: 6 }, (_, i) => (currentYear + i).toString())
+        : [];
+
+    const holidayDB = createLocalCrud<MasterHoliday>('master:holiday');
+    const [editingHoliday, setEditingHoliday] = useState<MasterHolidayForm | null>(null);
+
+    // Load data on component mount
+    useEffect(() => {
+        loadHolidays();
+    }, []);
+
+    const loadHolidays = () => {
+        try {
+            setHolidays(holidayDB.list());
+        } catch (_error) {
+            toast.error('Failed to load holidays');
+        } finally {
+            setIsLoading(false);
+        }
     };
 
-    const { data: response, isLoading, error, refetch } = useMasterHoliday(searchParams);
+    const handleAddClick = () => {
+        setIsFormOpen(true);
+        setEditingId(null);
+        setEditingHoliday(null);
+        // Scroll to form after state update
+        setTimeout(() => {
+            formRef.current?.scrollIntoView({
+                behavior: 'smooth',
+                block: 'end'
+            });
+        }, 100);
+    };
 
-    // Log when data changes
-    console.log('📊 [PAGE] MasterHoliday data updated:', {
-        hasResponse: !!response,
-        hasData: !!response?.data,
-        reportListLength: (response?.data as unknown as MasterHolidayGetDataResponseData)?.report_list?.length || 0,
-        total: response?.total,
-        page: response?.page,
-        page_size: response?.page_size,
-        isLoading,
-        hasError: !!error
-    });
+    const handleFormClose = () => {
+        setIsFormOpen(false);
+        setEditingId(null);
+        setEditingHoliday(null);
+    };
 
-    return (
-        <FormProvider<MasterHoliday>>
-            <MasterHolidayPageContent response={response} isLoading={isLoading} error={error} refetch={refetch} />
-        </FormProvider>
-    );
-}
+    const handleFormSubmit = (data: MasterHolidayForm) => {
+        try {
+            // Date validation
+            const today = new Date();
+            today.setHours(0, 0, 0, 0); // Reset time to start of day
 
-function MasterHolidayPageContent({
-    response,
-    isLoading,
-    error,
-    refetch
-}: {
-    response: any;
-    isLoading: boolean;
-    error: any;
-    refetch?: () => void;
-}) {
-    const { openAddForm } = useFormContext<MasterHoliday>();
-    // API returns { success, message, data: { report_list, yeardropdown, ... }, total, page, page_size }
-    // Map ReportListItem to MasterHoliday format for table display
-    const mappedData = useMemo(() => {
-        const reportList = response?.data?.report_list || [];
-        console.log('🗺️ [PAGE] Mapping data:', {
-            reportListLength: reportList.length,
-            total: response?.total,
-            mappedDataLength: reportList.length
-        });
-        return reportList.map((item: ReportListItem): MasterHoliday => {
-            // Extract day code from name (e.g., "Monday" -> "MON")
-            const dayName = item.FOMHWDD_Name || '';
-            const dayCode = dayName.length >= 3 ? dayName.toUpperCase().substring(0, 3) : dayName.toUpperCase();
+            const fromDate = data.fromDate ? new Date(data.fromDate) : new Date();
+            const toDate = data.toDate ? new Date(data.toDate) : new Date();
+            const selectedYear = Number.parseInt(data.calendarYear);
 
-            return {
-                id: Number(item.FOMHWDD_Id) || 0,
-                calendarYear: new Date(item.FOMHWDD_FromDate).getFullYear().toString(),
-                department: item.HRMD_DepartmentName || '',
-                holidayType: item.FOHTWD_HolidayWDType || '',
-                name: item.FOMHWDD_Name || '',
-                selectedDays: [dayCode],
-                fromDate: item.FOMHWDD_FromDate,
-                toDate: item.FOMHWDD_ToDate,
-                isActive: item.FOMHWD_ActiveFlg ?? true,
-                createdAt: new Date()
+            // Validate From Date is not in the past
+            if (fromDate < today) {
+                toast.error('From Date cannot be in the past');
+                return;
+            }
+
+            // Validate To Date is not before From Date
+            if (toDate < fromDate) {
+                toast.error('To Date cannot be before From Date');
+                return;
+            }
+
+            // Validate dates are within the selected calendar year
+            if (fromDate.getFullYear() !== selectedYear || toDate.getFullYear() !== selectedYear) {
+                toast.error('Holiday dates must be within the selected calendar year');
+                return;
+            }
+
+            const holidayData = {
+                calendarYear: data.calendarYear,
+                department: data.department,
+                holidayType: data.holidayType,
+                name: data.name,
+                selectedDays: data.selectDay ? data.selectedDays : [],
+                fromDate: data.fromDate,
+                toDate: data.toDate,
+                isActive: data.isActive
             };
+
+            if (editingId) {
+                holidayDB.update(editingId, holidayData);
+                toast.success('Holiday updated successfully');
+            } else {
+                holidayDB.create(holidayData as Omit<MasterHoliday, 'id' | 'createdAt'>);
+                toast.success('Holiday created successfully');
+            }
+            loadHolidays();
+            handleFormClose();
+        } catch (error: any) {
+            toast.error(error.message || 'Operation failed');
+        }
+    };
+
+    const handleEdit = (holiday: MasterHoliday) => {
+        setEditingId(holiday.id);
+        setEditingHoliday({
+            calendarYear: holiday.calendarYear,
+            department: holiday.department,
+            holidayType: holiday.holidayType,
+            name: holiday.name,
+            selectedDays: holiday.selectedDays || [],
+            selectDay: (holiday.selectedDays || []).length > 0,
+            fromDate: holiday.fromDate,
+            toDate: holiday.toDate,
+            isActive: holiday.isActive
         });
-    }, [response?.data?.report_list]);
+        setIsFormOpen(true);
 
-    // Create a response-like object for useDataTableProps
-    // It expects { data, total, success, message } structure
-    const tableResponse = useMemo(() => {
-        return {
-            data: mappedData,
-            total: response?.total || mappedData.length,
-            success: response?.success ?? true,
-            message: response?.message
-        };
-    }, [mappedData, response?.total, response?.success, response?.message]);
+        // Scroll to form after state update
+        setTimeout(() => {
+            formRef.current?.scrollIntoView({
+                behavior: 'smooth',
+                block: 'end'
+            });
+        }, 100);
+    };
 
-    const tableProps = useDataTableProps(tableResponse);
+    const handleDelete = (id: number) => {
+        try {
+            holidayDB.remove(id);
+            toast.success('Holiday deleted successfully');
+            loadHolidays();
+        } catch (_error: any) {
+            toast.error('Failed to delete holiday');
+        }
+    };
 
     return (
         <div className='min-h-screen'>
             <div className='container space-y-4 p-1'>
                 {/* Header */}
-                <div className='flex justify-end'>
+                <div className='flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between'>
+                    <div className='space-y-1'>
+                        <Heading
+                            title='Master Holiday Management'
+                            description='Manage holidays and working days for different departments'
+                        />
+                    </div>
                     <Button
                         type='button'
-                        onClick={openAddForm}
+                        onClick={handleAddClick}
+                        size='lg'
                         className='w-fit shadow-md transition-all duration-200 hover:scale-105 hover:shadow-lg'>
                         <Plus className='h-4 w-4' />
                         Add Master Holiday
                     </Button>
                 </div>
 
-                {/* Data Table Section */}
+                {/* Data Table Section - Collapsible but default open */}
                 <CollapsibleSection
+                    title='Master Holidays Data'
+                    description='View, search, and manage all holiday details in the system'
                     defaultOpen={true}
                     variant='default'
                     size='lg'
-                    className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
-                    <GenericDataTable<MasterHoliday>
-                        {...tableProps}
-                        columns={masterHolidayColumns}
+                    className='shadow-lg transition-shadow duration-300 hover:shadow-xl'
+                    headerClassName=''>
+                    <GenericDataTable
                         isLoading={isLoading}
-                        error={error}
-                        showViewOptions={false}
-                        columnPinning={{ right: ['actions'] }}
-                        loadingMessage='Loading master holiday...'
-                        noDataTitle='No Master Holiday Found'
-                        noDataDescription='Get started by creating your first master holiday'
-                        errorTitle='Error Loading Master Holiday'
+                        columns={getMasterHolidayColumns({ onEdit: handleEdit, onDelete: handleDelete })}
+                        data={holidays}
+                        totalItems={holidays.length}
+                        showViewOptions={true}
                     />
                 </CollapsibleSection>
 
-                {/* Forms */}
-                <FormSections dropdownData={response?.data} />
+                {/* Add Form Section - Conditionally Rendered */}
+                {isFormOpen && (
+                    <div ref={formRef} className='slide-in-from-top-4 animate-in duration-300'>
+                        <CollapsibleSection
+                            title={editingId ? 'Update Master Holiday' : 'Add New Master Holiday'}
+                            description='Fill in the details below to create a new holiday'
+                            defaultOpen={true}
+                            variant='outline'
+                            size='md'
+                            className='shadow-lg'
+                            headerClassName=''>
+                            <div className='relative'>
+                                <Button
+                                    onClick={handleFormClose}
+                                    variant='ghost'
+                                    size='sm'
+                                    className='-top-[4rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
+                                    <X className='h-4 w-4 text-destructive' /> Close
+                                </Button>
+                                <HolidayForm
+                                    editingHoliday={editingHoliday}
+                                    calendarYears={calendarYears}
+                                    onSubmit={handleFormSubmit}
+                                    onCancel={handleFormClose}
+                                />
+                            </div>
+                        </CollapsibleSection>
+                    </div>
+                )}
             </div>
         </div>
-    );
-}
-
-function FormSections({ dropdownData }: { dropdownData?: MasterHolidayGetDataResponseData }) {
-    const {
-        isAddFormOpen,
-        isEditFormOpen,
-        isDeleteFormOpen,
-        selectedRow,
-        closeAddForm,
-        closeEditForm,
-        closeDeleteForm,
-        addFormRef,
-        editFormRef
-    } = useFormContext<MasterHoliday>();
-
-    return (
-        <>
-            {/* Add Form */}
-            {isAddFormOpen && (
-                <div ref={addFormRef}>
-                    <CollapsibleSection
-                        defaultOpen={true}
-                        variant='outline'
-                        size='md'
-                        className='slide-in-from-top-4 animate-in shadow-lg duration-300'>
-                        <div className='relative'>
-                            <Button
-                                type='button'
-                                onClick={closeAddForm}
-                                variant='ghost'
-                                size='sm'
-                                className='-top-[3.5rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
-                                <X className='h-4 w-4 text-destructive' /> Close
-                            </Button>
-                            <AddMasterHolidayForm onSuccess={closeAddForm} dropdownData={dropdownData} />
-                        </div>
-                    </CollapsibleSection>
-                </div>
-            )}
-
-            {/* Edit Form */}
-            {isEditFormOpen && selectedRow && (
-                <div ref={editFormRef}>
-                    <CollapsibleSection
-                        defaultOpen={true}
-                        variant='outline'
-                        size='md'
-                        className='slide-in-from-top-4 animate-in border-primary/20 shadow-lg duration-300'>
-                        <div className='relative'>
-                            <Button
-                                type='button'
-                                onClick={closeEditForm}
-                                variant='ghost'
-                                size='sm'
-                                className='-top-[3.5rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
-                                <X className='h-4 w-4 text-destructive' /> Close
-                            </Button>
-                            <UpdateMasterHolidayForm selectedRow={selectedRow} onSuccess={closeEditForm} dropdownData={dropdownData} />
-                        </div>
-                    </CollapsibleSection>
-                </div>
-            )}
-
-            {/* Delete Form */}
-            {isDeleteFormOpen && selectedRow && <DeleteMasterHolidayForm rowData={selectedRow} onClose={closeDeleteForm} />}
-        </>
     );
 }
