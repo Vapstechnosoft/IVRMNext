@@ -7,7 +7,7 @@ import { getAcademicYearDropdown } from '@/server/fees/masters/class_yearly_cate
 
 import { getFeeTermHeadList, getheadsdropdown, getinstallmentsdropdown, gettermsdropdown } from '@/server/fees/masters/fee-term-heads';
 import { getpaymentgateway_dropdown, getpaymentgatewaydetails } from '@/server/fees/masters/fee_payment_gateway_details';
-import { getFeePrevilegeList, getGroupsDropdown, getRolesDropdown } from '@/server/fees/masters/fee_previlege';
+import { getFeePrevilegeList, getGroupsDropdown, getRolesDropdown, getUserNameDropdown } from '@/server/fees/masters/fee_previlege';
 import { getfeehead } from '@/server/fees/masters/feehead';
 import { getfeeInstallment, getfeeInstallmentyId } from '@/server/fees/masters/feeinstallment';
 import { getfeeInstallmentDueDate } from '@/server/fees/masters/feeinstallmentduedate';
@@ -40,6 +40,7 @@ import {
     getFeeOnlinePaymentHeadGroupTable,
     getGroupNameDropDownList,
     getHeadNameDropDownList,
+    getInstituteDropDownList,
     getOnlinePaymentHeadGroupInstallment,
     getSubMerchantDropDownList
 } from '@/server/fees/masters/online_payment_head_group';
@@ -163,6 +164,22 @@ export const useGroupsDropdown = () => {
         refetchAll: () => {
             return queryClient.invalidateQueries({
                 queryKey: [FEES_QUERY_KEYS.GROUPS_DROPDOWN]
+            });
+        }
+    };
+};
+
+export const useUserNameDropdown = (ivrtmt_Id: number) => {
+    const queryClient = useQueryClient();
+    return {
+        ...useQuery({
+            queryKey: [FEES_QUERY_KEYS.GROUPS_DROPDOWN, ivrtmt_Id],
+            queryFn: () => getUserNameDropdown(ivrtmt_Id),
+            staleTime: 0
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [FEES_QUERY_KEYS.GROUPS_DROPDOWN, ivrtmt_Id]
             });
         }
     };
@@ -388,6 +405,24 @@ export const useMasterTerms = (searchParams?: ApiSearchparams) => {
         refetchAll: () => {
             return queryClient.invalidateQueries({
                 queryKey: [FEES_QUERY_KEYS.FEE_MASTER_TERMS]
+            });
+        }
+    };
+};
+
+export const useInstituteDropDown = () => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [FEES_QUERY_KEYS.FEE_INSTITUTE_DROPDOWN],
+            queryFn: async () => getInstituteDropDownList(),
+
+            staleTime: 0
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [FEES_QUERY_KEYS.FEE_INSTITUTE_DROPDOWN]
             });
         }
     };
@@ -720,30 +755,13 @@ export const useFeeMasterInstallment = () => {
     };
 };
 
-export const useMasterAllFeeHead = (searchParams?: ApiSearchparams) => {
+export const useMasterAllFeeHead = (asmay_Id: number, searchParams?: ApiSearchparams) => {
     const queryClient = useQueryClient();
 
     return {
         ...useQuery({
-            queryKey: [FEES_QUERY_KEYS.FEE_ALL_HEAD, searchParams ?? {}],
-            queryFn: async () => getMasterAllFeeHead(searchParams),
-            staleTime: 0
-        }),
-        refetchAll: () => {
-            return queryClient.invalidateQueries({
-                queryKey: [FEES_QUERY_KEYS.FEE_ALL_HEAD]
-            });
-        }
-    };
-};
-
-export const useFeeMasterGroupwiseAutoReceipt = (searchParams?: ApiSearchparams) => {
-    const queryClient = useQueryClient();
-
-    return {
-        ...useQuery({
-            queryKey: [FEES_QUERY_KEYS.FEE_MASTER_GROUPWISE_AUTO_RECEIPT, searchParams ?? {}],
-            queryFn: async () => getFeeMasterGroupwiseAutoReceipt(searchParams),
+            queryKey: [FEES_QUERY_KEYS.FEE_MASTER_GROUPWISE_AUTO_RECEIPT, asmay_Id, searchParams ?? {}],
+            queryFn: async () => getMasterAllFeeHead(asmay_Id, searchParams),
             staleTime: 0
         }),
         refetchAll: () =>
@@ -753,6 +771,21 @@ export const useFeeMasterGroupwiseAutoReceipt = (searchParams?: ApiSearchparams)
     };
 };
 
+export const useFeeMasterGroupwiseAutoReceipt = (asmay_Id: number, searchParams?: ApiSearchparams) => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [FEES_QUERY_KEYS.FEE_MASTER_GROUPWISE_AUTO_RECEIPT, asmay_Id, searchParams ?? {}],
+            queryFn: async () => getFeeMasterGroupwiseAutoReceipt(asmay_Id, searchParams),
+            staleTime: 0
+        }),
+        refetchAll: () =>
+            queryClient.invalidateQueries({
+                queryKey: [FEES_QUERY_KEYS.FEE_MASTER_GROUPWISE_AUTO_RECEIPT]
+            })
+    };
+};
 export const useFeeMasterGroupwiseAutoReceiptDropDown = (academicYear: number) => {
     const queryClient = useQueryClient();
 

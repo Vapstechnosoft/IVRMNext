@@ -76,18 +76,21 @@ function ActionButtonsCell({
 }: {
     rowData: IMasterGroupWiseAutoReciptList;
 }) {
-    const { openToggleForm, openEditForm } = useFormContext<IMasterGroupWiseAutoReciptList>();
+    const { openToggleForm, openEditForm, openDeleteForm } = useFormContext<IMasterGroupWiseAutoReciptList>();
 
     const handleToggle = useCallback((data: IMasterGroupWiseAutoReciptList) => openToggleForm(data), [openToggleForm]);
 
     const handleEdit = useCallback((data: IMasterGroupWiseAutoReciptList) => openEditForm(data), [openEditForm]);
 
+    const handleDelete = useCallback((data: IMasterGroupWiseAutoReciptList) => openDeleteForm(data), [openDeleteForm]);
+
     return (
         <ActionButtons
             rowData={rowData}
-            buttons={{ edit: true, toggle: false, delete: false }}
+            buttons={{ edit: true, toggle: false, delete: true }}
             onEdit={handleEdit}
             onToggle={handleToggle}
+            onDelete={handleDelete}
             toggleConditionKey='fycC_ActiveFlag'
         />
     );

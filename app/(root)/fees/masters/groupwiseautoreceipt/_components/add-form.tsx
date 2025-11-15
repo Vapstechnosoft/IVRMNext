@@ -154,16 +154,13 @@ export default function AddMasterClassForm({ onSuccess, className = '' }: AddMas
             const { academicYear, prefixValue, suffixValue, startingNumber, groups, autoGroupName, address, receiptTemplateFormat } = data;
 
             const payload = {
-                mi_id: 30,
-                fgaR_Id: 0,
                 asmaY_Id: Number.parseInt(academicYear),
                 fgaR_PrefixFlag: prefixValue ? '1' : '',
                 fgaR_SuffixFlag: suffixValue ? '1' : '',
                 fgaR_PrefixName: prefixValue,
                 fgaR_SuffixName: suffixValue,
                 fgaR_Name: autoGroupName,
-                userid: 101,
-                roleid: 5,
+
                 fgaR_Address: address || '',
                 savegroup: groups.map((groupId) => ({
                     fmG_Id: Number.parseInt(groupId)
