@@ -2,7 +2,6 @@
 
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Checkbox } from '@/components/ui/checkbox';
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { useFormContext } from '@/components/ui/form/form-provider';
@@ -24,29 +23,13 @@ import ToggleStudentApplicationForm from './toggle-form';
 
 export const studentApplicationColumns: ColumnDef<IPreadmissionStudentApplicationList>[] = [
     {
-        id: 'select',
-        header: ({ table }) => (
-            <Checkbox
-                checked={table.getIsAllPageRowsSelected() || (table.getIsSomePageRowsSelected() && 'indeterminate')}
-                onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
-                aria-label='Select all'
-            />
-        ),
-        cell: ({ row }) => (
-            <Checkbox checked={row.getIsSelected()} onCheckedChange={(value) => row.toggleSelected(!!value)} aria-label='Select row' />
-        ),
-        enableSorting: false,
-        enableHiding: false,
-        size: 24
-    },
-    {
         accessorKey: 'pasr_id',
-        header: ({ column }) => <DataTableColumnHeader className='ml-2' column={column} title='Sl.No' />,
+        header: ({ column }) => <DataTableColumnHeader className='w-full pl-6' column={column} title='Sl.No' />,
         cell: ({ row, table }) => {
             const pageIndex = table.getState().pagination.pageIndex;
             const pageSize = table.getState().pagination.pageSize;
             const continuousIndex = pageIndex * pageSize + row.index + 1;
-            return <div className='ml-2'>{continuousIndex}</div>;
+            return <div className='w-full pl-6'>{continuousIndex}</div>;
         },
         enableSorting: true,
         enableHiding: false

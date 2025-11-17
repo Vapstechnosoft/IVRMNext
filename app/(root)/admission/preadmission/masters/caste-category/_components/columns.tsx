@@ -1,6 +1,4 @@
 'use client';
-
-import { Checkbox } from '@/components/ui/checkbox';
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
 import { ActionButtons } from '@/components/ui/form/action-buttons';
 import { useFormContext } from '@/components/ui/form/form-provider';
@@ -10,29 +8,13 @@ import { useCallback } from 'react';
 
 export const masterCasteCategoryColumns: ColumnDef<IMasterCasteCategoryList>[] = [
     {
-        id: 'select',
-        header: ({ table }) => (
-            <Checkbox
-                checked={table.getIsAllPageRowsSelected() || (table.getIsSomePageRowsSelected() && 'indeterminate')}
-                onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
-                aria-label='Select all'
-            />
-        ),
-        cell: ({ row }) => (
-            <Checkbox checked={row.getIsSelected()} onCheckedChange={(value) => row.toggleSelected(!!value)} aria-label='Select row' />
-        ),
-        enableSorting: false,
-        enableHiding: false,
-        size: 24
-    },
-    {
         accessorKey: 'imcC_Id',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Sl.No' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Sl.No' className='w-full pl-6' />,
         cell: ({ row, table }) => {
             const pageIndex = table.getState().pagination.pageIndex;
             const pageSize = table.getState().pagination.pageSize;
             const continuousIndex = pageIndex * pageSize + row.index + 1;
-            return <div>{continuousIndex}</div>;
+            return <div className='w-full pl-6'>{continuousIndex}</div>;
         },
         enableSorting: true,
         enableHiding: false
@@ -74,7 +56,7 @@ export const masterCasteCategoryColumns: ColumnDef<IMasterCasteCategoryList>[] =
 ];
 
 function ActionButtonsCell({ rowData }: { rowData: IMasterCasteCategoryList }) {
-    const { openEditForm } = useFormContext<IMasterCasteCategoryList>();
+    const { openEditForm, openDeleteForm } = useFormContext<IMasterCasteCategoryList>();
 
     const handleEdit = useCallback(
         (data: IMasterCasteCategoryList) => {
@@ -82,6 +64,18 @@ function ActionButtonsCell({ rowData }: { rowData: IMasterCasteCategoryList }) {
         },
         [openEditForm]
     );
-
-    return <ActionButtons rowData={rowData} buttons={{ edit: true, toggle: false, delete: false }} onEdit={handleEdit} />;
+    const handleDelete = useCallback(
+        (data: IMasterCasteCategoryList) => {
+            openDeleteForm(data);
+        },
+        [openDeleteForm]
+    );
+    return (
+        <ActionButtons
+            rowData={rowData}
+            buttons={{ edit: true, toggle: false, delete: true }}
+            onEdit={handleEdit}
+            onDelete={handleDelete}
+        />
+    );
 }

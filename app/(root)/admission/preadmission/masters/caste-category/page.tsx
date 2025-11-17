@@ -10,11 +10,14 @@ import { Plus, X } from 'lucide-react';
 import { use } from 'react';
 import AddMasterCasteCategoryForm from './_components/add-form';
 import { masterCasteCategoryColumns } from './_components/columns';
+import DeleteMasterCasteCategoryForm from './_components/delete-form';
 import UpdateMasterCasteCategoryForm from './_components/update-form';
 
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 
-export default function MasterCasteCategoryPage(props: { searchParams: SearchParams }) {
+export default function MasterCasteCategoryPage(props: {
+    searchParams: SearchParams;
+}) {
     const searchParams = use(props.searchParams);
     const { data: response, isLoading, error } = useMasterCasteCategory(searchParams);
 
@@ -79,8 +82,17 @@ function MasterCasteCategoryPageContent({
 }
 
 function FormSections() {
-    const { isAddFormOpen, isEditFormOpen, selectedRow, closeAddForm, closeEditForm, addFormRef, editFormRef } =
-        useFormContext<IMasterCasteCategoryList>();
+    const {
+        isAddFormOpen,
+        isEditFormOpen,
+        isDeleteFormOpen,
+        selectedRow,
+        closeAddForm,
+        closeDeleteForm,
+        closeEditForm,
+        addFormRef,
+        editFormRef
+    } = useFormContext<IMasterCasteCategoryList>();
 
     return (
         <>
@@ -132,6 +144,7 @@ function FormSections() {
                     </CollapsibleSection>
                 </div>
             )}
+            {isDeleteFormOpen && selectedRow && <DeleteMasterCasteCategoryForm rowData={selectedRow} onClose={closeDeleteForm} />}
         </>
     );
 }

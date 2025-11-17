@@ -19,3 +19,7 @@ export async function addOrUpdateMasterCasteCategory(data: any) {
     const url = '/master_caste_category';
     return await api.post<any>('admission', url, data);
 }
+export async function deleteCasteCategory(id: number) {
+    const url = `/master_caste_category/delete/${id}`;
+    return await api.delete<any>('admission', url);
+}
