@@ -12,6 +12,7 @@ import { MultiSelect } from '@/components/ui/multi-select';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useAcademicYearMasterConfiguration } from '@/hooks/admission/preadmission/useConfigurations';
 import {
     useActivePreadmissionDetails,
     useCasteDropdown,
@@ -25,18 +26,20 @@ import {
     useStateDropdown
 } from '@/hooks/admission/preadmission/useTransactions';
 import { getIconByName } from '@/lib/lucide-icon-registry';
-import { calculateAge, cn } from '@/lib/utils';
+import { cn } from '@/lib/utils';
 import { studentApplicationFormSchema } from '@/schemas/admission/preadmission/transactions';
 import { addStudentApplicationForm } from '@/server/admission/preadmission/transactions/application_form';
 import { deleteDocument, uploadDocument } from '@/server/document_upload';
-import type { CalculatedAgeDetails } from '@/types';
+import type { IPreadmissionClassDropdown } from '@/types/admission/preadmission/transactions';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { format } from 'date-fns';
-import { Calendar, Check, ChevronLeft, ChevronRight, Eye, Save, Trash } from 'lucide-react';
+import { CalendarIcon, Check, ChevronLeft, ChevronRight, Eye, Save, Trash } from 'lucide-react';
 import { useState } from 'react';
 import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import type { z } from 'zod';
+import { IneligibleClassesDialog } from './InEligibleDialog';
+import { validateAgeForClass } from './application-form-helper';
 
 type FormFields = z.infer<typeof studentApplicationFormSchema.add>;
 
@@ -98,9 +101,6 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
         }
     });
 
-    const [isDobOpen, setIsDobOpen] = useState(false);
-    const [calculatedAgeDetails, setCalculatedAgeDetails] = useState<CalculatedAgeDetails>();
-    const [ageEligibilityError, setAgeEligibilityError] = useState<string | null>(null);
     const [selectedSourceItems, setSelectedSourceItems] = useState<{ pamS_Id: string; pamS_SourceName: string }[]>([]);
     const [selectedReferenceItems, setSelectedReferenceItems] = useState<{ pamR_Id: string; pamR_ReferenceName: string }[]>([]);
     const [sameAsResidential, setSameAsResidential] = useState(false);
@@ -114,6 +114,11 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
             pasrS_SiblingsSection: string;
         }>
     >([]);
+
+    const [filteredClasses, setFilteredClasses] = useState<IPreadmissionClassDropdown[]>([]);
+    const [isClassDisabled, setIsClassDisabled] = useState(true);
+    const [showIneligibleDialog, setShowIneligibleDialog] = useState(false);
+    const [ineligibleClasses, setIneligibleClasses] = useState<IPreadmissionClassDropdown[]>([]);
 
     const [previousSchool, setPreviousSchool] = useState({
         pasrpS_Id: 0,
@@ -158,17 +163,14 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
 
     const { data: activePreadmission } = useActivePreadmissionDetails();
 
+    const { data: masterConfig } = useAcademicYearMasterConfiguration(activePreadmission?.data?.asmaY_Id ?? 0);
+
     const { data: religion, isLoading: religionLoading, error: religionError, refetchAll: refetchReligion } = useReligionDropdown();
     const conConuntryId = watch('pasR_ConCountry');
     const perConuntryId = watch('pasR_PerCountry');
     const { data: caste, isLoading: casteLoading, error: casteError, refetchAll: refetchCaste } = useCasteDropdown(watch('religion_Id'));
     const { data: gender, isLoading: genderLoading, error: genderError, refetchAll: refetchGender } = useGenderDropdown();
-    const {
-        data: preadmissionClass,
-        isLoading: classLoading,
-        error: classError,
-        refetchAll: refetchClass
-    } = usePreadmissionClassDropdown();
+    const { data: preadmissionClass, refetchAll: refetchClass } = usePreadmissionClassDropdown();
     const { data: country, isLoading: countryLoading, error: countryError, refetchAll: refetchCountry } = useCountryDropdown();
     const {
         data: conState,
@@ -254,8 +256,25 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
                 return;
             }
         } else if (currentStep === 4) {
-            // Validate document uploads
-            const mandatoryDocs = preadmissionDocuments?.data?.filter((doc) => doc.amsmD_FLAG) || [];
+            // Get selected religion details
+            const selectedReligionId = watch('religion_Id');
+            const selectedReligion = religion?.data?.find((r) => r.ivrmmR_Id === selectedReligionId);
+            const isRomanCatholic = selectedReligion?.ivrmmR_Name === 'Roman Catholic';
+
+            // Validate document uploads with conditional logic for Baptism Certificate
+            const mandatoryDocs =
+                preadmissionDocuments?.data?.filter((doc) => {
+                    // Check if document is mandatory by default
+                    if (doc.amsmD_FLAG) return true;
+
+                    // Make Baptism Certificate mandatory for Roman Catholic religion
+                    if (doc.amsmD_DocumentName === 'Baptism Certificate' && isRomanCatholic) {
+                        return true;
+                    }
+
+                    return false;
+                }) || [];
+
             const missingDocs = mandatoryDocs.filter((doc) => !isDocumentUploaded(doc.amsmD_Id));
 
             if (missingDocs.length > 0) {
@@ -270,14 +289,6 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
         if (isValid) {
             setCurrentStep((prev) => Math.min(prev + 1, steps.length));
         }
-
-        if (currentStep === 1) {
-            const isAgeEligible = validateAgeEligibility(calculatedAgeDetails, watch('asmcL_Id'));
-            if (!isAgeEligible) {
-                toast.error("Please select a class that matches the student's age eligibility");
-                return;
-            }
-        }
     };
 
     const prevStep = () => {
@@ -289,11 +300,6 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
     };
 
     const onSubmit: SubmitHandler<FormFields | any> = async (data: FormFields) => {
-        if (!calculatedAgeDetails) {
-            toast.error('Please select date of birth');
-            return;
-        }
-
         if (data.pasR_UndertakingFlag === 0) {
             toast.error('Please accept undertaking');
             return;
@@ -315,7 +321,7 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
             const payload = {
                 ...filteredData,
                 pasR_DOB: format(pasR_DOB, 'yyyy-MM-dd'),
-                pasR_Age: calculatedAgeDetails.ageInYears,
+                pasR_Age: 0,
                 pasR_Student_Pic_Path: studentPhoto?.pasR_Student_Pic_Path || '',
                 pasR_FatherPhoto: fatherPhoto?.pasR_FatherPhoto || '',
                 pasR_MotherPhoto: motherPhoto?.pasR_MotherPhoto || '',
@@ -387,7 +393,6 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
     const handleReset = () => {
         reset();
         setCurrentStep(1);
-        setCalculatedAgeDetails(undefined);
         setSelectedSourceItems([]);
         setSelectedReferenceItems([]);
         setSameAsResidential(false);
@@ -402,7 +407,6 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
             pasrpS_LeftReason: '',
             pasrpS_Address: ''
         });
-        setAgeEligibilityError(null);
         setUploadedDocuments([]);
         setStudentPhoto(null);
         setStudentPhotoError(null);
@@ -618,35 +622,40 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
         return uploadedDocuments.find((doc) => doc.amsmD_Id === amsmD_Id);
     };
 
-    const validateAgeEligibility = (ageDetails: CalculatedAgeDetails | undefined, classId: number | undefined) => {
-        if (!ageDetails || !classId || !preadmissionClass?.data) {
-            setAgeEligibilityError(null);
-            return true;
+    // Add this handler where other form handlers are defined
+    const handleDOBChange = (date: Date | undefined) => {
+        if (!date || !masterConfig?.data) {
+            setIsClassDisabled(true);
+            setFilteredClasses([]);
+            setValue('asmcL_Id', 0);
+            return;
         }
 
-        const selectedClass = preadmissionClass.data.find((cls) => cls.asmcL_Id === classId);
-        if (!selectedClass) {
-            setAgeEligibilityError(null);
-            return true;
+        const allClasses = preadmissionClass?.data || [];
+
+        const validClasses: IPreadmissionClassDropdown[] = [];
+        const invalidClasses: IPreadmissionClassDropdown[] = [];
+
+        allClasses.forEach((classItem: IPreadmissionClassDropdown) => {
+            const validation = validateAgeForClass(date, classItem, masterConfig.data);
+            if (validation.isValid) {
+                validClasses.push(classItem);
+            } else {
+                invalidClasses.push(classItem);
+            }
+        });
+
+        setFilteredClasses(validClasses);
+
+        if (validClasses.length === 0) {
+            setIneligibleClasses(invalidClasses);
+            setShowIneligibleDialog(true);
+            setIsClassDisabled(true);
+            setValue('asmcL_Id', 0);
+        } else {
+            setIsClassDisabled(false);
+            setValue('asmcL_Id', 0);
         }
-
-        // Convert age to total days for accurate comparison
-        const studentTotalDays = ageDetails.years * 365 + ageDetails.months * 30 + ageDetails.days;
-        const minAgeDays = selectedClass.asmcL_MinAgeYear * 365 + selectedClass.asmcL_MinAgeMonth * 30 + selectedClass.asmcL_MinAgeDays;
-        const maxAgeDays = selectedClass.asmcL_MaxAgeYear * 365 + selectedClass.asmcL_MaxAgeMonth * 30 + selectedClass.asmcL_MaxAgeDays;
-
-        if (studentTotalDays < minAgeDays || studentTotalDays > maxAgeDays) {
-            const minAgeString = `${selectedClass.asmcL_MinAgeYear} years, ${selectedClass.asmcL_MinAgeMonth} months, ${selectedClass.asmcL_MinAgeDays} days`;
-            const maxAgeString = `${selectedClass.asmcL_MaxAgeYear} years, ${selectedClass.asmcL_MaxAgeMonth} months, ${selectedClass.asmcL_MaxAgeDays} days`;
-
-            setAgeEligibilityError(
-                `Student age (${ageDetails.ageString}) does not meet eligibility for ${selectedClass.asmcL_ClassName}. Required age range: ${minAgeString} to ${maxAgeString}`
-            );
-            return false;
-        }
-
-        setAgeEligibilityError(null);
-        return true;
     };
 
     const handleFatherPhotoUpload = async (file: File) => {
@@ -1032,54 +1041,48 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
                                                 {...register('pasR_LastName')}
                                                 error={errors.pasR_LastName?.message}
                                             />
-                                            <div className='flex flex-col gap-1.5'>
-                                                <Label htmlFor='pasR_DOB'>
-                                                    Date Of Birth
-                                                    <span className='ml-1 text-red-500'>*</span>
-                                                </Label>
-                                                <Controller
-                                                    control={control}
-                                                    name='pasR_DOB'
-                                                    render={({ field }) => (
-                                                        <Popover open={isDobOpen} onOpenChange={(open) => setIsDobOpen(open)}>
+                                            <Controller
+                                                name='pasR_DOB'
+                                                control={control}
+                                                render={({ field, fieldState: { error } }) => (
+                                                    <div className='flex flex-col space-y-2'>
+                                                        <Label htmlFor='pasR_DOB'>
+                                                            Date of Birth <span className='ml-1 text-red-500'>*</span>
+                                                        </Label>
+                                                        <Popover>
                                                             <PopoverTrigger asChild>
                                                                 <Button
-                                                                    variant='outline'
+                                                                    variant={'outline'}
                                                                     className={cn(
-                                                                        'w-full font-normal',
-                                                                        !field.value && 'text-muted-foreground'
+                                                                        'w-full justify-start text-left font-normal',
+                                                                        !field.value && 'text-muted-foreground',
+                                                                        error && 'border-red-500'
                                                                     )}>
-                                                                    {field.value ? (
-                                                                        format(field.value, 'dd-MM-yyyy')
-                                                                    ) : (
-                                                                        <span>Pick a date</span>
-                                                                    )}
-                                                                    <Calendar className='ml-auto h-4 w-4 opacity-50' />
+                                                                    <CalendarIcon className='mr-2 h-4 w-4' />
+                                                                    {field.value ? format(field.value, 'PPP') : <span>Pick a date</span>}
                                                                 </Button>
                                                             </PopoverTrigger>
-                                                            <PopoverContent className='flex w-auto items-start p-0' align='start'>
+                                                            <PopoverContent className='w-auto p-0' align='start'>
                                                                 <CalendarYear
                                                                     mode='single'
-                                                                    captionLayout='dropdown'
                                                                     selected={field.value}
-                                                                    onSelect={(selectedDate) => {
-                                                                        field.onChange(selectedDate);
-                                                                        const ageDetails = calculateAge(selectedDate as Date);
-                                                                        setCalculatedAgeDetails(ageDetails);
-                                                                        validateAgeEligibility(ageDetails, watch('asmcL_Id'));
+                                                                    onSelect={(date: Date | undefined) => {
+                                                                        if (date) {
+                                                                            field.onChange(date);
+                                                                            handleDOBChange(date);
+                                                                        }
                                                                     }}
-                                                                    onDayClick={() => setIsDobOpen(false)}
-                                                                    toDate={new Date()}
+                                                                    disabled={(date: Date) =>
+                                                                        date > new Date() || date < new Date('1900-01-01')
+                                                                    }
+                                                                    initialFocus
                                                                 />
                                                             </PopoverContent>
                                                         </Popover>
-                                                    )}
-                                                />
-                                                {calculatedAgeDetails && (
-                                                    <p className='text-muted-foreground text-sm'>Age: {calculatedAgeDetails.ageString}</p>
+                                                        {error && <span className='text-red-500 text-sm'>{error.message}</span>}
+                                                    </div>
                                                 )}
-                                                {errors.pasR_DOB && <FormError>{errors.pasR_DOB.message}</FormError>}
-                                            </div>
+                                            />
                                             <div className='flex flex-col gap-1.5'>
                                                 <Controller
                                                     name='pasR_MobileNo'
@@ -1224,46 +1227,41 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
                                                 <Controller
                                                     name='asmcL_Id'
                                                     control={control}
-                                                    render={({ field }) => (
-                                                        <Select
-                                                            key={field.value || 'empty'}
-                                                            onValueChange={(value) => {
-                                                                field.onChange(Number(value));
-                                                                validateAgeEligibility(calculatedAgeDetails, Number(value));
-                                                            }}
-                                                            value={field.value?.toString() || ''}>
-                                                            <SelectTrigger>
-                                                                <SelectValue placeholder='Select class' />
-                                                            </SelectTrigger>
-                                                            <SelectContent>
-                                                                {classLoading ? (
-                                                                    <SelectItem value='loading' disabled>
-                                                                        Loading...
-                                                                    </SelectItem>
-                                                                ) : classError ? (
-                                                                    <SelectItem value='error' disabled>
-                                                                        Error loading
-                                                                    </SelectItem>
-                                                                ) : (
-                                                                    preadmissionClass?.data?.map((item) => (
-                                                                        <SelectItem key={item.asmcL_Id} value={item.asmcL_Id.toString()}>
-                                                                            {item.asmcL_ClassName}
+                                                    render={({ field, fieldState: { error } }) => (
+                                                        <div className='flex flex-col space-y-2'>
+                                                            <Select
+                                                                value={field.value?.toString() || ''}
+                                                                onValueChange={(value) => field.onChange(Number(value))}
+                                                                disabled={isClassDisabled}>
+                                                                <SelectTrigger className={cn('w-full', error && 'border-red-500')}>
+                                                                    <SelectValue
+                                                                        placeholder={
+                                                                            isClassDisabled
+                                                                                ? 'Please select Date of Birth first'
+                                                                                : 'Select a class'
+                                                                        }
+                                                                    />
+                                                                </SelectTrigger>
+                                                                <SelectContent>
+                                                                    {filteredClasses.length > 0 ? (
+                                                                        filteredClasses.map((classItem) => (
+                                                                            <SelectItem
+                                                                                key={classItem.asmcL_Id}
+                                                                                value={classItem.asmcL_Id.toString()}>
+                                                                                {classItem.asmcL_ClassName}
+                                                                            </SelectItem>
+                                                                        ))
+                                                                    ) : (
+                                                                        <SelectItem value='0' disabled>
+                                                                            No classes available
                                                                         </SelectItem>
-                                                                    ))
-                                                                )}
-                                                            </SelectContent>
-                                                        </Select>
+                                                                    )}
+                                                                </SelectContent>
+                                                            </Select>
+                                                        </div>
                                                     )}
                                                 />
                                                 {errors.asmcL_Id && <FormError>{errors.asmcL_Id.message}</FormError>}
-                                                {ageEligibilityError && (
-                                                    <div className='mt-2 rounded-md border border-red-200 bg-red-50 p-3'>
-                                                        <p className='flex items-start gap-2 font-medium text-red-700 text-sm'>
-                                                            <span className='mt-0.5 text-red-500'>⚠</span>
-                                                            <span>{ageEligibilityError}</span>
-                                                        </p>
-                                                    </div>
-                                                )}
                                             </div>
                                             <InputText
                                                 label='Email'
@@ -1967,7 +1965,7 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
                                                                     label='Father Income'
                                                                     id='pasR_FatherIncome'
                                                                     value={field.value || 0}
-                                                                    onChange={(value) => field.onChange(value)}
+                                                                    onChange={(value) => field.onChange(Number.isNaN(value) ? 0 : value)}
                                                                     minValue={0}
                                                                 />
                                                             )}
@@ -2258,7 +2256,7 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
                                                                     label='Mother Income'
                                                                     id='pasR_MotherIncome'
                                                                     value={field.value || 0}
-                                                                    onChange={(value) => field.onChange(value)}
+                                                                    onChange={(value) => field.onChange(Number.isNaN(value) ? 0 : value)}
                                                                     minValue={0}
                                                                 />
                                                             )}
@@ -2387,23 +2385,65 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
                                                             return (
                                                                 <tr
                                                                     key={document.amsmD_Id}
-                                                                    className={
-                                                                        uploadedDoc && !isUploading
-                                                                            ? 'bg-green-50'
-                                                                            : document.amsmD_FLAG
-                                                                              ? 'bg-orange-50'
-                                                                              : ''
-                                                                    }>
+                                                                    className={(() => {
+                                                                        // Get selected religion details
+                                                                        const selectedReligionId = watch('religion_Id');
+                                                                        const selectedReligion = religion?.data?.find(
+                                                                            (r) => r.ivrmmR_Id === selectedReligionId
+                                                                        );
+                                                                        const isRomanCatholic =
+                                                                            selectedReligion?.ivrmmR_Name === 'Roman Catholic';
+
+                                                                        // Check if this document is conditionally mandatory
+                                                                        const isConditionallyMandatory =
+                                                                            document.amsmD_DocumentName === 'Baptism Certificate' &&
+                                                                            isRomanCatholic;
+
+                                                                        const isMandatory = document.amsmD_FLAG || isConditionallyMandatory;
+
+                                                                        if (uploadedDoc && !isUploading) return 'bg-green-50';
+                                                                        if (isMandatory) return 'bg-orange-50';
+                                                                        return '';
+                                                                    })()}>
                                                                     <td className='whitespace-nowrap px-6 py-4'>
-                                                                        <div className='flex items-center gap-2'>
-                                                                            <span className='font-semibold text-gray-900 text-sm'>
-                                                                                {document.amsmD_DocumentName}
-                                                                            </span>
-                                                                            {document.amsmD_FLAG && <span className='text-red-500'>*</span>}
-                                                                        </div>
-                                                                        <p className='mt-0.5 text-gray-500 text-xs'>
-                                                                            {document.amsmD_FLAG ? 'Required' : 'Optional'}
-                                                                        </p>
+                                                                        {(() => {
+                                                                            // Get selected religion details
+                                                                            const selectedReligionId = watch('religion_Id');
+                                                                            const selectedReligion = religion?.data?.find(
+                                                                                (r) => r.ivrmmR_Id === selectedReligionId
+                                                                            );
+                                                                            const isRomanCatholic =
+                                                                                selectedReligion?.ivrmmR_Name === 'Roman Catholic';
+
+                                                                            // Check if this document is conditionally mandatory
+                                                                            const isConditionallyMandatory =
+                                                                                document.amsmD_DocumentName === 'Baptism Certificate' &&
+                                                                                isRomanCatholic;
+
+                                                                            const isMandatory =
+                                                                                document.amsmD_FLAG || isConditionallyMandatory;
+
+                                                                            return (
+                                                                                <>
+                                                                                    <div className='flex items-center gap-2'>
+                                                                                        <span className='font-semibold text-gray-900 text-sm'>
+                                                                                            {document.amsmD_DocumentName}
+                                                                                        </span>
+                                                                                        {isMandatory && (
+                                                                                            <span className='text-red-500'>*</span>
+                                                                                        )}
+                                                                                    </div>
+                                                                                    <p className='mt-0.5 text-gray-500 text-xs'>
+                                                                                        {isMandatory ? 'Required' : 'Optional'}
+                                                                                        {isConditionallyMandatory && (
+                                                                                            <span className='ml-1 text-orange-600'>
+                                                                                                (for Roman Catholic)
+                                                                                            </span>
+                                                                                        )}
+                                                                                    </p>
+                                                                                </>
+                                                                            );
+                                                                        })()}
                                                                     </td>
 
                                                                     <td className='whitespace-nowrap px-6 py-4'>
@@ -2881,7 +2921,7 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
                                     )}
 
                                     {currentStep < steps.length ? (
-                                        <Button type='button' onClick={nextStep} disabled={isSubmitting || ageEligibilityError !== null}>
+                                        <Button type='button' onClick={nextStep} disabled={isSubmitting}>
                                             Next
                                             <ChevronRight className='ml-2 h-4 w-4' />
                                         </Button>
@@ -2904,6 +2944,18 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
                                 </div>
                             </div>
                         </div>
+                        <IneligibleClassesDialog
+                            open={showIneligibleDialog}
+                            onOpenChange={setShowIneligibleDialog}
+                            classes={ineligibleClasses}
+                            cutOffDate={
+                                masterConfig?.data &&
+                                masterConfig.data.ispaC_ApplCutOffDateFlag === 1 &&
+                                masterConfig.data.asmaY_Cut_Of_Date
+                                    ? new Date(masterConfig.data.asmaY_Cut_Of_Date)
+                                    : new Date()
+                            }
+                        />
                     </div>
                 </div>
             </div>

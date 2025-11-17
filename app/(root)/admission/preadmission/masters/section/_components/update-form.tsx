@@ -114,7 +114,7 @@ export default function UpdateMasterSectionForm({ onSuccess, className = '', sel
                                         required
                                         id='asmc_maxcapacity'
                                         defaultValue={row.asmC_MaxCapacity || 0}
-                                        onChange={(value) => field.onChange(value)}
+                                        onChange={(value) => field.onChange(Number.isNaN(value) ? 0 : value)}
                                         minValue={0}
                                         step={1}
                                     />
@@ -132,7 +132,7 @@ export default function UpdateMasterSectionForm({ onSuccess, className = '', sel
                                         required
                                         id='asmc_order'
                                         defaultValue={row.asmC_Order}
-                                        onChange={(value) => field.onChange(value)}
+                                        onChange={(value) => field.onChange(Number.isNaN(value) ? 0 : value)}
                                         minValue={0}
                                         step={1}
                                     />

@@ -3,24 +3,24 @@
 import { Button } from '@/components/ui/button';
 import { AdaptiveBody, AdaptiveDialog, AdaptiveFooter } from '@/components/ui/extension/adaptive-dialog';
 import { FormError } from '@/components/ui/extension/field';
-import { useMasterCategoryClassMapping } from '@/hooks/exam/exammodule/usemasters';
-import { toggleMasterExamCategoryClassSection } from '@/server/exam/exam-module/masters/category-class-mapping';
-import type { ICategoryMapping } from '@/types/exam/exam-module/masters';
+import { useCoScholasticActivityAreaMapping } from '@/hooks/exam/exammodule/exam-mapping';
+import { toggleCoScholasticActivityArea } from '@/server/exam/exam-module/masters/co-scholastic-area';
+import type { ICoScholasticActivityAreaMapping } from '@/types/exam/exam-module/exam-mapping';
 import { type SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 
 interface FormFields {
-    ecaC_Id: number;
+    ecactaM_Id: number;
 }
 
-interface ToggleCategoryClassMappingFormProps {
-    rowData: ICategoryMapping;
+interface ToggleCoScholasticActivityFormProps {
+    rowData: ICoScholasticActivityAreaMapping;
     onClose: () => void;
 }
 
-export default function ToggleCategoryClassMappingForm({ rowData, onClose }: ToggleCategoryClassMappingFormProps) {
-    const { refetchAll } = useMasterCategoryClassMapping();
-    const isActive = rowData.emcA_ActiveFlag;
+export default function ToggleCoScholasticActivityAreaForm({ rowData, onClose }: ToggleCoScholasticActivityFormProps) {
+    const { refetchAll } = useCoScholasticActivityAreaMapping();
+    const isActive = rowData.ecactaM_ActiveFlag;
 
     const {
         register,
@@ -28,7 +28,7 @@ export default function ToggleCategoryClassMappingForm({ rowData, onClose }: Tog
         reset,
         formState: { errors, isSubmitting }
     } = useForm<FormFields>({
-        defaultValues: { ecaC_Id: rowData.ecaC_Id }
+        defaultValues: { ecactaM_Id: rowData.ecactaM_Id }
     });
 
     function closeDialog() {
@@ -38,7 +38,7 @@ export default function ToggleCategoryClassMappingForm({ rowData, onClose }: Tog
 
     const onSubmit: SubmitHandler<FormFields> = async () => {
         try {
-            const response = await toggleMasterExamCategoryClassSection(30, Number(rowData.ecaC_Id));
+            const response = await toggleCoScholasticActivityArea(30, Number(rowData.ecactaM_Id));
             if (response.success) {
                 toast.success(response.message);
                 refetchAll();
@@ -52,18 +52,18 @@ export default function ToggleCategoryClassMappingForm({ rowData, onClose }: Tog
     };
 
     return (
-        <AdaptiveDialog title='Toggle Category-Class Mapping Status' isOpen={true} onClose={closeDialog}>
+        <AdaptiveDialog title='Toggle Co-Scholastic activity area mapping Status' isOpen={true} onClose={closeDialog}>
             <form onSubmit={handleSubmit(onSubmit)} className='flex flex-col gap-4'>
                 <AdaptiveBody className='flex flex-col gap-5'>
-                    <input type='hidden' {...register('ecaC_Id')} defaultValue={rowData.ecaC_Id} />
+                    <input type='hidden' {...register('ecactaM_Id')} defaultValue={rowData.ecactaM_Id} />
                     <p>
                         Are you sure you want to <strong>{isActive ? 'deactivate' : 'activate'}</strong> the mapping for{' '}
                         <strong>
-                            {rowData.emcA_CategoryName} - {rowData.asmcL_ClassName}
+                            {rowData.ecacT_SkillName} - {rowData.ecactA_SkillArea}
                         </strong>
                         ?
                     </p>
-                    <FormError>{errors.ecaC_Id?.message}</FormError>
+                    <FormError>{errors.ecactaM_Id?.message}</FormError>
                     <FormError>{errors.root?.message}</FormError>
                 </AdaptiveBody>
                 <AdaptiveFooter>

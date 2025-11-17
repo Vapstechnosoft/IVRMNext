@@ -1,4 +1,5 @@
 import { EXAM_QUERY_KEYS } from '@/constants/query-keys';
+import { getCoScholasticActivityAreaMapping } from '@/server/exam/exam-module/exam-mapping/co-scholastic-activitiy-area-mapping';
 import { getExamLoginPrivileges } from '@/server/exam/exam-module/exam-mapping/exam-login-privilages';
 import {
     getExamSubjectGroupMapping,
@@ -230,6 +231,24 @@ export const useSubSubjectsAndSubExamsMappedList = (org_Id: number, eyceS_Id: nu
         refetchAll: () => {
             return queryClient.invalidateQueries({
                 queryKey: [EXAM_QUERY_KEYS.SUB_BOTH_MAPPED_VIEW]
+            });
+        }
+    };
+};
+
+export const useCoScholasticActivityAreaMapping = (searchParams?: ApiSearchparams) => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [EXAM_QUERY_KEYS.CO_SCHOLASTIC_ACTIVITY_AREA_MAPPING, searchParams ?? {}],
+            queryFn: async () => getCoScholasticActivityAreaMapping(searchParams),
+            staleTime: 0
+        }),
+
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [EXAM_QUERY_KEYS.CO_SCHOLASTIC_ACTIVITY_AREA_MAPPING]
             });
         }
     };
