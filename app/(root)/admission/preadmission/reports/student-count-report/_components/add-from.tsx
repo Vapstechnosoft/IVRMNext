@@ -1,18 +1,24 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
+import { CalendarYear } from '@/components/ui/calendar_year';
 import { FormError } from '@/components/ui/extension/field';
-import { Input } from '@/components/ui/input';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { useRegisteredListDropDown } from '@/hooks/admission/preadmission/useReports';
+import { PREADMISSION_QUERY_KEYS } from '@/constants/query-keys';
+import { useAcademicYearDropdown, useMasterClassDropdown } from '@/hooks/admission/preadmission/useMasters';
+import { cn } from '@/lib/utils';
 import { masterStudentCountReportSchema } from '@/schemas/admission/preadmission/reports';
 import { addOrUpdateStudentCountReport } from '@/server/admission/preadmission/reports/student_count_report';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { useQueryClient } from '@tanstack/react-query';
+import { format } from 'date-fns';
+import { Calendar as CalendarIcon } from 'lucide-react';
 import { Save } from 'lucide-react';
 import { useState } from 'react';
 import { Label } from 'react-aria-components';
-import { type SubmitHandler, useForm } from 'react-hook-form';
+import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import type { z } from 'zod';
 
@@ -21,25 +27,20 @@ type FormFields = z.infer<typeof masterStudentCountReportSchema.addOrUpdate>;
 interface AddStudentCountReportFormProps {
     onSuccess?: () => void;
     className?: string;
+    searchParams?: any;
 }
 
-export default function AddStudentCountReportForm({ onSuccess, className = '' }: AddStudentCountReportFormProps) {
-    // const {
-    //   data: registeredCode,
-    //   isLoading: registeredCodeLoading,
-    //   error: registeredCodeError,
-    //   refetchAll: refetchregisteredCode,
-    // } = useRegisteredListDropDown();
-
-    const { refetchAll } = useRegisteredListDropDown();
-    const [reportType, setReportType] = useState<string>('registered-list');
+export default function AddStudentCountReportForm({ onSuccess, className = '', searchParams }: AddStudentCountReportFormProps) {
+    const [reportType, setReportType] = useState<string>('');
     const [rangeType, setRangeType] = useState<string>('between');
     const [fromDate, setFromDate] = useState<string>('');
     const [toDate, setToDate] = useState<string>('');
-    const [selectedYear, setSelectedYear] = useState<string>(new Date().getFullYear().toString());
+    const [results, setResults] = useState<Array<any>>([]);
+    const queryClient = useQueryClient();
 
     const {
         handleSubmit,
+        control,
         reset,
         formState: { errors, isSubmitting }
     } = useForm<FormFields>({
@@ -47,23 +48,70 @@ export default function AddStudentCountReportForm({ onSuccess, className = '' }:
         mode: 'onChange'
     });
 
+    const {
+        data: academicYear,
+        isLoading: academicYearLoading,
+        error: academicYearError,
+        refetchAll: refetchAcademicYear
+    } = useAcademicYearDropdown();
+    const {
+        data: masterClass,
+        isLoading: masterClassLoading,
+        error: masterClassError,
+        refetchAll: refetchMasterClass
+    } = useMasterClassDropdown();
     const onSubmit: SubmitHandler<FormFields | any> = async (data: FormFields) => {
         try {
-            const { imcC_CategoryCode, imcC_CategoryName, imcC_CategoryDesc } = data;
             const payload = {
-                IMCC_ID: 0,
-                IMCC_CategoryCode: imcC_CategoryCode,
-                IMCC_CategoryName: imcC_CategoryName,
-                IMCC_CategoryDesc: imcC_CategoryDesc
+                type: rangeType,
+                report_type: Number(reportType),
+                from_date: rangeType === 'between' && fromDate ? new Date(fromDate).toISOString() : new Date().toISOString(),
+                to_date: rangeType === 'between' && toDate ? new Date(toDate).toISOString() : new Date().toISOString(),
+                asmay_id: data.asmaY_Id || 0,
+                asmcl_id: data.asmcL_Id || 0
             };
 
             const response = await addOrUpdateStudentCountReport(payload);
 
             if (response.success) {
                 toast.success(response.message);
+                setResults(response.data || []);
+                try {
+                    // If API already returned pagination meta (total), use it directly
+                    if (response?.total != null) {
+                        queryClient.setQueryData([PREADMISSION_QUERY_KEYS.STUDENT_COUNT_REPORT, searchParams ?? {}], response);
+                    } else if (Array.isArray(response?.data)) {
+                        // derive page and page_size from searchParams (they may be strings or arrays)
+                        const parseParam = (k: string) => {
+                            const v = (searchParams as any)?.[k];
+                            if (Array.isArray(v)) return Number(v[0]);
+                            return v != null ? Number(v) : undefined;
+                        };
+                        const page = parseParam('page') || 1;
+                        const pageSize = parseParam('page_size') || 10;
+                        const total = response.data.length;
+                        const start = (page - 1) * pageSize;
+                        const pageData = response.data.slice(start, start + pageSize);
+
+                        queryClient.setQueryData([PREADMISSION_QUERY_KEYS.STUDENT_COUNT_REPORT, searchParams ?? {}], {
+                            data: pageData,
+                            total,
+                            success: true,
+                            message: response.message
+                        });
+                    } else {
+                        queryClient.setQueryData([PREADMISSION_QUERY_KEYS.STUDENT_COUNT_REPORT, searchParams ?? {}], response);
+                    }
+                } catch (e) {
+                    // noop
+                }
                 reset();
-                // refetchregisteredCode();
-                refetchAll();
+                setReportType('');
+                setRangeType('between');
+                setFromDate('');
+                setToDate('');
+                refetchAcademicYear();
+                refetchMasterClass();
                 onSuccess?.();
             } else {
                 toast.error(response.message);
@@ -86,14 +134,19 @@ export default function AddStudentCountReportForm({ onSuccess, className = '' }:
                             {/* Left column - report select */}
                             <div className='col-span-1'>
                                 <Label className='mb-2 block font-medium text-gray-700 text-sm'>Select Report Type</Label>
-                                <Select onValueChange={(v) => setReportType(v)} defaultValue={reportType}>
+                                <Select onValueChange={(v) => setReportType(v)} value={reportType || undefined}>
                                     <SelectTrigger className='w-full'>
                                         <SelectValue placeholder='Select report type' />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        <SelectItem value='registered-list'>Registered List</SelectItem>
-                                        <SelectItem value='registered-count'>Registered Count</SelectItem>
-                                        <SelectItem value='payment-report'>Payment Report</SelectItem>
+                                        <SelectItem value='1'>Registered list</SelectItem>
+                                        <SelectItem value='2'>Registered but not filled application form</SelectItem>
+                                        <SelectItem value='3'>Registered and filled application form</SelectItem>
+                                        <SelectItem value='4'>Registration payment done list (Application datewise)</SelectItem>
+                                        <SelectItem value='5'>Registration payment not done list</SelectItem>
+                                        <SelectItem value='6'>Partial/Admission payment done list</SelectItem>
+                                        <SelectItem value='7'>Sibling students list (Paid Students)</SelectItem>
+                                        <SelectItem value='8'>Transferred student (Admission Confirm)</SelectItem>
                                     </SelectContent>
                                 </Select>
                                 <p className='mt-2 text-primary text-xs'>Registered students who completed the application form</p>
@@ -124,38 +177,146 @@ export default function AddStudentCountReportForm({ onSuccess, className = '' }:
 
                                 {rangeType === 'between' && (
                                     <div className='flex gap-2'>
-                                        <Input
-                                            type='date'
-                                            value={fromDate}
-                                            onChange={(e) => setFromDate(e.target.value)}
-                                            className='w-1/2'
-                                        />
-                                        <Input type='date' value={toDate} onChange={(e) => setToDate(e.target.value)} className='w-1/2' />
+                                        <Popover>
+                                            <PopoverTrigger asChild>
+                                                <Button
+                                                    type='button'
+                                                    variant='outline'
+                                                    className={cn(
+                                                        'w-full justify-start text-left font-normal',
+                                                        !fromDate && 'text-muted-foreground'
+                                                    )}>
+                                                    <CalendarIcon className='mr-2 h-4 w-4' />
+                                                    {fromDate ? format(new Date(fromDate), 'dd/MM/yyyy') : 'From date'}
+                                                </Button>
+                                            </PopoverTrigger>
+                                            <PopoverContent className='w-auto p-0' align='start'>
+                                                <CalendarYear
+                                                    mode='single'
+                                                    selected={fromDate ? new Date(fromDate) : undefined}
+                                                    onSelect={(date: Date | undefined) => setFromDate(date?.toISOString() ?? '')}
+                                                    captionLayout='dropdown'
+                                                    fromYear={2000}
+                                                    toYear={2050}
+                                                />
+                                            </PopoverContent>
+                                        </Popover>
+
+                                        <Popover>
+                                            <PopoverTrigger asChild>
+                                                <Button
+                                                    type='button'
+                                                    variant='outline'
+                                                    className={cn(
+                                                        'w-full justify-start text-left font-normal',
+                                                        !toDate && 'text-muted-foreground'
+                                                    )}>
+                                                    <CalendarIcon className='mr-2 h-4 w-4' />
+                                                    {toDate ? format(new Date(toDate), 'dd/MM/yyyy') : 'To date'}
+                                                </Button>
+                                            </PopoverTrigger>
+                                            <PopoverContent className='w-auto p-0' align='start'>
+                                                <CalendarYear
+                                                    mode='single'
+                                                    selected={toDate ? new Date(toDate) : undefined}
+                                                    onSelect={(date: Date | undefined) => setToDate(date?.toISOString() ?? '')}
+                                                    captionLayout='dropdown'
+                                                    fromYear={2000}
+                                                    toYear={2050}
+                                                />
+                                            </PopoverContent>
+                                        </Popover>
                                     </div>
                                 )}
 
                                 {rangeType === 'yearwise' && (
                                     <div className='group flex flex-col gap-1.5'>
-                                        <label
-                                            aria-label='Academic Range'
-                                            htmlFor='academic_range'
-                                            className='mb-2 block font-medium text-gray-700 text-sm'>
-                                            Academic Range <span className='ml-1 text-red-500'>*</span>
-                                        </label>
-                                        <Select onValueChange={(v) => setSelectedYear(v)} value={selectedYear}>
-                                            <SelectTrigger key={selectedYear || 'empty'} className='w-48'>
-                                                <SelectValue placeholder='Select range' />
-                                            </SelectTrigger>
-                                            <SelectContent>
-                                                <SelectItem value='01-06/31-05'>01-06 / 31-05</SelectItem>
-                                                <SelectItem value='01-07/30-06'>01-07 / 30-06</SelectItem>
-                                                <SelectItem value='01-04/31-03'>01-04 / 31-03</SelectItem>
-                                                <SelectItem value='01-09/31-08'>01-09 / 31-08</SelectItem>
-                                            </SelectContent>
-                                        </Select>
+                                        <Label aria-label='academic-year' htmlFor='asmaY_Id'>
+                                            Academic Year <span className='ml-1 text-red-500'>*</span>
+                                        </Label>
+                                        <Controller
+                                            name='asmaY_Id'
+                                            control={control}
+                                            render={({ field }) => (
+                                                <Select
+                                                    key={field.value || 'empty'}
+                                                    onValueChange={(value) => {
+                                                        const numValue = Number(value);
+                                                        field.onChange(numValue);
+                                                    }}
+                                                    value={field.value?.toString() || ''}>
+                                                    <SelectTrigger className='w-full'>
+                                                        <SelectValue placeholder='Select a Academic Year' />
+                                                    </SelectTrigger>
+                                                    <SelectContent>
+                                                        {academicYearLoading ? (
+                                                            <SelectItem value='loading' disabled>
+                                                                Loading Academic Year...
+                                                            </SelectItem>
+                                                        ) : academicYearError ? (
+                                                            <SelectItem value='error' disabled>
+                                                                Error loading Academic Year
+                                                            </SelectItem>
+                                                        ) : (
+                                                            academicYear?.data?.map((item) => (
+                                                                <SelectItem key={item.asmaY_Id} value={item.asmaY_Id.toString()}>
+                                                                    {item.asmaY_Year}
+                                                                </SelectItem>
+                                                            ))
+                                                        )}
+                                                    </SelectContent>
+                                                </Select>
+                                            )}
+                                        />
+                                        {errors.asmaY_Id && <FormError>{errors.asmaY_Id.message}</FormError>}
                                     </div>
                                 )}
                             </div>
+                            {reportType &&
+                                ![
+                                    '1', // Registered list
+                                    '2' // Registered but not filled application form
+                                ].includes(reportType) && (
+                                    <div className='group flex flex-col gap-1.5'>
+                                        <Label aria-label='Class' htmlFor='asmcL_Id'>
+                                            Class <span className='ml-1 text-red-500'>*</span>
+                                        </Label>
+                                        <Controller
+                                            name='asmcL_Id'
+                                            control={control}
+                                            render={({ field }) => (
+                                                <Select
+                                                    key={field.value || 'empty'}
+                                                    onValueChange={(value) => {
+                                                        field.onChange(Number(value));
+                                                    }}
+                                                    value={field.value?.toString() || ''}>
+                                                    <SelectTrigger className='w-full'>
+                                                        <SelectValue placeholder='Select a Class' />
+                                                    </SelectTrigger>
+                                                    <SelectContent>
+                                                        {masterClassLoading ? (
+                                                            <SelectItem value='loading' disabled>
+                                                                Loading Class...
+                                                            </SelectItem>
+                                                        ) : masterClassError ? (
+                                                            <SelectItem value='error' disabled>
+                                                                Error loading Class
+                                                            </SelectItem>
+                                                        ) : (
+                                                            masterClass?.data?.map((item) => (
+                                                                <SelectItem key={item.asmcL_Id} value={item.asmcL_Id.toString()}>
+                                                                    {item.asmcL_ClassName}
+                                                                </SelectItem>
+                                                            ))
+                                                        )}
+                                                    </SelectContent>
+                                                </Select>
+                                            )}
+                                        />
+                                        {errors.asmcL_Id && <FormError>{errors.asmcL_Id.message}</FormError>}
+                                    </div>
+                                )}
                         </div>
                     </div>
 

@@ -5,16 +5,16 @@ import type { ApiSearchparams } from '@/types';
 import type { IMasterClassYearlyList } from '@/types/fees/masters/masters';
 
 export async function getMasterYearlyCategory(searchParams?: ApiSearchparams) {
-    const urlParams = getSearchParamsUrl(searchParams ?? {}, 'asmaY_Year,fmcC_ClassCategoryName,asmcL_ClassName');
+    const urlParams = getSearchParamsUrl(
+        searchParams ?? {},
+        'asmaY_Year,fmG_GroupName,fyG_RebateApplicableFlg,fyG_PartialRebateAmtOrPercentageValue'
+    );
     const url = `/fee_yearly_group/30?${urlParams}`;
     return await api.get<IMasterClassYearlyList[]>('fees', url);
 }
 
 export async function getGroupListCategory(searchParams?: ApiSearchparams) {
-    const _urlParams = getSearchParamsUrl(
-        searchParams ?? {},
-        'asmaY_Year,fmG_GroupName,fyG_RebateApplicableFlg,fyG_PartialRebateAmtOrPercentageValue'
-    );
+    const _urlParams = getSearchParamsUrl(searchParams ?? {});
     const url = '/fee_yearly_group/getgrouplist/30';
     return await api.get<IMasterClassYearlyList[]>('fees', url);
 }

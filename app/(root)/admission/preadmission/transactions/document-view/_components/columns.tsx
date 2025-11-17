@@ -14,12 +14,12 @@ import { useEffect, useState } from 'react';
 export const DocumentViewColoumn: ColumnDef<IPreadmissionDocumentView>[] = [
     {
         accessorKey: 'pasr_id',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='SL.No' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='SL.No' className='w-full pl-6' />,
         cell: ({ row, table }) => {
             const pageIndex = table.getState().pagination.pageIndex;
             const pageSize = table.getState().pagination.pageSize;
             const continuousIndex = pageIndex * pageSize + row.index + 1;
-            return <div className='text-center'>{continuousIndex}</div>;
+            return <div className='w-full pl-6'>{continuousIndex}</div>;
         },
         enableSorting: true,
         enableHiding: false

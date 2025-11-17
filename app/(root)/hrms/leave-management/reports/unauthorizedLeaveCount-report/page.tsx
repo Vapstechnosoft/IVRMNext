@@ -3,16 +3,15 @@
 import { Heading } from '@/components/layout/heading';
 import { GenericDataTable } from '@/components/ui/data-table/generic-data-table';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
-import { useUnauthorizedLeaveCountReport } from '@/hooks/hrms/leave-management/useReports';
 import { useMemo, useState } from 'react';
-import { getUnauthorizedLeaveCountColumns } from './_components/columns';
+import { getUnauthorizedLeaveCountColumns, type UnauthorizedLeaveCountRow } from './_components/columns';
 import {
     UnauthorizedLeaveCountFilters,
     type UnauthorizedLeaveCountFilters as FiltersType
 } from './_components/filters';
 
 export default function UnauthorizedLeaveCountReportPage() {
-    const [showReport, setShowReport] = useState(false);
+    const [rows, setRows] = useState<UnauthorizedLeaveCountRow[]>([]);
     const [filters, setFilters] = useState<FiltersType>({
         mode: 'Company Wise',
         detailLevel: 'Only Count',
@@ -26,21 +25,30 @@ export default function UnauthorizedLeaveCountReportPage() {
         toDate: ''
     });
 
-    const { data: reportData, isLoading } = useUnauthorizedLeaveCountReport(showReport ? filters : undefined);
-
-    const rows = reportData?.data || [];
+    const handleFilterChange = (key: keyof FiltersType, value: any) => {
+        setFilters((prev) => ({ ...prev, [key]: value }));
+    };
 
     const columns = useMemo(
         () => getUnauthorizedLeaveCountColumns({ mode: filters.mode, detailLevel: filters.detailLevel }),
         [filters.mode, filters.detailLevel]
     );
 
-    const handleFilterChange = (key: keyof FiltersType, value: any) => {
-        setFilters((prev) => ({ ...prev, [key]: value }));
-    };
-
     const handleReport = () => {
-        setShowReport(true);
+        if (filters.detailLevel === 'Only Count') {
+            setRows([
+                {
+                    slNo: 1,
+                    companyOrDept: filters.mode === 'Company Wise' ? 'VKS' : 'Hardware and Network',
+                    unauthorizedLeaveCount: 100
+                }
+            ]);
+        } else {
+            setRows([
+                { slNo: 1, employeeName: 'Sarath Kumar A J', absentDate: '2025-01-05' },
+                { slNo: 2, employeeName: 'Priyanka Ashok Shilke', absentDate: '2025-01-12' }
+            ]);
+        }
     };
 
     const handleClear = () => {
@@ -56,7 +64,7 @@ export default function UnauthorizedLeaveCountReportPage() {
             fromDate: '',
             toDate: ''
         });
-        setShowReport(false);
+        setRows([]);
     };
 
     return (
@@ -75,17 +83,15 @@ export default function UnauthorizedLeaveCountReportPage() {
                     onCancel={handleClear}
                 />
 
-                {showReport && (
-                    <CollapsibleSection
-                        title='Unauthorized Leave Report List'
-                        description=''
-                        defaultOpen={rows.length > 0}
-                        variant='default'
-                        size='lg'
-                        className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
-                        <GenericDataTable data={rows} columns={columns} totalItems={rows.length} isLoading={isLoading} />
-                    </CollapsibleSection>
-                )}
+                <CollapsibleSection
+                    title='Unauthorized Leave Report List'
+                    description=''
+                    defaultOpen={rows.length > 0}
+                    variant='default'
+                    size='lg'
+                    className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
+                    <GenericDataTable data={rows} columns={columns} totalItems={rows.length} isLoading={false} />
+                </CollapsibleSection>
             </div>
         </div>
     );

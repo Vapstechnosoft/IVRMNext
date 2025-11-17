@@ -4,6 +4,8 @@ import { Button } from '@/components/ui/button';
 import { FormError, Label } from '@/components/ui/extension/field';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import {
+    useInstituteDropDown,
+    useMasterFeeOnlinePaymentHeadGroupTable,
     useMasterOnlinePaymentHeadGroup,
     useMasterOnlinePaymentHeadGroupClass,
     useMasterOnlinePaymentHeadGroupGroupName,
@@ -13,7 +15,7 @@ import {
     useMasterTerms
 } from '@/hooks/fees/useMasters';
 import { masterOnlinePaymentHeadGroupSchema } from '@/schemas/fees/masters';
-import { addMasterOnlinePaymentHeadGroup } from '@/server/fees/masters/online_payment_head_group';
+import { GetInstallmentMasterDropdown, addMasterOnlinePaymentHeadGroup } from '@/server/fees/masters/online_payment_head_group';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Save } from 'lucide-react';
 import { useEffect, useState } from 'react';
@@ -29,6 +31,9 @@ interface AddMasterOnlinePaymentHeadGroupFormProps {
 }
 
 export default function AddMasterOnlinePaymentHeadGroupForm({ onSuccess, className = '' }: AddMasterOnlinePaymentHeadGroupFormProps) {
+    const { refetchAll } = useMasterFeeOnlinePaymentHeadGroupTable();
+    const { data: instituteData, isLoading: instituteLoading, error: instituteError } = useInstituteDropDown();
+
     const [academicYear, setAcademicYear] = useState<number | null>(null);
     const [classId, setClassId] = useState<number | null>(null);
     const [subMerchantId, setSubMerchantId] = useState<number | null>(null);
@@ -75,8 +80,10 @@ export default function AddMasterOnlinePaymentHeadGroupForm({ onSuccess, classNa
         control,
         handleSubmit,
         reset,
-        formState: { errors, isSubmitting },
-        watch
+        setValue,
+        getValues,
+        formState: { errors, isSubmitting }
+        // watch is not needed currently
     } = useForm<FormFields>({
         resolver: zodResolver(masterOnlinePaymentHeadGroupSchema.addOrUpdate),
         mode: 'onChange',
@@ -93,6 +100,14 @@ export default function AddMasterOnlinePaymentHeadGroupForm({ onSuccess, classNa
             academicYear: ''
         }
     });
+
+    // populate institution fields when data arrives (show name & set id)
+    useEffect(() => {
+        const first = instituteData?.data && instituteData.data.length > 0 ? instituteData.data[0] : null;
+        if (first) {
+            setValue('institutionName', first.mI_Name ?? '');
+        }
+    }, [instituteData, setValue]);
 
     // Options state
     const [classCategoryOptions, setClassCategoryOptions] = useState<{ value: string; label: string }[]>([]);
@@ -162,8 +177,8 @@ export default function AddMasterOnlinePaymentHeadGroupForm({ onSuccess, classNa
     useEffect(() => {
         if (masterInstallment?.data && Array.isArray(masterInstallment.data)) {
             const opts = masterInstallment.data.map((c: any) => ({
-                value: c.ftI_ID.toString(),
-                label: c.ftI_NAME
+                value: String(c.ftI_Id ?? c.ftI_ID ?? c.fti_id),
+                label: c.ftI_Name ?? c.ftI_NAME ?? c.fti_name ?? c.Name ?? ''
             }));
             const uniqueOpts = opts.filter((opt, index, self) => index === self.findIndex((o) => o.value === opt.value));
             setInstallmentOptions(uniqueOpts);
@@ -171,6 +186,51 @@ export default function AddMasterOnlinePaymentHeadGroupForm({ onSuccess, classNa
             setInstallmentOptions([]);
         }
     }, [masterInstallment?.data]);
+
+    // Fetch installments when Academic Year + Group Name are selected or when class/heads change.
+    // Use groupId as fmg_Id when available (group dropdown), otherwise fallback to classId.
+    useEffect(() => {
+        const fetchHeadwiseInstallments = async (heads?: number[]) => {
+            // need academicYear and at least groupId or classId
+            if (!academicYear || (!groupId && !classId)) {
+                setInstallmentOptions([]);
+                return;
+            }
+
+            try {
+                const payload: any = {
+                    mi_Id: Number(getValues('mI_Id') ?? 30),
+                    asmaY_Id: academicYear,
+                    // prefer groupId for fmg_Id (group selection), otherwise use classId
+                    fmg_Id: groupId ?? classId
+                };
+
+                // include selected heads only if present
+                const headsToUse = heads ?? selectedHeads;
+                if (headsToUse && headsToUse.length > 0) {
+                    payload.selectedheadList = headsToUse.map((h) => ({ fmH_Id: h }));
+                }
+
+                const res = await GetInstallmentMasterDropdown(payload);
+
+                if (res?.data && Array.isArray(res.data)) {
+                    const opts = res.data.map((c: any) => ({
+                        value: String(c.ftI_Id ?? c.ftI_ID ?? c.fti_id),
+                        label: c.ftI_Name ?? c.ftI_NAME ?? c.fti_name ?? c.Name ?? ''
+                    }));
+                    const uniqueOpts = opts.filter((opt, index, self) => index === self.findIndex((o) => o.value === opt.value));
+                    setInstallmentOptions(uniqueOpts);
+                } else {
+                    setInstallmentOptions([]);
+                }
+            } catch (err) {
+                console.error('Error fetching headwise installments:', err);
+                setInstallmentOptions([]);
+            }
+        };
+
+        fetchHeadwiseInstallments();
+    }, [academicYear, classId, groupId, selectedHeads]);
 
     useEffect(() => {
         if (masterTerms?.data && Array.isArray(masterTerms.data)) {
@@ -184,7 +244,7 @@ export default function AddMasterOnlinePaymentHeadGroupForm({ onSuccess, classNa
         }
     }, [masterTerms?.data]);
 
-    const onSubmit: SubmitHandler<FormFields> = async (data) => {
+    const onSubmit: SubmitHandler<FormFields> = async (_data) => {
         try {
             if (!academicYear) {
                 toast.error('Please select Academic Year');
@@ -216,7 +276,7 @@ export default function AddMasterOnlinePaymentHeadGroupForm({ onSuccess, classNa
             }
 
             const payload = {
-                mI_Id: 30,
+                mI_Id: Number(getValues('mI_Id') ?? 30),
                 asmaY_Id: academicYear,
                 asmcL_ID: classId,
                 fpgd_id: subMerchantId,
@@ -227,12 +287,13 @@ export default function AddMasterOnlinePaymentHeadGroupForm({ onSuccess, classNa
                 user_id: 1001
             };
 
-            console.log('Submitting payload:', payload);
+            // submitted payload
 
             const response = await addMasterOnlinePaymentHeadGroup(payload);
 
             if (response.success) {
                 toast.success(response.message || 'Online Payment Head Group added successfully');
+                await refetchAll();
                 handleReset();
                 onSuccess?.();
             } else {
@@ -272,10 +333,10 @@ export default function AddMasterOnlinePaymentHeadGroupForm({ onSuccess, classNa
             <form onSubmit={handleSubmit(onSubmit)} className='space-y-6'>
                 <div className='space-y-4'>
                     <div className='grid grid-cols-1 gap-5 md:grid-cols-2'>
-                        {/* Institution Name */}
+                        {/* Institute (display only) */}
                         <div className='group flex flex-col gap-1.5'>
-                            <Label aria-label='Institution Name' htmlFor='institutionName'>
-                                Institution Name <span className='ml-1 text-red-500'>*</span>
+                            <Label aria-label='Institute' htmlFor='institutionName'>
+                                Institute <span className='ml-1 text-red-500'>*</span>
                             </Label>
                             <Controller
                                 name='institutionName'
@@ -283,15 +344,34 @@ export default function AddMasterOnlinePaymentHeadGroupForm({ onSuccess, classNa
                                 render={({ field }) => (
                                     <Select value={field.value} disabled>
                                         <SelectTrigger className='w-full'>
-                                            <SelectValue placeholder='Vidya Vikas Vidya Samste (R)' />
+                                            <SelectValue
+                                                placeholder={
+                                                    instituteLoading
+                                                        ? 'Loading...'
+                                                        : ((instituteData?.data?.[0] as any)?.mI_Name ?? 'Vidya Vikas Vidya Samste (R)')
+                                                }
+                                            />
                                         </SelectTrigger>
                                         <SelectContent>
-                                            <SelectItem value='vidya_vikas_vidya_samste'>Vidya Vikas Vidya Samste (R)</SelectItem>
+                                            {instituteLoading ? (
+                                                <SelectItem value='loading' disabled>
+                                                    Loading...
+                                                </SelectItem>
+                                            ) : instituteError ? (
+                                                <SelectItem value='error' disabled>
+                                                    Error loading data
+                                                </SelectItem>
+                                            ) : (
+                                                instituteData?.data?.slice(0, 1).map((item: any) => (
+                                                    <SelectItem key={item.mI_Id} value={item.mI_Name}>
+                                                        {item.mI_Name}
+                                                    </SelectItem>
+                                                ))
+                                            )}
                                         </SelectContent>
                                     </Select>
                                 )}
                             />
-                            {errors.institutionName && <FormError>{errors.institutionName.message}</FormError>}
                         </div>
 
                         {/* Academic Year */}
@@ -487,25 +567,65 @@ export default function AddMasterOnlinePaymentHeadGroupForm({ onSuccess, classNa
                                     {masterHeadNameLoading ? (
                                         <span className='text-gray-400 text-sm'>Loading heads...</span>
                                     ) : filteredHeadOptions.length > 0 ? (
-                                        filteredHeadOptions.map((option) => (
-                                            <label
-                                                key={option.value}
-                                                className='flex cursor-pointer items-center rounded p-1 hover:bg-gray-50'>
-                                                <input
-                                                    type='checkbox'
-                                                    value={option.value}
-                                                    checked={selectedHeads.includes(Number(option.value))}
-                                                    onChange={(e) => {
-                                                        const value = Number(e.target.value);
-                                                        setSelectedHeads((prev) =>
-                                                            prev.includes(value) ? prev.filter((p) => p !== value) : [...prev, value]
-                                                        );
-                                                    }}
-                                                    className='mr-2 h-4 w-4 accent-blue-600'
-                                                />
-                                                <span className='truncate'>{option.label}</span>
-                                            </label>
-                                        ))
+                                        filteredHeadOptions.map((option) => {
+                                            const optVal = Number(option.value);
+                                            return (
+                                                <label
+                                                    key={option.value}
+                                                    className='flex cursor-pointer items-center rounded p-1 hover:bg-gray-50'>
+                                                    <input
+                                                        type='checkbox'
+                                                        value={option.value}
+                                                        checked={selectedHeads.includes(optVal)}
+                                                        onChange={async (e) => {
+                                                            const checked = e.target.checked;
+                                                            // compute new selection synchronously
+                                                            const newSelected = checked
+                                                                ? [...selectedHeads, optVal]
+                                                                : selectedHeads.filter((p) => p !== optVal);
+                                                            // update state
+                                                            setSelectedHeads(newSelected);
+                                                            // immediately fetch installments for new selection
+                                                            try {
+                                                                // only fetch if academicYear and group/class present
+                                                                if (academicYear && (groupId ?? classId)) {
+                                                                    await (async () => {
+                                                                        const payload: any = {
+                                                                            mi_Id: Number(getValues('mI_Id') ?? 30),
+                                                                            asmaY_Id: academicYear,
+                                                                            fmg_Id: groupId ?? classId
+                                                                        };
+                                                                        if (newSelected.length > 0)
+                                                                            payload.selectedheadList = newSelected.map((h) => ({
+                                                                                fmH_Id: h
+                                                                            }));
+                                                                        const res = await GetInstallmentMasterDropdown(payload);
+                                                                        if (res?.data && Array.isArray(res.data)) {
+                                                                            const opts = res.data.map((c: any) => ({
+                                                                                value: String(c.ftI_Id ?? c.ftI_ID ?? c.fti_id),
+                                                                                label:
+                                                                                    c.ftI_Name ?? c.ftI_NAME ?? c.fti_name ?? c.Name ?? ''
+                                                                            }));
+                                                                            const uniqueOpts = opts.filter(
+                                                                                (opt, index, self) =>
+                                                                                    index === self.findIndex((o) => o.value === opt.value)
+                                                                            );
+                                                                            setInstallmentOptions(uniqueOpts);
+                                                                        } else {
+                                                                            setInstallmentOptions([]);
+                                                                        }
+                                                                    })();
+                                                                }
+                                                            } catch (err) {
+                                                                console.error('Error fetching headwise installments on toggle:', err);
+                                                            }
+                                                        }}
+                                                        className='mr-2 h-4 w-4 accent-blue-600'
+                                                    />
+                                                    <span className='truncate'>{option.label}</span>
+                                                </label>
+                                            );
+                                        })
                                     ) : (
                                         <span className='text-gray-400 text-sm'>
                                             {!academicYear || !groupId ? 'Select Academic Year and Group Name first' : 'No Head Name found'}
@@ -624,7 +744,7 @@ export default function AddMasterOnlinePaymentHeadGroupForm({ onSuccess, classNa
                         loadingText='Saving...'>
                         <div className='flex items-center'>
                             <Save className='mr-2 h-4 w-4' />
-                            Save
+                            Save Online Payment Head Group
                         </div>
                     </Button>
                 </div>

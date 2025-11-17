@@ -3,12 +3,14 @@
 import { Heading } from '@/components/layout/heading';
 import { GenericDataTable } from '@/components/ui/data-table/generic-data-table';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
-import { useEmployeeLogReport } from '@/hooks/hrms/attendance-management/useReports';
-import { useState } from 'react';
+import { type BaseEntity, createLocalCrud } from '@/lib/localdb';
+import { useMemo, useState } from 'react';
 import { LogReportFilters, type LogReportFiltersState } from './_components/filters';
-import { logReportColumns } from './_components/columns';
+import { logReportColumns, type LogRow } from './_components/columns';
 
 export default function EmployeeLogReportPage() {
+    const db = createLocalCrud<LogRow & BaseEntity>('attendance:log');
+
     const [filters, setFilters] = useState<LogReportFiltersState>({
         type: [],
         department: [],
@@ -24,10 +26,35 @@ export default function EmployeeLogReportPage() {
         metric: 'Punch Time'
     });
 
-    const { data: reportData, isLoading } = useEmployeeLogReport(filters);
+    const data = useMemo(() => db.list(), []);
 
-    const filtered = reportData?.data || [];
-    const data = filtered; // For filter component compatibility
+    const filtered = useMemo(() => {
+        return data.filter((r) => {
+            const okType = filters.type && filters.type.length > 0 ? filters.type.includes(r.type) : true;
+            const okDept = filters.department && filters.department.length > 0 ? filters.department.includes(r.department) : true;
+            const okDesg = filters.designation && filters.designation.length > 0 ? filters.designation.includes(r.designation) : true;
+            const okQuery =
+                filters.allOrIndividual === 'Individual' && filters.query
+                    ? filters.codeOrName === 'Code'
+                        ? r.employeeCode.includes(filters.query)
+                        : r.employeeName.toLowerCase().includes(filters.query.toLowerCase())
+                    : true;
+            const okDate =
+                filters.dateMode === 'Date'
+                    ? filters.date
+                        ? r.date === filters.date
+                        : true
+                    : filters.dateMode === 'Monthly'
+                      ? filters.month
+                          ? r.date.startsWith(filters.month)
+                          : true
+                      : (filters.fromDate ? new Date(r.date) >= new Date(filters.fromDate) : true) &&
+                        (filters.toDate ? new Date(r.date) <= new Date(filters.toDate) : true);
+            const okMetric =
+                filters.metric === 'Punch Time' ? r.punchTime : filters.metric === 'Late In' ? r.lateIn : r.earlyOut;
+            return okType && okDept && okDesg && okQuery && okDate && okMetric;
+        });
+    }, [data, filters]);
 
     const handleReport = () => {
         /* TODO: implement */
@@ -62,7 +89,7 @@ export default function EmployeeLogReportPage() {
                     variant='default'
                     size='lg'
                     className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
-                    <GenericDataTable isLoading={isLoading} columns={logReportColumns} data={filtered} totalItems={filtered.length} showViewOptions />
+                    <GenericDataTable isLoading={false} columns={logReportColumns} data={filtered} totalItems={filtered.length} showViewOptions />
                 </CollapsibleSection>
             </div>
         </div>

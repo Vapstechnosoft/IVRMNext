@@ -1,10 +1,9 @@
 'use client';
 
+import { Button } from '@/components/ui/button';
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
-import { ActionButtons } from '@/components/ui/form/action-buttons';
-import { useFormContext } from '@/components/ui/form/form-provider';
 import type { ColumnDef } from '@tanstack/react-table';
-import { useCallback } from 'react';
+import { Edit, Trash2 } from 'lucide-react';
 
 export interface MasterShift {
     id: number;
@@ -16,86 +15,54 @@ export interface MasterShift {
     createdAt: Date;
 }
 
-export const masterShiftColumns: ColumnDef<MasterShift>[] = [
+interface MasterShiftColumnsProps {
+    onEdit: (row: MasterShift) => void;
+    onDelete: (row: MasterShift) => void;
+}
+
+export const getMasterShiftColumns = ({ onEdit, onDelete }: MasterShiftColumnsProps): ColumnDef<MasterShift>[] => [
     {
-        accessorKey: 'id',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Sl.No' />,
-        cell: ({ row, table }) => {
-            const pageIndex = table.getState().pagination.pageIndex;
-            const pageSize = table.getState().pagination.pageSize;
-            const continuousIndex = pageIndex * pageSize + row.index + 1;
-            return <div>{continuousIndex}</div>;
-        },
-        enableSorting: true,
-        enableHiding: false
+        id: 'sl',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='SL.NO' />,
+        cell: ({ row }) => <div className='font-medium'>{row.index + 1}</div>,
+        enableSorting: false
     },
     {
         accessorKey: 'shiftName',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Shift Name' />,
-        cell: ({ row }) => <div>{row.getValue('shiftName')}</div>,
-        enableSorting: true,
-        enableHiding: true
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Shift Name' />
     },
     {
         accessorKey: 'startTime',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Shift Start Time' />,
-        cell: ({ row }) => <div>{row.getValue('startTime')}</div>,
-        enableSorting: true,
-        enableHiding: true
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Shift Start Time' />
     },
     {
         accessorKey: 'endTime',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Shift End Time' />,
-        cell: ({ row }) => <div>{row.getValue('endTime')}</div>,
-        enableSorting: true,
-        enableHiding: true
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Shift End Time' />
     },
     {
         accessorKey: 'specificDay',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Specific Day' />,
-        cell: ({ row }) => <div>{row.getValue('specificDay') ? 'Yes' : 'No'}</div>,
-        enableSorting: true,
-        enableHiding: true
+        cell: ({ row }) => <div>{row.getValue('specificDay') ? 'Yes' : 'No'}</div>
     },
     {
         accessorKey: 'remarks',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Remarks' />,
-        cell: ({ row }) => <div>{row.getValue('remarks')}</div>,
-        enableSorting: true,
-        enableHiding: true
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Remarks' />
     },
     {
         id: 'actions',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Actions' className='text-start' />,
-        accessorFn: (row: any) => row,
-        enableSorting: false,
-        cell: ({ row }) => <ActionButtonsCell rowData={row.original} />
+        header: 'Action',
+        cell: ({ row }) => {
+            const shift = row.original;
+            return (
+                <div className='flex items-center gap-2'>
+                    <Button variant='outline' size='sm' onClick={() => onEdit(shift)}>
+                        <Edit className='h-4 w-4' />
+                    </Button>
+                    <Button variant='outline' size='sm' className='text-red-600' onClick={() => onDelete(shift)}>
+                        <Trash2 className='h-4 w-4' />
+                    </Button>
+                </div>
+            );
+        }
     }
 ];
-
-function ActionButtonsCell({ rowData }: { rowData: MasterShift }) {
-    const { openEditForm, openDeleteForm } = useFormContext<MasterShift>();
-
-    const handleEdit = useCallback(
-        (data: MasterShift) => {
-            openEditForm(data);
-        },
-        [openEditForm]
-    );
-
-    const handleDelete = useCallback(
-        (data: MasterShift) => {
-            openDeleteForm(data);
-        },
-        [openDeleteForm]
-    );
-
-    return (
-        <ActionButtons
-            rowData={rowData}
-            buttons={{ edit: true, toggle: false, delete: true }}
-            onEdit={handleEdit}
-            onDelete={handleDelete}
-        />
-    );
-}

@@ -208,10 +208,9 @@ export default function UpdateYearlyGroupForm({ onSuccess, selectedRow }: Update
     };
 
     const selectedFeeGroupNames =
-        feeGroups
-            .filter((fg) => feeGroupIds?.includes(fg.fmgg_Id))
-            .map((fg) => fg.fmgg_GroupName)
-            .join(', ') || 'Select Fee Groups';
+        feeGroupIds && feeGroupIds.length > 0
+            ? feeGroups.find((fg) => fg.fmgg_Id === feeGroupIds[0])?.fmgg_GroupName || 'Select Fee Group'
+            : 'Select Fee Group';
 
     if (isAcademicYearLoading || isGroupDataLoading) {
         return <div>Loading form data...</div>;
@@ -313,40 +312,17 @@ export default function UpdateYearlyGroupForm({ onSuccess, selectedRow }: Update
 
                                         {/* Fee Group list */}
                                         <div className='max-h-[260px] overflow-y-auto rounded-md border p-1'>
-                                            {/* Select All */}
-                                            <div
-                                                onClick={() => {
-                                                    const allIds = feeGroups.map((f) => f.fmgg_Id);
-                                                    const allSelected = field.value?.length === allIds.length;
-                                                    field.onChange(allSelected ? [] : allIds);
-                                                }}
-                                                className={cn(
-                                                    'mb-2 flex cursor-pointer items-center gap-2 rounded-md px-2 py-1.5 font-medium text-sm',
-                                                    field.value?.length === feeGroups.length
-                                                        ? 'border-primary bg-primary/5'
-                                                        : 'border-gray-200 hover:border-primary/40'
-                                                )}>
-                                                {field.value?.length === feeGroups.length ? (
-                                                    <CheckSquare className='h-4 w-4 text-primary' />
-                                                ) : (
-                                                    <Square className='h-4 w-4 text-gray-400' />
-                                                )}
-                                                <span>Select All</span>
-                                            </div>
-
                                             {/* Individual Fee Groups */}
                                             {feeGroups
                                                 .filter((fg) => fg.fmgg_GroupName.toLowerCase().includes(search.toLowerCase().trim()))
                                                 .map((fg) => {
-                                                    const selected = field.value?.includes(fg.fmgg_Id) || false;
+                                                    const selected = field.value?.[0] === fg.fmgg_Id || false;
                                                     return (
                                                         <div
                                                             key={fg.fmgg_Id}
                                                             onClick={() => {
-                                                                const newValue = selected
-                                                                    ? field.value.filter((v) => v !== fg.fmgg_Id)
-                                                                    : [...(field.value || []), fg.fmgg_Id];
-                                                                field.onChange(newValue);
+                                                                // Select only one item at a time
+                                                                field.onChange(selected ? [] : [fg.fmgg_Id]);
                                                             }}
                                                             className={cn(
                                                                 'mb-1 flex cursor-pointer items-center gap-2 rounded-md border px-2 py-1.5 text-sm',
@@ -472,7 +448,7 @@ export default function UpdateYearlyGroupForm({ onSuccess, selectedRow }: Update
                         loadingText='Saving...'>
                         <div className='flex items-center'>
                             <Save className='mr-2 h-4 w-4' />
-                            Update Master Yearly Group
+                            Update Yearly Group
                         </div>
                     </Button>
                 </div>

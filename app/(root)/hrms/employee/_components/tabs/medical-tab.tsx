@@ -4,7 +4,7 @@ import { Label } from '@/components/ui/extension/field';
 import { InputText } from '@/components/ui/extension/input-text';
 import { StandardTabActions } from './standard-tab-actions';
 
-export function MedicalRecordTab({ control, register, errors, isSubmitting, onClear }: any) {
+export function MedicalRecordTab({ control, register, errors, isSubmitting }: any) {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const _ = { control, register, errors, isSubmitting };
     return (
@@ -72,7 +72,7 @@ export function MedicalRecordTab({ control, register, errors, isSubmitting, onCl
                     placeholder='Enter identification mark details...'
                 />
             </div>
-            <StandardTabActions errors={errors} isSubmitting={isSubmitting} onClear={onClear} />
+            <StandardTabActions errors={errors} isSubmitting={isSubmitting} />
         </div>
     );
 }

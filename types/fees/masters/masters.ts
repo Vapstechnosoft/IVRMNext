@@ -112,6 +112,7 @@ export interface IModeOfPaymentList {
 
 //used category
 export interface IMasterClassYearlyList {
+    mI_Name: string;
     fmG_GroupName: string;
     fmG_Id: any;
     asmcl_ActiveFlag: boolean;
@@ -204,6 +205,7 @@ export interface IMasterpaymentGatewayDropdownList {
 }
 
 export interface IMasterGroupWiseAutoReciptList {
+    feeGroupslist: any;
     asmaY_Id: any;
     asmcL_Id: number;
     fmcC_Id: any;
@@ -263,12 +265,18 @@ export interface IMasterGroupDropdown {
 }
 
 export interface IMasterRoleDropdown {
-    roleId: number;
-    roleName: string;
+    ivrmrT_Id: number;
+    ivrmrT_Role: string;
+}
+
+export interface IMasterGetUserNameDropdown {
+    userId: number;
+    normalizedUserName: string;
+    ivrtmt_Id: number;
 }
 
 export interface IMasterOnlinePaymentHeadgroupList {
-    fopM_Id(fopM_Id: any): unknown;
+    fopM_Id: number;
     fmcC_Id: number;
     mI_Id: number;
     institutionName: string;
@@ -279,6 +287,7 @@ export interface IMasterOnlinePaymentHeadgroupList {
     installmentName: string;
     terms: string;
     academicYear: string;
+    className: string;
 }
 
 export interface IMasterFeeHeadDropdownList {
@@ -332,19 +341,6 @@ export interface FeeInstallmentList {
     ftI_Name: string;
 }
 
-export interface IMasterOnlinePaymentHeadgroupList {
-    fmcC_Id: number;
-    mI_Id: number;
-    institutionName: string;
-    classCategory: string;
-    subMerchantId: string;
-    groupName: string;
-    className: string;
-    headSearchTerm: string;
-    installmentName: string;
-    terms: string;
-    academicYear: string;
-}
 export interface IMasterFeesInstallmentList {
     fmI_Id: number;
     mI_Id: number;
@@ -396,10 +392,23 @@ export interface IMasterAllFeeHeadList {
     fmG_Id: number;
     fmH_Id: number;
     fmI_Id: number;
+    fyghM_FineApplicableFlag: boolean | null;
+    fyghM_Common_AmountFlag: boolean | null;
+    fyghM_ActiveFlag: boolean | null;
+    fillmastergroup: any;
+    fillcompany: any;
+    fillmasterhead: any;
+    fillinstallment: any;
     returnval: boolean;
+    savetmpdata: any;
+    savetmpdatains: any;
+    savetmpflag: any;
+    alldata: any;
     fmG_GroupName: string;
     fmH_FeeName: string;
     fmI_Name: string;
+    displaymessage: any;
+    academicdrp: any;
     userid: number;
     deleteId: number;
 }
@@ -485,4 +494,75 @@ export interface IMasterGroupWiseAutoReciptList {
 export interface IConcessionCategoryDropdownList {
     fmcC_Id: number;
     fmcC_ConcessionName: string;
+}
+
+export interface IFeeGroupMapping {
+    fyghM_Id: number;
+    mI_Id: number;
+    asmaY_Id: number;
+    fmG_Id: number;
+    fmH_Id: number;
+    fmI_Id: number;
+    fyghM_FineApplicableFlag: boolean | null;
+    fyghM_Common_AmountFlag: boolean | null;
+    fyghM_ActiveFlag: boolean | null;
+    fmG_GroupName: string;
+    fmH_FeeName: string;
+    fmI_Name: string;
+    returnval: boolean;
+    userid: number;
+    deleteId: number;
+}
+export interface IConcessionCategoryGroupHeadMappingList {
+    fmcC_Id: number;
+    fmG_Id: number;
+    fmH_Id: number;
+    fmaccG_Id: number;
+    fmcC_ConcessionName: string;
+    fmG_GroupName: string;
+    fmH_FeeName: string;
+    fmaccG_ActiveFlg: boolean;
+}
+
+export interface IConcessionCategoryGroupDropdownList {
+    fmG_Id: number;
+    fmG_GroupName: string;
+}
+
+export interface IConcessionCategoryHeadsDropdownList {
+    fmH_Id: number;
+    fmH_FeeName: string;
+}
+
+export interface IConcessionCategoryDropdownList {
+    fmcC_Id: number;
+    fmcC_ConcessionName: string;
+}
+
+export interface IFeePrivilegeList {
+    fgL_Id: number;
+    user_Id: number;
+    normalizedUserName: string;
+    fmG_GroupName: string;
+    fmH_FeeName: string;
+    ivrmrT_Role: string;
+}
+
+export interface IFeeOnlinehaedgroupMappingList {
+    length: number;
+    success: boolean;
+    message: string;
+    data: Array<{
+        fopM_Id: number;
+        mI_Id: number;
+        fmH_Id: number;
+        createdDate: string;
+        updatedDate: string;
+        fpgd_id: number;
+        fmg_id: number;
+        fti_id: number;
+        fmt_id: number;
+        asmcL_Id: number;
+        preAdmFlag: boolean;
+    }>;
 }

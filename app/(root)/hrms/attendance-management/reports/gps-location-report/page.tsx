@@ -3,12 +3,13 @@
 import { Heading } from '@/components/layout/heading';
 import { GenericDataTable } from '@/components/ui/data-table/generic-data-table';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
-import { useGPSLocationReport, useGPSLocationReportDropdowns } from '@/hooks/hrms/attendance-management/useReports';
-import { useState } from 'react';
-import { gpsLocationReportColumns } from './_components/columns';
+import { createLocalCrud } from '@/lib/localdb';
+import { useMemo, useState } from 'react';
+import { type GPSLog, gpsLocationReportColumns } from './_components/columns';
 import { type GPSLocationReportFilters, GPSLocationReportFilters as GPSLocationReportFiltersComponent } from './_components/filters';
 
 export default function GPSLocationReportPage() {
+    const db = createLocalCrud<GPSLog>('attendance:gps-location-attendance'); // reuse same storage
     const [filters, setFilters] = useState<GPSLocationReportFilters>({
         filterType: 'Between Date',
         fromDate: '',
@@ -16,12 +17,21 @@ export default function GPSLocationReportPage() {
         employee: ''
     });
 
-    const { data: reportData, isLoading } = useGPSLocationReport(filters);
-    const { data: dropdownData } = useGPSLocationReportDropdowns();
+    const data = useMemo(() => db.list(), []);
 
-    const employees = dropdownData?.data?.employees || [];
+    const employees = useMemo(() => [...new Set(data.map((d) => d.employeeName))], [data]);
 
-    const filtered = reportData?.data || [];
+    const filtered = useMemo(() => {
+        return data.filter((r) => {
+            if (filters.filterType === 'Employee Wise') {
+                return filters.employee ? r.employeeName === filters.employee : false;
+            } else {
+                const okFrom = filters.fromDate ? new Date(r.gpsDate) >= new Date(filters.fromDate) : true;
+                const okTo = filters.toDate ? new Date(r.gpsDate) <= new Date(filters.toDate) : true;
+                return okFrom && okTo;
+            }
+        });
+    }, [data, filters]);
 
     const handleSearch = () => {
         // TODO: Implement report generation
@@ -69,7 +79,7 @@ export default function GPSLocationReportPage() {
                     size='lg'
                     className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
                     <GenericDataTable
-                        isLoading={isLoading}
+                        isLoading={false}
                         columns={gpsLocationReportColumns}
                         data={filtered}
                         totalItems={filtered.length}

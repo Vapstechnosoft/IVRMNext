@@ -1,9 +1,8 @@
 'use client';
-
-import { Checkbox } from '@/components/ui/checkbox';
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
 import { ActionButtons } from '@/components/ui/form/action-buttons';
 import { useFormContext } from '@/components/ui/form/form-provider';
+import { getOnlinePaymentHeadGroupEdit } from '@/server/fees/masters/online_payment_head_group';
 import type { IMasterOnlinePaymentHeadgroupList } from '@/types/fees/masters/masters';
 import type { ColumnDef } from '@tanstack/react-table';
 import { useCallback } from 'react';
@@ -11,28 +10,12 @@ import { toast } from 'sonner';
 
 export const masterClassYearlyCategoryColumns: ColumnDef<IMasterOnlinePaymentHeadgroupList>[] = [
     {
-        id: 'select',
-        header: ({ table }) => (
-            <Checkbox
-                checked={table.getIsAllPageRowsSelected() || (table.getIsSomePageRowsSelected() && 'indeterminate')}
-                onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
-                aria-label='Select all'
-            />
-        ),
-        cell: ({ row }) => (
-            <Checkbox checked={row.getIsSelected()} onCheckedChange={(value) => row.toggleSelected(!!value)} aria-label='Select row' />
-        ),
-        enableSorting: false,
-        enableHiding: false,
-        size: 24
-    },
-    {
         accessorKey: 'fopM_Id',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Sl. No' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Sl. No' className='pl-6' />,
         cell: ({ row, table }) => {
             const pageIndex = table.getState().pagination.pageIndex;
             const pageSize = table.getState().pagination.pageSize;
-            return <div>{pageIndex * pageSize + row.index + 1}</div>;
+            return <div className='pl-6'>{pageIndex * pageSize + row.index + 1}</div>;
         },
         enableSorting: false,
         enableHiding: false
@@ -80,52 +63,65 @@ function ActionButtonsCell({
 }: {
     rowData: IMasterOnlinePaymentHeadgroupList;
 }) {
-    const { openToggleForm, openEditForm } = useFormContext<IMasterOnlinePaymentHeadgroupList>();
+    const { openToggleForm, openEditForm, openDeleteForm } = useFormContext<IMasterOnlinePaymentHeadgroupList>();
 
     const handleToggle = useCallback((data: IMasterOnlinePaymentHeadgroupList) => openToggleForm(data), [openToggleForm]);
 
     const handleEdit = useCallback(
         async (data: IMasterOnlinePaymentHeadgroupList) => {
             try {
-                const response = '';
-                // const response = await getOnlinePaymentHeadGroupEdit(data.fopM_Id);
+                const fopM_Id = data.fopM_Id;
+                const response = await getOnlinePaymentHeadGroupEdit(fopM_Id);
 
-                //if (response.success && response.data && response.data.length > 0) {
-                // const apiData = response.data[0];
+                if (response?.success && response?.data) {
+                    const dataArray = (response as any).data;
+                    const apiData = dataArray[0];
 
-                // const transformedData: SelectedRowData = {
-                //   fopM_Id: apiData.fopM_Id,
-                //   asmaY_Id: 176,
-                //   asmcL_ID: apiData.asmcL_Id,
-                //   className: data.className,
-                //   fpgd_id: apiData.fpgd_id,
-                //   fmg_id: apiData.fmg_id,
-                //   groupName: data.groupName,
-                //   fmh_HeadId: apiData.fmH_Id,
-                //   fti_id: apiData.fti_id,
-                //   installmentName: data.installmentName,
-                //   fmt_id: apiData.fmt_id,
-                //   institutionName: "vidya_vikas_vidya_samste",
-                // };
+                    const transformedData = {
+                        fopM_Id: apiData.fopM_Id,
+                        asmaY_Id: 176,
+                        asmcL_ID: apiData.asmcL_Id,
+                        className: data.className,
+                        fpgd_id: apiData.fpgd_id,
+                        subMerchantId: data.subMerchantId,
+                        fmg_id: apiData.fmg_id,
+                        groupName: data.groupName,
+                        fmh_HeadId: apiData.fmH_Id,
+                        headName: data.headSearchTerm,
+                        fti_id: apiData.fti_id,
+                        installmentName: data.installmentName,
+                        fmt_id: apiData.fmt_id,
+                        termName: data.terms,
+                        institutionName: 'vidya_vikas_vidya_samste'
+                    };
 
-                // openEditForm(transformedData);
-                // } else {
-                //   toast.error("Failed to fetch edit data");
-                // }
+                    openEditForm(transformedData as any);
+                } else {
+                    toast.error('Failed to fetch edit data');
+                }
             } catch (error) {
-                console.error('Error fetching edit data:', error);
+                console.error('Error opening edit form:', error);
                 toast.error('An error occurred while loading edit data');
             }
         },
         [openEditForm]
     );
 
+    // Delete Handler
+    const handleDelete = useCallback(
+        async (data: IMasterOnlinePaymentHeadgroupList) => {
+            openDeleteForm(data);
+        },
+        [openDeleteForm]
+    );
+
     return (
         <ActionButtons
             rowData={rowData}
-            buttons={{ edit: true }}
+            buttons={{ edit: true, delete: true }} // Delete button added
             onEdit={handleEdit}
             onToggle={handleToggle}
+            onDelete={handleDelete} // Pass delete handler
             toggleConditionKey='fycC_ActiveFlag'
         />
     );

@@ -3,13 +3,12 @@
 import { Heading } from '@/components/layout/heading';
 import { GenericDataTable } from '@/components/ui/data-table/generic-data-table';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
-import { useLeaveReport } from '@/hooks/hrms/leave-management/useReports';
 import { useState } from 'react';
-import { leaveReportColumns } from './_components/columns';
+import { leaveReportColumns, type LeaveReportRow } from './_components/columns';
 import { LeaveReportFilters, type LeaveReportFilters as FiltersType } from './_components/filters';
 
 export default function LeaveReportPage() {
-    const [showReport, setShowReport] = useState(false);
+    const [rows, setRows] = useState<LeaveReportRow[]>([]);
     const [filters, setFilters] = useState<FiltersType>({
         company: '',
         isIndividual: false,
@@ -20,16 +19,24 @@ export default function LeaveReportPage() {
         showEmployeeLeaveBalance: false
     });
 
-    const { data: reportData, isLoading } = useLeaveReport(showReport ? filters : undefined);
-
-    const rows = reportData?.data || [];
-
     const handleFilterChange = (key: keyof FiltersType, value: any) => {
         setFilters((prev) => ({ ...prev, [key]: value }));
     };
 
     const handleReport = () => {
-        setShowReport(true);
+        setRows(
+            Array.from({ length: 12 }).map((_, i) => ({
+                slNo: i + 1,
+                employeeCode: '69',
+                employeeName: 'R Siddesh Kumar',
+                leaveName: 'Casual Leave',
+                fromDate: '2025-01-01',
+                toDate: '2025-01-02',
+                appliedDays: 8,
+                leaveStatus: 'Approved' as const,
+                leaveBalance: 8
+            }))
+        );
     };
 
     const handleClear = () => {
@@ -42,7 +49,7 @@ export default function LeaveReportPage() {
             toDate: '',
             showEmployeeLeaveBalance: false
         });
-        setShowReport(false);
+        setRows([]);
     };
 
     return (
@@ -56,17 +63,15 @@ export default function LeaveReportPage() {
 
                 <LeaveReportFilters filters={filters} onFilterChange={handleFilterChange} onReport={handleReport} onCancel={handleClear} />
 
-                {showReport && (
-                    <CollapsibleSection
-                        title='Leave Report'
-                        description=''
-                        defaultOpen={rows.length > 0}
-                        variant='default'
-                        size='lg'
-                        className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
-                        <GenericDataTable data={rows} columns={leaveReportColumns} totalItems={rows.length} isLoading={isLoading} />
-                    </CollapsibleSection>
-                )}
+                <CollapsibleSection
+                    title='Leave Report'
+                    description=''
+                    defaultOpen={rows.length > 0}
+                    variant='default'
+                    size='lg'
+                    className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
+                    <GenericDataTable data={rows} columns={leaveReportColumns} totalItems={rows.length} isLoading={false} />
+                </CollapsibleSection>
             </div>
         </div>
     );

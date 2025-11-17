@@ -1,7 +1,6 @@
 'use client';
 
 import { Heading } from '@/components/layout/heading';
-import { useFOMonthEndReport } from '@/hooks/hrms/attendance-management/useReports';
 import { useState } from 'react';
 import { type FOMonthEndReportFilters, FOMonthEndReportFilters as FOMonthEndReportFiltersComponent } from './_components/filters';
 
@@ -12,8 +11,6 @@ export default function FOMonthEndReportPage() {
         month: '01',
         date: ''
     });
-
-    const { data: reportData, isLoading } = useFOMonthEndReport(filters);
 
     const handleSearch = () => {
         // TODO: Implement report generation

@@ -23,12 +23,12 @@ export default function StudentCountReportPage(props: {
 
     return (
         <FormProvider<IMasterStudentCountReportList>>
-            <StudentCountReportPageContent response={response} isLoading={isLoading} error={error} />
+            <StudentCountReportPageContent response={response} isLoading={isLoading} error={error} searchParams={searchParams} />
         </FormProvider>
     );
 }
 
-function FormSections() {
+function FormSections({ searchParams }: { searchParams?: any }) {
     const { closeAddForm, addFormRef } = useFormContext<IMasterStudentCountReportList>();
 
     return (
@@ -50,7 +50,7 @@ function FormSections() {
                             className='-top-[3.5rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
                             <X className='h-4 w-4 text-destructive' /> Close
                         </Button>
-                        <AddStudentCountReportForm onSuccess={closeAddForm} />
+                        <AddStudentCountReportForm onSuccess={closeAddForm} searchParams={searchParams} />
                     </div>
                 </CollapsibleSection>
             </div>
@@ -61,11 +61,13 @@ function FormSections() {
 function StudentCountReportPageContent({
     response,
     isLoading,
-    error
+    error,
+    searchParams
 }: {
     response: any;
     isLoading: boolean;
     error: any;
+    searchParams?: any;
 }) {
     const tableProps = useDataTableProps(response);
 
@@ -76,7 +78,7 @@ function StudentCountReportPageContent({
                 <PreadmissionStatusCountReport />
 
                 {/* Add Form Section (shown first) */}
-                <FormSections />
+                <FormSections searchParams={searchParams} />
 
                 {/* Data Table Section */}
                 <CollapsibleSection
@@ -91,6 +93,7 @@ function StudentCountReportPageContent({
                         error={error}
                         showViewOptions={false}
                         columnPinning={{ right: ['actions'] }}
+                        isPaginationRequired={true}
                         loadingMessage='Loading  Student Count Reports...'
                         noDataTitle='No  Student Count Reports Found'
                         noDataDescription='Get started by creating your first Student Count Reports '

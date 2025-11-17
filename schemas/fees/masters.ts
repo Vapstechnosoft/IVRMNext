@@ -167,7 +167,7 @@ export const masterClassSchema = {
     }),
 
     delete: z.object({
-        fycC_Id: z.number().min(1, {
+        fyghm_id: z.number().min(1, {
             message: 'Valid Class Yearly Category ID is required for deletion'
         })
     })
@@ -547,7 +547,7 @@ export const masterOnlinePaymentHeadGroupSchema = {
         academicYear: z.string().optional()
     }),
     delete: z.object({
-        fmcC_Id: deleteIdSchema('fmcC_Id')
+        fopM_Id: deleteIdSchema('fopM_Id')
     })
 };
 
@@ -605,5 +605,19 @@ export const masterClassFeeMasterGroupwiseAutoReceipt = {
         fycC_Id: z.number().min(1, {
             message: 'Valid Class Yearly Category ID is required for deletion'
         })
+    })
+};
+
+export const masterConcessionCategorygroupHeadMappingSchema = {
+    addOrUpdate: z.object({
+        // fmcC_Id: z.number().int().optional(),
+        fmcC_Id: z.number({ message: 'Concession Category Type is required' }),
+        FMG_Id: z.number({ message: 'Group is required' }),
+        fmH_Ids: z.array(z.string()).nonempty('Please select at least one Head')
+
+        // installments: z.array(z.string()).nonempty('Please select at least one Installment'),
+    }),
+    delete: z.object({
+        fmaccG_Id: deleteIdSchema('fmaccG_Id')
     })
 };

@@ -258,7 +258,7 @@ export default function AddMasterGroupGrouping({ onSuccess, className = '' }: Ad
                             loadingText='Saving...'>
                             <div className='flex items-center'>
                                 <Save className='mr-2 h-4 w-4' />
-                                Save Master Group Grouping
+                                Save Group Grouping
                             </div>
                         </Button>
                     </div>

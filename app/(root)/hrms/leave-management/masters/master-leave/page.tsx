@@ -2,58 +2,125 @@
 
 import { Heading } from '@/components/layout/heading';
 import { Button } from '@/components/ui/button';
-import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/generic-data-table';
+import { GenericDataTable } from '@/components/ui/data-table/generic-data-table';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
-import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
-import { useMasterLeave } from '@/hooks/hrms/leave-management/useMasters';
-import { Plus, X } from 'lucide-react';
-import AddMasterLeaveForm from './_components/add-form';
-import { masterLeaveColumns, type MasterLeave } from './_components/columns';
-import UpdateMasterLeaveForm from './_components/update-form';
+import { createLocalCrud } from '@/lib/localdb';
+import { Plus } from 'lucide-react';
+import { useEffect, useMemo, useState } from 'react';
+import { toast } from 'sonner';
+import { getMasterLeaveColumns, type MasterLeave } from './_components/columns';
+import { LeaveForm } from './_components/leave-form';
+
+const masterLeaveDB = createLocalCrud<MasterLeave>('masterLeave');
 
 export default function MasterLeavePage() {
-    const { data: response, isLoading, error } = useMasterLeave();
+    const [data, setData] = useState<MasterLeave[]>([]);
+    const [isFormOpen, setIsFormOpen] = useState(false);
+    const [editingLeave, setEditingLeave] = useState<MasterLeave | null>(null);
 
-    return (
-        <FormProvider<MasterLeave>>
-            <MasterLeavePageContent response={response} isLoading={isLoading} error={error} />
-        </FormProvider>
+    const loadData = () => {
+        try {
+            const result = masterLeaveDB.list();
+            setData(result);
+        } catch (error) {
+            console.error('Error loading master leaves:', error);
+            toast.error('Failed to load master leaves');
+        }
+    };
+
+    useEffect(() => {
+        loadData();
+    }, []);
+
+    const handleAddClick = () => {
+        setIsFormOpen(true);
+        setEditingLeave(null);
+        // Scroll to form
+        setTimeout(() => {
+            const formElement = document.getElementById('master-leave-form');
+            if (formElement) {
+                formElement.scrollIntoView({ behavior: 'smooth' });
+            }
+        }, 100);
+    };
+
+    const handleFormClose = () => {
+        setIsFormOpen(false);
+        setEditingLeave(null);
+    };
+
+    const handleFormSubmit = (formData: MasterLeave) => {
+        try {
+            if (editingLeave) {
+                masterLeaveDB.update(editingLeave.id, formData);
+                toast.success('Master leave updated successfully');
+            } else {
+                masterLeaveDB.create(formData);
+                toast.success('Master leave created successfully');
+            }
+            loadData();
+            handleFormClose();
+        } catch (error) {
+            console.error('Error saving master leave:', error);
+            toast.error('Failed to save master leave');
+        }
+    };
+
+    const handleEdit = (leave: MasterLeave) => {
+        setEditingLeave(leave);
+        setIsFormOpen(true);
+        // Scroll to form
+        setTimeout(() => {
+            const formElement = document.getElementById('master-leave-form');
+            if (formElement) {
+                formElement.scrollIntoView({ behavior: 'smooth' });
+            }
+        }, 100);
+    };
+
+    const handleDelete = (id: number) => {
+        if (window.confirm('Are you sure you want to delete this master leave?')) {
+            try {
+                masterLeaveDB.remove(id);
+                toast.success('Master leave deleted successfully');
+                loadData();
+            } catch (error) {
+                console.error('Error deleting master leave:', error);
+                toast.error('Failed to delete master leave');
+            }
+        }
+    };
+
+    const handleToggleStatus = (leave: MasterLeave) => {
+        try {
+            masterLeaveDB.update(leave.id, { isActive: !leave.isActive });
+            toast.success(`Master leave ${leave.isActive ? 'deactivated' : 'activated'} successfully`);
+            loadData();
+        } catch (error) {
+            console.error('Error toggling master leave status:', error);
+            toast.error('Failed to toggle master leave status');
+        }
+    };
+
+    const columns = useMemo(
+        () => getMasterLeaveColumns({ onEdit: handleEdit, onDelete: handleDelete, onToggleStatus: handleToggleStatus }),
+        [handleEdit, handleDelete, handleToggleStatus]
     );
-}
-
-function MasterLeavePageContent({
-    response,
-    isLoading,
-    error
-}: {
-    response: any;
-    isLoading: boolean;
-    error: any;
-}) {
-    const { openAddForm } = useFormContext<MasterLeave>();
-    const tableProps = useDataTableProps({
-        data: response?.data || [],
-        totalItems: response?.data?.length || 0
-    });
 
     return (
         <div className='min-h-screen'>
             <div className='container space-y-4 p-1'>
-                {/* Header */}
                 <div className='flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between'>
                     <div className='space-y-1'>
                         <Heading title='Leave Management' description='Master Leave Management' />
                     </div>
-                    <Button
-                        type='button'
-                        onClick={openAddForm}
-                        className='w-fit shadow-md transition-all duration-200 hover:scale-105 hover:shadow-lg'>
-                        <Plus className='h-4 w-4' />
+                    <Button onClick={handleAddClick} className='bg-blue-600 hover:bg-blue-700'>
+                        <Plus className='mr-2 h-4 w-4' />
                         Add Master Leave
                     </Button>
                 </div>
 
-                {/* Data Table Section */}
+                {/* Table Section */}
                 <CollapsibleSection
                     title='Master Leave List'
                     description=''
@@ -61,88 +128,24 @@ function MasterLeavePageContent({
                     variant='default'
                     size='lg'
                     className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
-                    <GenericDataTable<MasterLeave>
-                        {...tableProps}
-                        columns={masterLeaveColumns}
-                        isLoading={isLoading}
-                        error={error}
-                        showViewOptions={false}
-                        columnPinning={{ right: ['actions'] }}
-                        loadingMessage='Loading master leave...'
-                        noDataTitle='No Master Leave Found'
-                        noDataDescription='Get started by creating your first master leave'
-                        errorTitle='Error Loading Master Leave'
-                    />
+                    <GenericDataTable data={data} columns={columns} totalItems={data.length} isLoading={false} />
                 </CollapsibleSection>
 
-                {/* Forms */}
-                <FormSections />
+                {/* Form Section */}
+                {isFormOpen && (
+                    <div id='master-leave-form'>
+                        <CollapsibleSection
+                            title={editingLeave ? 'Edit Master Leave' : 'Add Master Leave'}
+                            description=''
+                            defaultOpen={true}
+                            variant='default'
+                            size='lg'
+                            className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
+                            <LeaveForm editingLeave={editingLeave} onSubmit={handleFormSubmit} onCancel={handleFormClose} />
+                        </CollapsibleSection>
+                    </div>
+                )}
             </div>
         </div>
-    );
-}
-
-function FormSections() {
-    const {
-        isAddFormOpen,
-        isEditFormOpen,
-        selectedRow,
-        closeAddForm,
-        closeEditForm,
-        addFormRef,
-        editFormRef
-    } = useFormContext<MasterLeave>();
-
-    return (
-        <>
-            {/* Add Form */}
-            {isAddFormOpen && (
-                <div ref={addFormRef}>
-                    <CollapsibleSection
-                        title='Add New Master Leave'
-                        description='Fill in the details below to create a new master leave'
-                        defaultOpen={true}
-                        variant='outline'
-                        size='md'
-                        className='slide-in-from-top-4 animate-in shadow-lg duration-300'>
-                        <div className='relative'>
-                            <Button
-                                type='button'
-                                onClick={closeAddForm}
-                                variant='ghost'
-                                size='sm'
-                                className='-top-[3.5rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
-                                <X className='h-4 w-4 text-destructive' /> Close
-                            </Button>
-                            <AddMasterLeaveForm onSuccess={closeAddForm} />
-                        </div>
-                    </CollapsibleSection>
-                </div>
-            )}
-
-            {/* Edit Form */}
-            {isEditFormOpen && selectedRow && (
-                <div ref={editFormRef}>
-                    <CollapsibleSection
-                        title='Edit Master Leave'
-                        defaultOpen={true}
-                        variant='outline'
-                        size='md'
-                        className='slide-in-from-top-4 animate-in border-primary/20 shadow-lg duration-300'>
-                        <div className='relative'>
-                            <Button
-                                type='button'
-                                onClick={closeEditForm}
-                                variant='ghost'
-                                size='sm'
-                                className='-top-[3.5rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
-                                <X className='h-4 w-4 text-destructive' /> Close
-                            </Button>
-                            <UpdateMasterLeaveForm selectedRow={selectedRow} onSuccess={closeEditForm} />
-                        </div>
-                    </CollapsibleSection>
-                </div>
-            )}
-        </>
     );
 }
