@@ -3,7 +3,7 @@
 import { Button } from '@/components/ui/button';
 import { AdaptiveBody, AdaptiveDialog, AdaptiveFooter } from '@/components/ui/extension/adaptive-dialog';
 import { FormError } from '@/components/ui/extension/field';
-import { useMasterClassCategory } from '@/hooks/admission/preadmission/useMasters';
+import { usePreAdmissionAcademicYear } from '@/hooks/admission/preadmission/useConfigurations';
 import { PreAdmissionAcademicYearSchema } from '@/schemas/admission/preadmission/academic-year';
 import { togglePreAdmissionAcademicYear } from '@/server/admission/preadmission/configuration/academic_year_master';
 
@@ -21,7 +21,7 @@ interface togglePreAdmissionAcademicYearFormProps {
 }
 
 export default function TogglePreAdmissionAcademicYearForm({ rowData, onClose }: togglePreAdmissionAcademicYearFormProps) {
-    const { refetchAll } = useMasterClassCategory();
+    const { refetchAll } = usePreAdmissionAcademicYear();
     const isActive = rowData.is_Active;
 
     const {

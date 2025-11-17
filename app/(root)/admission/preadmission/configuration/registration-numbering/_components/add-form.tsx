@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { FormError, Label } from '@/components/ui/extension/field';
 import { Input } from '@/components/ui/input';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { useRegistrationNumbering } from '@/hooks/admission/preadmission/useConfigurations';
 import { transactionnumberingSchema } from '@/schemas/admission/preadmission/academic-year';
 import { addOrUpdateTransactionNumbering } from '@/server/admission/preadmission/configuration/transaction_numbering';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -20,6 +21,7 @@ interface AddRegistrationNumberingFormProps {
 }
 
 export default function AddRegistrationNumberingForm({ onSuccess, className = '' }: AddRegistrationNumberingFormProps) {
+    const { refetchAll } = useRegistrationNumbering();
     const {
         control,
         handleSubmit,
@@ -54,12 +56,12 @@ export default function AddRegistrationNumberingForm({ onSuccess, className = ''
                 imN_DuplicatesFlag: '',
                 imN_StartingNo: data.suffix_starting_from.toString(),
                 imN_WidthNumeric: data.prefix_numeric_width.toString(),
-                imN_ZeroPrefixFlag: data.prefix_with_zero === 'yes' ? 'Y' : 'N',
+                imN_ZeroPrefixFlag: data.prefix_with_zero === 'yes' ? 'Yes' : 'No',
                 imN_PrefixAcadYearCode: data.prefix_type === 'academic',
                 imN_PrefixParticular: data.prefix_type === 'particulars' ? data.prefix_particulars || '' : '',
                 imN_SuffixAcadYearCode: data.suffix_type === 'academic',
                 imN_SuffixParticular: data.suffix_type === 'particulars' ? data.suffix_particulars || '' : '',
-                imN_RestartNumFlag: data.restart_frequency === 'yearly' ? 'Y' : 'N',
+                imN_RestartNumFlag: data.restart_frequency === 'yearly' ? 'Yearly' : 'Nevere',
                 imN_Flag: 'Registration',
                 imN_PrefixFinYearCode: data.prefix_type === 'academic',
                 imN_PrefixCalYearCode: data.prefix_type === 'academic',
@@ -67,10 +69,15 @@ export default function AddRegistrationNumberingForm({ onSuccess, className = ''
                 imN_SuffixCalYearCode: data.suffix_type === 'academic'
             };
 
-            await addOrUpdateTransactionNumbering(payload);
-            toast.success('Numbering configuration saved successfully!');
-            reset();
-            onSuccess?.();
+            const response = await addOrUpdateTransactionNumbering(payload);
+            if (response.success) {
+                toast.success(response.message ?? 'Saved');
+                reset();
+                onSuccess?.();
+                refetchAll();
+            } else {
+                toast.error(response.message ?? 'Failed');
+            }
         } catch (error: any) {
             toast.error(error.message || 'Failed to save configuration');
         }

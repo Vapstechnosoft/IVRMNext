@@ -158,10 +158,10 @@ export async function getUserAccessibleModules() {
                                         },
                                         {
                                             id: 12,
-                                            name: 'Class Teacher',
+                                            name: 'Master Class Teacher',
                                             icon: 'Settings',
                                             url: '/admission/preadmission/masters/class-teacher',
-                                            title: 'Class Teacher',
+                                            title: 'Master Class Teacher',
                                             description: 'Manage Master Class Teacher Details'
                                         }
                                     ]
@@ -252,6 +252,21 @@ export async function getUserAccessibleModules() {
                                         }
                                     ]
                                 }
+                                // {
+                                //   id: 4,
+                                //   name: "Reports",
+                                //   icon: "Settings",
+                                //   pages: [
+                                //     {
+                                //       id: 21,
+                                //       name: "Student Count Report",
+                                //       icon: "Settings",
+                                //       url: "/admission/preadmission/reports/student-count-report",
+                                //       title: "Student Count Report",
+                                //       description: "Student Count Report",
+                                //     },
+                                //   ],
+                                // },
                             ]
                         }
                     ]

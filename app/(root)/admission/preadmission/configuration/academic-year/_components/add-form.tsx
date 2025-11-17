@@ -53,6 +53,15 @@ export default function AddMasterAcademicYearForm({ onSuccess, className = '' }:
     const academicFromYear = useWatch({ control, name: 'academicFromYear' });
     const academicToYear = useWatch({ control, name: 'academicToYear' });
 
+    // Watch all "From" dates to restrict "To" dates
+    const academicFromDate = useWatch({ control, name: 'asmaY_From_Date' });
+    const preAdmFromDate = useWatch({ control, name: 'asmaY_PreAdm_F_Date' });
+    const transportFromDate = useWatch({ control, name: 'asmaY_TransportSDate' });
+    const regularFeeFromDate = useWatch({
+        control,
+        name: 'asmaY_RegularFeeFDate'
+    });
+
     // Auto-generate asmaY_Year like "2024-2025"
     useEffect(() => {
         if (academicFromYear && academicToYear) {
@@ -142,6 +151,7 @@ export default function AddMasterAcademicYearForm({ onSuccess, className = '' }:
                                 {...register('asmaY_AcademicYearCode')}
                                 error={errors.asmaY_AcademicYearCode?.message}
                             />
+
                             <div className='flex flex-col gap-1.5'>
                                 <Controller
                                     name='asmaY_Order'
@@ -165,13 +175,13 @@ export default function AddMasterAcademicYearForm({ onSuccess, className = '' }:
                     {/* Academic Year Dates */}
                     <div className='space-y-4'>
                         <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
+                            {/* Start Date */}
                             <Controller
                                 name='asmaY_From_Date'
                                 control={control}
                                 render={({ field }) => (
                                     <div className='flex flex-col gap-1.5'>
                                         <Label>
-                                            {' '}
                                             Start Date<span className='text-red-600'> *</span>
                                         </Label>
                                         <Popover>
@@ -193,7 +203,6 @@ export default function AddMasterAcademicYearForm({ onSuccess, className = '' }:
                                                     mode='single'
                                                     selected={field.value ? new Date(field.value) : undefined}
                                                     onSelect={(date) => field.onChange(date?.toISOString())}
-                                                    required
                                                     toDate={new Date(new Date().getFullYear() + 1, 11, 31)}
                                                 />
                                             </PopoverContent>
@@ -203,6 +212,7 @@ export default function AddMasterAcademicYearForm({ onSuccess, className = '' }:
                                 )}
                             />
 
+                            {/* End Date - Cannot be before Start Date */}
                             <Controller
                                 name='asmaY_To_Date'
                                 control={control}
@@ -230,8 +240,8 @@ export default function AddMasterAcademicYearForm({ onSuccess, className = '' }:
                                                     mode='single'
                                                     selected={field.value ? new Date(field.value) : undefined}
                                                     onSelect={(date) => field.onChange(date?.toISOString())}
-                                                    required
-                                                    toDate={new Date(new Date().getFullYear() + 1, 11, 31)}
+                                                    fromDate={academicFromDate ? new Date(academicFromDate) : undefined}
+                                                    toDate={new Date(new Date().getFullYear() + 2, 11, 31)}
                                                 />
                                             </PopoverContent>
                                         </Popover>
@@ -312,7 +322,8 @@ export default function AddMasterAcademicYearForm({ onSuccess, className = '' }:
                                                     mode='single'
                                                     selected={field.value ? new Date(field.value) : undefined}
                                                     onSelect={(date) => field.onChange(date?.toISOString())}
-                                                    toDate={new Date(new Date().getFullYear() + 1, 11, 31)}
+                                                    fromDate={preAdmFromDate ? new Date(preAdmFromDate) : undefined}
+                                                    toDate={new Date(new Date().getFullYear() + 2, 11, 31)}
                                                 />
                                             </PopoverContent>
                                         </Popover>
@@ -325,7 +336,7 @@ export default function AddMasterAcademicYearForm({ onSuccess, className = '' }:
                         </div>
                     </div>
 
-                    {/* Transport Dates */}
+                    {/* Cut-off & Reference Dates */}
                     <div className='space-y-4'>
                         <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
                             <Controller
@@ -380,8 +391,7 @@ export default function AddMasterAcademicYearForm({ onSuccess, className = '' }:
                                                     variant='outline'
                                                     className={cn(
                                                         'w-full justify-start text-left font-normal',
-                                                        !field.value && 'text-muted-foreground',
-                                                        errors.asmaY_ReferenceDate && 'border-red-500'
+                                                        !field.value && 'text-muted-foreground'
                                                     )}>
                                                     <CalendarIcon className='mr-2 h-4 w-4' />
                                                     {field.value ? format(new Date(field.value), 'dd/MM/yyyy') : 'Select date'}
@@ -392,20 +402,16 @@ export default function AddMasterAcademicYearForm({ onSuccess, className = '' }:
                                                     mode='single'
                                                     selected={field.value ? new Date(field.value) : undefined}
                                                     onSelect={(date) => field.onChange(date?.toISOString())}
-                                                    toDate={new Date(new Date().getFullYear() + 1, 11, 31)}
                                                 />
                                             </PopoverContent>
                                         </Popover>
-                                        {errors.asmaY_ReferenceDate && (
-                                            <p className='text-red-500 text-sm'>{errors.asmaY_ReferenceDate.message}</p>
-                                        )}
                                     </div>
                                 )}
                             />
                         </div>
                     </div>
 
-                    {/* Fee Dates */}
+                    {/* Transport Dates */}
                     <div className='space-y-4'>
                         <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
                             <Controller
@@ -421,8 +427,7 @@ export default function AddMasterAcademicYearForm({ onSuccess, className = '' }:
                                                     variant='outline'
                                                     className={cn(
                                                         'w-full justify-start text-left font-normal',
-                                                        !field.value && 'text-muted-foreground',
-                                                        errors.asmaY_TransportSDate && 'border-red-500'
+                                                        !field.value && 'text-muted-foreground'
                                                     )}>
                                                     <CalendarIcon className='mr-2 h-4 w-4' />
                                                     {field.value ? format(new Date(field.value), 'dd/MM/yyyy') : 'Select date'}
@@ -433,13 +438,9 @@ export default function AddMasterAcademicYearForm({ onSuccess, className = '' }:
                                                     mode='single'
                                                     selected={field.value ? new Date(field.value) : undefined}
                                                     onSelect={(date) => field.onChange(date?.toISOString())}
-                                                    toDate={new Date(new Date().getFullYear() + 1, 11, 31)}
                                                 />
                                             </PopoverContent>
                                         </Popover>
-                                        {errors.asmaY_TransportSDate && (
-                                            <p className='text-red-500 text-sm'>{errors.asmaY_TransportSDate.message}</p>
-                                        )}
                                     </div>
                                 )}
                             />
@@ -457,8 +458,7 @@ export default function AddMasterAcademicYearForm({ onSuccess, className = '' }:
                                                     variant='outline'
                                                     className={cn(
                                                         'w-full justify-start text-left font-normal',
-                                                        !field.value && 'text-muted-foreground',
-                                                        errors.asmaY_TransportEDate && 'border-red-500'
+                                                        !field.value && 'text-muted-foreground'
                                                     )}>
                                                     <CalendarIcon className='mr-2 h-4 w-4' />
                                                     {field.value ? format(new Date(field.value), 'dd/MM/yyyy') : 'Select date'}
@@ -469,18 +469,18 @@ export default function AddMasterAcademicYearForm({ onSuccess, className = '' }:
                                                     mode='single'
                                                     selected={field.value ? new Date(field.value) : undefined}
                                                     onSelect={(date) => field.onChange(date?.toISOString())}
-                                                    toDate={new Date(new Date().getFullYear() + 1, 11, 31)}
+                                                    fromDate={transportFromDate ? new Date(transportFromDate) : undefined}
                                                 />
                                             </PopoverContent>
                                         </Popover>
-                                        {errors.asmaY_TransportEDate && (
-                                            <p className='text-red-500 text-sm'>{errors.asmaY_TransportEDate.message}</p>
-                                        )}
                                     </div>
                                 )}
                             />
                         </div>
+                    </div>
 
+                    {/* Financial Year Dates */}
+                    <div className='space-y-4'>
                         <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
                             <Controller
                                 name='asmaY_RegularFeeFDate'
@@ -495,8 +495,7 @@ export default function AddMasterAcademicYearForm({ onSuccess, className = '' }:
                                                     variant='outline'
                                                     className={cn(
                                                         'w-full justify-start text-left font-normal',
-                                                        !field.value && 'text-muted-foreground',
-                                                        errors.asmaY_RegularFeeFDate && 'border-red-500'
+                                                        !field.value && 'text-muted-foreground'
                                                     )}>
                                                     <CalendarIcon className='mr-2 h-4 w-4' />
                                                     {field.value ? format(new Date(field.value), 'dd/MM/yyyy') : 'Select date'}
@@ -507,13 +506,9 @@ export default function AddMasterAcademicYearForm({ onSuccess, className = '' }:
                                                     mode='single'
                                                     selected={field.value ? new Date(field.value) : undefined}
                                                     onSelect={(date) => field.onChange(date?.toISOString())}
-                                                    toDate={new Date(new Date().getFullYear() + 1, 11, 31)}
                                                 />
                                             </PopoverContent>
                                         </Popover>
-                                        {errors.asmaY_RegularFeeFDate && (
-                                            <p className='text-red-500 text-sm'>{errors.asmaY_RegularFeeFDate.message}</p>
-                                        )}
                                     </div>
                                 )}
                             />
@@ -531,8 +526,7 @@ export default function AddMasterAcademicYearForm({ onSuccess, className = '' }:
                                                     variant='outline'
                                                     className={cn(
                                                         'w-full justify-start text-left font-normal',
-                                                        !field.value && 'text-muted-foreground',
-                                                        errors.asmaY_RegularFeeTDate && 'border-red-500'
+                                                        !field.value && 'text-muted-foreground'
                                                     )}>
                                                     <CalendarIcon className='mr-2 h-4 w-4' />
                                                     {field.value ? format(new Date(field.value), 'dd/MM/yyyy') : 'Select date'}
@@ -543,21 +537,15 @@ export default function AddMasterAcademicYearForm({ onSuccess, className = '' }:
                                                     mode='single'
                                                     selected={field.value ? new Date(field.value) : undefined}
                                                     onSelect={(date) => field.onChange(date?.toISOString())}
-                                                    toDate={new Date(new Date().getFullYear() + 1, 11, 31)}
+                                                    fromDate={regularFeeFromDate ? new Date(regularFeeFromDate) : undefined}
                                                 />
                                             </PopoverContent>
                                         </Popover>
-                                        {errors.asmaY_RegularFeeTDate && (
-                                            <p className='text-red-500 text-sm'>{errors.asmaY_RegularFeeTDate.message}</p>
-                                        )}
                                     </div>
                                 )}
                             />
                         </div>
-                    </div>
 
-                    {/* Other Dates */}
-                    <div className='space-y-4'>
                         <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
                             <Controller
                                 name='asmaY_AdvanceFeeDate'
@@ -572,8 +560,7 @@ export default function AddMasterAcademicYearForm({ onSuccess, className = '' }:
                                                     variant='outline'
                                                     className={cn(
                                                         'w-full justify-start text-left font-normal',
-                                                        !field.value && 'text-muted-foreground',
-                                                        errors.asmaY_AdvanceFeeDate && 'border-red-500'
+                                                        !field.value && 'text-muted-foreground'
                                                     )}>
                                                     <CalendarIcon className='mr-2 h-4 w-4' />
                                                     {field.value ? format(new Date(field.value), 'dd/MM/yyyy') : 'Select date'}
@@ -584,13 +571,9 @@ export default function AddMasterAcademicYearForm({ onSuccess, className = '' }:
                                                     mode='single'
                                                     selected={field.value ? new Date(field.value) : undefined}
                                                     onSelect={(date) => field.onChange(date?.toISOString())}
-                                                    toDate={new Date(new Date().getFullYear() + 1, 11, 31)}
                                                 />
                                             </PopoverContent>
                                         </Popover>
-                                        {errors.asmaY_AdvanceFeeDate && (
-                                            <p className='text-red-500 text-sm'>{errors.asmaY_AdvanceFeeDate.message}</p>
-                                        )}
                                     </div>
                                 )}
                             />
@@ -608,8 +591,7 @@ export default function AddMasterAcademicYearForm({ onSuccess, className = '' }:
                                                     variant='outline'
                                                     className={cn(
                                                         'w-full justify-start text-left font-normal',
-                                                        !field.value && 'text-muted-foreground',
-                                                        errors.asmaY_ArrearFeeDate && 'border-red-500'
+                                                        !field.value && 'text-muted-foreground'
                                                     )}>
                                                     <CalendarIcon className='mr-2 h-4 w-4' />
                                                     {field.value ? format(new Date(field.value), 'dd/MM/yyyy') : 'Select date'}
@@ -620,13 +602,9 @@ export default function AddMasterAcademicYearForm({ onSuccess, className = '' }:
                                                     mode='single'
                                                     selected={field.value ? new Date(field.value) : undefined}
                                                     onSelect={(date) => field.onChange(date?.toISOString())}
-                                                    toDate={new Date(new Date().getFullYear() + 1, 11, 31)}
                                                 />
                                             </PopoverContent>
                                         </Popover>
-                                        {errors.asmaY_ArrearFeeDate && (
-                                            <p className='text-red-500 text-sm'>{errors.asmaY_ArrearFeeDate.message}</p>
-                                        )}
                                     </div>
                                 )}
                             />
@@ -636,7 +614,7 @@ export default function AddMasterAcademicYearForm({ onSuccess, className = '' }:
                     {/* Boolean Flags */}
                     <div className='space-y-4'>
                         <h3 className='font-medium text-lg'>Flags</h3>
-                        <div className='flex justify-start gap-4'>
+                        <div className='flex flex-wrap gap-6'>
                             <div className='flex items-center space-x-2'>
                                 <Controller
                                     name='asmaY_NewAdmissionFlg'
@@ -682,32 +660,31 @@ export default function AddMasterAcademicYearForm({ onSuccess, className = '' }:
                                     )}
                                 />
                                 <Label htmlFor='asmaY_Pre_ActiveFlag' className='cursor-pointer'>
-                                    Preadmission Flag
+                                    Preadmission Active Flag
                                 </Label>
                             </div>
                         </div>
                     </div>
 
-                    {/* Root Error */}
                     {errors.root && <FormError>{errors.root.message}</FormError>}
                 </div>
 
                 {/* Action Buttons */}
-                <div className='flex flex-col gap-3 border-t pt-4 sm:flex-row sm:justify-start'>
+                <div className='flex flex-col gap-3 border-t pt-6 sm:flex-row sm:justify-start'>
                     <Button
                         type='button'
                         variant='outline'
                         onClick={handleReset}
                         disabled={isSubmitting}
-                        className='order-2 w-fit transition-all duration-200 hover:scale-105 sm:order-1'>
+                        className='order-2 w-full sm:order-1 sm:w-fit'>
                         Reset
                     </Button>
                     <Button
                         type='submit'
                         disabled={isSubmitting}
-                        className='order-1 w-fit transition-all duration-200 hover:scale-105 sm:order-2'
                         isLoading={isSubmitting}
-                        loadingText='Saving...'>
+                        loadingText='Saving...'
+                        className='order-1 w-full sm:order-2 sm:w-fit'>
                         <Save className='mr-2 h-4 w-4' />
                         Save Academic Year
                     </Button>

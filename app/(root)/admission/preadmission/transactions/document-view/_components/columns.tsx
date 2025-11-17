@@ -14,12 +14,12 @@ import { useEffect, useState } from 'react';
 export const DocumentViewColoumn: ColumnDef<IPreadmissionDocumentView>[] = [
     {
         accessorKey: 'pasr_id',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='SL.No' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='SL.No' className='w-full pl-6' />,
         cell: ({ row, table }) => {
             const pageIndex = table.getState().pagination.pageIndex;
             const pageSize = table.getState().pagination.pageSize;
             const continuousIndex = pageIndex * pageSize + row.index + 1;
-            return <div className='text-center'>{continuousIndex}</div>;
+            return <div className='w-full pl-6'>{continuousIndex}</div>;
         },
         enableSorting: true,
         enableHiding: false
@@ -30,21 +30,42 @@ export const DocumentViewColoumn: ColumnDef<IPreadmissionDocumentView>[] = [
         header: ({ column }) => <DataTableColumnHeader column={column} title='Image' />,
         cell: ({ row }) => {
             const imageUrl: string = row.getValue('student_photo') || '/icons/user.png';
+            const [showImageModal, setShowImageModal] = useState(false);
 
             return (
-                <div className='flex h-[100px] w-[100px] items-center justify-center overflow-hidden rounded-lg border bg-gray-100'>
-                    <Image
-                        src={imageUrl}
-                        alt='Preview'
-                        width={100}
-                        height={100}
-                        className='h-full w-full object-cover'
-                        onError={(e) => {
-                            const target = e.target as HTMLImageElement;
-                            target.style.display = 'none';
-                        }}
-                    />
-                </div>
+                <>
+                    <button
+                        type='button'
+                        onClick={() => imageUrl && setShowImageModal(true)}
+                        className='flex h-[100px] w-[100px] cursor-pointer items-center justify-center overflow-hidden rounded-lg border bg-gray-100'>
+                        <Image
+                            src={imageUrl}
+                            alt='Preview'
+                            width={100}
+                            height={100}
+                            className='h-full w-full object-cover'
+                            onError={(e) => {
+                                const target = e.target as HTMLImageElement;
+                                target.style.display = 'none';
+                            }}
+                        />
+                    </button>
+
+                    {showImageModal && (
+                        <Dialog open={showImageModal} onOpenChange={setShowImageModal}>
+                            <DialogContent className='text max-w-3xl'>
+                                <DialogHeader>{/* <DialogTitle className='text-center'>Student Photo</DialogTitle> */}</DialogHeader>
+                                <div className='flex items-center justify-center p-4'>
+                                    <img
+                                        src={imageUrl}
+                                        alt={row.getValue('student_name') ?? `student-${row.original.pasr_id}`}
+                                        className='max-h-[80vh] max-w-full object-contain'
+                                    />
+                                </div>
+                            </DialogContent>
+                        </Dialog>
+                    )}
+                </>
             );
         },
         enableSorting: true,
