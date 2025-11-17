@@ -12,10 +12,8 @@ export async function toggleMasterfeeInstallmentDueDate(_mi_id: 30, id: number) 
     const url = `/demo/${id}`;
     return await api.put('fees', url);
 }
-
 export async function getfeeInstallmentDueDate(searchParams?: ApiSearchparams) {
     const urlParams = getSearchParamsUrl(searchParams ?? {});
-    const url = `/fee_installment/GetUsedInstallmentList/30/${urlParams}`;
-    const res = await api.get<{ success: boolean; message: string; data: IMasterFeesInstallmentDueDateList[] }>('fees', url);
-    return res.data;
+    const url = `/fee_installment/GetUsedInstallmentList/30?${urlParams}`;
+    return await api.get<IMasterFeesInstallmentDueDateList>('fees', url);
 }

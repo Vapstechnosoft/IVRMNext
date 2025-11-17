@@ -1,7 +1,11 @@
 import { FEES_QUERY_KEYS } from '@/constants/query-keys';
 import { getModeOfPayment } from '@/server/fees/masters/modeOfPayment';
+// import { getFeeStudentTransactionDetails } from '@/server/fees/trasactions/fee_student_transaction';
 
 import { getAcademicYearDropdownData, getAmountEntry } from '@/server/fees/trasactions/feeAmountEntry';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+
+import { getFeeStudentTransactionDetails } from '@/server/fees/trasactions/fee_student_transaction';
 import { getFeePreadmissionTransactionList, getPreadmissionStudentDropdownData } from '@/server/fees/trasactions/feepreadmissiontrasaction';
 import {
     getThirdPartyTrasaction,
@@ -10,7 +14,6 @@ import {
     getThirdPartyTrasactionHeadDropDown
 } from '@/server/fees/trasactions/thirdPartyTrasaction';
 import type { ApiSearchparams } from '@/types';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
 
 export const useFeeAmountEntry = (searchParams?: ApiSearchparams) => {
     const queryClient = useQueryClient();
@@ -175,5 +178,23 @@ export const usePreadmissionStudentDropdownData = (searchText: string, radiovalu
                 queryKey: [FEES_QUERY_KEYS.FEE_PREADMISSION_STUDENT_DROPDOWN]
             });
         }
+    };
+};
+
+//hooks/fees/useTrasactions.ts
+
+export const useFeeTransactionList = (asmaY_Id: number, searchParams?: ApiSearchparams) => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [FEES_QUERY_KEYS.FEE_STUDENT_TRANSACTION, asmaY_Id, searchParams ?? {}],
+            queryFn: async () => getFeeStudentTransactionDetails(asmaY_Id, searchParams)
+        }),
+
+        refetchAll: () =>
+            queryClient.invalidateQueries({
+                queryKey: [FEES_QUERY_KEYS.FEE_STUDENT_TRANSACTION]
+            })
     };
 };
