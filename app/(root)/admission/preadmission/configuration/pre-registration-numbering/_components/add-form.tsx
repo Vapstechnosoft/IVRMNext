@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { FormError, Label } from '@/components/ui/extension/field';
 import { Input } from '@/components/ui/input';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { usePreRegistrationNumbering } from '@/hooks/admission/preadmission/useConfigurations';
 import { transactionnumberingSchema } from '@/schemas/admission/preadmission/academic-year';
 import { addOrUpdateTransactionNumbering } from '@/server/admission/preadmission/configuration/transaction_numbering';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -20,6 +21,7 @@ interface NumberingConfigFormProps {
 }
 
 export default function AddPreRegistrationNumberingForm({ onSuccess, className = '' }: NumberingConfigFormProps) {
+    const { refetchAll } = usePreRegistrationNumbering();
     const {
         control,
         handleSubmit,
@@ -67,10 +69,15 @@ export default function AddPreRegistrationNumberingForm({ onSuccess, className =
                 imN_SuffixCalYearCode: data.suffix_type === 'academic'
             };
 
-            await addOrUpdateTransactionNumbering(payload);
-            toast.success('Numbering configuration saved successfully!');
-            reset();
-            onSuccess?.();
+            const response = await addOrUpdateTransactionNumbering(payload);
+            if (response.success) {
+                toast.success(response.message ?? 'Saved');
+                reset();
+                onSuccess?.();
+                refetchAll();
+            } else {
+                toast.error(response.message ?? 'Failed');
+            }
         } catch (error: any) {
             toast.error(error.message || 'Failed to save configuration');
         }
