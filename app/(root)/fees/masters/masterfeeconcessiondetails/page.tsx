@@ -4,20 +4,19 @@ import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
 import { useMasterConcessionDetails } from '@/hooks/fees/useMasters';
-
 import type { IMasterConcessionDetailsList } from '@/types/fees/masters';
 import { Plus, X } from 'lucide-react';
 import { use } from 'react';
-import AddMasterConcessionForm from './_components/add-form';
+import AddMasterConcessionForm from '../masterfeeconcession/_components/add-form';
 import { feeMasterConcessionDetailsColumns } from './_components/columns';
 import ToggleFeesConcessionDetails from './_components/toggle-form';
 import UpdateMasterConcessionDetailsForm from './_components/update-form';
 
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 
-export default function feeconcessionPage(props: { searchParams: SearchParams }) {
+export default function feeconcessionDetailsPage(props: { searchParams: SearchParams }) {
     const searchParams = use(props.searchParams);
-    const { data: response, isLoading, error } = useMasterConcessionDetails();
+    const { data: response, isLoading, error } = useMasterConcessionDetails(searchParams);
 
     return (
         <FormProvider<IMasterConcessionDetailsList>>

@@ -1,9 +1,6 @@
 'use client';
 
-import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
-import type { BaseEntity } from '@/lib/localdb';
 import type { ColumnDef } from '@tanstack/react-table';
-import { cn } from '@/lib/utils';
 
 // Leave Balance Row
 export interface LeaveBalanceRow {
@@ -12,7 +9,7 @@ export interface LeaveBalanceRow {
 }
 
 // Leave History Row
-export interface LeaveHistoryRow extends BaseEntity {
+export interface LeaveHistoryRow {
     leaveType: string;
     fromDate: string;
     toDate: string;
@@ -36,12 +33,12 @@ export type ApplyLeave = {
 export const leaveBalanceColumns: ColumnDef<LeaveBalanceRow>[] = [
     {
         accessorKey: 'leaveType',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Leave Type' />,
+        header: 'Leave Type',
         cell: ({ row }) => <div className='font-medium'>{row.getValue('leaveType')}</div>
     },
     {
         accessorKey: 'balance',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Balance' />,
+        header: 'Balance',
         cell: ({ row }) => <div className='text-center'>{row.getValue('balance')}</div>
     }
 ];
@@ -50,12 +47,12 @@ export const leaveBalanceColumns: ColumnDef<LeaveBalanceRow>[] = [
 export const leaveHistoryColumns: ColumnDef<LeaveHistoryRow>[] = [
     {
         accessorKey: 'leaveType',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Leave Type' />,
+        header: 'Leave Type',
         cell: ({ row }) => <div className='font-medium'>{row.getValue('leaveType')}</div>
     },
     {
         accessorKey: 'fromDate',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='From Date' />,
+        header: 'From Date',
         cell: ({ row }) => {
             const date = row.getValue('fromDate') as string;
             return <div>{new Date(date).toLocaleDateString()}</div>;
@@ -63,7 +60,7 @@ export const leaveHistoryColumns: ColumnDef<LeaveHistoryRow>[] = [
     },
     {
         accessorKey: 'toDate',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='To Date' />,
+        header: 'To Date',
         cell: ({ row }) => {
             const date = row.getValue('toDate') as string;
             return <div>{new Date(date).toLocaleDateString()}</div>;
@@ -71,12 +68,12 @@ export const leaveHistoryColumns: ColumnDef<LeaveHistoryRow>[] = [
     },
     {
         accessorKey: 'days',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Days' />,
+        header: 'Days',
         cell: ({ row }) => <div className='text-center'>{row.getValue('days')}</div>
     },
     {
         accessorKey: 'status',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Status' />,
+        header: 'Status',
         cell: ({ row }) => {
             const status = row.getValue('status') as string;
             const statusColors = {
@@ -86,10 +83,9 @@ export const leaveHistoryColumns: ColumnDef<LeaveHistoryRow>[] = [
             };
             return (
                 <span
-                    className={cn(
-                        'inline-flex rounded-full px-2 py-1 font-medium text-xs',
+                    className={`inline-flex rounded-full px-2 py-1 font-medium text-xs ${
                         statusColors[status as keyof typeof statusColors] || 'bg-gray-100 text-gray-700'
-                    )}>
+                    }`}>
                     {status}
                 </span>
             );

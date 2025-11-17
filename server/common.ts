@@ -350,6 +350,14 @@ export async function getUserAccessibleModules() {
                                             title: 'Concession Category Details',
                                             description: 'Concession Category Details'
                                         },
+                                        //  {
+                                        //     id: 650,
+                                        //     name: ' Concession Category Group Head Mapping',
+                                        //     icon: 'Settings',
+                                        //     url: '/fees/masters/concessioncategorygroupheadmapping',
+                                        //     title: 'Concession Category Group Head Mapping',
+                                        //     description: 'Concession Category Group Head Mapping'
+                                        // },
                                         {
                                             id: 27,
                                             name: 'Fee Terms',
@@ -398,14 +406,14 @@ export async function getUserAccessibleModules() {
                                             title: 'Fee Installment',
                                             description: ' Manage Fee Installment'
                                         },
-                                        // {
-                                        //     id: 32,
-                                        //     name: 'Installment due date',
-                                        //     icon: 'Settings',
-                                        //     url: '/fees/masters/feesinstallmentduedate',
-                                        //     title: 'Installment due date',
-                                        //     description: 'Installment due date'
-                                        // },
+                                        {
+                                            id: 32,
+                                            name: 'Installment due date',
+                                            icon: 'Settings',
+                                            url: '/fees/masters/feesinstallmentduedate',
+                                            title: 'Installment due date',
+                                            description: 'Installment due date'
+                                        },
                                         {
                                             id: 33,
                                             name: 'Group Grouping',
@@ -430,11 +438,12 @@ export async function getUserAccessibleModules() {
                                             title: 'Yearly Groups',
                                             description: 'Manage Yearly Groups'
                                         },
+
                                         {
                                             id: 36,
                                             name: 'Yearly Groups Mapping',
                                             icon: 'Settings',
-                                            url: '/fees/masters/yearlyfeegroupmapping',
+                                            url: '/fees/masters/yearlygroupmapping',
                                             title: 'Yearly Groups Mapping',
                                             description: 'Manage Yearly Groups Mapping'
                                         },
@@ -446,22 +455,22 @@ export async function getUserAccessibleModules() {
                                             title: 'Group wise  Auto Receipt',
                                             description: 'Manage Group wise  Auto Receipt'
                                         },
-                                        // {
-                                        //     id: 38,
-                                        //     name: 'Yearly Rebate Settings',
-                                        //     icon: 'Settings',
-                                        //     url: '/fees/masters/yearlyrebatesetting',
-                                        //     title: 'Yearly Rebate Settings',
-                                        //     description: 'Manage Yeary Rebate Settings'
-                                        // },
-                                        // {
-                                        //     id: 39,
-                                        //     name: 'Fee Privilege',
-                                        //     icon: 'Settings',
-                                        //     url: '/fees/masters/feeprevilege',
-                                        //     title: 'Fee Privilege',
-                                        //     description: 'Manage Fee Privilege Details'
-                                        // },
+                                        {
+                                            id: 38,
+                                            name: 'Yearly Rebate Settings',
+                                            icon: 'Settings',
+                                            url: '/fees/masters/yearlyrebatesetting',
+                                            title: 'Yearly Rebate Settings',
+                                            description: 'Manage Yeary Rebate Settings'
+                                        },
+                                        {
+                                            id: 39,
+                                            name: 'Fee Privilege',
+                                            icon: 'Settings',
+                                            url: '/fees/masters/feeprevilege',
+                                            title: 'Fee Privilege',
+                                            description: 'Manage Fee Privilege Details'
+                                        },
                                         {
                                             id: 40,
                                             name: 'Online Payment Head Group',
@@ -484,40 +493,39 @@ export async function getUserAccessibleModules() {
                                             url: '/fees/transactions/feeamountentry',
                                             title: 'Fee Amount Entry',
                                             description: 'Manage Fee Amount Entry Details'
+                                        },
+                                        {
+                                            id: 41,
+                                            name: 'Third Party Transaction',
+                                            icon: 'Settings',
+                                            url: '/fees/transactions/thirdPartyTransaction',
+                                            title: 'Third Party Transaction',
+                                            description: 'Third Party Transaction'
+                                        },
+                                        {
+                                            id: 42,
+                                            name: 'Fee Opening Balance',
+                                            icon: 'Settings',
+                                            url: '/fees/transactions/feeopeningbalance',
+                                            title: 'Fee Opening Balance',
+                                            description: 'Fee Opening Balance'
+                                        },
+                                        {
+                                            id: 43,
+                                            name: 'Fee waivedoff',
+                                            icon: 'Settings',
+                                            url: '/fees/transactions/waivedoff',
+                                            title: 'Fee waivedoff',
+                                            description: 'Fee waivedoff'
+                                        },
+                                        {
+                                            id: 500,
+                                            name: 'Fee Preadmission Transaction',
+                                            icon: 'Settings',
+                                            url: '/fees/transactions/feepreadmissiontrasaction',
+                                            title: 'Fee Preadmission Transaction',
+                                            description: 'Fee Preadmission Transaction'
                                         }
-                                        // {
-                                        //     id: 41,
-                                        //     name: 'Third Party Transaction',
-                                        //     icon: 'Settings',
-                                        //     url: '/fees/transactions/thirdPartyTransaction',
-                                        //     title: 'Third Party Transaction',
-                                        //     description: 'Third Party Transaction'
-                                        // },
-                                        // {
-                                        //     id: 42,
-                                        //     name: 'Fee Opening Balance',
-                                        //     icon: 'Settings',
-                                        //     url: '/fees/transactions/feeopeningbalance',
-                                        //     title: 'Fee Opening Balance',
-                                        //     description: 'Fee Opening Balance'
-                                        // },
-                                        // {
-                                        //     id: 43,
-                                        //     name: 'Fee waivedoff',
-                                        //     icon: 'Settings',
-                                        //     url: '/fees/transactions/waivedoff',
-                                        //     title: 'Fee waivedoff',
-                                        //     description: 'Fee waivedoff'
-                                        // }
-                                        // ,
-                                        // {
-                                        //     id: 500,
-                                        //     name: 'Fee Preadmission Transaction',
-                                        //     icon: 'Settings',
-                                        //     url: '/fees/transactions/feepreadmissiontrasaction',
-                                        //     title: 'Fee Preadmission Transaction',
-                                        //     description: 'Fee Preadmission Transaction'
-                                        // }
                                     ]
                                 }
                             ]
@@ -610,6 +618,38 @@ export async function getUserAccessibleModules() {
                                             url: '/Exam/exam-module/masters/category-class-mapping',
                                             title: 'Category Class Mapping',
                                             description: 'Manage Category Class Mapping Details'
+                                        },
+                                        {
+                                            id: 200,
+                                            name: 'Co-Scholastic Activities',
+                                            icon: 'BookOpen',
+                                            url: '/Exam/exam-module/masters/co-scholastic-activities',
+                                            title: 'Co-Scholastic Activities',
+                                            description: 'Manage Co-Scholastic Activities Details'
+                                        },
+                                        {
+                                            id: 201,
+                                            name: 'Co-Scholastic Area',
+                                            icon: 'BookOpen',
+                                            url: '/Exam/exam-module/masters/co-scholastic-area',
+                                            title: 'Co-Scholastic Area',
+                                            description: 'Manage Co-Scholastic Area Details'
+                                        },
+                                        {
+                                            id: 202,
+                                            name: 'Life Skills',
+                                            icon: 'BookOpen',
+                                            url: '/Exam/exam-module/masters/life-skills',
+                                            title: 'Life Skills',
+                                            description: 'Manage Life Skills Details'
+                                        },
+                                        {
+                                            id: 203,
+                                            name: 'Life-Skills Area',
+                                            icon: 'BookOpen',
+                                            url: '/Exam/exam-module/masters/life-skills-area',
+                                            title: 'Life Skills Area',
+                                            description: 'Manage Life Skills Area Details'
                                         }
                                     ]
                                 },
@@ -620,14 +660,6 @@ export async function getUserAccessibleModules() {
                                     pages: [
                                         {
                                             id: 53,
-                                            name: 'Yearly category Subject Mapping',
-                                            icon: 'CalendarDays',
-                                            url: '/Exam/exam-module/exam-mapping/yearly-category-subject-mapping',
-                                            title: 'Yearly category Subject Mapping',
-                                            description: 'Manage Yearly category Subject Mapping Details'
-                                        },
-                                        {
-                                            id: 54,
                                             name: 'Exam Subject Wizard',
                                             icon: 'CalendarDays',
                                             url: '/Exam/exam-module/exam-mapping/exam-subject-wizard',
@@ -635,7 +667,23 @@ export async function getUserAccessibleModules() {
                                             description: 'Manage Exam Subject Wizard Details'
                                         },
                                         {
+                                            id: 54,
+                                            name: 'Exam Login Privilages',
+                                            icon: 'CalendarDays',
+                                            url: '/Exam/exam-module/exam-mapping/exam-login-privilages',
+                                            title: 'Exam Login Privilages',
+                                            description: 'Manage Exam Login Privilages Details'
+                                        },
+                                        {
                                             id: 55,
+                                            name: 'Yearly category Subject Mapping',
+                                            icon: 'CalendarDays',
+                                            url: '/Exam/exam-module/exam-mapping/yearly-category-subject-mapping',
+                                            title: 'Yearly category Subject Mapping',
+                                            description: 'Manage Yearly category Subject Mapping Details'
+                                        },
+                                        {
+                                            id: 56,
                                             name: 'Yearly Category Date Mapping',
                                             icon: 'CalendarDays',
                                             url: '/Exam/exam-module/exam-mapping/yearly-category-dates-mapping',
@@ -643,7 +691,7 @@ export async function getUserAccessibleModules() {
                                             description: 'Manage Yearly Category Date Mapping Details'
                                         },
                                         {
-                                            id: 56,
+                                            id: 57,
                                             name: 'Exam Subject Group Mapping',
                                             icon: 'BookOpen',
                                             url: '/Exam/exam-module/exam-mapping/exam-subject-group-mapping',
@@ -651,12 +699,28 @@ export async function getUserAccessibleModules() {
                                             description: 'Manage Exam Subject Group Mapping Details'
                                         },
                                         {
-                                            id: 57,
+                                            id: 58,
                                             name: 'Exam Term And Exam Mapping',
                                             icon: 'BookOpen',
                                             url: '/Exam/exam-module/exam-mapping/exam-term-and-exam-mapping',
                                             title: 'Exam Term And Exam Mapping',
                                             description: 'Manage Exam Term And Exam Mapping Details'
+                                        },
+                                        {
+                                            id: 59,
+                                            name: 'Co-Scholastic Activity Area Mapping',
+                                            icon: 'BookOpen',
+                                            url: '/Exam/exam-module/exam-mapping/co-scholastic-activitiy-area-mapping',
+                                            title: 'Co-Scholastic Activity Area Mapping',
+                                            description: 'Manage Co-Scholastic Activity Area Mapping Details'
+                                        },
+                                        {
+                                            id: 60,
+                                            name: 'Life Skill Area Mapping',
+                                            icon: 'BookOpen',
+                                            url: '/Exam/exam-module/exam-mapping/lifeskill-area-mapping',
+                                            title: 'Life Skill Area Mapping',
+                                            description: 'Manage Life Skill Area Mapping Details'
                                         }
                                     ]
                                 }

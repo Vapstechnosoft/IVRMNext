@@ -15,16 +15,7 @@ import { Controller, useFieldArray } from 'react-hook-form';
 import { StandardTabActions } from './standard-tab-actions';
 import { useState } from 'react';
 
-interface OtherDetailsTabProps {
-    control: any;
-    register: any;
-    errors: any;
-    isSubmitting: boolean;
-    watch: any;
-    onClear?: () => void;
-}
-
-export function OtherDetailsTab({ control, register, errors, isSubmitting, watch, onClear }: OtherDetailsTabProps) {
+export function OtherDetailsTab({ control, register, errors, isSubmitting, watch }: any) {
     const stopPension = watch('stopPension');
     const employeeLeft = watch('employeeLeft');
     const [stopPensionDateOpen, setStopPensionDateOpen] = useState(false);
@@ -199,13 +190,13 @@ export function OtherDetailsTab({ control, register, errors, isSubmitting, watch
                 </div>
             )}
 
-            <StandardTabActions errors={errors} isSubmitting={isSubmitting} onClear={onClear} />
+            <StandardTabActions errors={errors} isSubmitting={isSubmitting} />
         </div>
     );
 }
 
 // Qualification Tab Component
-function QualificationTab({ control, register, errors, isSubmitting, onClear }: any) {
+function QualificationTab({ control, register, errors, isSubmitting }: any) {
     const { fields, append, remove } = useFieldArray({
         control,
         name: 'qualificationDetails'
@@ -433,35 +424,27 @@ function QualificationTab({ control, register, errors, isSubmitting, onClear }: 
                             <Controller
                                 name={`qualificationDetails.${index}.registrationYear`}
                                 control={control}
-                                render={({ field }) => {
-                                    const [open, setOpen] = useState(false);
-                                    return (
-                                        <div className='space-y-2'>
-                                            <Label>Registration Year</Label>
-                                            <Popover open={open} onOpenChange={setOpen}>
-                                                <PopoverTrigger asChild>
-                                                    <Button variant='outline' className='w-full justify-start font-normal'>
-                                                        <CalendarIcon className='mr-2 h-4 w-4' />
-                                                        {field.value ? format(new Date(field.value), 'yyyy') : 'Select'}
-                                                    </Button>
-                                                </PopoverTrigger>
-                                                <PopoverContent className='w-auto p-0' align='start'>
-                                                    <DatePickerWithYear
-                                                        mode='single'
-                                                        selected={field.value ? new Date(field.value) : undefined}
-                                                        onSelect={(day) => {
-                                                            if (day) {
-                                                                field.onChange(format(day, 'yyyy-MM-dd'));
-                                                                setOpen(false);
-                                                            }
-                                                        }}
-                                                        initialFocus
-                                                    />
-                                                </PopoverContent>
-                                            </Popover>
-                                        </div>
-                                    );
-                                }}
+                                render={({ field }) => (
+                                    <div className='space-y-2'>
+                                        <Label>Registration Year</Label>
+                                        <Popover>
+                                            <PopoverTrigger asChild>
+                                                <Button variant='outline' className='w-full justify-start font-normal'>
+                                                    <CalendarIcon className='mr-2 h-4 w-4' />
+                                                    {field.value ? format(new Date(field.value), 'yyyy') : 'Select'}
+                                                </Button>
+                                            </PopoverTrigger>
+                                            <PopoverContent className='w-auto p-0' align='start'>
+                                                <DatePickerWithYear
+                                                    mode='single'
+                                                    selected={field.value ? new Date(field.value) : undefined}
+                                                    onDayClick={(day) => field.onChange(format(day, 'yyyy-MM-dd'))}
+                                                    initialFocus
+                                                />
+                                            </PopoverContent>
+                                        </Popover>
+                                    </div>
+                                )}
                             />
 
                             <InputText
@@ -493,41 +476,33 @@ function QualificationTab({ control, register, errors, isSubmitting, onClear }: 
                             <Controller
                                 name={`qualificationDetails.${index}.qualifiedDate`}
                                 control={control}
-                                render={({ field }) => {
-                                    const [open, setOpen] = useState(false);
-                                    return (
-                                        <div className='space-y-2'>
-                                            <Label>Qualified Date</Label>
-                                            <Popover open={open} onOpenChange={setOpen}>
-                                                <PopoverTrigger asChild>
-                                                    <Button variant='outline' className='w-full justify-start font-normal'>
-                                                        <CalendarIcon className='mr-2 h-4 w-4' />
-                                                        {field.value ? format(new Date(field.value), 'dd/MM/yyyy') : 'Select'}
-                                                    </Button>
-                                                </PopoverTrigger>
-                                                <PopoverContent className='w-auto p-0' align='start'>
-                                                    <DatePickerWithYear
-                                                        mode='single'
-                                                        selected={field.value ? new Date(field.value) : undefined}
-                                                        onSelect={(day) => {
-                                                            if (day) {
-                                                                field.onChange(format(day, 'yyyy-MM-dd'));
-                                                                setOpen(false);
-                                                            }
-                                                        }}
-                                                        initialFocus
-                                                    />
-                                                </PopoverContent>
-                                            </Popover>
-                                        </div>
-                                    );
-                                }}
+                                render={({ field }) => (
+                                    <div className='space-y-2'>
+                                        <Label>Qualified Date</Label>
+                                        <Popover>
+                                            <PopoverTrigger asChild>
+                                                <Button variant='outline' className='w-full justify-start font-normal'>
+                                                    <CalendarIcon className='mr-2 h-4 w-4' />
+                                                    {field.value ? format(new Date(field.value), 'dd/MM/yyyy') : 'Select'}
+                                                </Button>
+                                            </PopoverTrigger>
+                                            <PopoverContent className='w-auto p-0' align='start'>
+                                                <DatePickerWithYear
+                                                    mode='single'
+                                                    selected={field.value ? new Date(field.value) : undefined}
+                                                    onDayClick={(day) => field.onChange(format(day, 'yyyy-MM-dd'))}
+                                                    initialFocus
+                                                />
+                                            </PopoverContent>
+                                        </Popover>
+                                    </div>
+                                )}
                             />
                         </div>
                     </div>
                 ))}
             </div>
-            <StandardTabActions errors={errors} isSubmitting={isSubmitting} onClear={onClear} />
+            <StandardTabActions errors={errors} isSubmitting={isSubmitting} />
         </div>
     );
 }

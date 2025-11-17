@@ -1,14 +1,14 @@
 'use client';
 
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
-import { ActionButtons } from '@/components/ui/form/action-buttons';
-import { useFormContext } from '@/components/ui/form/form-provider';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuLabel, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { type BaseEntity } from '@/lib/localdb';
 import type { ColumnDef } from '@tanstack/react-table';
-import { useCallback } from 'react';
+import { Edit, MoreHorizontal, Trash2 } from 'lucide-react';
 
-export interface MasterHoliday {
-    id: number;
+export interface MasterHoliday extends BaseEntity {
     calendarYear: string;
     department: string;
     holidayType: string;
@@ -17,99 +17,84 @@ export interface MasterHoliday {
     fromDate: string;
     toDate: string;
     isActive: boolean;
-    createdAt: Date;
 }
 
-export const masterHolidayColumns: ColumnDef<MasterHoliday>[] = [
-    {
-        accessorKey: 'id',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Sl.No' />,
-        cell: ({ row, table }) => {
-            const pageIndex = table.getState().pagination.pageIndex;
-            const pageSize = table.getState().pagination.pageSize;
-            const continuousIndex = pageIndex * pageSize + row.index + 1;
-            return <div>{continuousIndex}</div>;
-        },
-        enableSorting: true,
-        enableHiding: false
-    },
-    {
-        accessorKey: 'name',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Name' />,
-        cell: ({ row }) => <div>{row.getValue('name')}</div>,
-        enableSorting: true,
-        enableHiding: true
-    },
-    {
-        accessorKey: 'holidayType',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Type' />,
-        cell: ({ row }) => <div>{row.getValue('holidayType')}</div>,
-        enableSorting: true,
-        enableHiding: true
-    },
-    {
-        accessorKey: 'department',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Department' />,
-        cell: ({ row }) => <div>{row.getValue('department')}</div>,
-        enableSorting: true,
-        enableHiding: true
-    },
-    {
-        accessorKey: 'fromDate',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='From Date' />,
-        cell: ({ row }) => <div>{new Date(row.getValue('fromDate')).toLocaleDateString()}</div>,
-        enableSorting: true,
-        enableHiding: true
-    },
-    {
-        accessorKey: 'toDate',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='To Date' />,
-        cell: ({ row }) => <div>{new Date(row.getValue('toDate')).toLocaleDateString()}</div>,
-        enableSorting: true,
-        enableHiding: true
-    },
-    {
-        accessorKey: 'isActive',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Status' />,
-        cell: ({ row }) => {
-            const isActive = row.getValue('isActive') as boolean;
-            return <Badge variant={isActive ? 'default' : 'secondary'}>{isActive ? 'Active' : 'Inactive'}</Badge>;
-        },
-        enableSorting: true,
-        enableHiding: true
-    },
-    {
-        id: 'actions',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Actions' className='text-start' />,
-        accessorFn: (row: any) => row,
-        enableSorting: false,
-        cell: ({ row }) => <ActionButtonsCell rowData={row.original} />
-    }
-];
+interface GetMasterHolidayColumnsProps {
+    onEdit: (holiday: MasterHoliday) => void;
+    onDelete: (id: number) => void;
+}
 
-function ActionButtonsCell({ rowData }: { rowData: MasterHoliday }) {
-    const { openEditForm, openDeleteForm } = useFormContext<MasterHoliday>();
-
-    const handleEdit = useCallback(
-        (data: MasterHoliday) => {
-            openEditForm(data);
+export function getMasterHolidayColumns({ onEdit, onDelete }: GetMasterHolidayColumnsProps): ColumnDef<MasterHoliday>[] {
+    return [
+        {
+            id: 'serialNumber',
+            header: ({ column }) => <DataTableColumnHeader column={column} title='SL. NO.' />,
+            cell: ({ row }) => <div className='font-medium'>{row.index + 1}</div>,
+            enableSorting: false
         },
-        [openEditForm]
-    );
-
-    const handleDelete = useCallback(
-        (data: MasterHoliday) => {
-            openDeleteForm(data);
+        {
+            accessorKey: 'name',
+            header: ({ column }) => <DataTableColumnHeader column={column} title='Name' />,
+            cell: ({ row }) => <div className='font-medium'>{row.getValue('name')}</div>
         },
-        [openDeleteForm]
-    );
-
-    return (
-        <ActionButtons
-            rowData={rowData}
-            buttons={{ edit: true, toggle: false, delete: true }}
-            onEdit={handleEdit}
-            onDelete={handleDelete}
-        />
-    );
+        {
+            accessorKey: 'holidayType',
+            header: ({ column }) => <DataTableColumnHeader column={column} title='Type' />,
+            cell: ({ row }) => <div>{row.getValue('holidayType')}</div>
+        },
+        {
+            accessorKey: 'department',
+            header: ({ column }) => <DataTableColumnHeader column={column} title='Department' />,
+            cell: ({ row }) => <div>{row.getValue('department')}</div>
+        },
+        {
+            accessorKey: 'fromDate',
+            header: ({ column }) => <DataTableColumnHeader column={column} title='From Date' />,
+            cell: ({ row }) => <div>{new Date(row.getValue('fromDate')).toLocaleDateString()}</div>
+        },
+        {
+            accessorKey: 'toDate',
+            header: ({ column }) => <DataTableColumnHeader column={column} title='To Date' />,
+            cell: ({ row }) => <div>{new Date(row.getValue('toDate')).toLocaleDateString()}</div>
+        },
+        {
+            accessorKey: 'isActive',
+            header: ({ column }) => <DataTableColumnHeader column={column} title='Status' />,
+            cell: ({ row }) => {
+                const isActive = row.getValue('isActive') as boolean;
+                return <Badge variant={isActive ? 'default' : 'secondary'}>{isActive ? 'Active' : 'Inactive'}</Badge>;
+            }
+        },
+        {
+            id: 'actions',
+            header: 'Action',
+            cell: ({ row }) => {
+                const holiday = row.original;
+                return (
+                    <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                            <Button variant='ghost' className='h-8 w-8 p-0'>
+                                <MoreHorizontal className='h-4 w-4' />
+                            </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align='end'>
+                            <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                            <Button variant='ghost' size='sm' onClick={() => onEdit(holiday)} className='w-full justify-start'>
+                                <Edit className='mr-2 h-4 w-4' />
+                                Edit
+                            </Button>
+                            <Button
+                                variant='ghost'
+                                size='sm'
+                                onClick={() => onDelete(holiday.id)}
+                                className='w-full justify-start text-red-600 hover:text-red-900'>
+                                <Trash2 className='mr-2 h-4 w-4' />
+                                Delete
+                            </Button>
+                        </DropdownMenuContent>
+                    </DropdownMenu>
+                );
+            }
+        }
+    ];
 }

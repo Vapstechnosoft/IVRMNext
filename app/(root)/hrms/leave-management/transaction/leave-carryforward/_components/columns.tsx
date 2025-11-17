@@ -1,11 +1,10 @@
 'use client';
 
+import { Button } from '@/components/ui/button';
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
-import { ActionButtons } from '@/components/ui/form/action-buttons';
-import { useFormContext } from '@/components/ui/form/form-provider';
 import { type BaseEntity } from '@/lib/localdb';
 import type { ColumnDef } from '@tanstack/react-table';
-import { useCallback } from 'react';
+import { Edit, Trash2 } from 'lucide-react';
 
 export interface LeaveCarryForward extends BaseEntity {
     fromYear: string;
@@ -17,19 +16,15 @@ export interface LeaveCarryForward extends BaseEntity {
     carryDays: number;
 }
 
-export const leaveCarryForwardColumns: ColumnDef<LeaveCarryForward>[] = [
-    {
-        accessorKey: 'id',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Sl.No' />,
-        cell: ({ row, table }) => {
-            const pageIndex = table.getState().pagination.pageIndex;
-            const pageSize = table.getState().pagination.pageSize;
-            const continuousIndex = pageIndex * pageSize + row.index + 1;
-            return <div>{continuousIndex}</div>;
-        },
-        enableSorting: true,
-        enableHiding: false
-    },
+interface LeaveCarryForwardColumnsProps {
+    onEdit: (row: LeaveCarryForward) => void;
+    onDelete: (id: number) => void;
+}
+
+export const getLeaveCarryForwardColumns = ({
+    onEdit,
+    onDelete
+}: LeaveCarryForwardColumnsProps): ColumnDef<LeaveCarryForward>[] => [
     {
         accessorKey: 'fromYear',
         header: ({ column }) => <DataTableColumnHeader column={column} title='From Year' />,
@@ -67,28 +62,19 @@ export const leaveCarryForwardColumns: ColumnDef<LeaveCarryForward>[] = [
     },
     {
         id: 'actions',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Actions' className='text-start' />,
-        accessorFn: (row: any) => row,
-        enableSorting: false,
-        cell: ({ row }) => <ActionButtonsCell rowData={row.original} />
+        header: 'Actions',
+        cell: ({ row }) => {
+            const entity = row.original;
+            return (
+                <div className='flex gap-2'>
+                    <Button variant='outline' size='sm' onClick={() => onEdit(entity)}>
+                        <Edit className='h-4 w-4' />
+                    </Button>
+                    <Button variant='outline' size='sm' onClick={() => onDelete(entity.id)}>
+                        <Trash2 className='h-4 w-4' />
+                    </Button>
+                </div>
+            );
+        }
     }
 ];
-
-function ActionButtonsCell({ rowData }: { rowData: LeaveCarryForward }) {
-    const { openEditForm } = useFormContext<LeaveCarryForward>();
-
-    const handleEdit = useCallback(
-        (data: LeaveCarryForward) => {
-            openEditForm(data);
-        },
-        [openEditForm]
-    );
-
-    return (
-        <ActionButtons
-            rowData={rowData}
-            buttons={{ edit: true, toggle: false, delete: false }}
-            onEdit={handleEdit}
-        />
-    );
-}

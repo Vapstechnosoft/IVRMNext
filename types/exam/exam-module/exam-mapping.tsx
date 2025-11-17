@@ -33,13 +33,16 @@ export interface IYearlyCategorySubjectMappingViewDetails {
 // -----------------------------------------------------------------------------
 
 export interface IExamLoginPrivileges {
-    elp_Id: number;
-    asmaY_Id: number;
+    elP_Id: number;
     asmaY_Year: string;
-    ivrmulF_Id: number;
-    hrmE_Id: number;
-    hrmE_EmployeeFirstName: string;
-    entryType: 'ct' | 'st' | 'others';
+    ivrmstauL_Id: number;
+    hrmE_EmployeeName: string;
+    elP_ActiveFlg: boolean;
+    asmcL_Id: number;
+    asmcL_ClassName: string;
+    asmS_Id: number;
+    asmC_SectionName: string;
+    asmaY_Order: number;
     classList: {
         asmcL_Id: number;
         asmcL_ClassName: string;
@@ -272,6 +275,21 @@ export interface IExamSubjectWizardDetails {
     pT_Count: number;
 }
 
+export interface ICoScholasticActivityAreaMapping {
+    ecacT_SkillName?: string; // "ACTIVITY"
+    ecactA_SkillArea?: string; // "ART EDUCATION"
+    emgR_GradeName?: string; // "100 Marks Percentage"
+    ecactaM_Id?: number; // 19
+    emgR_Id?: number; // 133
+    ecactaM_ActiveFlag: boolean; // true
+    ecactaM_IndicatorDescription?: string | null; // "string" (or null)
+    asmaY_Year?: string; // "2024-2025"
+    asmaY_Order?: number;
+    ecacT_Id?: number;
+    ecactA_Id?: number;
+    asmaY_Id?: number; // 26
+}
+
 export interface ISubSubjectSubExamMapped {
     eycessS_Id: number;
     eyceS_Id: number;
@@ -294,4 +312,22 @@ export interface ISubSubjectSubExamMapped {
     eycessS_MarksFlg: boolean;
     eycessS_AplResultFlg?: boolean;
     eycessS_MarksEntryMax?: number;
+}
+
+export interface ILifeSkillAreaMapping {
+    ecsaM_Id: number;
+    ecsA_Id: number;
+    ecS_Id: number;
+    mI_Id: number;
+    asmaY_Id: number;
+    emgR_Id: number;
+    ecS_SkillName: string;
+    ecsA_SkillArea: string;
+    ecsaM_IndicatorDescription: string;
+    emgR_NAME: string;
+    asmaY_Year: string;
+    asmaY_Order?: number;
+    ecsaM_ActiveFlag: boolean;
+    createdDate?: string;
+    updatedDate?: string;
 }

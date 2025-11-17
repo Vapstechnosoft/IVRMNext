@@ -87,6 +87,7 @@ export const FEES_QUERY_KEYS = {
     MASTER_INSTALLMENT_DROPDOWN: 'masterInstallmentsDropdown',
     FEE_MASTER_CONCESSION_DETAILS: 'masterfeeconcessiondetails',
     FEE_PAYMENTGATEWAY_DROPDOWN: 'paymentGatewayDropdown',
+    FEE_INSTITUTE_DROPDOWN: 'fee_institute_dropdown',
 
     FEE_AMOUNT_ENTRY: 'fee_amount_entry',
     FEE_CATEGORY_DROPDOWN: 'fee_category_dropdown',
@@ -115,7 +116,12 @@ export const FEES_QUERY_KEYS = {
     FEE_PREADMISSION_TRANSACTION_DETAILS: 'fee_preadmission_transaction_details',
     FEE_PREADMISSION_STUDENT_DROPDOWN: 'fee_preadmission_student_dropdown',
     FEE_TERM_HEAD_DUEDATE: 'fee_term_head_duedate',
-    FEE_CONCESSION_CATEGORY_DROPDOWN: 'fee_concession_category_dropdown'
+    FEE_CONCESSION_CATEGORY_DROPDOWN: 'fee_concession_category_dropdown',
+    FEE_CONCESSION_CATEGORY_GROUP_HEAD_MAPPING: 'fee_concession_category_group_head_mapping',
+    FEE_CONCESSION_CATEGORY_GROUP__DROPDOWN: 'fee_concession_category_group_dropdown',
+    FEE_CONCESSION_CATEGORY_HEADS__DROPDOWN: 'fee_concession_category_heads_dropdown',
+    FEE_CONCESSION_CATEGORY_DROPDOWNDATADETAILS: 'fee_concession_category_dropdowndetails',
+    FEE_STUDENT_TRANSACTION: 'fee_student_transaction'
 };
 
 export const EXAM_QUERY_KEYS = {
@@ -141,9 +147,21 @@ export const EXAM_QUERY_KEYS = {
     EXAM_TERM_AND_EXAM_MAPPING_DETAILS: 'exam-term-and-exam-mapping-details',
     EXAM_SUBJECT_WIZARD: 'exam-subject-wizard',
     EXAM_SUBJECT_WIZARD_DETAILS: 'exam-subject-wizard-details',
+
+    CO_SCHOLASTIC_ACTIVITY: 'co-scholastic-activity',
+    CO_SCHOLASTIC_AREA: 'co-scholastic-area',
+    CO_SCHOLASTIC_ACTIVITY_AREA_MAPPING: 'co-scholastic-activity-area-mapping',
+    CO_SCHOLASTIC_ACTIVITY_DROPDOWN: 'co-scholastic-activity-dropdown',
+    CO_SCHOLASTIC_AREA_DROPDOWN: 'co-scholastic-area-dropdown',
+
     SUB_EXAMS_MAPPED_VIEW: 'SUB_EXAMS_MAPPED_LIST',
     SUB_SUBJECTS_MAPPED_VIEW: 'SUB_SUBJECTS_MAPPED_LIST',
-    SUB_BOTH_MAPPED_VIEW: 'SUB_SUBJECTS_SUB_EXAMS_MAPPED_LIST'
+    SUB_BOTH_MAPPED_VIEW: 'SUB_SUBJECTS_SUB_EXAMS_MAPPED_LIST',
+
+    LIFE_SKILLS: 'life-skills',
+    LIFE_SKILLS_AREA: 'life-skills-area',
+    LIFE_SKILLS_MAPPING: 'life-skills-mapping',
+    LIFE_SKILLS_AREA_MAPPING: 'life-skills-area-mapping'
 };
 
 export const HRMS_QUERY_KEYS = {
@@ -191,41 +209,5 @@ export const HRMS_QUERY_KEYS = {
     SALARY_SLIP_GENERATE: 'hrms_salary_slip_generate',
     LOAN_REPORT_ONLOAD: 'hrms_loan_report_onload',
     LOAN_REPORT_FILTER: 'hrms_loan_report_filter',
-    LOAN_REPORT_SEARCH: 'hrms_loan_report_search',
-    // Attendance Management Masters
-    MASTER_SHIFT: 'attendance_master_shift',
-    MASTER_HOLIDAY: 'attendance_master_holiday',
-    SHIFT_SETTING_MASTER: 'attendance_shift_setting_master',
-    EMPLOYEE_SHIFT_MAPPING: 'attendance_employee_shift_mapping',
-    MASTER_DRIVER_SHIFT: 'attendance_master_driver_shift',
-    EMPLOYEE_MISSING_LOGS: 'attendance_employee_missing_logs',
-    GPS_LOCATION_ATTENDANCE: 'attendance_gps_location_attendance',
-    // Attendance Management Reports
-    EMPLOYEE_INOUT_REPORT: 'attendance_employee_inout_report',
-    EMPLOYEE_ABSENT_REPORT: 'attendance_employee_absent_report',
-    EMPLOYEE_LATEIN_EARLYOUT_REPORT: 'attendance_employee_latein_earlyout_report',
-    EMPLOYEE_LOG_REPORT: 'attendance_employee_log_report',
-    EMPLOYEE_YEARLY_REPORT: 'attendance_employee_yearly_report',
-    GPS_LOCATION_REPORT: 'attendance_gps_location_report',
-    HOLIDAY_REPORT: 'attendance_holiday_report',
-    FO_MONTHEND_REPORT: 'attendance_fo_monthend_report',
-    // Leave Management Masters
-    MASTER_LEAVE: 'leave_master_leave',
-    LEAVE_AUTHORIZATION: 'leave_leave_authorization',
-    // Leave Management Reports
-    LEAVE_REPORT: 'leave_leave_report',
-    OVERALL_REPORT: 'leave_overall_report',
-    UNAUTHORIZED_LEAVE_COUNT_REPORT: 'leave_unauthorized_leave_count_report',
-    // Leave Management Transactions
-    LEAVE_CREDIT: 'leave_leave_credit',
-    LEAVE_CREDIT_TRANSACTION: 'leave_leave_credit_transaction',
-    LEAVE_CREDIT_DETAILS: 'leave_leave_credit_details',
-    LEAVE_CREDIT_DEDUCTION: 'leave_leave_credit_deduction',
-    LEAVE_CREDIT_ADDITION: 'leave_leave_credit_addition',
-    LEAVE_CARRYFORWARD: 'leave_leave_carryforward',
-    COMP_OFF_APPROVAL: 'leave_comp_off_approval',
-    // Leave Management Apply Leave
-    LEAVE_BALANCE: 'leave_leave_balance',
-    LEAVE_HISTORY: 'leave_leave_history',
-    APPLY_LEAVE: 'leave_apply_leave'
+    LOAN_REPORT_SEARCH: 'hrms_loan_report_search'
 };

@@ -407,7 +407,7 @@ export default function UpdateMasterFeeInstallmentForm({ onSuccess, selectedRow:
                         loadingText='Saving...'>
                         <div className='flex items-center'>
                             <Save className='mr-2 h-4 w-4' />
-                            Update Master Installment
+                            Update Installment
                         </div>
                     </Button>
                 </div>

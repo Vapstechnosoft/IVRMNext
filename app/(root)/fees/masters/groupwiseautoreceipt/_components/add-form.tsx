@@ -1,8 +1,10 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { FormError, Label } from '@/components/ui/extension/field';
+import { InputText } from '@/components/ui/extension/input-text'; // <-- same import
+import { InputTextarea } from '@/components/ui/extension/input-textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useAcademicYearDropdown, useFeeMasterGroupwiseAutoReceiptDropDown } from '@/hooks/fees/useMasters';
 import { cn } from '@/lib/utils';
@@ -72,7 +74,7 @@ export default function AddMasterClassForm({ onSuccess, className = '' }: AddMas
     const [hasSubmitted, setHasSubmitted] = useState(false);
     const [academicYearOptions, setAcademicYearOptions] = useState<DropdownOption[]>([]);
     const [groupOptions, setGroupOptions] = useState<GroupOption[]>([]);
-    const [selectedGroups, setSelectedGroups] = useState<string[]>([]);
+    const [_selectedGroups, setSelectedGroups] = useState<string[]>([]);
     const [searchTerm, setSearchTerm] = useState('');
     const [isLoadingDropdowns, setIsLoadingDropdowns] = useState(false);
     const [usePrefix, setUsePrefix] = useState(false);
@@ -152,15 +154,13 @@ export default function AddMasterClassForm({ onSuccess, className = '' }: AddMas
             const { academicYear, prefixValue, suffixValue, startingNumber, groups, autoGroupName, address, receiptTemplateFormat } = data;
 
             const payload = {
-                mi_id: 30,
                 asmaY_Id: Number.parseInt(academicYear),
                 fgaR_PrefixFlag: prefixValue ? '1' : '',
                 fgaR_SuffixFlag: suffixValue ? '1' : '',
                 fgaR_PrefixName: prefixValue,
                 fgaR_SuffixName: suffixValue,
                 fgaR_Name: autoGroupName,
-                userid: 101,
-                roleid: 5,
+
                 fgaR_Address: address || '',
                 savegroup: groups.map((groupId) => ({
                     fmG_Id: Number.parseInt(groupId)
@@ -169,16 +169,14 @@ export default function AddMasterClassForm({ onSuccess, className = '' }: AddMas
                 fgaR_Template_Name: receiptTemplateFormat || ''
             };
 
-            console.log('Payload being sent:', payload);
-
             const response = await addOrUpdateMasterFeeMasterGroupwiseAutoReceipt(payload);
 
             if (response.success) {
-                toast.success(response.message || 'Master class saved successfully');
+                toast.success(response.message || 'Save Groupwise Auto Receipt saved successfully');
                 handleReset();
                 onSuccess?.();
             } else {
-                toast.error(response.message || 'Failed to save master class');
+                toast.error(response.message || 'Failed to Save Groupwise Auto Receipt');
             }
         } catch (error: any) {
             console.error('Submission error:', error);
@@ -203,10 +201,10 @@ export default function AddMasterClassForm({ onSuccess, className = '' }: AddMas
 
     return (
         <div className={`${className} w-full`}>
-            <Card className='mx-auto w-full max-w-8xl border-gray-200 shadow-md'>
-                <CardHeader className='border-b bg-white p-5'>
+            <Card className='mx-auto w-full max-w-8xl border-gray-300 shadow-md'>
+                {/* <CardHeader className='border-b bg-white p-5'>
                     <CardTitle className='font-medium text-gray-700 text-sm'>Add Master Class</CardTitle>
-                </CardHeader>
+                </CardHeader> */}
                 <CardContent className='p-6'>
                     <div className='space-y-6'>
                         {/* Academic Year */}
@@ -215,16 +213,12 @@ export default function AddMasterClassForm({ onSuccess, className = '' }: AddMas
                                 Academic Year <span className='text-red-500'>*</span>
                             </Label>
                             <Select
-                                onValueChange={(value) =>
-                                    setValue('academicYear', value, {
-                                        shouldValidate: hasSubmitted
-                                    })
-                                }
+                                onValueChange={(value) => setValue('academicYear', value, { shouldValidate: hasSubmitted })}
                                 value={academicYear}
                                 disabled={isLoadingDropdowns}>
                                 <SelectTrigger
                                     id='academicYear'
-                                    className={`mt-1 w-full transition-colors ${
+                                    className={`mt-1 w-full transition-colors focus:ring-2 focus:ring-primary/20 ${
                                         errors.academicYear ? 'border-red-500' : 'border-gray-300'
                                     }`}>
                                     <SelectValue placeholder='Select Academic Year' />
@@ -245,14 +239,13 @@ export default function AddMasterClassForm({ onSuccess, className = '' }: AddMas
                             <Label htmlFor='startingNumber'>
                                 Starting Number <span className='text-red-500'>*</span>
                             </Label>
-                            <input
+                            <InputText
                                 id='startingNumber'
-                                type='text'
-                                {...register('startingNumber')}
                                 placeholder='Enter starting number'
-                                className='mt-1 w-full rounded-md border border-gray-300 px-3 py-2 transition-colors focus:border-gray-400 focus:ring-0'
+                                {...register('startingNumber')}
+                                error={hasSubmitted ? errors.startingNumber?.message : undefined}
+                                className='transition-colors focus:ring-2 focus:ring-primary/20'
                             />
-                            {hasSubmitted && errors.startingNumber && <FormError>{errors.startingNumber.message}</FormError>}
                         </div>
 
                         {/* Prefix / Suffix */}
@@ -267,16 +260,10 @@ export default function AddMasterClassForm({ onSuccess, className = '' }: AddMas
                                             const checked = e.target.checked;
                                             setUsePrefix(checked);
                                             if (checked) setUseSuffix(false);
-                                            setValue('usePrefix', checked, {
-                                                shouldValidate: hasSubmitted
-                                            });
-                                            setValue('useSuffix', false, {
-                                                shouldValidate: hasSubmitted
-                                            });
+                                            setValue('usePrefix', checked, { shouldValidate: hasSubmitted });
+                                            setValue('useSuffix', false, { shouldValidate: hasSubmitted });
                                             if (!checked) {
-                                                setValue('prefixValue', '', {
-                                                    shouldValidate: hasSubmitted
-                                                });
+                                                setValue('prefixValue', '', { shouldValidate: hasSubmitted });
                                             }
                                         }}
                                         className='h-4 w-4 rounded border-gray-300 accent-primary'
@@ -291,16 +278,10 @@ export default function AddMasterClassForm({ onSuccess, className = '' }: AddMas
                                             const checked = e.target.checked;
                                             setUseSuffix(checked);
                                             if (checked) setUsePrefix(false);
-                                            setValue('useSuffix', checked, {
-                                                shouldValidate: hasSubmitted
-                                            });
-                                            setValue('usePrefix', false, {
-                                                shouldValidate: hasSubmitted
-                                            });
+                                            setValue('useSuffix', checked, { shouldValidate: hasSubmitted });
+                                            setValue('usePrefix', false, { shouldValidate: hasSubmitted });
                                             if (!checked) {
-                                                setValue('suffixValue', '', {
-                                                    shouldValidate: hasSubmitted
-                                                });
+                                                setValue('suffixValue', '', { shouldValidate: hasSubmitted });
                                             }
                                         }}
                                         className='h-4 w-4 rounded border-gray-300 accent-primary'
@@ -315,14 +296,13 @@ export default function AddMasterClassForm({ onSuccess, className = '' }: AddMas
                                 <Label htmlFor='prefixValue'>
                                     Prefix <span className='text-red-500'>*</span>
                                 </Label>
-                                <input
+                                <InputText
                                     id='prefixValue'
-                                    type='text'
-                                    {...register('prefixValue')}
                                     placeholder='Enter prefix value'
-                                    className='mt-1 w-full rounded-md border border-gray-300 px-3 py-2 transition-colors focus:border-gray-400 focus:ring-0'
+                                    {...register('prefixValue')}
+                                    error={hasSubmitted ? errors.prefixValue?.message : undefined}
+                                    className='transition-colors focus:ring-2 focus:ring-primary/20'
                                 />
-                                {hasSubmitted && errors.prefixValue && <FormError>{errors.prefixValue.message}</FormError>}
                             </div>
                         )}
 
@@ -331,14 +311,13 @@ export default function AddMasterClassForm({ onSuccess, className = '' }: AddMas
                                 <Label htmlFor='suffixValue'>
                                     Suffix <span className='text-red-500'>*</span>
                                 </Label>
-                                <input
+                                <InputText
                                     id='suffixValue'
-                                    type='text'
-                                    {...register('suffixValue')}
                                     placeholder='Enter suffix value'
-                                    className='mt-1 w-full rounded-md border border-gray-300 px-3 py-2 transition-colors focus:border-gray-400 focus:ring-0'
+                                    {...register('suffixValue')}
+                                    error={hasSubmitted ? errors.suffixValue?.message : undefined}
+                                    className='transition-colors focus:ring-2 focus:ring-primary/20'
                                 />
-                                {hasSubmitted && errors.suffixValue && <FormError>{errors.suffixValue.message}</FormError>}
                             </div>
                         )}
 
@@ -347,13 +326,12 @@ export default function AddMasterClassForm({ onSuccess, className = '' }: AddMas
                             <Label>
                                 Select Groups <span className='text-red-500'>*</span>
                             </Label>
-                            <div className='mt-2 rounded-md border border-gray-200 bg-white p-3'>
-                                <input
-                                    type='text'
+                            <div className='mt-2 rounded-md border border-gray-300 bg-white p-3'>
+                                <InputText
                                     placeholder='Search Groups...'
                                     value={searchTerm}
                                     onChange={(e) => setSearchTerm(e.target.value)}
-                                    className='mb-3 w-full rounded-md border border-gray-300 px-3 py-1.5 transition-colors focus:border-gray-400 focus:ring-0'
+                                    className='mb-3 transition-colors focus:ring-2 focus:ring-primary/20'
                                 />
                                 {/* Select All */}
                                 <div
@@ -362,7 +340,7 @@ export default function AddMasterClassForm({ onSuccess, className = '' }: AddMas
                                         'mb-2 flex cursor-pointer items-center gap-2 rounded-md border px-2 py-1.5 font-medium text-sm transition-all',
                                         (groupsValue || []).length === groupOptions.length && groupOptions.length > 0
                                             ? 'border-primary bg-primary/5 text-primary'
-                                            : 'border-gray-200 hover:border-primary/40'
+                                            : 'border-gray-300 hover:border-primary/40'
                                     )}>
                                     {(groupsValue || []).length === groupOptions.length && groupOptions.length > 0 ? (
                                         <CheckSquare className='h-4 w-4 text-primary' />
@@ -372,7 +350,7 @@ export default function AddMasterClassForm({ onSuccess, className = '' }: AddMas
                                     <span>Select All</span>
                                 </div>
 
-                                <div className='mt-2 max-h-40 overflow-y-auto rounded-md border border-gray-200 p-1'>
+                                <div className='mt-2 max-h-40 overflow-y-auto rounded-md border border-gray-300 p-1'>
                                     {loadingGroupData && <div className='py-4 text-center text-gray-500 text-sm'>Loading groups...</div>}
                                     {!loadingGroupData && filteredGroupOptions.length === 0 && (
                                         <div className='py-4 text-center text-gray-500 text-sm'>
@@ -390,7 +368,7 @@ export default function AddMasterClassForm({ onSuccess, className = '' }: AddMas
                                                     'mb-1 flex cursor-pointer items-center gap-2 rounded-md border px-2 py-1.5 text-sm transition-all',
                                                     selected
                                                         ? 'border-primary bg-primary/5 text-primary'
-                                                        : 'border-gray-200 hover:border-primary/40'
+                                                        : 'border-gray-300 hover:border-primary/40'
                                                 )}>
                                                 {selected ? (
                                                     <CheckSquare className='h-4 w-4 text-primary' />
@@ -411,40 +389,41 @@ export default function AddMasterClassForm({ onSuccess, className = '' }: AddMas
                             <Label htmlFor='autoGroupName'>
                                 Auto Group Name <span className='text-red-500'>*</span>
                             </Label>
-                            <input
+                            <InputText
                                 id='autoGroupName'
-                                type='text'
-                                {...register('autoGroupName')}
                                 placeholder='Enter auto group name'
-                                className='mt-1 w-full rounded-md border border-gray-300 px-3 py-2 transition-colors focus:border-gray-400 focus:ring-0'
+                                {...register('autoGroupName')}
+                                error={hasSubmitted ? errors.autoGroupName?.message : undefined}
+                                className='transition-colors focus:ring-2 focus:ring-primary/20'
                             />
-                            {hasSubmitted && errors.autoGroupName && <FormError>{errors.autoGroupName.message}</FormError>}
                         </div>
 
-                        {/* Address */}
+                        {/* Address – now multiline="true" */}
                         <div className='lg:col-span-2'>
                             <Label htmlFor='address'>Address</Label>
-                            <textarea
+                            <InputTextarea
                                 id='address'
-                                {...register('address')}
                                 placeholder='Enter address (optional)'
-                                className='mt-1 h-24 w-full rounded-md border border-gray-300 px-3 py-2 transition-colors focus:border-gray-400 focus:ring-0'
+                                {...register('address')}
+                                rows={4}
+                                className='h-24 transition-colors focus:ring-2 focus:ring-primary/20'
                             />
                         </div>
 
-                        {/* Receipt Template */}
-                        <div className='lg:col-span-2'>
+                        {/* Receipt Template – now multiline="true" */}
+                        <div className='pt-10 lg:col-span-2'>
                             <Label htmlFor='receiptTemplateFormat'>Receipt Template Format</Label>
-                            <textarea
+                            <InputTextarea
                                 id='receiptTemplateFormat'
-                                {...register('receiptTemplateFormat')}
                                 placeholder='Enter receipt template format (optional)'
-                                className='mt-1 h-32 w-full rounded-md border border-gray-300 px-3 py-2 transition-colors focus:border-gray-400 focus:ring-0'
+                                {...register('receiptTemplateFormat')}
+                                rows={6}
+                                className='h-32 transition-colors focus:ring-2 focus:ring-primary/20'
                             />
                         </div>
 
                         {/* Buttons */}
-                        <div className='mt-3 flex justify-end gap-3 border-t pt-5 lg:col-span-2'>
+                        <div className='mt-3 flex justify-start gap-3 border-t pt-5 lg:col-span-2'>
                             <Button
                                 type='button'
                                 variant='outline'
@@ -459,7 +438,7 @@ export default function AddMasterClassForm({ onSuccess, className = '' }: AddMas
                                 disabled={isSubmitting}
                                 className='order-1 flex w-fit items-center gap-2 transition-all duration-200 hover:scale-105 sm:order-2'>
                                 <Save className='h-4 w-4' />
-                                {isSubmitting ? 'Saving...' : 'Save Master Class'}
+                                {isSubmitting ? 'Saving...' : 'Save Groupwise Auto Receipt'}
                             </Button>
                         </div>
                     </div>

@@ -10,8 +10,8 @@ import type {
 } from '@/types/fees/transactions/transactions';
 
 export async function getThirdPartyTrasaction(searchParams?: ApiSearchparams) {
-    const urlParams = getSearchParamsUrl(searchParams ?? {});
-    const url = `/ThirdPartyTransaction/GetThirdPartyTransactionList/30?${urlParams}`;
+    //const urlParams = getSearchParamsUrl(searchParams ?? {});
+    const url = '/ThirdPartyTransaction/30';
     return await api.get<IFeeThirdPartyTransaction[]>('fees', url);
 }
 
