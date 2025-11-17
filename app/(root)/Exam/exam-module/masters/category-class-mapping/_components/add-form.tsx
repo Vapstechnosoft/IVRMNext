@@ -142,75 +142,102 @@ export default function AddCategoryClassForm({ onSuccess, initialData }: AddCate
     // JSX
     return (
         <form onSubmit={handleSubmit(onSubmit)} className='grid grid-cols-1 gap-6 md:grid-cols-2'>
-            {/* Left Side */}
+            {/* ================= LEFT SIDE ================= */}
             <div className='space-y-4'>
-                {/* Academic Year */}
-                <Controller
-                    control={control}
-                    name='asmaY_Id'
-                    render={({ field }) => (
-                        <Select value={field.value ? String(field.value) : ''} onValueChange={(val) => field.onChange(Number(val))}>
-                            <SelectTrigger>
-                                <SelectValue placeholder='Select Academic Year' />
-                            </SelectTrigger>
-                            <SelectContent>
-                                {academicYears.map((year) => (
-                                    <SelectItem key={year.asmaY_Id} value={String(year.asmaY_Id)}>
-                                        {year.asmaY_Year}
-                                    </SelectItem>
-                                ))}
-                            </SelectContent>
-                        </Select>
-                    )}
-                />
-                {errors.asmaY_Id && <p className='text-red-600 text-sm'>{errors.asmaY_Id.message}</p>}
+                {/* ---------- Academic Year ---------- */}
+                <div className='flex flex-col gap-1'>
+                    <span className='font-medium'>
+                        Academic Year <span className='text-red-600'>*</span>
+                    </span>
 
-                {/* Category */}
-                <Controller
-                    control={control}
-                    name='emcA_Id'
-                    render={({ field }) => (
-                        <Select value={field.value ? String(field.value) : ''} onValueChange={(val) => field.onChange(Number(val))}>
-                            <SelectTrigger>
-                                <SelectValue placeholder='Select Category' />
-                            </SelectTrigger>
-                            <SelectContent>
-                                {categories.map((cat) => (
-                                    <SelectItem key={cat.emcA_Id} value={String(cat.emcA_Id)}>
-                                        {cat.emcA_CategoryName}
-                                    </SelectItem>
-                                ))}
-                            </SelectContent>
-                        </Select>
-                    )}
-                />
-                {errors.emcA_Id && <p className='text-red-600 text-sm'>{errors.emcA_Id.message}</p>}
+                    <Controller
+                        control={control}
+                        name='asmaY_Id'
+                        render={({ field }) => (
+                            <Select value={field.value ? String(field.value) : ''} onValueChange={(val) => field.onChange(Number(val))}>
+                                <SelectTrigger id='asmaY_Id'>
+                                    <SelectValue placeholder='Select Academic Year' />
+                                </SelectTrigger>
 
-                {/* Class */}
-                <Controller
-                    control={control}
-                    name='asmcL_Id'
-                    render={({ field }) => (
-                        <Select value={field.value ? String(field.value) : ''} onValueChange={(val) => field.onChange(Number(val))}>
-                            <SelectTrigger>
-                                <SelectValue placeholder='Select Class' />
-                            </SelectTrigger>
-                            <SelectContent>
-                                {classes.map((cls) => (
-                                    <SelectItem key={cls.asmcL_Id} value={String(cls.asmcL_Id)}>
-                                        {cls.asmcL_ClassName}
-                                    </SelectItem>
-                                ))}
-                            </SelectContent>
-                        </Select>
-                    )}
-                />
-                {errors.asmcL_Id && <p className='text-red-600 text-sm'>{errors.asmcL_Id.message}</p>}
+                                <SelectContent>
+                                    {academicYears.map((year) => (
+                                        <SelectItem key={year.asmaY_Id} value={String(year.asmaY_Id)}>
+                                            {year.asmaY_Year}
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                        )}
+                    />
+
+                    {errors.asmaY_Id && <p className='text-red-600 text-sm'>{errors.asmaY_Id.message}</p>}
+                </div>
+
+                {/* ---------- Category ---------- */}
+                <div className='flex flex-col gap-1'>
+                    <span className='font-medium'>
+                        Category <span className='text-red-600'>*</span>
+                    </span>
+
+                    <Controller
+                        control={control}
+                        name='emcA_Id'
+                        render={({ field }) => (
+                            <Select value={field.value ? String(field.value) : ''} onValueChange={(val) => field.onChange(Number(val))}>
+                                <SelectTrigger id='emcA_Id'>
+                                    <SelectValue placeholder='Select Category' />
+                                </SelectTrigger>
+
+                                <SelectContent>
+                                    {categories.map((cat) => (
+                                        <SelectItem key={cat.emcA_Id} value={String(cat.emcA_Id)}>
+                                            {cat.emcA_CategoryName}
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                        )}
+                    />
+
+                    {errors.emcA_Id && <p className='text-red-600 text-sm'>{errors.emcA_Id.message}</p>}
+                </div>
+
+                {/* ---------- Class ---------- */}
+                <div className='flex flex-col gap-1'>
+                    <span className='font-medium'>
+                        Class <span className='text-red-600'>*</span>
+                    </span>
+
+                    <Controller
+                        control={control}
+                        name='asmcL_Id'
+                        render={({ field }) => (
+                            <Select value={field.value ? String(field.value) : ''} onValueChange={(val) => field.onChange(Number(val))}>
+                                <SelectTrigger id='asmcL_Id'>
+                                    <SelectValue placeholder='Select Class' />
+                                </SelectTrigger>
+
+                                <SelectContent>
+                                    {classes.map((cls) => (
+                                        <SelectItem key={cls.asmcL_Id} value={String(cls.asmcL_Id)}>
+                                            {cls.asmcL_ClassName}
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                        )}
+                    />
+
+                    {errors.asmcL_Id && <p className='text-red-600 text-sm'>{errors.asmcL_Id.message}</p>}
+                </div>
             </div>
 
-            {/* Right Side - Sections */}
+            {/* ================= RIGHT SIDE ================= */}
             <div className='space-y-2'>
-                {!sections.length && <h4 className='font-semibold'>Sections</h4>}
+                <span className='font-medium'>
+                    Sections <span className='text-red-600'>*</span>
+                </span>
+
                 <Controller
                     control={control}
                     name='section_list'
@@ -228,6 +255,7 @@ export default function AddCategoryClassForm({ onSuccess, initialData }: AddCate
                                     const selected = sections
                                         .filter((s) => vals.includes(s.asmS_Id.toString()))
                                         .map((s) => ({ asmS_Id: s.asmS_Id }));
+
                                     field.onChange(selected);
                                 }}
                                 isSearchRequired
@@ -238,9 +266,11 @@ export default function AddCategoryClassForm({ onSuccess, initialData }: AddCate
                         )
                     }
                 />
+
+                {errors.section_list && <p className='text-red-600 text-sm'>{errors.section_list.message}</p>}
             </div>
 
-            {/* Buttons */}
+            {/* ================= BUTTONS ================= */}
             <div className='flex flex-col gap-3 border-t pt-4 sm:flex-row sm:justify-start md:col-span-2'>
                 <Button
                     type='button'
@@ -250,14 +280,15 @@ export default function AddCategoryClassForm({ onSuccess, initialData }: AddCate
                     className='order-3 w-fit transition-all duration-200 hover:scale-105 sm:order-1'>
                     Reset
                 </Button>
+
                 <Button
                     type='submit'
                     disabled={isSubmitting}
                     className='order-1 w-fit transition-all duration-200 hover:scale-105 sm:order-2'
                     isLoading={isSubmitting}
                     loadingText='Saving...'>
-                    <div className='flex items-center'>
-                        <Save className='mr-2 h-4 w-4' />
+                    <div className='flex items-center gap-2'>
+                        <Save className='h-4 w-4' />
                         Save Category Class Mapping
                     </div>
                 </Button>
