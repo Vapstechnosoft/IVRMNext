@@ -100,6 +100,7 @@ export default function AddStudentCountReportForm({ onSuccess, className = '', s
                             message: response.message
                         });
                     } else {
+                        // fallback: set whatever was returned
                         queryClient.setQueryData([PREADMISSION_QUERY_KEYS.STUDENT_COUNT_REPORT, searchParams ?? {}], response);
                     }
                 } catch (e) {
@@ -134,7 +135,7 @@ export default function AddStudentCountReportForm({ onSuccess, className = '', s
                             {/* Left column - report select */}
                             <div className='col-span-1'>
                                 <Label className='mb-2 block font-medium text-gray-700 text-sm'>Select Report Type</Label>
-                                <Select onValueChange={(v) => setReportType(v)} value={reportType || undefined}>
+                                <Select onValueChange={(v) => setReportType(v)} defaultValue={reportType}>
                                     <SelectTrigger className='w-full'>
                                         <SelectValue placeholder='Select report type' />
                                     </SelectTrigger>

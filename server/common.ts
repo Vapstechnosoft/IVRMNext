@@ -158,10 +158,10 @@ export async function getUserAccessibleModules() {
                                         },
                                         {
                                             id: 12,
-                                            name: 'Class Teacher',
+                                            name: 'Master Class Teacher',
                                             icon: 'Settings',
                                             url: '/admission/preadmission/masters/class-teacher',
-                                            title: 'Class Teacher',
+                                            title: 'Master Class Teacher',
                                             description: 'Manage Master Class Teacher Details'
                                         }
                                     ]
