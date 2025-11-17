@@ -261,7 +261,7 @@ export default function ReceiptViewPage({ rowData, onClose }: ReceiptViewPagePro
                                 <span className='font-bold text-blue-700'>PARENT COPY</span>
                             </div>
 
-                            <div className='mb-6 border-b-2 pb-4 text-center'>
+                            {/* <div className='mb-6 border-b-2 pb-4 text-center'>
                                 <div className='mb-2 flex items-center justify-center gap-4'>
                                     <div className='flex h-16 w-16 items-center justify-center rounded-full bg-blue-700 font-bold text-2xl text-white'>
                                         HHS
@@ -272,7 +272,7 @@ export default function ReceiptViewPage({ rowData, onClose }: ReceiptViewPagePro
                                         <p className='text-sm'>Telephone : 020 - 26363892</p>
                                     </div>
                                 </div>
-                            </div>
+                            </div> */}
 
                             <div className='mb-4 space-y-1 text-sm'>
                                 <div className='flex justify-between'>

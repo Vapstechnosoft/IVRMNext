@@ -204,3 +204,52 @@ export interface ICategoryClassMappingDetails {
     asmC_Order: number;
     asmC_ActiveFlag: boolean;
 }
+export interface ICoScholasticActivity {
+    ecacT_Id: number;
+    mI_Id: number;
+    ecacT_SkillName: string;
+    ecacT_SkillCode: string;
+    ecacT_ActiveFlag: boolean;
+    createdDate: string;
+    updatedDate: string;
+}
+export interface ICoScholasticArea {
+    ecactA_Id: number;
+    mI_Id: number;
+    ecactA_SkillArea?: string;
+    ecactA_SkillOrder: number;
+    ecactA_ActiveFlag: boolean;
+    createdDate: string;
+    updatedDate: string;
+}
+export interface IMasterLifeSkillMapping {
+    ecsaM_Id: number;
+    ecsA_Id: number;
+    ecS_Id: number;
+    mI_Id: number;
+    asmaY_Id: number;
+    ecsaM_IndicatorDescription: string;
+    emgR_Id: number;
+    ecsaM_ActiveFlag: boolean;
+    ecsA_SkillArea: string;
+    ecS_SkillName: string;
+    emgR_NAME: string;
+    asmaY_Year: string;
+    asmaY_Order: number;
+}
+
+export interface ILifeSkill {
+    ecS_Id: number;
+    mI_Id: number;
+    ecS_SkillName: string;
+    ecS_SkillCode: string;
+    ecS_ActiveFlag: boolean;
+}
+
+export interface ILifeSkillArea {
+    ecsA_Id: number;
+    mI_Id: number;
+    ecsA_SkillArea: string;
+    ecsA_SkillOrder: number;
+    ecsA_ActiveFlag: boolean;
+}

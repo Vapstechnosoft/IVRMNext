@@ -166,3 +166,222 @@ export const feePreadmissionTransactionSchema = {
         fmA_Id: deleteIdSchema('fmA_Id')
     })
 };
+
+export const feesStudentTransactionSchema = {
+    addOrUpdate: z
+        .object({
+            // Academic Year
+            asmaY_Id: z.number().int().positive('Academic Year is required'),
+
+            // Optional when class-wise / section-wise is not checked
+            asmcl_Id: z.number().int().optional(),
+            asms_Id: z.number().int().optional(),
+
+            // Student selection
+            amst_Id: z.number().int().positive('Student is required'),
+
+            // Fee groups (array of selected FMG_Id)
+            feeGroupIds: z.array(z.number().int()).min(1, 'Select at least one Fee Group'),
+
+            // Receipt No. (required only when `showReceiptNo` is true)
+            receiptNo: z.string().optional(),
+
+            // Amount checkbox → paying amount (required when checked)
+            payingAmount: z.number().positive().optional(),
+
+            // Payment mode (Single / Multiple)
+            payModeType: z.enum(['Single', 'Multiple']),
+
+            // Payment rows (at least one must be filled)
+            paymentRows: z
+                .array(
+                    z.object({
+                        modeId: z.number().int(),
+                        modeFlag: z.enum(['C', 'B']), // C = Cash, B = Bank/Cheque/Card
+                        chequeDate: z.string().optional(),
+                        chequeNo: z.string().optional(),
+                        bankName: z.string().optional(),
+                        amount: z.number().positive('Amount required'),
+                        selected: z.boolean()
+                    })
+                )
+                .refine((rows) => rows.some((r) => r.selected), {
+                    message: 'Select at least one payment mode'
+                }),
+
+            // Narration
+            narrationId: z.number().int().optional(),
+            narrationText: z.string().optional(),
+
+            // Grid rows (selected + edited values)
+            gridRows: z
+                .array(
+                    z.object({
+                        fmA_Id: z.number().int(),
+                        fmH_Id: z.number().int(),
+                        ftI_Id: z.number().int(),
+                        fmG_Id: z.number().int(),
+                        totalamount: z.number(),
+                        fsS_TotalToBePaid: z.number(),
+                        fsS_ConcessionAmount: z.number(),
+                        fsS_FineAmount: z.number(),
+                        fsS_ToBePaid: z.number().positive('Payable amount required'),
+                        fsS_TotalToBePaidaddfine: z.number(),
+                        fsS_RebateAmount: z.number(),
+                        isSelected: z.boolean()
+                    })
+                )
+                .min(1, 'Select at least one fee row'),
+
+            // Flags
+            amountCheck: z.boolean(),
+            showReceiptNo: z.boolean(),
+            rebateFlag: z.boolean()
+        })
+
+        // ------------------------------------------------------------------ //
+        // 2. Conditional Validations (refine)
+        // ------------------------------------------------------------------ //
+
+        // Receipt No. required only when showReceiptNo = true
+        .refine((data) => !data.showReceiptNo || (data.receiptNo && data.receiptNo.trim() !== ''), {
+            message: 'Receipt No. is required',
+            path: ['receiptNo']
+        })
+
+        // payingAmount required only when amountCheck = true
+        .refine((data) => !data.amountCheck || (data.payingAmount !== undefined && data.payingAmount > 0), {
+            message: 'Enter paying amount',
+            path: ['payingAmount']
+        })
+
+        // At least one grid row must be selected (isSelected = true)
+        .refine((data) => data.gridRows.some((row) => row.isSelected), {
+            message: 'Select at least one fee row',
+            path: ['gridRows']
+        })
+
+        // Total of selected gridRows.fsS_ToBePaid must equal payingAmount (if amountCheck) OR sum of paymentRows.amount
+        .refine(
+            (data) => {
+                const totalPayable = data.gridRows.filter((r) => r.isSelected).reduce((sum, r) => sum + r.fsS_ToBePaid, 0);
+
+                const totalPaid = data.paymentRows.filter((r) => r.selected).reduce((sum, r) => sum + r.amount, 0);
+
+                const expected = data.amountCheck ? data.payingAmount || 0 : totalPayable;
+
+                return Math.abs(totalPaid - expected) < 0.01; // floating point tolerance
+            },
+            {
+                message: 'Total payment must match payable amount',
+                path: ['paymentRows']
+            }
+        )
+
+        // For Bank modes (B), require date, no, bank when selected
+        .refine(
+            (data) => {
+                return data.paymentRows.every((row) => {
+                    if (!row.selected || row.modeFlag !== 'B') return true;
+                    return (
+                        row.chequeDate &&
+                        row.chequeDate.trim() !== '' &&
+                        row.chequeNo &&
+                        row.chequeNo.trim() !== '' &&
+                        row.bankName &&
+                        row.bankName.trim() !== ''
+                    );
+                });
+            },
+            {
+                message: 'Cheque/DD Date, No., and Bank Name are required for bank payment',
+                path: ['paymentRows']
+            }
+        )
+};
+
+// src/types/fees/receipt.ts
+export interface IReceiptResponse {
+    htmldata?: string;
+    fillstudentviewdetails?: IStudentViewDetail[];
+    currpaymentdetails?: IPaymentDetail[];
+    showdetailsreceipt?: IReceiptRow[]; // <-- NEW
+    groupwiseBalance?: { FSS_ToBePaid: number }[];
+    srkvsdetails?: any[];
+    getfeeheaddetails?: any[];
+    streamdetails?: { asmsT_StreamName: string }[];
+    duration?: string;
+    year?: string;
+    dueamount?: number;
+    date?: string;
+    month?: string;
+    termremarks?: { termname: string }[];
+    filltotaldetails?: any[];
+    portalusername?: string;
+    fillacclst?: { SPCCMH_HouseName: string; TRMR_RouteNo: string }[];
+    pendingamount?: number;
+    asmaY_Year?: string;
+    masterinstitution?: {
+        mI_Address1: string;
+        mI_Address2?: string;
+        mI_Address3?: string;
+        mI_Pincode?: string;
+    }[];
+}
+
+export interface IStudentViewDetail {
+    amsT_FirstName?: string;
+    amsT_MiddleName?: string;
+    amsT_LastName?: string;
+    classname?: string;
+    sectionname?: string;
+    rollno?: string;
+    admno?: string;
+    fathername?: string;
+    mothername?: string;
+    fyP_Receipt_No?: string;
+    fmcC_ConcessionName?: string;
+    fyP_Remarks?: string;
+    amst_mobile?: string;
+    fyP_ChallanNo?: string;
+    fyP_PaymentReference_Id?: string;
+    fyp_transaction_Id?: string;
+    fyP_Date?: string;
+    fyP_Bank_Or_Cash?: 'C' | 'O' | 'E' | 'B' | 'R' | 'S';
+    fyP_DD_Cheque_No?: string;
+    fyP_DD_Cheque_Date?: string;
+    fyP_Bank_Name?: string;
+    totalcharges?: number;
+    ftP_Paid_Amt?: number;
+    ftP_Concession_Amt?: number;
+    ftP_Fine_Amt?: number;
+    fsS_AdjustedAmount?: number;
+    fsS_RefundAmount?: number;
+    fsS_OBArrearAmount?: number; // <-- NEW
+    fmH_FeeName?: string;
+    fmH_Id?: number;
+    ftI_Id?: number;
+}
+
+export interface IPaymentDetail {
+    ftP_Paid_Amt?: number;
+    ftP_Concession_Amt?: number;
+    fyP_Remarks?: string;
+    fyP_Bank_Or_Cash?: string;
+    fyppM_TransactionId?: string;
+    fyppM_PaymentReferenceId?: string;
+}
+
+export interface IReceiptRow {
+    fmH_FeeName?: string;
+    fmH_FeeNameex?: string;
+    totalcharges?: number;
+    feetotcharges?: number;
+    ftP_Paid_Amt?: number;
+    totalamount?: number;
+    ftP_Concession_Amt?: number;
+    concessionamt?: number;
+    ftP_Fine_Amt?: number;
+    fineamt?: number;
+    fsS_AdjustedAmount?: number;
+}

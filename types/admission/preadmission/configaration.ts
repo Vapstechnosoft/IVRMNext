@@ -28,6 +28,7 @@ export interface IMasterAcademicYearMasterList {
     updatedDate: string;
 }
 export interface IMasterSetOrderList {
+    asmaY_Id: string;
     asmaY_Year: string;
     asmaY_Order: number;
 }

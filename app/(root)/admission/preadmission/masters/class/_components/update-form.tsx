@@ -141,7 +141,7 @@ export default function UpdateMasterClassForm({ onSuccess, className = '', selec
                                         required
                                         id='asmcl_maxcapacity'
                                         defaultValue={row.asmcL_MaxCapacity || 0}
-                                        onChange={(value) => field.onChange(value)}
+                                        onChange={(value) => field.onChange(Number.isNaN(value) ? 0 : value)}
                                         minValue={0}
                                         step={1}
                                     />
@@ -159,7 +159,7 @@ export default function UpdateMasterClassForm({ onSuccess, className = '', selec
                                         required
                                         id='asmcl_order'
                                         defaultValue={row.asmcL_Order}
-                                        onChange={(value) => field.onChange(value)}
+                                        onChange={(value) => field.onChange(Number.isNaN(value) ? 0 : value)}
                                         minValue={0}
                                         step={1}
                                     />
@@ -179,7 +179,7 @@ export default function UpdateMasterClassForm({ onSuccess, className = '', selec
                                         required
                                         id='asmcl_minageyear'
                                         defaultValue={row.asmcL_MinAgeYear}
-                                        onChange={(value) => field.onChange(value)}
+                                        onChange={(value) => field.onChange(Number.isNaN(value) ? 0 : value)}
                                         minValue={0}
                                         maxValue={100}
                                         step={1}
@@ -198,7 +198,7 @@ export default function UpdateMasterClassForm({ onSuccess, className = '', selec
                                         required
                                         id='asmcl_minagemonth'
                                         defaultValue={row.asmcL_MinAgeMonth}
-                                        onChange={(value) => field.onChange(value)}
+                                        onChange={(value) => field.onChange(Number.isNaN(value) ? 0 : value)}
                                         minValue={0}
                                         maxValue={11}
                                         step={1}
@@ -217,7 +217,7 @@ export default function UpdateMasterClassForm({ onSuccess, className = '', selec
                                         required
                                         id='asmcl_minagedays'
                                         defaultValue={row.asmcL_MinAgeDays}
-                                        onChange={(value) => field.onChange(value)}
+                                        onChange={(value) => field.onChange(Number.isNaN(value) ? 0 : value)}
                                         minValue={0}
                                         maxValue={31}
                                         step={1}
@@ -238,7 +238,7 @@ export default function UpdateMasterClassForm({ onSuccess, className = '', selec
                                         required
                                         id='asmcl_maxageyear'
                                         defaultValue={row.asmcL_MaxAgeYear}
-                                        onChange={(value) => field.onChange(value)}
+                                        onChange={(value) => field.onChange(Number.isNaN(value) ? 0 : value)}
                                         minValue={0}
                                         maxValue={100}
                                         step={1}
@@ -257,7 +257,7 @@ export default function UpdateMasterClassForm({ onSuccess, className = '', selec
                                         required
                                         id='asmcl_maxagemonth'
                                         defaultValue={row.asmcL_MaxAgeMonth}
-                                        onChange={(value) => field.onChange(value)}
+                                        onChange={(value) => field.onChange(Number.isNaN(value) ? 0 : value)}
                                         minValue={0}
                                         maxValue={11}
                                         step={1}
@@ -276,7 +276,7 @@ export default function UpdateMasterClassForm({ onSuccess, className = '', selec
                                         required
                                         id='asmcl_maxagedays'
                                         defaultValue={row.asmcL_MaxAgeDays}
-                                        onChange={(value) => field.onChange(value)}
+                                        onChange={(value) => field.onChange(Number.isNaN(value) ? 0 : value)}
                                         minValue={0}
                                         maxValue={31}
                                         step={1}
