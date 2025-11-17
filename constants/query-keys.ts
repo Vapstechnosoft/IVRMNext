@@ -55,7 +55,9 @@ export const PREADMISSION_QUERY_KEYS = {
     REGISTRATION_NUMBERING: 'registration_Numbering',
     PRE_REGISTRATION_NUMBERING: 'Pre_Registration_Numbering',
     STUDENT_COUNT_REPORT: 'student_count_report',
-    STUDENT_APPLICATION_FORM: 'student_application_form'
+    STUDENT_APPLICATION_FORM: 'student_application_form',
+    ACADEMIC_YEAR_MASTER_CONFIGURATION: 'academic_year_master_configuration',
+    PARENTS_DASHBOARD: 'parents_dashboard'
 };
 
 export const FEES_QUERY_KEYS = {
