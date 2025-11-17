@@ -206,3 +206,17 @@ export interface IMasterClassTeacherList {
     employee_name: string;
     imcT_ActiveFlag: boolean;
 }
+
+export interface IAcademicYearMasterConfiguration {
+    ispaC_Id: number;
+    ispaC_NoofApplications: number;
+    ispaC_ApplFeeFlag: 0 | 1;
+    ispaC_RegMailFlag: 0 | 1;
+    ispaC_RegSMSFlag: 0 | 1;
+    ispaC_ApplMailFlag: 0 | 1;
+    ispaC_ApplSMSFlag: 0 | 1;
+    ispaC_ApplCutOffDateFlag: 0 | 1;
+    ispaC_DOBMinAgeFlag: 0 | 1;
+    ispaC_DOBMaxAgeFlag: 0 | 1;
+    asmaY_Cut_Of_Date: string | null;
+}

@@ -244,7 +244,10 @@ const SelectContent = React.forwardRef<
     React.ElementRef<typeof SelectPrimitive.Content>,
     React.ComponentPropsWithoutRef<typeof SelectPrimitive.Content>
 >(({ className, children, position = 'popper', ...props }, ref) => {
-    const { searchable } = React.useContext(SelectSearchContext);
+    const { searchable, searchQuery, filteredItems } = React.useContext(SelectSearchContext);
+
+    // Check if we should show "No Data Found" - only when actively searching and no matches
+    const showNoResults = !!searchQuery && filteredItems.size === 0;
 
     return (
         <SelectPrimitive.Portal>
@@ -269,7 +272,7 @@ const SelectContent = React.forwardRef<
                         'p-1',
                         position === 'popper' && 'h-[var(--radix-select-trigger-height)] w-full min-w-[var(--radix-select-trigger-width)]'
                     )}>
-                    {children}
+                    {showNoResults ? <div className='px-2 py-6 text-center text-muted-foreground text-sm'>No Data Found</div> : children}
                 </SelectPrimitive.Viewport>
                 <SelectScrollDownButton />
             </SelectPrimitive.Content>
@@ -290,10 +293,10 @@ const SelectItem = React.forwardRef<
     React.ElementRef<typeof SelectPrimitive.Item>,
     React.ComponentPropsWithoutRef<typeof SelectPrimitive.Item> & { textValue?: string }
 >(({ className, children, textValue, ...props }, ref) => {
-    const { filteredItems } = React.useContext(SelectSearchContext);
+    const { filteredItems, searchQuery } = React.useContext(SelectSearchContext);
 
     // If filtering is active and this item is not in filtered set, hide it
-    if (filteredItems.size > 0 && !filteredItems.has(props.value as string)) {
+    if (searchQuery && !filteredItems.has(props.value as string)) {
         return null;
     }
 
@@ -324,19 +327,6 @@ const SelectSeparator = React.forwardRef<
 ));
 SelectSeparator.displayName = SelectPrimitive.Separator.displayName;
 
-// Add empty state component to show when no results match
-const SelectEmptyState = ({ children }: { children: React.ReactNode }) => {
-    const { filteredItems, searchQuery } = React.useContext(SelectSearchContext);
-
-    // Only show empty state when searching and no items match
-    if (filteredItems.size > 0 || !searchQuery) {
-        return null;
-    }
-
-    return <div className='px-2 py-4 text-center text-muted-foreground text-sm'>{children || 'No results found'}</div>;
-};
-SelectEmptyState.displayName = 'SelectEmptyState';
-
 export {
     Select,
     SelectGroup,
@@ -348,6 +338,5 @@ export {
     SelectSeparator,
     SelectScrollUpButton,
     SelectScrollDownButton,
-    SelectSearch,
-    SelectEmptyState
+    SelectSearch
 };

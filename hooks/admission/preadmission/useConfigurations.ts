@@ -1,7 +1,10 @@
 import { PREADMISSION_QUERY_KEYS } from '@/constants/query-keys';
 import { getPreAdmissionSetOrder, getPreAdmissionYear } from '@/server/admission/preadmission/configuration/academic_year_master';
 import { checkPreadmissionLive } from '@/server/admission/preadmission/configuration/configuration';
-import { getMasterConfiguration } from '@/server/admission/preadmission/configuration/master_configuration';
+import {
+    getAcademicYearMasterConfiguration,
+    getMasterConfiguration
+} from '@/server/admission/preadmission/configuration/master_configuration';
 import { getPreRegistrationNumbering, getRegistrationNumbering } from '@/server/admission/preadmission/configuration/transaction_numbering';
 import type { ApiSearchparams } from '@/types';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
@@ -102,6 +105,24 @@ export const usePreRegistrationNumbering = () => {
         refetchAll: () => {
             return queryClient.invalidateQueries({
                 queryKey: [PREADMISSION_QUERY_KEYS.PRE_REGISTRATION_NUMBERING]
+            });
+        }
+    };
+};
+
+export const useAcademicYearMasterConfiguration = (asmayId: number) => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [PREADMISSION_QUERY_KEYS.ACADEMIC_YEAR_MASTER_CONFIGURATION, asmayId],
+            queryFn: async () => getAcademicYearMasterConfiguration(asmayId),
+            staleTime: 0,
+            enabled: !!asmayId
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [PREADMISSION_QUERY_KEYS.ACADEMIC_YEAR_MASTER_CONFIGURATION]
             });
         }
     };
