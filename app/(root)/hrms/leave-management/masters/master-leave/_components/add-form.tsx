@@ -35,13 +35,9 @@ export default function AddMasterLeaveForm({ onSuccess, className = '' }: AddMas
             leaveName: '',
             leaveCode: '',
             leaveType: '',
-            leaveApplyCriteria: '',
-            daysForApplyCriteria: '',
-            maxDaysForApply: '',
             leaveDetails: '',
             leaveCredit: false,
             lateDeduct: false,
-            probationNotApplicable: false,
             leaveOrder: 0,
             isActive: true
         }
@@ -116,53 +112,6 @@ export default function AddMasterLeaveForm({ onSuccess, className = '' }: AddMas
                             )}
                         />
 
-                        <Controller
-                            name='leaveApplyCriteria'
-                            control={control}
-                            rules={MASTER_LEAVE_VALIDATION.leaveApplyCriteria}
-                            render={({ field }) => (
-                                <div>
-                                    <label htmlFor='leaveApplyCriteria' className='mb-2 block font-medium text-sm'>
-                                        Leave Apply Criteria <span className='text-red-500'>*</span>
-                                    </label>
-                                    <Select value={field.value} onValueChange={field.onChange}>
-                                        <SelectTrigger
-                                            id='leaveApplyCriteria'
-                                            className={errors.leaveApplyCriteria ? 'border-red-500' : ''}>
-                                            <SelectValue placeholder='Select Apply Criteria' />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            <SelectItem value='Before'>Before</SelectItem>
-                                            <SelectItem value='After'>After</SelectItem>
-                                            <SelectItem value='Same Day'>Same Day</SelectItem>
-                                            <SelectItem value='Month'>Month</SelectItem>
-                                            <SelectItem value='Quarter'>Quarter</SelectItem>
-                                        </SelectContent>
-                                    </Select>
-                                    {errors.leaveApplyCriteria && <FormError>{errors.leaveApplyCriteria.message}</FormError>}
-                                </div>
-                            )}
-                        />
-
-                        <InputText
-                            label='Days for Apply Criteria'
-                            required
-                            id='daysForApplyCriteria'
-                            type='number'
-                            {...register('daysForApplyCriteria', MASTER_LEAVE_VALIDATION.daysForApplyCriteria)}
-                            error={errors.daysForApplyCriteria?.message}
-                            className='transition-colors focus:ring-2 focus:ring-primary/20'
-                        />
-
-                        <InputText
-                            label='Max Days For Apply'
-                            required
-                            id='maxDaysForApply'
-                            type='number'
-                            {...register('maxDaysForApply', MASTER_LEAVE_VALIDATION.maxDaysForApply)}
-                            error={errors.maxDaysForApply?.message}
-                            className='transition-colors focus:ring-2 focus:ring-primary/20'
-                        />
                     </div>
 
                     <div className='grid grid-cols-1 gap-4 md:grid-cols-1'>
@@ -197,19 +146,6 @@ export default function AddMasterLeaveForm({ onSuccess, className = '' }: AddMas
                             />
                             <label htmlFor='lateDeduct' className='font-medium text-sm'>
                                 Late Deduct
-                            </label>
-                        </div>
-
-                        <div className='flex items-center space-x-2'>
-                            <Controller
-                                name='probationNotApplicable'
-                                control={control}
-                                render={({ field }) => (
-                                    <Checkbox id='probationNotApplicable' checked={field.value} onCheckedChange={field.onChange} />
-                                )}
-                            />
-                            <label htmlFor='probationNotApplicable' className='font-medium text-sm'>
-                                Probation NOT Applicable
                             </label>
                         </div>
 

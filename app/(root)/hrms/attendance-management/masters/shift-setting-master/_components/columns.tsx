@@ -1,14 +1,14 @@
 'use client';
 
 import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuLabel, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { type BaseEntity } from '@/lib/localdb';
+import { ActionButtons } from '@/components/ui/form/action-buttons';
+import { useFormContext } from '@/components/ui/form/form-provider';
 import type { ColumnDef } from '@tanstack/react-table';
-import { Edit, MoreHorizontal, Trash2 } from 'lucide-react';
+import { useCallback } from 'react';
 
-export interface ShiftSetting extends BaseEntity {
+export interface ShiftSetting {
+    id: number;
     shiftName: string;
     shiftStartTime: string;
     shiftEndTime: string;
@@ -22,72 +22,82 @@ export interface ShiftSetting extends BaseEntity {
     isActive: boolean;
 }
 
-interface GetShiftSettingColumnsProps {
-    onEdit: (shiftSetting: ShiftSetting) => void;
-    onDelete: (id: number) => void;
-}
+export const shiftSettingColumns: ColumnDef<ShiftSetting>[] = [
+    {
+        id: 'serialNumber',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='SL. NO.' />,
+        cell: ({ row, table }) => {
+            const pageIndex = table.getState().pagination.pageIndex;
+            const pageSize = table.getState().pagination.pageSize;
+            const continuousIndex = pageIndex * pageSize + row.index + 1;
+            return <div className='font-medium'>{continuousIndex}</div>;
+        },
+        enableSorting: false,
+        enableHiding: false
+    },
+    {
+        accessorKey: 'shiftName',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Shift Name' />,
+        cell: ({ row }) => <div className='font-medium'>{row.getValue('shiftName')}</div>,
+        enableSorting: true,
+        enableHiding: true
+    },
+    {
+        accessorKey: 'shiftStartTime',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Shift Start Time' />,
+        cell: ({ row }) => <div>{row.getValue('shiftStartTime')}</div>,
+        enableSorting: true,
+        enableHiding: true
+    },
+    {
+        accessorKey: 'shiftEndTime',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Shift End Time' />,
+        cell: ({ row }) => <div>{row.getValue('shiftEndTime')}</div>,
+        enableSorting: true,
+        enableHiding: true
+    },
+    {
+        accessorKey: 'isActive',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Status' />,
+        cell: ({ row }) => {
+            const isActive = row.getValue('isActive') as boolean;
+            return <Badge variant={isActive ? 'default' : 'secondary'}>{isActive ? 'Active' : 'Inactive'}</Badge>;
+        },
+        enableSorting: true,
+        enableHiding: true
+    },
+    {
+        id: 'actions',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Actions' className='text-start' />,
+        accessorFn: (row: any) => row,
+        enableSorting: false,
+        cell: ({ row }) => <ActionButtonsCell rowData={row.original} />
+    }
+];
 
-export function getShiftSettingColumns({ onEdit, onDelete }: GetShiftSettingColumnsProps): ColumnDef<ShiftSetting>[] {
-    return [
-        {
-            id: 'serialNumber',
-            header: ({ column }) => <DataTableColumnHeader column={column} title='SHO' />,
-            cell: ({ row }) => <div className='font-medium'>{row.index + 1}</div>,
-            enableSorting: false
+function ActionButtonsCell({ rowData }: { rowData: ShiftSetting }) {
+    const { openEditForm, openDeleteForm } = useFormContext<ShiftSetting>();
+
+    const handleEdit = useCallback(
+        (data: ShiftSetting) => {
+            openEditForm(data);
         },
-        {
-            accessorKey: 'shiftName',
-            header: ({ column }) => <DataTableColumnHeader column={column} title='Shift Name' />,
-            cell: ({ row }) => <div className='font-medium'>{row.getValue('shiftName')}</div>
+        [openEditForm]
+    );
+
+    const handleDelete = useCallback(
+        (data: ShiftSetting) => {
+            openDeleteForm(data);
         },
-        {
-            accessorKey: 'shiftStartTime',
-            header: ({ column }) => <DataTableColumnHeader column={column} title='Shift Start Time' />,
-            cell: ({ row }) => <div>{row.getValue('shiftStartTime')}</div>
-        },
-        {
-            accessorKey: 'shiftEndTime',
-            header: ({ column }) => <DataTableColumnHeader column={column} title='Shift End Time' />,
-            cell: ({ row }) => <div>{row.getValue('shiftEndTime')}</div>
-        },
-        {
-            accessorKey: 'isActive',
-            header: ({ column }) => <DataTableColumnHeader column={column} title='Status' />,
-            cell: ({ row }) => {
-                const isActive = row.getValue('isActive') as boolean;
-                return <Badge variant={isActive ? 'default' : 'secondary'}>{isActive ? 'Active' : 'Inactive'}</Badge>;
-            }
-        },
-        {
-            id: 'actions',
-            header: 'Actions',
-            cell: ({ row }) => {
-                const shiftSetting = row.original;
-                return (
-                    <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                            <Button variant='ghost' className='h-8 w-8 p-0'>
-                                <MoreHorizontal className='h-4 w-4' />
-                            </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align='end'>
-                            <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                            <Button variant='ghost' size='sm' onClick={() => onEdit(shiftSetting)} className='w-full justify-start'>
-                                <Edit className='mr-2 h-4 w-4' />
-                                Edit
-                            </Button>
-                            <Button
-                                variant='ghost'
-                                size='sm'
-                                onClick={() => onDelete(shiftSetting.id)}
-                                className='w-full justify-start text-red-600 hover:text-red-900'>
-                                <Trash2 className='mr-2 h-4 w-4' />
-                                Delete
-                            </Button>
-                        </DropdownMenuContent>
-                    </DropdownMenu>
-                );
-            }
-        }
-    ];
+        [openDeleteForm]
+    );
+
+    return (
+        <ActionButtons
+            rowData={rowData}
+            buttons={{ edit: true, toggle: false, delete: true }}
+            onEdit={handleEdit}
+            onDelete={handleDelete}
+        />
+    );
 }

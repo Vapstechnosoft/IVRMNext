@@ -62,7 +62,7 @@ export default function ReligionCategoryMappingPage(props: { searchParams: Searc
                   : undefined
     };
 
-    const { data: response, isLoading, error, refetch } = useReligionCategoryMapping(searchParams);
+    const { data: response, isLoading, error, refetch } = useReligionCategoryMapping();
 
     return (
         <FormProvider<ReligionCategoryMappingDetail>>

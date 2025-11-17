@@ -12,9 +12,7 @@ import { getCompOffRequestData, submitCompOffRequest, cancelCompOffRequest } fro
 import type { LeaveCredit } from '@/app/(root)/hrms/leave-management/transaction/leave-transfer/_components/columns';
 import type { LeaveCreditTransaction } from '@/app/(root)/hrms/leave-management/transaction/leave-credit-transaction/_components/columns';
 import type { LeaveCreditDetail } from '@/app/(root)/hrms/leave-management/transaction/leave-credit-details/_components/columns';
-import type { LeaveCreditDeduction } from '@/app/(root)/hrms/leave-management/transaction/leave-credit-deduction/_components/columns';
-import type { LeaveCreditAddition } from '@/app/(root)/hrms/leave-management/transaction/leave-credit-addition/_components/columns';
-import type { LeaveCarryForward } from '@/app/(root)/hrms/leave-management/transaction/leave-carryforward/_components/columns';
+import type { LeaveCreditDeduction, LeaveCreditAddition, LeaveCarryForward } from '@/types/hrms/leave-management/leave-credit-types';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 

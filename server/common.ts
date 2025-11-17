@@ -1394,14 +1394,14 @@ export async function getUserAccessibleModules() {
                                         title: 'Leave Authorization',
                                         description: 'Configure Leave Approvers'
                                     },
-                                    {
-                                        id: 3,
-                                        name: 'Master Leave Year',
-                                        icon: 'CalendarRange',
-                                        url: '/hrms/leave-management/masters/master-leaveYear',
-                                        title: 'Master Leave Year',
-                                        description: 'Manage Leave Year'
-                                    }
+                                    // {
+                                    //     id: 3,
+                                    //     name: 'Master Leave Year',
+                                    //     icon: 'CalendarRange',
+                                    //     url: '/hrms/leave-management/masters/master-leaveYear',
+                                    //     title: 'Master Leave Year',
+                                    //     description: 'Manage Leave Year'
+                                    // }
                                 ]
                             },
                             {

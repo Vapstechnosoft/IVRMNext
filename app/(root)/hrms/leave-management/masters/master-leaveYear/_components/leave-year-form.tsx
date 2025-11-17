@@ -131,7 +131,7 @@ export function LeaveYearForm({ editingLeaveYear, onSubmit, onCancel }: LeaveYea
             </div>
 
             <div className='flex gap-2'>
-                <Button type='submit' className='bg-blue-600 hover:bg-blue-700'>
+                <Button type='submit' variant='default'>
                     {editingLeaveYear ? 'Update' : 'Save'}
                 </Button>
                 <Button type='button' variant='outline' onClick={onCancel}>

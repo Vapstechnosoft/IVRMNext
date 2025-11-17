@@ -1,12 +1,13 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
-import { Checkbox } from '@/components/ui/checkbox';
+import { FormError } from '@/components/ui/extension/field';
 import { InputText } from '@/components/ui/extension/input-text';
+import { MultiSelect } from '@/components/ui/multi-select';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { X } from 'lucide-react';
-import { type SubmitHandler, useForm } from 'react-hook-form';
+import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
 import type { LeaveCredit } from './columns';
 
 interface LeaveCreditFormProps {
@@ -17,23 +18,38 @@ interface LeaveCreditFormProps {
     onCancel: () => void;
 }
 
-const typeOptions = ['VKS', 'Permanent', 'ELearning', 'Robotic', 'Internship', 'Management Admin'];
-const departmentOptions = ['Hardware and Network', 'Sales', 'Human Resource', 'Admin', 'LEGAL', 'IT Team'];
+const typeOptions = [
+    { label: 'VKS', value: 'VKS' },
+    { label: 'Permanent', value: 'Permanent' },
+    { label: 'ELearning', value: 'ELearning' },
+    { label: 'Robotic', value: 'Robotic' },
+    { label: 'Internship', value: 'Internship' },
+    { label: 'Management Admin', value: 'Management Admin' }
+];
+const departmentOptions = [
+    { label: 'Hardware and Network', value: 'Hardware and Network' },
+    { label: 'Sales', value: 'Sales' },
+    { label: 'Human Resource', value: 'Human Resource' },
+    { label: 'Admin', value: 'Admin' },
+    { label: 'LEGAL', value: 'LEGAL' },
+    { label: 'IT Team', value: 'IT Team' }
+];
 const designationOptions = [
-    'Computer Faculty',
-    'E-learning coordinator',
-    'Accounts and Finance Executive',
-    'Client acquisition manager',
-    'Sr HR Executive',
-    'Manager HR'
+    { label: 'Computer Faculty', value: 'Computer Faculty' },
+    { label: 'E-learning coordinator', value: 'E-learning coordinator' },
+    { label: 'Accounts and Finance Executive', value: 'Accounts and Finance Executive' },
+    { label: 'Client acquisition manager', value: 'Client acquisition manager' },
+    { label: 'Sr HR Executive', value: 'Sr HR Executive' },
+    { label: 'Manager HR', value: 'Manager HR' }
 ];
 
 export function LeaveCreditForm({ editingCredit, activeTab, onTabChange, onSubmit, onCancel }: LeaveCreditFormProps) {
     const {
         register,
         handleSubmit,
-        setValue,
+        control,
         watch,
+        setValue,
         formState: { errors }
     } = useForm<LeaveCredit>({
         defaultValues: editingCredit || {
@@ -52,42 +68,6 @@ export function LeaveCreditForm({ editingCredit, activeTab, onTabChange, onSubmi
         onSubmit(data);
     };
 
-    const handleTypeChange = (type: string, checked: boolean) => {
-        const currentTypes = watch('type');
-        if (checked) {
-            setValue('type', [...currentTypes, type]);
-        } else {
-            setValue(
-                'type',
-                currentTypes.filter((t) => t !== type)
-            );
-        }
-    };
-
-    const handleDepartmentChange = (dept: string, checked: boolean) => {
-        const currentDepts = watch('department');
-        if (checked) {
-            setValue('department', [...currentDepts, dept]);
-        } else {
-            setValue(
-                'department',
-                currentDepts.filter((d) => d !== dept)
-            );
-        }
-    };
-
-    const handleDesignationChange = (desig: string, checked: boolean) => {
-        const currentDesigs = watch('designation');
-        if (checked) {
-            setValue('designation', [...currentDesigs, desig]);
-        } else {
-            setValue(
-                'designation',
-                currentDesigs.filter((d) => d !== desig)
-            );
-        }
-    };
-
     return (
         <Tabs value={activeTab} onValueChange={onTabChange} className='w-full'>
             <TabsList className='grid w-full grid-cols-4'>
@@ -101,111 +81,60 @@ export function LeaveCreditForm({ editingCredit, activeTab, onTabChange, onSubmi
                 <form onSubmit={handleSubmit(handleFormSubmit)} className='space-y-4'>
                     <div className='grid grid-cols-1 gap-4 md:grid-cols-3'>
                         <div>
-                            <label htmlFor='type-checkboxes' className='font-medium text-sm'>
+                            <label htmlFor='type-multiselect' className='font-medium text-sm mb-2 block'>
                                 Type
                             </label>
-                            <div id='type-checkboxes' className='max-h-32 overflow-y-auto rounded-md border border-gray-300 p-2'>
-                                <div className='mb-2 flex items-center space-x-2'>
-                                    <Checkbox
-                                        id='type-all'
-                                        checked={watch('type').length === typeOptions.length}
-                                        onCheckedChange={(checked) => {
-                                            if (checked) {
-                                                setValue('type', typeOptions);
-                                            } else {
-                                                setValue('type', []);
-                                            }
-                                        }}
+                            <Controller
+                                name='type'
+                                control={control}
+                                render={({ field }) => (
+                                    <MultiSelect
+                                        id='type-multiselect'
+                                        options={typeOptions}
+                                        onValueChange={field.onChange}
+                                        defaultValue={field.value || []}
+                                        placeholder='Select Type'
                                     />
-                                    <label htmlFor='type-all' className='font-medium text-sm'>
-                                        Type: All
-                                    </label>
-                                </div>
-                                {typeOptions.map((type) => (
-                                    <div key={type} className='flex items-center space-x-2'>
-                                        <Checkbox
-                                            id={`type-${type}`}
-                                            checked={watch('type').includes(type)}
-                                            onCheckedChange={(checked) => handleTypeChange(type, checked as boolean)}
-                                        />
-                                        <label htmlFor={`type-${type}`} className='text-sm'>
-                                            {type}
-                                        </label>
-                                    </div>
-                                ))}
-                            </div>
+                                )}
+                            />
                         </div>
 
                         <div>
-                            <label htmlFor='department-checkboxes' className='font-medium text-sm'>
+                            <label htmlFor='department-multiselect' className='font-medium text-sm mb-2 block'>
                                 Department
                             </label>
-                            <div id='department-checkboxes' className='max-h-32 overflow-y-auto rounded-md border border-gray-300 p-2'>
-                                <div className='mb-2 flex items-center space-x-2'>
-                                    <Checkbox
-                                        id='dept-all'
-                                        checked={watch('department').length === departmentOptions.length}
-                                        onCheckedChange={(checked) => {
-                                            if (checked) {
-                                                setValue('department', departmentOptions);
-                                            } else {
-                                                setValue('department', []);
-                                            }
-                                        }}
+                            <Controller
+                                name='department'
+                                control={control}
+                                render={({ field }) => (
+                                    <MultiSelect
+                                        id='department-multiselect'
+                                        options={departmentOptions}
+                                        onValueChange={field.onChange}
+                                        defaultValue={field.value || []}
+                                        placeholder='Select Department'
                                     />
-                                    <label htmlFor='dept-all' className='font-medium text-sm'>
-                                        Department: All
-                                    </label>
-                                </div>
-                                {departmentOptions.map((dept) => (
-                                    <div key={dept} className='flex items-center space-x-2'>
-                                        <Checkbox
-                                            id={`dept-${dept}`}
-                                            checked={watch('department').includes(dept)}
-                                            onCheckedChange={(checked) => handleDepartmentChange(dept, checked as boolean)}
-                                        />
-                                        <label htmlFor={`dept-${dept}`} className='text-sm'>
-                                            {dept}
-                                        </label>
-                                    </div>
-                                ))}
-                            </div>
+                                )}
+                            />
                         </div>
 
                         <div>
-                            <label htmlFor='designation-checkboxes' className='font-medium text-sm'>
+                            <label htmlFor='designation-multiselect' className='font-medium text-sm mb-2 block'>
                                 Designation
                             </label>
-                            <div id='designation-checkboxes' className='max-h-32 overflow-y-auto rounded-md border border-gray-300 p-2'>
-                                <div className='mb-2 flex items-center space-x-2'>
-                                    <Checkbox
-                                        id='desig-all'
-                                        checked={watch('designation').length === designationOptions.length}
-                                        onCheckedChange={(checked) => {
-                                            if (checked) {
-                                                setValue('designation', designationOptions);
-                                            } else {
-                                                setValue('designation', []);
-                                            }
-                                        }}
+                            <Controller
+                                name='designation'
+                                control={control}
+                                render={({ field }) => (
+                                    <MultiSelect
+                                        id='designation-multiselect'
+                                        options={designationOptions}
+                                        onValueChange={field.onChange}
+                                        defaultValue={field.value || []}
+                                        placeholder='Select Designation'
                                     />
-                                    <label htmlFor='desig-all' className='font-medium text-sm'>
-                                        Designation: All
-                                    </label>
-                                </div>
-                                {designationOptions.map((desig) => (
-                                    <div key={desig} className='flex items-center space-x-2'>
-                                        <Checkbox
-                                            id={`desig-${desig}`}
-                                            checked={watch('designation').includes(desig)}
-                                            onCheckedChange={(checked) => handleDesignationChange(desig, checked as boolean)}
-                                        />
-                                        <label htmlFor={`desig-${desig}`} className='text-sm'>
-                                            {desig}
-                                        </label>
-                                    </div>
-                                ))}
-                            </div>
+                                )}
+                            />
                         </div>
                     </div>
 
@@ -228,27 +157,34 @@ export function LeaveCreditForm({ editingCredit, activeTab, onTabChange, onSubmi
                                     <SelectItem value='2025'>2025</SelectItem>
                                 </SelectContent>
                             </Select>
-                            {errors.leaveYear && <p className='mt-1 text-red-500 text-xs'>{errors.leaveYear.message}</p>}
+                            {errors.leaveYear && <FormError>{errors.leaveYear.message}</FormError>}
                         </div>
 
                         <div>
                             <label htmlFor='leave-name-select' className='font-medium text-sm'>
                                 Leave Name *
                             </label>
-                            <Select value={watch('leaveName')} onValueChange={(value) => setValue('leaveName', value)}>
-                                <SelectTrigger id='leave-name-select' className={errors.leaveName ? 'border-red-500' : ''}>
-                                    <SelectValue placeholder='Select Leave Name' />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value='Casual Leave'>Casual Leave</SelectItem>
-                                    <SelectItem value='Sick Leave'>Sick Leave</SelectItem>
-                                    <SelectItem value='Optional Leave'>Optional Leave</SelectItem>
-                                    <SelectItem value='Emergency Leave'>Emergency Leave</SelectItem>
-                                    <SelectItem value='Privilege Leave'>Privilege Leave</SelectItem>
-                                    <SelectItem value='Comp Off'>Comp Off</SelectItem>
-                                </SelectContent>
-                            </Select>
-                            {errors.leaveName && <p className='mt-1 text-red-500 text-xs'>{errors.leaveName.message}</p>}
+                            <Controller
+                                name='leaveName'
+                                control={control}
+                                rules={{ required: 'Leave Name is required' }}
+                                render={({ field }) => (
+                                    <Select value={field.value} onValueChange={field.onChange}>
+                                        <SelectTrigger id='leave-name-select' className={errors.leaveName ? 'border-red-500' : ''}>
+                                            <SelectValue placeholder='Select Leave Name' />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value='Casual Leave'>Casual Leave</SelectItem>
+                                            <SelectItem value='Sick Leave'>Sick Leave</SelectItem>
+                                            <SelectItem value='Optional Leave'>Optional Leave</SelectItem>
+                                            <SelectItem value='Emergency Leave'>Emergency Leave</SelectItem>
+                                            <SelectItem value='Privilege Leave'>Privilege Leave</SelectItem>
+                                            <SelectItem value='Comp Off'>Comp Off</SelectItem>
+                                        </SelectContent>
+                                    </Select>
+                                )}
+                            />
+                            {errors.leaveName && <FormError>{errors.leaveName.message}</FormError>}
                         </div>
 
                         <div>

@@ -13,16 +13,18 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { format } from 'date-fns';
 import { CalendarIcon, FileDown, Printer, RefreshCw, X } from 'lucide-react';
 import { useForm } from 'react-hook-form';
+import { useEffect } from 'react';
 import type { z } from 'zod';
 
 export type EmployeeYearlyReportFilters = z.infer<typeof employeeYearlyReportFilterSchema>;
 
 interface EmployeeYearlyReportFiltersProps {
     filters: EmployeeYearlyReportFilters;
-    employees: string[];
-    types: string[];
+    branches: string[];
     departments: string[];
     designations: string[];
+    groupTypes?: Array<{ label: string; value: string }>;
+    employees?: Array<{ label: string; value: string }>;
     onFilterChange: (filters: EmployeeYearlyReportFilters) => void;
     onSearch: () => void;
     onCancel: () => void;
@@ -32,10 +34,11 @@ interface EmployeeYearlyReportFiltersProps {
 
 export function EmployeeYearlyReportFilters({
     filters,
-    employees,
-    types,
+    branches,
     departments,
     designations,
+    groupTypes = [],
+    employees = [],
     onFilterChange,
     onSearch,
     onCancel,
@@ -45,12 +48,31 @@ export function EmployeeYearlyReportFilters({
     const {
         handleSubmit,
         setValue,
+        watch,
         formState: { errors }
     } = useForm<EmployeeYearlyReportFilters>({
         resolver: zodResolver(employeeYearlyReportFilterSchema),
         defaultValues: filters,
         mode: 'onChange'
     });
+
+    // Watch the allOrIndividual field to reactively show/hide employee dropdown
+    // Use watch to get the current form value, which updates immediately when changed
+    const allOrIndividualValue = watch('allOrIndividual') || filters.allOrIndividual;
+    const employeeValue = watch('employee') || filters.employee || '';
+
+    // Sync form when filters prop changes from parent
+    useEffect(() => {
+        setValue('allOrIndividual', filters.allOrIndividual, { shouldDirty: false, shouldValidate: false });
+        setValue('type', filters.type || [], { shouldDirty: false, shouldValidate: false });
+        setValue('department', filters.department || [], { shouldDirty: false, shouldValidate: false });
+        setValue('designation', filters.designation || [], { shouldDirty: false, shouldValidate: false });
+        setValue('employee', filters.employee || '', { shouldDirty: false, shouldValidate: false });
+        setValue('fromDate', filters.fromDate || '', { shouldDirty: false, shouldValidate: false });
+        setValue('toDate', filters.toDate || '', { shouldDirty: false, shouldValidate: false });
+        setValue('mode', filters.mode || [], { shouldDirty: false, shouldValidate: false });
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [filters.allOrIndividual, filters.type?.join(','), filters.department?.join(','), filters.designation?.join(','), filters.employee, filters.fromDate, filters.toDate, filters.mode?.join(',')]);
 
     const handleFilterChange = (key: keyof EmployeeYearlyReportFilters, value: any) => {
         const newFilters = { ...filters, [key]: value };
@@ -76,7 +98,10 @@ export function EmployeeYearlyReportFilters({
                             Type <span className='text-red-500'>*</span>
                         </label>
                         <MultiSelect
-                            options={types.map((t) => ({ label: t, value: t }))}
+                            options={groupTypes.length > 0 ? groupTypes : [
+                                { label: 'Permanent', value: 'Permanent' },
+                                { label: 'Contract', value: 'Contract' }
+                            ]}
                             onValueChange={(values) => handleFilterChange('type', values)}
                             defaultValue={filters.type || []}
                             placeholder='Select Types'
@@ -118,7 +143,7 @@ export function EmployeeYearlyReportFilters({
                             All / Individual <span className='text-red-500'>*</span>
                         </label>
                         <Select
-                            value={filters.allOrIndividual}
+                            value={allOrIndividualValue}
                             onValueChange={(value) => handleFilterChange('allOrIndividual', value as 'All' | 'Individual')}>
                             <SelectTrigger id='allOrIndividual' className={errors.allOrIndividual ? 'border-red-500' : ''}>
                                 <SelectValue placeholder='Select' />
@@ -131,23 +156,31 @@ export function EmployeeYearlyReportFilters({
                         {errors.allOrIndividual && <FormError>{errors.allOrIndividual.message}</FormError>}
                     </div>
                     {/* Employee Dropdown - Only show when Individual is selected */}
-                    {filters.allOrIndividual === 'Individual' && (
+                    {allOrIndividualValue === 'Individual' && (
                         <div className='md:col-span-3'>
                             <label htmlFor='employee-select' className='font-medium text-sm'>
                                 Employee <span className='text-red-500'>*</span>
                             </label>
                             <Select
-                                value={filters.employee || undefined}
+                                value={employeeValue || undefined}
                                 onValueChange={(value) => handleFilterChange('employee', value)}>
                                 <SelectTrigger id='employee-select' className={errors.employee ? 'border-red-500' : ''}>
                                     <SelectValue placeholder='--Select--' />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    {employees.map((n) => (
-                                        <SelectItem key={n} value={n}>
-                                            {n}
-                                        </SelectItem>
-                                    ))}
+                                    {employees.length > 0 ? (
+                                        employees.map((emp) => (
+                                            <SelectItem key={emp.value} value={emp.value}>
+                                                {emp.label}
+                                            </SelectItem>
+                                        ))
+                                    ) : (
+                                        <>
+                                            <SelectItem value='EMP001'>John Doe (EMP001)</SelectItem>
+                                            <SelectItem value='EMP002'>Jane Smith (EMP002)</SelectItem>
+                                            <SelectItem value='EMP003'>Bob Johnson (EMP003)</SelectItem>
+                                        </>
+                                    )}
                                 </SelectContent>
                             </Select>
                             {errors.employee && <FormError>{errors.employee.message}</FormError>}

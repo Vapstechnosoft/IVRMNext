@@ -38,10 +38,10 @@ export default function DeleteMasterHolidayForm({ rowData, onClose }: DeleteMast
 
     const onSubmit: SubmitHandler<{ id: number }> = async () => {
         const idToDelete = Number(rowData.id);
-        if (isNaN(idToDelete) || idToDelete === 0) {
-            console.error('Invalid ID for deletion:', rowData.id);
+        if (Number.isNaN(idToDelete) || idToDelete === 0) {
             return;
         }
+        
         deleteMasterHoliday(idToDelete, {
             onSuccess: () => {
                 refetchAll();

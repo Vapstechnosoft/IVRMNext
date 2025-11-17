@@ -1,186 +1,147 @@
 'use client';
 
-import { Heading } from '@/components/layout/heading';
 import { Button } from '@/components/ui/button';
-import { GenericDataTable } from '@/components/ui/data-table/generic-data-table';
+import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/generic-data-table';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
-import { createLocalCrud } from '@/lib/localdb';
+import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
+import { useMasterShift } from '@/hooks/hrms/attendance-management/useMasters';
 import { Plus, X } from 'lucide-react';
-import { useEffect, useRef, useState } from 'react';
-import { toast } from 'sonner';
-import { type MasterShift, getMasterShiftColumns } from './_components/columns';
-import { type MasterShiftFormData, ShiftForm } from './_components/shift-form';
+import { use } from 'react';
+import AddMasterShiftForm from './_components/add-form';
+import { masterShiftColumns, type MasterShift } from './_components/columns';
+import DeleteMasterShiftForm from './_components/delete-form';
+import UpdateMasterShiftForm from './_components/update-form';
 
-export default function MasterShiftPage() {
-    const store = createLocalCrud<MasterShift>('attendance:master-shift');
-    const [rows, setRows] = useState<MasterShift[]>([]);
-    const [isLoading, setIsLoading] = useState(true);
-    const [isFormOpen, setIsFormOpen] = useState(false);
-    const [editing, setEditing] = useState<MasterShift | null>(null);
-    const formRef = useRef<HTMLDivElement>(null);
+type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 
-    useEffect(() => {
-        const shifts = store.list();
-        
-        // Add sample shifts if database is empty
-        if (shifts.length === 0) {
-            const sampleShifts: Omit<MasterShift, 'id' | 'createdAt'>[] = [
-                {
-                    shiftName: 'Office Staffs',
-                    startTime: '08:00',
-                    endTime: '16:00',
-                    remarks: 'Standard office hours',
-                    specificDay: false
-                },
-                {
-                    shiftName: 'Teaching Staff',
-                    startTime: '08:00',
-                    endTime: '14:00',
-                    remarks: 'Teaching staff shift',
-                    specificDay: false
-                },
-                {
-                    shiftName: 'Morning Shift',
-                    startTime: '06:00',
-                    endTime: '14:00',
-                    remarks: 'Early morning shift',
-                    specificDay: false
-                },
-                {
-                    shiftName: 'Evening Shift',
-                    startTime: '14:00',
-                    endTime: '22:00',
-                    remarks: 'Evening shift',
-                    specificDay: false
-                },
-                {
-                    shiftName: 'Night Shift',
-                    startTime: '22:00',
-                    endTime: '06:00',
-                    remarks: 'Night shift',
-                    specificDay: false
-                }
-            ];
-            
-            sampleShifts.forEach((shift) => {
-                store.create(shift);
-            });
-            
-            setRows(store.list());
-        } else {
-            setRows(shifts);
-        }
-        
-        setIsLoading(false);
-    }, []);
+export default function MasterShiftPage(props: { searchParams: SearchParams }) {
+    const _searchParams = use(props.searchParams);
+    const { data: response, isLoading, error } = useMasterShift();
 
-    const handleAdd = () => {
-        setIsFormOpen(true);
-        setEditing(null);
-        setTimeout(() => formRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 100);
-    };
+    return (
+        <FormProvider<MasterShift>>
+            <MasterShiftPageContent response={response} isLoading={isLoading} error={error} />
+        </FormProvider>
+    );
+}
 
-    const handleFormSubmit = (data: MasterShiftFormData) => {
-        try {
-            const shiftData: Omit<MasterShift, 'id' | 'createdAt'> = {
-                ...data,
-                specificDay: data.specificDay ?? false
-            };
-            if (editing) {
-                store.update(editing.id, data);
-                toast.success('Master shift updated successfully');
-            } else {
-                store.create(shiftData);
-                toast.success('Master shift added successfully');
-            }
-            setIsFormOpen(false);
-            setEditing(null);
-            setRows(store.list());
-        } catch (e: any) {
-            toast.error(e.message || 'Operation failed');
-        }
-    };
-
-    const handleEdit = (row: MasterShift) => {
-        setEditing(row);
-        setIsFormOpen(true);
-        setTimeout(() => formRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 100);
-    };
-
-    const handleDelete = (row: MasterShift) => {
-        if (confirm('Are you sure you want to delete this shift?')) {
-            store.remove(row.id);
-            toast.success('Shift deleted successfully');
-            setRows(store.list());
-            if (editing?.id === row.id) {
-                setEditing(null);
-                setIsFormOpen(false);
-            }
-        }
-    };
-
-    const handleFormCancel = () => {
-        setIsFormOpen(false);
-        setEditing(null);
-    };
-
-    const columns = getMasterShiftColumns({
-        onEdit: handleEdit,
-        onDelete: handleDelete
-    });
+function MasterShiftPageContent({
+    response,
+    isLoading,
+    error
+}: {
+    response: any;
+    isLoading: boolean;
+    error: any;
+}) {
+    const { openAddForm } = useFormContext<MasterShift>();
+    const tableProps = useDataTableProps(response);
 
     return (
         <div className='min-h-screen'>
             <div className='container space-y-4 p-1'>
+                {/* Header */}
                 <div className='flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between'>
-                    <div className='space-y-1'>
-                        <Heading title='Master Shift' description='Manage standard shift definitions' />
-                    </div>
                     <Button
                         type='button'
-                        onClick={handleAdd}
+                        onClick={openAddForm}
                         className='w-fit shadow-md transition-all duration-200 hover:scale-105 hover:shadow-lg'>
                         <Plus className='h-4 w-4' />
                         Add Master Shift
                     </Button>
                 </div>
 
-                {/* Table Section - Always visible */}
+                {/* Data Table Section */}
                 <CollapsibleSection
-                    title='MASTER SHIFT'
-                    description=''
                     defaultOpen={true}
                     variant='default'
                     size='lg'
-                    className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
-                    <GenericDataTable isLoading={isLoading} columns={columns} data={rows} totalItems={rows.length} showViewOptions />
+                    className='shadow-lg transition-shadow duration-300 hover:shadow-xl'
+                    headerClassName=''>
+                    <GenericDataTable<MasterShift>
+                        {...tableProps}
+                        columns={masterShiftColumns}
+                        isLoading={isLoading}
+                        error={error}
+                        showViewOptions={false}
+                        columnPinning={{ right: ['actions'] }}
+                        loadingMessage='Loading master shifts...'
+                        noDataTitle='No Master Shifts Found'
+                        noDataDescription='Get started by creating your first master shift'
+                        errorTitle='Error Loading Shifts'
+                    />
                 </CollapsibleSection>
 
-                {/* Form Section - Only visible when Add/Edit */}
-                {isFormOpen && (
-                    <div ref={formRef} className='slide-in-from-top-4 animate-in duration-300'>
-                        <CollapsibleSection
-                            title={editing ? 'Edit Master Shift' : 'Add New Master Shift'}
-                            description={editing ? 'Update shift details below' : 'Fill in the details below to create a new shift'}
-                            defaultOpen={true}
-                            variant='outline'
-                            size='md'
-                            className='shadow-lg'>
-                            <div className='relative'>
-                                <Button
-                                    type='button'
-                                    onClick={handleFormCancel}
-                                    variant='ghost'
-                                    size='sm'
-                                    className='-top-[3.5rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
-                                    <X className='h-4 w-4 text-destructive' /> Close
-                                </Button>
-                                <ShiftForm editingShift={editing} onSubmit={handleFormSubmit} onCancel={handleFormCancel} />
-                            </div>
-                        </CollapsibleSection>
-                    </div>
-                )}
+                {/* Forms */}
+                <FormSections />
             </div>
         </div>
+    );
+}
+
+function FormSections() {
+    const {
+        isAddFormOpen,
+        isEditFormOpen,
+        isDeleteFormOpen,
+        selectedRow,
+        closeAddForm,
+        closeEditForm,
+        closeDeleteForm,
+        addFormRef,
+        editFormRef
+    } = useFormContext<MasterShift>();
+
+    return (
+        <>
+            {/* Add Form */}
+            {isAddFormOpen && (
+                <div ref={addFormRef}>
+                    <CollapsibleSection
+                        defaultOpen={true}
+                        variant='outline'
+                        size='md'
+                        className='slide-in-from-top-4 animate-in shadow-lg duration-300'>
+                        <div className='relative'>
+                            <Button
+                                type='button'
+                                onClick={closeAddForm}
+                                variant='ghost'
+                                size='sm'
+                                className='-top-[3.5rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
+                                <X className='h-4 w-4 text-destructive' /> Close
+                            </Button>
+                            <AddMasterShiftForm onSuccess={closeAddForm} />
+                        </div>
+                    </CollapsibleSection>
+                </div>
+            )}
+
+            {/* Edit Form */}
+            {isEditFormOpen && selectedRow && (
+                <div ref={editFormRef}>
+                    <CollapsibleSection
+                        defaultOpen={true}
+                        variant='outline'
+                        size='md'
+                        className='slide-in-from-top-4 animate-in border-primary/20 shadow-lg duration-300'>
+                        <div className='relative'>
+                            <Button
+                                type='button'
+                                onClick={closeEditForm}
+                                variant='ghost'
+                                size='sm'
+                                className='-top-[3.5rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
+                                <X className='h-4 w-4 text-destructive' /> Close
+                            </Button>
+                            <UpdateMasterShiftForm selectedRow={selectedRow} onSuccess={closeEditForm} />
+                        </div>
+                    </CollapsibleSection>
+                </div>
+            )}
+
+            {/* Delete Form */}
+            {isDeleteFormOpen && selectedRow && <DeleteMasterShiftForm rowData={selectedRow} onClose={closeDeleteForm} />}
+        </>
     );
 }

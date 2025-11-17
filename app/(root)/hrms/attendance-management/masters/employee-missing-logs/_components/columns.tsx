@@ -1,6 +1,6 @@
 'use client';
 
-import { ActionButtons } from '@/components/ui/action-buttons';
+import { ActionButtons } from '@/components/ui/form/action-buttons';
 import { Button } from '@/components/ui/button';
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
 import { useFormContext } from '@/components/ui/form/form-provider';
@@ -21,24 +21,39 @@ export interface MissingLog {
     createdAt: Date;
 }
 
-export const getMissingLogColumns = (): ColumnDef<MissingLog>[] => [
+export const missingLogColumns: ColumnDef<MissingLog>[] = [
     {
         id: 'sl',
         header: ({ column }) => <DataTableColumnHeader column={column} title='SL.NO' />,
-        cell: ({ row }) => <div className='font-medium'>{row.index + 1}</div>,
-        enableSorting: false
+        cell: ({ row, table }) => {
+            const pageIndex = table.getState().pagination.pageIndex;
+            const pageSize = table.getState().pagination.pageSize;
+            const continuousIndex = pageIndex * pageSize + row.index + 1;
+            return <div className='font-medium'>{continuousIndex}</div>;
+        },
+        enableSorting: false,
+        enableHiding: false
     },
     {
         accessorKey: 'employeeName',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Employee Name' />
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Employee Name' />,
+        cell: ({ row }) => <div>{row.getValue('employeeName')}</div>,
+        enableSorting: true,
+        enableHiding: true
     },
     {
         accessorKey: 'date',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Date' />
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Date' />,
+        cell: ({ row }) => <div>{row.getValue('date')}</div>,
+        enableSorting: true,
+        enableHiding: true
     },
     {
         accessorKey: 'time',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Time' />
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Time' />,
+        cell: ({ row }) => <div>{row.getValue('time')}</div>,
+        enableSorting: true,
+        enableHiding: true
     },
     {
         accessorKey: 'inOut',
@@ -46,7 +61,9 @@ export const getMissingLogColumns = (): ColumnDef<MissingLog>[] => [
         cell: ({ row }) => {
             const value = row.getValue('inOut') as string;
             return <div>{value === 'IN' ? '0' : '1'}</div>;
-        }
+        },
+        enableSorting: true,
+        enableHiding: true
     },
     {
         accessorKey: 'file',
@@ -60,19 +77,30 @@ export const getMissingLogColumns = (): ColumnDef<MissingLog>[] => [
             ) : (
                 <span className='text-muted-foreground'>-</span>
             );
-        }
+        },
+        enableSorting: true,
+        enableHiding: true
     },
     {
         accessorKey: 'remarks',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Remarks' />
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Remarks' />,
+        cell: ({ row }) => <div>{row.getValue('remarks')}</div>,
+        enableSorting: true,
+        enableHiding: true
     },
     {
         accessorKey: 'reportedBy',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Reported By' />
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Reported By' />,
+        cell: ({ row }) => <div>{row.getValue('reportedBy')}</div>,
+        enableSorting: true,
+        enableHiding: true
     },
     {
         accessorKey: 'status',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Status' />
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Status' />,
+        cell: ({ row }) => <div>{row.getValue('status')}</div>,
+        enableSorting: true,
+        enableHiding: true
     },
     {
         id: 'actions',
@@ -82,8 +110,6 @@ export const getMissingLogColumns = (): ColumnDef<MissingLog>[] => [
         cell: ({ row }) => <ActionButtonsCell rowData={row.original} />
     }
 ];
-
-export const missingLogColumns = getMissingLogColumns();
 
 function ActionButtonsCell({ rowData }: { rowData: MissingLog }) {
     const { openEditForm } = useFormContext<MissingLog>();

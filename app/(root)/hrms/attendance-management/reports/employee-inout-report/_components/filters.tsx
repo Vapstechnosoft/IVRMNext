@@ -13,6 +13,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { format } from 'date-fns';
 import { CalendarIcon, FileDown, Printer, RefreshCw, X } from 'lucide-react';
 import { useForm } from 'react-hook-form';
+import { useEffect } from 'react';
 import type { z } from 'zod';
 
 export type EmployeeInOutReportFilters = z.infer<typeof employeeInOutReportFilterSchema>;
@@ -22,6 +23,8 @@ interface EmployeeInOutReportFiltersProps {
     branches: string[];
     departments: string[];
     designations: string[];
+    groupTypes?: Array<{ label: string; value: string }>;
+    employees?: Array<{ label: string; value: string }>;
     onFilterChange: (filters: EmployeeInOutReportFilters) => void;
     onSearch: () => void;
     onCancel: () => void;
@@ -34,6 +37,8 @@ export function EmployeeInOutReportFilters({
     branches,
     departments,
     designations,
+    groupTypes = [],
+    employees = [],
     onFilterChange,
     onSearch,
     onCancel,
@@ -43,12 +48,31 @@ export function EmployeeInOutReportFilters({
     const {
         handleSubmit,
         setValue,
+        watch,
         formState: { errors }
     } = useForm<EmployeeInOutReportFilters>({
         resolver: zodResolver(employeeInOutReportFilterSchema),
         defaultValues: filters,
         mode: 'onChange'
     });
+
+    // Watch the allOrIndividual and query fields to reactively show/hide employee dropdown
+    // Use watch to get the current form value, which updates immediately when changed
+    const allOrIndividualValue = watch('allOrIndividual') || filters.allOrIndividual;
+    const queryValue = watch('query') || filters.query || '';
+
+    // Sync form when filters prop changes from parent
+    useEffect(() => {
+        setValue('allOrIndividual', filters.allOrIndividual, { shouldDirty: false, shouldValidate: false });
+        setValue('type', filters.type || [], { shouldDirty: false, shouldValidate: false });
+        setValue('department', filters.department || [], { shouldDirty: false, shouldValidate: false });
+        setValue('designation', filters.designation || [], { shouldDirty: false, shouldValidate: false });
+        setValue('query', filters.query || '', { shouldDirty: false, shouldValidate: false });
+        setValue('fromDate', filters.fromDate || '', { shouldDirty: false, shouldValidate: false });
+        setValue('toDate', filters.toDate || '', { shouldDirty: false, shouldValidate: false });
+        setValue('timeInTimeOut', filters.timeInTimeOut, { shouldDirty: false, shouldValidate: false });
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [filters.allOrIndividual, filters.type?.join(','), filters.department?.join(','), filters.designation?.join(','), filters.query, filters.fromDate, filters.toDate, filters.timeInTimeOut]);
 
     const handleFilterChange = (key: keyof EmployeeInOutReportFilters, value: any) => {
         const newFilters = { ...filters, [key]: value };
@@ -74,7 +98,7 @@ export function EmployeeInOutReportFilters({
                             Type
                         </label>
                         <MultiSelect
-                            options={[
+                            options={groupTypes.length > 0 ? groupTypes : [
                                 { label: 'Permanent', value: 'Permanent' },
                                 { label: 'Contract', value: 'Contract' }
                             ]}
@@ -119,7 +143,7 @@ export function EmployeeInOutReportFilters({
                             All / Individual <span className='text-red-500'>*</span>
                         </label>
                         <Select
-                            value={filters.allOrIndividual}
+                            value={allOrIndividualValue}
                             onValueChange={(value) => handleFilterChange('allOrIndividual', value as 'All' | 'Individual')}>
                             <SelectTrigger id='allOrIndividual' className={errors.allOrIndividual ? 'border-red-500' : ''}>
                                 <SelectValue placeholder='Select' />
@@ -132,23 +156,33 @@ export function EmployeeInOutReportFilters({
                         {errors.allOrIndividual && <FormError>{errors.allOrIndividual.message}</FormError>}
                     </div>
                     {/* Employee Dropdown - Only show when Individual is selected */}
-                    {filters.allOrIndividual === 'Individual' && (
+                    {allOrIndividualValue === 'Individual' && (
                         <div className='md:col-span-3'>
                             <label className='font-medium text-sm' htmlFor='employee'>
                                 Employee <span className='text-red-500'>*</span>
                             </label>
                             <Select
-                                value={filters.query || undefined}
+                                value={queryValue || undefined}
                                 onValueChange={(value) => handleFilterChange('query', value)}>
                                 <SelectTrigger id='employee' className={errors.query ? 'border-red-500' : ''}>
                                     <SelectValue placeholder='--Select--' />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    <SelectItem value='EMP001'>John Doe (EMP001)</SelectItem>
-                                    <SelectItem value='EMP002'>Jane Smith (EMP002)</SelectItem>
-                                    <SelectItem value='EMP003'>Bob Johnson (EMP003)</SelectItem>
-                                    <SelectItem value='EMP004'>Alice Williams (EMP004)</SelectItem>
-                                    <SelectItem value='EMP005'>Charlie Brown (EMP005)</SelectItem>
+                                    {employees.length > 0 ? (
+                                        employees.map((emp) => (
+                                            <SelectItem key={emp.value} value={emp.value}>
+                                                {emp.label}
+                                            </SelectItem>
+                                        ))
+                                    ) : (
+                                        <>
+                                            <SelectItem value='EMP001'>John Doe (EMP001)</SelectItem>
+                                            <SelectItem value='EMP002'>Jane Smith (EMP002)</SelectItem>
+                                            <SelectItem value='EMP003'>Bob Johnson (EMP003)</SelectItem>
+                                            <SelectItem value='EMP004'>Alice Williams (EMP004)</SelectItem>
+                                            <SelectItem value='EMP005'>Charlie Brown (EMP005)</SelectItem>
+                                        </>
+                                    )}
                                 </SelectContent>
                             </Select>
                             {errors.query && <FormError>{errors.query.message}</FormError>}

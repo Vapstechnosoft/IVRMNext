@@ -133,3 +133,38 @@ export interface CumulativeSalaryReportSearchResponse {
     ReportData: SalaryReportRecord[];
     retrunMsg: string;
 }
+
+// New API Request Structure
+export interface CumulativeSalaryReportListRequest {
+    page: number;
+    page_size: number;
+    search_query: string;
+    search_column: string;
+    sort_column: string;
+    sort_direction: string;
+    is_export: boolean;
+    MIID: number;
+    LoginUserId: number;
+    UserRole: string;
+}
+
+// New API Response Structure - Dropdown Data
+export interface CumulativeSalaryReportDropdownData {
+    MI_Id: number;
+    groupTypedropdownlist: GroupTypeDropdown[];
+    departmentdropdownlist: DepartmentDropdown[];
+    designationdropdownlist: DesignationDropdown[];
+    monthdropdown: MonthDropdown[];
+    leaveyeardropdown: LeaveYearDropdown[];
+}
+
+// New API Response Structure - Full Response
+export interface CumulativeSalaryReportListResponse {
+    data: {
+        dropdown: CumulativeSalaryReportDropdownData;
+        rows: SalaryReportRecord[] | DesignationDropdown[]; // Rows can be salary records or other data depending on filters
+    };
+    total: number;
+    page: number;
+    page_size: number;
+}

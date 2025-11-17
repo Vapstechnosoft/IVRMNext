@@ -2,11 +2,21 @@
 
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
+import { FormError } from '@/components/ui/extension/field';
 import { InputText } from '@/components/ui/extension/input-text';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { X } from 'lucide-react';
 import { type SubmitHandler, useForm } from 'react-hook-form';
 import type { LeaveAuthorization } from './columns';
+
+const institutions = [
+    'Vaps Knowledge Services Pvt Ltd',
+    'VAPS Institute',
+    'VAPS Academy',
+    'VAPS School',
+    'VAPS College',
+    'VAPS University'
+];
 
 interface LeaveAuthorizationFormProps {
     editingLeaveAuthorization: LeaveAuthorization | null;
@@ -31,10 +41,7 @@ export function LeaveAuthorizationForm({ editingLeaveAuthorization, onSubmit, on
             leaveType: '',
             orderOfApproval: '',
             approvalPerson: '',
-            finalFlag: false,
-            emailId: '',
-            sanctionedUser: '',
-            sanctionedOrder: ''
+            finalFlag: false
         }
     });
 
@@ -46,12 +53,22 @@ export function LeaveAuthorizationForm({ editingLeaveAuthorization, onSubmit, on
         <form onSubmit={handleSubmit(handleFormSubmit)} className='space-y-6'>
             {/* Institution Field */}
             <div className='mb-4'>
-                <label htmlFor='institution-display' className='mb-2 block font-medium text-gray-700 text-sm'>
-                    Institution
+                <label htmlFor='institution-select' className='mb-2 block font-medium text-gray-700 text-sm'>
+                    Institution <span className='text-red-500'>*</span>
                 </label>
-                <div id='institution-display' className='rounded-md bg-gray-100 p-3 text-gray-600'>
-                    {watch('institution')}
-                </div>
+                <Select value={watch('institution')} onValueChange={(value) => setValue('institution', value)}>
+                    <SelectTrigger id='institution-select' className={errors.institution ? 'border-red-500' : ''}>
+                        <SelectValue placeholder='Select Institution' />
+                    </SelectTrigger>
+                    <SelectContent>
+                        {institutions.map((institution) => (
+                            <SelectItem key={institution} value={institution}>
+                                {institution}
+                            </SelectItem>
+                        ))}
+                    </SelectContent>
+                </Select>
+                {errors.institution && <FormError>{errors.institution.message}</FormError>}
             </div>
 
             {/* Form Fields Grid */}
@@ -73,7 +90,7 @@ export function LeaveAuthorizationForm({ editingLeaveAuthorization, onSubmit, on
                                 <SelectItem value='Director'>Director</SelectItem>
                             </SelectContent>
                         </Select>
-                        {errors.gradeName && <p className='mt-1 text-red-500 text-xs'>{errors.gradeName.message}</p>}
+                        {errors.gradeName && <FormError>{errors.gradeName.message}</FormError>}
                     </div>
 
                     <div>
@@ -91,7 +108,7 @@ export function LeaveAuthorizationForm({ editingLeaveAuthorization, onSubmit, on
                                 <SelectItem value='Finance'>Finance</SelectItem>
                             </SelectContent>
                         </Select>
-                        {errors.groupTypeName && <p className='mt-1 text-red-500 text-xs'>{errors.groupTypeName.message}</p>}
+                        {errors.groupTypeName && <FormError>{errors.groupTypeName.message}</FormError>}
                     </div>
 
                     <div>
@@ -110,7 +127,7 @@ export function LeaveAuthorizationForm({ editingLeaveAuthorization, onSubmit, on
                                 <SelectItem value='IT'>IT</SelectItem>
                             </SelectContent>
                         </Select>
-                        {errors.departmentName && <p className='mt-1 text-red-500 text-xs'>{errors.departmentName.message}</p>}
+                        {errors.departmentName && <FormError>{errors.departmentName.message}</FormError>}
                     </div>
 
                     <div>
@@ -131,7 +148,7 @@ export function LeaveAuthorizationForm({ editingLeaveAuthorization, onSubmit, on
                                 <SelectItem value='Senior Manager'>Senior Manager</SelectItem>
                             </SelectContent>
                         </Select>
-                        {errors.designationName && <p className='mt-1 text-red-500 text-xs'>{errors.designationName.message}</p>}
+                        {errors.designationName && <FormError>{errors.designationName.message}</FormError>}
                     </div>
                 </div>
 
@@ -154,7 +171,7 @@ export function LeaveAuthorizationForm({ editingLeaveAuthorization, onSubmit, on
                                 <SelectItem value='Privilege Leave'>Privilege Leave</SelectItem>
                             </SelectContent>
                         </Select>
-                        {errors.leaveType && <p className='mt-1 text-red-500 text-xs'>{errors.leaveType.message}</p>}
+                        {errors.leaveType && <FormError>{errors.leaveType.message}</FormError>}
                     </div>
 
                     <div>
@@ -173,7 +190,7 @@ export function LeaveAuthorizationForm({ editingLeaveAuthorization, onSubmit, on
                                 <SelectItem value='5'>5</SelectItem>
                             </SelectContent>
                         </Select>
-                        {errors.orderOfApproval && <p className='mt-1 text-red-500 text-xs'>{errors.orderOfApproval.message}</p>}
+                        {errors.orderOfApproval && <FormError>{errors.orderOfApproval.message}</FormError>}
                     </div>
 
                     <div>
@@ -191,7 +208,7 @@ export function LeaveAuthorizationForm({ editingLeaveAuthorization, onSubmit, on
                                 <SelectItem value='Jane Smith'>Jane Smith</SelectItem>
                             </SelectContent>
                         </Select>
-                        {errors.approvalPerson && <p className='mt-1 text-red-500 text-xs'>{errors.approvalPerson.message}</p>}
+                        {errors.approvalPerson && <FormError>{errors.approvalPerson.message}</FormError>}
                     </div>
 
                     <div className='flex items-center space-x-2'>
@@ -205,54 +222,15 @@ export function LeaveAuthorizationForm({ editingLeaveAuthorization, onSubmit, on
                         </label>
                     </div>
 
-                    <div>
-                        <label htmlFor='email-id-input' className='mb-2 block font-medium text-gray-700 text-sm'>
-                            Email Id
-                        </label>
-                        <InputText
-                            id='email-id-input'
-                            type='email'
-                            {...register('emailId')}
-                            placeholder='Enter email id'
-                            className={errors.emailId ? 'border-red-500' : ''}
-                        />
-                        {errors.emailId && <p className='mt-1 text-red-500 text-xs'>{errors.emailId.message}</p>}
-                    </div>
-
-                    <div>
-                        <label htmlFor='sanctioned-user-input' className='mb-2 block font-medium text-gray-700 text-sm'>
-                            Sanctioned User
-                        </label>
-                        <InputText
-                            id='sanctioned-user-input'
-                            {...register('sanctionedUser')}
-                            placeholder='Enter sanctioned user'
-                            className={errors.sanctionedUser ? 'border-red-500' : ''}
-                        />
-                        {errors.sanctionedUser && <p className='mt-1 text-red-500 text-xs'>{errors.sanctionedUser.message}</p>}
-                    </div>
-
-                    <div>
-                        <label htmlFor='sanctioned-order-input' className='mb-2 block font-medium text-gray-700 text-sm'>
-                            Sanctioned Order
-                        </label>
-                        <InputText
-                            id='sanctioned-order-input'
-                            {...register('sanctionedOrder')}
-                            placeholder='Enter sanctioned order'
-                            className={errors.sanctionedOrder ? 'border-red-500' : ''}
-                        />
-                        {errors.sanctionedOrder && <p className='mt-1 text-red-500 text-xs'>{errors.sanctionedOrder.message}</p>}
-                    </div>
                 </div>
             </div>
 
             {/* Action Buttons */}
             <div className='flex gap-4 pt-4'>
-                <Button type='submit' className='bg-blue-600 px-6 py-2 text-white hover:bg-blue-700'>
+                <Button type='submit' variant='default'>
                     + ADD TO CART
                 </Button>
-                <Button type='button' variant='destructive' onClick={onCancel} className='px-6 py-2'>
+                <Button type='button' variant='outline' onClick={onCancel}>
                     <X className='mr-2 h-4 w-4' />
                     CANCEL
                 </Button>

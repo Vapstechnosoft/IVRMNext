@@ -1,11 +1,10 @@
 'use client';
 
-import { Heading } from '@/components/layout/heading';
 import { Button } from '@/components/ui/button';
 import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/generic-data-table';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
-import { createLocalCrud } from '@/lib/localdb';
+import { useEmployeeMissingLogs } from '@/hooks/hrms/attendance-management/useMasters';
 import { Plus, X } from 'lucide-react';
 import { use } from 'react';
 import AddEmployeeMissingLogForm from './_components/add-form';
@@ -16,12 +15,11 @@ type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 
 export default function EmployeeMissingLogsPage(props: { searchParams: SearchParams }) {
     const _searchParams = use(props.searchParams);
-    const db = createLocalCrud<MissingLog>('employeeMissingLogs');
-    const { data: response, isLoading, error } = db.useQuery();
+    const { data: response, isLoading, error } = useEmployeeMissingLogs();
 
     return (
         <FormProvider<MissingLog>>
-            <EmployeeMissingLogsPageContent response={response} isLoading={isLoading} error={error} refetch={db.refetch} />
+            <EmployeeMissingLogsPageContent response={response} isLoading={isLoading} error={error} />
         </FormProvider>
     );
 }
@@ -29,28 +27,20 @@ export default function EmployeeMissingLogsPage(props: { searchParams: SearchPar
 function EmployeeMissingLogsPageContent({
     response,
     isLoading,
-    error,
-    refetch
+    error
 }: {
     response: any;
     isLoading: boolean;
     error: any;
-    refetch: () => void;
 }) {
     const { openAddForm } = useFormContext<MissingLog>();
-    const rows = Array.isArray(response) ? response : [];
-    const tableProps = useDataTableProps({
-        data: rows,
-        totalItems: rows.length
-    });
+    const tableProps = useDataTableProps(response);
 
     return (
         <div className='min-h-screen'>
             <div className='container space-y-4 p-1'>
+                {/* Header */}
                 <div className='flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between'>
-                    <div className='space-y-1'>
-                        <Heading title='Employee Missing Logs' description='Record and track missing IN/OUT logs' />
-                    </div>
                     <Button
                         type='button'
                         onClick={openAddForm}
@@ -60,30 +50,35 @@ function EmployeeMissingLogsPageContent({
                     </Button>
                 </div>
 
+                {/* Data Table Section */}
                 <CollapsibleSection
-                    title='Employee Missing Logs Details'
-                    description=''
                     defaultOpen={true}
                     variant='default'
                     size='lg'
                     className='shadow-lg transition-shadow duration-300 hover:shadow-xl'
                     headerClassName=''>
-                    <GenericDataTable
+                    <GenericDataTable<MissingLog>
                         {...tableProps}
-                        isLoading={isLoading}
                         columns={missingLogColumns}
-                        showViewOptions
+                        isLoading={isLoading}
+                        error={error}
+                        showViewOptions={false}
+                        columnPinning={{ right: ['actions'] }}
+                        loadingMessage='Loading employee missing logs...'
+                        noDataTitle='No Employee Missing Logs Found'
+                        noDataDescription='Get started by creating your first employee missing log'
+                        errorTitle='Error Loading Missing Logs'
                     />
                 </CollapsibleSection>
 
                 {/* Forms */}
-                <FormSections refetch={refetch} />
+                <FormSections />
             </div>
         </div>
     );
 }
 
-function FormSections({ refetch }: { refetch: () => void }) {
+function FormSections() {
     const {
         isAddFormOpen,
         isEditFormOpen,
@@ -100,8 +95,6 @@ function FormSections({ refetch }: { refetch: () => void }) {
             {isAddFormOpen && (
                 <div ref={addFormRef}>
                     <CollapsibleSection
-                        title='Add New Employee Missing Log'
-                        description='Fill in the details below to create a new employee missing log'
                         defaultOpen={true}
                         variant='outline'
                         size='md'
@@ -115,12 +108,7 @@ function FormSections({ refetch }: { refetch: () => void }) {
                                 className='-top-[3.5rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
                                 <X className='h-4 w-4 text-destructive' /> Close
                             </Button>
-                            <AddEmployeeMissingLogForm
-                                onSuccess={() => {
-                                    closeAddForm();
-                                    refetch();
-                                }}
-                            />
+                            <AddEmployeeMissingLogForm onSuccess={closeAddForm} />
                         </div>
                     </CollapsibleSection>
                 </div>
@@ -130,7 +118,6 @@ function FormSections({ refetch }: { refetch: () => void }) {
             {isEditFormOpen && selectedRow && (
                 <div ref={editFormRef}>
                     <CollapsibleSection
-                        title='Edit Employee Missing Log'
                         defaultOpen={true}
                         variant='outline'
                         size='md'
@@ -144,13 +131,7 @@ function FormSections({ refetch }: { refetch: () => void }) {
                                 className='-top-[3.5rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
                                 <X className='h-4 w-4 text-destructive' /> Close
                             </Button>
-                            <UpdateEmployeeMissingLogForm
-                                selectedRow={selectedRow}
-                                onSuccess={() => {
-                                    closeEditForm();
-                                    refetch();
-                                }}
-                            />
+                            <UpdateEmployeeMissingLogForm selectedRow={selectedRow} onSuccess={closeEditForm} />
                         </div>
                     </CollapsibleSection>
                 </div>
@@ -158,4 +139,3 @@ function FormSections({ refetch }: { refetch: () => void }) {
         </>
     );
 }
-

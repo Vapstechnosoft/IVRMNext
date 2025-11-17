@@ -13,14 +13,18 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { format } from 'date-fns';
 import { CalendarIcon, FileDown, Printer, RefreshCw, X } from 'lucide-react';
 import { useForm } from 'react-hook-form';
+import { useEffect } from 'react';
 import type { z } from 'zod';
-import type { LogRow } from './columns';
 
 export type LogReportFiltersState = z.infer<typeof employeeLogReportFilterSchema>;
 
 interface LogReportFiltersProps {
     filters: LogReportFiltersState;
-    data: LogRow[];
+    branches: string[];
+    departments: string[];
+    designations: string[];
+    groupTypes?: Array<{ label: string; value: string }>;
+    employees?: Array<{ label: string; value: string }>;
     onFilterChange: (filters: LogReportFiltersState) => void;
     onReport: () => void;
     onCancel: () => void;
@@ -28,10 +32,23 @@ interface LogReportFiltersProps {
     onPrint: () => void;
 }
 
-export function LogReportFilters({ filters, data, onFilterChange, onReport, onCancel, onExport, onPrint }: LogReportFiltersProps) {
+export function LogReportFilters({ 
+    filters, 
+    branches, 
+    departments, 
+    designations, 
+    groupTypes = [],
+    employees = [],
+    onFilterChange, 
+    onReport, 
+    onCancel, 
+    onExport, 
+    onPrint 
+}: LogReportFiltersProps) {
     const {
         handleSubmit,
         setValue,
+        watch,
         formState: { errors }
     } = useForm<LogReportFiltersState>({
         resolver: zodResolver(employeeLogReportFilterSchema),
@@ -39,8 +56,28 @@ export function LogReportFilters({ filters, data, onFilterChange, onReport, onCa
         mode: 'onChange'
     });
 
-    const departments = [...new Set(data.map((d) => d.department))];
-    const designations = [...new Set(data.map((d) => d.designation))];
+    // Watch the allOrIndividual and query fields to reactively show/hide employee dropdown
+    // Use watch to get the current form value, which updates immediately when changed
+    const allOrIndividualValue = watch('allOrIndividual') || filters.allOrIndividual;
+    const queryValue = watch('query') || filters.query || '';
+    const dateModeValue = watch('dateMode') || filters.dateMode;
+
+    // Sync form when filters prop changes from parent
+    useEffect(() => {
+        setValue('allOrIndividual', filters.allOrIndividual, { shouldDirty: false, shouldValidate: false });
+        setValue('type', filters.type || [], { shouldDirty: false, shouldValidate: false });
+        setValue('department', filters.department || [], { shouldDirty: false, shouldValidate: false });
+        setValue('designation', filters.designation || [], { shouldDirty: false, shouldValidate: false });
+        setValue('codeOrName', filters.codeOrName || 'Code', { shouldDirty: false, shouldValidate: false });
+        setValue('query', filters.query || '', { shouldDirty: false, shouldValidate: false });
+        setValue('dateMode', filters.dateMode || 'Date', { shouldDirty: false, shouldValidate: false });
+        setValue('date', filters.date || '', { shouldDirty: false, shouldValidate: false });
+        setValue('month', filters.month || '', { shouldDirty: false, shouldValidate: false });
+        setValue('fromDate', filters.fromDate || '', { shouldDirty: false, shouldValidate: false });
+        setValue('toDate', filters.toDate || '', { shouldDirty: false, shouldValidate: false });
+        setValue('metric', filters.metric || 'Punch Time', { shouldDirty: false, shouldValidate: false });
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [filters.allOrIndividual, filters.type?.join(','), filters.department?.join(','), filters.designation?.join(','), filters.codeOrName, filters.query, filters.dateMode, filters.date, filters.month, filters.fromDate, filters.toDate, filters.metric]);
 
     const handleFilterChange = (key: keyof LogReportFiltersState, value: any) => {
         const newFilters = { ...filters, [key]: value };
@@ -66,7 +103,7 @@ export function LogReportFilters({ filters, data, onFilterChange, onReport, onCa
                             Type <span className='text-red-500'>*</span>
                         </label>
                         <MultiSelect
-                            options={[
+                            options={groupTypes.length > 0 ? groupTypes : [
                                 { label: 'Permanent', value: 'Permanent' },
                                 { label: 'Contract', value: 'Contract' }
                             ]}
@@ -112,7 +149,7 @@ export function LogReportFilters({ filters, data, onFilterChange, onReport, onCa
                             All / Individual <span className='text-red-500'>*</span>
                         </label>
                         <Select
-                            value={filters.allOrIndividual}
+                            value={allOrIndividualValue}
                             onValueChange={(value) => handleFilterChange('allOrIndividual', value as 'All' | 'Individual')}>
                             <SelectTrigger id='allOrIndividual' className={errors.allOrIndividual ? 'border-red-500' : ''}>
                                 <SelectValue placeholder='Select' />
@@ -125,23 +162,33 @@ export function LogReportFilters({ filters, data, onFilterChange, onReport, onCa
                         {errors.allOrIndividual && <FormError>{errors.allOrIndividual.message}</FormError>}
                     </div>
                     {/* Employee Dropdown - Only show when Individual is selected */}
-                    {filters.allOrIndividual === 'Individual' && (
+                    {allOrIndividualValue === 'Individual' && (
                         <div className='md:col-span-3'>
                             <label className='font-medium text-sm' htmlFor='employee'>
                                 Employee <span className='text-red-500'>*</span>
                             </label>
                             <Select
-                                value={filters.query || undefined}
+                                value={queryValue || undefined}
                                 onValueChange={(value) => handleFilterChange('query', value)}>
                                 <SelectTrigger id='employee' className={errors.query ? 'border-red-500' : ''}>
                                     <SelectValue placeholder='--Select--' />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    <SelectItem value='EMP001'>John Doe (EMP001)</SelectItem>
-                                    <SelectItem value='EMP002'>Jane Smith (EMP002)</SelectItem>
-                                    <SelectItem value='EMP003'>Bob Johnson (EMP003)</SelectItem>
-                                    <SelectItem value='EMP004'>Alice Williams (EMP004)</SelectItem>
-                                    <SelectItem value='EMP005'>Charlie Brown (EMP005)</SelectItem>
+                                    {employees.length > 0 ? (
+                                        employees.map((emp) => (
+                                            <SelectItem key={emp.value} value={emp.value}>
+                                                {emp.label}
+                                            </SelectItem>
+                                        ))
+                                    ) : (
+                                        <>
+                                            <SelectItem value='EMP001'>John Doe (EMP001)</SelectItem>
+                                            <SelectItem value='EMP002'>Jane Smith (EMP002)</SelectItem>
+                                            <SelectItem value='EMP003'>Bob Johnson (EMP003)</SelectItem>
+                                            <SelectItem value='EMP004'>Alice Williams (EMP004)</SelectItem>
+                                            <SelectItem value='EMP005'>Charlie Brown (EMP005)</SelectItem>
+                                        </>
+                                    )}
                                 </SelectContent>
                             </Select>
                             {errors.query && <FormError>{errors.query.message}</FormError>}
@@ -154,7 +201,7 @@ export function LogReportFilters({ filters, data, onFilterChange, onReport, onCa
                             Date Mode <span className='text-red-500'>*</span>
                         </label>
                         <Select
-                            value={filters.dateMode}
+                            value={dateModeValue}
                             onValueChange={(value) => handleFilterChange('dateMode', value as 'Date' | 'Monthly' | 'From Date')}>
                             <SelectTrigger id='dateMode' className={errors.dateMode ? 'border-red-500' : ''}>
                                 <SelectValue placeholder='Select Date Mode' />
@@ -169,7 +216,7 @@ export function LogReportFilters({ filters, data, onFilterChange, onReport, onCa
                     </div>
 
                     {/* Date Field - Show when Date mode is selected */}
-                    {filters.dateMode === 'Date' && (
+                    {dateModeValue === 'Date' && (
                         <div className='md:col-span-3'>
                             <label className='font-medium text-sm' htmlFor='date'>
                                 Date <span className='text-red-500'>*</span>
@@ -207,7 +254,7 @@ export function LogReportFilters({ filters, data, onFilterChange, onReport, onCa
                     )}
 
                     {/* Monthly Field - Show when Monthly mode is selected */}
-                    {filters.dateMode === 'Monthly' && (
+                    {dateModeValue === 'Monthly' && (
                         <div className='md:col-span-3'>
                             <label className='font-medium text-sm' htmlFor='month'>
                                 Month <span className='text-red-500'>*</span>
@@ -242,7 +289,7 @@ export function LogReportFilters({ filters, data, onFilterChange, onReport, onCa
                     )}
 
                     {/* From Date and To Date Fields - Show when From Date mode is selected */}
-                    {filters.dateMode === 'From Date' && (
+                    {dateModeValue === 'From Date' && (
                         <>
                             <div className='md:col-span-3'>
                                 <label className='font-medium text-sm' htmlFor='fromDate'>

@@ -9,25 +9,170 @@ import type {
 } from '@/types/hrms/attendance-management/master-holiday';
 
 /**
+ * Helper function to convert searchParams from URL (strings) to proper types
+ */
+function normalizeSearchParams(searchParams?: ApiSearchparams | Record<string, string | string[] | undefined>): ApiSearchparams {
+    if (!searchParams) return {};
+    
+    // Helper to get first value if array, or the value itself
+    const getValue = (value: string | string[] | number | undefined, defaultValue: string | number): string | number => {
+        if (value === undefined) return defaultValue;
+        if (typeof value === 'number') return value;
+        if (Array.isArray(value)) return value[0] || defaultValue;
+        return value;
+    };
+    
+    return {
+        page: typeof getValue(searchParams.page, 1) === 'string' ? parseInt(getValue(searchParams.page, 1) as string, 10) || 1 : (getValue(searchParams.page, 1) as number) || 1,
+        page_size: typeof getValue(searchParams.page_size, 10) === 'string' ? parseInt(getValue(searchParams.page_size, 10) as string, 10) || 10 : (getValue(searchParams.page_size, 10) as number) || 10,
+        search_query: (getValue(searchParams.search_query, '') as string) || '',
+        search_column: (getValue(searchParams.search_column, '') as string) || '',
+        sort_column: (getValue(searchParams.sort_column, '') as string) || '',
+        sort_direction: (getValue(searchParams.sort_direction, '') as string) || ''
+    };
+}
+
+/**
  * Get master holiday data from API
  * Following the preadmission module pattern - returns API response directly
  */
-export async function getMasterHoliday(searchParams?: ApiSearchparams) {
+export async function getMasterHoliday(searchParams?: ApiSearchparams | Record<string, string | string[] | undefined>) {
+    // Normalize searchParams (convert strings to proper types)
+    const normalizedParams = normalizeSearchParams(searchParams);
+    
     const requestBody = {
-        page: searchParams?.page || 1,
-        page_size: searchParams?.page_size || 10,
-        search_query: searchParams?.search_query || '',
-        search_column: searchParams?.search_column || '',
-        sort_column: searchParams?.sort_column || '',
-        sort_direction: searchParams?.sort_direction || '',
+        page: normalizedParams.page || 1,
+        page_size: normalizedParams.page_size || 10,
+        search_query: normalizedParams.search_query || '',
+        search_column: normalizedParams.search_column || '',
+        sort_column: normalizedParams.sort_column || '',
+        sort_direction: normalizedParams.sort_direction || '',
         is_export: false,
         miid: 30,
         loginUserId: 0,
         userRole: ''
     };
 
+    console.log('📤 [SERVER] getMasterHoliday request body:', JSON.stringify(requestBody, null, 2));
+
     const url = '/api/MasterHolidayFacade/getdata';
-    return await api.post<MasterHolidayGetDataResponse>('hrmsfrontoffice', url, requestBody);
+    
+    try {
+        const response = await api.post<MasterHolidayGetDataResponseData>('hrmsfrontoffice', url, requestBody);
+        
+        console.log('📥 [SERVER] getMasterHoliday raw response:', {
+            hasResponse: !!response,
+            responseKeys: response ? Object.keys(response) : [],
+            hasData: !!response?.data,
+            dataType: typeof response?.data,
+            dataKeys: response?.data ? Object.keys(response.data) : [],
+            dataValue: response?.data,
+            fullResponse: JSON.stringify(response, null, 2)
+        });
+        
+        // API response structure (from Swagger):
+        // {
+        //   "success": true,
+        //   "message": "success",
+        //   "data": {
+        //     "success": true,
+        //     "message": "OK",
+        //     "data": {
+        //       "yeardropdown": [...],
+        //       "departmentType": [...],
+        //       "holidayType": [...],
+        //       "dayslist": [...],
+        //       "report_list": [...]
+        //     },
+        //     "total": 1041,
+        //     "page": 1,
+        //     "page_size": 10
+        //   },
+        //   "total": null,
+        //   "page": null,
+        //   "page_size": null
+        // }
+        
+        // Extract the nested data structure
+        const innerResponse = response?.data as any;
+        const actualData: MasterHolidayGetDataResponseData = innerResponse?.data || {
+            yeardropdown: [],
+            departmentType: [],
+            holidayType: [],
+            dayslist: [],
+            report_list: []
+        };
+        
+        // Extract pagination info from inner response (response.data.total, response.data.page, response.data.page_size)
+        // Fallback to outer response or defaults
+        const responseTotal = typeof innerResponse?.total === 'number' 
+            ? innerResponse.total 
+            : (typeof response?.total === 'number' ? response.total : (actualData?.report_list?.length || 0));
+        const responsePage = typeof innerResponse?.page === 'number' 
+            ? innerResponse.page 
+            : (typeof response?.page === 'number' ? response.page : (normalizedParams.page || 1));
+        const responsePageSize = typeof innerResponse?.page_size === 'number' 
+            ? innerResponse.page_size 
+            : (typeof innerResponse?.page_Size === 'number' 
+                ? innerResponse.page_Size 
+                : (typeof response?.page_size === 'number' 
+                    ? response.page_size 
+                    : (typeof response?.page_Size === 'number' 
+                        ? response.page_Size 
+                        : (normalizedParams.page_size || 10))));
+        
+        const responseData: MasterHolidayGetDataResponse = {
+            success: response?.success ?? true,
+            message: response?.message || 'Master holiday data retrieved successfully',
+            data: actualData,
+            total: responseTotal,
+            page: responsePage,
+            page_size: responsePageSize
+        };
+        
+        console.log('📥 [SERVER] getMasterHoliday transformed response:', {
+            success: responseData.success,
+            hasData: !!responseData.data,
+            reportListLength: responseData.data?.report_list?.length || 0,
+            total: responseData.total,
+            page: responseData.page,
+            page_size: responseData.page_size,
+            hasYearDropdown: !!responseData.data?.yeardropdown,
+            yearDropdownLength: responseData.data?.yeardropdown?.length || 0,
+            hasDepartmentType: !!responseData.data?.departmentType,
+            departmentTypeLength: responseData.data?.departmentType?.length || 0,
+            hasHolidayType: !!responseData.data?.holidayType,
+            holidayTypeLength: responseData.data?.holidayType?.length || 0,
+            hasDaysList: !!responseData.data?.dayslist,
+            daysListLength: responseData.data?.dayslist?.length || 0
+        });
+        
+        return responseData;
+    } catch (error: any) {
+        console.error('❌ [SERVER] getMasterHoliday API error:', error);
+        console.error('❌ [SERVER] Error details:', {
+            message: error?.message,
+            status: error?.response?.status,
+            statusText: error?.response?.statusText,
+            data: error?.response?.data
+        });
+        
+        // Return error response in expected format
+        return {
+            success: false,
+            message: error?.response?.data?.msg || error?.message || 'Failed to fetch master holiday data',
+            data: {
+                yeardropdown: [],
+                departmentType: [],
+                holidayType: [],
+                dayslist: [],
+                report_list: []
+            },
+            total: 0,
+            page: normalizedParams.page || 1,
+            page_size: normalizedParams.page_size || 10
+        };
+    }
 }
 
 /**
@@ -226,100 +371,122 @@ export async function addOrUpdateMasterHoliday(
     try {
         const response = await api.post<any>('hrmsfrontoffice', url, requestBody);
         
+        // ========== COMPREHENSIVE DEBUG LOGGING ==========
+        console.log('🔵 ========== MASTER HOLIDAY SAVE API RESPONSE ==========');
+        console.log('🔵 [SERVER] Raw API Response (Full):', JSON.stringify(response, null, 2));
+        console.log('🔵 [SERVER] Response Type:', typeof response);
+        console.log('🔵 [SERVER] Response is Array?', Array.isArray(response));
+        console.log('🔵 [SERVER] Response is Null?', response === null);
+        console.log('🔵 [SERVER] Response is Undefined?', response === undefined);
+        
         // Detailed response logging
-        console.log('✅ [SERVER] API response received');
-        console.log('📊 [SERVER] Response structure:', {
+        console.log('📊 [SERVER] Response structure analysis:', {
             hasResponse: !!response,
-            hasSuccess: 'success' in response,
+            responseType: typeof response,
+            isArray: Array.isArray(response),
+            isObject: typeof response === 'object' && response !== null,
+            responseKeys: response && typeof response === 'object' ? Object.keys(response) : 'N/A',
+            hasSuccess: response && typeof response === 'object' ? 'success' in response : false,
             success: response?.success,
-            hasMessage: 'message' in response,
+            hasMessage: response && typeof response === 'object' ? 'message' in response : false,
             message: response?.message,
-            hasReturnval: 'returnval' in response,
+            hasReturnval: response && typeof response === 'object' ? 'returnval' in response : false,
             returnval: response?.returnval,
-            hasReportList: 'report_list' in response,
-            reportListLength: (response as any)?.report_list?.length || 0,
-            hasData: 'data' in response,
+            hasReportList: response && typeof response === 'object' ? 'report_list' in response : false,
+            reportListLength: Array.isArray((response as any)?.report_list) ? (response as any).report_list.length : 0,
+            hasData: response && typeof response === 'object' ? 'data' in response : false,
             dataType: typeof response?.data,
-            dataKeys: response?.data ? Object.keys(response.data) : [],
-            responseKeys: response ? Object.keys(response) : []
+            dataKeys: response?.data && typeof response.data === 'object' ? Object.keys(response.data) : []
         });
         
         // Transform response to match expected format
-        // The save endpoint returns { returnval, report_list, ... } instead of { success, message, data }
+        // The API response is nested: { success: true, message: "success", data: { returnval: true, report_list: [...] } }
         const responseData = response as any;
         
-        // Check for error messages or validation details in the response
-        console.log('🔍 [SERVER] Checking for error messages:', {
-            hasMsg: 'msg' in responseData,
-            msg: responseData?.msg,
-            hasErrorMessage: 'errorMessage' in responseData,
-            errorMessage: responseData?.errorMessage,
-            hasError: 'error' in responseData,
-            error: responseData?.error,
-            hasErrors: 'errors' in responseData,
-            errors: responseData?.errors,
-            hasValidationErrors: 'validationErrors' in responseData,
-            validationErrors: responseData?.validationErrors,
-            returnval: responseData?.returnval,
-            fomhwD_Id: responseData?.fomhwD_Id,
-            fomhwdD_Id: responseData?.fomhwdD_Id,
-            count: responseData?.count,
-            gridviewdetails: responseData?.gridviewdetails
+        console.log('🔵 [SERVER] Response Data Type Check:', {
+            isObject: typeof responseData === 'object',
+            isNull: responseData === null,
+            isUndefined: responseData === undefined,
+            hasResponseData: !!responseData,
+            hasData: !!responseData?.data,
+            hasNestedData: !!responseData?.data?.data
         });
         
-        // Log full response structure to see all available fields
-        console.log('📋 [SERVER] Full response keys and sample values:', {
-            allKeys: Object.keys(responseData || {}),
-            sampleValues: Object.fromEntries(
-                Object.entries(responseData || {}).slice(0, 20).map(([key, value]) => [
-                    key,
-                    typeof value === 'object' && value !== null && !Array.isArray(value)
-                        ? Object.keys(value).slice(0, 5)
-                        : Array.isArray(value)
-                          ? `Array(${value.length})`
-                          : value
-                ])
-            )
+        // Check nested structure - API returns: { success: true, message: "success", data: { returnval: true, report_list: [...] } }
+        const nestedData = responseData?.data?.data || responseData?.data || responseData;
+        const apiSuccess = responseData?.data?.success || responseData?.success;
+        const apiMessage = responseData?.data?.message || responseData?.message;
+        
+        console.log('🔍 [SERVER] Checking nested structure for success indicators:', {
+            hasResponseData: !!responseData,
+            hasData: !!responseData?.data,
+            hasNestedData: !!responseData?.data?.data,
+            apiSuccess: apiSuccess,
+            apiSuccessType: typeof apiSuccess,
+            apiMessage: apiMessage,
+            nestedDataKeys: nestedData && typeof nestedData === 'object' ? Object.keys(nestedData) : [],
+            hasReturnval: nestedData && 'returnval' in nestedData,
+            returnval: nestedData?.returnval,
+            returnvalType: typeof nestedData?.returnval,
+            hasReportList: nestedData && 'report_list' in nestedData,
+            reportListType: typeof nestedData?.report_list,
+            reportListIsArray: Array.isArray(nestedData?.report_list),
+            reportListLength: Array.isArray(nestedData?.report_list) ? nestedData.report_list.length : 0
         });
-        const returnval = responseData?.returnval;
-        const reportList = responseData?.report_list;
+        
+        // Extract success indicators from nested structure
+        const returnval = nestedData?.returnval;
+        const reportList = nestedData?.report_list;
         const hasReportList = Array.isArray(reportList) && reportList.length > 0;
         
         // Check for success indicators:
-        // 1. returnval === true (explicit success)
-        // 2. New IDs were created (fomhwD_Id > 0 or fomhwdD_Id > 0) - indicates save succeeded
-        // 3. If returnval is false but we have report_list AND new IDs, it might still be success
-        const fomhwD_Id = responseData?.fomhwD_Id || 0;
-        const fomhwdD_Id = responseData?.fomhwdD_Id || 0;
+        // 1. API success flag (response.data.success === true)
+        // 2. returnval === true (explicit success)
+        // 3. New IDs were created (fomhwD_Id > 0 or fomhwdD_Id > 0) - indicates save succeeded
+        // 4. If returnval is true OR (has report_list), it's likely success
+        const fomhwD_Id = nestedData?.fomhwD_Id || 0;
+        const fomhwdD_Id = nestedData?.fomhwdD_Id || 0;
         const hasNewIds = fomhwD_Id > 0 || fomhwdD_Id > 0;
         
-        // Success if: returnval is true, OR (has new IDs AND has report list)
-        const isSuccess = returnval === true || (hasNewIds && hasReportList);
+        // Success if: API success is true, OR returnval is true, OR (has new IDs AND has report list)
+        const isSuccess = apiSuccess === true || returnval === true || (hasNewIds && hasReportList);
         
         // Extract error message from response if available
-        const apiErrorMessage = responseData?.msg || 
-                               responseData?.errorMessage || 
+        const apiErrorMessage = nestedData?.msg || 
+                               nestedData?.errorMessage || 
+                               nestedData?.error ||
+                               responseData?.msg ||
+                               responseData?.errorMessage ||
                                responseData?.error ||
-                               (responseData?.errors && Array.isArray(responseData.errors) 
-                                   ? responseData.errors.map((e: any) => e.message || e).join(', ')
+                               (nestedData?.errors && Array.isArray(nestedData.errors) 
+                                   ? nestedData.errors.map((e: any) => e.message || e).join(', ')
                                    : null);
         
-        // Determine message
-        let message = 'Master holiday saved successfully';
+        // Determine message - use API message if available, otherwise default
+        let message = apiMessage || 'Master holiday saved successfully';
         if (!isSuccess) {
             if (apiErrorMessage) {
                 message = apiErrorMessage;
             } else {
                 message = returnval === false && !hasNewIds 
                     ? 'Failed to save master holiday. Please check the data and try again.'
-                    : 'Master holiday operation completed, but result is unclear. Please verify.';
+                    : apiMessage || 'Master holiday operation completed, but result is unclear. Please verify.';
             }
         } else if (data.id && data.id > 0) {
-            message = 'Master holiday updated successfully';
+            message = apiMessage || 'Master holiday updated successfully';
+        } else {
+            message = apiMessage || 'Master holiday saved successfully';
         }
         
-        console.log('🔄 [SERVER] Transforming response:', {
+        console.log('🔄 [SERVER] Transforming response - Analysis:', {
+            apiSuccess,
+            apiSuccessType: typeof apiSuccess,
+            apiMessage,
             returnval,
+            returnvalType: typeof returnval,
+            returnvalStrictTrue: returnval === true,
+            returnvalStrictFalse: returnval === false,
+            returnvalTruthy: !!returnval,
             hasReportList,
             reportListLength: reportList?.length || 0,
             fomhwD_Id,
@@ -327,26 +494,38 @@ export async function addOrUpdateMasterHoliday(
             hasNewIds,
             isSuccess,
             message,
-            isEdit: !!(data.id && data.id > 0)
+            isEdit: !!(data.id && data.id > 0),
+            rawReturnval: returnval,
+            rawFomhwD_Id: nestedData?.fomhwD_Id,
+            rawFomhwdD_Id: nestedData?.fomhwdD_Id,
+            nestedDataStructure: {
+                hasNestedData: !!nestedData,
+                nestedDataKeys: nestedData && typeof nestedData === 'object' ? Object.keys(nestedData).slice(0, 10) : []
+            }
         });
         
         // Transform to expected ApiResponse format
+        // Use the nested data if available, otherwise use the full response
         const transformedResponse = {
             success: isSuccess,
             message: message,
-            data: responseData,
+            data: nestedData || responseData,
             // Include report_list and total if available for consistency with getdata response
             total: reportList?.length || 0,
             page: 1,
             page_size: 10
         };
         
-        console.log('✅ [SERVER] Transformed response:', {
+        console.log('✅ [SERVER] Final transformed response:', JSON.stringify(transformedResponse, null, 2));
+        console.log('✅ [SERVER] Transformed response summary:', {
             success: transformedResponse.success,
+            successType: typeof transformedResponse.success,
             message: transformedResponse.message,
+            messageType: typeof transformedResponse.message,
             hasData: !!transformedResponse.data,
             total: transformedResponse.total
         });
+        console.log('🔵 ========== END MASTER HOLIDAY SAVE API RESPONSE ==========');
         
         return transformedResponse;
     } catch (error: any) {
@@ -379,7 +558,11 @@ export async function deleteMasterHoliday(id: number) {
         
         // Check for success indicators
         const returnval = responseData?.returnval;
-        const isSuccess = returnval === true || returnval === 'true';
+        const returnvalBool = returnval === true || returnval === 'true' || returnval === 1 || returnval === '1';
+        const hasSuccessField = 'success' in responseData && responseData.success === true;
+        
+        // Multiple ways to determine success
+        const isSuccess = returnvalBool || hasSuccessField || responseData?.success === true;
         
         // Extract error message from response if available
         const apiErrorMessage = responseData?.msg || 
@@ -400,13 +583,7 @@ export async function deleteMasterHoliday(id: number) {
             data: responseData
         };
     } catch (error: any) {
-        console.error('❌ [SERVER] Delete API error:', error);
-        console.error('❌ [SERVER] Error details:', {
-            message: error?.message,
-            status: error?.response?.status,
-            statusText: error?.response?.statusText,
-            data: error?.response?.data
-        });
+        console.error('Failed to delete master holiday:', error);
         
         return {
             success: false,

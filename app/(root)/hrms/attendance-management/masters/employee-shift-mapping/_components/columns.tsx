@@ -1,16 +1,13 @@
 'use client';
 
-import { ActionButtons } from '@/components/ui/action-buttons';
-import { Button } from '@/components/ui/button';
+import { ActionButtons } from '@/components/ui/form/action-buttons';
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuLabel, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { useFormContext } from '@/components/ui/form/form-provider';
-import type { BaseEntity } from '@/lib/localdb';
 import type { ColumnDef } from '@tanstack/react-table';
-import { Download, Edit, MoreHorizontal, Trash2 } from 'lucide-react';
 import { useCallback } from 'react';
 
-export interface EmployeeShiftMapping extends BaseEntity {
+export interface EmployeeShiftMapping {
+    id: number;
     employeeTypes?: string[];
     dayTypes?: string[];
     allEmployees?: boolean;
@@ -46,22 +43,19 @@ export interface EmployeeShiftMapping extends BaseEntity {
     lunchHours?: string;
 }
 
-interface GetEmployeeShiftMappingColumnsProps {
-    onEdit: (mapping: EmployeeShiftMapping) => void;
-    onDelete: (id: number) => void;
-}
-
-export function getEmployeeShiftMappingColumns({
-    onEdit,
-    onDelete
-}: GetEmployeeShiftMappingColumnsProps): ColumnDef<EmployeeShiftMapping>[] {
-    return [
-        {
-            id: 'serialNumber',
-            header: ({ column }) => <DataTableColumnHeader column={column} title='SL. NO' />,
-            cell: ({ row }) => <div className='font-medium'>{row.index + 1}</div>,
-            enableSorting: false
+export const employeeShiftMappingColumns: ColumnDef<EmployeeShiftMapping>[] = [
+    {
+        id: 'serialNumber',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='SL. NO' />,
+        cell: ({ row, table }) => {
+            const pageIndex = table.getState().pagination.pageIndex;
+            const pageSize = table.getState().pagination.pageSize;
+            const continuousIndex = pageIndex * pageSize + row.index + 1;
+            return <div className='font-medium'>{continuousIndex}</div>;
         },
+        enableSorting: false,
+        enableHiding: false
+    },
         {
             accessorKey: 'shiftName',
             header: ({ column }) => <DataTableColumnHeader column={column} title='Shift Name' />,
@@ -160,11 +154,10 @@ export function getEmployeeShiftMappingColumns({
             enableSorting: false,
             cell: ({ row }) => <ActionButtonsCell rowData={row.original} />
         }
-    ];
-}
+];
 
 function ActionButtonsCell({ rowData }: { rowData: EmployeeShiftMapping }) {
-    const { openEditForm } = useFormContext<EmployeeShiftMapping>();
+    const { openEditForm, openDeleteForm } = useFormContext<EmployeeShiftMapping>();
 
     const handleEdit = useCallback(
         (data: EmployeeShiftMapping) => {
@@ -173,7 +166,21 @@ function ActionButtonsCell({ rowData }: { rowData: EmployeeShiftMapping }) {
         [openEditForm]
     );
 
-    return <ActionButtons rowData={rowData} buttons={{ edit: true, toggle: false, delete: false }} onEdit={handleEdit} />;
+    const handleDelete = useCallback(
+        (data: EmployeeShiftMapping) => {
+            openDeleteForm(data);
+        },
+        [openDeleteForm]
+    );
+
+    return (
+        <ActionButtons
+            rowData={rowData}
+            buttons={{ edit: true, toggle: false, delete: true }}
+            onEdit={handleEdit}
+            onDelete={handleDelete}
+        />
+    );
 }
 
 export const employeeTypeOptions = [

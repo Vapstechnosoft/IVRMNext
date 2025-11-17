@@ -1,6 +1,5 @@
 'use client';
 
-import { Heading } from '@/components/layout/heading';
 import { Button } from '@/components/ui/button';
 import { GenericDataTable } from '@/components/ui/data-table/generic-data-table';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
@@ -72,11 +71,10 @@ export default function LeaveCreditTransactionPage() {
     return (
         <div className='min-h-screen'>
             <div className='container space-y-4 p-1'>
-                <div className='flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between'>
-                    <div className='space-y-1'>
-                        <Heading title='Leave Management' description='Leave Transaction' />
-                    </div>
-                    <Button onClick={handleAddClick}>Add Leave Transaction</Button>
+                <div className='flex justify-end'>
+                    <Button onClick={handleAddClick} variant='default' className='w-fit'>
+                        Add Leave Transaction
+                    </Button>
                 </div>
 
                 <CollapsibleSection

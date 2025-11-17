@@ -235,6 +235,11 @@ export default function AddMasterHolidayForm({ onSuccess, className = '', dropdo
 
             console.log('🟢 [CLIENT] Prepared submit data:', submitData);
             console.log('🚀 [CLIENT] Calling saveMasterHoliday mutation...');
+            console.log('🚀 [CLIENT] Mutation parameters:', {
+                hasData: !!submitData,
+                hasDropdownData: !!dropdownData,
+                dataKeys: submitData ? Object.keys(submitData) : []
+            });
 
             saveMasterHoliday(
                 {
@@ -243,31 +248,54 @@ export default function AddMasterHolidayForm({ onSuccess, className = '', dropdo
                 },
                 {
                     onSuccess: (response) => {
+                        console.log('🟡 ========== FORM onSuccess CALLBACK ==========');
                         console.log('✅ [CLIENT] Form onSuccess callback called');
+                        console.log('📥 [CLIENT] Full Response in form callback:', JSON.stringify(response, null, 2));
                         console.log('📥 [CLIENT] Response in form callback:', {
                             hasResponse: !!response,
+                            responseType: typeof response,
                             success: response?.success,
-                            message: response?.message
+                            successType: typeof response?.success,
+                            successStrictTrue: response?.success === true,
+                            message: response?.message,
+                            messageType: typeof response?.message,
+                            responseKeys: response && typeof response === 'object' ? Object.keys(response) : []
                         });
                         
-                        console.log('🔄 [CLIENT] Resetting form...');
-                        reset();
+                        // Check if mutation hook already handled success/error
+                        const isSuccess = response?.success === true;
                         
-                        console.log('🔄 [CLIENT] Calling refetchAll...');
-                        refetchAll();
-                        
-                        console.log('✅ [CLIENT] Calling onSuccess prop...');
-                        onSuccess?.();
-                        
-                        console.log('✅ [CLIENT] Form submission completed successfully');
+                        if (isSuccess) {
+                            console.log('✅ [CLIENT] Form callback - Response is SUCCESS');
+                            console.log('🔄 [CLIENT] Resetting form...');
+                            reset();
+                            
+                            console.log('🔄 [CLIENT] Calling refetchAll...');
+                            refetchAll();
+                            
+                            console.log('✅ [CLIENT] Calling onSuccess prop...');
+                            onSuccess?.();
+                            
+                            console.log('✅ [CLIENT] Form submission completed successfully');
+                        } else {
+                            console.log('⚠️ [CLIENT] Form callback - Response indicates failure, but mutation hook should have handled it');
+                            console.log('⚠️ [CLIENT] Success value:', response?.success);
+                            console.log('⚠️ [CLIENT] Message:', response?.message);
+                        }
+                        console.log('🟡 ========== END FORM onSuccess CALLBACK ==========');
                     },
                     onError: (error) => {
+                        console.error('🔴 ========== FORM onError CALLBACK ==========');
                         console.error('❌ [CLIENT] Form onError callback called');
                         console.error('💥 [CLIENT] Error in form callback:', {
                             message: error?.message,
-                            error: error
+                            error: error,
+                            errorType: typeof error,
+                            errorKeys: error ? Object.keys(error) : []
                         });
-                        toast.error(error.message || 'Failed to save master holiday');
+                        console.error('💥 [CLIENT] Full error in form:', JSON.stringify(error, Object.getOwnPropertyNames(error), 2));
+                        // Don't show toast here as mutation hook should handle it
+                        console.error('🔴 ========== END FORM onError CALLBACK ==========');
                     }
                 }
             );

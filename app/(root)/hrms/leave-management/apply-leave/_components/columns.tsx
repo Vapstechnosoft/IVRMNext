@@ -26,11 +26,14 @@ export type ApplyLeave = {
     employeeName: string;
     designation: string;
     doj: string;
-    leaveType: string;
-    fromDate: string;
-    toDate: string;
-    numDays: number;
+    leaveType?: string;
+    fromDate?: string;
+    toDate?: string;
+    numDays?: number;
     reason: string;
+    contactNumber?: string;
+    dateReportingBack?: string;
+    file?: FileList;
 };
 
 // Table columns for Leave Balance
@@ -65,13 +68,28 @@ export const leaveBalanceColumns: ColumnDef<LeaveBalanceRow & { slNo?: number; t
 // Table columns for Leave History
 export const leaveHistoryColumns: ColumnDef<LeaveHistoryRow>[] = [
     {
+        accessorKey: 'sno',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='SNO' />,
+        cell: ({ row, table }) => {
+            const pageIndex = table.getState().pagination.pageIndex;
+            const pageSize = table.getState().pagination.pageSize;
+            const continuousIndex = pageIndex * pageSize + row.index + 1;
+            return <div className='text-center'>{continuousIndex}</div>;
+        }
+    },
+    {
         accessorKey: 'leaveType',
-        header: 'Leave Type',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='LEAVE NAME' />,
         cell: ({ row }) => <div className='font-medium'>{row.getValue('leaveType')}</div>
     },
     {
+        accessorKey: 'reason',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='LEAVE REASON' />,
+        cell: ({ row }) => <div className='max-w-xs'>{row.original.remark || '-'}</div>
+    },
+    {
         accessorKey: 'fromDate',
-        header: 'From Date',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='FROM DATE' />,
         cell: ({ row }) => {
             const date = row.getValue('fromDate') as string;
             return <div>{date ? new Date(date).toLocaleDateString('en-GB') : '-'}</div>;
@@ -79,7 +97,7 @@ export const leaveHistoryColumns: ColumnDef<LeaveHistoryRow>[] = [
     },
     {
         accessorKey: 'toDate',
-        header: 'To Date',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='TO DATE' />,
         cell: ({ row }) => {
             const date = row.getValue('toDate') as string;
             return <div>{date ? new Date(date).toLocaleDateString('en-GB') : '-'}</div>;
@@ -87,12 +105,12 @@ export const leaveHistoryColumns: ColumnDef<LeaveHistoryRow>[] = [
     },
     {
         accessorKey: 'days',
-        header: 'Days',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='NO. OF DAYS' />,
         cell: ({ row }) => <div className='text-center'>{row.getValue('days')}</div>
     },
     {
         accessorKey: 'status',
-        header: 'Status',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='STATUS' />,
         cell: ({ row }) => {
             const status = row.getValue('status') as string;
             const statusColors: Record<string, string> = {
@@ -114,12 +132,12 @@ export const leaveHistoryColumns: ColumnDef<LeaveHistoryRow>[] = [
     },
     {
         accessorKey: 'remark',
-        header: 'Remark',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='REMARK' />,
         cell: ({ row }) => <div className='max-w-xs'>{row.getValue('remark') || '-'}</div>
     },
     {
         accessorKey: 'document',
-        header: 'Document',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Document' />,
         cell: ({ row }) => {
             const document = row.getValue('document') as string;
             return document ? (

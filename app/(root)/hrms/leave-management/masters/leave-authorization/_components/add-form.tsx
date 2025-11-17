@@ -39,10 +39,7 @@ export default function AddLeaveAuthorizationForm({ onSuccess, className = '' }:
             leaveType: '',
             orderOfApproval: '',
             approvalPerson: '',
-            finalFlag: false,
-            emailId: '',
-            sanctionedUser: '',
-            sanctionedOrder: ''
+            finalFlag: false
         }
     });
 
@@ -261,30 +258,6 @@ export default function AddLeaveAuthorizationForm({ onSuccess, className = '' }:
                             </label>
                         </div>
 
-                        <InputText
-                            label='Email Id'
-                            id='emailId'
-                            type='email'
-                            {...register('emailId')}
-                            error={errors.emailId?.message}
-                            className='transition-colors focus:ring-2 focus:ring-primary/20'
-                        />
-
-                        <InputText
-                            label='Sanctioned User'
-                            id='sanctionedUser'
-                            {...register('sanctionedUser')}
-                            error={errors.sanctionedUser?.message}
-                            className='transition-colors focus:ring-2 focus:ring-primary/20'
-                        />
-
-                        <InputText
-                            label='Sanctioned Order'
-                            id='sanctionedOrder'
-                            {...register('sanctionedOrder')}
-                            error={errors.sanctionedOrder?.message}
-                            className='transition-colors focus:ring-2 focus:ring-primary/20'
-                        />
                     </div>
                 </div>
 

@@ -131,22 +131,45 @@ export const useSaveMasterHoliday = () => {
             return addOrUpdateMasterHoliday(data, dropdownData);
         },
         onSuccess: (response) => {
+            console.log('🟢 ========== CLIENT MUTATION onSuccess ==========');
             console.log('✅ [CLIENT] Mutation onSuccess called');
-            console.log('📥 [CLIENT] Response received:', {
+            console.log('📥 [CLIENT] Full Response Object:', JSON.stringify(response, null, 2));
+            console.log('📥 [CLIENT] Response analysis:', {
                 hasResponse: !!response,
-                hasSuccess: 'success' in response,
+                responseType: typeof response,
+                isArray: Array.isArray(response),
+                isNull: response === null,
+                isUndefined: response === undefined,
+                hasSuccess: response && typeof response === 'object' ? 'success' in response : false,
                 success: response?.success,
-                hasMessage: 'message' in response,
+                successType: typeof response?.success,
+                successValue: response?.success,
+                successStrictTrue: response?.success === true,
+                successStrictFalse: response?.success === false,
+                successTruthy: !!response?.success,
+                hasMessage: response && typeof response === 'object' ? 'message' in response : false,
                 message: response?.message,
-                hasData: 'data' in response,
+                messageType: typeof response?.message,
+                hasData: response && typeof response === 'object' ? 'data' in response : false,
                 dataType: typeof response?.data,
-                fullResponse: response
+                responseKeys: response && typeof response === 'object' ? Object.keys(response) : []
             });
             
-            if (response?.success) {
-                console.log('✅ [CLIENT] Response indicates success');
-                console.log('📢 [CLIENT] Showing success toast:', response.message);
-                toast.success(response.message);
+            // Check success condition more carefully
+            const isSuccess = response?.success === true;
+            
+            console.log('🔍 [CLIENT] Success condition check:', {
+                successProperty: response?.success,
+                successStrictTrue: response?.success === true,
+                successStrictFalse: response?.success === false,
+                successTruthy: !!response?.success,
+                isSuccessCalculated: isSuccess
+            });
+            
+            if (isSuccess) {
+                console.log('✅ [CLIENT] Response indicates SUCCESS');
+                console.log('📢 [CLIENT] Showing success toast with message:', response?.message || 'Master holiday saved successfully');
+                toast.success(response?.message || 'Master holiday saved successfully');
                 
                 console.log('🔄 [CLIENT] Invalidating queries with key:', HRMS_QUERY_KEYS.MASTER_HOLIDAY);
                 queryClient.invalidateQueries({
@@ -154,19 +177,28 @@ export const useSaveMasterHoliday = () => {
                 });
                 console.log('✅ [CLIENT] Query invalidation completed');
             } else {
-                console.log('❌ [CLIENT] Response indicates failure');
-                console.log('📢 [CLIENT] Showing error toast:', response?.message || 'Unknown error');
+                console.log('❌ [CLIENT] Response indicates FAILURE');
+                console.log('📢 [CLIENT] Success property value:', response?.success);
+                console.log('📢 [CLIENT] Message property value:', response?.message);
+                console.log('📢 [CLIENT] Showing error toast with message:', response?.message || 'Save operation failed');
                 toast.error(response?.message || 'Save operation failed');
             }
+            console.log('🟢 ========== END CLIENT MUTATION onSuccess ==========');
         },
         onError: (error: Error) => {
+            console.error('🔴 ========== CLIENT MUTATION onError ==========');
             console.error('❌ [CLIENT] Mutation onError called');
+            console.error('💥 [CLIENT] Error object:', error);
             console.error('💥 [CLIENT] Error details:', {
                 message: error?.message,
                 name: error?.name,
-                stack: error?.stack
+                stack: error?.stack,
+                errorType: typeof error,
+                errorKeys: error ? Object.keys(error) : []
             });
+            console.error('💥 [CLIENT] Full error JSON:', JSON.stringify(error, Object.getOwnPropertyNames(error), 2));
             toast.error(error.message || 'Failed to save master holiday');
+            console.error('🔴 ========== END CLIENT MUTATION onError ==========');
         }
     });
 };
@@ -177,13 +209,13 @@ export const useDeleteMasterHoliday = () => {
     return useMutation({
         mutationFn: (id: number) => deleteMasterHoliday(id),
         onSuccess: (response) => {
-            if (response.success) {
+            if (response?.success) {
                 toast.success(response.message);
                 queryClient.invalidateQueries({
                     queryKey: [HRMS_QUERY_KEYS.MASTER_HOLIDAY]
                 });
             } else {
-                toast.error(response.message);
+                toast.error(response?.message || 'Delete operation failed');
             }
         },
         onError: (error: Error) => {
@@ -192,15 +224,20 @@ export const useDeleteMasterHoliday = () => {
     });
 };
 
-export const useShiftSettingMaster = () => {
+export const useShiftSettingMaster = (searchParams?: ApiSearchparams) => {
     const queryClient = useQueryClient();
 
+    const queryResult = useQuery({
+        queryKey: [HRMS_QUERY_KEYS.SHIFT_SETTING_MASTER, searchParams ?? {}],
+        queryFn: async () => {
+            const result = await getShiftSettingMaster(searchParams);
+            return result;
+        },
+        staleTime: 0
+    });
+
     return {
-        ...useQuery({
-            queryKey: [HRMS_QUERY_KEYS.SHIFT_SETTING_MASTER],
-            queryFn: async () => getShiftSettingMaster(),
-            staleTime: 0
-        }),
+        ...queryResult,
         refetchAll: () => {
             return queryClient.invalidateQueries({
                 queryKey: [HRMS_QUERY_KEYS.SHIFT_SETTING_MASTER]
