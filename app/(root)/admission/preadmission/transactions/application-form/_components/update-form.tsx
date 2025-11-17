@@ -12,6 +12,7 @@ import { MultiSelect } from '@/components/ui/multi-select';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useAcademicYearMasterConfiguration } from '@/hooks/admission/preadmission/useConfigurations';
 import {
     useActivePreadmissionDetails,
     useCasteDropdown,
@@ -29,14 +30,15 @@ import { calculateAge, cn } from '@/lib/utils';
 import { studentApplicationFormUpdateSchema } from '@/schemas/admission/preadmission/transactions';
 import { addStudentApplicationForm } from '@/server/admission/preadmission/transactions/application_form';
 import { deleteDocument, uploadDocument } from '@/server/document_upload';
-import type { CalculatedAgeDetails } from '@/types';
+import type { IPreadmissionClassDropdown } from '@/types/admission/preadmission/transactions';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { format } from 'date-fns';
-import { Calendar, Check, ChevronLeft, ChevronRight, Eye, Save, Trash } from 'lucide-react';
+import { CalendarIcon, Check, ChevronLeft, ChevronRight, Eye, Save, Trash } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import type { z } from 'zod';
+import { IneligibleClassesDialog } from './InEligibleDialog';
 
 type FormFields = z.infer<typeof studentApplicationFormUpdateSchema.update>;
 
@@ -92,6 +94,7 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
         reset,
         trigger,
         setValue,
+        getValues,
         formState: { errors, isSubmitting }
     } = useForm<FormFields>({
         resolver: zodResolver(studentApplicationFormUpdateSchema.update),
@@ -102,43 +105,56 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
         }
     });
 
-    // Initialize form with row data if provided
     useEffect(() => {
         if (rowData) {
-            // Set form values
             const existingId = rowData.pasr_id ?? rowData.pasR_Id ?? rowData.pasRId ?? 0;
             setValue('pasR_Id', existingId);
 
             Object.entries(rowData).forEach(([key, value]) => {
-                if (key === 'pasR_DOB') {
+                if (key === 'pasR_DOB' && value) {
                     setValue(key, new Date(value as string));
+                    return;
                 }
-                // Convert mobile numbers to strings
-                else if (
-                    ['pasR_MobileNo', 'pasR_FatherMobleNo', 'pasR_MotherMobleNo', 'pasR_AltContactNo', 'pasR_AadharNo'].includes(key) &&
-                    typeof value === 'number'
+
+                let normalized: any = value;
+
+                if (
+                    normalized === '' ||
+                    normalized === null ||
+                    (normalized === 0 && !['pasR_TransportReqdFlag'].includes(key)) ||
+                    normalized === '0'
                 ) {
-                    setValue(key as any, value.toString());
+                    normalized = undefined;
                 }
-                // Convert nationality fields - keep as strings
-                else if (
-                    ['pasR_Nationality', 'pasR_FatherNationality', 'pasR_MotherNationality'].includes(key) &&
-                    value !== null &&
-                    value !== undefined
+
+                if (
+                    [
+                        'pasR_MobileNo',
+                        'pasR_FatherMobleNo',
+                        'pasR_MotherMobleNo',
+                        'pasR_AltContactNo',
+                        'pasR_AadharNo',
+                        'pasR_FatherPanno',
+                        'pasR_MotherPanno'
+                    ].includes(key) &&
+                    typeof normalized === 'number'
                 ) {
-                    setValue(key as any, typeof value === 'number' ? String(value) : value);
+                    normalized = String(normalized);
                 }
-                // Convert state fields to numbers if they're strings
-                else if (['pasR_ConState', 'pasR_PerState'].includes(key) && value !== null && value !== undefined) {
-                    setValue(key as any, typeof value === 'string' ? Number(value) : value);
-                } else {
-                    setValue(key as any, value);
+
+                if (['pasR_Nationality', 'pasR_FatherNationality', 'pasR_MotherNationality'].includes(key) && normalized !== undefined) {
+                    normalized = typeof normalized === 'number' ? String(normalized) : normalized;
                 }
+
+                if (['pasR_ConState', 'pasR_PerState'].includes(key) && normalized !== undefined) {
+                    normalized = typeof normalized === 'string' ? Number(normalized) : normalized;
+                }
+
+                setValue(key as any, normalized);
             });
             setValue('pasA_WillingToContributeFlg', rowData.pasA_WillingToContributeFlg ? 1 : 0);
-            setValue('pasA_WillingToContributeRemarks', rowData.pasA_WillingToContributeRemarks ?? null);
+            setValue('pasA_WillingToContributeRemarks', rowData.pasA_WillingToContributeRemarks ?? undefined);
 
-            // Set other state values
             if (rowData.selectedSourceDetails) {
                 setSelectedSourceItems(rowData.selectedSourceDetails);
             }
@@ -155,7 +171,6 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                 setUploadedDocuments(rowData.selectedDocuments);
             }
 
-            // Initialize student photo from row data if present
             if (rowData.pasR_Student_Pic_Path) {
                 setStudentPhoto({
                     pasR_Student_Pic_Path: rowData.pasR_Student_Pic_Path,
@@ -163,7 +178,6 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                 });
             }
 
-            // Initialize father photo from row data if present
             if (rowData.pasR_FatherPhoto) {
                 setFatherPhoto({
                     pasR_FatherPhoto: rowData.pasR_FatherPhoto,
@@ -171,26 +185,20 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                 });
             }
 
-            // Initialize mother photo from row data if present
             if (rowData.pasR_MotherPhoto) {
                 setMotherPhoto({
                     pasR_MotherPhoto: rowData.pasR_MotherPhoto,
                     isUploading: false
                 });
             }
-
-            // Calculate age details if DOB exists
-            if (rowData.pasR_DOB) {
-                const dob = new Date(rowData.pasR_DOB);
-                const ageDetails = calculateAge(dob);
-                setCalculatedAgeDetails(ageDetails);
-            }
         }
     }, [rowData, setValue]);
 
     const [isDobOpen, setIsDobOpen] = useState(false);
-    const [calculatedAgeDetails, setCalculatedAgeDetails] = useState<CalculatedAgeDetails>();
-    const [ageEligibilityError, setAgeEligibilityError] = useState<string | null>(null);
+    const [filteredClasses, setFilteredClasses] = useState<IPreadmissionClassDropdown[]>([]);
+    const [isClassDisabled, setIsClassDisabled] = useState(true);
+    const [showIneligibleDialog, setShowIneligibleDialog] = useState(false);
+    const [ineligibleClasses, setIneligibleClasses] = useState<IPreadmissionClassDropdown[]>([]);
     const [selectedSourceItems, setSelectedSourceItems] = useState<{ pamS_Id: string; pamS_SourceName: string }[]>([]);
     const [selectedReferenceItems, setSelectedReferenceItems] = useState<{ pamR_Id: string; pamR_ReferenceName: string }[]>([]);
     const [sameAsResidential, setSameAsResidential] = useState(false);
@@ -232,7 +240,6 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
     } | null>(null);
     const [studentPhotoError, setStudentPhotoError] = useState<string | null>(null);
 
-    // Ref for hidden file input to support edit/replace
     const studentPhotoInputRef = useRef<HTMLInputElement | null>(null);
 
     const [fatherPhoto, setFatherPhoto] = useState<{
@@ -241,7 +248,6 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
     } | null>(null);
     const [fatherPhotoError, setFatherPhotoError] = useState<string | null>(null);
 
-    // Ref for hidden file input to support edit/replace
     const fatherPhotoInputRef = useRef<HTMLInputElement | null>(null);
 
     const [motherPhoto, setMotherPhoto] = useState<{
@@ -250,12 +256,13 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
     } | null>(null);
     const [motherPhotoError, setMotherPhotoError] = useState<string | null>(null);
 
-    // Ref for hidden file input to support edit/replace
     const motherPhotoInputRef = useRef<HTMLInputElement | null>(null);
 
     const [documentErrors, setDocumentErrors] = useState<Record<number, string>>({});
 
     const { data: activePreadmission } = useActivePreadmissionDetails();
+
+    const { data: masterConfig } = useAcademicYearMasterConfiguration(activePreadmission?.data?.asmaY_Id ?? 0);
 
     const { data: religion, isLoading: religionLoading, error: religionError, refetchAll: refetchReligion } = useReligionDropdown();
 
@@ -263,12 +270,7 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
     const perConuntryId = watch('pasR_PerCountry');
     const { data: caste, isLoading: casteLoading, error: casteError, refetchAll: refetchCaste } = useCasteDropdown(watch('religion_Id'));
     const { data: gender, isLoading: genderLoading, error: genderError, refetchAll: refetchGender } = useGenderDropdown();
-    const {
-        data: preadmissionClass,
-        isLoading: classLoading,
-        error: classError,
-        refetchAll: refetchClass
-    } = usePreadmissionClassDropdown();
+    const { data: preadmissionClass, refetchAll: refetchClass } = usePreadmissionClassDropdown();
     const { data: country, isLoading: countryLoading, error: countryError, refetchAll: refetchCountry } = useCountryDropdown();
     const {
         data: conState,
@@ -289,6 +291,26 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
         isLoading: preadmissionDocumentsLoading,
         refetchAll: refetchPreadmissionDocuments
     } = usePreadmissionDocumentsDropdown();
+
+    // Add this useEffect after the existing useEffect that sets form values
+    useEffect(() => {
+        if (rowData && masterConfig?.data && preadmissionClass?.data) {
+            const dob = new Date(rowData.pasR_DOB);
+            const allClasses = preadmissionClass.data;
+
+            const validClasses: IPreadmissionClassDropdown[] = [];
+
+            allClasses.forEach((classItem: IPreadmissionClassDropdown) => {
+                const validation = validateAgeForClass(dob, classItem, masterConfig.data);
+                if (validation.isValid) {
+                    validClasses.push(classItem);
+                }
+            });
+
+            setFilteredClasses(validClasses);
+            setIsClassDisabled(false);
+        }
+    }, [rowData, masterConfig?.data, preadmissionClass?.data]);
 
     const refetchDropdowns = () => {
         refetchReligion();
@@ -327,6 +349,11 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                 toast.error('Please upload student photo');
                 return;
             }
+
+            if (watch('asmcL_Id') === 0) {
+                toast.error('Please select class');
+                return;
+            }
         } else if (currentStep === 2) {
             fieldsToValidate = [
                 'pasR_ConStreet',
@@ -353,7 +380,21 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                 return;
             }
         } else if (currentStep === 4) {
-            const mandatoryDocs = preadmissionDocuments?.data?.filter((doc) => doc.amsmD_FLAG) || [];
+            const selectedReligionId = watch('religion_Id');
+            const selectedReligion = religion?.data?.find((r) => r.ivrmmR_Id === selectedReligionId);
+            const isRomanCatholic = selectedReligion?.ivrmmR_Name === 'Roman Catholic';
+
+            const mandatoryDocs =
+                preadmissionDocuments?.data?.filter((doc) => {
+                    if (doc.amsmD_FLAG) return true;
+
+                    if (doc.amsmD_DocumentName === 'Baptism Certificate' && isRomanCatholic) {
+                        return true;
+                    }
+
+                    return false;
+                }) || [];
+
             const missingDocs = mandatoryDocs.filter((doc) => !isDocumentUploaded(doc.amsmD_Id));
 
             if (missingDocs.length > 0) {
@@ -368,14 +409,6 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
         if (isValid) {
             setCurrentStep((prev) => Math.min(prev + 1, steps.length));
         }
-
-        if (currentStep === 1) {
-            const isAgeEligible = validateAgeEligibility(calculatedAgeDetails, watch('asmcL_Id'));
-            if (!isAgeEligible) {
-                toast.error("Please select a class that matches the student's age eligibility");
-                return;
-            }
-        }
     };
 
     const prevStep = () => {
@@ -387,27 +420,14 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
     };
 
     const onSubmit: SubmitHandler<FormFields | any> = async (data: FormFields) => {
-        if (!calculatedAgeDetails) {
-            toast.error('Please select date of birth');
-            return;
-        }
-
         if (data.pasR_UndertakingFlag === 0) {
             toast.error('Please accept undertaking');
             return;
         }
 
         try {
-            // FIXED: Determine the correct ID - check all possible sources
-            const existingId =
-                data.pasR_Id ??
-                rowData?.pasR_Id ??
-                rowData?.pasr_id ?? // lowercase version
-                rowData?.pasRId ?? // no underscore version
-                id ??
-                0;
+            const existingId = data.pasR_Id ?? rowData?.pasR_Id ?? rowData?.pasr_id ?? rowData?.pasRId ?? id ?? 0;
 
-            // Don't destructure pasR_Id out if you need it
             const {
                 pasR_DOB,
                 source_ids,
@@ -422,25 +442,50 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                 ...filteredData
             } = data;
 
-            const payload = {
-                pasR_Id: Number(existingId), // Use the determined ID
-                ...filteredData,
-                pasR_DOB: format(pasR_DOB, 'yyyy-MM-dd'),
-                pasR_Age: calculatedAgeDetails.ageInYears,
-                // Use student photo path from state
-                pasR_Student_Pic_Path: studentPhoto?.pasR_Student_Pic_Path || '',
-                pasR_FatherPhoto: fatherPhoto?.pasR_FatherPhoto || '',
-                pasR_MotherPhoto: motherPhoto?.pasR_MotherPhoto || '',
-                // FIXED: Ensure proper type conversions
-                PASR_ConState: pasR_ConState?.toString() ?? '',
-                PASR_PerState: pasR_PerState?.toString() ?? '',
-                PASR_ConCountry: pasR_ConCountry?.toString() ?? '',
-                PASR_PerCountry: pasR_PerCountry?.toString() ?? '',
-                PASR_ConPincode:
-                    pasR_ConPincode === undefined || pasR_ConPincode === null || pasR_ConPincode === '' ? 0 : Number(pasR_ConPincode),
-                PASR_PerPincode:
-                    pasR_PerPincode === undefined || pasR_PerPincode === null || pasR_PerPincode === '' ? 0 : Number(pasR_PerPincode),
+            const toNull = (v: any) => (v === '' || v === undefined || v === '$undefined' ? null : v);
+            const toNullOther = (v: any) => (v === '' || v === undefined || v === '$undefined' ? '' : v);
+            const toZero = (v: any) => (v === '' || v === undefined || v === '$undefined' || v === null ? 0 : v);
+            const nullFields = new Set([
+                'pasR_AadharNo',
+                'pasR_FatherPanno',
+                'pasR_MotherPanno',
+                'pasR_MobileNo',
+                'pasR_FatherMobleNo',
+                'pasR_MotherMobleNo',
+                'pasR_AltContactNo',
+                'pasR_FatherIncome',
+                'pasR_MotherIncome',
+                'pasR_ConState'
+            ]);
 
+            const payload = {
+                pasR_Id: Number(existingId),
+                ...Object.fromEntries(
+                    Object.entries(filteredData)
+                        .filter(([k]) => k !== 'createdDate' && k !== 'updatedDate' && k !== 'createdAt' && k !== 'updatedAt')
+                        .map(([k, v]) => [k, nullFields.has(k) ? toNull(v) : toNullOther(v)])
+                ),
+                pasR_DOB: pasR_DOB ? format(pasR_DOB, 'yyyy-MM-dd') : null,
+                pasR_Age: 0,
+                pasR_Student_Pic_Path: toNullOther(studentPhoto?.pasR_Student_Pic_Path),
+                pasR_FatherPhoto: toNullOther(fatherPhoto?.pasR_FatherPhoto),
+                pasR_MotherPhoto: toNullOther(motherPhoto?.pasR_MotherPhoto),
+                PASR_ConState:
+                    pasR_ConState == null || String(pasR_ConState) === '' || String(pasR_ConState) === '$undefined'
+                        ? null
+                        : Number(pasR_ConState),
+                PASR_PerState: toNullOther(pasR_PerState?.toString()),
+                PASR_ConCountry: toNullOther(pasR_ConCountry?.toString()),
+                PASR_PerCountry: toNullOther(pasR_PerCountry?.toString()),
+                PASR_ConPincode: toZero(pasR_ConPincode),
+                PASR_PerPincode: toZero(pasR_PerPincode),
+                pasR_MobileNo: toNull(data.pasR_MobileNo),
+                pasR_FatherMobleNo: toNull(data.pasR_FatherMobleNo),
+                pasR_MotherMobleNo: toNull(data.pasR_MotherMobleNo),
+                pasR_AltContactNo: toNull(data.pasR_AltContactNo),
+                pasR_AadharNo: toNull(data.pasR_AadharNo),
+                pasR_FatherPanno: toNull(data.pasR_FatherPanno),
+                pasR_MotherPanno: toNull(data.pasR_MotherPanno),
                 selectedSourceDetails: selectedSourceItems.map((item) => ({
                     pamS_Id: item.pamS_Id
                 })),
@@ -448,7 +493,7 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                     pamR_Id: item.pamR_Id
                 })),
                 siblingsDetails: siblings.map((sibling) => ({
-                    ...sibling,
+                    ...Object.fromEntries(Object.entries(sibling).filter(([k]) => k !== 'createdDate' && k !== 'updatedDate')),
                     verrejstatus: '',
                     pasrS_SchoolName: '',
                     pasrS_Age: 0,
@@ -459,7 +504,9 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                 previousSchoolList: previousSchool.pasrpS_PrvSchoolName
                     ? [
                           {
-                              ...previousSchool,
+                              ...Object.fromEntries(
+                                  Object.entries(previousSchool).filter(([k]) => k !== 'createdDate' && k !== 'updatedDate')
+                              ),
                               pasrpS_TcNo: '',
                               pasrpS_PreviousPer: '',
                               pasrpS_PreviousGrade: '',
@@ -474,13 +521,12 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                     pasrD_Id: doc.pasrD_Id,
                     pasR_Id: doc.pasR_Id,
                     amsmD_Id: doc.amsmD_Id,
-                    document_Path: doc.document_Path
+                    document_Path: toNullOther(doc.document_Path)
                 })),
-                PASR_RegistrationNo: '',
+                PASR_RegistrationNo: toNullOther((data as any).pasR_RegistrationNo),
                 pasA_WillingToContributeFlg: pasA_WillingToContributeFlg === 1
             };
 
-            // Submit the payload
             const response = await addStudentApplicationForm(payload);
 
             if (response && (response.success === true || response.status === 200)) {
@@ -502,7 +548,6 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
     const handleReset = () => {
         reset();
         setCurrentStep(1);
-        setCalculatedAgeDetails(undefined);
         setSelectedSourceItems([]);
         setSelectedReferenceItems([]);
         setSameAsResidential(false);
@@ -517,7 +562,6 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
             pasrpS_LeftReason: '',
             pasrpS_Address: ''
         });
-        setAgeEligibilityError(null);
         setUploadedDocuments([]);
         setDocumentErrors({});
     };
@@ -555,7 +599,6 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
         }
     };
 
-    // Add these functions after handleSameAsResidential
     const addSibling = () => {
         setSiblings([
             ...siblings,
@@ -590,7 +633,6 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
 
     const handleDocumentUpload = async (amsmD_Id: number, file: File, documentName: string) => {
         try {
-            // Set uploading state - ADD document if it doesn't exist
             setUploadedDocuments((prev) => {
                 const existingIndex = prev.findIndex((doc) => doc.amsmD_Id === amsmD_Id);
 
@@ -824,35 +866,92 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
         return uploadedDocuments.find((doc) => doc.amsmD_Id === amsmD_Id);
     };
 
-    const validateAgeEligibility = (ageDetails: CalculatedAgeDetails | undefined, classId: number | undefined) => {
-        if (!ageDetails || !classId || !preadmissionClass?.data) {
-            setAgeEligibilityError(null);
-            return true;
+    const validateAgeForClass = (dob: Date, classData: IPreadmissionClassDropdown, config: any): { isValid: boolean; reason?: string } => {
+        const cutOffDate = config.ispaC_ApplCutOffDateFlag === 1 ? new Date(config.asmaY_Cut_Of_Date) : new Date();
+
+        const age = calculateAge(dob, cutOffDate);
+
+        // Check minimum age if flag is enabled
+        if (config.ispaC_DOBMinAgeFlag === 1) {
+            const minAgeInMonths = classData.asmcL_MinAgeYear * 12 + classData.asmcL_MinAgeMonth;
+            const currentAgeInMonths = age.years * 12 + age.months;
+
+            if (currentAgeInMonths < minAgeInMonths) {
+                return {
+                    isValid: false,
+                    reason: `Minimum age required: ${classData.asmcL_MinAgeYear}y ${classData.asmcL_MinAgeMonth}m ${classData.asmcL_MinAgeDays}d`
+                };
+            }
+
+            if (currentAgeInMonths === minAgeInMonths && age.days < classData.asmcL_MinAgeDays) {
+                return {
+                    isValid: false,
+                    reason: `Minimum age required: ${classData.asmcL_MinAgeYear}y ${classData.asmcL_MinAgeMonth}m ${classData.asmcL_MinAgeDays}d`
+                };
+            }
         }
 
-        const selectedClass = preadmissionClass.data.find((cls) => cls.asmcL_Id === classId);
-        if (!selectedClass) {
-            setAgeEligibilityError(null);
-            return true;
+        // Check maximum age if flag is enabled
+        if (config.ispaC_DOBMaxAgeFlag === 1) {
+            const maxAgeInMonths = classData.asmcL_MaxAgeYear * 12 + classData.asmcL_MaxAgeMonth;
+            const currentAgeInMonths = age.years * 12 + age.months;
+
+            if (currentAgeInMonths > maxAgeInMonths) {
+                return {
+                    isValid: false,
+                    reason: `Maximum age allowed: ${classData.asmcL_MaxAgeYear}y ${classData.asmcL_MaxAgeMonth}m ${classData.asmcL_MaxAgeDays}d`
+                };
+            }
+
+            if (currentAgeInMonths === maxAgeInMonths && age.days > classData.asmcL_MaxAgeDays) {
+                return {
+                    isValid: false,
+                    reason: `Maximum age allowed: ${classData.asmcL_MaxAgeYear}y ${classData.asmcL_MaxAgeMonth}m ${classData.asmcL_MaxAgeDays}d`
+                };
+            }
         }
 
-        // Convert age to total days for accurate comparison
-        const studentTotalDays = ageDetails.years * 365 + ageDetails.months * 30 + ageDetails.days;
-        const minAgeDays = selectedClass.asmcL_MinAgeYear * 365 + selectedClass.asmcL_MinAgeMonth * 30 + selectedClass.asmcL_MinAgeDays;
-        const maxAgeDays = selectedClass.asmcL_MaxAgeYear * 365 + selectedClass.asmcL_MaxAgeMonth * 30 + selectedClass.asmcL_MaxAgeDays;
+        return { isValid: true };
+    };
 
-        if (studentTotalDays < minAgeDays || studentTotalDays > maxAgeDays) {
-            const minAgeString = `${selectedClass.asmcL_MinAgeYear} years, ${selectedClass.asmcL_MinAgeMonth} months, ${selectedClass.asmcL_MinAgeDays} days`;
-            const maxAgeString = `${selectedClass.asmcL_MaxAgeYear} years, ${selectedClass.asmcL_MaxAgeMonth} months, ${selectedClass.asmcL_MaxAgeDays} days`;
-
-            setAgeEligibilityError(
-                `Student age (${ageDetails.ageString}) does not meet eligibility for ${selectedClass.asmcL_ClassName}. Required age range: ${minAgeString} to ${maxAgeString}`
-            );
-            return false;
+    const handleDOBChange = (date: Date | undefined) => {
+        if (!date || !masterConfig?.data) {
+            setIsClassDisabled(true);
+            setFilteredClasses([]);
+            setValue('asmcL_Id', 0);
+            return;
         }
 
-        setAgeEligibilityError(null);
-        return true;
+        const allClasses = preadmissionClass?.data || [];
+
+        const validClasses: IPreadmissionClassDropdown[] = [];
+        const invalidClasses: IPreadmissionClassDropdown[] = [];
+
+        allClasses.forEach((classItem: IPreadmissionClassDropdown) => {
+            const validation = validateAgeForClass(date, classItem, masterConfig.data);
+            if (validation.isValid) {
+                validClasses.push(classItem);
+            } else {
+                invalidClasses.push(classItem);
+            }
+        });
+
+        setFilteredClasses(validClasses);
+
+        if (validClasses.length === 0) {
+            setIneligibleClasses(invalidClasses);
+            setShowIneligibleDialog(true);
+            setIsClassDisabled(true);
+            setValue('asmcL_Id', 0);
+        } else {
+            setIsClassDisabled(false);
+            // Don't reset class selection in update form if current class is still valid
+            const currentClassId = getValues('asmcL_Id');
+            const isCurrentClassValid = validClasses.some((c) => c.asmcL_Id === currentClassId);
+            if (!isCurrentClassValid) {
+                setValue('asmcL_Id', 0);
+            }
+        }
     };
 
     return (
@@ -1173,51 +1272,53 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                                                 error={errors.pasR_LastName?.message}
                                             />
                                             <div className='flex flex-col gap-1.5'>
-                                                <Label htmlFor='pasR_DOB'>
-                                                    Date Of Birth
-                                                    <span className='ml-1 text-red-500'>*</span>
-                                                </Label>
                                                 <Controller
-                                                    control={control}
                                                     name='pasR_DOB'
-                                                    render={({ field }) => (
-                                                        <Popover open={isDobOpen} onOpenChange={(open) => setIsDobOpen(open)}>
-                                                            <PopoverTrigger asChild>
-                                                                <Button
-                                                                    variant='outline'
-                                                                    className={cn(
-                                                                        'w-full font-normal',
-                                                                        !field.value && 'text-muted-foreground'
-                                                                    )}>
-                                                                    {field.value ? (
-                                                                        format(field.value, 'dd-MM-yyyy')
-                                                                    ) : (
-                                                                        <span>Pick a date</span>
-                                                                    )}
-                                                                    <Calendar className='ml-auto h-4 w-4 opacity-50' />
-                                                                </Button>
-                                                            </PopoverTrigger>
-                                                            <PopoverContent className='flex w-auto items-start p-0' align='start'>
-                                                                <CalendarYear
-                                                                    mode='single'
-                                                                    captionLayout='dropdown'
-                                                                    selected={field.value}
-                                                                    onSelect={(selectedDate) => {
-                                                                        field.onChange(selectedDate);
-                                                                        const ageDetails = calculateAge(selectedDate as Date);
-                                                                        setCalculatedAgeDetails(ageDetails);
-                                                                        validateAgeEligibility(ageDetails, watch('asmcL_Id'));
-                                                                    }}
-                                                                    onDayClick={() => setIsDobOpen(false)}
-                                                                    toDate={new Date()}
-                                                                />
-                                                            </PopoverContent>
-                                                        </Popover>
+                                                    control={control}
+                                                    render={({ field, fieldState: { error } }) => (
+                                                        <div className='flex flex-col space-y-2'>
+                                                            <Label htmlFor='pasR_DOB'>
+                                                                Date of Birth <span className='ml-1 text-red-500'>*</span>
+                                                            </Label>
+                                                            <Popover open={isDobOpen} onOpenChange={(open) => setIsDobOpen(open)}>
+                                                                <PopoverTrigger asChild>
+                                                                    <Button
+                                                                        variant={'outline'}
+                                                                        className={cn(
+                                                                            'w-full justify-start text-left font-normal',
+                                                                            !field.value && 'text-muted-foreground',
+                                                                            error && 'border-red-500'
+                                                                        )}>
+                                                                        <CalendarIcon className='mr-2 h-4 w-4' />
+                                                                        {field.value ? (
+                                                                            format(field.value, 'PPP')
+                                                                        ) : (
+                                                                            <span>Pick a date</span>
+                                                                        )}
+                                                                    </Button>
+                                                                </PopoverTrigger>
+                                                                <PopoverContent className='w-auto p-0' align='start'>
+                                                                    <CalendarYear
+                                                                        mode='single'
+                                                                        selected={field.value}
+                                                                        onSelect={(date: Date | undefined) => {
+                                                                            if (date) {
+                                                                                field.onChange(date);
+                                                                                handleDOBChange(date);
+                                                                                setValue('asmcL_Id', 0);
+                                                                            }
+                                                                        }}
+                                                                        disabled={(date: Date) =>
+                                                                            date > new Date() || date < new Date('1900-01-01')
+                                                                        }
+                                                                        onDayClick={() => setIsDobOpen(false)}
+                                                                        initialFocus
+                                                                    />
+                                                                </PopoverContent>
+                                                            </Popover>
+                                                        </div>
                                                     )}
                                                 />
-                                                {calculatedAgeDetails && (
-                                                    <p className='text-muted-foreground text-sm'>Age: {calculatedAgeDetails.ageString}</p>
-                                                )}
                                                 {errors.pasR_DOB && <FormError>{errors.pasR_DOB.message}</FormError>}
                                             </div>
                                             <div className='flex flex-col gap-1.5'>
@@ -1229,7 +1330,7 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                                                             label='Mobile No.'
                                                             id='pasR_MobileNo'
                                                             required
-                                                            value={field.value}
+                                                            value={field.value === '' || field.value == null ? '' : field.value}
                                                             onChange={(value) => field.onChange(value)}
                                                             type='number'
                                                             showSpinner={false}
@@ -1355,51 +1456,52 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                                                 {errors.pasR_Sex && <FormError>{errors.pasR_Sex.message}</FormError>}
                                             </div>
                                             <div className='flex flex-col gap-1.5'>
-                                                <Label htmlFor='asmcL_Id'>
-                                                    Class <span className='ml-1 text-red-500'>*</span>
-                                                </Label>
                                                 <Controller
                                                     name='asmcL_Id'
                                                     control={control}
-                                                    render={({ field }) => (
-                                                        <Select
-                                                            onValueChange={(value) => {
-                                                                field.onChange(Number(value));
-                                                                validateAgeEligibility(calculatedAgeDetails, Number(value));
-                                                            }}
-                                                            value={field.value?.toString() || undefined}>
-                                                            <SelectTrigger>
-                                                                <SelectValue placeholder='Select class' />
-                                                            </SelectTrigger>
-                                                            <SelectContent>
-                                                                {classLoading ? (
-                                                                    <SelectItem value='loading' disabled>
-                                                                        Loading...
-                                                                    </SelectItem>
-                                                                ) : classError ? (
-                                                                    <SelectItem value='error' disabled>
-                                                                        Error loading
-                                                                    </SelectItem>
-                                                                ) : (
-                                                                    preadmissionClass?.data?.map((item) => (
-                                                                        <SelectItem key={item.asmcL_Id} value={item.asmcL_Id.toString()}>
-                                                                            {item.asmcL_ClassName}
+                                                    render={({ field, fieldState: { error } }) => (
+                                                        <div className='flex flex-col space-y-2'>
+                                                            <Label htmlFor='asmcL_Id'>
+                                                                Applying For Class <span className='ml-1 text-red-500'>*</span>
+                                                            </Label>
+                                                            <Select
+                                                                value={
+                                                                    field.value === null || field.value === 0
+                                                                        ? ''
+                                                                        : field.value?.toString() || ''
+                                                                }
+                                                                onValueChange={(value) => field.onChange(Number(value))}
+                                                                disabled={isClassDisabled}
+                                                                searchable={false}>
+                                                                <SelectTrigger className={cn('w-full', error && 'border-red-500')}>
+                                                                    <SelectValue
+                                                                        placeholder={
+                                                                            isClassDisabled
+                                                                                ? 'Please select Date of Birth first'
+                                                                                : 'Select a class'
+                                                                        }
+                                                                    />
+                                                                </SelectTrigger>
+                                                                <SelectContent>
+                                                                    {filteredClasses.length > 0 ? (
+                                                                        filteredClasses.map((classItem) => (
+                                                                            <SelectItem
+                                                                                key={classItem.asmcL_Id}
+                                                                                value={classItem.asmcL_Id.toString()}>
+                                                                                {classItem.asmcL_ClassName}
+                                                                            </SelectItem>
+                                                                        ))
+                                                                    ) : (
+                                                                        <SelectItem value='0' disabled>
+                                                                            No classes available
                                                                         </SelectItem>
-                                                                    ))
-                                                                )}
-                                                            </SelectContent>
-                                                        </Select>
+                                                                    )}
+                                                                </SelectContent>
+                                                            </Select>
+                                                        </div>
                                                     )}
                                                 />
                                                 {errors.asmcL_Id && <FormError>{errors.asmcL_Id.message}</FormError>}
-                                                {ageEligibilityError && (
-                                                    <div className='mt-2 rounded-md border border-red-200 bg-red-50 p-3'>
-                                                        <p className='flex items-start gap-2 font-medium text-red-700 text-sm'>
-                                                            <span className='mt-0.5 text-red-500'>⚠</span>
-                                                            <span>{ageEligibilityError}</span>
-                                                        </p>
-                                                    </div>
-                                                )}
                                             </div>
                                             <InputText
                                                 label='Email'
@@ -1458,7 +1560,7 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                                                         <MobileNumberInput
                                                             label='Aadhaar No.'
                                                             id='pasR_AadharNo'
-                                                            value={field.value}
+                                                            value={field.value === '' || field.value == null ? '' : field.value}
                                                             onChange={(value) => field.onChange(value)}
                                                             type='number'
                                                             showSpinner={false}
@@ -1686,7 +1788,7 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                                                                 <MobileNumberInput
                                                                     label='Pin Code/Zip Code'
                                                                     id='pasR_ConPincode'
-                                                                    value={field.value}
+                                                                    value={field.value === '' || field.value == null ? '' : field.value}
                                                                     onChange={(value) => field.onChange(value)}
                                                                     type='number'
                                                                     showSpinner={false}
@@ -1819,7 +1921,7 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                                                                 <MobileNumberInput
                                                                     label='Pin Code/Zip Code'
                                                                     id='pasR_PerPincode'
-                                                                    value={field.value}
+                                                                    value={field.value === '' || field.value == null ? '' : field.value}
                                                                     onChange={(value) => field.onChange(value)}
                                                                     type='number'
                                                                     showSpinner={false}
@@ -2095,7 +2197,7 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                                                                 <MobileNumberInput
                                                                     label='Mobile No.'
                                                                     id='pasR_FatherMobleNo'
-                                                                    value={field.value}
+                                                                    value={field.value === '' || field.value == null ? '' : field.value}
                                                                     onChange={(value) => field.onChange(value)}
                                                                     type='number'
                                                                     showSpinner={false}
@@ -2115,7 +2217,7 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                                                                     label='Father Income'
                                                                     id='pasR_FatherIncome'
                                                                     value={field.value || 0}
-                                                                    onChange={(value) => field.onChange(value)}
+                                                                    onChange={(value) => field.onChange(Number.isNaN(value) ? 0 : value)}
                                                                     minValue={0}
                                                                 />
                                                             )}
@@ -2406,7 +2508,7 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                                                                 <MobileNumberInput
                                                                     label='Mobile No.'
                                                                     id='pasR_MotherMobleNo'
-                                                                    value={field.value}
+                                                                    value={field.value === '' || field.value == null ? '' : field.value}
                                                                     onChange={(value) => field.onChange(value)}
                                                                     type='number'
                                                                     showSpinner={false}
@@ -2426,7 +2528,7 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                                                                     label='Mother Income'
                                                                     id='pasR_MotherIncome'
                                                                     value={field.value || 0}
-                                                                    onChange={(value) => field.onChange(value)}
+                                                                    onChange={(value) => field.onChange(Number.isNaN(value) ? 0 : value)}
                                                                     minValue={0}
                                                                 />
                                                             )}
@@ -2477,7 +2579,7 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                                                                 <MobileNumberInput
                                                                     label='Alternate Contact No.'
                                                                     id='pasR_AltContactNo'
-                                                                    value={field.value}
+                                                                    value={field.value === '' || field.value == null ? '' : field.value}
                                                                     onChange={(value) => field.onChange(value)}
                                                                     type='number'
                                                                     showSpinner={false}
@@ -2555,23 +2657,65 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                                                             return (
                                                                 <tr
                                                                     key={document.amsmD_Id}
-                                                                    className={
-                                                                        uploadedDoc && !isUploading
-                                                                            ? 'bg-green-50'
-                                                                            : document.amsmD_FLAG
-                                                                              ? 'bg-orange-50'
-                                                                              : ''
-                                                                    }>
+                                                                    className={(() => {
+                                                                        // Get selected religion details
+                                                                        const selectedReligionId = watch('religion_Id');
+                                                                        const selectedReligion = religion?.data?.find(
+                                                                            (r) => r.ivrmmR_Id === selectedReligionId
+                                                                        );
+                                                                        const isRomanCatholic =
+                                                                            selectedReligion?.ivrmmR_Name === 'Roman Catholic';
+
+                                                                        // Check if this document is conditionally mandatory
+                                                                        const isConditionallyMandatory =
+                                                                            document.amsmD_DocumentName === 'Baptism Certificate' &&
+                                                                            isRomanCatholic;
+
+                                                                        const isMandatory = document.amsmD_FLAG || isConditionallyMandatory;
+
+                                                                        if (uploadedDoc && !isUploading) return 'bg-green-50';
+                                                                        if (isMandatory) return 'bg-orange-50';
+                                                                        return '';
+                                                                    })()}>
                                                                     <td className='whitespace-nowrap px-6 py-4'>
-                                                                        <div className='flex items-center gap-2'>
-                                                                            <span className='font-semibold text-gray-900 text-sm'>
-                                                                                {document.amsmD_DocumentName}
-                                                                            </span>
-                                                                            {document.amsmD_FLAG && <span className='text-red-500'>*</span>}
-                                                                        </div>
-                                                                        <p className='mt-0.5 text-gray-500 text-xs'>
-                                                                            {document.amsmD_FLAG ? 'Required' : 'Optional'}
-                                                                        </p>
+                                                                        {(() => {
+                                                                            // Get selected religion details
+                                                                            const selectedReligionId = watch('religion_Id');
+                                                                            const selectedReligion = religion?.data?.find(
+                                                                                (r) => r.ivrmmR_Id === selectedReligionId
+                                                                            );
+                                                                            const isRomanCatholic =
+                                                                                selectedReligion?.ivrmmR_Name === 'Roman Catholic';
+
+                                                                            // Check if this document is conditionally mandatory
+                                                                            const isConditionallyMandatory =
+                                                                                document.amsmD_DocumentName === 'Baptism Certificate' &&
+                                                                                isRomanCatholic;
+
+                                                                            const isMandatory =
+                                                                                document.amsmD_FLAG || isConditionallyMandatory;
+
+                                                                            return (
+                                                                                <>
+                                                                                    <div className='flex items-center gap-2'>
+                                                                                        <span className='font-semibold text-gray-900 text-sm'>
+                                                                                            {document.amsmD_DocumentName}
+                                                                                        </span>
+                                                                                        {isMandatory && (
+                                                                                            <span className='text-red-500'>*</span>
+                                                                                        )}
+                                                                                    </div>
+                                                                                    <p className='mt-0.5 text-gray-500 text-xs'>
+                                                                                        {isMandatory ? 'Required' : 'Optional'}
+                                                                                        {isConditionallyMandatory && (
+                                                                                            <span className='ml-1 text-orange-600'>
+                                                                                                (for Roman Catholic)
+                                                                                            </span>
+                                                                                        )}
+                                                                                    </p>
+                                                                                </>
+                                                                            );
+                                                                        })()}
                                                                     </td>
 
                                                                     <td className='whitespace-nowrap px-6 py-4'>
@@ -3048,7 +3192,7 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                                     )}
 
                                     {currentStep < steps.length ? (
-                                        <Button type='button' onClick={nextStep} disabled={isSubmitting || ageEligibilityError !== null}>
+                                        <Button type='button' onClick={nextStep} disabled={isSubmitting}>
                                             Next
                                             <ChevronRight className='ml-2 h-4 w-4' />
                                         </Button>
@@ -3071,6 +3215,18 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                                 </div>
                             </div>
                         </div>
+                        <IneligibleClassesDialog
+                            open={showIneligibleDialog}
+                            onOpenChange={setShowIneligibleDialog}
+                            classes={ineligibleClasses}
+                            cutOffDate={
+                                masterConfig?.data &&
+                                masterConfig.data.ispaC_ApplCutOffDateFlag === 1 &&
+                                masterConfig.data.asmaY_Cut_Of_Date
+                                    ? new Date(masterConfig.data.asmaY_Cut_Of_Date)
+                                    : new Date()
+                            }
+                        />
                     </div>
                 </div>
             </div>

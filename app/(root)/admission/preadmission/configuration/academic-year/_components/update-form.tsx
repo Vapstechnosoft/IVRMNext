@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { CalendarYear } from '@/components/ui/calendar_year';
 import { Checkbox } from '@/components/ui/checkbox';
 import { FormError, Label } from '@/components/ui/extension/field';
+import { InputNumber } from '@/components/ui/extension/input-number';
 import { InputText } from '@/components/ui/extension/input-text';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { usePreAdmissionAcademicYear } from '@/hooks/admission/preadmission/useConfigurations';
@@ -51,25 +52,25 @@ export default function UpdateMasterAcademicYearForm({ onSuccess, className = ''
                 academicFromYear: fromYear,
                 academicToYear: toYear,
                 asmaY_Year: row.asmaY_Year,
-                asmaY_From_Date: row.asmaY_From_Date ? new Date(row.asmaY_From_Date).toISOString().slice(0, 16) : null,
-                asmaY_To_Date: row.asmaY_To_Date ? new Date(row.asmaY_To_Date).toISOString().slice(0, 16) : null,
-                asmaY_PreAdm_F_Date: row.asmaY_PreAdm_F_Date ? new Date(row.asmaY_PreAdm_F_Date).toISOString().slice(0, 16) : null,
-                asmaY_PreAdm_T_Date: row.asmaY_PreAdm_T_Date ? new Date(row.asmaY_PreAdm_T_Date).toISOString().slice(0, 16) : null,
+                asmaY_From_Date: row.asmaY_From_Date,
+                asmaY_To_Date: row.asmaY_To_Date,
+                asmaY_PreAdm_F_Date: row.asmaY_PreAdm_F_Date,
+                asmaY_PreAdm_T_Date: row.asmaY_PreAdm_T_Date,
                 asmaY_Order: Number(row.asmaY_Order),
                 asmaY_ActiveFlag: Number(row.asmaY_ActiveFlag),
-                asmaY_Cut_Of_Date: row.asmaY_Cut_Of_Date ? new Date(row.asmaY_Cut_Of_Date).toISOString().slice(0, 16) : null,
+                asmaY_Cut_Of_Date: row.asmaY_Cut_Of_Date,
                 asmaY_Pre_ActiveFlag: row.asmaY_Pre_ActiveFlag === 1,
                 asmaY_ReggularFlg: Boolean(row.asmaY_ReggularFlg),
                 asmaY_NewFlg: Boolean(row.asmaY_NewFlg),
                 asmaY_NewAdmissionFlg: Boolean(row.asmaY_NewAdmissionFlg),
-                asmaY_TransportSDate: row.asmaY_TransportSDate ? new Date(row.asmaY_TransportSDate).toISOString().slice(0, 16) : null,
-                asmaY_TransportEDate: row.asmaY_TransportEDate ? new Date(row.asmaY_TransportEDate).toISOString().slice(0, 16) : null,
-                asmaY_ReferenceDate: row.asmaY_ReferenceDate ? new Date(row.asmaY_ReferenceDate).toISOString().slice(0, 16) : null,
+                asmaY_TransportSDate: row.asmaY_TransportSDate,
+                asmaY_TransportEDate: row.asmaY_TransportEDate,
+                asmaY_ReferenceDate: row.asmaY_ReferenceDate,
                 asmaY_AcademicYearCode: row.asmaY_AcademicYearCode,
-                asmaY_AdvanceFeeDate: row.asmaY_AdvanceFeeDate ? new Date(row.asmaY_AdvanceFeeDate).toISOString().slice(0, 16) : null,
-                asmaY_RegularFeeFDate: row.asmaY_RegularFeeFDate ? new Date(row.asmaY_RegularFeeFDate).toISOString().slice(0, 16) : null,
-                asmaY_RegularFeeTDate: row.asmaY_RegularFeeTDate ? new Date(row.asmaY_RegularFeeTDate).toISOString().slice(0, 16) : null,
-                asmaY_ArrearFeeDate: row.asmaY_ArrearFeeDate ? new Date(row.asmaY_ArrearFeeDate).toISOString().slice(0, 16) : null
+                asmaY_AdvanceFeeDate: row.asmaY_AdvanceFeeDate,
+                asmaY_RegularFeeFDate: row.asmaY_RegularFeeFDate,
+                asmaY_RegularFeeTDate: row.asmaY_RegularFeeTDate,
+                asmaY_ArrearFeeDate: row.asmaY_ArrearFeeDate
             });
         }
     }, [row, reset]);
@@ -144,17 +145,23 @@ export default function UpdateMasterAcademicYearForm({ onSuccess, className = ''
                             error={errors.asmaY_AcademicYearCode?.message}
                             className='transition-colors focus:ring-2 focus:ring-primary/20'
                         />
-                        <InputText
-                            label='Academic Year Order'
-                            required
-                            type='number'
-                            id='asmaY_Order'
-                            placeholder='Enter Order'
-                            {...register('asmaY_Order', { valueAsNumber: true })}
-                            defaultValue={row.asmaY_Order}
-                            error={errors.asmaY_Order?.message}
-                            className='transition-colors focus:ring-2 focus:ring-primary/20'
-                        />
+                        <div className='flex flex-col gap-1.5'>
+                            <Controller
+                                name='asmaY_Order'
+                                control={control}
+                                render={({ field }) => (
+                                    <InputNumber
+                                        label='Academic Year Order'
+                                        id='asmaY_Order'
+                                        required
+                                        value={field.value || 0}
+                                        onChange={(value) => field.onChange(Number.isNaN(value) ? 0 : value)}
+                                        minValue={0}
+                                    />
+                                )}
+                            />
+                            {errors.asmaY_Order && <FormError>{errors.asmaY_Order.message}</FormError>}
+                        </div>
                     </div>
 
                     {/* Academic Year Dates */}
@@ -188,9 +195,7 @@ export default function UpdateMasterAcademicYearForm({ onSuccess, className = ''
                                                     mode='single'
                                                     selected={field.value ? new Date(field.value) : undefined}
                                                     onSelect={(date) => field.onChange(date?.toISOString())}
-                                                    captionLayout='dropdown'
-                                                    fromYear={2000}
-                                                    toYear={2050}
+                                                    toDate={new Date(new Date().getFullYear() + 1, 11, 31)}
                                                     required
                                                 />
                                             </PopoverContent>
@@ -227,9 +232,7 @@ export default function UpdateMasterAcademicYearForm({ onSuccess, className = ''
                                                     mode='single'
                                                     selected={field.value ? new Date(field.value) : undefined}
                                                     onSelect={(date) => field.onChange(date?.toISOString())}
-                                                    captionLayout='dropdown'
-                                                    fromYear={2000}
-                                                    toYear={2050}
+                                                    toDate={new Date(new Date().getFullYear() + 1, 11, 31)}
                                                 />
                                             </PopoverContent>
                                         </Popover>
@@ -271,9 +274,7 @@ export default function UpdateMasterAcademicYearForm({ onSuccess, className = ''
                                                     mode='single'
                                                     selected={field.value ? new Date(field.value) : undefined}
                                                     onSelect={(date) => field.onChange(date?.toISOString())}
-                                                    captionLayout='dropdown'
-                                                    fromYear={2000}
-                                                    toYear={2050}
+                                                    toDate={new Date(new Date().getFullYear() + 1, 11, 31)}
                                                 />
                                             </PopoverContent>
                                         </Popover>
@@ -312,9 +313,7 @@ export default function UpdateMasterAcademicYearForm({ onSuccess, className = ''
                                                     mode='single'
                                                     selected={field.value ? new Date(field.value) : undefined}
                                                     onSelect={(date) => field.onChange(date?.toISOString())}
-                                                    captionLayout='dropdown'
-                                                    fromYear={2000}
-                                                    toYear={2050}
+                                                    toDate={new Date(new Date().getFullYear() + 1, 11, 31)}
                                                 />
                                             </PopoverContent>
                                         </Popover>
@@ -358,9 +357,7 @@ export default function UpdateMasterAcademicYearForm({ onSuccess, className = ''
                                                     mode='single'
                                                     selected={field.value ? new Date(field.value) : undefined}
                                                     onSelect={(date) => field.onChange(date?.toISOString())}
-                                                    captionLayout='dropdown'
-                                                    fromYear={2000}
-                                                    toYear={2050}
+                                                    toDate={new Date(new Date().getFullYear() + 1, 11, 31)}
                                                 />
                                             </PopoverContent>
                                         </Popover>
@@ -396,9 +393,7 @@ export default function UpdateMasterAcademicYearForm({ onSuccess, className = ''
                                                     mode='single'
                                                     selected={field.value ? new Date(field.value) : undefined}
                                                     onSelect={(date) => field.onChange(date?.toISOString())}
-                                                    captionLayout='dropdown'
-                                                    fromYear={2000}
-                                                    toYear={2050}
+                                                    toDate={new Date(new Date().getFullYear() + 1, 11, 31)}
                                                 />
                                             </PopoverContent>
                                         </Popover>
@@ -439,9 +434,7 @@ export default function UpdateMasterAcademicYearForm({ onSuccess, className = ''
                                                     mode='single'
                                                     selected={field.value ? new Date(field.value) : undefined}
                                                     onSelect={(date) => field.onChange(date?.toISOString())}
-                                                    captionLayout='dropdown'
-                                                    fromYear={2000}
-                                                    toYear={2050}
+                                                    toDate={new Date(new Date().getFullYear() + 1, 11, 31)}
                                                 />
                                             </PopoverContent>
                                         </Popover>
@@ -477,9 +470,7 @@ export default function UpdateMasterAcademicYearForm({ onSuccess, className = ''
                                                     mode='single'
                                                     selected={field.value ? new Date(field.value) : undefined}
                                                     onSelect={(date) => field.onChange(date?.toISOString())}
-                                                    captionLayout='dropdown'
-                                                    fromYear={2000}
-                                                    toYear={2050}
+                                                    toDate={new Date(new Date().getFullYear() + 1, 11, 31)}
                                                 />
                                             </PopoverContent>
                                         </Popover>
@@ -517,9 +508,7 @@ export default function UpdateMasterAcademicYearForm({ onSuccess, className = ''
                                                     mode='single'
                                                     selected={field.value ? new Date(field.value) : undefined}
                                                     onSelect={(date) => field.onChange(date?.toISOString())}
-                                                    captionLayout='dropdown'
-                                                    fromYear={2000}
-                                                    toYear={2050}
+                                                    toDate={new Date(new Date().getFullYear() + 1, 11, 31)}
                                                 />
                                             </PopoverContent>
                                         </Popover>
@@ -555,9 +544,7 @@ export default function UpdateMasterAcademicYearForm({ onSuccess, className = ''
                                                     mode='single'
                                                     selected={field.value ? new Date(field.value) : undefined}
                                                     onSelect={(date) => field.onChange(date?.toISOString())}
-                                                    captionLayout='dropdown'
-                                                    fromYear={2000}
-                                                    toYear={2050}
+                                                    toDate={new Date(new Date().getFullYear() + 1, 11, 31)}
                                                 />
                                             </PopoverContent>
                                         </Popover>
@@ -598,9 +585,7 @@ export default function UpdateMasterAcademicYearForm({ onSuccess, className = ''
                                                     mode='single'
                                                     selected={field.value ? new Date(field.value) : undefined}
                                                     onSelect={(date) => field.onChange(date?.toISOString())}
-                                                    captionLayout='dropdown'
-                                                    fromYear={2000}
-                                                    toYear={2050}
+                                                    toDate={new Date(new Date().getFullYear() + 1, 11, 31)}
                                                 />
                                             </PopoverContent>
                                         </Popover>
@@ -636,9 +621,7 @@ export default function UpdateMasterAcademicYearForm({ onSuccess, className = ''
                                                     mode='single'
                                                     selected={field.value ? new Date(field.value) : undefined}
                                                     onSelect={(date) => field.onChange(date?.toISOString())}
-                                                    captionLayout='dropdown'
-                                                    fromYear={2000}
-                                                    toYear={2050}
+                                                    toDate={new Date(new Date().getFullYear() + 1, 11, 31)}
                                                 />
                                             </PopoverContent>
                                         </Popover>
