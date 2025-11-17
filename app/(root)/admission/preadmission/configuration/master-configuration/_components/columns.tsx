@@ -13,11 +13,11 @@ import { useCallback, useMemo } from 'react';
 export const masterConfigurationColumns: ColumnDef<IMasterConfiguration>[] = [
     {
         accessorKey: 'asmcC_Id',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Sl.No' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Sl.No' className='w-full pl-6' />,
         cell: ({ row, table }) => {
             const pageIndex = table.getState().pagination.pageIndex;
             const pageSize = table.getState().pagination.pageSize;
-            return <div className='text-center'>{pageIndex * pageSize + row.index + 1}</div>;
+            return <div className='w-full pl-6'>{pageIndex * pageSize + row.index + 1}</div>;
         },
         enableSorting: false,
         enableHiding: false,

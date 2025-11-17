@@ -11,27 +11,36 @@ import { DayPicker, type DropdownProps } from 'react-day-picker';
 export type CalendarProps = React.ComponentProps<typeof DayPicker>;
 
 function CalendarYear({ className, classNames, showOutsideDays = true, selected, ...props }: CalendarProps) {
+    // Helper to derive an initial month from `selected` (Date | Date[] | Range)
+    const getInitialMonthFromSelected = (): Date => {
+        const sel = selected as any;
+        if (!sel) return props.month || new Date();
+
+        if (sel instanceof Date) return sel;
+
+        if (Array.isArray(sel) && sel.length > 0 && sel[0] instanceof Date) return sel[0];
+
+        if (typeof sel === 'object' && 'from' in sel && sel.from instanceof Date) return sel.from;
+
+        return props.month || new Date();
+    };
+
     // Reference to track the current displayed month
-    const [currentMonth, setCurrentMonth] = React.useState<Date>(props.month || new Date());
+    const [currentMonth, setCurrentMonth] = React.useState<Date>(getInitialMonthFromSelected());
 
     // State to track calendar open status
     const [_calendarOpen, setCalendarOpen] = React.useState<boolean>(false);
 
-    // Update the internal month state when the prop changes
+    // Update the internal month state when the `month` prop or `selected` prop changes
     React.useEffect(() => {
         if (props.month) {
             setCurrentMonth(props.month);
+            return;
         }
-    }, [props.month]);
 
-    // Update the currentMonth state when the selected date changes
-    React.useEffect(() => {
-        if (selected) {
-            if (selected instanceof Date) {
-                setCurrentMonth(selected);
-            }
-        }
-    }, [selected]);
+        const next = getInitialMonthFromSelected();
+        if (next) setCurrentMonth(next);
+    }, [props.month, selected]);
 
     // Range of years to show in the year dropdown
     const years = React.useMemo(() => {
@@ -156,10 +165,11 @@ function CalendarYear({ className, classNames, showOutsideDays = true, selected,
                                 </Select>
                             );
                         },
-                        IconLeft: ({ ...props }) => <ChevronLeft className='h-3 w-3' />,
-                        IconRight: ({ ...props }) => <ChevronRight className='h-3 w-3' />
+                        IconLeft: () => <ChevronLeft className='h-3 w-3' />,
+                        IconRight: () => <ChevronRight className='h-3 w-3' />
                     }}
                     month={currentMonth}
+                    selected={selected as any}
                     onMonthChange={handleMonthChange}
                     {...props}
                     onDayClick={(day, modifiers, e) => {

@@ -9,9 +9,9 @@ import { useCallback } from 'react';
 export const registrationNumberingColumns: ColumnDef<IMasterTransactionNumberingList>[] = [
     {
         accessorKey: 'imN_Id',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Sl.No' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Sl.No' className='w-full pl-6' />,
         cell: ({ row }) => {
-            return <div>{row.index + 1}</div>;
+            return <div className='w-full pl-6'>{row.index + 1}</div>;
         },
         enableSorting: false,
         enableHiding: false
@@ -74,7 +74,11 @@ export const registrationNumberingColumns: ColumnDef<IMasterTransactionNumbering
     }
 ];
 
-function ActionButtonsCell({ rowData }: { rowData: IMasterTransactionNumberingList }) {
+function ActionButtonsCell({
+    rowData
+}: {
+    rowData: IMasterTransactionNumberingList;
+}) {
     const { openEditForm } = useFormContext<IMasterTransactionNumberingList>();
 
     const handleEdit = useCallback(

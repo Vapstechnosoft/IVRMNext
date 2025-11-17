@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { CalendarYear } from '@/components/ui/calendar_year';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { cn } from '@/lib/utils';
-import { format } from 'date-fns';
+import { format, isValid, parse } from 'date-fns';
 import { Calendar } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { FormError, Label } from './extension/field';
@@ -18,14 +18,35 @@ interface DateFieldProps {
     toDate?: Date;
 }
 
-export const DateField: React.FC<DateFieldProps> = ({ field, fieldState, label, placeholder = 'Pick a date', fromDate, toDate }) => {
+export const DateField: React.FC<DateFieldProps> = ({ field, fieldState, label, placeholder = 'Pick a date', fromDate }) => {
     const [isOpen, setIsOpen] = useState(false);
-    const [selectedDate, setSelectedDate] = useState<Date | null>(field.value ? new Date(field.value) : null);
+
+    const parseInputDate = (val: any): Date | null => {
+        if (!val && val !== 0) return null;
+        if (val instanceof Date) return val;
+        if (typeof val === 'number') {
+            const d = new Date(val);
+            return isValid(d) ? d : null;
+        }
+        if (typeof val === 'string') {
+            // Try ISO / RFC parsing first
+            const iso = new Date(val);
+            if (isValid(iso)) return iso;
+
+            // Try common formats dd/MM/yyyy and dd-MM-yyyy
+            const fmt1 = parse(val, 'dd/MM/yyyy', new Date());
+            if (isValid(fmt1)) return fmt1;
+
+            const fmt2 = parse(val, 'dd-MM-yyyy', new Date());
+            if (isValid(fmt2)) return fmt2;
+        }
+        return null;
+    };
+
+    const [selectedDate, setSelectedDate] = useState<Date | null>(parseInputDate(field.value));
 
     useEffect(() => {
-        if (field.value) {
-            setSelectedDate(new Date(field.value));
-        }
+        setSelectedDate(parseInputDate(field.value));
     }, [field.value]);
 
     const handleSelect = (date: Date | undefined) => {

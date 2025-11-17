@@ -25,7 +25,7 @@ interface SelectProps extends React.ComponentPropsWithoutRef<typeof SelectPrimit
     searchable?: boolean;
 }
 
-const Select = ({ children, searchable = true, ...props }: SelectProps) => {
+const Select = ({ children, searchable = true, onOpenChange, ...props }: SelectProps & { onOpenChange?: (open: boolean) => void }) => {
     const [searchQuery, setSearchQuery] = React.useState('');
     const [filteredItems, setFilteredItems] = React.useState<Set<string>>(new Set());
 
@@ -37,12 +37,30 @@ const Select = ({ children, searchable = true, ...props }: SelectProps) => {
         return false;
     }, []);
 
-    // Reset search query when select closes
+    // Clear search when the dropdown closes using onOpenChange from Radix
+    const handleOpenChange = React.useCallback(
+        (open: boolean) => {
+            if (!open) {
+                setSearchQuery('');
+            }
+
+            if (typeof onOpenChange === 'function') {
+                try {
+                    onOpenChange(open);
+                } catch {
+                    // swallow errors from consumer-provided handler
+                }
+            }
+        },
+        [onOpenChange]
+    );
+
+    // Reset search query when the selected value changes (clears typed search after selection)
     React.useEffect(() => {
-        if (!props.open) {
+        if (props.value !== undefined && props.value !== null) {
             setSearchQuery('');
         }
-    }, [props.open]);
+    }, [props.value]);
 
     // Create a function to collect all item values for filtering
     const collectItemValues = React.useCallback((children: React.ReactNode): string[] => {
@@ -97,7 +115,9 @@ const Select = ({ children, searchable = true, ...props }: SelectProps) => {
                 filteredItems,
                 isMobile
             }}>
-            <SelectPrimitive.Root {...props}>{children}</SelectPrimitive.Root>
+            <SelectPrimitive.Root {...props} onOpenChange={handleOpenChange}>
+                {children}
+            </SelectPrimitive.Root>
         </SelectSearchContext.Provider>
     );
 };
@@ -203,20 +223,10 @@ const SelectSearch = React.forwardRef<HTMLInputElement, React.InputHTMLAttribute
     const handleBlur = (e: React.FocusEvent<HTMLInputElement>) => {
         // Prevent blur event from bubbling up
         e.stopPropagation();
-
-        // Re-focus the input after a short delay to maintain focus (only on desktop)
-        // On mobile, we don't want to force focus as it can interfere with touch interactions
-        if (!isMobile) {
-            setTimeout(() => {
-                if (inputRef.current && document.activeElement !== inputRef.current) {
-                    inputRef.current.focus();
-                }
-            }, 10);
-        }
     };
 
     return (
-        <div className='sticky top-0 z-10 border-b bg-popover p-2'>
+        <div className='sticky top-0 z-20 border-b bg-popover p-2'>
             <div className='flex items-center rounded-md border px-2 py-1'>
                 <MagnifyingGlassIcon className='mr-2 h-4 w-4 text-muted-foreground' />
                 <input
@@ -244,7 +254,10 @@ const SelectContent = React.forwardRef<
     React.ElementRef<typeof SelectPrimitive.Content>,
     React.ComponentPropsWithoutRef<typeof SelectPrimitive.Content>
 >(({ className, children, position = 'popper', ...props }, ref) => {
-    const { searchable } = React.useContext(SelectSearchContext);
+    const { searchable, searchQuery, filteredItems } = React.useContext(SelectSearchContext);
+
+    // Check if we should show "No Data Found" - only when actively searching and no matches
+    const showNoResults = !!searchQuery && filteredItems.size === 0;
 
     return (
         <SelectPrimitive.Portal>
@@ -261,6 +274,12 @@ const SelectContent = React.forwardRef<
                     // Prevent auto-focus behavior that might interfere with search input
                     e.preventDefault();
                 }}
+                onPointerDownOutside={(e) => {
+                    // Don't close when interacting with search input
+                    if ((e.target as HTMLElement)?.closest('[role="combobox"]')) {
+                        e.preventDefault();
+                    }
+                }}
                 {...props}>
                 <SelectScrollUpButton />
                 {searchable && <SelectSearch placeholder='Search...' />}
@@ -269,7 +288,7 @@ const SelectContent = React.forwardRef<
                         'p-1',
                         position === 'popper' && 'h-[var(--radix-select-trigger-height)] w-full min-w-[var(--radix-select-trigger-width)]'
                     )}>
-                    {children}
+                    {showNoResults ? <div className='px-2 py-6 text-center text-muted-foreground text-sm'>No Data Found</div> : children}
                 </SelectPrimitive.Viewport>
                 <SelectScrollDownButton />
             </SelectPrimitive.Content>
@@ -290,10 +309,10 @@ const SelectItem = React.forwardRef<
     React.ElementRef<typeof SelectPrimitive.Item>,
     React.ComponentPropsWithoutRef<typeof SelectPrimitive.Item> & { textValue?: string }
 >(({ className, children, textValue, ...props }, ref) => {
-    const { filteredItems } = React.useContext(SelectSearchContext);
+    const { filteredItems, searchQuery } = React.useContext(SelectSearchContext);
 
     // If filtering is active and this item is not in filtered set, hide it
-    if (filteredItems.size > 0 && !filteredItems.has(props.value as string)) {
+    if (searchQuery && !filteredItems.has(props.value as string)) {
         return null;
     }
 
@@ -301,7 +320,7 @@ const SelectItem = React.forwardRef<
         <SelectPrimitive.Item
             ref={ref}
             className={cn(
-                'relative flex w-full cursor-default select-none items-center rounded-sm py-1.5 pr-8 pl-2 text-sm outline-none focus:bg-accent focus:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50',
+                'relative flex w-full cursor-default select-none items-center rounded-sm py-1.5 pr-8 pl-2 text-sm outline-none focus:bg-accent focus:text-accent-foreground data-[disabled]:pointer-events-none data-[state=checked]:bg-accent data-[state=checked]:text-accent-foreground data-[disabled]:opacity-50',
                 className
             )}
             {...props}>
@@ -324,19 +343,6 @@ const SelectSeparator = React.forwardRef<
 ));
 SelectSeparator.displayName = SelectPrimitive.Separator.displayName;
 
-// Add empty state component to show when no results match
-const SelectEmptyState = ({ children }: { children: React.ReactNode }) => {
-    const { filteredItems, searchQuery } = React.useContext(SelectSearchContext);
-
-    // Only show empty state when searching and no items match
-    if (filteredItems.size > 0 || !searchQuery) {
-        return null;
-    }
-
-    return <div className='px-2 py-4 text-center text-muted-foreground text-sm'>{children || 'No results found'}</div>;
-};
-SelectEmptyState.displayName = 'SelectEmptyState';
-
 export {
     Select,
     SelectGroup,
@@ -348,6 +354,5 @@ export {
     SelectSeparator,
     SelectScrollUpButton,
     SelectScrollDownButton,
-    SelectSearch,
-    SelectEmptyState
+    SelectSearch
 };

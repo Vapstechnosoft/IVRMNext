@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { FormError, Label } from '@/components/ui/extension/field';
 import { Input } from '@/components/ui/input';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { usePreRegistrationNumbering } from '@/hooks/admission/preadmission/useConfigurations';
 import { cn } from '@/lib/utils';
 import { transactionnumberingSchema } from '@/schemas/admission/preadmission/academic-year';
 import { addOrUpdateTransactionNumbering } from '@/server/admission/preadmission/configuration/transaction_numbering';
@@ -29,6 +30,7 @@ export default function UpdatePreRegistrationNumberingForm({
     selectedRow,
     initialData
 }: NumberingConfigUpdateFormProps) {
+    const { refetchAll } = usePreRegistrationNumbering();
     const {
         control,
         handleSubmit,
@@ -82,10 +84,10 @@ export default function UpdatePreRegistrationNumberingForm({
                 suffix_starting_from: selectedRow.imN_StartingNo ? Number(selectedRow.imN_StartingNo) : undefined,
 
                 // Map prefix with zero
-                prefix_with_zero: selectedRow.imN_ZeroPrefixFlag === 'Y' ? 'yes' : 'no',
+                prefix_with_zero: selectedRow.imN_ZeroPrefixFlag === 'Yes' ? 'yes' : 'no',
 
                 // Map restart frequency
-                restart_frequency: selectedRow.imN_RestartNumFlag === 'Y' ? 'yearly' : 'never'
+                restart_frequency: selectedRow.imN_RestartNumFlag === 'Yearly' ? 'yearly' : 'never'
             };
 
             reset(mappedData);
@@ -103,12 +105,12 @@ export default function UpdatePreRegistrationNumberingForm({
                 imN_DuplicatesFlag: selectedRow?.imN_DuplicatesFlag || '',
                 imN_StartingNo: data.suffix_starting_from?.toString() || '1',
                 imN_WidthNumeric: data.prefix_numeric_width?.toString() || '2',
-                imN_ZeroPrefixFlag: data.prefix_with_zero === 'yes' ? 'Y' : 'N',
+                imN_ZeroPrefixFlag: data.prefix_with_zero === 'yes' ? 'Yes' : 'No',
                 imN_PrefixAcadYearCode: data.prefix_type === 'academic',
                 imN_PrefixParticular: data.prefix_type === 'particulars' ? data.prefix_particulars || '' : '',
                 imN_SuffixAcadYearCode: data.suffix_type === 'academic',
                 imN_SuffixParticular: data.suffix_type === 'particulars' ? data.suffix_particulars || '' : '',
-                imN_RestartNumFlag: data.restart_frequency === 'yearly' ? 'Y' : 'N',
+                imN_RestartNumFlag: data.restart_frequency === 'yearly' ? 'Yearly' : 'Never',
                 imN_Flag: selectedRow?.imN_Flag || 'PreRegistration',
                 imN_PrefixFinYearCode: data.prefix_type === 'academic',
                 imN_PrefixCalYearCode: data.prefix_type === 'academic',
@@ -117,10 +119,16 @@ export default function UpdatePreRegistrationNumberingForm({
             };
 
             // Replace with your actual API
-            await addOrUpdateTransactionNumbering(payload);
 
-            toast.success('Numbering configuration updated successfully!');
-            onSuccess?.();
+            const response = await addOrUpdateTransactionNumbering(payload);
+            if (response.success) {
+                toast.success(response.message ?? 'Saved');
+                reset();
+                onSuccess?.();
+                refetchAll();
+            } else {
+                toast.error(response.message ?? 'Failed');
+            }
         } catch (error: any) {
             toast.error(error.message || 'Failed to save configuration');
         }
@@ -143,8 +151,8 @@ export default function UpdatePreRegistrationNumberingForm({
                       : 'academic',
                 suffix_particulars: selectedRow.imN_SuffixParticular || '',
                 suffix_starting_from: selectedRow.imN_StartingNo ? Number(selectedRow.imN_StartingNo) : undefined,
-                prefix_with_zero: selectedRow.imN_ZeroPrefixFlag === 'Y' ? 'yes' : 'no',
-                restart_frequency: selectedRow.imN_RestartNumFlag === 'Y' ? 'yearly' : 'never'
+                prefix_with_zero: selectedRow.imN_ZeroPrefixFlag === 'Yes' ? 'yes' : 'no',
+                restart_frequency: selectedRow.imN_RestartNumFlag === 'Yearly' ? 'yearly' : 'never'
             };
             reset(mappedData);
         } else {

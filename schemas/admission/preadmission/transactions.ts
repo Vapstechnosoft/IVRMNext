@@ -3,6 +3,8 @@ import {
     createAlphanumericSchema,
     createEmailSchema,
     createOptionalStringSchema,
+    createOptionalStringSchemaNotAllowNumbersOnly,
+    createStringOnlyOptionalSchema,
     createStringOnlySchema,
     createStringSchema,
     deleteIdSchema
@@ -29,9 +31,9 @@ export const studentApplicationFormSchema = {
     // Reuse the same schema for add
     add: z.object({
         // Student Details
-        pasR_FirstName: createStringSchema('First Name', 1, 100),
-        pasR_MiddleName: createStringSchema('Middle Name', 1, 100),
-        pasR_LastName: createStringSchema('Last Name', 1, 100),
+        pasR_FirstName: createStringOnlySchema('First Name', 1, 100),
+        pasR_MiddleName: createStringOnlySchema('Middle Name', 1, 100),
+        pasR_LastName: createStringOnlySchema('Last Name', 1, 100),
 
         // NATIONALITY - STRING
         pasR_Nationality: z.string().min(1, 'Student nationality is required'),
@@ -47,12 +49,18 @@ export const studentApplicationFormSchema = {
                 message: 'Mobile number cannot start with 0'
             }),
 
-        pasR_BirthPlace: createOptionalStringSchema('Student Birth Place', 1, 100),
+        pasR_BirthPlace: createStringOnlyOptionalSchema('Student Birth Place', 1, 100),
         religion_Id: z.number().int({ message: 'Religion is required' }),
         caste_Id: z.number().int({ message: 'Caste is required' }),
         pasR_Sex: createStringSchema('Gender', 1, 50),
-        pasR_DOB: z.date({ message: 'Date Of Birth is required' }),
-        asmcL_Id: z.number().int({ message: 'Applying For is required' }),
+        pasR_DOB: z.date({ message: 'Date Of Birth is required' }).refine((date) => {
+            // This will be validated in the form's custom validation
+            return true;
+        }),
+        asmcL_Id: z
+            .number()
+            .int({ message: 'Applying For is required' })
+            .refine((val) => val > 0, { message: 'Please select a valid class' }),
         pasR_emailId: createEmailSchema('Student Email', 1, 50),
         pasR_MotherTongue: createOptionalStringSchema('Student Mother Tongue', 1, 100),
 
@@ -63,9 +71,9 @@ export const studentApplicationFormSchema = {
                 message: 'Aadhar No must be exactly 12 digits'
             })
             .optional(),
-        pasR_Languagespeaking: createOptionalStringSchema('Student Language Speaking At Home', 1, 100),
-        pasR_LastPlayGrndAttnd: createOptionalStringSchema('Student Last Play Ground Attended', 1, 50),
-        pasR_ExtraActivity: createOptionalStringSchema('Student Extra Activity', 1, 50),
+        pasR_Languagespeaking: createStringOnlyOptionalSchema('Student Language Speaking At Home', 1, 100),
+        pasR_LastPlayGrndAttnd: createStringOnlyOptionalSchema('Student Last Play Ground Attended', 1, 50),
+        pasR_ExtraActivity: createStringOnlyOptionalSchema('Student Extra Activity', 1, 50),
         source_ids: z.array(z.string()).optional(),
         reference_ids: z.array(z.string()).optional(),
         pasR_TransportReqdFlag: z.number().int({ message: 'Transport Required Flag is required' }),
@@ -82,11 +90,11 @@ export const studentApplicationFormSchema = {
             .transform((val) => (val === undefined || val === null || val === '' ? undefined : String(val))),
 
         // Permanent Address
-        pasR_PerStreet: createOptionalStringSchema('Street', 1, 100),
-        pasR_PerArea: createOptionalStringSchema('Area', 1, 100),
+        pasR_PerStreet: createOptionalStringSchemaNotAllowNumbersOnly('Street', 1, 100),
+        pasR_PerArea: createOptionalStringSchemaNotAllowNumbersOnly('Area', 1, 100),
         pasR_PerCountry: z.string().optional(),
         pasR_PerState: z.number().int().optional(),
-        pasR_PerCity: createOptionalStringSchema('City', 1, 100),
+        pasR_PerCity: createOptionalStringSchemaNotAllowNumbersOnly('City', 1, 100),
         pasR_PerPincode: z
             .union([z.string(), z.number()])
             .optional()
@@ -110,7 +118,7 @@ export const studentApplicationFormSchema = {
             })
             .optional(),
         pasA_FatherInstitution: createOptionalStringSchema('Father Attended Institution', 1, 150),
-        pasA_FatherMotherTongue: createOptionalStringSchema('Father Mother Tongue', 1, 100),
+        pasA_FatherMotherTongue: createStringOnlyOptionalSchema('Father Mother Tongue', 1, 100),
         pasA_FatherBusiness: createOptionalStringSchema('Father Business', 1, 150),
         pasA_FatherCompany: createOptionalStringSchema('Father Company', 1, 150),
 
@@ -132,13 +140,13 @@ export const studentApplicationFormSchema = {
             })
             .optional(),
         pasA_MotherInstitution: createOptionalStringSchema('Mother Attended Institution', 1, 150),
-        pasA_MotherMotherTongue: createOptionalStringSchema('Mother`s Mother Tongue', 1, 100),
+        pasA_MotherMotherTongue: createStringOnlyOptionalSchema('Mother`s Mother Tongue', 1, 100),
         pasA_MotherBusiness: createOptionalStringSchema('Mother Business', 1, 150),
         pasA_MotherCompany: createOptionalStringSchema('Mother Company', 1, 150),
 
         // Income
-        pasR_FatherIncome: z.number().optional(),
-        pasR_MotherIncome: z.number().optional(),
+        pasR_FatherIncome: z.number().default(0).optional(),
+        pasR_MotherIncome: z.number().default(0).optional(),
 
         // Alternate Contact
         pasR_AltContactNo: z
@@ -170,9 +178,9 @@ export const studentApplicationFormUpdateSchema = {
         pasR_Id: z.number().int().optional(), // Made optional for add operation
 
         // Student Details
-        pasR_FirstName: createStringSchema('First Name', 1, 100),
-        pasR_MiddleName: createStringSchema('Middle Name', 1, 100),
-        pasR_LastName: createStringSchema('Last Name', 1, 100),
+        pasR_FirstName: createStringOnlySchema('First Name', 1, 100),
+        pasR_MiddleName: createStringOnlySchema('Middle Name', 1, 100),
+        pasR_LastName: createStringOnlySchema('Last Name', 1, 100),
 
         // NATIONALITY - STRING (to match API expectation)
         pasR_Nationality: z.string().min(1, 'Student nationality is required'),
@@ -188,7 +196,7 @@ export const studentApplicationFormUpdateSchema = {
                 message: 'Mobile number cannot start with 0'
             }),
 
-        pasR_BirthPlace: createOptionalStringSchema('Student Birth Place', 1, 100),
+        pasR_BirthPlace: createStringOnlyOptionalSchema('Student Birth Place', 1, 100),
         religion_Id: z.number().int({ message: 'Religion is required' }),
         caste_Id: z.number().int({ message: 'Caste is required' }),
         pasR_Sex: createStringSchema('Gender', 1, 50),
@@ -199,15 +207,17 @@ export const studentApplicationFormUpdateSchema = {
         pasR_MotherTongue: createOptionalStringSchema('Student Mother Tongue', 1, 100),
 
         // Other Details
+        // Aadhar optional; if provided, must be exactly 12 digits in update schema
         pasR_AadharNo: z
             .string()
-            .refine((val) => val === '' || val.length === 12, {
+            .optional()
+            // Allow undefined or empty string (user cleared the field) OR a 12-digit Aadhar
+            .refine((val) => val === undefined || val === '' || /^[0-9]{12}$/.test(val), {
                 message: 'Aadhar No must be exactly 12 digits'
-            })
-            .optional(),
-        pasR_Languagespeaking: createOptionalStringSchema('Student Language Speaking At Home', 1, 100),
-        pasR_LastPlayGrndAttnd: createOptionalStringSchema('Student Last Play Ground Attended', 1, 50),
-        pasR_ExtraActivity: createOptionalStringSchema('Student Extra Activity', 1, 50),
+            }),
+        pasR_Languagespeaking: createStringOnlyOptionalSchema('Student Language Speaking At Home', 1, 100),
+        pasR_LastPlayGrndAttnd: createStringOnlyOptionalSchema('Student Last Play Ground Attended', 1, 50),
+        pasR_ExtraActivity: createStringOnlyOptionalSchema('Student Extra Activity', 1, 50),
         source_ids: z.array(z.string()).optional(),
         reference_ids: z.array(z.string()).optional(),
         pasR_TransportReqdFlag: z.number().int({ message: 'Transport Required Flag is required' }),
@@ -224,11 +234,11 @@ export const studentApplicationFormUpdateSchema = {
             .transform((val) => (val === undefined || val === null || val === '' ? undefined : String(val))),
 
         // Permanent Address
-        pasR_PerStreet: createOptionalStringSchema('Street', 1, 100),
-        pasR_PerArea: createOptionalStringSchema('Area', 1, 100),
+        pasR_PerStreet: createOptionalStringSchemaNotAllowNumbersOnly('Street', 1, 100),
+        pasR_PerArea: createOptionalStringSchemaNotAllowNumbersOnly('Area', 1, 100),
         pasR_PerCountry: z.string().optional(),
         pasR_PerState: z.number().int().optional(),
-        pasR_PerCity: createOptionalStringSchema('City', 1, 100),
+        pasR_PerCity: createOptionalStringSchemaNotAllowNumbersOnly('City', 1, 100),
         pasR_PerPincode: z
             .union([z.string(), z.number()])
             .optional()
@@ -239,7 +249,8 @@ export const studentApplicationFormUpdateSchema = {
         pasR_FatherSurname: createOptionalStringSchema('Father Surname', 1, 100),
         pasR_FatherEducation: createOptionalStringSchema('Father Education', 1, 100),
         // pasR_FatherOccupation: createOptionalStringSchema('Father Occupation', 1, 100),
-        pasR_FatherPanno: createAlphanumericSchema('Father PAN Number', 1, 10, true),
+        // Father PAN optional in update schema (allow empty string)
+        pasR_FatherPanno: z.union([createAlphanumericSchema('Father PAN Number', 1, 10), z.literal('')]).optional(),
         pasR_FatherDesignation: createOptionalStringSchema('Father Designation', 1, 100),
         pasR_FatherOfficeAddr: createOptionalStringSchema('Father Office Address', 1, 100),
         pasR_FatherMobleNo: z
@@ -252,7 +263,7 @@ export const studentApplicationFormUpdateSchema = {
             })
             .optional(),
         pasA_FatherInstitution: createOptionalStringSchema('Father Attended Institution', 1, 150),
-        pasA_FatherMotherTongue: createOptionalStringSchema('Father Mother Tongue', 1, 100),
+        pasA_FatherMotherTongue: createStringOnlyOptionalSchema('Father Mother Tongue', 1, 100),
         pasA_FatherBusiness: createOptionalStringSchema('Father Business', 1, 150),
         pasA_FatherCompany: createOptionalStringSchema('Father Company', 1, 150),
 
@@ -261,7 +272,8 @@ export const studentApplicationFormUpdateSchema = {
         pasR_MotherSurname: createOptionalStringSchema('Mother Surname', 1, 100),
         pasR_MotherEducation: createOptionalStringSchema('Mother Education', 1, 100),
         // pasR_MotherOccupation: createOptionalStringSchema('Mother Occupation', 1, 100),
-        pasR_MotherPanno: createAlphanumericSchema('Mother PAN Number', 1, 10, true),
+        // Mother PAN optional in update schema (allow empty string)
+        pasR_MotherPanno: z.union([createAlphanumericSchema('Mother PAN Number', 1, 10), z.literal('')]).optional(),
         pasR_MotherDesignation: createOptionalStringSchema('Mother Designation', 1, 100),
         pasR_MotherOfficeAddr: createOptionalStringSchema('Mother Office Address', 1, 100),
         pasR_MotherMobleNo: z
@@ -274,7 +286,7 @@ export const studentApplicationFormUpdateSchema = {
             })
             .optional(),
         pasA_MotherInstitution: createOptionalStringSchema('Mother Attended Institution', 1, 150),
-        pasA_MotherMotherTongue: createOptionalStringSchema('Mother`s Mother Tongue', 1, 100),
+        pasA_MotherMotherTongue: createStringOnlyOptionalSchema('Mother`s Mother Tongue', 1, 100),
         pasA_MotherBusiness: createOptionalStringSchema('Mother Business', 1, 150),
         pasA_MotherCompany: createOptionalStringSchema('Mother Company', 1, 150),
 
@@ -292,7 +304,8 @@ export const studentApplicationFormUpdateSchema = {
                 message: 'Mobile number cannot start with 0'
             })
             .optional(),
-        pasR_AltContactEmail: createEmailSchema('Alternate Contact Email', 1, 50, true),
+        // Alternate contact email optional in update schema (allow empty string)
+        pasR_AltContactEmail: z.union([createEmailSchema('Alternate Contact Email', 1, 50), z.literal('')]).optional(),
 
         //Other Details
         pasA_AdmittingReason: createOptionalStringSchema('Admitting Reason', 1, 250),
