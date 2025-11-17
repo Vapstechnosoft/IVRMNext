@@ -37,7 +37,7 @@ export default function ApplicationFormSuccessDialog({
                         {/* Success Message */}
                         <div className='fade-in slide-in-from-bottom-4 animate-in space-y-2 delay-300 duration-500'>
                             <h2 className='font-bold text-2xl text-slate-900 md:text-3xl'>
-                                {title.replace(/Successfully? (submitted|saved|updated)?/i, '').trim() || title}
+                                {title.replace(/Successfully? (submitted|saved|Updated)?/i, '').trim() || title}
                             </h2>
                             {!title.includes('Updated') && <p className='max-w-sm text-slate-600 text-sm md:text-base'>{message}</p>}
                         </div>

@@ -21,7 +21,10 @@ export default function DocumentView(props: { searchParams: SearchParams }) {
     const searchParams = use(props.searchParams);
     const tableRef = useRef<DataTableRef>(null);
 
-    const [searchQuery] = useQueryState(tableSearchVariables.search, parseAsString.withOptions({ shallow: false }).withDefault(''));
+    const [searchQuery, setSearchQuery] = useQueryState(
+        tableSearchVariables.search,
+        parseAsString.withOptions({ shallow: false }).withDefault('')
+    );
 
     const { data: classOptions, isLoading: classLoading, isError: classError } = usePreadmissionClassDropdown();
     const { data: academicYearOptions, isLoading: academicYearLoading, isError: academicYearError } = useAcademicYearDropdown();
@@ -87,7 +90,13 @@ export default function DocumentView(props: { searchParams: SearchParams }) {
                         <Label htmlFor='class' className='mb-1 font-semibold'>
                             Class
                         </Label>
-                        <Select value={classId !== 0 ? String(classId) : undefined} onValueChange={(value) => setClassId(Number(value))}>
+                        <Select
+                            value={String(classId)}
+                            onValueChange={(value) => {
+                                setClassId(Number(value));
+                                // Clear table search when a class is selected
+                                setSearchQuery('');
+                            }}>
                             <SelectTrigger id='class'>
                                 <SelectValue placeholder='Select Class' />
                             </SelectTrigger>
