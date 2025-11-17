@@ -653,6 +653,14 @@ export async function getUserAccessibleModules() {
                                         },
                                         {
                                             id: 54,
+                                            name: 'Exam Login Privilages',
+                                            icon: 'CalendarDays',
+                                            url: '/Exam/exam-module/exam-mapping/exam-login-privilages',
+                                            title: 'Exam Login Privilages',
+                                            description: 'Manage Exam Login Privilages Details'
+                                        },
+                                        {
+                                            id: 55,
                                             name: 'Yearly category Subject Mapping',
                                             icon: 'CalendarDays',
                                             url: '/Exam/exam-module/exam-mapping/yearly-category-subject-mapping',
