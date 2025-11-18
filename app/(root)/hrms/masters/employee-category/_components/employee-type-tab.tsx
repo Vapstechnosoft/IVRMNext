@@ -6,7 +6,9 @@ import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
 import { HRMS_MI_ID } from '@/constants/hrms-config';
 import { useMasterEmployeeType } from '@/hooks/hrms/useMasters';
+import type { ApiSearchparams } from '@/types';
 import type { EmployeeTypeDetail } from '@/types/hrms/master-employee-type';
+import { parseAsInteger, parseAsString, useQueryState } from 'nuqs';
 import { Plus, X } from 'lucide-react';
 import { useMemo } from 'react';
 import { columns } from '../../employee-type/_components/columns';
@@ -14,7 +16,25 @@ import EmployeeTypeForm from '../../employee-type/_components/employee-type-form
 
 export default function EmployeeTypeTab() {
     const roleId = HRMS_MI_ID;
-    const { listQuery, refetchAll } = useMasterEmployeeType(roleId);
+    
+    // Read pagination and search params from URL
+    const [page] = useQueryState('page', parseAsInteger.withDefault(1));
+    const [page_size] = useQueryState('page_size', parseAsInteger.withDefault(10));
+    const [search_query] = useQueryState('search_query', parseAsString.withDefault(''));
+    const [search_column] = useQueryState('search_column', parseAsString.withDefault(''));
+    const [sort_column] = useQueryState('sort_column', parseAsString.withDefault(''));
+    const [sort_direction] = useQueryState('sort_direction', parseAsString.withDefault(''));
+    
+    const searchParams: ApiSearchparams = {
+        page,
+        page_size,
+        search_query: search_query || undefined,
+        search_column: search_column || undefined,
+        sort_column: sort_column || undefined,
+        sort_direction: sort_direction || undefined
+    };
+    
+    const { listQuery, refetchAll } = useMasterEmployeeType(roleId, searchParams);
 
     return (
         <FormProvider<EmployeeTypeDetail>>
@@ -41,7 +61,13 @@ function EmployeeTypeTabContent({
 }) {
     const { openAddForm } = useFormContext<EmployeeTypeDetail>();
     // Memoize array to prevent unnecessary re-renders
-    const rows: EmployeeTypeDetail[] = useMemo(() => response?.employeeTypeList ?? [], [response?.employeeTypeList]);
+    // API now returns data as an array directly, or in employeeTypeList for backward compatibility
+    const rows: EmployeeTypeDetail[] = useMemo(() => {
+        if (Array.isArray(response?.data)) {
+            return response.data;
+        }
+        return response?.employeeTypeList ?? [];
+    }, [response?.data, response?.employeeTypeList]);
 
     return (
         <div className='space-y-4'>
@@ -66,7 +92,7 @@ function EmployeeTypeTabContent({
                 className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
                 <GenericDataTable<EmployeeTypeDetail>
                     data={rows}
-                    totalItems={rows.length}
+                    totalItems={response?.total ?? rows.length}
                     columns={columns}
                     isLoading={isLoading}
                     error={error}

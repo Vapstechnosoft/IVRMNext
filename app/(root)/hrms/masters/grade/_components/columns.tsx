@@ -15,7 +15,12 @@ export const columns: ColumnDef<GradeDetail>[] = [
     {
         id: 'slNo',
         header: () => <div className='text-center font-medium'>Sl No</div>,
-        cell: ({ row }) => <div className='text-center'>{row.index + 1}</div>,
+        cell: ({ row, table }) => {
+            const pageIndex = table.getState().pagination.pageIndex;
+            const pageSize = table.getState().pagination.pageSize;
+            const continuousIndex = pageIndex * pageSize + row.index + 1;
+            return <div className='text-center'>{continuousIndex}</div>;
+        },
         enableSorting: false,
         size: 60
     },
@@ -45,7 +50,11 @@ export const columns: ColumnDef<GradeDetail>[] = [
     },
     {
         accessorKey: 'HRMG_Order',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Order' className='whitespace-nowrap' />
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Order' className='whitespace-nowrap' />,
+        cell: ({ row }) => {
+            const orderValue = row.original.HRMG_Order;
+            return <div>{orderValue ?? '-'}</div>;
+        }
     },
     {
         id: 'actions',
@@ -108,7 +117,12 @@ export function getEditableColumns(onOrderChange: (rowId: number, newOrder: numb
         {
             id: 'slNo',
             header: () => <div className='text-center font-medium'>Sl No</div>,
-            cell: ({ row }) => <div className='text-center'>{row.index + 1}</div>,
+            cell: ({ row, table }) => {
+                const pageIndex = table.getState().pagination.pageIndex;
+                const pageSize = table.getState().pagination.pageSize;
+                const continuousIndex = pageIndex * pageSize + row.index + 1;
+                return <div className='text-center'>{continuousIndex}</div>;
+            },
             enableSorting: false,
             size: 60
         },

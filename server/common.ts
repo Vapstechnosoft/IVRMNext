@@ -1308,22 +1308,22 @@ export async function getUserAccessibleModules() {
                                     name: 'Masters',
                                     icon: 'Database',
                                     pages: [
-                                        {
-                                            id: 1,
-                                            name: 'Master Shift',
-                                            icon: 'Clock',
-                                            url: '/hrms/attendance-management/masters/master-shift',
-                                            title: 'Master Shift',
-                                            description: 'Manage Shift Definitions'
-                                        },
-                                        {
-                                            id: 2,
-                                            name: 'Employee Missing Logs',
-                                            icon: 'AlertCircle',
-                                            url: '/hrms/attendance-management/masters/employee-missing-logs',
-                                            title: 'Employee Missing Logs',
-                                            description: 'Track Missing Attendance Logs'
-                                        },
+                                        // {
+                                        //     id: 1,
+                                        //     name: 'Master Shift',
+                                        //     icon: 'Clock',
+                                        //     url: '/hrms/attendance-management/masters/master-shift',
+                                        //     title: 'Master Shift',
+                                        //     description: 'Manage Shift Definitions'
+                                        // },
+                                        // {
+                                        //     id: 2,
+                                        //     name: 'Employee Missing Logs',
+                                        //     icon: 'AlertCircle',
+                                        //     url: '/hrms/attendance-management/masters/employee-missing-logs',
+                                        //     title: 'Employee Missing Logs',
+                                        //     description: 'Track Missing Attendance Logs'
+                                        // },
                                         {
                                             id: 3,
                                             name: 'Employee Shift Mapping',
@@ -1340,14 +1340,14 @@ export async function getUserAccessibleModules() {
                                             title: 'Master Holiday',
                                             description: 'Manage Holiday Calendar'
                                         },
-                                        {
-                                            id: 5,
-                                            name: 'Master Driver Shift',
-                                            icon: 'Truck',
-                                            url: '/hrms/attendance-management/masters/master-driver-shift',
-                                            title: 'Master Driver Shift',
-                                            description: 'Manage Driver Shifts'
-                                        },
+                                        // {
+                                        //     id: 5,
+                                        //     name: 'Master Driver Shift',
+                                        //     icon: 'Truck',
+                                        //     url: '/hrms/attendance-management/masters/master-driver-shift',
+                                        //     title: 'Master Driver Shift',
+                                        //     description: 'Manage Driver Shifts'
+                                        // },
                                         {
                                             id: 6,
                                             name: 'Shift Setting Master',
@@ -1356,14 +1356,14 @@ export async function getUserAccessibleModules() {
                                             title: 'Shift Setting Master',
                                             description: 'Configure Shift Settings'
                                         },
-                                        {
-                                            id: 7,
-                                            name: 'GPS Location Attendance',
-                                            icon: 'MapPin',
-                                            url: '/hrms/attendance-management/masters/gps-location-attendance',
-                                            title: 'GPS Location Attendance',
-                                            description: 'GPS-based Attendance'
-                                        }
+                                        // {
+                                        //     id: 7,
+                                        //     name: 'GPS Location Attendance',
+                                        //     icon: 'MapPin',
+                                        //     url: '/hrms/attendance-management/masters/gps-location-attendance',
+                                        //     title: 'GPS Location Attendance',
+                                        //     description: 'GPS-based Attendance'
+                                        // }
                                     ]
                                 },
                                 {
@@ -1405,20 +1405,28 @@ export async function getUserAccessibleModules() {
                                         },
                                         {
                                             id: 5,
+                                            name: 'Employee Monthly Report',
+                                            icon: 'CalendarDays',
+                                            url: '/hrms/attendance-management/reports/employee-monthly-report',
+                                            title: 'Employee Monthly Report',
+                                            description: 'Monthly Attendance Report'
+                                        },
+                                        {
+                                            id: 6,
                                             name: 'Month End Report',
                                             icon: 'CalendarCheck',
                                             url: '/hrms/attendance-management/reports/fo-monthend-report',
                                             title: 'Month End Report',
                                             description: 'Monthly Attendance Summary'
                                         },
-                                        {
-                                            id: 6,
-                                            name: 'GPS Location Report',
-                                            icon: 'MapPin',
-                                            url: '/hrms/attendance-management/reports/gps-location-report',
-                                            title: 'GPS Location Report',
-                                            description: 'GPS Attendance Report'
-                                        },
+                                        // {
+                                        //     id: 6,
+                                        //     name: 'GPS Location Report',
+                                        //     icon: 'MapPin',
+                                        //     url: '/hrms/attendance-management/reports/gps-location-report',
+                                        //     title: 'GPS Location Report',
+                                        //     description: 'GPS Attendance Report'
+                                        // },
                                         {
                                             id: 7,
                                             name: 'Holiday Report',
@@ -1434,7 +1442,7 @@ export async function getUserAccessibleModules() {
                                             url: '/hrms/attendance-management/reports/employee-absent-report',
                                             title: 'Employee Absent Report',
                                             description: 'Employee Absent Detail Report'
-                                        }
+                                        },
                                     ]
                                 }
                             ]
@@ -1500,25 +1508,25 @@ export async function getUserAccessibleModules() {
                                             name: 'Leave Transfer',
                                             icon: 'Plus',
                                             url: '/hrms/leave-management/transaction/leave-transfer',
-                                            title: 'Leave Process',
-                                            description: 'Process Leave Balance'
+                                            title: 'Leave Transfer',
+                                            description: 'Transfer Leave'
                                         },
-                                        {
-                                            id: 2,
-                                            name: 'Comp Off Approval',
-                                            icon: 'CheckSquare',
-                                            url: '/hrms/leave-management/transaction/comp-off-approval',
-                                            title: 'Comp Off Approval',
-                                            description: 'Approve Compensatory Off'
-                                        },
-                                        {
-                                            id: 3,
-                                            name: 'Comp Off Request',
-                                            icon: 'FileText',
-                                            url: '/hrms/leave-management/transaction/comp-off-request',
-                                            title: 'Comp Off Request',
-                                            description: 'Request Compensatory Off'
-                                        },
+                                        // {
+                                        //     id: 2,
+                                        //     name: 'Comp Off Approval',
+                                        //     icon: 'CheckSquare',
+                                        //     url: '/hrms/leave-management/transaction/comp-off-approval',
+                                        //     title: 'Comp Off Approval',
+                                        //     description: 'Approve Compensatory Off'
+                                        // },
+                                        // {
+                                        //     id: 3,
+                                        //     name: 'Comp Off Request',
+                                        //     icon: 'FileText',
+                                        //     url: '/hrms/leave-management/transaction/comp-off-request',
+                                        //     title: 'Comp Off Request',
+                                        //     description: 'Request Compensatory Off'
+                                        // },
                                         {
                                             id: 4,
                                             name: 'Leave Credit Details',
@@ -1529,11 +1537,11 @@ export async function getUserAccessibleModules() {
                                         },
                                         {
                                             id: 5,
-                                            name: 'Leave Credit Transaction',
+                                            name: 'Leave Transaction',
                                             icon: 'List',
                                             url: '/hrms/leave-management/transaction/leave-credit-transaction',
-                                            title: 'Leave Credit Transaction',
-                                            description: 'Leave Transaction History'
+                                            title: 'Leave Transaction',
+                                            description: 'Leave Transaction'
                                         }
                                     ]
                                 },

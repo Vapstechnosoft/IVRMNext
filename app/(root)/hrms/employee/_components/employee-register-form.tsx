@@ -980,6 +980,76 @@ export default function EmployeeRegisterForm({ selectedRow, onSuccess, className
         }
     };
 
+    // Function to clear only the current tab's fields
+    const handleClearCurrentTab = () => {
+        // Define field groups for each tab with their default empty values
+        const tabFields: Record<string, { fields: (keyof FormFields)[]; defaults?: Partial<FormFields> }> = {
+            employee: {
+                fields: [
+                    'firstName', 'middleName', 'lastName', 'employeeCode', 'typeOfEmployment', 'employeeGroup',
+                    'school', 'designation', 'grade', 'fatherName', 'motherName', 'dateOfBirth', 'dateOfJoining',
+                    'dateOfConfirmation', 'dateOfRetirement', 'gender', 'maritalStatus', 'religion', 'casteCategory',
+                    'caste', 'bloodGroup', 'salaryType', 'modeOfPayment', 'subjectTaught', 'epf', 'ppf',
+                    'phdResearchGuide', 'recognitionYear', 'teachingNonTeaching', 'pfApplicable', 'ptMaxAmount',
+                    'pfMaxAmount', 'pfFixedAmount', 'pfAccNo', 'uanNumber', 'pfDate', 'esiApplicable', 'esiAccNo',
+                    'gratuityAccNo', 'esiDate', 'nationalSSN', 'aadharNo', 'panCardNo', 'mobileDetails', 'emailDetails',
+                    'bankDetails'
+                ]
+            },
+            address: {
+                fields: [
+                    'contactAddress', 'contactArea', 'contactCountry', 'contactState', 'contactCity', 'contactPincode',
+                    'permanentAddress', 'permanentArea', 'permanentCountry', 'permanentState', 'permanentCity',
+                    'permanentPincode', 'sameAsCommunicationAddress'
+                ]
+            },
+            qualification: {
+                fields: ['qualificationDetails']
+            },
+            experience: {
+                fields: ['experienceDetails']
+            },
+            document: {
+                fields: ['documentList']
+            },
+            medical: {
+                fields: [
+                    'employeeHeight', 'employeeHeightUnit', 'employeeWeight', 'employeeWeightUnit',
+                    'eyeSightIssue', 'anyHealthIssue', 'identificationMark'
+                ]
+            },
+            other: {
+                fields: [
+                    'biometricCode', 'rfCardId', 'punchRelaxation', 'stopPension', 'dateOfStopPension',
+                    'msTeamsUserName', 'msTeamsPassword', 'employeeLeft', 'lastWorkingDay', 'reasonForLeaving'
+                ]
+            }
+        };
+
+        const tabConfig = tabFields[activeTab];
+        if (!tabConfig) return;
+
+        const fieldsToReset = tabConfig.fields;
+        
+        // Reset each field to its default empty value
+        fieldsToReset.forEach((field) => {
+            const currentValue = watch(field);
+            if (Array.isArray(currentValue)) {
+                setValue(field, [] as any, { shouldValidate: false, shouldDirty: false });
+            } else if (typeof currentValue === 'boolean') {
+                setValue(field, false as any, { shouldValidate: false, shouldDirty: false });
+            } else {
+                setValue(field, '' as any, { shouldValidate: false, shouldDirty: false });
+            }
+        });
+
+        // Special handling for photo in employee tab
+        if (activeTab === 'employee') {
+            setSelectedPhoto(null);
+            setPhotoFile(null);
+        }
+    };
+
     /**
      * Maps form field names (from tabs) to API field names
      */
@@ -1483,6 +1553,7 @@ export default function EmployeeRegisterForm({ selectedRow, onSuccess, className
                             options={options}
                             isSubmitting={isSubmitting || isPending}
                             watch={watch}
+                            onClear={handleClearCurrentTab}
                         />
                     </TabsContent>
 
@@ -1496,6 +1567,7 @@ export default function EmployeeRegisterForm({ selectedRow, onSuccess, className
                             setValue={setValue}
                             countries={options.countries}
                             states={options.states}
+                            onClear={handleClearCurrentTab}
                         />
                     </TabsContent>
 
@@ -1508,6 +1580,7 @@ export default function EmployeeRegisterForm({ selectedRow, onSuccess, className
                             options={options}
                             countries={options.countries}
                             states={options.states}
+                            onClear={handleClearCurrentTab}
                         />
                     </TabsContent>
 
@@ -1517,6 +1590,7 @@ export default function EmployeeRegisterForm({ selectedRow, onSuccess, className
                             register={register}
                             errors={errors}
                             isSubmitting={isSubmitting || isSavingExperience}
+                            onClear={handleClearCurrentTab}
                         />
                     </TabsContent>
 
@@ -1527,6 +1601,7 @@ export default function EmployeeRegisterForm({ selectedRow, onSuccess, className
                             errors={errors}
                             isSubmitting={isSubmitting || isSavingDocument}
                             watch={watch}
+                            onClear={handleClearCurrentTab}
                         />
                     </TabsContent>
 
@@ -1536,6 +1611,7 @@ export default function EmployeeRegisterForm({ selectedRow, onSuccess, className
                             register={register}
                             errors={errors}
                             isSubmitting={isSubmitting || isSavingMedical}
+                            onClear={handleClearCurrentTab}
                         />
                     </TabsContent>
 
@@ -1546,6 +1622,7 @@ export default function EmployeeRegisterForm({ selectedRow, onSuccess, className
                             errors={errors}
                             isSubmitting={isSubmitting || isPending}
                             watch={watch}
+                            onClear={handleClearCurrentTab}
                         />
                     </TabsContent>
 

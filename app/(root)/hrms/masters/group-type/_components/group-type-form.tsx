@@ -34,7 +34,7 @@ export default function GroupTypeForm({ selectedRow, onSuccess, className = '' }
         handleSubmit,
         reset,
         setValue,
-        formState: { errors, isSubmitting, isDirty }
+        formState: { errors, isSubmitting, isDirty, isValid }
     } = useForm<FormFields>({
         resolver: zodResolver(groupTypeSchema.addOrUpdate),
         mode: 'onChange',
@@ -62,8 +62,26 @@ export default function GroupTypeForm({ selectedRow, onSuccess, className = '' }
     }, [selectedRow, reset]);
 
     const onSubmit: SubmitHandler<FormFields> = async (data) => {
+        // Trim and validate required fields before submission
+        const trimmedData = {
+            ...data,
+            HRMGT_EmployeeGroupType: data.HRMGT_EmployeeGroupType?.trim() || '',
+            HRMGT_Code: data.HRMGT_Code?.trim() || ''
+        };
+
+        // Additional validation check
+        if (!trimmedData.HRMGT_EmployeeGroupType || trimmedData.HRMGT_EmployeeGroupType.length === 0) {
+            toast.error('Employee Group Type is required');
+            return;
+        }
+
+        if (!trimmedData.HRMGT_Code || trimmedData.HRMGT_Code.length === 0) {
+            toast.error('Code is required');
+            return;
+        }
+
         try {
-            const response = await saveMutation.mutateAsync(data);
+            const response = await saveMutation.mutateAsync(trimmedData);
 
             if (response?.success) {
                 toast.success(response.message || (isEditMode ? 'Group type updated successfully' : 'Group type saved successfully'));
@@ -106,6 +124,7 @@ export default function GroupTypeForm({ selectedRow, onSuccess, className = '' }
                         />
                         <InputText
                             label='Code'
+                            required
                             id='HRMGT_Code'
                             placeholder='Enter code'
                             {...register('HRMGT_Code')}
@@ -168,6 +187,7 @@ export default function GroupTypeForm({ selectedRow, onSuccess, className = '' }
                                     <div ref={containerRefCallback}>
                                         <InputNumber
                                             label='Order'
+                                            required
                                             id='HRMGT_Order'
                                             value={field.value}
                                             onChange={(value) => {
@@ -199,7 +219,7 @@ export default function GroupTypeForm({ selectedRow, onSuccess, className = '' }
                     </Button>
                     <Button
                         type='submit'
-                        disabled={isSubmitting || (isEditMode && !isDirty)}
+                        disabled={isSubmitting || (isEditMode && !isDirty) || !isValid}
                         className='order-1 w-fit transition-all duration-200 hover:scale-105 sm:order-2'
                         isLoading={isSubmitting}
                         loadingText={isEditMode ? 'Updating...' : 'Saving...'}>

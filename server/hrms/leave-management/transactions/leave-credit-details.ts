@@ -26,12 +26,11 @@ export async function addOrUpdateLeaveCreditDetails(detail: LeaveCreditDetail) {
         };
     }
     const newDetail = db.create(detail);
-        return {
-            success: true,
-            data: newDetail,
-            message: 'Leave credit detail created successfully'
-        };
-    }
+    return {
+        success: true,
+        data: newDetail,
+        message: 'Leave credit detail created successfully'
+    };
 }
 
 export async function deleteLeaveCreditDetails(id: number) {

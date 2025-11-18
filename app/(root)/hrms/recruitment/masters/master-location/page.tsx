@@ -228,7 +228,7 @@ export default function MasterLocationPage() {
                                                 id='locationName'
                                                 {...register('locationName', { required: 'Location Name is required' })}
                                                 error={errors.locationName?.message}
-                                                className='transition-colors focus:ring-2 focus:ring-primary/20'
+                                                className='mt-0 transition-colors focus:ring-2 focus:ring-primary/20'
                                             />
                                         </div>
 

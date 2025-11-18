@@ -1,7 +1,7 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
-import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/generic-data-table';
+import { GenericDataTable } from '@/components/ui/data-table/generic-data-table';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
 import { useReligionCategoryMapping } from '@/hooks/hrms/useMasters';
@@ -62,7 +62,7 @@ export default function ReligionCategoryMappingPage(props: { searchParams: Searc
                   : undefined
     };
 
-    const { data: response, isLoading, error, refetch } = useReligionCategoryMapping();
+    const { data: response, isLoading, error, refetch } = useReligionCategoryMapping(searchParams);
 
     return (
         <FormProvider<ReligionCategoryMappingDetail>>
@@ -86,15 +86,11 @@ function ReligionCategoryMappingPageContent({
 
     // Extract data from response - the API returns:
     // { success, message, data: { data: [...], total, page, page_size, ... } }
-    // Where data.data is the mapping array (extracted from data.mapping or data.get_masterlist)
+    // Where data.data is the mapping array (extracted from data.get_masterlist)
     const responseData = response?.data;
-    const transformedResponse = {
-        data: Array.isArray(responseData?.data) ? responseData.data : [],
-        total: responseData?.total ?? 0,
-        page: responseData?.page ?? 1,
-        page_size: responseData?.page_size ?? 10
-    };
-    const tableProps = useDataTableProps(transformedResponse, { dataKey: 'data' });
+    const rows = Array.isArray(responseData?.data) 
+        ? responseData.data 
+        : (responseData?.get_masterlist ?? []);
 
     return (
         <div className='min-h-screen'>
@@ -117,7 +113,8 @@ function ReligionCategoryMappingPageContent({
                     size='lg'
                     className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
                     <GenericDataTable<ReligionCategoryMappingDetail>
-                        {...tableProps}
+                        data={rows}
+                        totalItems={responseData?.total ?? rows.length}
                         columns={religionCategoryMappingColumns}
                         isLoading={isLoading}
                         error={error}

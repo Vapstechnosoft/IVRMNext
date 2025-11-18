@@ -25,6 +25,7 @@ interface EmployeeTabProps {
     options: any;
     isSubmitting: boolean;
     watch: any;
+    onClear?: () => void;
 }
 
 export function EmployeeTab({
@@ -37,7 +38,8 @@ export function EmployeeTab({
     setPhotoFile,
     options,
     isSubmitting,
-    watch
+    watch,
+    onClear
 }: any) {
     // State for controlling date picker popovers
     const [dateOfJoiningOpen, setDateOfJoiningOpen] = useState(false);
@@ -1037,7 +1039,7 @@ export function EmployeeTab({
                 </div>
             </div>
 
-            <StandardTabActions errors={errors} isSubmitting={isSubmitting} />
+            <StandardTabActions errors={errors} isSubmitting={isSubmitting} onClear={onClear} />
         </div>
     );
 }

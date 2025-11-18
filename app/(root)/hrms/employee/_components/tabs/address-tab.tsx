@@ -16,9 +16,10 @@ interface AddressTabProps {
     setValue: any;
     countries?: any[];
     states?: any[];
+    onClear?: () => void;
 }
 
-export function AddressTab({ control, register, errors, isSubmitting, watch, setValue, countries = [], states = [] }: AddressTabProps) {
+export function AddressTab({ control, register, errors, isSubmitting, watch, setValue, countries = [], states = [], onClear }: AddressTabProps) {
     const sameAsCommunicationAddress = watch('sameAsCommunicationAddress');
 
     // Watch communication address fields
@@ -261,7 +262,7 @@ export function AddressTab({ control, register, errors, isSubmitting, watch, set
                     </div>
                 </div>
             </div>
-            <StandardTabActions errors={errors} isSubmitting={isSubmitting} />
+            <StandardTabActions errors={errors} isSubmitting={isSubmitting} onClear={onClear} />
         </div>
     );
 }

@@ -21,6 +21,8 @@ import { getEmployeeInOutReportOnload } from '@/server/hrms/hrmsConfig/reports/e
 import { getEmployeeLateInEarlyOutReportOnload } from '@/server/hrms/hrmsConfig/reports/employee-latein-earlyout-report';
 import { getEmployeeLogReportOnload, getEmployeeLogReportList } from '@/server/hrms/hrmsConfig/reports/employee-log-report';
 import { getEmployeeYearlyReportOnload, getEmployeeYearlyReportList } from '@/server/hrms/hrmsConfig/reports/employee-yearly-report';
+import { getEmployeeMonthlyReportOnload, getEmployeeMonthlyReportList } from '@/server/hrms/hrmsConfig/reports/employee-monthly-report';
+import { getFOMonthEndReportData } from '@/server/hrms/attendance-management/reports/fo-monthend-report';
 import {
     filterEmployeesByYearMonth,
     generateSalarySlip,
@@ -431,6 +433,71 @@ export function useEmployeeYearlyReportList(
             });
         }
     };
+}
+
+// ============================================================================
+// EMPLOYEE MONTHLY REPORT
+// ============================================================================
+
+export function useEmployeeMonthlyReportOnload(MI_Id = 30, LoginUserId = 0, UserRole = '') {
+    return useQuery({
+        queryKey: [HRMS_QUERY_KEYS.EMPLOYEE_MONTHLY_REPORT_ONLOAD, MI_Id, LoginUserId, UserRole],
+        queryFn: () => getEmployeeMonthlyReportOnload(MI_Id, LoginUserId, UserRole),
+        staleTime: 5 * 60 * 1000
+    });
+}
+
+export function useEmployeeMonthlyReportList(
+    searchParams?: ApiSearchparams,
+    filterParams?: {
+        MIID?: number;
+        LoginUserId?: number;
+        UserRole?: string;
+        is_export?: boolean;
+        typeIdList?: number[];
+        departmentIdList?: number[];
+        designationIdList?: number[];
+        allOrIndividual?: 'All' | 'Individual';
+        employeeName?: string;
+        fromDate?: string;
+        toDate?: string;
+        reportOptions?: ('Total Working Days' | 'Show Holiday Punch' | 'Format One' | 'Date Of Joining' | 'Total Absent Days')[];
+    },
+    enabled: boolean = true
+) {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [
+                HRMS_QUERY_KEYS.EMPLOYEE_MONTHLY_REPORT_SEARCH,
+                searchParams ?? {},
+                filterParams ?? {}
+            ],
+            queryFn: async () => {
+                return getEmployeeMonthlyReportList(searchParams, filterParams);
+            },
+            staleTime: 0,
+            enabled // Only fetch when enabled (when search criteria are present)
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [HRMS_QUERY_KEYS.EMPLOYEE_MONTHLY_REPORT_SEARCH]
+            });
+        }
+    };
+}
+
+// ============================================================================
+// FRONT OFFICE MONTH END REPORT
+// ============================================================================
+
+export function useFOMonthEndReportOnload(MI_Id = 30, LoginUserId = 0, UserRole = '') {
+    return useQuery({
+        queryKey: [HRMS_QUERY_KEYS.FO_MONTHEND_REPORT, MI_Id, LoginUserId, UserRole],
+        queryFn: () => getFOMonthEndReportData(MI_Id, LoginUserId, UserRole),
+        staleTime: 5 * 60 * 1000
+    });
 }
 
 // ============================================================================

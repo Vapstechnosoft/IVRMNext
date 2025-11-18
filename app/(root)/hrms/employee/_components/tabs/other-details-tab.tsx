@@ -12,7 +12,7 @@ import { useState } from 'react';
 import { Controller } from 'react-hook-form';
 import { StandardTabActions } from './standard-tab-actions';
 
-export function OtherDetailsTab({ control, register, errors, isSubmitting, watch }: any) {
+export function OtherDetailsTab({ control, register, errors, isSubmitting, watch, onClear }: any) {
     const stopPension = watch('stopPension');
     const employeeLeft = watch('employeeLeft');
     const [stopPensionDateOpen, setStopPensionDateOpen] = useState(false);
@@ -187,7 +187,7 @@ export function OtherDetailsTab({ control, register, errors, isSubmitting, watch
                 </div>
             )}
 
-            <StandardTabActions errors={errors} isSubmitting={isSubmitting} />
+            <StandardTabActions errors={errors} isSubmitting={isSubmitting} onClear={onClear} />
         </div>
     );
 }

@@ -6,6 +6,7 @@ import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
 import { HRMS_MI_ID } from '@/constants/hrms-config';
 import { useMasterEmployeeType } from '@/hooks/hrms/useMasters';
+import type { ApiSearchparams } from '@/types';
 import type { EmployeeTypeDetail } from '@/types/hrms/master-employee-type';
 import { Plus, X } from 'lucide-react';
 import { use, useMemo } from 'react';
@@ -15,9 +16,55 @@ import EmployeeTypeForm from './_components/employee-type-form';
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 
 export default function MasterEmployeeTypePage(props: { searchParams: SearchParams }) {
-    const _rawSearchParams = use(props.searchParams);
+    const rawSearchParams = use(props.searchParams);
+
+    // Convert Next.js searchParams (string | string[]) to ApiSearchparams format
+    // This matches how preadmission handles it
+    const searchParams: ApiSearchparams = {
+        page:
+            typeof rawSearchParams?.page === 'string'
+                ? Number.parseInt(rawSearchParams.page, 10)
+                : Array.isArray(rawSearchParams?.page)
+                  ? Number.parseInt(rawSearchParams.page[0], 10)
+                  : typeof rawSearchParams?.page === 'number'
+                    ? rawSearchParams.page
+                    : undefined,
+        page_size:
+            typeof rawSearchParams?.page_size === 'string'
+                ? Number.parseInt(rawSearchParams.page_size, 10)
+                : Array.isArray(rawSearchParams?.page_size)
+                  ? Number.parseInt(rawSearchParams.page_size[0], 10)
+                  : typeof rawSearchParams?.page_size === 'number'
+                    ? rawSearchParams.page_size
+                    : undefined,
+        search_query:
+            typeof rawSearchParams?.search_query === 'string'
+                ? rawSearchParams.search_query
+                : Array.isArray(rawSearchParams?.search_query)
+                  ? rawSearchParams.search_query[0]
+                  : undefined,
+        search_column:
+            typeof rawSearchParams?.search_column === 'string'
+                ? rawSearchParams.search_column
+                : Array.isArray(rawSearchParams?.search_column)
+                  ? rawSearchParams.search_column[0]
+                  : undefined,
+        sort_column:
+            typeof rawSearchParams?.sort_column === 'string'
+                ? rawSearchParams.sort_column
+                : Array.isArray(rawSearchParams?.sort_column)
+                  ? rawSearchParams.sort_column[0]
+                  : undefined,
+        sort_direction:
+            typeof rawSearchParams?.sort_direction === 'string'
+                ? rawSearchParams.sort_direction
+                : Array.isArray(rawSearchParams?.sort_direction)
+                  ? rawSearchParams.sort_direction[0]
+                  : undefined
+    };
+
     const roleId = HRMS_MI_ID;
-    const { listQuery, refetchAll } = useMasterEmployeeType(roleId);
+    const { listQuery, refetchAll } = useMasterEmployeeType(roleId, searchParams);
 
     return (
         <FormProvider<EmployeeTypeDetail>>
@@ -44,7 +91,13 @@ function MasterEmployeeTypePageContent({
 }) {
     const { openAddForm } = useFormContext<EmployeeTypeDetail>();
     // Memoize array to prevent unnecessary re-renders
-    const rows: EmployeeTypeDetail[] = useMemo(() => response?.employeeTypeList ?? [], [response?.employeeTypeList]);
+    // API now returns data as an array directly, or in employeeTypeList for backward compatibility
+    const rows: EmployeeTypeDetail[] = useMemo(() => {
+        if (Array.isArray(response?.data)) {
+            return response.data;
+        }
+        return response?.employeeTypeList ?? [];
+    }, [response?.data, response?.employeeTypeList]);
 
     return (
         <div className='min-h-screen'>
@@ -66,7 +119,7 @@ function MasterEmployeeTypePageContent({
                     className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
                     <GenericDataTable<EmployeeTypeDetail>
                         data={rows}
-                        totalItems={rows.length}
+                        totalItems={response?.total ?? rows.length}
                         columns={columns}
                         isLoading={isLoading}
                         error={error}

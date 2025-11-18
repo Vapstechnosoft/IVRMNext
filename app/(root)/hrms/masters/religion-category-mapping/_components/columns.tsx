@@ -13,7 +13,12 @@ export const religionCategoryMappingColumns: ColumnDef<ReligionCategoryMappingDe
     {
         id: 'slNo',
         header: () => <div className='text-center font-medium'>Sl No</div>,
-        cell: ({ row }) => <div className='text-center'>{row.index + 1}</div>,
+        cell: ({ row, table }) => {
+            const pageIndex = table.getState().pagination.pageIndex;
+            const pageSize = table.getState().pagination.pageSize;
+            const continuousIndex = pageIndex * pageSize + row.index + 1;
+            return <div className='text-center'>{continuousIndex}</div>;
+        },
         enableSorting: false,
         size: 60
     },

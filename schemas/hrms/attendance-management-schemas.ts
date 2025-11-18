@@ -525,7 +525,8 @@ export const employeeMonthlyReportFilterSchema = z
         }),
         employeeName: z.string().optional(),
         fromDate: z.string().min(1, 'From Date is required'),
-        toDate: z.string().min(1, 'To Date is required')
+        toDate: z.string().min(1, 'To Date is required'),
+        reportOptions: z.array(z.enum(['Total Working Days', 'Show Holiday Punch', 'Format One', 'Date Of Joining', 'Total Absent Days'])).optional()
     })
     .refine(
         (data) => {

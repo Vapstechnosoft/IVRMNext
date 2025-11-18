@@ -6,6 +6,7 @@ import { InputText } from '@/components/ui/extension/input-text';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { foMonthEndReportFilterSchema } from '@/schemas/hrms/attendance-management-schemas';
+import { useFOMonthEndReportOnload } from '@/hooks/hrms/useReports';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { RefreshCw, X } from 'lucide-react';
 import { useForm } from 'react-hook-form';
@@ -31,6 +32,9 @@ export function FOMonthEndReportFilters({ filters, onFilterChange, onSearch, onC
         mode: 'onChange'
     });
 
+    // Fetch dropdown data from API
+    const { data: onloadData, isLoading: isLoadingOnload } = useFOMonthEndReportOnload();
+
     const handleFilterChange = (key: keyof FOMonthEndReportFilters, value: any) => {
         const newFilters = { ...filters, [key]: value };
         setValue(key, value as any);
@@ -54,16 +58,16 @@ export function FOMonthEndReportFilters({ filters, onFilterChange, onSearch, onC
                         <label htmlFor='year-select' className='font-medium text-sm'>
                             Year <span className='text-red-500'>*</span>
                         </label>
-                        <Select value={filters.year} onValueChange={(value) => handleFilterChange('year', value)}>
+                        <Select value={filters.year} onValueChange={(value) => handleFilterChange('year', value)} disabled={isLoadingOnload}>
                             <SelectTrigger id='year-select' className={errors.year ? 'border-red-500' : ''}>
-                                <SelectValue placeholder='--Select--' />
+                                <SelectValue placeholder={isLoadingOnload ? 'Loading...' : '--Select--'} />
                             </SelectTrigger>
                             <SelectContent>
-                                {['2023', '2024', '2025', '2026'].map((y) => (
-                                    <SelectItem key={y} value={y}>
-                                        {y}
+                                {onloadData?.data?.years?.map((year) => (
+                                    <SelectItem key={year.hrmlY_Id} value={year.hrmlY_LeaveYear}>
+                                        {year.hrmlY_LeaveYear}
                                     </SelectItem>
-                                ))}
+                                )) || []}
                             </SelectContent>
                         </Select>
                         {errors.year && <FormError>{errors.year.message}</FormError>}
@@ -73,29 +77,16 @@ export function FOMonthEndReportFilters({ filters, onFilterChange, onSearch, onC
                         <label htmlFor='month-select' className='font-medium text-sm'>
                             Month <span className='text-red-500'>*</span>
                         </label>
-                        <Select value={filters.month} onValueChange={(value) => handleFilterChange('month', value)}>
+                        <Select value={filters.month} onValueChange={(value) => handleFilterChange('month', value)} disabled={isLoadingOnload}>
                             <SelectTrigger id='month-select' className={errors.month ? 'border-red-500' : ''}>
-                                <SelectValue placeholder='--Select--' />
+                                <SelectValue placeholder={isLoadingOnload ? 'Loading...' : '--Select--'} />
                             </SelectTrigger>
                             <SelectContent>
-                                {[
-                                    { value: '01', label: 'January' },
-                                    { value: '02', label: 'February' },
-                                    { value: '03', label: 'March' },
-                                    { value: '04', label: 'April' },
-                                    { value: '05', label: 'May' },
-                                    { value: '06', label: 'June' },
-                                    { value: '07', label: 'July' },
-                                    { value: '08', label: 'August' },
-                                    { value: '09', label: 'September' },
-                                    { value: '10', label: 'October' },
-                                    { value: '11', label: 'November' },
-                                    { value: '12', label: 'December' }
-                                ].map((m) => (
-                                    <SelectItem key={m.value} value={m.value}>
-                                        {m.label}
+                                {onloadData?.data?.months?.map((month) => (
+                                    <SelectItem key={month.monthid} value={month.monthid.toString().padStart(2, '0')}>
+                                        {month.monthname.trim()}
                                     </SelectItem>
-                                ))}
+                                )) || []}
                             </SelectContent>
                         </Select>
                         {errors.month && <FormError>{errors.month.message}</FormError>}

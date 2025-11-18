@@ -1,31 +1,103 @@
 'use server';
 
 import { api } from '@/lib/apiService';
+import type { ApiSearchparams } from '@/types';
 import type { LeaveYearDetail, MasterLeaveYearInput, MasterLeaveYearResponse } from '@/types/hrms/master-leave-year';
 
 /**
- * Get onload details for master leave year
+ * Helper function to convert searchParams from URL (strings) to proper types
+ */
+function normalizeSearchParams(searchParams?: ApiSearchparams | Record<string, string | string[] | undefined>): ApiSearchparams {
+    if (!searchParams) return {};
+    
+    // Helper to get first value if array, or the value itself
+    const getValue = (value: string | string[] | number | undefined, defaultValue: string | number): string | number => {
+        if (value === undefined) return defaultValue;
+        if (typeof value === 'number') return value;
+        if (Array.isArray(value)) return value[0] || defaultValue;
+        return value;
+    };
+    
+    return {
+        page: typeof getValue(searchParams.page, 1) === 'string' ? parseInt(getValue(searchParams.page, 1) as string, 10) || 1 : (getValue(searchParams.page, 1) as number) || 1,
+        page_size: typeof getValue(searchParams.page_size, 10) === 'string' ? parseInt(getValue(searchParams.page_size, 10) as string, 10) || 10 : (getValue(searchParams.page_size, 10) as number) || 10,
+        search_query: (getValue(searchParams.search_query, '') as string) || '',
+        search_column: (getValue(searchParams.search_column, '') as string) || '',
+        sort_column: (getValue(searchParams.sort_column, '') as string) || '',
+        sort_direction: (getValue(searchParams.sort_direction, '') as string) || ''
+    };
+}
+
+/**
+ * Get onload details for master leave year with search, sort, and pagination
  * POST /api/MasterLeaveYearFacade/onloadgetdetails
  */
-export async function getMasterLeaveYearList(roleId: number) {
+export async function getMasterLeaveYearList(roleId: number, searchParams?: ApiSearchparams | Record<string, string | string[] | undefined>) {
     const url = '/api/MasterLeaveYearFacade/onloadgetdetails';
+    
+    // Normalize searchParams (convert strings to proper types)
+    const normalizedParams = normalizeSearchParams(searchParams);
+    
+    // Extract pagination, search, and sort parameters
+    const page = normalizedParams.page || 1;
+    const page_size = normalizedParams.page_size || 10;
+    const search_query = normalizedParams.search_query || '';
+    
+    // Define searchable columns
+    // These are the columns that can be searched when search_query is provided
+    const searchableColumns = 'HRMLY_LeaveYear';
+    const search_column = normalizedParams.search_column || (search_query ? searchableColumns : '');
+    
+    // If sort_column is provided but sort_direction is empty, default to 'asc'
+    // The API requires sort_direction to be 'asc' or 'desc' when sort_column is provided
+    const sort_column = normalizedParams.sort_column || '';
+    const sort_direction = sort_column && !normalizedParams.sort_direction 
+        ? 'asc' 
+        : (normalizedParams.sort_direction || '');
+    
     const requestBody = {
-        HRMLY_Id: 1,
-        MI_Id: 30,
-        HRMLY_LeaveYear: '2025-2026',
-        HRMLY_FromDate: '2025-04-01T00:00:00',
-        HRMLY_ToDate: '2026-03-31T00:00:00',
-        HRMLY_ActiveFlag: true,
-        leaveYearList: [],
-        retrunMsg: '',
-        roleId: roleId,
-        ASMAY_From_Date: null,
-        ASMAY_To_Date: null,
-        HRMLY_LeaveYearOrder: 1,
-        yeardetailList: [],
-        LeaveorderDTO: []
+        page,
+        page_size,
+        search_query,
+        search_column,
+        sort_column,
+        sort_direction,
+        is_export: false,
+        MIID: 30,
+        LoginUserId: 0,
+        UserRole: ''
     };
-    return await api.post<MasterLeaveYearResponse>('hrms', url, requestBody);
+    
+    try {
+        const response = await api.post<MasterLeaveYearResponse>('hrms', url, requestBody);
+        
+        // Transform response to match expected structure
+        // The API returns data array directly, or in leaveYearList for backward compatibility
+        const leaveYearList = Array.isArray(response?.data) 
+            ? response.data 
+            : (response?.leaveYearList || (response as any)?.data?.leaveYearList || []);
+        
+        // Use API's total if provided, otherwise use array length
+        const total = response?.total ?? (Array.isArray(leaveYearList) ? leaveYearList.length : 0);
+        
+        // Return in the expected format
+        return {
+            ...response,
+            success: response?.success ?? true,
+            message: response?.message || 'Data fetched successfully',
+            data: leaveYearList,
+            leaveYearList: leaveYearList,
+            total: total,
+            page: response?.page ?? page,
+            page_size: response?.page_size ?? page_size
+        } as MasterLeaveYearResponse;
+    } catch (error: any) {
+        console.error('🔴 [DEBUG] getMasterLeaveYearList - Error Details:');
+        console.error('🔴 [DEBUG] Error Message:', error?.message);
+        console.error('🔴 [DEBUG] Error Response Status:', error?.response?.status);
+        console.error('🔴 [DEBUG] Error Response Data:', JSON.stringify(error?.response?.data, null, 2));
+        throw error;
+    }
 }
 
 /**

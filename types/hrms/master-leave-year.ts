@@ -1,9 +1,14 @@
 export interface MasterLeaveYearResponse {
-    success: boolean;
-    message: string;
-    data: {
+    success?: boolean;
+    message?: string;
+    data?: LeaveYearDetail[] | {
         leaveYearList: LeaveYearDetail[];
     };
+    leaveYearList?: LeaveYearDetail[];
+    retrunMsg?: string;
+    total?: number;
+    page?: number;
+    page_size?: number;
 }
 
 export interface LeaveYearDetail {

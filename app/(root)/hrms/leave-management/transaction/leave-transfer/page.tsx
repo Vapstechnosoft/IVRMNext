@@ -1,44 +1,34 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
-import { GenericDataTable } from '@/components/ui/data-table/generic-data-table';
+import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/generic-data-table';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
-import { createLocalCrud } from '@/lib/localdb';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { useLeaveCredit, useSaveLeaveCredit, useDeleteLeaveCredit } from '@/hooks/hrms/leave-management/useTransactions';
 import { Plus } from 'lucide-react';
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { toast } from 'sonner';
 import { getLeaveCreditColumns, type LeaveCredit } from './_components/columns';
-import { LeaveCreditForm } from './_components/leave-credit-form';
+import { LeaveTransferForm, type LeaveTransferFormData } from './_components/leave-transfer-form';
 
-const leaveCreditDB = createLocalCrud<LeaveCredit>('leaveCredit');
-
-export default function LeaveCreditPage() {
-    const [data, setData] = useState<LeaveCredit[]>([]);
+export default function LeaveTransferPage() {
+    const { data: response, isLoading, refetchAll } = useLeaveCredit();
+    const { mutate: saveCredit, isPending: isSaving } = useSaveLeaveCredit();
+    const { mutate: deleteCredit } = useDeleteLeaveCredit();
+    
     const [isFormOpen, setIsFormOpen] = useState(false);
     const [editingCredit, setEditingCredit] = useState<LeaveCredit | null>(null);
-    const [activeTab, setActiveTab] = useState('Leave Credit');
+    const [activeTab, setActiveTab] = useState('Leave Updation');
 
-    const loadData = () => {
-        try {
-            const result = leaveCreditDB.list();
-            setData(result);
-        } catch (error) {
-            console.error('Error loading leave credits:', error);
-            toast.error('Failed to load leave credits');
-        }
-    };
-
-    useEffect(() => {
-        loadData();
-    }, []);
+    const data = useMemo(() => response?.data || [], [response?.data]);
 
     const handleAddClick = () => {
         setIsFormOpen(true);
         setEditingCredit(null);
-        setActiveTab('Leave Credit');
+        setActiveTab('Leave Updation');
         // Scroll to form
         setTimeout(() => {
-            const formElement = document.getElementById('leave-credit-form');
+            const formElement = document.getElementById('leave-transfer-form');
             if (formElement) {
                 formElement.scrollIntoView({ behavior: 'smooth' });
             }
@@ -48,33 +38,40 @@ export default function LeaveCreditPage() {
     const handleFormClose = () => {
         setIsFormOpen(false);
         setEditingCredit(null);
-        setActiveTab('Leave Credit');
+        setActiveTab('Leave Updation');
     };
 
-    const handleFormSubmit = (formData: LeaveCredit) => {
-        try {
-            if (editingCredit) {
-                leaveCreditDB.update(editingCredit.id, formData);
-                toast.success('Leave credit updated successfully');
-            } else {
-                leaveCreditDB.create(formData);
-                toast.success('Leave credit created successfully');
+    const handleFormSubmit = (formData: LeaveTransferFormData) => {
+        // Convert form data to LeaveCredit format
+        const submitData: LeaveCredit = {
+            id: editingCredit?.id || 0,
+            leaveYear: formData.leaveYear,
+            leaveName: formData.leaveName,
+            employeeName: editingCredit?.employeeName || '', // This would come from employee selection
+            leaveCredit: editingCredit?.leaveCredit || 0,
+            leaveBalance: editingCredit?.leaveBalance || 0,
+            type: formData.type,
+            department: formData.department,
+            designation: formData.designation
+        };
+
+        saveCredit(submitData, {
+            onSuccess: () => {
+                toast.success(editingCredit ? 'Leave transfer updated successfully' : 'Leave transfer saved successfully');
+                refetchAll();
+                handleFormClose();
             }
-            loadData();
-            handleFormClose();
-        } catch (error) {
-            console.error('Error saving leave credit:', error);
-            toast.error('Failed to save leave credit');
-        }
+        });
     };
 
     const handleEdit = (credit: LeaveCredit) => {
         setEditingCredit(credit);
         setIsFormOpen(true);
-        setActiveTab('Leave Credit');
+        // Determine which tab based on the credit type or default to first tab
+        setActiveTab('Leave Updation');
         // Scroll to form
         setTimeout(() => {
-            const formElement = document.getElementById('leave-credit-form');
+            const formElement = document.getElementById('leave-transfer-form');
             if (formElement) {
                 formElement.scrollIntoView({ behavior: 'smooth' });
             }
@@ -82,30 +79,37 @@ export default function LeaveCreditPage() {
     };
 
     const handleDelete = (id: number) => {
-        if (window.confirm('Are you sure you want to delete this leave credit?')) {
-            try {
-                leaveCreditDB.remove(id);
-                toast.success('Leave credit deleted successfully');
-                loadData();
-            } catch (error) {
-                console.error('Error deleting leave credit:', error);
-                toast.error('Failed to delete leave credit');
-            }
+        if (window.confirm('Are you sure you want to delete this leave transfer record?')) {
+            deleteCredit(id, {
+                onSuccess: () => {
+                    toast.success('Leave transfer deleted successfully');
+                    refetchAll();
+                }
+            });
         }
     };
 
     const columns = useMemo(
         () => getLeaveCreditColumns({ onEdit: handleEdit, onDelete: handleDelete }),
-        [handleEdit, handleDelete]
+        []
     );
+
+    const tableProps = useDataTableProps({
+        data: data,
+        columns: columns,
+        totalItems: data.length,
+        searchParams: {},
+        onSearchParamsChange: () => {}
+    });
 
     return (
         <div className='min-h-screen'>
             <div className='container space-y-4 p-1'>
+                {/* Header with Add Button */}
                 <div className='flex justify-end'>
-                    <Button onClick={handleAddClick} variant='default' className='w-fit'>
+                    <Button onClick={handleAddClick} variant='default' className='w-fit shadow-md transition-all duration-200 hover:scale-105 hover:shadow-lg'>
                         <Plus className='mr-2 h-4 w-4' />
-                        Add
+                        Add Leave Transfer
                     </Button>
                 </div>
 
@@ -117,29 +121,71 @@ export default function LeaveCreditPage() {
                     variant='default'
                     size='lg'
                     className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
-                    <div className='mb-4'>
-                        <p className='text-gray-600 text-sm'>Total grid records: {data.length}</p>
-                    </div>
-                    <GenericDataTable data={data} columns={columns} totalItems={data.length} isLoading={false} />
+                    <GenericDataTable {...tableProps} columns={columns} isLoading={isLoading} />
                 </CollapsibleSection>
 
-                {/* Form Section */}
+                {/* Form Section with Tabs */}
                 {isFormOpen && (
-                    <div id='leave-credit-form'>
+                    <div id='leave-transfer-form'>
                         <CollapsibleSection
-                            title={editingCredit ? 'Edit Leave Credit' : 'Add Leave Credit'}
-                            description=''
+                            title={editingCredit ? 'Edit Leave Transfer' : 'Leave Transfer'}
+                            description={editingCredit ? 'Update leave transfer information' : 'Fill in the details to process leave transfer'}
                             defaultOpen={true}
                             variant='default'
                             size='lg'
                             className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
-                            <LeaveCreditForm
-                                editingCredit={editingCredit}
-                                activeTab={activeTab}
-                                onTabChange={setActiveTab}
-                                onSubmit={handleFormSubmit}
-                                onCancel={handleFormClose}
-                            />
+                            <Tabs value={activeTab} onValueChange={setActiveTab} className='w-full'>
+                                <TabsList className='grid w-full grid-cols-3'>
+                                    <TabsTrigger value='Leave Updation'>Leave Updation</TabsTrigger>
+                                    <TabsTrigger value='Leave Addition'>Leave Addition</TabsTrigger>
+                                    <TabsTrigger value='Leave CarryForward'>Leave CarryForward</TabsTrigger>
+                                </TabsList>
+
+                                <TabsContent value='Leave Updation' className='mt-4'>
+                                    <LeaveTransferForm
+                                        activeTab='Leave Updation'
+                                        onSubmit={handleFormSubmit}
+                                        onCancel={handleFormClose}
+                                        defaultValues={editingCredit ? {
+                                            type: editingCredit.type,
+                                            department: editingCredit.department,
+                                            designation: editingCredit.designation,
+                                            leaveYear: editingCredit.leaveYear,
+                                            leaveName: editingCredit.leaveName
+                                        } : undefined}
+                                    />
+                                </TabsContent>
+
+                                <TabsContent value='Leave Addition' className='mt-4'>
+                                    <LeaveTransferForm
+                                        activeTab='Leave Addition'
+                                        onSubmit={handleFormSubmit}
+                                        onCancel={handleFormClose}
+                                        defaultValues={editingCredit ? {
+                                            type: editingCredit.type,
+                                            department: editingCredit.department,
+                                            designation: editingCredit.designation,
+                                            leaveYear: editingCredit.leaveYear,
+                                            leaveName: editingCredit.leaveName
+                                        } : undefined}
+                                    />
+                                </TabsContent>
+
+                                <TabsContent value='Leave CarryForward' className='mt-4'>
+                                    <LeaveTransferForm
+                                        activeTab='Leave CarryForward'
+                                        onSubmit={handleFormSubmit}
+                                        onCancel={handleFormClose}
+                                        defaultValues={editingCredit ? {
+                                            type: editingCredit.type,
+                                            department: editingCredit.department,
+                                            designation: editingCredit.designation,
+                                            leaveYear: editingCredit.leaveYear,
+                                            leaveName: editingCredit.leaveName
+                                        } : undefined}
+                                    />
+                                </TabsContent>
+                            </Tabs>
                         </CollapsibleSection>
                     </div>
                 )}

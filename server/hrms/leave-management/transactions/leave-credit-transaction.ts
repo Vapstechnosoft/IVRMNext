@@ -26,12 +26,11 @@ export async function addOrUpdateLeaveCreditTransaction(transaction: LeaveCredit
         };
     }
     const newTransaction = db.create(transaction);
-        return {
-            success: true,
-            data: newTransaction,
-            message: 'Leave credit transaction created successfully'
-        };
-    }
+    return {
+        success: true,
+        data: newTransaction,
+        message: 'Leave credit transaction created successfully'
+    };
 }
 
 export async function deleteLeaveCreditTransaction(id: number) {

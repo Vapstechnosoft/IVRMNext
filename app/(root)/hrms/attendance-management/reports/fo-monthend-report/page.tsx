@@ -3,6 +3,7 @@
 import { Button } from '@/components/ui/button';
 import { GenericDataTable } from '@/components/ui/data-table/generic-data-table';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
+import { useFOMonthEndReportOnload } from '@/hooks/hrms/useReports';
 import { FileDown } from 'lucide-react';
 import { useState } from 'react';
 import { foMonthEndReportColumns } from './_components/columns';
@@ -18,8 +19,13 @@ export default function FOMonthEndReportPage() {
         ieName: ''
     });
 
+    // Fetch onload data from API
+    const { data: onloadData, isLoading: isLoadingOnload } = useFOMonthEndReportOnload();
+
     const filtered: FOMonthEndReportRow[] = [];
     const handleSearch = () => {
+        // TODO: Implement search functionality when the search endpoint is available
+        // For now, just show the report section
         setShowReport(true);
     };
 
