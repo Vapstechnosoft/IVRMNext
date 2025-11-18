@@ -9,12 +9,12 @@ import { useCallback } from 'react';
 export const masterSourceColumns: ColumnDef<IMasterSourceList>[] = [
     {
         accessorKey: 'pamS_Id',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Sl.No' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Sl.No' className='w-full pl-6' />,
         cell: ({ row, table }) => {
             const pageIndex = table.getState().pagination.pageIndex;
             const pageSize = table.getState().pagination.pageSize;
             const continuousIndex = pageIndex * pageSize + row.index + 1;
-            return <div>{continuousIndex}</div>;
+            return <div className='w-full pl-6'>{continuousIndex}</div>;
         },
         enableSorting: true,
         enableHiding: false

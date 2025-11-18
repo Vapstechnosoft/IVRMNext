@@ -2,7 +2,7 @@
 
 import { Button } from '@/components/ui/button';
 import { AdaptiveBody, AdaptiveDialog, AdaptiveFooter } from '@/components/ui/extension/adaptive-dialog';
-import { useMasterClassCategory } from '@/hooks/admission/preadmission/useMasters';
+import { usePreAdmissionAcademicYearSetOrder } from '@/hooks/admission/preadmission/useConfigurations';
 import { getPreAdmissionSetOrder, updateAcademicYearSetorder } from '@/server/admission/preadmission/configuration/academic_year_master';
 import type { IMasterSetOrderList } from '@/types/admission/preadmission/configaration';
 import { GitCompareArrows, GripVertical } from 'lucide-react';
@@ -11,7 +11,7 @@ import { useState } from 'react';
 import { toast } from 'sonner';
 
 export default function ReorderAcademicYearForm() {
-    const { refetchAll } = useMasterClassCategory();
+    const { refetchAll } = usePreAdmissionAcademicYearSetOrder();
     const [isDialogOpen, setIsDialogOpen] = useState(false);
     const [orderedItems, setOrderedItems] = useState<IMasterSetOrderList[]>([]);
     const [draggedIndex, setDraggedIndex] = useState<number | null>(null);

@@ -130,7 +130,6 @@ export default function AddCategoryClassForm({ onSuccess, initialData }: AddCate
             if (res.success) {
                 toast.success(res.message);
                 onSuccess?.();
-                refetchAll();
             } else {
                 toast.error(res.message);
             }

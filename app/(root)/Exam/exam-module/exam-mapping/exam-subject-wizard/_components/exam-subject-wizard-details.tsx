@@ -33,7 +33,8 @@ function ExamSubjectWizardDetailsPageContent({
     onClose: () => void;
 }) {
     const [details, setDetails] = useState<IExamSubjectWizardDetails[]>([]);
-    const { data: response, isLoading, error, refetchAll } = useExamSubjectWizardDetails(30, rowData?.eycE_Id);
+    const [loading, setLoading] = useState(false);
+    const { data: response, isLoading, error, refetch } = useExamSubjectWizardDetails(30, rowData?.eycE_Id);
 
     // -------------------------
     // Set Details When API Responds
@@ -41,7 +42,6 @@ function ExamSubjectWizardDetailsPageContent({
     useEffect(() => {
         if (!rowData?.eycE_Id) return;
         if (!response) return;
-        refetchAll();
 
         try {
             const apiResponse = response as unknown as {
@@ -55,7 +55,7 @@ function ExamSubjectWizardDetailsPageContent({
         } catch (err: any) {
             toast.error(err?.message || 'Failed to parse Exam Subject Wizard details');
         }
-    }, [rowData?.eycE_Id, response, rowData]);
+    }, [rowData?.eycE_Id, response]);
 
     // -------------------------
     // Data table setup
@@ -94,7 +94,7 @@ function ExamSubjectWizardDetailsPageContent({
                 <GenericDataTable<IExamSubjectWizardDetails>
                     {...tableProps}
                     columns={ExamSubjectWizardDetailsColumns}
-                    isLoading={isLoading}
+                    isLoading={loading}
                     noDataTitle='No Subjects Found'
                     noDataDescription='No subjects are mapped for this exam.'
                     errorTitle='Error Loading Details'
