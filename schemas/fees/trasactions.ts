@@ -16,15 +16,24 @@ export const amountEntrySchema = {
 export const thirdPartyTransactionSchema = {
     addOrUpdate: z
         .object({
+            fyP_Receipt_No: z.string().optional(),
             studentType: z.enum(['student', 'other']),
             academicYearId: z.number().min(1, 'Academic Year is required'),
 
             // academicYearId: z.number({ message: 'Term is required' }),
             studentId: z.number().optional(),
             studentName: z.string().optional(),
-            groupId: z.number().min(1, 'Group Name is required'),
-            headId: z.number().min(1, 'Head Name is required'),
-            amount: z.number().min(0.01, 'Amount is required'),
+            // groupId: z.number().min(1, 'Group Name is required'),
+            // headId: z.number().min(1, 'Head Name is required'),
+            // amount: z.number({ message: 'Amount is required' }),
+            // amount: z.number().min(0.01, 'Amount is required'),
+            groupId: z.number({ message: 'Group Name is required' }),
+            headId: z.number({ message: ' Head Name is required' }),
+            amount: z.number({ message: 'Amount is required' }),
+            //  groupId: z.number().optional(),
+            //             headId: z.number().optional(),
+            //               amount: z.number().optional(),
+
             towards: z.string().optional(),
             //date: z.string().min(1, "Date is required"),
             date: z.string({ required_error: 'Date is required' }).min(1, ' Date is required'),
@@ -35,13 +44,15 @@ export const thirdPartyTransactionSchema = {
             //     invalid_type_error: "Invalid date format",
             //   })),
 
-            paymentMode: z.enum(['bank', 'cash', 'rtgsneft', 'card']),
+            //paymentMode: z.enum(['bank', 'cash', 'rtgsneft', 'card']),
+            paymentMode: z.enum(['B', 'C', 'R', 'S']),
             bankId: z.number().optional(),
             chequeDate: z.string().optional(),
-            chequeNo: z.string().optional()
+            chequeNo: z.string().optional(),
+            bankName: z.string().optional()
         })
         .superRefine((data, ctx) => {
-            if (data.paymentMode === 'bank') {
+            if (data.paymentMode === 'B') {
                 if (!(typeof data.bankId === 'number' && data.bankId > 0)) {
                     ctx.addIssue({
                         code: 'custom',
@@ -67,7 +78,7 @@ export const thirdPartyTransactionSchema = {
         }),
 
     delete: z.object({
-        tpt_id: deleteIdSchema('tpt_id')
+        fyptP_Id: deleteIdSchema('fyptP_Id')
     })
 };
 

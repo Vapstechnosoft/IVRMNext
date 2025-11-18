@@ -121,7 +121,10 @@ export const FEES_QUERY_KEYS = {
     FEE_CONCESSION_CATEGORY_GROUP__DROPDOWN: 'fee_concession_category_group_dropdown',
     FEE_CONCESSION_CATEGORY_HEADS__DROPDOWN: 'fee_concession_category_heads_dropdown',
     FEE_CONCESSION_CATEGORY_DROPDOWNDATADETAILS: 'fee_concession_category_dropdowndetails',
-    FEE_STUDENT_TRANSACTION: 'fee_student_transaction'
+    FEE_STUDENT_TRANSACTION: 'fee_student_transaction',
+    FEE_THIRDPARTY_STUDENTDROPDOWN: 'fee_thirdparty_studentdropdown',
+    FEE_THIRDPARTY_RECEIPTDATA: 'fee_thirdparty_receiptdata',
+    FEE_THIRDPARTY_EDITDATA: 'fee_thirdparty_editdata'
 };
 
 export const EXAM_QUERY_KEYS = {

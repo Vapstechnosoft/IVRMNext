@@ -11,7 +11,10 @@ import {
     getThirdPartyTrasaction,
     getThirdPartyTrasactionBankDropDown,
     getThirdPartyTrasactionGroupDropDown,
-    getThirdPartyTrasactionHeadDropDown
+    getThirdPartyTrasactionHeadDropDown,
+    getThirdPartyTrasactionStudentDropDown,
+    get_Receipt_number,
+    geteditThirdpartytrasaction
 } from '@/server/fees/trasactions/thirdPartyTrasaction';
 import type { ApiSearchparams } from '@/types';
 
@@ -196,5 +199,79 @@ export const useFeeTransactionList = (asmaY_Id: number, searchParams?: ApiSearch
             queryClient.invalidateQueries({
                 queryKey: [FEES_QUERY_KEYS.FEE_STUDENT_TRANSACTION]
             })
+    };
+};
+
+// export const useStudentdowndatathirdpartytransaction = (asmaY_Id: number) => {
+//     const queryClient = useQueryClient();
+
+//     return {
+//         ...useQuery({
+//             queryKey: [FEES_QUERY_KEYS.FEE_THIRDPARTY_STUDENTDROPDOWN],
+//             queryFn: async () => getThirdPartyTrasactionStudentDropDown(asmaY_Id),
+//             staleTime: 0
+//         }),
+//         refetchAll: () => {
+//             return queryClient.invalidateQueries({
+//                 queryKey: [FEES_QUERY_KEYS.FEE_THIRDPARTY_STUDENTDROPDOWN]
+//             });
+//         }
+//     };
+// };
+
+export const useStudentdowndatathirdpartytransaction = (asmaY_Id: number) => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [FEES_QUERY_KEYS.FEE_THIRDPARTY_STUDENTDROPDOWN],
+            queryFn: async () => getThirdPartyTrasactionStudentDropDown(asmaY_Id),
+
+            //enabled: !!asmaY_Id, // 🔥 only run when academic year selected
+            staleTime: 0
+        }),
+
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [FEES_QUERY_KEYS.FEE_THIRDPARTY_STUDENTDROPDOWN]
+            });
+        }
+    };
+};
+
+export const useget_Receipt_number = (searchParams?: ApiSearchparams) => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [FEES_QUERY_KEYS.FEE_THIRDPARTY_RECEIPTDATA, searchParams ?? {}],
+            queryFn: async () => get_Receipt_number(),
+            staleTime: 0
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [FEES_QUERY_KEYS.FEE_THIRDPARTY_RECEIPTDATA]
+            });
+        }
+    };
+};
+
+export const useeditThirdpartytrasaction = (mi_id: number, asmaY_Id: number, fyp_id: number, options?: { enabled?: boolean }) => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [FEES_QUERY_KEYS.FEE_THIRDPARTY_EDITDATA],
+            queryFn: async () => geteditThirdpartytrasaction(mi_id, asmaY_Id, fyp_id),
+            enabled: options?.enabled ?? !!fyp_id,
+            //enabled: !!asmaY_Id, // 🔥 only run when academic year selected
+            staleTime: 0
+        }),
+
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [FEES_QUERY_KEYS.FEE_THIRDPARTY_EDITDATA]
+            });
+        }
     };
 };

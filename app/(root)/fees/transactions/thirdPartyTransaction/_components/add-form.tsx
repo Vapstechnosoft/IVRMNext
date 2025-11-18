@@ -18,28 +18,28 @@ import type { z } from 'zod';
 
 import {
     useBankdropdowndatathirdpartytransaction,
-    useFeeAmountEntry,
+    useFeeThirdParty,
     useGroupdropdowndatathirdpartytransaction,
     useHeaddropdowndatathirdpartytransaction,
+    useStudentdowndatathirdpartytransaction,
     useacademicyerdropdowndatafee
 } from '@/hooks/fees/useTrasactions';
-import { thirdPartyTransactionSchema } from '@/schemas/fees/trasactions';
-import { addOrUpdateMasterfeehead } from '@/server/fees/masters/feehead';
 
 import { cn } from '@/lib/utils';
+import { thirdPartyTransactionSchema } from '@/schemas/fees/trasactions';
+import { get_Receipt_number, saveorUpdateThirdPartyTrasaction } from '@/server/fees/trasactions/thirdPartyTrasaction';
 
 type FormFields = z.infer<typeof thirdPartyTransactionSchema.addOrUpdate>;
 
 interface AddThirdPartyTransactionProps {
     onSuccess?: () => void;
-    headname?: string;
+    thirdparty?: string;
 }
 
-export default function AddThirdPartyTransactionForm({ onSuccess, headname = '' }: AddThirdPartyTransactionProps) {
-    const { refetchAll } = useFeeAmountEntry();
-    const [selectedPaymentMode, setSelectedPaymentMode] = useState<string>('');
-
-    const [students, setStudents] = useState<{ id: string; name: string }[]>([]);
+export default function AddThirdPartyTransactionForm({ onSuccess, thirdparty = '' }: AddThirdPartyTransactionProps) {
+    const { refetchAll } = useFeeThirdParty();
+    //const [selectedPaymentMode, setSelectedPaymentMode] = useState<string>("");
+    const [selectedPaymentMode, setSelectedPaymentMode] = useState<string>('B');
 
     const {
         control,
@@ -51,52 +51,106 @@ export default function AddThirdPartyTransactionForm({ onSuccess, headname = '' 
         formState: { errors, isSubmitting }
     } = useForm<FormFields>({
         resolver: zodResolver(thirdPartyTransactionSchema.addOrUpdate),
-        mode: 'onChange'
+        mode: 'onChange',
+        //     defaultValues: {
+        //   studentType: "other",
+        //   paymentMode: "B",
+        //},
+
+        defaultValues: {
+            studentType: 'other',
+            academicYearId: undefined,
+            studentId: undefined,
+            studentName: '',
+            groupId: undefined,
+            headId: undefined,
+            amount: undefined,
+            towards: '',
+            date: format(new Date(), 'yyyy-MM-dd'),
+            paymentMode: 'B',
+            bankId: undefined,
+            chequeDate: format(new Date(), 'yyyy-MM-dd'),
+            chequeNo: ''
+        }
     });
 
-    const studentType = watch('studentType');
+    const [receiptnumberdata, setReceiptnumberdata] = useState<any[] | null>(null);
+    const [receiptDataLoading, setReceiptDataLoading] = useState(true);
 
+    const studentType = watch('studentType');
     const watchAcademicYearId = watch('academicYearId');
 
-    const { data: academicYear, isLoading: academicYearLoading, error: academicYearError } = useacademicyerdropdowndatafee();
+    const { data: academicYear, isLoading: academicYearLoading } = useacademicyerdropdowndatafee();
 
-    const { data: groupData, isLoading: groupDataLoading, error: groupDataError } = useGroupdropdowndatathirdpartytransaction();
+    const { data: groupData, isLoading: groupDataLoading } = useGroupdropdowndatathirdpartytransaction();
 
-    const { data: headdata, isLoading: headDataLoading, error: headDataError } = useHeaddropdowndatathirdpartytransaction();
+    const { data: headdata, isLoading: headDataLoading } = useHeaddropdowndatathirdpartytransaction();
 
-    const { data: bankdata, isLoading: bankDataLoading, error: bankDataError } = useBankdropdowndatathirdpartytransaction();
+    const { data: bankdata } = useBankdropdowndatathirdpartytransaction();
+
+    async function fetchReceipt() {
+        const receiptnumberdata = await get_Receipt_number();
+        console.log('Receipt Number Data:', receiptnumberdata);
+    }
 
     useEffect(() => {
-        const fetchData = async () => {
-            if (watchAcademicYearId && studentType === 'student') {
-                try {
-                    const data = await fetchStudentsByAcademicYear(watchAcademicYearId.toString());
-                    setStudents(data);
-                    setValue('studentId', undefined); // reset dropdown
-                } catch (error) {
-                    console.error('Error fetching students:', error);
-                    setStudents([]);
-                }
-            } else {
-                setStudents([]);
-                setValue('studentId', undefined);
-            }
+        const fetchReceipt = async () => {
+            setReceiptDataLoading(true);
+
+            const response = await get_Receipt_number(); // returns ApiResponse<INumberGeneration[]>
+            setReceiptnumberdata(response?.data ?? []); // ✅ use the actual array
+            setReceiptDataLoading(false);
         };
 
-        fetchData();
-    }, [watchAcademicYearId, studentType, setValue]);
+        fetchReceipt();
+    }, []);
 
-    const fetchStudentsByAcademicYear = async (id: string) => {
-        // Placeholder function: replace with your API call
-        return [
-            { id: '1', name: 'John Doe' },
-            { id: '2', name: 'Jane Smith' }
-        ];
-    };
+    const {
+        data: studentdata,
+        isLoading: studentDataLoading,
+        error: studentDataError,
+        refetch: fetchStudents
+    } = useStudentdowndatathirdpartytransaction(Number(watchAcademicYearId || 0));
+
+    useEffect(() => {
+        if (watchAcademicYearId && studentType === 'student') {
+            fetchStudents(); // API CALL
+            setValue('studentName', undefined);
+        }
+    }, [watchAcademicYearId, studentType]);
 
     const onSubmit: SubmitHandler<FormFields> = async (data) => {
         try {
-            const response = await addOrUpdateMasterfeehead(data);
+            const bankName = bankdata?.data?.find((b) => b.fmbanK_Id === Number(data.bankId))?.fmbanK_BankName ?? '';
+
+            const payload = {
+                mI_Id: 30,
+                fyptP_Name: data.studentName,
+                asmaY_Id: Number(data.academicYearId),
+                fmG_Id: Number(data.groupId),
+                fmH_Id: Number(data.headId),
+                fyP_Receipt_No: '',
+
+                fyP_Bank_Name: bankName,
+
+                //fyptP_Name: data.towards, // "Name" or "Testing", depends on your field
+
+                fyP_Tot_Amount: Number(data.amount),
+
+                fyP_DD_Cheque_Date: data.chequeDate ? format(new Date(data.chequeDate), 'yyyy-MM-dd') : null,
+
+                fyP_DD_Cheque_No: data.chequeNo || '',
+                fyP_Date: data.date ? format(new Date(data.date), 'yyyy-MM-dd') : null,
+
+                fyP_Remarks: data.towards,
+                user_id: 21602,
+                FYP_Bank_Or_Cash: data.paymentMode
+            };
+
+            console.log('FINAL PAYLOAD:', payload);
+
+            const response = await saveorUpdateThirdPartyTrasaction(payload);
+
             if (response.success) {
                 toast.success(response.message);
                 reset();
@@ -116,7 +170,7 @@ export default function AddThirdPartyTransactionForm({ onSuccess, headname = '' 
     };
 
     return (
-        <div className={`${headname}`}>
+        <div className={`${thirdparty}`}>
             <form onSubmit={handleSubmit(onSubmit)} className='flex w-full flex-col items-center justify-center space-y-6'>
                 <div className='flex items-center justify-center space-x-6 rounded-lg border border-gray-300 bg-white px-4 py-2'>
                     <Controller
@@ -136,10 +190,7 @@ export default function AddThirdPartyTransactionForm({ onSuccess, headname = '' 
                                                 type='radio'
                                                 value={option.value}
                                                 checked={field.value === option.value}
-                                                onChange={() => {
-                                                    field.onChange(option.value);
-                                                    setSelectedPaymentMode(option.value);
-                                                }}
+                                                onChange={() => field.onChange(option.value)}
                                                 className='accent-primary'
                                             />
                                             <span>{option.label}</span>
@@ -151,31 +202,26 @@ export default function AddThirdPartyTransactionForm({ onSuccess, headname = '' 
                     />
                 </div>
 
-                {/* Academic Year */}
                 <div className='flex items-center gap-4'>
                     <Label className='min-w-[150px] text-right'>
-                        Academic Year:<span className='ml-1 text-red-500'>*</span>
+                        Academic Year <span className='text-red-500'>*</span>
                     </Label>
                     <Controller
                         name='academicYearId'
                         control={control}
                         render={({ field }) => (
-                            <Select onValueChange={(value) => field.onChange(Number(value))} value={field.value?.toString() || undefined}>
-                                <SelectTrigger className='min-w-[400px] text-center'>
+                            <Select onValueChange={(value) => field.onChange(Number(value))} value={field.value?.toString()}>
+                                <SelectTrigger className='min-w-[400px]'>
                                     <SelectValue placeholder='Select Academic Year' />
                                 </SelectTrigger>
                                 <SelectContent>
                                     {academicYearLoading ? (
                                         <SelectItem value='loading' disabled>
-                                            Loading....
-                                        </SelectItem>
-                                    ) : academicYearError ? (
-                                        <SelectItem value='error' disabled>
-                                            Error loading data
+                                            Loading...
                                         </SelectItem>
                                     ) : (
                                         academicYear?.data?.map((item) => (
-                                            <SelectItem key={item.asmaY_Id} value={item.asmaY_Id.toString()}>
+                                            <SelectItem key={item.asmaY_Id} value={String(item.asmaY_Id)}>
                                                 {item.asmaY_Year}
                                             </SelectItem>
                                         ))
@@ -187,28 +233,39 @@ export default function AddThirdPartyTransactionForm({ onSuccess, headname = '' 
                     {errors.academicYearId && <FormError>{errors.academicYearId.message}</FormError>}
                 </div>
 
-                {/* Student Selection / Input */}
                 {studentType && (
                     <div className='flex items-center gap-4'>
                         <Label className='min-w-[150px] text-right'>
                             {studentType === 'student' ? 'Select Student' : 'Student Name'}
-                            <span className='ml-1 text-red-500'>*</span>
+                            <span className='text-red-500'>*</span>
                         </Label>
 
                         {studentType === 'student' ? (
                             <Controller
-                                name='studentId'
+                                name='studentName'
                                 control={control}
                                 render={({ field }) => (
-                                    <Select onValueChange={(value) => field.onChange(value)} value={field.value?.toString() || undefined}>
-                                        <SelectTrigger className='min-w-[400px] text-center'>
-                                            <SelectValue placeholder='Select Student' />
+                                    <Select
+                                        disabled={!watchAcademicYearId}
+                                        // onValueChange={(value) => field.onChange(Number(value))}
+                                        // value={field.value?.toString()}
+                                        onValueChange={(value) => field.onChange(value)} // keep string
+                                        value={field.value ?? ''}>
+                                        <SelectTrigger className='min-w-[400px]'>
+                                            <SelectValue
+                                                placeholder={watchAcademicYearId ? 'Select Student' : 'Select Academic Year First'}
+                                            />
                                         </SelectTrigger>
+
                                         <SelectContent>
-                                            {students.length > 0 ? (
-                                                students.map((student) => (
-                                                    <SelectItem key={student.id} value={student.id}>
-                                                        {student.name}
+                                            {studentDataLoading ? (
+                                                <SelectItem value='loading' disabled>
+                                                    Loading students...
+                                                </SelectItem>
+                                            ) : studentdata ? (
+                                                studentdata.data?.map((std) => (
+                                                    <SelectItem key={std.amsT_Id} value={String(std.amsT_FirstName)}>
+                                                        {std.amsT_FirstName}
                                                     </SelectItem>
                                                 ))
                                             ) : (
@@ -224,11 +281,9 @@ export default function AddThirdPartyTransactionForm({ onSuccess, headname = '' 
                             <InputText
                                 id='studentName'
                                 placeholder='Enter Student Name'
-                                {...register('studentName', {
-                                    required: "Student name is required for 'Other'"
-                                })}
+                                {...register('studentName')}
                                 error={errors.studentName?.message}
-                                className='min-w-[400px] transition-colors focus:ring-2 focus:ring-primary/20'
+                                className='min-w-[400px]'
                             />
                         )}
                     </div>
@@ -236,29 +291,25 @@ export default function AddThirdPartyTransactionForm({ onSuccess, headname = '' 
 
                 <div className='flex items-center gap-4'>
                     <Label className='min-w-[150px] text-right'>
-                        Group Name:<span className='ml-1 text-red-500'>*</span>
+                        Group Name <span className='text-red-500'>*</span>
                     </Label>
                     <Controller
                         name='groupId'
                         control={control}
                         render={({ field }) => (
-                            <Select onValueChange={(value) => field.onChange(Number(value))} value={field.value?.toString() || undefined}>
-                                <SelectTrigger className='min-w-[400px] text-center'>
+                            <Select onValueChange={(value) => field.onChange(Number(value))} value={field.value?.toString()}>
+                                <SelectTrigger className='min-w-[400px]'>
                                     <SelectValue placeholder='Select Group' />
                                 </SelectTrigger>
                                 <SelectContent>
                                     {groupDataLoading ? (
                                         <SelectItem value='loading' disabled>
-                                            Loading....
-                                        </SelectItem>
-                                    ) : groupDataError ? (
-                                        <SelectItem value='error' disabled>
-                                            Error loading data
+                                            Loading...
                                         </SelectItem>
                                     ) : (
-                                        groupData?.data?.map((item) => (
-                                            <SelectItem key={item.fmG_Id} value={item.fmG_Id.toString()}>
-                                                {item.fmG_GroupName}
+                                        groupData?.data?.map((g) => (
+                                            <SelectItem key={g.fmG_Id} value={String(g.fmG_Id)}>
+                                                {g.fmG_GroupName}
                                             </SelectItem>
                                         ))
                                     )}
@@ -271,29 +322,25 @@ export default function AddThirdPartyTransactionForm({ onSuccess, headname = '' 
 
                 <div className='flex items-center gap-4'>
                     <Label className='min-w-[150px] text-right'>
-                        Head Name:<span className='ml-1 text-red-500'>*</span>
+                        Head Name <span className='text-red-500'>*</span>
                     </Label>
                     <Controller
                         name='headId'
                         control={control}
                         render={({ field }) => (
-                            <Select onValueChange={(value) => field.onChange(Number(value))} value={field.value?.toString() || undefined}>
-                                <SelectTrigger className='min-w-[400px] text-center'>
+                            <Select onValueChange={(value) => field.onChange(Number(value))} value={field.value?.toString()}>
+                                <SelectTrigger className='min-w-[400px]'>
                                     <SelectValue placeholder='Select Head' />
                                 </SelectTrigger>
                                 <SelectContent>
                                     {headDataLoading ? (
                                         <SelectItem value='loading' disabled>
-                                            Loading....
-                                        </SelectItem>
-                                    ) : headDataError ? (
-                                        <SelectItem value='error' disabled>
-                                            Error loading data
+                                            Loading...
                                         </SelectItem>
                                     ) : (
-                                        headdata?.data?.map((item) => (
-                                            <SelectItem key={item.fmH_Id} value={item.fmH_Id.toString()}>
-                                                {item.fmH_FeeName}
+                                        headdata?.data?.map((h) => (
+                                            <SelectItem key={h.fmH_Id} value={String(h.fmH_Id)}>
+                                                {h.fmH_FeeName}
                                             </SelectItem>
                                         ))
                                     )}
@@ -304,7 +351,23 @@ export default function AddThirdPartyTransactionForm({ onSuccess, headname = '' 
                     {errors.headId && <FormError>{errors.headId.message}</FormError>}
                 </div>
 
-                {/* Amount */}
+                <div className='flex items-center gap-4'>
+                    {!receiptDataLoading && (!receiptnumberdata || receiptnumberdata.length === 0) && (
+                        <div className='flex items-center gap-4'>
+                            <Label htmlFor='receiptNo' className='min-w-[150px] text-right'>
+                                Receipt No <span className='text-red-500'>*</span>
+                            </Label>
+                            <InputText
+                                id='receiptNo'
+                                {...register('fyP_Receipt_No')}
+                                placeholder='Enter Receipt No'
+                                error={errors.fyP_Receipt_No?.message}
+                                className='min-w-[400px]'
+                            />
+                        </div>
+                    )}
+                </div>
+
                 <div className='flex items-center gap-4'>
                     <Label htmlFor='amount' className='min-w-[150px] text-right'>
                         Amount <span className='text-red-500'>*</span>
@@ -317,31 +380,19 @@ export default function AddThirdPartyTransactionForm({ onSuccess, headname = '' 
                                 id='amount'
                                 value={field.value ?? 0}
                                 onChange={(value) => field.onChange(Number(value))}
-                                onBlur={field.onBlur}
-                                className='transition-colors focus:ring-2 focus:ring-primary/20'
                                 error={errors.amount?.message}
                             />
                         )}
                     />
+                    {errors.amount && <FormError>{errors.amount.message}</FormError>}
                 </div>
 
-                {/* Towards */}
                 <div className='flex items-center gap-4'>
-                    <Label htmlFor='towards' className='min-w-[150px] text-right'>
-                        Towards <span className='text-red-500'>*</span>
-                    </Label>
-                    <InputText
-                        required
-                        id='towards'
-                        {...register('towards')}
-                        error={errors.towards?.message}
-                        className='transition-colors focus:ring-2 focus:ring-primary/20'
-                    />
+                    <Label className='min-w-[150px] text-right'>Towards</Label>
+                    <InputText {...register('towards')} error={errors.towards?.message} className='min-w-[400px]' />
                 </div>
 
-                {/* Payment Mode */}
                 <div className='flex items-center justify-center space-x-6 rounded-lg border border-gray-300 bg-white px-4 py-2'>
-                    {/* <Label className="min-w-[150px] text-right">Payment Mode</Label> */}
                     <Controller
                         control={control}
                         name='paymentMode'
@@ -376,51 +427,41 @@ export default function AddThirdPartyTransactionForm({ onSuccess, headname = '' 
                     />
                 </div>
 
-                {/* Conditional Fields */}
                 {(selectedPaymentMode === 'B' || selectedPaymentMode === 'R') && (
                     <>
+                        {/* Bank Name */}
                         <div className='flex items-center gap-4'>
                             <Label className='min-w-[150px] text-right'>
-                                Bank Name:<span className='ml-1 text-red-500'>*</span>
+                                Bank Name <span className='text-red-500'>*</span>
                             </Label>
+
                             <Controller
                                 name='bankId'
                                 control={control}
                                 render={({ field }) => (
-                                    <Select
-                                        onValueChange={(value) => field.onChange(Number(value))}
-                                        value={field.value?.toString() || undefined}>
-                                        <SelectTrigger className='min-w-[400px] text-center'>
+                                    <Select onValueChange={(value) => field.onChange(Number(value))} value={field.value?.toString()}>
+                                        <SelectTrigger className='min-w-[400px]'>
                                             <SelectValue placeholder='Select Bank' />
                                         </SelectTrigger>
+
                                         <SelectContent>
-                                            {bankDataError ? (
-                                                <SelectItem value='loading' disabled>
-                                                    Loading....
+                                            {bankdata?.data?.map((b) => (
+                                                <SelectItem key={b.fmbanK_Id} value={String(b.fmbanK_Id)}>
+                                                    {b.fmbanK_BankName}
                                                 </SelectItem>
-                                            ) : bankDataError ? (
-                                                <SelectItem value='error' disabled>
-                                                    Error loading data
-                                                </SelectItem>
-                                            ) : (
-                                                bankdata?.data?.map((item) => (
-                                                    <SelectItem key={item.fmbanK_Id} value={item.fmbanK_Id.toString()}>
-                                                        {item.fmbanK_BankName}
-                                                    </SelectItem>
-                                                ))
-                                            )}
+                                            ))}
                                         </SelectContent>
                                     </Select>
                                 )}
                             />
-                            {errors.bankId && <FormError>{errors.bankId.message}</FormError>}
                         </div>
 
                         {/* Cheque Date */}
                         <div className='flex items-center gap-4'>
-                            <Label className='min-w-[150px] text-left'>
+                            <Label className='min-w-[150px] text-right'>
                                 Cheque Date <span className='text-red-500'>*</span>
                             </Label>
+
                             <Controller
                                 name='chequeDate'
                                 control={control}
@@ -435,40 +476,36 @@ export default function AddThirdPartyTransactionForm({ onSuccess, headname = '' 
                                                     variant='outline'
                                                     className={cn(
                                                         'justify-start text-left font-normal',
-                                                        !field.value && 'text-muted-foreground',
                                                         errors.chequeDate ? 'border-red-500' : ''
                                                     )}>
                                                     <Calendar className='mr-2 h-4 w-4' />
-                                                    {field.value
-                                                        ? format(selectedDate, 'dd/MM/yyyy')
-                                                        : format(new Date(), 'dd/MM/yyyy')}{' '}
+                                                    {format(selectedDate, 'dd/MM/yyyy')}
                                                 </Button>
                                             </PopoverTrigger>
-                                            <PopoverContent className='z-50 w-auto p-0' align='start'>
+                                            <PopoverContent className='w-auto p-0'>
                                                 <CalendarPicker
                                                     mode='single'
                                                     selected={selectedDate}
                                                     onSelect={(d) => field.onChange(d ? format(d, 'yyyy-MM-dd') : '')}
-                                                    initialFocus
                                                 />
                                             </PopoverContent>
                                         </Popover>
                                     );
                                 }}
                             />
-                            {errors.chequeDate && <FormError>{errors.chequeDate.message}</FormError>}
                         </div>
 
                         {/* Cheque No */}
                         <div className='flex items-center gap-4'>
-                            <Label htmlFor='chequeNo' className='font-medium'>
+                            <Label className='min-w-[150px] text-right'>
                                 Cheque No <span className='text-red-500'>*</span>
                             </Label>
-                            <InputText id='chequeNo' {...register('chequeNo')} error={errors.chequeNo?.message} />
+                            <InputText {...register('chequeNo')} error={errors.chequeNo?.message} />
                         </div>
                     </>
                 )}
 
+                {/* ---------------- CARD PAYMENT ---------------- */}
                 {selectedPaymentMode === 'S' && (
                     <>
                         {/* Transaction Date */}
@@ -476,6 +513,7 @@ export default function AddThirdPartyTransactionForm({ onSuccess, headname = '' 
                             <Label className='min-w-[150px] text-right'>
                                 Transaction Date <span className='text-red-500'>*</span>
                             </Label>
+
                             <Controller
                                 name='date'
                                 control={control}
@@ -485,53 +523,37 @@ export default function AddThirdPartyTransactionForm({ onSuccess, headname = '' 
                                     return (
                                         <Popover>
                                             <PopoverTrigger asChild>
-                                                <Button
-                                                    type='button'
-                                                    variant='outline'
-                                                    className={cn(
-                                                        'justify-start text-left font-normal',
-                                                        !field.value && 'text-muted-foreground',
-                                                        errors.date ? 'border-red-500' : ''
-                                                    )}>
+                                                <Button type='button' variant='outline'>
                                                     <Calendar className='mr-2 h-4 w-4' />
-                                                    {field.value
-                                                        ? format(selectedDate, 'dd/MM/yyyy')
-                                                        : format(new Date(), 'dd/MM/yyyy')}{' '}
+                                                    {format(selectedDate, 'dd/MM/yyyy')}
                                                 </Button>
                                             </PopoverTrigger>
-                                            <PopoverContent className='z-50 w-auto p-0' align='start'>
+                                            <PopoverContent className='w-auto p-0'>
                                                 <CalendarPicker
                                                     mode='single'
                                                     selected={selectedDate}
                                                     onSelect={(d) => field.onChange(d ? format(d, 'yyyy-MM-dd') : '')}
-                                                    initialFocus
                                                 />
                                             </PopoverContent>
                                         </Popover>
                                     );
                                 }}
                             />
-                            {errors.date && <FormError>{errors.date.message}</FormError>}
                         </div>
 
-                        {/* Card Number */}
+                        {/* Card No */}
                         <div className='flex items-center gap-4'>
-                            <Label htmlFor='cardNo' className='font-medium'>
+                            <Label className='min-w-[150px] text-right'>
                                 Card No <span className='text-red-500'>*</span>
                             </Label>
-                            <InputText
-                                id='cardNo'
-                                {...register('chequeNo')}
-                                placeholder='Enter Card Number'
-                                error={errors.chequeNo?.message}
-                            />
+                            <InputText {...register('chequeNo')} placeholder='Enter Card Number' error={errors.chequeNo?.message} />
                         </div>
                     </>
                 )}
 
-                {/* Buttons */}
+                {/* ---------------- BUTTONS ---------------- */}
                 <div className='flex gap-3 border-t pt-4'>
-                    <Button type='button' variant='outline' onClick={handleReset}>
+                    <Button variant='outline' onClick={handleReset} type='button'>
                         Reset
                     </Button>
                     <Button type='submit' disabled={isSubmitting}>
