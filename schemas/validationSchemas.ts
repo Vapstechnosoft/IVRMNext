@@ -105,7 +105,7 @@ export function createCustomStringSchema(field: string, min: number, max: number
             message: `${field} cannot have leading or trailing spaces`
         })
         .refine((val) => /^[A-Za-z0-9][A-Za-z0-9\s!@#$%^&*(),.?":{}|<>-]*$/.test(val), {
-            message: 'Grade Name should not start with a special character'
+            message: `${field} should not start with a special character`
         })
-        .refine((val) => !/^[0-9]+$/.test(val), { message: 'Grade Name cannot be only numbers' });
+        .refine((val) => !/^[0-9]+$/.test(val), { message: `${field} cannot be only numbers` });
 }
