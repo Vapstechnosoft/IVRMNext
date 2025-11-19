@@ -30,14 +30,17 @@ import { ExamSubjectWizardSchema, SubSubjectSubExamSchema } from '@/schemas/exam
 import { getCategoryDropDownByAcademicYearlist } from '@/server/exam/exam-module/exam-mapping/exam-subject-group-mapping';
 import {
     addOrUpdateExamSubjectWizard,
+    getSubExamsMappedList,
     getSubSubjectSubExamList,
+    getSubSubjectsAndSubExamsMappedList,
+    getSubSubjectsMappedList,
     getSubjectsByCategory
 } from '@/server/exam/exam-module/exam-mapping/exam-subject-wizard';
 import { getExamsByCategoryandAcademicYear } from '@/server/exam/exam-module/masters/exam';
 import { getMasterSubExamDropdownList } from '@/server/exam/exam-module/masters/sub-exam';
 import { getMasterSubSubjectDropdownList } from '@/server/exam/exam-module/masters/sus-subject';
 import type { IAcademicYearDropDown } from '@/types/admission/preadmission/masters';
-import type { IExamSubjectWizard } from '@/types/exam/exam-module/exam-mapping';
+import type { IExamSubjectWizard, IExamSubjectWizardDetails } from '@/types/exam/exam-module/exam-mapping';
 import type { ICategory, IMasterGrade } from '@/types/exam/exam-module/masters';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useEffect, useState } from 'react';

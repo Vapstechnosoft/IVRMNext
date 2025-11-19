@@ -258,19 +258,28 @@ export default function AddCategoryClassForm({ onSuccess, initialData }: AddCate
                 return;
             }
 
-            // Prepare payload: server may expect a list. Adjust to your API shape if needed.
-            const payload = mappingList.map((m) => ({
-                ...m,
-                section_list: m.section_list.map((s) => ({ asmS_Id: Number(s.asmS_Id) }))
-            }));
+            // FINAL PAYLOAD IN REQUIRED FORMAT
+            const payload = {
+                MI_Id: 30,
+                ECAC_Id: 0, // always 0 as per your requirement
+                YearClassCategory: mappingList.map((m) => ({
+                    ASMAY_Id: Number(m.asmaY_Id),
+                    ASMCL_Id: Number(m.asmcL_Id),
+                    EMCA_Id: Number(m.emcA_Id),
+                    sections: m.section_list.map((s) => ({
+                        ASMS_Id: Number(s.asmS_Id)
+                    }))
+                }))
+            };
 
-            const res = await addOrUpdateCategoryClassMapping({ list: payload });
+            console.log('FINAL PAYLOAD → ', payload);
+
+            const res = await addOrUpdateCategoryClassMapping(payload);
+
             if (res?.success) {
                 toast.success(res.message || 'Saved successfully');
                 refetchAll();
                 onSuccess?.();
-                // optional: clear local list after successful save
-                // setMappingList([]);
             } else {
                 toast.error(res?.message || 'Failed to save mappings');
             }
@@ -278,6 +287,7 @@ export default function AddCategoryClassForm({ onSuccess, initialData }: AddCate
             toast.error(err?.message || 'Failed to save mapping');
         }
     };
+
     const scrollToBottom = () => {
         if (tableRef.current) {
             tableRef.current.scrollTop = tableRef.current.scrollHeight;
