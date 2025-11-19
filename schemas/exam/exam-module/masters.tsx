@@ -13,8 +13,8 @@ export const masterSubjectSchema = {
             mI_Id: z.number().int({ message: 'MI ID is required' }).optional(),
             ismS_IVRSSubjectName: createCustomStringSchema('IVRS Subject Name', 1, 100),
             ismS_SubjectCode: createStringSchema('Subject Code', 1, 50),
-            ismS_SubjectNameNew: createStringSchema('Subject Type / New Name', 1, 50),
-            ismS_SubjectName: createStringSchema('Subject Name', 1, 50),
+            ismS_SubjectNameNew: createCustomStringSchema('Subject Type / New Name', 1, 50),
+            ismS_SubjectName: createCustomStringSchema('Subject Name', 1, 50),
             ismS_Min_Marks: z
                 .number({ invalid_type_error: 'Min Marks is required' })
                 .min(1, { message: 'Min Marks should be greater than 0' })

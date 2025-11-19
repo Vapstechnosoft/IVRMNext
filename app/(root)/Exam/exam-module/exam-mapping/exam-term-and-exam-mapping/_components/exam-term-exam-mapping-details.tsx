@@ -21,10 +21,12 @@ export default function ExamTermAndExamMappingDetailsPage({ rowData, onClose }: 
     const {
         data: response,
         error,
-        isLoading
+        isLoading,
+        refetchAll
     } = useExamTermAndExamMappingDetails(30, rowData?.asmaY_Id ?? 0, rowData?.emcA_Id ?? 0, rowData?.ecT_Id ?? 0);
 
     useEffect(() => {
+        refetchAll();
         if (response) {
             if (response.success && Array.isArray(response.data)) {
                 setDetails(response.data);
@@ -33,7 +35,7 @@ export default function ExamTermAndExamMappingDetailsPage({ rowData, onClose }: 
                 toast.error(response.message || 'No data found');
             }
         }
-    }, [response]);
+    }, [response, rowData.asmaY_Id, rowData.emcA_Id, rowData.ecT_Id]);
 
     useEffect(() => {
         if (error) {

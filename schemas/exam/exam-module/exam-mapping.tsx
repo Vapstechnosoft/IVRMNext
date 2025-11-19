@@ -408,9 +408,9 @@ export const ExamSubjectWizardSchema = {
             EYCE_BestOf: z.number().int().min(0).optional(),
 
             exams_list: z.array(ExamItemSchema).optional().default([]),
-            yearly_category_exam_subjects: z
-                .array(YearlyCategoryExamSubjectSchema)
-                .min(1, { message: 'At least one yearly_category_exam_subjects is required' }),
+            // yearly_category_exam_subjects: z
+            //     .array(YearlyCategoryExamSubjectSchema)
+            //     .min(1, { message: 'At least one yearly_category_exam_subjects is required' }),
 
             exm_subject_subexams_list: z.array(ExmSubSubjectExamWrapperSchema).optional().default([]),
             exm_subject_subsubjects_list: z.array(ExmSubSubjectWrapperSchema).optional().default([]),

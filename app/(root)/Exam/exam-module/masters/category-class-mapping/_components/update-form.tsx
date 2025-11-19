@@ -12,30 +12,27 @@ import {
     getClassMappedSections,
     getClasses
 } from '@/server/exam/exam-module/masters/category-class-mapping';
-import type { IAcademicYearDropDown } from '@/types/admission/preadmission/masters';
-import type { IAcademicYear, ICategory, ICategoryMapping, IClass } from '@/types/exam/exam-module/masters';
+import type { ICategoryMapping } from '@/types/exam/exam-module/masters';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { RotateCcw, Save } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { Edit, Save, Trash2, X } from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
 import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import type { z } from 'zod';
 
 type FormFields = z.infer<typeof categoryClassMappingSchema.addOrUpdate>;
 
-interface UpdateCategoryClassFormProps {
-    selectedRow: ICategoryMapping;
+type AcademicYear = { asmaY_Id: number | string; asmaY_Year: string };
+type Category = { emcA_Id: number; emcA_CategoryName: string };
+type ClassItem = { asmcL_Id: number; asmcL_ClassName: string };
+type SectionItem = { asmS_Id: number; asmC_SectionName: string };
+
+interface Props {
+    selectedRow: ICategoryMapping | null;
     onSuccess?: () => void;
 }
 
-export default function UpdateCategoryClassForm({ selectedRow, onSuccess }: UpdateCategoryClassFormProps) {
-    const [academicYears, setAcademicYears] = useState<IAcademicYear[]>([]);
-    const [categories, setCategories] = useState<ICategory[]>([]);
-    const [classes, setClasses] = useState<IClass[]>([]);
-    const [sections, setSections] = useState<{ asmS_Id: number; asmC_SectionName: string }[]>([]);
-    const [initialSections, setInitialSections] = useState<{ asmS_Id: number; asmC_SectionName: string }[]>([]);
-    const [loadingSections, setLoadingSections] = useState(false);
-    const { data: academicData, isLoading: loadingAcademic, error: academicError } = useAcademicYearDropdown();
+export default function UpdateCategoryClassForm({ selectedRow, onSuccess }: Props) {
     const {
         control,
         handleSubmit,
@@ -48,269 +45,594 @@ export default function UpdateCategoryClassForm({ selectedRow, onSuccess }: Upda
         defaultValues: {
             mI_Id: 30,
             ecaC_Id: selectedRow?.ecaC_Id ?? 0,
-            asmaY_Id: selectedRow?.asmaY_Id ?? 0,
+            asmaY_Id: selectedRow?.asmaY_Id ?? undefined,
             emcA_Id: selectedRow?.emcA_Id ?? 0,
-            asmcL_Id: selectedRow?.asmcL_Id ?? 0,
+            asmcL_Id: 409,
             section_list: []
-        }
+        } as any
     });
+
+    const [academicYears, setAcademicYears] = useState<AcademicYear[]>([]);
+    const [categories, setCategories] = useState<Category[]>([]);
+    const [classes, setClasses] = useState<ClassItem[]>([]);
+    const [sections, setSections] = useState<SectionItem[]>([]);
+    const [loadingSections, setLoadingSections] = useState(false);
+
+    // Local mapping list (table) and edit state
+    const [mappingList, setMappingList] = useState<
+        {
+            asmaY_Id: number;
+            emcA_Id: number;
+            asmcL_Id: number;
+            section_list: SectionItem[];
+        }[]
+    >([]);
+    const [editIndex, setEditIndex] = useState<number | null>(null);
+    const tableRef = useRef<HTMLDivElement | null>(null);
 
     const watchedYear = watch('asmaY_Id');
     const watchedCategory = watch('emcA_Id');
     const watchedClass = watch('asmcL_Id');
 
+    //Initialize the form with selectedrowValues
     useEffect(() => {
-        // Academic Years
-        if (academicError) {
-            toast.error(academicError.message || 'Error fetching academic years');
+        setValue('asmaY_Id', selectedRow?.asmaY_Id ?? 0);
+        setValue('emcA_Id', selectedRow?.emcA_Id ?? 0);
+        //setValue('asmcL_Id', selectedRow?.asmcL_Id ?? 0);
+        console.log(classes, categories, academicYears);
+        console.log(
+            selectedRow?.asmaY_Id,
+            selectedRow?.emcA_Id,
+            selectedRow?.asmcL_Id,
+            classes.length,
+            categories.length,
+            academicYears.length
+        );
+    }, [selectedRow, classes.length, categories.length, academicYears.length]);
+
+    // Academic years hook
+    const { data: acadData, error: acadError } = useAcademicYearDropdown();
+    useEffect(() => {
+        if (acadError) {
+            toast.error(acadError.message || 'Failed to load academic years');
             setAcademicYears([]);
-        } else if (academicData?.data && Array.isArray(academicData.data)) {
-            const formattedYears: IAcademicYearDropDown[] = academicData.data.map((item: any) => ({
-                asmaY_Id: item.asmaY_Id?.toString() ?? '',
-                asmaY_Year: item.asmaY_Year ?? '',
-                asmaY_Order: item.asmaY_Order ?? 0
+        } else if (acadData?.data && Array.isArray(acadData.data)) {
+            const formatted = acadData.data.map((y: any) => ({
+                asmaY_Id: y.asmaY_Id,
+                asmaY_Year: y.asmaY_Year
             }));
-            setAcademicYears(formattedYears);
+            setAcademicYears(formatted);
         } else {
             setAcademicYears([]);
         }
-    }, [academicData, academicError]);
+    }, [acadData, acadError]);
 
-    // Reset form when new row selected
+    // Load categories & classes
     useEffect(() => {
-        if (selectedRow) {
-            reset({
-                mI_Id: 30,
-                ecaC_Id: selectedRow.ecaC_Id ?? 0,
-                asmaY_Id: selectedRow.asmaY_Id ?? 0,
-                emcA_Id: selectedRow.emcA_Id ?? 0,
-                asmcL_Id: selectedRow.asmcL_Id ?? 0,
-                section_list: []
-            });
-        }
-    }, [selectedRow, reset]);
-
-    // Fetch dropdowns
-    useEffect(() => {
-        async function fetchDropdowns() {
+        let mounted = true;
+        (async () => {
             try {
                 const { data: cats } = await getCategories();
                 const { data: cls } = await getClasses();
+                if (!mounted) return;
                 setCategories(Array.isArray(cats) ? cats : []);
                 setClasses(Array.isArray(cls) ? cls : []);
             } catch (err: any) {
-                toast.error(err.message || 'Failed to load dropdowns');
+                toast.error(err?.message || 'Failed to load categories/classes');
+                setCategories([]);
+                setClasses([]);
             }
-        }
-        fetchDropdowns();
+        })();
+        return () => {
+            mounted = false;
+        };
     }, []);
 
-    // Fetch and preselect mapped sections
+    // Helper to fetch class mapped sections
+    const fetchClassSections = async (asmaY_Id: number | string, asmcL_Id: number) => {
+        try {
+            const res = await getClassMappedSections(Number(asmaY_Id), Number(asmcL_Id));
+            const data = Array.isArray(res) ? res : Array.isArray(res?.data) ? res.data : [];
+            return data.map((s: any) => ({
+                asmS_Id: Number(s.asmS_Id),
+                asmC_SectionName: s.asmC_SectionName ?? String(s.asmS_Id)
+            })) as SectionItem[];
+        } catch {
+            return [] as SectionItem[];
+        }
+    };
+
+    // Initialize from selectedRow (only when it changes) - fetch both class sections & category mapped sections
     useEffect(() => {
-        async function fetchMappedSections() {
-            if (watchedYear && watchedCategory && watchedClass) {
-                try {
-                    setLoadingSections(true);
+        let mounted = true;
+        const loadInitialRow = async () => {
+            if (!selectedRow) {
+                setMappingList([]);
+                return;
+            }
 
-                    const classMappedRes = await getClassMappedSections(watchedYear, watchedClass);
-                    const classMapped = Array.isArray(classMappedRes)
-                        ? classMappedRes
-                        : Array.isArray(classMappedRes?.data)
-                          ? classMappedRes.data
-                          : [];
+            try {
+                // Prefill basic fields (these fields will be disabled in UI)
+                setValue('asmaY_Id', selectedRow.asmaY_Id);
+                setValue('emcA_Id', selectedRow.emcA_Id);
+                // Wait for classes to load below to set class value (we also set it here; effect below will verify existence)
+                //setValue('asmcL_Id', selectedRow.asmcL_Id);
 
-                    const categoryMappedRes = await getCategoryMappedSections(watchedYear, watchedCategory, watchedClass);
-                    const categoryMapped = Array.isArray(categoryMappedRes)
-                        ? categoryMappedRes
-                        : Array.isArray(categoryMappedRes?.data)
-                          ? categoryMappedRes.data
-                          : [];
+                // fetch all class sections (options)
+                const classSectionsRes = await getClassMappedSections(selectedRow.asmaY_Id, selectedRow.asmcL_Id);
+                const classSections = Array.isArray(classSectionsRes)
+                    ? classSectionsRes
+                    : Array.isArray(classSectionsRes?.data)
+                      ? classSectionsRes.data
+                      : [];
 
-                    setSections(classMapped);
+                // fetch category mapped sections (the server mapping for the given year+category+class)
+                const catMappedRes = await getCategoryMappedSections(selectedRow.asmaY_Id, selectedRow.emcA_Id, selectedRow.asmcL_Id);
+                const catMapped = Array.isArray(catMappedRes) ? catMappedRes : Array.isArray(catMappedRes?.data) ? catMappedRes.data : [];
 
-                    if (categoryMapped.length > 0) {
-                        const selected = classMapped.filter((s) => categoryMapped.some((sel) => sel.asmS_Id === s.asmS_Id));
-                        setValue('section_list', selected);
-                        setInitialSections(selected); // store original sections for reset
-                    } else {
-                        setValue('section_list', []);
-                        setInitialSections([]);
+                // build section objects for form and mappingList rows
+                const sectionOptions: SectionItem[] = classSections.map((s: any) => ({
+                    asmS_Id: Number(s.asmS_Id),
+                    asmC_SectionName: s.asmC_SectionName ?? String(s.asmS_Id)
+                }));
+
+                // selected sections based on categoryMapped list (by asmS_Id)
+                const selectedSections: SectionItem[] =
+                    Array.isArray(catMapped) && catMapped.length
+                        ? sectionOptions.filter((s) => catMapped.some((cm: any) => Number(cm.asmS_Id) === Number(s.asmS_Id)))
+                        : [];
+
+                if (!mounted) return;
+
+                setSections(sectionOptions);
+                // set into form so the multi-select will show checked values
+                setValue('section_list', selectedSections);
+
+                // mappingList initial row (use selectedSections)
+                setMappingList([
+                    {
+                        asmaY_Id: selectedRow.asmaY_Id,
+                        emcA_Id: selectedRow.emcA_Id,
+                        asmcL_Id: selectedRow.asmcL_Id,
+                        section_list: selectedSections
                     }
-                } catch (err: any) {
-                    toast.error(err.message || 'Failed to load sections');
-                } finally {
-                    setLoadingSections(false);
-                }
-            } else {
+                ]);
+
+                // mark initial editing row
+                setEditIndex(0);
+            } catch (err: any) {
+                toast.error(err?.message || 'Failed to load mapping details');
+                setMappingList([]);
+            }
+        };
+
+        loadInitialRow();
+        return () => {
+            mounted = false;
+        };
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [selectedRow]);
+
+    // When class selection changes, load sections for that class (for multi-select options)
+    useEffect(() => {
+        let active = true;
+        const load = async () => {
+            if (!watchedYear || !watchedClass) {
                 setSections([]);
                 setValue('section_list', []);
-                setInitialSections([]);
+                return;
+            }
+
+            setLoadingSections(true);
+            try {
+                const sec = await fetchClassSections(watchedYear, Number(watchedClass));
+                if (!active) return;
+                setSections(sec);
+
+                // keep only selected secs that still exist in options
+                const current = watch('section_list') ?? [];
+                const currentIds = Array.isArray(current) ? current.map((c: any) => Number(c.asmS_Id)) : [];
+                const keep = sec.filter((s) => currentIds.includes(Number(s.asmS_Id)));
+                if (keep.length) {
+                    setValue('section_list', keep);
+                } else {
+                    // do not auto-clear if user wants empty selection — but for safety we set to []
+                    setValue('section_list', []);
+                }
+            } catch {
+                setSections([]);
+                setValue('section_list', []);
+                //setValue('asmcL_Id', selectedRow?.asmcL_Id ?? 0);
+            } finally {
+                if (active) setLoadingSections(false);
+            }
+        };
+
+        load();
+        return () => {
+            active = false;
+        };
+    }, [watchedYear, watchedClass, setValue, watch]);
+
+    // When classes array becomes available, ensure we keep selectedRow class preselected (if valid)
+    useEffect(() => {
+        if (!Array.isArray(classes) || classes.length === 0) return;
+
+        // If selectedRow exists and its class is present in classes, set it in form (this ensures preselect after classes load)
+        if (selectedRow?.asmcL_Id) {
+            const exists = classes.some((c) => Number(c.asmcL_Id) === Number(selectedRow.asmcL_Id));
+            if (exists) {
+                //setValue('asmcL_Id', Number(selectedRow.asmcL_Id));
             }
         }
 
-        fetchMappedSections();
-    }, [watchedYear, watchedCategory, watchedClass, setValue]);
+        // Ensure current form value corresponds to an available class — otherwise reset to 0 to show placeholder
+        const current = watch('asmcL_Id');
+        const hasCurrent = classes.some((c) => Number(c.asmcL_Id) === Number(current));
+        if (!hasCurrent) {
+            //setValue('asmcL_Id', 0);
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [classes]);
+    useEffect(() => {
+        if (!watchedYear || !watchedCategory || !watchedClass) {
+            return;
+        }
 
-    // ✅ Reset Handler (sets back previous row data)
-    const handleReset = async () => {
-        if (!selectedRow) return;
+        // find mapping in local list
+        const found = mappingList.find(
+            (m) =>
+                Number(m.asmaY_Id) === Number(watchedYear) &&
+                Number(m.emcA_Id) === Number(watchedCategory) &&
+                Number(m.asmcL_Id) === Number(watchedClass)
+        );
 
-        reset({
-            mI_Id: 30,
-            ecaC_Id: selectedRow.ecaC_Id ?? 0,
-            asmaY_Id: selectedRow.asmaY_Id ?? 0,
-            emcA_Id: selectedRow.emcA_Id ?? 0,
-            asmcL_Id: selectedRow.asmcL_Id ?? 0,
-            section_list: initialSections
-        });
+        if (found) {
+            // convert to actual section objects available in `sections` so CustomMultiSelectBox value mapping works
+            const selected = sections.filter((s) => found.section_list.some((sel) => sel.asmS_Id === s.asmS_Id));
+            setValue(
+                'section_list',
+                selected.map((s) => ({ asmS_Id: s.asmS_Id }))
+            );
+        } else {
+            // No saved mapping in local list: clear selected sections (keeps sections options)
+            setValue('section_list', []);
+        }
+    }, [watchedYear, watchedCategory, watchedClass, mappingList, sections, setValue]);
 
-        toast.info('Form reset to previous data');
+    // Add or update mapping row
+    const handleAddOrUpdate = () => {
+        const year = Number(watch('asmaY_Id') ?? 0);
+        const cat = Number(watch('emcA_Id') ?? 0);
+        const cls = Number(watch('asmcL_Id') ?? 0);
+        const secs = (watch('section_list') ?? []) as SectionItem[];
+
+        if (!year || !cat || !cls || !Array.isArray(secs) || secs.length === 0) {
+            toast.error('All fields are required to add a mapping');
+            return;
+        }
+
+        const newEntry = {
+            asmaY_Id: year,
+            emcA_Id: cat,
+            asmcL_Id: cls,
+            section_list: secs.map((s) => ({
+                asmS_Id: Number(s.asmS_Id),
+                asmC_SectionName: s.asmC_SectionName ?? String(s.asmS_Id)
+            }))
+        };
+
+        if (editIndex !== null && editIndex >= 0 && editIndex < mappingList.length) {
+            setMappingList((prev) => {
+                const copy = [...prev];
+                copy[editIndex] = newEntry;
+                return copy;
+            });
+            setEditIndex(null);
+            toast.success('Mapping updated');
+        } else {
+            const idx = mappingList.findIndex(
+                (m) => Number(m.asmaY_Id) === year && Number(m.emcA_Id) === cat && Number(m.asmcL_Id) === cls
+            );
+            if (idx !== -1) {
+                setMappingList((prev) => {
+                    const copy = [...prev];
+                    copy[idx] = newEntry;
+                    return copy;
+                });
+                toast.info('Existing mapping updated with selected sections');
+            } else {
+                setMappingList((prev) => [...prev, newEntry]);
+                toast.success('Mapping added');
+            }
+        }
+
+        // After add/update: keep academicYear & category (they are disabled), reset class & sections only
+        setValue('asmcL_Id', 0);
+        setValue('section_list', []);
+        setTimeout(() => {
+            if (tableRef.current) tableRef.current.scrollTop = tableRef.current.scrollHeight;
+        }, 50);
     };
 
-    // Submit
-    const onSubmit: SubmitHandler<FormFields> = async (data) => {
+    const handleEdit = (index: number) => {
+        const row = mappingList[index];
+        if (!row) return;
+        setEditIndex(index);
+
+        // set the form values so user can edit class & sections
+        setValue('asmaY_Id', Number(row.asmaY_Id));
+        setValue('emcA_Id', Number(row.emcA_Id));
+        //setValue('asmcL_Id', Number(row.asmcL_Id));
+        setValue('section_list', Array.isArray(row.section_list) ? row.section_list : []);
+    };
+
+    const handleDelete = (index: number) => {
+        setMappingList((prev) => prev.filter((_, i) => i !== index));
+        if (editIndex === index) setEditIndex(null);
+        toast.success('Mapping removed');
+    };
+
+    // Final submit: build payload exactly as you showed
+    const onSubmit: SubmitHandler<FormFields> = async () => {
+        if (!Array.isArray(mappingList) || mappingList.length === 0) {
+            toast.error('Add at least one mapping before saving');
+            return;
+        }
+
+        const payload: any = {
+            MI_Id: 30,
+            ECAC_Id: selectedRow?.ecaC_Id ?? 0,
+            YearClassCategory: mappingList.map((m) => ({
+                ASMAY_Id: Number(m.asmaY_Id),
+                ASMCL_Id: Number(m.asmcL_Id),
+                EMCA_Id: Number(m.emcA_Id),
+                sections: (Array.isArray(m.section_list) ? m.section_list : []).map((s) => ({ ASMS_Id: Number(s.asmS_Id) }))
+            }))
+        };
+
         try {
-            const payload = {
-                ...data,
-                section_list: data.section_list.map((s) => ({ asmS_Id: s.asmS_Id }))
-            };
             const res = await addOrUpdateCategoryClassMapping(payload);
-            if (res.success) {
-                toast.success('Category Class Mapping Updated Successfully');
+            if (res?.success) {
+                toast.success(res.message ?? 'Updated successfully');
                 onSuccess?.();
             } else {
-                toast.error(res.message || 'Failed to update mapping');
+                toast.error(res?.message ?? 'Failed to save mappings');
             }
         } catch (err: any) {
-            toast.error(err.message || 'Failed to update mapping');
+            toast.error(err?.message || 'Failed to save mappings');
         }
     };
+
+    // Safe arrays to avoid undefined.map errors
+    const safeAcademicYears = Array.isArray(academicYears) ? academicYears : [];
+    const safeCategories = Array.isArray(categories) ? categories : [];
+    const safeClasses = Array.isArray(classes) ? classes : [];
+    const safeSections = Array.isArray(sections) ? sections : [];
+    const safeMappingList = Array.isArray(mappingList) ? mappingList : [];
 
     return (
         <form onSubmit={handleSubmit(onSubmit)} className='grid grid-cols-1 gap-6 md:grid-cols-2'>
-            {/* Left Side */}
+            {/* LEFT */}
             <div className='space-y-4'>
                 {/* Academic Year */}
-                <Controller
-                    control={control}
-                    name='asmaY_Id'
-                    render={({ field }) => (
-                        <Select value={field.value ? String(field.value) : ''} onValueChange={(val) => field.onChange(Number(val))}>
-                            <SelectTrigger>
-                                <SelectValue placeholder='Select Academic Year' />
-                            </SelectTrigger>
-                            <SelectContent>
-                                {academicYears.map((year) => (
-                                    <SelectItem key={year.asmaY_Id} value={String(year.asmaY_Id)}>
-                                        {year.asmaY_Year}
-                                    </SelectItem>
-                                ))}
-                            </SelectContent>
-                        </Select>
-                    )}
-                />
-                {errors.asmaY_Id && <p className='text-red-600 text-sm'>{errors.asmaY_Id.message}</p>}
+                <div className='flex flex-col gap-1'>
+                    <span className='font-medium'>
+                        Academic Year <span className='text-red-600'>*</span>
+                    </span>
+                    <Controller
+                        control={control}
+                        name='asmaY_Id'
+                        render={({ field }) => (
+                            <Select value={String(field.value ?? '')} disabled>
+                                <SelectTrigger>
+                                    <SelectValue placeholder='Select Academic Year' />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {safeAcademicYears.map((y) => (
+                                        <SelectItem key={String(y.asmaY_Id)} value={String(y.asmaY_Id)}>
+                                            {y.asmaY_Year}
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                        )}
+                    />
+                </div>
 
                 {/* Category */}
-                <Controller
-                    control={control}
-                    name='emcA_Id'
-                    render={({ field }) => (
-                        <Select value={field.value ? String(field.value) : ''} onValueChange={(val) => field.onChange(Number(val))}>
-                            <SelectTrigger>
-                                <SelectValue placeholder='Select Category' />
-                            </SelectTrigger>
-                            <SelectContent>
-                                {categories.map((cat) => (
-                                    <SelectItem key={cat.emcA_Id} value={String(cat.emcA_Id)}>
-                                        {cat.emcA_CategoryName}
-                                    </SelectItem>
-                                ))}
-                            </SelectContent>
-                        </Select>
-                    )}
-                />
-                {errors.emcA_Id && <p className='text-red-600 text-sm'>{errors.emcA_Id.message}</p>}
+                <div className='flex flex-col gap-1'>
+                    <span className='font-medium'>
+                        Category <span className='text-red-600'>*</span>
+                    </span>
+                    <Controller
+                        control={control}
+                        name='emcA_Id'
+                        render={({ field }) => (
+                            <Select value={String(field.value ?? '')} disabled>
+                                <SelectTrigger>
+                                    <SelectValue placeholder='Select Category' />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {safeCategories.map((c) => (
+                                        <SelectItem key={c.emcA_Id} value={String(c.emcA_Id)}>
+                                            {c.emcA_CategoryName}
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                        )}
+                    />
+                </div>
 
                 {/* Class */}
-                <Controller
-                    control={control}
-                    name='asmcL_Id'
-                    render={({ field }) => (
-                        <Select value={field.value ? String(field.value) : ''} onValueChange={(val) => field.onChange(Number(val))}>
-                            <SelectTrigger>
-                                <SelectValue placeholder='Select Class' />
-                            </SelectTrigger>
-                            <SelectContent>
-                                {classes.map((cls) => (
-                                    <SelectItem key={cls.asmcL_Id} value={String(cls.asmcL_Id)}>
-                                        {cls.asmcL_ClassName}
-                                    </SelectItem>
-                                ))}
-                            </SelectContent>
-                        </Select>
-                    )}
-                />
-                {errors.asmcL_Id && <p className='text-red-600 text-sm'>{errors.asmcL_Id.message}</p>}
+                <div className='flex flex-col gap-1'>
+                    <span className='font-medium'>
+                        Class <span className='text-red-600'>*</span>
+                    </span>
+
+                    <Controller
+                        control={control}
+                        name='asmcL_Id'
+                        render={({ field }) => (
+                            <Select
+                                value={field.value ? String(field.value) : undefined}
+                                onValueChange={(val) => field.onChange(Number(val))}>
+                                <SelectTrigger>
+                                    <SelectValue placeholder='Select Class' />
+                                </SelectTrigger>
+
+                                <SelectContent>
+                                    {safeClasses.map((cls) => (
+                                        <SelectItem key={cls.asmcL_Id} value={String(cls.asmcL_Id)}>
+                                            {cls.asmcL_ClassName}
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                        )}
+                    />
+                </div>
             </div>
 
-            {/* Right Side - Sections */}
+            {/* RIGHT */}
             <div className='space-y-2'>
-                {!sections.length && <h4 className='font-semibold'>Sections</h4>}
+                <span className='font-medium'>
+                    Sections <span className='text-red-600'>*</span>
+                </span>
+
                 <Controller
                     control={control}
                     name='section_list'
                     render={({ field }) =>
                         loadingSections ? (
                             <p>Loading sections...</p>
-                        ) : sections.length ? (
+                        ) : safeSections.length ? (
                             <CustomMultiSelectBox
-                                options={sections.map((section) => ({
-                                    label: section.asmC_SectionName,
-                                    value: section.asmS_Id.toString()
-                                }))}
-                                value={field.value.map((s) => s.asmS_Id.toString())}
-                                onChange={(vals) => {
-                                    const selected = sections
-                                        .filter((s) => vals.includes(s.asmS_Id.toString()))
-                                        .map((s) => ({ asmS_Id: s.asmS_Id }));
+                                options={safeSections.map((s) => ({ label: s.asmC_SectionName, value: String(s.asmS_Id) }))}
+                                value={(field.value ?? []).map((s: any) => String(s.asmS_Id))}
+                                onChange={(vals: string[]) => {
+                                    const selected = safeSections
+                                        .filter((s) => vals.includes(String(s.asmS_Id)))
+                                        .map((s) => ({ asmS_Id: s.asmS_Id, asmC_SectionName: s.asmC_SectionName }));
                                     field.onChange(selected);
                                 }}
                                 isSearchRequired
-                                error={errors.section_list?.message}
                             />
                         ) : (
-                            <p className='text-gray-500'>Select Academic Year, Category, and Class to load sections</p>
+                            <p className='text-gray-500'>Select Class</p>
                         )
                     }
                 />
             </div>
 
-            {/* Buttons */}
-            <div className='flex flex-col gap-3 border-t pt-4 sm:flex-row sm:justify-start md:col-span-2'>
-                {/* 🔁 Reset Button */}
+            {/* ADD / CLEAR */}
+            <div className='flex justify-center gap-3 md:col-span-2'>
                 <Button
-                    type='button'
                     variant='outline'
-                    onClick={handleReset}
-                    disabled={isSubmitting}
-                    className='order-3 w-fit transition-all duration-200 hover:scale-105 sm:order-1'>
-                    <RotateCcw className='mr-2 h-4 w-4' />
-                    Reset
+                    type='button'
+                    onClick={() => {
+                        setValue('asmcL_Id', 0);
+                        setValue('section_list', []);
+                        setEditIndex(null);
+                    }}>
+                    <X className='h-4 w-4 text-destructive' /> CLEAR
                 </Button>
 
-                <Button
-                    type='submit'
-                    disabled={isSubmitting}
-                    className='order-1 w-fit transition-all duration-200 hover:scale-105 sm:order-2'
-                    isLoading={isSubmitting}
-                    loadingText='Updating...'>
-                    <div className='flex items-center'>
-                        <Save className='mr-2 h-4 w-4' />
-                        Update Category Class Mapping
-                    </div>
+                <Button type='button' onClick={handleAddOrUpdate}>
+                    {editIndex !== null ? 'Update' : '+ Add Mapping'}
                 </Button>
             </div>
+
+            {/* TABLE */}
+            {safeMappingList.length > 0 && (
+                <>
+                    <div className='col-span-2 mt-4 rounded border p-4' ref={tableRef}>
+                        <h3 className='mb-2 font-semibold text-lg'>Details</h3>
+
+                        <div className='overflow-x-auto'>
+                            <table className='min-w-full border-collapse border'>
+                                <thead>
+                                    <tr>
+                                        <th className='border p-2'>SLNO</th>
+                                        <th className='border p-2'>Academic Year</th>
+                                        <th className='border p-2'>Category</th>
+                                        <th className='border p-2'>Class</th>
+                                        <th className='border p-2'>Sections</th>
+                                        <th className='border p-2'>Actions</th>
+                                    </tr>
+                                </thead>
+
+                                <tbody>
+                                    {safeMappingList.map((m, i) => (
+                                        <tr key={i} className='even:bg-gray-50'>
+                                            <td className='border p-2 text-center'>{i + 1}</td>
+
+                                            <td className='border p-2 text-center'>
+                                                {safeAcademicYears.find((y) => Number(y.asmaY_Id) === Number(m.asmaY_Id))?.asmaY_Year ??
+                                                    String(m.asmaY_Id)}
+                                            </td>
+
+                                            <td className='border p-2 text-center'>
+                                                {safeCategories.find((c) => Number(c.emcA_Id) === Number(m.emcA_Id))?.emcA_CategoryName ??
+                                                    String(m.emcA_Id)}
+                                            </td>
+
+                                            <td className='border p-2 text-center'>
+                                                {safeClasses.find((c) => Number(c.asmcL_Id) === Number(m.asmcL_Id))?.asmcL_ClassName ??
+                                                    String(m.asmcL_Id)}
+                                            </td>
+
+                                            <td className='border p-2'>
+                                                {(m.section_list ?? []).map((s) => s.asmC_SectionName).join(', ')}
+                                            </td>
+
+                                            <td className='flex justify-center gap-2 border p-2'>
+                                                <Button
+                                                    variant='ghost'
+                                                    size='sm'
+                                                    onClick={() => handleEdit(i)}
+                                                    className='h-8 w-8 p-0 hover:bg-blue-100 hover:text-blue-600'>
+                                                    <Edit className='h-4 w-4' />
+                                                </Button>
+
+                                                <Button
+                                                    variant='ghost'
+                                                    size='sm'
+                                                    onClick={() => handleDelete(i)}
+                                                    className='h-8 w-8 p-0 hover:bg-red-100 hover:text-red-600'>
+                                                    <Trash2 className='h-4 w-4' />
+                                                </Button>
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    {/* FINAL SAVE */}
+                    <div className='flex flex-col gap-3 border-t pt-4 sm:flex-row sm:justify-start md:col-span-2'>
+                        <Button
+                            variant='outline'
+                            type='button'
+                            onClick={() => {
+                                // setValue('asmcL_Id', 0);
+                                //setValue('section_list', []);
+                                setEditIndex(null);
+                            }}>
+                            Reset
+                        </Button>
+
+                        <Button type='submit' disabled={isSubmitting}>
+                            <div className='flex items-center gap-2'>
+                                <Save className='h-4 w-4' />
+                                Update Category Class Mapping
+                            </div>
+                        </Button>
+                    </div>
+                </>
+            )}
         </form>
     );
 }
