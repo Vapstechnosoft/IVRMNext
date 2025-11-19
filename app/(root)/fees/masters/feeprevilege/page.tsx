@@ -10,6 +10,7 @@ import { Plus, X } from 'lucide-react';
 import { use } from 'react';
 import AddFeePrivilegeForm from './_components/add-form';
 import { feePrivilegeColumns } from './_components/columns';
+import ToggleMasterFeePrevilageForm from './_components/toggle-form';
 import UpdateFeePrivilegeForm from './_components/update-form';
 
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
@@ -86,8 +87,17 @@ function FeePrivilegePageContent({
 }
 
 function FormSections() {
-    const { isAddFormOpen, isEditFormOpen, selectedRow, closeAddForm, closeEditForm, addFormRef, editFormRef } =
-        useFormContext<IFeePrivilegeList>();
+    const {
+        isAddFormOpen,
+        isEditFormOpen,
+        selectedRow,
+        isDeleteFormOpen,
+        closeAddForm,
+        closeEditForm,
+        closeToggleForm,
+        addFormRef,
+        editFormRef
+    } = useFormContext<IFeePrivilegeList>();
 
     return (
         <>
@@ -140,6 +150,7 @@ function FormSections() {
                     </CollapsibleSection>
                 </div>
             )}
+            {isDeleteFormOpen && selectedRow && <ToggleMasterFeePrevilageForm rowData={selectedRow} onClose={closeToggleForm} />}
         </>
     );
 }
