@@ -1,8 +1,14 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
+import { getPrintdetails } from '@/server/fees/trasactions/feepreadmissiontrasaction';
 import type { IFeePreAdmissionTransactionDetails } from '@/types/fees/transactions/transactions';
-import { useRef } from 'react';
+import Image from 'next/image';
+import { useEffect, useRef, useState } from 'react';
+
+interface IInstituteDetails {
+    institute_logo?: string;
+}
 
 interface ReceiptViewPageProps {
     rowData: IFeePreAdmissionTransactionDetails;
@@ -11,6 +17,8 @@ interface ReceiptViewPageProps {
 
 export default function ReceiptViewPage({ rowData, onClose }: ReceiptViewPageProps) {
     const receiptRef = useRef<HTMLDivElement>(null);
+    const [institute, setInstitute] = useState<IInstituteDetails>({});
+    const [loading, setLoading] = useState(true);
 
     const receipt_no = rowData.receiptNo || 'N/A';
     const transaction_date = rowData.paidDate || '';
@@ -24,85 +32,108 @@ export default function ReceiptViewPage({ rowData, onClose }: ReceiptViewPagePro
     const academic_year = (rowData as any).academicYear || '2025-2026';
     const fee_head_name = (rowData as any).feeHead || 'Registration Fee';
 
+    // Fetch institute logo only
+    useEffect(() => {
+        const fetchInstituteDetails = async () => {
+            try {
+                // Call API - pass '' instead of {} to fix TypeScript error
+                const rawResponse = await getPrintdetails('');
+
+                // Convert to JSON if it's a string (some APIs return JSON string)
+                // If it's already an object, this will safely return the object
+                const response = typeof rawResponse === 'string' ? JSON.parse(rawResponse) : rawResponse;
+
+                // Your actual response structure:
+                // { success: true, data: { institute_logo: "https://..." } }
+                const logoUrl = response?.data?.institute_logo || response?.institute_logo || '';
+
+                console.log('Final Logo URL:', logoUrl); // You will see the correct URL here
+
+                // Set state with cache-buster to force Next.js Image to reload
+                setInstitute({
+                    institute_logo: logoUrl ? `${logoUrl}?t=${Date.now()}` : ''
+                });
+            } catch (err) {
+                console.error('Failed to load institute logo', err);
+                setInstitute({ institute_logo: '' });
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchInstituteDetails();
+    }, []);
+
     const handlePrint = () => {
-        if (receiptRef.current) {
-            const printWindow = window.open('', '_blank');
-            if (printWindow) {
-                printWindow.document.write(`
-          <html>
-            <head>
-              <title>Receipt - ${receipt_no}</title>
-              <style>
-                @page {
-                  size: A4 landscape;
-                  margin: 10mm;
-                }
-                * { box-sizing: border-box; }
-                body { 
-                  font-family: Arial, sans-serif; 
-                  margin: 0; 
-                  padding: 10px;
-                  width: 100%;
-                  height: 100vh;
-                }
-                .p-8 { padding: 20px; }
-                .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; width: 100%; }
-                .border-2 { border: 2px solid #d1d5db; padding: 15px; }
-                .text-right { text-align: right; }
-                .text-center { text-align: center; }
-                .mb-4 { margin-bottom: 16px; }
-                .mb-2 { margin-bottom: 8px; }
-                .mb-6 { margin-bottom: 24px; }
-                .mt-8 { margin-top: 32px; }
-                .pb-4 { padding-bottom: 16px; }
-                .p-2 { padding: 8px; }
-                .font-bold { font-weight: bold; }
-                .text-blue-700 { color: #1d4ed8; }
-                .border-b-2 { border-bottom: 2px solid #000; }
-                .flex { display: flex; }
-                .items-center { align-items: center; }
-                .justify-center { justify-content: center; }
-                .justify-between { justify-content: space-between; }
-                .gap-4 { gap: 16px; }
-                .w-16 { width: 64px; }
-                .h-16 { height: 64px; }
-                .bg-blue-700 { background-color: #1d4ed8; }
-                .rounded-full { border-radius: 9999px; }
-                .text-white { color: white; }
-                .text-2xl { font-size: 24px; }
-                .text-sm { font-size: 14px; }
-                .text-xs { font-size: 12px; }
-                .italic { font-style: italic; }
-                .space-y-1 > * + * { margin-top: 4px; }
-                table { width: 100%; border-collapse: collapse; margin: 10px 0; }
-                th, td { border: 1px solid #9ca3af; padding: 8px; text-align: left; }
-                th { background-color: #1d4ed8; color: white; font-weight: bold; }
-                .border-gray-400 { border-color: #9ca3af; }
-                @media print {
-                  body { padding: 0; margin: 0; }
-                  .print\\:hidden { display: none !important; }
-                  @page { size: A4 landscape; margin: 10mm; }
-                }
-              </style>
-            </head>
-            <body>
-              ${receiptRef.current.innerHTML}
-            </body>
-          </html>
-        `);
-                printWindow.document.close();
-                printWindow.focus();
+        if (!receiptRef.current) return;
+
+        const printWindow = window.open('', '_blank', 'width=1200,height=900');
+
+        if (printWindow) {
+            // Get the full HTML including all Tailwind classes
+            const content = receiptRef.current.outerHTML;
+
+            // Include Tailwind CSS + your custom print styles
+            printWindow.document.write(`
+      <!DOCTYPE html>
+      <html lang="en">
+      <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+        <title>Receipt - ${receipt_no}</title>
+
+        <!-- Tailwind CSS CDN (includes all your classes) -->
+        <script src="https://cdn.tailwindcss.com"></script>
+
+        <style>
+          @page {
+            size: A4 landscape;
+            margin: 8mm;
+          }
+             th {
+            color: #000 !important;
+            font-weight: 700 !important;
+          }
+          body {
+            font-family: system-ui, sans-serif;
+            padding: 10px;
+            background: white;
+          }
+          /* Force print layout same as screen */
+          .grid {
+            display: grid !important;
+            grid-template-columns: 1fr 1fr !important;
+            gap: 32px !important;
+          }
+          @media print {
+            body { padding: 0; margin: 0; }
+            .print\\:hidden { display: none !important; }
+            /* Ensure logo loads */
+            img { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+          }
+        </style>
+      </head>
+      <body>
+        ${content}
+      </body>
+      </html>
+    `);
+
+            printWindow.document.close();
+            printWindow.focus();
+
+            // Wait for images (especially logo) to load before printing
+            printWindow.onload = () => {
                 setTimeout(() => {
                     printWindow.print();
                     printWindow.close();
-                }, 250);
-            }
+                }, 800);
+            };
         }
     };
 
     const convertNumberToWords = (num: number): string => {
         if (num === 0) return 'Zero';
-
         const ones = ['', 'One', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine'];
         const teens = ['Ten', 'Eleven', 'Twelve', 'Thirteen', 'Fourteen', 'Fifteen', 'Sixteen', 'Seventeen', 'Eighteen', 'Nineteen'];
         const tens = ['', '', 'Twenty', 'Thirty', 'Forty', 'Fifty', 'Sixty', 'Seventy', 'Eighty', 'Ninety'];
@@ -133,34 +164,38 @@ export default function ReceiptViewPage({ rowData, onClose }: ReceiptViewPagePro
     const discountAmount = 0;
     const paidAmount = paid_amount;
 
+    // Dynamic Logo Only Header (Used in Both Copies)
+    const InstituteHeader = () => (
+        <div className='mb-6 border-b-2 pb-4 text-center'>
+            <div className='flex justify-center py-4'>
+                {institute.institute_logo ? (
+                    <Image src={institute.institute_logo} alt='Institute Logo' width={1000} height={90} className='logo' />
+                ) : (
+                    <div className='h-24 w-24 rounded-full border-4 border-gray-400 border-dashed bg-gray-200' />
+                )}
+            </div>
+        </div>
+    );
+
+    if (loading) {
+        return (
+            <div className='fixed inset-0 z-50 flex items-center justify-center bg-black/50'>
+                <div className='rounded-lg bg-white p-8'>Loading receipt...</div>
+            </div>
+        );
+    }
+
     return (
         <div className='fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4'>
             <div className='relative max-h-[90vh] w-full max-w-6xl overflow-auto rounded-lg bg-white shadow-2xl'>
-                {/* Close Button */}
-                {/* <Button onClick={onClose} variant="ghost" size="sm" className="absolute top-4 right-4 z-10 print:hidden">
-          <X className="h-4 w-4" />
-        </Button> */}
-                {/* Receipt Content */}
                 <div ref={receiptRef} className='p-8'>
                     <div className='grid grid-cols-1 gap-8 lg:grid-cols-2'>
                         {/* School Copy */}
                         <div className='border-2 border-gray-300 p-6'>
                             <div className='mb-4 text-right'>
-                                <span className='font-bold text-blue-700'>SCHOOL COPY</span>
+                                <span className='font-bold text-violet-700'>SCHOOL COPY</span>
                             </div>
-
-                            <div className='mb-6 border-b-2 pb-4 text-center'>
-                                <div className='mb-2 flex items-center justify-center gap-4'>
-                                    <div className='flex h-16 w-16 items-center justify-center rounded-full bg-blue-700 font-bold text-2xl text-white'>
-                                        HHS
-                                    </div>
-                                    <div>
-                                        <h1 className='font-bold text-2xl italic'>Hutchings High School & Junior College</h1>
-                                        <p className='text-sm'>7, Phayre Road, Pune - 411 040</p>
-                                        <p className='text-sm'>Telephone : 020 - 26363892</p>
-                                    </div>
-                                </div>
-                            </div>
+                            <InstituteHeader />
 
                             <div className='mb-4 space-y-1 text-sm'>
                                 <div className='flex justify-between'>
@@ -191,7 +226,7 @@ export default function ReceiptViewPage({ rowData, onClose }: ReceiptViewPagePro
 
                             <table className='mb-4 w-full border-collapse text-sm'>
                                 <thead>
-                                    <tr className='bg-blue-700 text-white'>
+                                    <tr className='bg-violet-700 text-white'>
                                         <th className='border border-gray-400 p-2'>SL.NO</th>
                                         <th className='border border-gray-400 p-2'>Head Name</th>
                                         <th className='border border-gray-400 p-2'>Fee Amount</th>
@@ -222,7 +257,7 @@ export default function ReceiptViewPage({ rowData, onClose }: ReceiptViewPagePro
                                 <h3 className='mb-2 font-bold'>Current Payment Detail</h3>
                                 <table className='w-full border-collapse text-sm'>
                                     <thead>
-                                        <tr className='bg-blue-700 text-white'>
+                                        <tr className='bg-violet-700 text-white'>
                                             <th className='border border-gray-400 p-2'>SL.NO</th>
                                             <th className='border border-gray-400 p-2'>Amount</th>
                                             <th className='border border-gray-400 p-2'>Bank</th>
@@ -255,24 +290,12 @@ export default function ReceiptViewPage({ rowData, onClose }: ReceiptViewPagePro
                             </div>
                         </div>
 
-                        {/* Parent Copy */}
+                        {/* Parent Copy - Now Uses Dynamic Logo Only */}
                         <div className='border-2 border-gray-300 p-6'>
                             <div className='mb-4 text-right'>
-                                <span className='font-bold text-blue-700'>PARENT COPY</span>
+                                <span className='font-bold text-violet-700'>PARENT COPY</span>
                             </div>
-
-                            {/* <div className='mb-6 border-b-2 pb-4 text-center'>
-                                <div className='mb-2 flex items-center justify-center gap-4'>
-                                    <div className='flex h-16 w-16 items-center justify-center rounded-full bg-blue-700 font-bold text-2xl text-white'>
-                                        HHS
-                                    </div>
-                                    <div>
-                                        <h1 className='font-bold text-2xl italic'>Hutchings High School & Junior College</h1>
-                                        <p className='text-sm'>7, Phayre Road, Pune - 411 040</p>
-                                        <p className='text-sm'>Telephone : 020 - 26363892</p>
-                                    </div>
-                                </div>
-                            </div> */}
+                            <InstituteHeader />
 
                             <div className='mb-4 space-y-1 text-sm'>
                                 <div className='flex justify-between'>
@@ -303,7 +326,7 @@ export default function ReceiptViewPage({ rowData, onClose }: ReceiptViewPagePro
 
                             <table className='mb-4 w-full border-collapse text-sm'>
                                 <thead>
-                                    <tr className='bg-blue-700 text-white'>
+                                    <tr className='bg-violet-700 text-white'>
                                         <th className='border border-gray-400 p-2'>SL.NO</th>
                                         <th className='border border-gray-400 p-2'>Head Name</th>
                                         <th className='border border-gray-400 p-2'>Fee Amount</th>
@@ -334,7 +357,7 @@ export default function ReceiptViewPage({ rowData, onClose }: ReceiptViewPagePro
                                 <h3 className='mb-2 font-bold'>Current Payment Detail</h3>
                                 <table className='w-full border-collapse text-sm'>
                                     <thead>
-                                        <tr className='bg-blue-700 text-white'>
+                                        <tr className='bg-violet-700 text-white'>
                                             <th className='border border-gray-400 p-2'>SL.NO</th>
                                             <th className='border border-gray-400 p-2'>Amount</th>
                                             <th className='border border-gray-400 p-2'>Bank</th>
@@ -367,14 +390,15 @@ export default function ReceiptViewPage({ rowData, onClose }: ReceiptViewPagePro
                             </div>
                         </div>
                     </div>
-                    <div className='sticky top-0 z-10 flex justify-end gap-2 border-b bg-white p-4 print:hidden'>
-                        <Button onClick={handlePrint} variant='default'>
-                            Print
-                        </Button>
-                        <Button onClick={onClose} variant='outline'>
-                            Close
-                        </Button>
-                    </div>
+                </div>
+
+                <div className='sticky bottom-0 z-10 flex justify-end gap-2 border-t bg-white p-4 print:hidden'>
+                    <Button onClick={handlePrint} variant='default'>
+                        Print
+                    </Button>
+                    <Button onClick={onClose} variant='outline'>
+                        Close
+                    </Button>
                 </div>
             </div>
         </div>

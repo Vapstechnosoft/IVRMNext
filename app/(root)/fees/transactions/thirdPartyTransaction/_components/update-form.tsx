@@ -1,76 +1,159 @@
 'use client';
-import { Button } from '@/components/ui/button';
-import { Checkbox } from '@/components/ui/checkbox';
-import { FormError, Label } from '@/components/ui/extension/field';
-import { InputText } from '@/components/ui/extension/input-text';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { useMasterFeehead } from '@/hooks/fees/useMasters';
-import { masterFeeheadSchema } from '@/schemas/fees/masters';
-import { addOrUpdateMasterfeehead } from '@/server/fees/masters/feehead';
-import type { IFeeHeadsList } from '@/types/fees/masters/masters';
+
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Save } from 'lucide-react';
-import { useEffect } from 'react';
+import { format } from 'date-fns';
+import { Calendar, Save } from 'lucide-react';
+import { useEffect, useState } from 'react';
 import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
+
+import { Button } from '@/components/ui/button';
+import { Calendar as CalendarPicker } from '@/components/ui/calendar';
+import { Label } from '@/components/ui/extension/field';
+import { InputNumber } from '@/components/ui/extension/input-number';
+import { InputText } from '@/components/ui/extension/input-text';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+
+import {
+    useBankdropdowndatathirdpartytransaction,
+    useFeeThirdParty,
+    useGroupdropdowndatathirdpartytransaction,
+    useHeaddropdowndatathirdpartytransaction,
+    useStudentdowndatathirdpartytransaction,
+    useacademicyerdropdowndatafee,
+    useeditThirdpartytrasaction
+} from '@/hooks/fees/useTrasactions';
+
+import { thirdPartyTransactionSchema } from '@/schemas/fees/trasactions';
+import { addOrUpdateMasterfeehead } from '@/server/fees/masters/feehead';
+import type { IFeeThirdPartyTransaction } from '@/types/fees/transactions/transactions';
 import type { z } from 'zod';
 
-type FormFields = z.infer<typeof masterFeeheadSchema.addOrUpdate>;
+type FormFields = z.infer<typeof thirdPartyTransactionSchema.addOrUpdate>;
 
-interface UpdateMasterFeeheadFormProps {
+interface UpdateThirdPartyFormProps {
     onSuccess?: () => void;
-    feeheadname?: string;
-    selectedRow: IFeeHeadsList;
+    selectedRow: IFeeThirdPartyTransaction;
 }
 
-export default function UpdateMasterFeeheadForm({ onSuccess, feeheadname = '', selectedRow: row }: UpdateMasterFeeheadFormProps) {
-    const { refetchAll } = useMasterFeehead();
+export default function UpdateThirdPartyForm({ onSuccess, selectedRow: row }: UpdateThirdPartyFormProps) {
+    const { refetchAll } = useFeeThirdParty();
+
+    const [selectedPaymentMode, setSelectedPaymentMode] = useState<string>('B');
+    const [loading, setLoading] = useState(false);
 
     const {
         control,
-        setValue,
         register,
         handleSubmit,
         reset,
+        watch,
+        setValue,
         formState: { errors, isSubmitting }
     } = useForm<FormFields>({
-        resolver: zodResolver(masterFeeheadSchema.addOrUpdate),
+        resolver: zodResolver(thirdPartyTransactionSchema.addOrUpdate),
         mode: 'onChange'
     });
 
-    useEffect(() => {
-        if (row) {
-            reset({
-                fmH_Id: row.fmH_Id,
-                fmH_FeeName: row.fmH_FeeName,
-                fmH_Order: row.fmH_Order,
-                fmH_Flag: row.fmH_Flag,
-                fmH_PDAFlag: row.fmH_PDAFlag,
-                fmH_SpecialFeeFlag: row.fmH_SpecialFeeFlag,
-                fmH_RefundFlag: row.fmH_RefundFlag
-            });
-        }
-    }, [row, reset, setValue]);
+    const watchPaymentMode = watch('paymentMode');
 
-    const onSubmit: SubmitHandler<FormFields | any> = async (data: FormFields) => {
+    const watchAcademicYearId = watch('academicYearId');
+    const studentType = watch('studentType');
+
+    const { data: academicYear } = useacademicyerdropdowndatafee();
+    const { data: groupData } = useGroupdropdowndatathirdpartytransaction();
+    const { data: headdata } = useHeaddropdowndatathirdpartytransaction();
+    const { data: bankdata } = useBankdropdowndatathirdpartytransaction();
+
+    const {
+        data: studentdata,
+        isLoading: studentDataLoading,
+        refetch: fetchStudents
+    } = useStudentdowndatathirdpartytransaction(Number(watchAcademicYearId || 0));
+
+    const {
+        data: editDataResponse,
+        isFetching: isEditFetching,
+        refetch: refetchEditData
+    } = useeditThirdpartytrasaction(Number(row.mI_Id), Number(row.asmaY_Id), row?.fyP_Id ?? 0, {
+        enabled: !!row?.fyP_Id
+    });
+
+    useEffect(() => {
+        if (!row?.fyP_Id) return;
+
+        setLoading(true);
+
+        refetchEditData()
+            .then(() => {
+                const editeddata = editDataResponse?.data?.[0];
+                if (editeddata) {
+                    const matchedBank = bankdata?.data?.find((b) => b.fmbanK_BankName === editeddata.fyP_Bank_Name);
+                    reset({
+                        studentType: editeddata.amsT_Id ? 'student' : 'other',
+                        academicYearId: editeddata.asmaY_Id,
+                        studentId: editeddata.amsT_Id || undefined,
+                        studentName: editeddata.fyptP_Name || '',
+                        groupId: editeddata.fmG_Id,
+                        headId: editeddata.fmH_Id,
+                        amount: editeddata.fyP_Tot_Amount,
+                        towards: editeddata.fyP_Remarks,
+                        fyP_Receipt_No: editeddata.fyP_Receipt_No,
+                        date: editeddata.fyP_Date ? format(new Date(editeddata.fyP_Date), 'yyyy-MM-dd') : '',
+                        chequeDate: editeddata.fyP_DD_Cheque_Date ? format(new Date(editeddata.fyP_DD_Cheque_Date), 'yyyy-MM-dd') : '',
+                        chequeNo: editeddata.fyP_DD_Cheque_No || '',
+                        paymentMode: editeddata.fyP_Bank_Or_Cash as 'B' | 'C' | 'R' | 'S',
+                        //bankName: editeddata.fyP_Bank_Name,
+                        bankId: matchedBank?.fmbanK_Id ?? undefined
+                    });
+                    // editeddata
+                    // setSelectedPaymentMode(data.fyP_Bank_Or_Cash ?? "B");
+                }
+            })
+            .finally(() => setLoading(false));
+    }, [row, refetchEditData, reset, editDataResponse]);
+
+    // Re-fetch students when academic year/studentType changes
+    useEffect(() => {
+        if (watchAcademicYearId && studentType === 'student') {
+            fetchStudents();
+            setValue('studentId', undefined);
+        }
+    }, [watchAcademicYearId, studentType]);
+
+    const onSubmit: SubmitHandler<FormFields> = async (data) => {
         try {
-            const { fmH_FeeName, fmH_Id, fmH_Flag, fmH_Order, fmH_PDAFlag, fmH_SpecialFeeFlag, fmH_RefundFlag } = data;
+            const bankName = bankdata?.data?.find((x) => x.fmbanK_Id === data.bankId)?.fmbanK_BankName || '';
+
             const payload = {
-                MI_Id: 30,
-                fmH_Id: fmH_Id,
-                fmH_FeeName: fmH_FeeName,
-                fmH_Flag: fmH_Flag,
-                ASMCL_ActiveFlag: true,
-                fmH_Order: fmH_Order,
-                fmH_PDAFlag: fmH_PDAFlag,
-                fmH_SpecialFeeFlag: fmH_SpecialFeeFlag,
-                fmH_RefundFlag: fmH_RefundFlag
+                mI_Id: 30,
+                fyptP_Name: data.studentName,
+                asmaY_Id: Number(data.academicYearId),
+                fmG_Id: Number(data.groupId),
+                fmH_Id: Number(data.headId),
+
+                fyP_Bank_Name: bankName,
+                fyP_Tot_Amount: Number(data.amount),
+
+                fyP_DD_Cheque_Date: data.chequeDate ? format(new Date(data.chequeDate), 'yyyy-MM-dd') : null,
+
+                fyP_DD_Cheque_No: data.chequeNo || '',
+                fyP_Date: data.date ? format(new Date(data.date), 'yyyy-MM-dd') : null,
+
+                fyP_Remarks: data.towards,
+                user_id: 21602,
+                FYP_Bank_Or_Cash: data.paymentMode,
+                fyP_Id: row.fyP_Id
             };
+
+            const payloaddata = JSON.stringify(payload);
+            console.log('Payload to be sent:', payloaddata);
+
             const response = await addOrUpdateMasterfeehead(payload);
 
             if (response.success) {
-                toast.success(response.message);
-                reset();
+                toast.success('Updated Successfully');
                 refetchAll();
                 onSuccess?.();
             } else {
@@ -81,144 +164,301 @@ export default function UpdateMasterFeeheadForm({ onSuccess, feeheadname = '', s
         }
     };
 
-    const handleReset = () => {
-        reset();
-    };
+    if (loading) {
+        return <div className='flex items-center justify-center p-8 font-medium text-lg'>Loading data...</div>;
+    }
 
     return (
-        <div className={`${feeheadname}`}>
-            <form onSubmit={handleSubmit(onSubmit)} className='space-y-6'>
-                <div className='space-y-4'>
-                    <div className='grid grid-cols-1 gap-4 md:grid-cols-4'>
-                        <InputText
-                            label='Fees Head'
-                            required
-                            id='fmH_FeeName'
-                            {...register('fmH_FeeName')}
-                            defaultValue={row.fmH_FeeName}
-                            error={errors.fmH_FeeName?.message}
-                            className='transition-colors focus:ring-2 focus:ring-primary/20'
+        <form onSubmit={handleSubmit(onSubmit)} className='flex w-full flex-col items-center justify-center space-y-6'>
+            {/* Student Type */}
+            <div className='flex items-center justify-center space-x-6 rounded-lg border bg-white px-4 py-2'>
+                <Controller
+                    control={control}
+                    name='studentType'
+                    render={({ field }) => (
+                        <div className='flex flex-wrap gap-4'>
+                            {[
+                                { label: 'Existing Student', value: 'student' },
+                                { label: 'Other', value: 'other' }
+                            ].map((opt) => (
+                                <label key={opt.value} className='flex items-center gap-2'>
+                                    <input
+                                        type='radio'
+                                        value={opt.value}
+                                        checked={field.value === opt.value}
+                                        onChange={() => field.onChange(opt.value)}
+                                    />
+                                    <span>{opt.label}</span>
+                                </label>
+                            ))}
+                        </div>
+                    )}
+                />
+            </div>
+
+            {/* Academic Year */}
+            <div className='flex items-center gap-4'>
+                <Label className='min-w-[150px] text-right'>
+                    Academic Year <span className='text-red-500'>*</span>
+                </Label>
+                <Controller
+                    name='academicYearId'
+                    control={control}
+                    render={({ field }) => (
+                        <Select onValueChange={(v) => field.onChange(Number(v))} value={field.value?.toString()}>
+                            <SelectTrigger className='min-w-[400px]'>
+                                <SelectValue placeholder='Select Academic Year' />
+                            </SelectTrigger>
+                            <SelectContent>
+                                {academicYear?.data?.map((item) => (
+                                    <SelectItem key={item.asmaY_Id} value={String(item.asmaY_Id)}>
+                                        {item.asmaY_Year}
+                                    </SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
+                    )}
+                />
+            </div>
+
+            {/* Student */}
+            {studentType === 'student' ? (
+                <div className='flex items-center gap-4'>
+                    <Label className='min-w-[150px] text-right'>Select Student</Label>
+                    <Controller
+                        name='studentName'
+                        control={control}
+                        render={({ field }) => (
+                            <Select disabled={!watchAcademicYearId} value={field.value ?? ''} onValueChange={(v) => field.onChange(v)}>
+                                <SelectTrigger className='min-w-[400px]'>
+                                    <SelectValue placeholder={watchAcademicYearId ? 'Select Student' : 'Select Academic Year First'} />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {studentDataLoading ? (
+                                        <SelectItem value='loading' disabled>
+                                            Loading students...
+                                        </SelectItem>
+                                    ) : studentdata ? (
+                                        studentdata.data?.map((std) => (
+                                            <SelectItem key={std.amsT_Id} value={String(std.amsT_FirstName)}>
+                                                {std.amsT_FirstName}
+                                            </SelectItem>
+                                        ))
+                                    ) : (
+                                        <SelectItem value='none' disabled>
+                                            No students found
+                                        </SelectItem>
+                                    )}
+                                </SelectContent>
+                            </Select>
+                        )}
+                    />
+                </div>
+            ) : (
+                <div className='flex items-center gap-4'>
+                    <Label className='min-w-[150px] text-right'>Student Name</Label>
+                    <InputText {...register('studentName')} className='min-w-[400px]' />
+                </div>
+            )}
+
+            {/* Group */}
+            <div className='flex items-center gap-4'>
+                <Label className='min-w-[150px] text-right'>Group</Label>
+                <Controller
+                    name='groupId'
+                    control={control}
+                    render={({ field }) => (
+                        <Select onValueChange={(v) => field.onChange(Number(v))} value={field.value?.toString()}>
+                            <SelectTrigger className='min-w-[400px]'>
+                                <SelectValue placeholder='Select Group' />
+                            </SelectTrigger>
+                            <SelectContent>
+                                {groupData?.data?.map((g) => (
+                                    <SelectItem key={g.fmG_Id} value={String(g.fmG_Id)}>
+                                        {g.fmG_GroupName}
+                                    </SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
+                    )}
+                />
+            </div>
+
+            {/* Head */}
+            <div className='flex items-center gap-4'>
+                <Label className='min-w-[150px] text-right'>Head</Label>
+                <Controller
+                    name='headId'
+                    control={control}
+                    render={({ field }) => (
+                        <Select onValueChange={(v) => field.onChange(Number(v))} value={field.value?.toString()}>
+                            <SelectTrigger className='min-w-[400px]'>
+                                <SelectValue placeholder='Select Head' />
+                            </SelectTrigger>
+                            <SelectContent>
+                                {headdata?.data?.map((h) => (
+                                    <SelectItem key={h.fmH_Id} value={String(h.fmH_Id)}>
+                                        {h.fmH_FeeName}
+                                    </SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
+                    )}
+                />
+            </div>
+
+            {/* Amount */}
+            <div className='flex items-center gap-4'>
+                <Label className='min-w-[150px] text-right'>Amount</Label>
+                <Controller
+                    name='amount'
+                    control={control}
+                    render={({ field }) => <InputNumber value={field.value ?? 0} onChange={(v) => field.onChange(Number(v))} />}
+                />
+            </div>
+
+            {(watch('fyP_Receipt_No') || row.fyP_Receipt_No) && (
+                <div className='flex items-center gap-4'>
+                    <Label htmlFor='receiptNo' className='min-w-[150px] text-right'>
+                        Receipt No <span className='text-red-500'>*</span>
+                    </Label>
+                    <InputText
+                        id='receiptNo'
+                        {...register('fyP_Receipt_No')}
+                        placeholder='Enter Receipt No'
+                        error={errors.fyP_Receipt_No?.message}
+                        className='min-w-[400px]'
+                    />
+                </div>
+            )}
+
+            {/* Towards */}
+            <div className='flex items-center gap-4'>
+                <Label className='min-w-[150px] text-right'>Towards</Label>
+                <InputText {...register('towards')} className='min-w-[400px]' />
+            </div>
+
+            {/* Payment Mode */}
+            <div className='flex items-center justify-center space-x-6 rounded-lg border bg-white px-4 py-2'>
+                <Controller
+                    control={control}
+                    name='paymentMode'
+                    render={({ field }) => (
+                        <div className='flex flex-wrap gap-4'>
+                            {[
+                                { label: 'Bank', value: 'B' },
+                                { label: 'Cash', value: 'C' },
+                                { label: 'RTGS/NEFT', value: 'R' },
+                                { label: 'Card', value: 'S' }
+                            ].map((option) => (
+                                <label key={option.value} className='flex items-center gap-2'>
+                                    <input
+                                        type='radio'
+                                        checked={field.value === option.value}
+                                        onChange={() => field.onChange(option.value)}
+                                    />
+                                    {option.label}
+                                </label>
+                            ))}
+                        </div>
+                    )}
+                />
+
+                {/* <Controller
+          control={control}
+          name="paymentMode"
+          render={({ field }) => (
+            <div className="flex flex-wrap gap-4">
+              {[
+                { label: "Bank", value: "B" },
+                { label: "Cash", value: "C" },
+                { label: "RTGS/NEFT", value: "R" },
+                { label: "Card", value: "S" },
+              ].map((option) => (
+                <label key={option.value} className="flex items-center gap-2">
+                  <input
+                    type="radio"
+                    checked={field.value === option.value}
+                    onChange={() => {
+                      field.onChange(option.value);
+                      setSelectedPaymentMode(option.value);
+                    }}
+                  />
+                  {option.label}
+                </label>
+              ))}
+            </div>
+          )}
+        /> */}
+            </div>
+
+            {/* Bank & Cheque */}
+            {(watchPaymentMode === 'B' || watchPaymentMode === 'R') && (
+                <>
+                    <div className='flex items-center gap-4'>
+                        <Label className='min-w-[150px] text-right'>Bank Name</Label>
+                        <Controller
+                            name='bankId'
+                            control={control}
+                            render={({ field }) => (
+                                <Select value={field.value ? String(field.value) : ''} onValueChange={(v) => field.onChange(Number(v))}>
+                                    <SelectTrigger className='min-w-[400px]'>
+                                        <SelectValue placeholder='Select Bank' />
+                                    </SelectTrigger>
+
+                                    <SelectContent>
+                                        {bankdata?.data?.map((b) => (
+                                            <SelectItem key={b.fmbanK_Id} value={String(b.fmbanK_Id)}>
+                                                {b.fmbanK_BankName}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                            )}
                         />
-
-                        <div className='group flex flex-col gap-1.5'>
-                            <Label aria-label=' Fee Head Type' htmlFor='fmH_Flag'>
-                                Fee Head Type<span className='ml-1 text-red-500'>*</span>
-                            </Label>
-                            <Controller
-                                name='fmH_Flag'
-                                control={control}
-                                render={({ field }) => (
-                                    <Select
-                                        onValueChange={(value) => {
-                                            field.onChange(value);
-                                        }}
-                                        value={field.value || undefined}>
-                                        <SelectTrigger className='w-full'>
-                                            <SelectValue placeholder='Select Fee Head Type' />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            <SelectItem key='General' value='G'>
-                                                General
-                                            </SelectItem>
-                                            <SelectItem key='Transport' value='T'>
-                                                Transport
-                                            </SelectItem>
-                                            <SelectItem key='ExcessAmount' value='E'>
-                                                ExcessAmount
-                                            </SelectItem>
-                                            <SelectItem key='Registration' value='R'>
-                                                Registration
-                                            </SelectItem>
-                                            <SelectItem key='Application' value='A'>
-                                                Application
-                                            </SelectItem>
-                                            <SelectItem key='Hostel' value='H'>
-                                                Hostel
-                                            </SelectItem>
-                                            <SelectItem key='New Admission' value='N'>
-                                                New Admission
-                                            </SelectItem>
-                                            <SelectItem key='Swiping' value='S'>
-                                                Swiping
-                                            </SelectItem>
-                                            <SelectItem key='Fine' value='F'>
-                                                Fine
-                                            </SelectItem>
-                                            <SelectItem key='Transport Registration' value='TR'>
-                                                Transport Registration
-                                            </SelectItem>
-                                        </SelectContent>
-                                    </Select>
-                                )}
-                            />
-
-                            {errors.fmH_Flag && <FormError>{errors.fmH_Flag.message}</FormError>}
-                        </div>
-
-                        <div className='group flex flex-col gap-1.5'>
-                            <div className='group flex flex-row gap-6'>
-                                <Controller
-                                    name='fmH_SpecialFeeFlag'
-                                    control={control}
-                                    defaultValue={false}
-                                    render={({ field }) => (
-                                        <div className='flex items-center space-x-2'>
-                                            <Checkbox checked={field.value} onCheckedChange={field.onChange} id='specialFeeHead' />
-                                            <Label htmlFor='specialFeeHead'>Special Fee Head</Label>
-                                        </div>
-                                    )}
-                                />
-                                <Controller
-                                    name='fmH_PDAFlag'
-                                    control={control}
-                                    defaultValue={false}
-                                    render={({ field }) => (
-                                        <div className='flex items-center space-x-2'>
-                                            <Checkbox checked={field.value} onCheckedChange={field.onChange} id='pdaExpense' />
-                                            <Label htmlFor='pdaExpense'>PDA Expense</Label>
-                                        </div>
-                                    )}
-                                />
-                                <Controller
-                                    name='fmH_RefundFlag'
-                                    control={control}
-                                    defaultValue={false}
-                                    render={({ field }) => (
-                                        <div className='flex items-center space-x-2'>
-                                            <Checkbox checked={field.value} onCheckedChange={field.onChange} id='refundable' />
-                                            <Label htmlFor='refundable'>Refundable</Label>
-                                        </div>
-                                    )}
-                                />
-                            </div>
-                        </div>
                     </div>
 
-                    {errors.root && <FormError>{errors.root.message}</FormError>}
-                </div>
+                    <div className='flex items-center gap-4'>
+                        <Label className='min-w-[150px] text-right'>Cheque Date</Label>
+                        <Controller
+                            name='chequeDate'
+                            control={control}
+                            render={({ field }) => {
+                                const d = field.value ? new Date(field.value) : new Date();
+                                return (
+                                    <Popover>
+                                        <PopoverTrigger asChild>
+                                            <Button type='button' variant='outline'>
+                                                <Calendar className='mr-2 h-4 w-4' />
+                                                {format(d, 'dd/MM/yyyy')}
+                                            </Button>
+                                        </PopoverTrigger>
+                                        <PopoverContent className='w-auto p-0'>
+                                            <CalendarPicker
+                                                mode='single'
+                                                selected={d}
+                                                onSelect={(date) => field.onChange(date ? format(date, 'yyyy-MM-dd') : '')}
+                                            />
+                                        </PopoverContent>
+                                    </Popover>
+                                );
+                            }}
+                        />
+                    </div>
 
-                <div className='flex flex-col gap-3 border-t pt-4 sm:flex-row sm:justify-start'>
-                    <Button
-                        type='button'
-                        variant='outline'
-                        onClick={handleReset}
-                        disabled={isSubmitting}
-                        className='order-2 w-fit transition-all duration-200 hover:scale-105 sm:order-1'>
-                        Reset
-                    </Button>
-                    <Button
-                        type='submit'
-                        disabled={isSubmitting}
-                        className='order-1 w-fit transition-all duration-200 hover:scale-105 sm:order-2'
-                        isLoading={isSubmitting}
-                        loadingText='Saving...'>
-                        <div className='flex items-center'>
-                            <Save className='mr-2 h-4 w-4' />
-                            Save Master Fee Head
-                        </div>
-                    </Button>
-                </div>
-            </form>
-        </div>
+                    <div className='flex items-center gap-4'>
+                        <Label className='min-w-[150px] text-right'>Cheque No</Label>
+                        <InputText {...register('chequeNo')} />
+                    </div>
+                </>
+            )}
+
+            {/* Submit Button */}
+            <div className='flex gap-3 border-t pt-4'>
+                <Button type='submit' disabled={isSubmitting}>
+                    <Save className='mr-2 h-4 w-4' /> Update Third Party Transaction
+                </Button>
+            </div>
+        </form>
     );
 }

@@ -1,6 +1,4 @@
 'use client';
-
-import { Checkbox } from '@/components/ui/checkbox';
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
 import { ActionButtons } from '@/components/ui/form/action-buttons';
 import { useFormContext } from '@/components/ui/form/form-provider';
@@ -10,20 +8,16 @@ import { useCallback } from 'react';
 
 export const YearlyRebateSettingColumns: ColumnDef<IMasterYearlyRebateSettingsList>[] = [
     {
-        id: 'select',
-        header: ({ table }) => (
-            <Checkbox
-                checked={table.getIsAllPageRowsSelected() || (table.getIsSomePageRowsSelected() && 'indeterminate')}
-                onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
-                aria-label='Select all'
-            />
-        ),
-        cell: ({ row }) => (
-            <Checkbox checked={row.getIsSelected()} onCheckedChange={(value) => row.toggleSelected(!!value)} aria-label='Select row' />
-        ),
-        enableSorting: false,
-        enableHiding: false,
-        size: 24
+        accessorKey: 'id',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Sl.No' className='pl-6' />,
+        cell: ({ row, table }) => {
+            const pageIndex = table.getState().pagination.pageIndex;
+            const pageSize = table.getState().pagination.pageSize;
+            const continuousIndex = pageIndex * pageSize + row.index + 1;
+            return <div className='pl-6'>{continuousIndex}</div>;
+        },
+        enableSorting: true,
+        enableHiding: false
     },
     {
         accessorKey: 'asmaY_Year',
@@ -31,35 +25,27 @@ export const YearlyRebateSettingColumns: ColumnDef<IMasterYearlyRebateSettingsLi
         cell: ({ row }) => <div>{row.getValue('asmaY_Year') ?? 'N/A'}</div>
     },
     {
-        accessorKey: 'fyG_PartialRebate',
+        accessorKey: 'fyrebseT_RebateTypeFlg',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Rebate Type' />,
-        cell: ({ row }) => <div>{row.getValue('fyG_PartialRebate') ?? 'N/A'}</div>
+        cell: ({ row }) => <div>{row.getValue('fyrebseT_RebateTypeFlg') ?? 'N/A'}</div>
     },
     {
-        accessorKey: 'fyG_PartialRebateAmtOrPercentageValue',
+        accessorKey: 'fyrebseT_RebateAmtOrPercentValue',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Rebate Value' />,
         cell: ({ row }) => {
-            const val = row.getValue('fyG_PartialRebateAmtOrPercentageValue');
+            const val = row.getValue('fyrebseT_RebateAmtOrPercentValue');
             if (val === undefined || val === null || val === '') return <div />;
-            const rebateType = String(row.getValue('fyG_PartialRebate') ?? '').toLowerCase();
+            const rebateType = String(row.getValue('fyrebseT_RebateAmtOrPercentValue') ?? '').toLowerCase();
             const formatted = rebateType.includes('percent') ? `${val}%` : String(val);
             return <div>{formatted}</div>;
         }
     },
     {
-        accessorKey: 'fyg_date',
+        accessorKey: 'fyrebseT_RebateDate',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Date' />,
         cell: ({ row }) => {
-            const dateVal = row.getValue('fyg_date');
+            const dateVal = row.getValue('fyrebseT_RebateDate');
             return <div>{dateVal ? String(dateVal) : 'N/A'}</div>;
-        }
-    },
-    {
-        accessorKey: 'asmcl_ActiveFlag',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Active' />,
-        cell: ({ row }) => {
-            const val = row.getValue('asmcl_ActiveFlag');
-            return <div>{val ? 'Active' : 'Inactive'}</div>;
         }
     },
     {
@@ -69,11 +55,7 @@ export const YearlyRebateSettingColumns: ColumnDef<IMasterYearlyRebateSettingsLi
     }
 ];
 
-function ActionButtonsCell({
-    rowData
-}: {
-    rowData: IMasterYearlyRebateList;
-}) {
+function ActionButtonsCell({ rowData }: { rowData: IMasterYearlyRebateList }) {
     const { openEditForm, openToggleForm } = useFormContext<IMasterYearlyRebateList>();
 
     const handleEdit = useCallback(() => openEditForm(rowData), [openEditForm, rowData]);
@@ -85,7 +67,7 @@ function ActionButtonsCell({
             buttons={{ edit: true, toggle: true }}
             onEdit={handleEdit}
             onToggle={handleToggle}
-            toggleConditionKey='asmcl_ActiveFlag'
+            toggleConditionKey='fyrebseT_ActiveId'
         />
     );
 }

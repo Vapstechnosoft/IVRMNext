@@ -106,7 +106,7 @@ export const feethirdpartytrasactionColumns: ColumnDef<IFeeThirdPartyTransaction
 ];
 
 function ActionButtonsCell({ rowData }: { rowData: IFeeThirdPartyTransaction }) {
-    const { openEditForm, openToggleForm } = useFormContext<IFeeThirdPartyTransaction>();
+    const { openEditForm, openToggleForm, openDeleteForm } = useFormContext<IFeeThirdPartyTransaction>();
 
     const handleEdit = useCallback(
         (data: IFeeThirdPartyTransaction) => {
@@ -122,13 +122,15 @@ function ActionButtonsCell({ rowData }: { rowData: IFeeThirdPartyTransaction }) 
         [openToggleForm]
     );
 
+    const handleDelete = useCallback((data: IFeeThirdPartyTransaction) => openDeleteForm(data), [openDeleteForm]);
     return (
         <ActionButtons
             rowData={rowData}
-            buttons={{ edit: true, toggle: true, delete: false }}
+            buttons={{ edit: true, toggle: false, delete: true }}
             onEdit={handleEdit}
-            onToggle={handleToggle}
-            toggleConditionKey='fmH_ActiveFlag'
+            //onToggle={handleToggle}
+            onDelete={handleDelete}
+            //toggleConditionKey='fmH_ActiveFlag'
         />
     );
 }

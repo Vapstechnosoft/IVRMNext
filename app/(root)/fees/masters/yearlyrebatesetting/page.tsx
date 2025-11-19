@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button';
 import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/generic-data-table';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
-import { useMasterFeeYearlyGroup } from '@/hooks/fees/useMasters';
+import { useMasterFeeYearlyRebateSettingFacade } from '@/hooks/fees/useMasters';
 import type { IMasterYearlyRebateSettingsList } from '@/types/fees/masters/masters';
 import { Plus, X } from 'lucide-react';
 import { use } from 'react';
@@ -12,14 +12,13 @@ import { YearlyRebateSettingColumns } from './_components/columns';
 import ToggleRebateSettingColumnForm from './_components/toggle-form';
 import UpdateYearlyRebateSettingForm from './_components/update-form';
 
-export default function MasterYearlyRebateSettings({
-    searchParams
-}: {
-    searchParams: Promise<Record<string, string>>;
-}) {
-    const unwrappedSearchParams = use(searchParams);
+type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 
-    const { data: response, isLoading, error } = useMasterFeeYearlyGroup(unwrappedSearchParams);
+export default function MasterYearlyRebateSettings(props: {
+    searchParams: SearchParams;
+}) {
+    const searchParams = use(props.searchParams);
+    const { data: response, isLoading, error } = useMasterFeeYearlyRebateSettingFacade(searchParams);
     const tableProps = useDataTableProps(response);
 
     return (

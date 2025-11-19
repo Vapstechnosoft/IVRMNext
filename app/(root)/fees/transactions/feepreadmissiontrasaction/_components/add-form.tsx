@@ -18,43 +18,44 @@ import type {
 } from '@/types/fees/transactions/transactions';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Save } from 'lucide-react';
-import { type ChangeEvent, useEffect, useState } from 'react';
+import { type ChangeEvent, useEffect, useMemo, useState } from 'react';
 import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import type { z } from 'zod';
 
-// 🔹 Form type from Zod schema
+// Form type from Zod schema
 type FormFields = z.infer<typeof feePreadmissionTransactionSchema.addOrUpdate>;
 
 interface AddFeePreAdmissionTransactionProps {
     onSuccess?: () => void;
     headname?: string;
 }
-//, headname = ''
+
+type SelectableStudentTerm = IFeePreAdmissionStudentTermsDetails & {
+    selected?: boolean;
+};
+
 export default function AddFeePreAdmissionTransactionForm({ onSuccess }: AddFeePreAdmissionTransactionProps) {
+    const today = new Date().toISOString().split('T')[0];
     const { data: academicYeardata, isLoading: academicYearLoading, error: academicYearError } = useacademicyerdropdowndatafee();
 
-    const [date, setDate] = useState('2025-11-06');
+    const [date, setDate] = useState(today); // Dynamic: today
     const [admissionType, setAdmissionType] = useState<'prospectus' | 'Preadmission'>('Preadmission');
-    //const [academicYear, setAcademicYear] = useState('');
     const [termName, setTermName] = useState(false);
     const [studentSearch, setStudentSearch] = useState('');
     const [selectedStudent, setSelectedStudent] = useState<IFeePreAdmissionStudentsDropDownList | null>(null);
-
     const [studentInfo, setStudentInfo] = useState<IFeePreAdmissionStudentInformation | null>(null);
-
-    //   const [selectedStudentTerms, setSelectedStudentTerms] =
-    // useState<IFeePreAdmissionStudentTermsDetails[]>([]);
-
     const [selectedStudentTerms, setSelectedStudentTerms] = useState<SelectableStudentTerm[]>([]);
-
     const [loadingStudentTerms, setLoadingStudentTerms] = useState(false);
-
     const [loadingStudentInfo, setLoadingStudentInfo] = useState(false);
-
     const [selectedAcademicYear, setSelectedAcademicYear] = useState<number | null>(null);
     const [transactionData, setTransactionData] = useState<IFeePreAdmissionTransactionDetails[]>([]);
     const [loadingTransactions, setLoadingTransactions] = useState(false);
+    const [students, setStudents] = useState<IFeePreAdmissionStudentsDropDownList[]>([]);
+    const [loadingStudents, setLoadingStudents] = useState(false);
+
+    const [selectedRows, setSelectedRows] = useState<number[]>([]);
+    const [paymentMode, setPaymentMode] = useState<string>('Cash');
 
     const {
         control,
@@ -66,8 +67,54 @@ export default function AddFeePreAdmissionTransactionForm({ onSuccess }: AddFeeP
         mode: 'onChange'
     });
 
-    const [students, setStudents] = useState<IFeePreAdmissionStudentsDropDownList[]>([]);
-    const [loadingStudents, setLoadingStudents] = useState(false);
+    const calculations = useMemo(() => {
+        const selected = transactionData.filter((_, i) => selectedRows.includes(i));
+
+        const totalFee = selected.reduce((sum, r) => sum + (r.totalCharges || 0), 0);
+        const concession = selected.reduce((sum, r) => sum + (r.concessionAmount || 0), 0);
+        const fine = selected.reduce((sum, r) => sum + (r.fineAmount || 0), 0);
+        const nowPaying = selected.reduce((sum, r) => sum + (r.toBePaid || 0), 0);
+
+        // Correct Remaining Balance = (Total + Fine - Concession) - Now Paying
+        const remainingBalance = nowPaying;
+
+        return {
+            totalFee,
+            concession,
+            fine,
+            nowPaying,
+            remainingBalance: nowPaying > 0 ? remainingBalance : 0
+        };
+    }, [transactionData, selectedRows]);
+    // Dynamic payment data
+    const [paymentData, setPaymentData] = useState({
+        narration: '',
+        chequeDate: today,
+        chequeNo: '',
+        bankName: '',
+        totalFee: calculations.totalFee,
+        concession: calculations.concession,
+        fine: calculations.fine,
+        nowPaying: calculations.nowPaying,
+        currentBalance: calculations.nowPaying
+    });
+
+    // Update payment summary when calculations change
+    useEffect(() => {
+        setPaymentData((prev) => ({
+            ...prev,
+            totalFee: calculations.totalFee,
+            concession: calculations.concession,
+            fine: calculations.fine,
+            nowPaying: calculations.nowPaying,
+            currentBalance: calculations.nowPaying
+        }));
+    }, [calculations]);
+
+    const handleChange = (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+        const { name, value } = e.target;
+        setPaymentData((prev) => ({ ...prev, [name]: value }));
+    };
 
     useEffect(() => {
         if (!studentSearch.trim()) {
@@ -79,7 +126,7 @@ export default function AddFeePreAdmissionTransactionForm({ onSuccess }: AddFeeP
             setLoadingStudents(true);
             try {
                 const studentsArray = await getPreadmissionStudentDropdownData(studentSearch, admissionType);
-                setStudents(studentsArray);
+                setStudents(studentsArray || []);
             } catch (error) {
                 console.error('Failed to fetch students:', error);
                 setStudents([]);
@@ -96,6 +143,8 @@ export default function AddFeePreAdmissionTransactionForm({ onSuccess }: AddFeeP
         setStudents([]);
         setStudentInfo(null);
         setSelectedStudentTerms([]);
+        setTransactionData([]);
+        setSelectedRows([]);
     }, [admissionType]);
 
     useEffect(() => {
@@ -108,19 +157,13 @@ export default function AddFeePreAdmissionTransactionForm({ onSuccess }: AddFeeP
             setLoadingStudentTerms(true);
             try {
                 const information = await getPreadmissionStudentTermsData(Number(selectedStudent.amsT_Id));
-
-                //setSelectedStudentTerms(information);
-
-                // Ensure every term has a `selected` field (default false)
-                const mappedTerms = information.map((term: IFeePreAdmissionStudentTermsDetails) => ({
+                const mappedTerms = (information || []).map((term: IFeePreAdmissionStudentTermsDetails) => ({
                     ...term,
                     selected: false
                 }));
-
                 setSelectedStudentTerms(mappedTerms);
             } catch (error) {
                 console.error('Failed to fetch student terms:', error);
-
                 setSelectedStudentTerms([]);
             } finally {
                 setLoadingStudentTerms(false);
@@ -139,14 +182,15 @@ export default function AddFeePreAdmissionTransactionForm({ onSuccess }: AddFeeP
         const fetchStudentInfo = async () => {
             setLoadingStudentInfo(true);
             try {
-                const information = await getPreadmissionStudentInformation(Number(selectedStudent.amsT_Id), admissionType);
-
-                // info is already an object
-                const info = JSON.parse(JSON.stringify(information));
+                const information = await getPreadmissionStudentInformation(
+                    selectedAcademicYear ?? 0, // asmay_Id – comes from selected academic year
+                    Number(selectedStudent.amsT_Id), // studentId
+                    admissionType
+                );
+                const info = Array.isArray(information) ? (information[0] ?? null) : information;
                 setStudentInfo(info);
             } catch (error) {
                 console.error('Failed to fetch student info:', error);
-
                 setStudentInfo(null);
             } finally {
                 setLoadingStudentInfo(false);
@@ -154,56 +198,42 @@ export default function AddFeePreAdmissionTransactionForm({ onSuccess }: AddFeeP
         };
 
         fetchStudentInfo();
-    }, [selectedStudent, admissionType]);
-
-    // 🔹 Fetch transaction grid data when student is selected
-    // useEffect(() => {
-
-    // const selectedTermIds = selectedStudentTerms.filter(t => t.selected).map(t => t.fmT_Id);
-
-    //   if (!selectedStudent || selectedTermIds.length === 0) {
-    //     setTransactionData([]);
-    //     return;
-    //   }
-    //   const fetchTransactions = async () => {
-    //     setLoadingTransactions(true);
-    //     try {
-    //       const res = await getPreadmissionStudentTrasactionData(
-    //         Number(selectedStudent.amsT_Id),Number(selectedAcademicYear)
-    //       );
-
-    //       console.log("Fetched transactions:", res);
-    //       setTransactionData(res);
-    //     } catch (err) {
-    //       console.error("Failed to fetch transactions", err);
-    //       setTransactionData([]);
-    //     } finally {
-    //       setLoadingTransactions(false);
-    //     }
-    //   };
-    //   fetchTransactions();
-    // }, [selectedStudent]);
+    }, [selectedStudent, selectedAcademicYear, admissionType]);
 
     useEffect(() => {
         const selectedTermIds = selectedStudentTerms.filter((t) => t.selected).map((t) => t.fmT_Id);
 
         if (!selectedStudent || selectedTermIds.length === 0) {
             setTransactionData([]);
+            setSelectedRows([]);
             return;
         }
+        const termgrpflag = 'T';
 
         const fetchTransactions = async () => {
             setLoadingTransactions(true);
             try {
-                const res =
-                    await getPreadmissionStudentTrasactionData(
-                        // Number(selectedStudent.amsT_Id),
-                        // Number(selectedAcademicYear)
-                        //,selectedTermIds // ✅ pass term IDs
-                    );
-                setTransactionData(res);
+                // CORRECTED: Pass both student ID and selected term IDs
+                const res = await getPreadmissionStudentTrasactionData(
+                    Number(selectedStudent.amsT_Id),
+                    selectedTermIds,
+
+                    admissionType,
+                    termgrpflag
+                    // if your API expects this too, otherwise remove
+                );
+
+                const initialized = (res || []).map((item) => ({
+                    ...item,
+                    toBePaid: item.toBePaid ?? item.totalCharges ?? 0
+                }));
+
+                setTransactionData(initialized);
+                // Optionally auto-select all rows
+                //setSelectedRows(initialized.map((_, i) => i));
             } catch (err) {
                 console.error('Failed to fetch transactions', err);
+                toast.error('Failed to load fee details');
                 setTransactionData([]);
             } finally {
                 setLoadingTransactions(false);
@@ -211,30 +241,11 @@ export default function AddFeePreAdmissionTransactionForm({ onSuccess }: AddFeeP
         };
 
         fetchTransactions();
-    }, [selectedStudentTerms, selectedStudent, selectedAcademicYear]);
-
-    type SelectableStudentTerm = IFeePreAdmissionStudentTermsDetails & {
-        selected?: boolean;
-    };
-
-    // const selectedTermIds = selectedStudentTerms.filter((t) => t.selected).map((t) => t.fmT_Id);
-
-    // const academicYears = ['2024-2025', '2025-2026', '2026-2027'];
-
-    // const handleStudentSelect = (id: number) => {
-    //     const student = students.find((s) => s.amsT_Id === id) ?? null;
-    //     setSelectedStudent(student);
-    //     setStudentSearch(student ? student.studentName : '');
-    // };
-
-    const [selectedRows, setSelectedRows] = useState<number[]>([]);
-
-    // Toggle a single row
+    }, [selectedStudentTerms, selectedStudent, admissionType]); // Add dependencies
     const handleRowSelect = (index: number) => {
         setSelectedRows((prev) => (prev.includes(index) ? prev.filter((i) => i !== index) : [...prev, index]));
     };
 
-    // Select/Deselect all
     const handleSelectAll = (e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.checked) {
             setSelectedRows(transactionData.map((_, idx) => idx));
@@ -243,66 +254,23 @@ export default function AddFeePreAdmissionTransactionForm({ onSuccess }: AddFeeP
         }
     };
 
-    // Editable Payable Amount
-    //   const handlePayableChange = (index: number, value: string) => {
-    //     transactionData[index].payableAmount = Number(value);
-    //   };
-
     const handlePayableChange = (index: number, value: number) => {
-        setTransactionData((prev) => prev.map((item, i) => (i === index ? { ...item, payableAmount: value } : item)));
+        setTransactionData((prev) => prev.map((item, i) => (i === index ? { ...item, toBePaid: value } : item)));
     };
 
     const allSelected = selectedRows.length === transactionData.length && transactionData.length > 0;
 
-    interface PaymentData {
-        narration: string;
-        chequeDate: string;
-        chequeNo: string;
-        bankName: string;
-        totalFee: number;
-        concession: number;
-        fine: number;
-        nowPaying: number;
-        currentBalance: number;
-    }
-
-    const [paymentMode, setPaymentMode] = useState<string>('Cash');
-    const [paymentData, setPaymentData] = useState<PaymentData>({
-        narration: '',
-        chequeDate: new Date().toISOString().split('T')[0],
-        chequeNo: '',
-        bankName: '',
-        totalFee: 70270,
-        concession: 0,
-        fine: 0,
-        nowPaying: 2027,
-        currentBalance: 70270
-    });
-
-    // ✅ Fully typed handleChange
-    const handleChange = (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-        const { name, value } = e.target;
-
-        setPaymentData((prev) => ({
-            ...prev,
-            [name]: value
-        }));
-    };
-
-    const onSubmit: SubmitHandler<FormFields | any> = async (data: FormFields) => {
+    const onSubmit: SubmitHandler<FormFields> = async (data) => {
         try {
-            // ---- 1. Validate selection -------------------------------------------------
             if (selectedRows.length === 0) {
                 toast.error('Please select at least one transaction row');
                 return;
             }
 
-            // ---- 2. Selected rows ------------------------------------------------------
             const selectedTransactions = transactionData.filter((_, idx) => selectedRows.includes(idx));
 
-            // ---- 3. Build headInstallments --------------------------------------------
             const headInstallments = selectedTransactions.map((row) => ({
-                FMG_Id: row.fmG_Id ?? 0, // renamed to match the JSON
+                FMG_Id: row.fmG_Id ?? 0,
                 FMH_Id: row.fmH_Id ?? 0,
                 FMA_Id: row.fmA_Id ?? 0,
                 ToBePaid: row.toBePaid ?? 0,
@@ -310,12 +278,10 @@ export default function AddFeePreAdmissionTransactionForm({ onSuccess }: AddFeeP
                 FineAmount: row.fineAmount ?? 0
             }));
 
-            // ---- 4. Totals -------------------------------------------------------------
             const totalAmount = selectedTransactions.reduce((sum, r) => sum + (r.toBePaid ?? 0), 0);
             const totalConcession = selectedTransactions.reduce((sum, r) => sum + (r.concessionAmount ?? 0), 0);
             const totalFine = selectedTransactions.reduce((sum, r) => sum + (r.fineAmount ?? 0), 0);
 
-            // ---- 5. Payload ------------------------------------------------------------
             const payload = {
                 asmaY_Id: data.asmaY_Id ?? selectedAcademicYear ?? 0,
                 auto_receipt_flag: 1,
@@ -332,18 +298,16 @@ export default function AddFeePreAdmissionTransactionForm({ onSuccess }: AddFeeP
                 fyP_Tot_Fine_Amt: totalFine,
                 fyP_Tot_Waived_Amt: 0,
                 grp_count: selectedTransactions.length,
-                head_installments: headInstallments, // camelCase + underscore
+                head_installments: headInstallments,
                 mI_Id: 30,
                 pasR_Id: selectedStudent?.amsT_Id ?? 0,
                 userId: 0
             };
-            // -----------------------------------------------------------------------
-            // (rest of the function – loading toast, API call, success/error handling)
+
             const loadingToast = toast.loading('Saving transaction...');
-            const response = await addOrUpdatepaymentgatewaydetails(payload);
+            await addOrUpdatepaymentgatewaydetails(payload);
             toast.dismiss(loadingToast);
             toast.success('Transaction saved successfully!');
-
             onSuccess?.();
         } catch (error: any) {
             const msg = error?.response?.data?.message ?? error?.message ?? 'Failed to save transaction';
@@ -351,8 +315,11 @@ export default function AddFeePreAdmissionTransactionForm({ onSuccess }: AddFeeP
             console.error('Submit error:', error);
         }
     };
+
     const handleReset = () => {
         reset();
+        setSelectedRows([]);
+        setPaymentData((prev) => ({ ...prev, narration: '', chequeNo: '', bankName: '' }));
     };
 
     return (
@@ -417,9 +384,7 @@ export default function AddFeePreAdmissionTransactionForm({ onSuccess }: AddFeeP
                                             setSelectedAcademicYear(id);
                                         }}
                                         value={field.value?.toString() || ''}
-                                        // value={field.value ? String(field.value) || ''}
-                                        disabled={academicYearLoading}
-                                    >
+                                        disabled={academicYearLoading}>
                                         <SelectTrigger className='min-w-[100px] text-center'>
                                             <SelectValue placeholder='--Select Academic Year--' />
                                         </SelectTrigger>
@@ -448,13 +413,10 @@ export default function AddFeePreAdmissionTransactionForm({ onSuccess }: AddFeeP
 
                         <div className='mb-4'>
                             <div className='flex items-center space-x-4'>
-                                {/* Label */}
-
                                 <label htmlFor='studentSearchInput' className='whitespace-nowrap font-semibold'>
                                     Student Name:<span className='ml-1 text-red-600'>*</span>
                                 </label>
 
-                                {/* Input */}
                                 <div className='relative'>
                                     <input
                                         id='studentSearchInput'
@@ -469,7 +431,6 @@ export default function AddFeePreAdmissionTransactionForm({ onSuccess }: AddFeeP
                                         autoComplete='off'
                                     />
 
-                                    {/* Dropdown */}
                                     {studentSearch.trim() !== '' && !selectedStudent && (
                                         <ul className='absolute top-full left-0 z-10 mt-1 max-h-40 w-72 overflow-y-auto rounded border bg-white shadow-md'>
                                             {loadingStudents ? (
@@ -491,55 +452,12 @@ export default function AddFeePreAdmissionTransactionForm({ onSuccess }: AddFeeP
                                             )}
                                         </ul>
                                     )}
-
-                                    {/* <input
-                    type="text"
-                    placeholder="Select or search student in the list..."
-                    value={studentSearch}
-                    onChange={(e) => {
-                        setStudentSearch(e.target.value);
-                        setSelectedStudent(null);
-                    }}
-                    className="w-72 rounded border px-3 py-2"
-                    autoComplete="off"
-                    />
-
-                
-                    {studentSearch.trim() !== "" &&
-                    filteredStudents.length > 0 &&
-                    !selectedStudent && (
-                        <ul className="absolute top-full left-0 z-10 mt-1 max-h-40 w-72 overflow-y-auto rounded border bg-white shadow-md">
-                        {filteredStudents.map((student) => (
-                            <li
-                            key={student.id}
-                            onClick={() => handleStudentSelect(student.id)}
-                            className="cursor-pointer px-3 py-2 hover:bg-blue-100"
-                            >
-                            {student.name}
-                            </li>
-                        ))}
-                        </ul>
-                    )} */}
                                 </div>
                             </div>
                         </div>
 
-                        {/* <div className="mt-14 flex items-center space-x-2">
-            <input
-              type="checkbox"
-              id="termName"
-              checked={termName}
-              onChange={(e) => setTermName(e.target.checked)}
-              className="cursor-pointer"
-            />
-            <label htmlFor="termName" className="cursor-pointer font-semibold">
-              Term Name
-            </label>
-          </div> */}
-                        {/* Term Name Checkbox + Term List */}
                         <div className='mt-14'>
                             <div className='mt-10 flex items-start space-x-4'>
-                                {/* Label + Main Checkbox */}
                                 <div className='flex items-center space-x-2'>
                                     <label htmlFor='termName' className='whitespace-nowrap font-semibold'>
                                         Term Name:
@@ -551,15 +469,12 @@ export default function AddFeePreAdmissionTransactionForm({ onSuccess }: AddFeeP
                                         onChange={(e) => {
                                             const checked = e.target.checked;
                                             setTermName(checked);
-
-                                            // ✅ Select or unselect all terms based on main checkbox
                                             setSelectedStudentTerms((prev) => prev.map((t) => ({ ...t, selected: checked })));
                                         }}
                                         className='cursor-pointer'
                                     />
                                 </div>
 
-                                {/* ✅ Dropdown Box (aligned beside) */}
                                 <div className='max-h-40 w-72 overflow-y-auto rounded-md border border-blue-300 bg-white p-2 shadow-sm'>
                                     {loadingStudentTerms ? (
                                         <p className='text-gray-500 italic'>Loading terms...</p>
@@ -577,10 +492,7 @@ export default function AddFeePreAdmissionTransactionForm({ onSuccess }: AddFeeP
                                                         const updated = selectedStudentTerms.map((t) =>
                                                             t.fmT_Id === term.fmT_Id ? { ...t, selected: checked } : t
                                                         );
-
                                                         setSelectedStudentTerms(updated);
-
-                                                        // ✅ Update main checkbox state based on individual selections
                                                         const allChecked = updated.every((t) => t.selected);
                                                         setTermName(allChecked);
                                                     }}
@@ -635,22 +547,20 @@ export default function AddFeePreAdmissionTransactionForm({ onSuccess }: AddFeeP
                         )}
                     </div>
                 </div>
-                {/* 🌀 Show loader while fetching */}
+
                 {loadingTransactions && (
                     <div className='mt-6 rounded border bg-gray-50 p-4 text-center text-gray-600 italic shadow-inner'>
                         Loading transaction data...
                     </div>
                 )}
 
-                {/* ⚠️ Show message when no data is found */}
-                {!loadingTransactions && selectedStudent && Array.isArray(transactionData) && transactionData.length === 0 && (
+                {!loadingTransactions && selectedStudent && transactionData.length === 0 && (
                     <div className='mt-6 rounded border bg-gray-50 p-4 text-center text-gray-600 italic shadow-inner'>
                         No transaction data available for this student.
                     </div>
                 )}
 
-                {/* ✅ Show grid only when data exists */}
-                {!loadingTransactions && Array.isArray(transactionData) && transactionData.length > 0 && (
+                {transactionData.length > 0 && (
                     <div className='mt-6 rounded border bg-white p-4 shadow-md'>
                         <h3 className='mb-3 font-bold text-gray-700 text-lg'>Transaction Details</h3>
 
@@ -673,50 +583,16 @@ export default function AddFeePreAdmissionTransactionForm({ onSuccess }: AddFeeP
                                         <th className='border px-4 py-2 text-right'>Net Amount</th>
                                     </tr>
                                 </thead>
-                                {/* <tbody>
-                  {transactionData.map((row, index) => (
-                    <tr key={index} className="hover:bg-blue-50">
-                      <td className="border px-4 py-2">
-                        {row?.feeGroup ?? "--"}
-                      </td>
-                      <td className="border px-4 py-2">
-                        {row?.feeHead ?? "--"}
-                      </td>
-                      <td className="border px-4 py-2 text-right">
-                        {row?.installment ?? "--"}
-                      </td>
-                      <td className="border px-4 py-2 text-right">
-                        {row?.currentCharges ?? "--"}
-                      </td>
-                      <td className="border px-4 py-2 text-right">
-                        {row?.totalCharges ?? "--"}
-                      </td>
-                      <td className="border px-4 py-2 text-right">
-                        {row?.concession ?? "--"}
-                      </td>
-                      <td className="border px-4 py-2 text-right">
-                        {row?.fine ?? "--"}
-                      </td>
-                      <td className="border px-4 py-2 text-right">
-                        {row?.payableAmount ?? "--"}
-                      </td>
-                      <td className="border px-4 py-2 text-right">
-                        {row?.netAmount ?? "--"}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody> */}
-
                                 <tbody>
                                     {transactionData.map((row, index) => {
                                         const isSelected = selectedRows.includes(index);
 
                                         return (
                                             <tr key={index} className='transition-colors duration-150 hover:bg-blue-50'>
-                                                {/* 🔹 Serial Number */}
+                                                {/* S.No */}
                                                 <td className='border border-gray-400 px-2 py-2 text-center'>{index + 1}</td>
 
-                                                {/* 🔹 Row Checkbox */}
+                                                {/* Checkbox */}
                                                 <td className='border border-gray-400 px-2 py-2 text-center'>
                                                     <input
                                                         type='checkbox'
@@ -726,99 +602,94 @@ export default function AddFeePreAdmissionTransactionForm({ onSuccess }: AddFeeP
                                                     />
                                                 </td>
 
-                                                {/* 🔹 Fee Group */}
-                                                <td className='select-none border border-gray-400 px-2 py-2'>{row?.fmG_GroupName ?? ''}</td>
+                                                {/* Fee Group */}
+                                                <td className='select-none border border-gray-400 px-2 py-2'>{row.fmG_GroupName ?? ''}</td>
 
-                                                {/* 🔹 Fee Head */}
-                                                <td className='select-none border border-gray-400 px-2 py-2'>{row?.fmH_FeeName ?? ''}</td>
+                                                {/* Fee Head */}
+                                                <td className='select-none border border-gray-400 px-2 py-2'>{row.fmH_FeeName ?? ''}</td>
 
-                                                {/* 🔹 Installment */}
-                                                <td className='select-none border border-gray-400 px-2 py-2'>{row?.ftI_Id ?? ''}</td>
+                                                {/* Installment */}
+                                                <td className='select-none border border-gray-400 px-2 py-2 text-right'>
+                                                    {row.ftI_Id ?? ''}
+                                                </td>
 
-                                                {/* 🔹 Current Charges */}
-                                                <td className='border border-gray-400 px-2 py-2'>
+                                                {/* Current Year Charges */}
+                                                <td className='border border-gray-400 px-2 py-2 text-right'>
                                                     <input
                                                         type='text'
                                                         readOnly
-                                                        value={row?.currentYrCharges ?? ''}
-                                                        className='w-full rounded border border-gray-300 bg-gray-50 text-center outline-none focus:outline-none'
+                                                        value={row.currentYrCharges ?? ''}
+                                                        className='w-full rounded border border-gray-300 bg-gray-50 text-center'
                                                     />
                                                 </td>
 
-                                                {/* 🔹 Total Charges */}
-                                                <td className='border border-gray-400 px-2 py-2'>
+                                                {/* Total Charges */}
+                                                <td className='border border-gray-400 px-2 py-2 text-right'>
                                                     <input
                                                         type='text'
                                                         readOnly
-                                                        value={row?.totalCharges ?? ''}
-                                                        className='w-full rounded border border-gray-300 bg-gray-50 text-center outline-none focus:outline-none'
+                                                        value={row.totalCharges ?? ''}
+                                                        className='w-full rounded border border-gray-300 bg-gray-50 text-center'
                                                     />
                                                 </td>
 
-                                                {/* 🔹 Concession */}
-                                                <td className='border border-gray-400 px-2 py-2'>
+                                                {/* Concession */}
+                                                <td className='border border-gray-400 px-2 py-2 text-right'>
                                                     <input
                                                         type='text'
                                                         readOnly
-                                                        value={row?.concessionAmount ?? ''}
-                                                        className='w-full rounded border border-gray-300 bg-gray-50 text-center outline-none focus:outline-none'
+                                                        value={row.concessionAmount ?? ''}
+                                                        className='w-full rounded border border-gray-300 bg-gray-50 text-center'
                                                     />
                                                 </td>
 
-                                                {/* 🔹 Fine */}
-                                                <td className='border border-gray-400 px-2 py-2'>
+                                                {/* Fine */}
+                                                <td className='border border-gray-400 px-2 py-2 text-right'>
                                                     <input
                                                         type='text'
                                                         readOnly
-                                                        value={row?.fineAmount ?? ''}
-                                                        className='w-full rounded border border-gray-300 bg-gray-50 text-center outline-none focus:outline-none'
+                                                        value={row.fineAmount ?? ''}
+                                                        className='w-full rounded border border-gray-300 bg-gray-50 text-center'
                                                     />
                                                 </td>
 
-                                                {/* ✅ Payable Amount — Editable only if selected */}
+                                                {/* Payable Amount (Editable when selected) */}
                                                 <td className='border border-gray-400 px-2 py-2'>
                                                     <input
                                                         type='number'
                                                         readOnly={!isSelected}
                                                         min={0}
                                                         step='0.01'
-                                                        value={row?.toBePaid ?? ''}
-                                                        onKeyDown={(e) => {
-                                                            // ❌ Block unwanted keys
-                                                            if (['-', 'e', 'E', '+'].includes(e.key)) e.preventDefault();
-                                                        }}
+                                                        value={row.toBePaid ?? ''}
+                                                        onKeyDown={(e) => ['-', 'e', 'E', '+'].includes(e.key) && e.preventDefault()}
                                                         onChange={(e) => {
-                                                            const value = e.target.value;
-
-                                                            // ✅ Allow empty (for clearing) or positive numbers
-                                                            if (value === '' || Number(value) >= 0) {
-                                                                if (isSelected) handlePayableChange(index, Number(value));
+                                                            const val = e.target.value;
+                                                            if ((val === '' || Number(val) >= 0) && isSelected) {
+                                                                handlePayableChange(index, Number(val) || 0);
                                                             }
                                                         }}
                                                         onBlur={(e) => {
-                                                            // ✅ Optional: round to 2 decimals on blur
                                                             if (isSelected && e.target.value !== '') {
-                                                                handlePayableChange(
-                                                                    index,
-                                                                    Number.parseFloat(Number(e.target.value).toFixed(2))
-                                                                );
+                                                                // biome-ignore lint/style/useNumberNamespace: <explanation>
+                                                                const rounded = Number(parseFloat(e.target.value).toFixed(2));
+                                                                handlePayableChange(index, rounded);
                                                             }
                                                         }}
-                                                        className={`w-full rounded text-center transition-all duration-150 ${
+                                                        className={`w-full rounded text-center transition-all ${
                                                             isSelected
-                                                                ? 'border border-blue-400 bg-white focus:outline-none focus:ring-2 focus:ring-blue-400'
-                                                                : 'border border-gray-300 bg-gray-50 text-gray-700 outline-none focus:outline-none'
+                                                                ? 'border border-blue-400 bg-white focus:outline-none focus:ring-2 focus:ring-blue-300'
+                                                                : 'border border-gray-300 bg-gray-50'
                                                         }`}
                                                     />
                                                 </td>
 
-                                                {/* 🔹 Net Amount */}
-                                                <td className='border border-gray-400 px-2 py-2'>
+                                                {/* Net Amount */}
+                                                <td className='border border-gray-400 px-2 py-2 text-right'>
                                                     <input
                                                         type='text'
                                                         readOnly
-                                                        value={row?.netAmount ?? ''}
-                                                        className='w-full rounded border border-gray-300 bg-gray-50 text-center outline-none focus:outline-none'
+                                                        value={row.netAmount ?? ''}
+                                                        className='w-full rounded border border-gray-300 bg-gray-50 text-center'
                                                     />
                                                 </td>
                                             </tr>
@@ -830,9 +701,8 @@ export default function AddFeePreAdmissionTransactionForm({ onSuccess }: AddFeeP
                     </div>
                 )}
 
-                {transactionData && transactionData.length > 0 && (
+                {transactionData.length > 0 && (
                     <div className='mt-6 grid grid-cols-2 gap-6 rounded-lg border border-gray-300 p-4 shadow-sm'>
-                        {/* LEFT SIDE */}
                         <div>
                             <div className='mb-3'>
                                 <label htmlFor='narrationInput' className='mr-2 font-semibold'>
@@ -845,26 +715,25 @@ export default function AddFeePreAdmissionTransactionForm({ onSuccess }: AddFeeP
                                     value={paymentData.narration}
                                     onChange={handleChange}
                                     className='w-2/3 rounded border border-gray-300 px-2 py-1'
-                                    aria-label='Narration'
+                                    placeholder='Enter remarks...'
                                 />
                             </div>
 
-                            {/* Payment Mode */}
-                            <div className='mb-3 flex gap-4'>
+                            <div className='mb-3 flex gap-6'>
                                 {['Cash', 'Bank', 'RTGS/NTF', 'Card No'].map((mode) => (
-                                    <label key={mode} className='flex items-center space-x-1'>
+                                    <label key={mode} className='flex items-center space-x-2'>
                                         <input
                                             type='radio'
                                             name='paymentMode'
                                             checked={paymentMode === mode}
                                             onChange={() => setPaymentMode(mode)}
+                                            className='cursor-pointer'
                                         />
-                                        <span>{mode}</span>
+                                        <span className='font-medium'>{mode}</span>
                                     </label>
                                 ))}
                             </div>
 
-                            {/* Conditional Fields */}
                             {paymentMode !== 'Cash' && (
                                 <>
                                     <div className='mb-3 flex items-center gap-2'>
@@ -880,10 +749,9 @@ export default function AddFeePreAdmissionTransactionForm({ onSuccess }: AddFeeP
                                             className='rounded border border-gray-300 px-2 py-1'
                                         />
                                     </div>
-
                                     <div className='mb-3 flex items-center gap-2'>
                                         <label htmlFor='chequeNoInput' className='w-32 font-semibold'>
-                                            Cheque/DD No/Card No :
+                                            Cheque/DD No :
                                         </label>
                                         <input
                                             id='chequeNoInput'
@@ -892,9 +760,9 @@ export default function AddFeePreAdmissionTransactionForm({ onSuccess }: AddFeeP
                                             value={paymentData.chequeNo}
                                             onChange={handleChange}
                                             className='w-2/3 rounded border border-gray-300 px-2 py-1'
+                                            placeholder='Enter number'
                                         />
                                     </div>
-
                                     <div className='mb-3 flex items-center gap-2'>
                                         <label htmlFor='bankNameInput' className='w-32 font-semibold'>
                                             Bank Name :
@@ -906,52 +774,56 @@ export default function AddFeePreAdmissionTransactionForm({ onSuccess }: AddFeeP
                                             value={paymentData.bankName}
                                             onChange={handleChange}
                                             className='w-2/3 rounded border border-gray-300 px-2 py-1'
+                                            placeholder='Enter bank name'
                                         />
                                     </div>
                                 </>
                             )}
                         </div>
 
-                        {/* RIGHT SIDE */}
                         <div>
                             {[
-                                { label: 'Total Fee', name: 'totalFee' },
-                                { label: 'Concession', name: 'concession' },
-                                { label: 'Fine', name: 'fine' },
-                                { label: 'Now Paying', name: 'nowPaying' },
-                                { label: 'Current Balance', name: 'currentBalance' }
+                                { label: 'Total Fee', key: 'totalFee', value: calculations.totalFee },
+                                { label: 'Concession', key: 'concession', value: calculations.concession },
+                                { label: 'Fine', key: 'fine', value: calculations.fine },
+                                { label: 'Now Paying', key: 'nowPaying', value: calculations.nowPaying },
+                                { label: 'Current Balance', key: 'remainingBalance', value: calculations.remainingBalance }
                             ].map((item) => (
-                                <div key={item.name} className='mb-2 flex items-center gap-2'>
-                                    <label htmlFor={`${item.name}Input`} className='w-32 font-semibold'>
-                                        {item.label}:
-                                    </label>
+                                <div key={item.key} className='mb-2 flex items-center gap-2'>
+                                    {/* biome-ignore lint/a11y/noLabelWithoutControl: <explanation> */}
+                                    <label className='w-32 font-semibold'>{item.label}:</label>
                                     <input
-                                        id={`${item.name}Input`}
                                         type='text'
-                                        name={item.name}
-                                        value={paymentData[item.name as keyof PaymentData]}
                                         readOnly
-                                        className='w-2/3 rounded border border-gray-300 bg-gray-50 px-2 py-1 text-right'
+                                        value={
+                                            item.key === 'concession'
+                                                ? `${item.value.toFixed(2)}`
+                                                : item.key === 'fine'
+                                                  ? `${item.value.toFixed(2)}`
+                                                  : `${item.value.toFixed(2)}`
+                                        }
+                                        className='w-2/3 rounded border border-gray-300 bg-gray-50 px-2 py-1 text-right font-medium'
                                     />
                                 </div>
                             ))}
                         </div>
                     </div>
                 )}
-                {transactionData && transactionData.length > 0 && (
-                    <div className='flex gap-3 pt-4'>
+
+                {transactionData.length > 0 && (
+                    <div className='flex justify-center gap-4 pt-6'>
                         <Button
                             type='button'
                             variant='outline'
                             onClick={handleReset}
                             disabled={isSubmitting}
-                            className='order-2 w-fit transition-all duration-200 hover:scale-105 sm:order-1'>
+                            className='order-2 w-fit sm:order-1'>
                             Reset
                         </Button>
                         <Button
                             type='submit'
-                            disabled={isSubmitting}
-                            className='order-1 w-fit transition-all duration-200 hover:scale-105 sm:order-2'
+                            disabled={isSubmitting || selectedRows.length === 0}
+                            className='order-1 w-fit sm:order-2'
                             isLoading={isSubmitting}
                             loadingText='Saving...'>
                             <div className='flex items-center'>

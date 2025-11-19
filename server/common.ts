@@ -416,7 +416,7 @@ export async function getUserAccessibleModules() {
                                         },
                                         {
                                             id: 33,
-                                            name: 'Group Grouping',
+                                            name: 'Fee Group Grouping',
                                             icon: 'Settings',
                                             url: '/fees/masters/groupsgrouping',
                                             title: 'Group Grouping',
@@ -424,7 +424,7 @@ export async function getUserAccessibleModules() {
                                         },
                                         {
                                             id: 34,
-                                            name: 'Groups',
+                                            name: 'Fee Groups',
                                             icon: 'Settings',
                                             url: '/fees/masters/mastergroup',
                                             title: 'Groups',
@@ -432,7 +432,7 @@ export async function getUserAccessibleModules() {
                                         },
                                         {
                                             id: 35,
-                                            name: 'Yearly Groups',
+                                            name: 'Fee Yearly Groups',
                                             icon: 'Settings',
                                             url: '/fees/masters/yearlygroup',
                                             title: 'Yearly Groups',
@@ -441,7 +441,7 @@ export async function getUserAccessibleModules() {
 
                                         {
                                             id: 36,
-                                            name: 'Yearly Groups Mapping',
+                                            name: 'Fee Yearly Groups Mapping',
                                             icon: 'Settings',
                                             url: '/fees/masters/yearlygroupmapping',
                                             title: 'Yearly Groups Mapping',
@@ -449,7 +449,7 @@ export async function getUserAccessibleModules() {
                                         },
                                         {
                                             id: 37,
-                                            name: 'Group wise  Auto Receipt',
+                                            name: 'Fee Group wise  Auto Receipt',
                                             icon: 'Settings',
                                             url: '/fees/masters/groupwiseautoreceipt',
                                             title: 'Group wise  Auto Receipt',
@@ -457,7 +457,7 @@ export async function getUserAccessibleModules() {
                                         },
                                         {
                                             id: 38,
-                                            name: 'Yearly Rebate Settings',
+                                            name: 'Fee Yearly Rebate Settings',
                                             icon: 'Settings',
                                             url: '/fees/masters/yearlyrebatesetting',
                                             title: 'Yearly Rebate Settings',
@@ -1700,44 +1700,44 @@ export async function getUserAccessibleModules() {
                             ]
                         }
                     ]
-                },
-                {
-                    id: 5,
-                    name: 'IFrame',
-                    icon: 'Users',
-                    menu: [
-                        {
-                            id: 1,
-                            name: 'IFrame',
-                            icon: 'BookOpen',
-                            sub_menu: [
-                                {
-                                    id: 1,
-                                    name: 'IFrame',
-                                    icon: 'Database',
-                                    pages: [
-                                        {
-                                            id: 1,
-                                            name: 'AI Assignment',
-                                            icon: 'BookOpen',
-                                            url: '/iframe/ai-assignment',
-                                            title: 'IFrame',
-                                            description: 'Manage AI Assignment Details'
-                                        },
-                                        {
-                                            id: 2,
-                                            name: 'Question Generator',
-                                            icon: 'BookOpen',
-                                            url: '/iframe/question-generator',
-                                            title: 'IFrame',
-                                            description: 'Manage Question Generator Details'
-                                        }
-                                    ]
-                                }
-                            ]
-                        }
-                    ]
                 }
+                // {
+                //     id: 5,
+                //     name: 'IFrame',
+                //     icon: 'Users',
+                //     menu: [
+                //         {
+                //             id: 1,
+                //             name: 'IFrame',
+                //             icon: 'BookOpen',
+                //             sub_menu: [
+                //                 {
+                //                     id: 1,
+                //                     name: 'IFrame',
+                //                     icon: 'Database',
+                //                     pages: [
+                //                         {
+                //                             id: 1,
+                //                             name: 'AI Assignment',
+                //                             icon: 'BookOpen',
+                //                             url: '/iframe/ai-assignment',
+                //                             title: 'IFrame',
+                //                             description: 'Manage AI Assignment Details'
+                //                         },
+                //                         {
+                //                             id: 2,
+                //                             name: 'Question Generator',
+                //                             icon: 'BookOpen',
+                //                             url: '/iframe/question-generator',
+                //                             title: 'IFrame',
+                //                             description: 'Manage Question Generator Details'
+                //                         }
+                //                     ]
+                //                 }
+                //             ]
+                //         }
+                //     ]
+                // }
             ]
         };
     } else {
