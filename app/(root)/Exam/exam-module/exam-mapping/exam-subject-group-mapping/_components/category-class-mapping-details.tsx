@@ -20,14 +20,14 @@ export default function ExamSubjectGroupingDetailsPage({ rowData, onClose }: Exa
     const [details, setDetails] = useState<IExamSubjectGroupingDetails[]>([]);
     //  Call hook properly (React hook must be at top level)
     const [loading, setLoading] = useState(true);
-    const { data: response, error } = useExamSubjectGroupMappingDetails(
-        30,
-        rowData?.esG_CompulsoryFlag ?? 'N',
-        rowData?.asmaY_Id ?? 0,
-        rowData?.esG_Id ?? 0
-    );
+    const {
+        data: response,
+        error,
+        refetchAll
+    } = useExamSubjectGroupMappingDetails(30, rowData?.esG_CompulsoryFlag ?? 'N', rowData?.asmaY_Id ?? 0, rowData?.esG_Id ?? 0);
     //  Handle API response
     useEffect(() => {
+        refetchAll();
         if (response) {
             if (response.success && Array.isArray(response.data)) {
                 setLoading(false);
@@ -38,7 +38,7 @@ export default function ExamSubjectGroupingDetailsPage({ rowData, onClose }: Exa
                 toast.error(response.message || 'No data found');
             }
         }
-    }, [response]);
+    }, [response, rowData.asmaY_Id, rowData.esG_Id, rowData.esG_CompulsoryFlag]);
 
     //  Handle API error
     useEffect(() => {

@@ -44,9 +44,7 @@ function PreadmissionTransactionContent({
             <div className='container space-y-4 p-1'>
                 {/* Header */}
                 <div className='flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between'>
-                    <div className='space-y-1'>
-                        <h1 className='font-bold text-2xl'>Fee Preadmission Transactions</h1>
-                    </div>
+                    <div className='space-y-1'>{/* <h1 className='font-bold text-2xl'>Fee Preadmission Transactions</h1> */}</div>
                     <Button
                         type='button'
                         onClick={openAddForm}

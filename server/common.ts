@@ -660,14 +660,6 @@ export async function getUserAccessibleModules() {
                                     pages: [
                                         {
                                             id: 53,
-                                            name: 'Yearly category Subject Mapping',
-                                            icon: 'CalendarDays',
-                                            url: '/Exam/exam-module/exam-mapping/yearly-category-subject-mapping',
-                                            title: 'Yearly category Subject Mapping',
-                                            description: 'Manage Yearly category Subject Mapping Details'
-                                        },
-                                        {
-                                            id: 54,
                                             name: 'Exam Subject Wizard',
                                             icon: 'CalendarDays',
                                             url: '/Exam/exam-module/exam-mapping/exam-subject-wizard',
@@ -675,7 +667,23 @@ export async function getUserAccessibleModules() {
                                             description: 'Manage Exam Subject Wizard Details'
                                         },
                                         {
+                                            id: 54,
+                                            name: 'Exam Login Privilages',
+                                            icon: 'CalendarDays',
+                                            url: '/Exam/exam-module/exam-mapping/exam-login-privilages',
+                                            title: 'Exam Login Privilages',
+                                            description: 'Manage Exam Login Privilages Details'
+                                        },
+                                        {
                                             id: 55,
+                                            name: 'Yearly category Subject Mapping',
+                                            icon: 'CalendarDays',
+                                            url: '/Exam/exam-module/exam-mapping/yearly-category-subject-mapping',
+                                            title: 'Yearly category Subject Mapping',
+                                            description: 'Manage Yearly category Subject Mapping Details'
+                                        },
+                                        {
+                                            id: 56,
                                             name: 'Yearly Category Date Mapping',
                                             icon: 'CalendarDays',
                                             url: '/Exam/exam-module/exam-mapping/yearly-category-dates-mapping',
@@ -683,7 +691,7 @@ export async function getUserAccessibleModules() {
                                             description: 'Manage Yearly Category Date Mapping Details'
                                         },
                                         {
-                                            id: 56,
+                                            id: 57,
                                             name: 'Exam Subject Group Mapping',
                                             icon: 'BookOpen',
                                             url: '/Exam/exam-module/exam-mapping/exam-subject-group-mapping',
@@ -691,7 +699,7 @@ export async function getUserAccessibleModules() {
                                             description: 'Manage Exam Subject Group Mapping Details'
                                         },
                                         {
-                                            id: 57,
+                                            id: 58,
                                             name: 'Exam Term And Exam Mapping',
                                             icon: 'BookOpen',
                                             url: '/Exam/exam-module/exam-mapping/exam-term-and-exam-mapping',
@@ -1671,6 +1679,43 @@ export async function getUserAccessibleModules() {
                                             url: '/hrms/pre-config/configuration/staff-user-creation',
                                             title: 'Staff User Creation',
                                             description: 'Create Staff Users'
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    id: 5,
+                    name: 'IFrame',
+                    icon: 'Users',
+                    menu: [
+                        {
+                            id: 1,
+                            name: 'IFrame',
+                            icon: 'BookOpen',
+                            sub_menu: [
+                                {
+                                    id: 1,
+                                    name: 'IFrame',
+                                    icon: 'Database',
+                                    pages: [
+                                        {
+                                            id: 1,
+                                            name: 'AI Assignment',
+                                            icon: 'BookOpen',
+                                            url: '/iframe/ai-assignment',
+                                            title: 'IFrame',
+                                            description: 'Manage AI Assignment Details'
+                                        },
+                                        {
+                                            id: 2,
+                                            name: 'Question Generator',
+                                            icon: 'BookOpen',
+                                            url: '/iframe/question-generator',
+                                            title: 'IFrame',
+                                            description: 'Manage Question Generator Details'
                                         }
                                     ]
                                 }

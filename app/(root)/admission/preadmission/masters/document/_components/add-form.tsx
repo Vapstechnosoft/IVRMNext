@@ -33,7 +33,7 @@ export default function AddDocumentForm({ onSuccess, className = '' }: AddDocume
         formState: { errors, isSubmitting }
     } = useForm<FormFields>({
         resolver: zodResolver(masterDocumentSchema.addOrUpdate),
-        defaultValues: { amsmD_ActiveFlag: 0 },
+        defaultValues: { amsmD_FLAG: 0 },
         mode: 'onChange'
     });
 
@@ -42,7 +42,7 @@ export default function AddDocumentForm({ onSuccess, className = '' }: AddDocume
             const payload = {
                 amsmD_DocumentName: data?.amsmD_DocumentName,
                 amsmD_Description: data?.amsmD_Description,
-                amsmD_ActiveFlag: data?.amsmD_ActiveFlag === 1
+                amsmD_FLAG: data?.amsmD_FLAG === 1
             };
 
             const response = await addOrUpdateMasterDocument(payload);
@@ -89,16 +89,16 @@ export default function AddDocumentForm({ onSuccess, className = '' }: AddDocume
                         />
 
                         <div className='group flex flex-col gap-1.5 space-y-2'>
-                            <Label aria-label='Document Is Mandatory' htmlFor='amsmD_ActiveFlag'>
+                            <Label aria-label='Document Is Mandatory' htmlFor='amsmD_FLAG'>
                                 Document Is Mandatory <span className='ml-1 text-red-500'>*</span>
                             </Label>
                             <Controller
-                                name='amsmD_ActiveFlag'
+                                name='amsmD_FLAG'
                                 control={control}
                                 render={({ field }) => (
                                     <RadioGroup
                                         value={String(field.value)}
-                                        onValueChange={(value) => setValue('amsmD_ActiveFlag', Number(value))}
+                                        onValueChange={(value) => setValue('amsmD_FLAG', Number(value))}
                                         className='flex gap-4'>
                                         <div className='flex items-center space-x-2'>
                                             <RadioGroupItem value='1' id='yes' />
@@ -111,7 +111,7 @@ export default function AddDocumentForm({ onSuccess, className = '' }: AddDocume
                                     </RadioGroup>
                                 )}
                             />
-                            {errors.amsmD_ActiveFlag && <FormError>{errors.amsmD_ActiveFlag.message}</FormError>}
+                            {errors.amsmD_FLAG && <FormError>{errors.amsmD_FLAG.message}</FormError>}
                         </div>
                     </div>
                 </div>

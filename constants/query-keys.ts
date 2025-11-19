@@ -55,7 +55,9 @@ export const PREADMISSION_QUERY_KEYS = {
     REGISTRATION_NUMBERING: 'registration_Numbering',
     PRE_REGISTRATION_NUMBERING: 'Pre_Registration_Numbering',
     STUDENT_COUNT_REPORT: 'student_count_report',
-    STUDENT_APPLICATION_FORM: 'student_application_form'
+    STUDENT_APPLICATION_FORM: 'student_application_form',
+    ACADEMIC_YEAR_MASTER_CONFIGURATION: 'academic_year_master_configuration',
+    PARENTS_DASHBOARD: 'parents_dashboard'
 };
 
 export const FEES_QUERY_KEYS = {
@@ -118,7 +120,8 @@ export const FEES_QUERY_KEYS = {
     FEE_CONCESSION_CATEGORY_GROUP_HEAD_MAPPING: 'fee_concession_category_group_head_mapping',
     FEE_CONCESSION_CATEGORY_GROUP__DROPDOWN: 'fee_concession_category_group_dropdown',
     FEE_CONCESSION_CATEGORY_HEADS__DROPDOWN: 'fee_concession_category_heads_dropdown',
-    FEE_CONCESSION_CATEGORY_DROPDOWNDATADETAILS: 'fee_concession_category_dropdowndetails'
+    FEE_CONCESSION_CATEGORY_DROPDOWNDATADETAILS: 'fee_concession_category_dropdowndetails',
+    FEE_STUDENT_TRANSACTION: 'fee_student_transaction'
 };
 
 export const EXAM_QUERY_KEYS = {

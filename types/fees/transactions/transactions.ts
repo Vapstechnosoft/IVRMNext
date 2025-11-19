@@ -192,3 +192,75 @@ export interface IFeeTransactionApiResponse {
         feeTransactions: IFeePreAdmissionTransactionDetails[];
     };
 }
+
+export interface Ifeetransaction {
+    amsT_FirstName: string;
+    amsT_MiddleName: string | null;
+    amsT_LastName: string | null;
+
+    classname: string;
+    sectionname: string;
+    amsT_AdmNo: string;
+
+    fyP_Receipt_No: string;
+    fyP_Date: string; // or Date
+    fyP_Tot_Amount: number;
+    fyP_Bank_Or_Cash: string; // example: 'C', 'O'
+    fyP_Chq_Bounce: string | null; // 'CL', 'CB', null
+
+    fyP_Id: number;
+    amst_Id: number;
+}
+
+export interface IStudentDropdown {
+    amst_Id: number;
+    studentName: string;
+    amsT_FirstName: string;
+}
+
+export interface IStudentInfo {
+    studentName: string;
+    admNo: string;
+    className: string;
+    section: string;
+    mobile: string;
+    photo?: string;
+}
+
+export interface IStudentTerm {
+    fmT_Id: number;
+    fmT_Name: string;
+    fmG_GroupName: string;
+}
+
+export interface ITransactionRow {
+    fmA_Id: number;
+    fmH_Id: number;
+    fmH_FeeName: string;
+    ftI_Id: number;
+    ftI_Name: string;
+    fmG_Id: number;
+    totalamount: number;
+    fsS_TotalToBePaid: number;
+    fsS_ConcessionAmount: number;
+    fsS_FineAmount: number;
+    fsS_OBArrearAmount: number;
+    fsS_ToBePaid: number;
+    fsS_TotalToBePaidaddfine: number;
+    fsS_RebateAmount: number;
+}
+
+export interface IPaymentMode {
+    ivrmmoD_Id: number;
+    ivrmmoD_ModeOfPayment: string;
+    ivrmmoD_Flag: 'B' | 'C';
+    Bank_Date?: string;
+    Bank_No?: string;
+    Bank_Name?: string;
+    Bank_Amount?: number;
+}
+
+export interface INarration {
+    fmnaR_Id: number;
+    fmnaR_Narration: string;
+}

@@ -21,7 +21,6 @@ export const CategoryClassMappingColumns: ColumnDef<ICategoryMapping>[] = [
             <Checkbox checked={row.getIsSelected()} onCheckedChange={(value) => row.toggleSelected(!!value)} aria-label='Select row' />
         ),
         enableSorting: false,
-        enableHiding: false,
         size: 24
     },
     {
@@ -31,7 +30,9 @@ export const CategoryClassMappingColumns: ColumnDef<ICategoryMapping>[] = [
             const pageIndex = table.getState().pagination.pageIndex;
             const pageSize = table.getState().pagination.pageSize;
             return <div>{pageIndex * pageSize + row.index + 1}</div>;
-        }
+        },
+        enableSorting: false,
+        enableHiding: false
     },
     {
         accessorKey: 'asmaY_Year',
