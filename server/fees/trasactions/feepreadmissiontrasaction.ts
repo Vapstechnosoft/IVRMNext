@@ -36,10 +36,11 @@ export async function getPreadmissionStudentDropdownData(
 }
 
 export async function getPreadmissionStudentInformation(
+    asmay_Id: number,
     studentId: number,
     searchText: string
 ): Promise<IFeePreAdmissionStudentInformation[]> {
-    const url = `/FeePreadmission/getStudentInfo?studentId=${studentId}&miId=30&asmayId=231&filterType=${searchText}`;
+    const url = `/FeePreadmission/getStudentInfo?studentId=${studentId}&miId=30&asmayId=${asmay_Id}&filterType=${searchText}`;
     console.info('preadmissiontransactiondetials api', url);
     const res = await api.get<IFeePreAdmissionStudentInformation[]>('fees', url);
     console.info('preadmissiontransactiondetials api', res);
@@ -58,20 +59,12 @@ export async function getPreadmissionStudentTrasactionData(
     // studentId: number,
     // academicYear: number
 ): Promise<IFeePreAdmissionTransactionDetails[]> {
-    const url = 'FeePreadmission/feedashboard?pasR_Id=1625&Grp_Term_flg=T&filterinitialdata=Preadmission&terms_groups=62';
-
+    const url = 'FeePreadmission/feedashboard?pasR_Id=1625&Grp_Term_flg=T&filterinitialdata=Preadmission&terms_groups=61';
     console.info('Requesting preadmission transaction details:', { baseUrlKey: 'fees', url });
-
-    // 👇 Don't wrap in <IFeeTransactionApiResponse> unless api.get() returns that shape directly
     const res = (await api.get('fees', url)) as IFeeTransactionApiResponse;
-
     console.info('Full preadmission transaction API response:', JSON.stringify(res, null, 2));
-
-    // ✅ Safely extract feeTransactions
     const transactions = res?.data?.feeTransactions ?? [];
-
     console.info('Extracted transactions:', transactions);
-
     return transactions;
 }
 
@@ -128,6 +121,7 @@ export async function getAmountentrydetails(mi_id: number, asmay_id: number, fmc
 }
 
 export async function getPrintdetails(data: any) {
-    const url = '/FeePreadmission/print_receipt';
-    return await api.get<IMasterAmountEntryDetails[]>('fees', url, data);
+    const url = 'FeePreadmission/print_receipt?fyp_id=49537&asmay_id=231&filterinitialdata=Preadmission&pasr_id=467';
+    console.log(data);
+    return await api.get<IFeePreAdmissionTransactionDetails[]>('fees', url, data);
 }

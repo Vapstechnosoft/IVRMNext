@@ -9,9 +9,9 @@ import { FormProvider, useFormContext } from '@/components/ui/form/form-provider
 // import AddExamLoginPrivilegesForm from './_components/add-exam-login-privileges-form';
 import { useExamLoginPrivileges } from '@/hooks/exam/exammodule/exam-mapping';
 import type { IExamLoginPrivilegesView } from '@/types/exam/exam-module/exam-mapping';
+import type { IExamLoginPrivileges } from '@/types/exam/exam-module/exam-mapping';
 import { Plus, X } from 'lucide-react';
 import { use } from 'react';
-import AddExamLoginPrivileges from './_components/add-form';
 import { ExamLoginPrivilegesColumns } from './_components/columns';
 
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
@@ -36,11 +36,11 @@ function ExamLoginPrivilegesPageContent({
     isLoading,
     error
 }: {
-    data: IExamLoginPrivilegesView[] | null;
+    data: any;
     isLoading: boolean;
     error: any;
 }) {
-    const { openAddForm } = useFormContext<IExamLoginPrivilegesView>();
+    const { openAddForm } = useFormContext<IExamLoginPrivileges>();
     const tableProps = useDataTableProps(data);
 
     return (
@@ -116,7 +116,7 @@ function FormSections() {
                                 className='-top-[3.5rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
                                 <X className='h-4 w-4 text-destructive' /> Close
                             </Button>
-                            <AddExamLoginPrivileges onSuccess={closeAddForm} />
+                            {/* <AddExamLoginPrivileges onSuccess={closeAddForm} /> */}
                         </div>
                     </CollapsibleSection>
                 </div>

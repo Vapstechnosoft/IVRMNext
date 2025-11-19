@@ -55,7 +55,9 @@ export const PREADMISSION_QUERY_KEYS = {
     REGISTRATION_NUMBERING: 'registration_Numbering',
     PRE_REGISTRATION_NUMBERING: 'Pre_Registration_Numbering',
     STUDENT_COUNT_REPORT: 'student_count_report',
-    STUDENT_APPLICATION_FORM: 'student_application_form'
+    STUDENT_APPLICATION_FORM: 'student_application_form',
+    ACADEMIC_YEAR_MASTER_CONFIGURATION: 'academic_year_master_configuration',
+    PARENTS_DASHBOARD: 'parents_dashboard'
 };
 
 export const FEES_QUERY_KEYS = {
@@ -122,6 +124,9 @@ export const FEES_QUERY_KEYS = {
     FEE_STUDENT_TRANSACTION: 'fee_student_transaction',
     HEAD_DROP_DOWN: 'head_drop_down',
     FEE_YEARLY_REBATE_SETTINGS: 'fee_yearly_rebate_settings'
+    FEE_THIRDPARTY_STUDENTDROPDOWN: 'fee_thirdparty_studentdropdown',
+    FEE_THIRDPARTY_RECEIPTDATA: 'fee_thirdparty_receiptdata',
+    FEE_THIRDPARTY_EDITDATA: 'fee_thirdparty_editdata'
 };
 
 export const EXAM_QUERY_KEYS = {
@@ -147,9 +152,21 @@ export const EXAM_QUERY_KEYS = {
     EXAM_TERM_AND_EXAM_MAPPING_DETAILS: 'exam-term-and-exam-mapping-details',
     EXAM_SUBJECT_WIZARD: 'exam-subject-wizard',
     EXAM_SUBJECT_WIZARD_DETAILS: 'exam-subject-wizard-details',
+
+    CO_SCHOLASTIC_ACTIVITY: 'co-scholastic-activity',
+    CO_SCHOLASTIC_AREA: 'co-scholastic-area',
+    CO_SCHOLASTIC_ACTIVITY_AREA_MAPPING: 'co-scholastic-activity-area-mapping',
+    CO_SCHOLASTIC_ACTIVITY_DROPDOWN: 'co-scholastic-activity-dropdown',
+    CO_SCHOLASTIC_AREA_DROPDOWN: 'co-scholastic-area-dropdown',
+
     SUB_EXAMS_MAPPED_VIEW: 'SUB_EXAMS_MAPPED_LIST',
     SUB_SUBJECTS_MAPPED_VIEW: 'SUB_SUBJECTS_MAPPED_LIST',
-    SUB_BOTH_MAPPED_VIEW: 'SUB_SUBJECTS_SUB_EXAMS_MAPPED_LIST'
+    SUB_BOTH_MAPPED_VIEW: 'SUB_SUBJECTS_SUB_EXAMS_MAPPED_LIST',
+
+    LIFE_SKILLS: 'life-skills',
+    LIFE_SKILLS_AREA: 'life-skills-area',
+    LIFE_SKILLS_MAPPING: 'life-skills-mapping',
+    LIFE_SKILLS_AREA_MAPPING: 'life-skills-area-mapping'
 };
 
 export const HRMS_QUERY_KEYS = {

@@ -158,10 +158,10 @@ export async function getUserAccessibleModules() {
                                         },
                                         {
                                             id: 12,
-                                            name: 'Class Teacher',
+                                            name: 'Master Class Teacher',
                                             icon: 'Settings',
                                             url: '/admission/preadmission/masters/class-teacher',
-                                            title: 'Class Teacher',
+                                            title: 'Master Class Teacher',
                                             description: 'Manage Master Class Teacher Details'
                                         }
                                     ]
@@ -252,6 +252,21 @@ export async function getUserAccessibleModules() {
                                         }
                                     ]
                                 }
+                                // {
+                                //   id: 4,
+                                //   name: "Reports",
+                                //   icon: "Settings",
+                                //   pages: [
+                                //     {
+                                //       id: 21,
+                                //       name: "Student Count Report",
+                                //       icon: "Settings",
+                                //       url: "/admission/preadmission/reports/student-count-report",
+                                //       title: "Student Count Report",
+                                //       description: "Student Count Report",
+                                //     },
+                                //   ],
+                                // },
                             ]
                         }
                     ]
@@ -603,6 +618,38 @@ export async function getUserAccessibleModules() {
                                             url: '/Exam/exam-module/masters/category-class-mapping',
                                             title: 'Category Class Mapping',
                                             description: 'Manage Category Class Mapping Details'
+                                        },
+                                        {
+                                            id: 200,
+                                            name: 'Co-Scholastic Activities',
+                                            icon: 'BookOpen',
+                                            url: '/Exam/exam-module/masters/co-scholastic-activities',
+                                            title: 'Co-Scholastic Activities',
+                                            description: 'Manage Co-Scholastic Activities Details'
+                                        },
+                                        {
+                                            id: 201,
+                                            name: 'Co-Scholastic Area',
+                                            icon: 'BookOpen',
+                                            url: '/Exam/exam-module/masters/co-scholastic-area',
+                                            title: 'Co-Scholastic Area',
+                                            description: 'Manage Co-Scholastic Area Details'
+                                        },
+                                        {
+                                            id: 202,
+                                            name: 'Life Skills',
+                                            icon: 'BookOpen',
+                                            url: '/Exam/exam-module/masters/life-skills',
+                                            title: 'Life Skills',
+                                            description: 'Manage Life Skills Details'
+                                        },
+                                        {
+                                            id: 203,
+                                            name: 'Life-Skills Area',
+                                            icon: 'BookOpen',
+                                            url: '/Exam/exam-module/masters/life-skills-area',
+                                            title: 'Life Skills Area',
+                                            description: 'Manage Life Skills Area Details'
                                         }
                                     ]
                                 },
@@ -613,6 +660,22 @@ export async function getUserAccessibleModules() {
                                     pages: [
                                         {
                                             id: 53,
+                                            name: 'Exam Subject Wizard',
+                                            icon: 'CalendarDays',
+                                            url: '/Exam/exam-module/exam-mapping/exam-subject-wizard',
+                                            title: 'Exam Subject Wizard',
+                                            description: 'Manage Exam Subject Wizard Details'
+                                        },
+                                        // {
+                                        //     id: 54,
+                                        //     name: 'Exam Login Privilages',
+                                        //     icon: 'CalendarDays',
+                                        //     url: '/Exam/exam-module/exam-mapping/exam-login-privilages',
+                                        //     title: 'Exam Login Privilages',
+                                        //     description: 'Manage Exam Login Privilages Details'
+                                        // },
+                                        {
+                                            id: 55,
                                             name: 'Yearly category Subject Mapping',
                                             icon: 'CalendarDays',
                                             url: '/Exam/exam-module/exam-mapping/yearly-category-subject-mapping',
@@ -620,15 +683,7 @@ export async function getUserAccessibleModules() {
                                             description: 'Manage Yearly category Subject Mapping Details'
                                         },
                                         {
-                                            id: 54,
-                                            name: 'Exam Subject Wizard',
-                                            icon: 'CalendarDays',
-                                            url: '/Exam/exam-module/exam-mapping/exam-subject-wizard',
-                                            title: 'Exam Subject Wizard',
-                                            description: 'Manage Exam Subject Wizard Details'
-                                        },
-                                        {
-                                            id: 55,
+                                            id: 56,
                                             name: 'Yearly Category Date Mapping',
                                             icon: 'CalendarDays',
                                             url: '/Exam/exam-module/exam-mapping/yearly-category-dates-mapping',
@@ -636,7 +691,7 @@ export async function getUserAccessibleModules() {
                                             description: 'Manage Yearly Category Date Mapping Details'
                                         },
                                         {
-                                            id: 56,
+                                            id: 57,
                                             name: 'Exam Subject Group Mapping',
                                             icon: 'BookOpen',
                                             url: '/Exam/exam-module/exam-mapping/exam-subject-group-mapping',
@@ -644,12 +699,28 @@ export async function getUserAccessibleModules() {
                                             description: 'Manage Exam Subject Group Mapping Details'
                                         },
                                         {
-                                            id: 57,
+                                            id: 58,
                                             name: 'Exam Term And Exam Mapping',
                                             icon: 'BookOpen',
                                             url: '/Exam/exam-module/exam-mapping/exam-term-and-exam-mapping',
                                             title: 'Exam Term And Exam Mapping',
                                             description: 'Manage Exam Term And Exam Mapping Details'
+                                        },
+                                        {
+                                            id: 59,
+                                            name: 'Co-Scholastic Activity Area Mapping',
+                                            icon: 'BookOpen',
+                                            url: '/Exam/exam-module/exam-mapping/co-scholastic-activitiy-area-mapping',
+                                            title: 'Co-Scholastic Activity Area Mapping',
+                                            description: 'Manage Co-Scholastic Activity Area Mapping Details'
+                                        },
+                                        {
+                                            id: 60,
+                                            name: 'Life Skill Area Mapping',
+                                            icon: 'BookOpen',
+                                            url: '/Exam/exam-module/exam-mapping/lifeskill-area-mapping',
+                                            title: 'Life Skill Area Mapping',
+                                            description: 'Manage Life Skill Area Mapping Details'
                                         }
                                     ]
                                 }
@@ -1608,6 +1679,43 @@ export async function getUserAccessibleModules() {
                                             url: '/hrms/pre-config/configuration/staff-user-creation',
                                             title: 'Staff User Creation',
                                             description: 'Create Staff Users'
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    id: 5,
+                    name: 'IFrame',
+                    icon: 'Users',
+                    menu: [
+                        {
+                            id: 1,
+                            name: 'IFrame',
+                            icon: 'BookOpen',
+                            sub_menu: [
+                                {
+                                    id: 1,
+                                    name: 'IFrame',
+                                    icon: 'Database',
+                                    pages: [
+                                        {
+                                            id: 1,
+                                            name: 'AI Assignment',
+                                            icon: 'BookOpen',
+                                            url: '/iframe/ai-assignment',
+                                            title: 'IFrame',
+                                            description: 'Manage AI Assignment Details'
+                                        },
+                                        {
+                                            id: 2,
+                                            name: 'Question Generator',
+                                            icon: 'BookOpen',
+                                            url: '/iframe/question-generator',
+                                            title: 'IFrame',
+                                            description: 'Manage Question Generator Details'
                                         }
                                     ]
                                 }

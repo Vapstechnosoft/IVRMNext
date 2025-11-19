@@ -5,7 +5,7 @@ import type { ApiSearchparams } from '@/types';
 import type { IMasterClassSectionDropDown, IMasterClassTeacherList } from '@/types/admission/preadmission/masters';
 
 export async function getMasterClassTeacher(searchParams?: ApiSearchparams) {
-    const urlParams = getSearchParamsUrl(searchParams ?? {}, 'asmcL_ClassName,asmaY_Year,asmC_SectionName');
+    const urlParams = getSearchParamsUrl(searchParams ?? {}, 'asmcL_ClassName,asmaY_Year,asmC_SectionName,employee_name,employee_code');
     const url = `/class_teacher_mapping?${urlParams}`;
     return await api.get<IMasterClassTeacherList[]>('admission', url);
 }

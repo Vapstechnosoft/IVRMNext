@@ -91,6 +91,8 @@ export interface IFeeThirdPartyTransaction {
     fyP_Date: string;
     asmaY_Year: string;
     fyptP_Towards: string;
+    mI_Id: number;
+    asmaY_Id: number;
 }
 
 export interface IFeeThirdPartyTransactionGroupDropDown {
@@ -263,4 +265,100 @@ export interface IPaymentMode {
 export interface INarration {
     fmnaR_Id: number;
     fmnaR_Narration: string;
+}
+
+export interface IFeeThirdPartyTransactionStudentDetails {
+    mI_Id: number;
+    amsT_Id: number;
+    asmaY_Id: number;
+    amsT_FirstName: string;
+    amsT_MiddleName: string;
+    amsT_LastName: string;
+    returnval: boolean;
+    fmH_Id: number;
+    fyptP_Towards: string;
+    fmH_FeeName: string | null;
+    fmG_Id: number;
+    fmG_GroupName: string | null;
+    fmH_Order: number;
+    studntlist: any | null;
+    fyP_Id: number;
+    fyP_Receipt_No: string | null;
+    fyptP_Id: number;
+    fyP_Bank_Name: string | null;
+    fyP_DD_Cheque_No: string | null;
+    user_id: number;
+    fyP_Bank_Or_Cash: string;
+    fyP_DD_Cheque_Date: string; // API returns "0001-01-01T00:00:00"
+    fyP_Date: string;
+    fyP_Tot_Amount: number;
+    fyP_Remarks: string;
+    fyptP_Name: string | null;
+    stdetails: any | null;
+    alldata: any | null;
+    ftP_TotalPaidAmount: number;
+    dulicate: boolean;
+    ftI_Id: number;
+    ftI_Name: string | null;
+    fmA_Id: number;
+    fsS_ToBePaid: number;
+}
+
+export interface INumberGeneration {
+    imN_Id: number;
+    mI_Id: number;
+    imN_AutoManualFlag: string;
+    imN_DuplicatesFlag: string;
+    imN_StartingNo: string;
+    imN_WidthNumeric: string;
+    imN_ZeroPrefixFlag: string;
+    imN_PrefixAcadYearCode: boolean;
+    imN_PrefixParticular: string;
+    imN_SuffixAcadYearCode: boolean;
+    imN_SuffixParticular: string;
+    imN_RestartNumFlag: string;
+    imN_Flag: string;
+    imN_PrefixFinYearCode: boolean;
+    imN_PrefixCalYearCode: boolean;
+    imN_SuffixFinYearCode: boolean;
+    imN_SuffixCalYearCode: boolean;
+    createdDate: string;
+    updatedDate: string;
+}
+
+export interface IThirdPartyTransactionEditdata {
+    mI_Id: number;
+    amsT_Id: number;
+    asmaY_Id: number;
+    amsT_FirstName: string | null;
+    amsT_MiddleName: string | null;
+    amsT_LastName: string | null;
+    returnval: boolean;
+    fmH_Id: number;
+    fyptP_Towards: string;
+    fmH_FeeName: string | null;
+    fmG_Id: number;
+    fmG_GroupName: string | null;
+    fmH_Order: number;
+    studntlist: any | null; // you can type it properly if you know the structure
+    fyP_Id: number;
+    fyP_Receipt_No: string;
+    fyptP_Id: number;
+    fyP_Bank_Name: string;
+    fyP_DD_Cheque_No: string;
+    user_id: number;
+    fyP_Bank_Or_Cash: string;
+    fyP_DD_Cheque_Date: string; // or Date
+    fyP_Date: string; // or Date
+    fyP_Tot_Amount: number;
+    fyP_Remarks: string;
+    fyptP_Name: string;
+    stdetails: any | null;
+    alldata: any | null;
+    ftP_TotalPaidAmount: number;
+    dulicate: boolean;
+    ftI_Id: number;
+    ftI_Name: string | null;
+    fmA_Id: number;
+    fsS_ToBePaid: number;
 }
