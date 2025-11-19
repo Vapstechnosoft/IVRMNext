@@ -543,6 +543,21 @@ export async function getUserAccessibleModules() {
                             icon: 'BookOpen',
                             sub_menu: [
                                 {
+                                    id: 9,
+                                    name: 'Configuration',
+                                    icon: 'Settings',
+                                    pages: [
+                                        {
+                                            id: 58,
+                                            name: 'Exam Standard',
+                                            icon: 'BookOpen',
+                                            url: '/Exam/exam-module/configurations/exam-standard',
+                                            title: 'Exam Standard',
+                                            description: 'Manage Exam Standard Details'
+                                        }
+                                    ]
+                                },
+                                {
                                     id: 7,
                                     name: 'Masters',
                                     icon: 'Settings',

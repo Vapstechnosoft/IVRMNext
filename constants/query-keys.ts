@@ -161,7 +161,9 @@ export const EXAM_QUERY_KEYS = {
     LIFE_SKILLS: 'life-skills',
     LIFE_SKILLS_AREA: 'life-skills-area',
     LIFE_SKILLS_MAPPING: 'life-skills-mapping',
-    LIFE_SKILLS_AREA_MAPPING: 'life-skills-area-mapping'
+    LIFE_SKILLS_AREA_MAPPING: 'life-skills-area-mapping',
+
+    EXAM_STANDARD: 'exam-standared'
 };
 
 export const HRMS_QUERY_KEYS = {
