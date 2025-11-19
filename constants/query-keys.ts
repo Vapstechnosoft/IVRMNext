@@ -119,7 +119,9 @@ export const FEES_QUERY_KEYS = {
     FEE_CONCESSION_CATEGORY_GROUP__DROPDOWN: 'fee_concession_category_group_dropdown',
     FEE_CONCESSION_CATEGORY_HEADS__DROPDOWN: 'fee_concession_category_heads_dropdown',
     FEE_CONCESSION_CATEGORY_DROPDOWNDATADETAILS: 'fee_concession_category_dropdowndetails',
-    FEE_STUDENT_TRANSACTION: 'fee_student_transaction'
+    FEE_STUDENT_TRANSACTION: 'fee_student_transaction',
+    HEAD_DROP_DOWN: 'head_drop_down',
+    FEE_YEARLY_REBATE_SETTINGS: 'fee_yearly_rebate_settings'
 };
 
 export const EXAM_QUERY_KEYS = {

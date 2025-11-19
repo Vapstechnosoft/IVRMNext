@@ -358,9 +358,9 @@ export const masterConcessionSchema = {
 export const masterTermsSchema = {
     addOrUpdate: z.object({
         fmT_Id: z.number().int().optional(),
-        fmT_Name: z
-            .string()
-            .min(1, { message: 'Term Name is required and Only letters and numbers allowed (no spaces and special characters)' }),
+        fmT_Name: z.string().min(1, {
+            message: 'Term Name is required and Only letters and numbers allowed (no spaces and special characters)'
+        }),
         fmT_IncludeArrearFeeFlg: z.boolean().optional(),
         fmT_ActiveFlag: z.boolean().optional()
     }),
@@ -387,7 +387,9 @@ export const masterConcessionDetailsSchema = {
     addOrUpdate: z.object({
         fmccD_Id: z.number().int().optional(),
         fmcC_Id: z.number({ message: 'Concession Category Type is required' }),
-        fmccD_PerOrAmtFlag: z.string({ message: 'Amount or Percentage is required' }),
+        fmccD_PerOrAmtFlag: z.string({
+            message: 'Amount or Percentage is required'
+        }),
 
         fmccD_FromNoSibblings: z.number().min(1, { message: 'From No of Sibblings is required' }),
         fmccD_ToNoSibblings: z.number().min(1, { message: 'To No of Sibblings is required' }),
@@ -485,21 +487,22 @@ export const masterClassYearlyGroupMappingSchema = {
 
 export const YearlyRebateSettingsSchema = {
     addOrUpdate: z.object({
-        academicYear: z.string({ required_error: 'Academic Year is required' }).min(1, 'Academic Year is required'),
-        rebateApplicable: z.boolean().optional().default(false),
-        rebateType: z
+        asmaY_Id: z.string({ required_error: 'Academic Year is required' }).min(1, 'Academic Year is required'),
+        fyrebseT_RebateTypeFlg: z
             .string()
             .optional()
-            .refine((val) => !val || ['Percentage', 'Amount'].includes(val), 'Invalid Rebate Type'),
-        rebateValue: z
+            .refine((val) => !val || ['A', 'P'].includes(val), 'Invalid Rebate Type'),
+        fyrebseT_Id: z
+            .string()
+            .optional()
+            .refine((val) => !val || ['0', '1'].includes(val), 'Invalid Rebate Type'),
+        fyrebseT_RebateAmtOrPercentValue: z
             .union([z.string(), z.number()])
             .transform((val) => Number(val))
             .refine((val) => !Number.isNaN(val) && val >= 0, 'Rebate Value must be a valid number')
             .optional()
             .default(0),
-        // optional list of fee group ids for forms that require selecting fee groups
-        feeGroupIds: z.array(z.number()).optional(),
-        rebateDate: z.string({ required_error: 'Rebate Date is required' }).min(1, 'Rebate Date is required')
+        fyrebseT_RebateDate: z.string({ required_error: 'Rebate Date is required' }).min(1, 'Rebate Date is required')
     }),
 
     delete: z.object({
@@ -512,10 +515,11 @@ export const YearlyRebateSettingsSchema = {
 
 export const feePrivilegeSchema = {
     addOrUpdate: z.object({
-        academicYearId: z.number({ required_error: 'Academic Year is required' }).min(1, 'Please select an Academic Year'),
-        groupId: z.number({ required_error: 'Group is required' }).min(1, 'Please select a Group'),
-        feeGroupIds: z.array(z.number()).min(1, 'Please select at least one Fee Group'),
-        roleIds: z.array(z.number()).min(1, 'Please select at least one Role')
+        academicYear: z.string({ required_error: 'Academic Year is required' }).min(1, 'Please select an Academic Year'),
+        group: z.string({ required_error: 'Group is required' }).min(1, 'Please select a Group'),
+        heads: z.array(z.string()).min(1, 'Please select at least one Head'),
+        roles: z.string({ required_error: 'Role is required' }).min(1, 'Please select a Role'),
+        users: z.array(z.string()).min(1, 'Please select at least one User')
     }),
     delete: z.object({
         ifp_Id: deleteIdSchema('ifp_Id')
@@ -619,5 +623,28 @@ export const masterConcessionCategorygroupHeadMappingSchema = {
     }),
     delete: z.object({
         fmaccG_Id: deleteIdSchema('fmaccG_Id')
+    })
+};
+
+export const masterFeePrivilege = {
+    addOrUpdate: z.object({
+        asmaY_Id: z.number({ message: 'Academic Year is required' }),
+        userId: z.number({ message: 'User is required' }),
+        fmG_Id: z.number().int().optional(),
+        fmG_GroupName: z.string().min(1, { message: 'Fee Group is required' }).max(200)
+    }),
+    toggle: z.object({
+        fmG_Id: z.number(),
+        fmG_ActiceFlag: z.boolean()
+    }),
+    delete: z.object({
+        fyG_Id: z
+            .number({
+                required_error: 'Yearly Group ID is required',
+                invalid_type_error: 'Yearly Group ID must be a number'
+            })
+            .refine((val) => val > 0, {
+                message: 'Yearly Group ID must be greater than 0'
+            })
     })
 };
