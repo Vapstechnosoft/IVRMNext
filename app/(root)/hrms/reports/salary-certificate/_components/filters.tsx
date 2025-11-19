@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import type { BaseEntity } from '@/lib/localdb';
+import { Search, X } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
 export interface GroupType extends BaseEntity {
@@ -251,10 +252,12 @@ export function SalaryCertificateFilters({
 
                 {/* Action Buttons */}
                 <div className='flex gap-2 pt-4'>
-                    <Button onClick={onGenerate} className='bg-blue-600 hover:bg-blue-700'>
+                    <Button onClick={onGenerate}>
+                        <Search className='mr-2 h-4 w-4' />
                         GENERATE SLIP
                     </Button>
                     <Button variant='outline' onClick={onCancel}>
+                        <X className='mr-2 h-4 w-4' />
                         CANCEL
                     </Button>
                 </div>

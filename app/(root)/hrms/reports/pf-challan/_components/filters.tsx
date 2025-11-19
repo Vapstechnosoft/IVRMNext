@@ -2,8 +2,9 @@
 
 import { Button } from '@/components/ui/button';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
+import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { useEffect, useState } from 'react';
+import { Search, X } from 'lucide-react';
 
 export interface PFChallanFilters {
     month: string;
@@ -12,18 +13,23 @@ export interface PFChallanFilters {
 
 interface PFChallanFiltersProps {
     filters: PFChallanFilters;
+    months: any[];
+    years: any[];
     onFilterChange: (filters: PFChallanFilters) => void;
     onGenerate: () => void;
     onCancel: () => void;
+    isLoading?: boolean;
 }
 
-export function PFChallanFilters({ filters, onFilterChange, onGenerate, onCancel }: PFChallanFiltersProps) {
-    const [currentYear, setCurrentYear] = useState<number | null>(null);
-
-    useEffect(() => {
-        setCurrentYear(new Date().getFullYear());
-    }, []);
-
+export function PFChallanFilters({
+    filters,
+    months,
+    years,
+    onFilterChange,
+    onGenerate,
+    onCancel,
+    isLoading = false
+}: PFChallanFiltersProps) {
     const handleSelectChange = (key: keyof PFChallanFilters, value: string) => {
         onFilterChange({ ...filters, [key]: value });
     };
@@ -38,66 +44,67 @@ export function PFChallanFilters({ filters, onFilterChange, onGenerate, onCancel
             <div className='flex items-center justify-center gap-6'>
                 {/* Month Filter */}
                 <div className='space-y-2'>
-                    <span className='font-medium text-foreground text-sm'>
+                    <Label htmlFor='month' className='font-medium text-foreground text-sm'>
                         Month: <span className='text-red-500'>*</span>
-                    </span>
-                    <Select value={filters.month} onValueChange={(value) => handleSelectChange('month', value)}>
-                        <SelectTrigger className='w-40'>
-                            <SelectValue placeholder='Select' />
-                        </SelectTrigger>
-                        <SelectContent>
-                            {[
-                                'January',
-                                'February',
-                                'March',
-                                'April',
-                                'May',
-                                'June',
-                                'July',
-                                'August',
-                                'September',
-                                'October',
-                                'November',
-                                'December'
-                            ].map((month) => (
-                                <SelectItem key={month} value={month}>
-                                    {month}
-                                </SelectItem>
-                            ))}
-                        </SelectContent>
-                    </Select>
+                    </Label>
+                    {isLoading ? (
+                        <div className='h-10 w-40 animate-pulse rounded-md bg-muted' />
+                    ) : months.length === 0 ? (
+                        <div className='text-muted-foreground text-sm'>No months available</div>
+                    ) : (
+                        <Select value={filters.month} onValueChange={(value) => handleSelectChange('month', value)}>
+                            <SelectTrigger className='w-40'>
+                                <SelectValue placeholder='Select Month' />
+                            </SelectTrigger>
+                            <SelectContent>
+                                {months
+                                    .filter((month) => month.IVRM_Month_Id != null && month.IVRM_Month_Name)
+                                    .map((month) => (
+                                        <SelectItem key={month.IVRM_Month_Id} value={month.IVRM_Month_Name.trim()}>
+                                            {month.IVRM_Month_Name.trim()}
+                                        </SelectItem>
+                                    ))}
+                            </SelectContent>
+                        </Select>
+                    )}
                 </div>
 
                 {/* Year Filter */}
                 <div className='space-y-2'>
-                    <span className='font-medium text-foreground text-sm'>
+                    <Label htmlFor='year' className='font-medium text-foreground text-sm'>
                         Year: <span className='text-red-500'>*</span>
-                    </span>
-                    <Select value={filters.year} onValueChange={(value) => handleSelectChange('year', value)}>
-                        <SelectTrigger className='w-32'>
-                            <SelectValue placeholder='Select' />
-                        </SelectTrigger>
-                        <SelectContent>
-                            {currentYear &&
-                                Array.from({ length: 5 }, (_, i) => {
-                                    const year = currentYear - 2 + i;
-                                    return (
-                                        <SelectItem key={`year-${year}`} value={year.toString()}>
-                                            {year}
+                    </Label>
+                    {isLoading ? (
+                        <div className='h-10 w-32 animate-pulse rounded-md bg-muted' />
+                    ) : years.length === 0 ? (
+                        <div className='text-muted-foreground text-sm'>No years available</div>
+                    ) : (
+                        <Select value={filters.year} onValueChange={(value) => handleSelectChange('year', value)}>
+                            <SelectTrigger className='w-32'>
+                                <SelectValue placeholder='Select Year' />
+                            </SelectTrigger>
+                            <SelectContent>
+                                {years
+                                    .filter((year) => year.HRMLY_Id != null && year.HRMLY_LeaveYear)
+                                    .map((year) => (
+                                        <SelectItem key={year.HRMLY_Id} value={year.HRMLY_LeaveYear}>
+                                            {year.HRMLY_LeaveYear}
                                         </SelectItem>
-                                    );
-                                })}
-                        </SelectContent>
-                    </Select>
+                                    ))}
+                            </SelectContent>
+                        </Select>
+                    )}
                 </div>
             </div>
 
             {/* Action Buttons */}
-            <div className='flex justify-center gap-2 pt-4'>
-                <Button onClick={onGenerate} className='bg-blue-600 hover:bg-blue-700'>
+            <div className='flex gap-2 pt-4'>
+                <Button onClick={onGenerate}>
+                    <Search className='mr-2 h-4 w-4' />
                     GENERATE
                 </Button>
                 <Button variant='outline' onClick={onCancel}>
+                    <X className='mr-2 h-4 w-4' />
                     CANCEL
                 </Button>
             </div>

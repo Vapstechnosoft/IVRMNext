@@ -11,10 +11,10 @@ import { SalarySlipFilters, type SalarySlipFilters as SalarySlipFiltersType } fr
 
 export default function SalarySlipReportPage() {
     const roleId = HRMS_MI_ID;
-    const LogInUserId = 2;
+    const LogInUserId = 0;
 
     // React Query hooks
-    const { data: onloadData, isLoading: isLoadingOnload } = useSalarySlipOnload(roleId, LogInUserId);
+    const { data: onloadData, isLoading: isLoadingOnload, error: onloadError } = useSalarySlipOnload(roleId, LogInUserId);
     const filterMutation = useFilterEmployeesByYearMonth();
     const generateMutation = useGenerateSalarySlip();
 
@@ -73,11 +73,13 @@ export default function SalarySlipReportPage() {
                         );
                         setEmployees(employeeList);
                         setFilteredEmployees(employeeList);
+                    } else {
+                        toast.error(response.message || 'No employees found for the selected month and year');
                     }
                 },
                 onError: (error) => {
                     console.error('Error filtering employees:', error);
-                    toast.error('Failed to load employees');
+                    toast.error(error.message || 'Failed to load employees. Please check if the API endpoint is available.');
                 }
             });
         } else {
@@ -157,9 +159,9 @@ export default function SalarySlipReportPage() {
             HRES_Year: filters.year,
             HRES_Month: filters.month,
             empid: selectedEmployees.map((emp) => emp.HRME_Id),
-            hrmdeS_IdList: filters.designation.length > 0 ? filters.designation : [0],
-            hrmD_IdList: filters.department.length > 0 ? filters.department : [0],
-            groupTypeIdList: filters.groupType.length > 0 ? filters.groupType : [0]
+            hrmdeS_IdList: filters.designation.length > 0 ? filters.designation : [],
+            hrmD_IdList: filters.department.length > 0 ? filters.department : [],
+            groupTypeIdList: filters.groupType.length > 0 ? filters.groupType : []
         };
 
         generateMutation.mutate(request, {
@@ -173,7 +175,7 @@ export default function SalarySlipReportPage() {
             },
             onError: (error) => {
                 console.error('Error generating salary slips:', error);
-                toast.error('Failed to generate salary slips');
+                toast.error(error.message || 'Failed to generate salary slips. Please check if the API endpoint is available.');
             }
         });
     };
@@ -205,6 +207,50 @@ export default function SalarySlipReportPage() {
     const selectedCount = filteredEmployees.filter((emp) => emp.isSelected).length;
     const isLoading = isLoadingOnload || filterMutation.isPending || generateMutation.isPending;
 
+    // Handle onload errors
+    useEffect(() => {
+        if (onloadError) {
+            toast.error('Failed to load filter options. Please check if the API endpoint is available.');
+        } else if (onloadData && !onloadData.success) {
+            toast.error(onloadData.message || 'Failed to load filter options');
+        }
+    }, [onloadError, onloadData]);
+
+    // Show error message if onload fails
+    if (onloadError || (onloadData && !onloadData.success)) {
+        return (
+            <div className='min-h-screen'>
+                <div className='container space-y-4 p-1'>
+                    <div className='rounded-lg border border-destructive bg-destructive/10 p-4 text-center'>
+                        <p className='font-semibold text-destructive'>
+                            {onloadError
+                                ? 'Failed to load filter options. Please check if the API endpoint is available.'
+                                : onloadData?.message || 'Failed to load filter options'}
+                        </p>
+                    </div>
+                </div>
+            </div>
+        );
+    }
+
+    // Show error message if onload fails
+    if (onloadError || (!isLoadingOnload && onloadData && !onloadData.success)) {
+        return (
+            <div className='min-h-screen'>
+                <div className='container space-y-4 p-1'>
+                    <div className='flex flex-col items-center justify-center space-y-4 rounded-lg bg-destructive/10 py-12'>
+                        <div className='text-center'>
+                            <h3 className='font-semibold text-destructive text-lg'>Error Loading Filter Options</h3>
+                            <p className='text-muted-foreground text-sm mt-2'>
+                                {(onloadError as any)?.message || (onloadData as any)?.message || 'Failed to load filter options. Please check if the API endpoint is available.'}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        );
+    }
+
     return (
         <div className='min-h-screen'>
             <div className='container space-y-4 p-1'>
@@ -213,7 +259,8 @@ export default function SalarySlipReportPage() {
                         type='button'
                         onClick={handleGenerateSlip}
                         size='lg'
-                        className='w-fit shadow-md transition-all duration-200 hover:scale-105 hover:shadow-lg'>
+                        className='w-fit shadow-md transition-all duration-200 hover:scale-105 hover:shadow-lg'
+                        disabled={isLoadingOnload}>
                         <FileText className='h-4 w-4' />
                         Generate Slips
                     </Button>
@@ -231,7 +278,7 @@ export default function SalarySlipReportPage() {
                     filteredEmployees={filteredEmployees}
                     searchTerm={searchTerm}
                     selectedCount={selectedCount}
-                    isLoading={isLoading}
+                    isLoading={isLoading || isLoadingOnload}
                     onFilterChange={handleFilterChange}
                     onSearchChange={setSearchTerm}
                     onOptionChange={handleOptionChange}

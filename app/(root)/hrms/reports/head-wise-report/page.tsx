@@ -3,23 +3,17 @@
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { DataTable } from '@/components/ui/data-table/data-table';
-import { type BaseEntity, createLocalCrud } from '@/lib/localdb';
+import { HRMS_MI_ID } from '@/constants/hrms-config';
+import { useHeadWiseReportOnload, useSearchHeadWiseReport } from '@/hooks/hrms/useReports';
 import { Calculator, Download, Printer } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';
 import { type HeadWiseRecord as HeadWiseRecordColumn, headWiseReportColumns } from './_components/columns';
 import { type HeadWiseReportFilters as HeadWiseFilters, HeadWiseReportFilters } from './_components/filters';
 
-// Data interfaces from employee-category masters
-interface GroupType extends BaseEntity {
-    groupType: string;
-    groupCode: string;
-    order: number;
-    isActive: boolean;
-}
-
 // Head wise report data structure
-interface HeadWiseRecord extends BaseEntity {
+interface HeadWiseRecord {
+    id?: string;
     salaryHead: string;
     headType: 'Earning' | 'Deduction';
     groupType: string;
@@ -34,15 +28,15 @@ interface HeadWiseRecord extends BaseEntity {
 }
 
 export default function HeadWiseReportPage() {
-    // Database instances
-    const groupTypeDB = createLocalCrud<GroupType>('master:group-type');
-    const headWiseDB = createLocalCrud<HeadWiseRecord>('report:head-wise');
+    const roleId = HRMS_MI_ID;
+
+    // React Query hooks
+    const { data: onloadData, isLoading: isLoadingOnload, error: onloadError } = useHeadWiseReportOnload(roleId, 0);
+    const searchMutation = useSearchHeadWiseReport();
 
     // State
-    const [groupTypes, setGroupTypes] = useState<GroupType[]>([]);
     const [headWiseRecords, setHeadWiseRecords] = useState<HeadWiseRecord[]>([]);
     const [filteredRecords, setFilteredRecords] = useState<HeadWiseRecord[]>([]);
-    const [isLoading, setIsLoading] = useState(true);
     const [showReport, setShowReport] = useState(false);
 
     const [filters, setFilters] = useState<HeadWiseFilters>({
@@ -51,149 +45,54 @@ export default function HeadWiseReportPage() {
         year: ''
     });
 
-    // Load data on mount
+    // Memoize dropdown data from API
+    const groupTypes = useMemo(() => {
+        const data = onloadData?.data;
+        if (!data) return [];
+        return (data as any).groupTypedropdown || [];
+    }, [onloadData?.data]);
+
+    const months = useMemo(() => {
+        const data = onloadData?.data;
+        if (!data) return [];
+        return (data as any).monthdropdown || [];
+    }, [onloadData?.data]);
+
+    const years = useMemo(() => {
+        const data = onloadData?.data;
+        if (!data) return [];
+        return (data as any).leaveyeardropdown || [];
+    }, [onloadData?.data]);
+
+    // Show error if API fails
     useEffect(() => {
-        loadData();
-    }, []);
-
-    const loadData = () => {
-        try {
-            // Load group types
-            let groupList = groupTypeDB.list();
-            if (groupList.length === 0) {
-                const mockData = generateMockGroupTypes();
-                mockData.forEach((group) => groupTypeDB.create(group));
-                groupList = groupTypeDB.list(); // Reload data after creating mock records
-            }
-            setGroupTypes(groupList.filter((g) => g.isActive));
-
-            // Load head wise records
-            let recordList = headWiseDB.list();
-            if (recordList.length === 0) {
-                const mockData = generateMockHeadWiseData();
-                mockData.forEach((record) => headWiseDB.create(record));
-                recordList = headWiseDB.list(); // Reload data after creating mock records
-            }
-            setHeadWiseRecords(recordList);
-        } catch (_error) {
-            toast.error('Failed to load data');
-        } finally {
-            setIsLoading(false);
+        if (onloadError || (!isLoadingOnload && onloadData && !onloadData.success)) {
+            const errorMessage = onloadError?.message || onloadData?.message || 'Failed to load head wise report data. Please check if the API endpoint is available.';
+            toast.error(errorMessage);
         }
-    };
+    }, [onloadError, isLoadingOnload, onloadData]);
 
-    // Generate mock group types
-    const generateMockGroupTypes = (): Omit<GroupType, 'id' | 'createdAt'>[] => {
-        return [
-            {
-                groupType: 'Test NON Teaching',
-                groupCode: 'TNT',
-                order: 1,
-                isActive: true
-            },
-            {
-                groupType: 'Test Insurance',
-                groupCode: 'TI',
-                order: 2,
-                isActive: true
-            },
-            { groupType: 'Teaching', groupCode: 'T', order: 3, isActive: true },
-            {
-                groupType: 'Owner of the company',
-                groupCode: 'OC',
-                order: 4,
-                isActive: true
-            },
-            { groupType: 'Non Teaching', groupCode: 'NT', order: 5, isActive: true },
-            {
-                groupType: 'Administrative',
-                groupCode: 'ADM',
-                order: 6,
-                isActive: true
-            },
-            { groupType: 'test', groupCode: 'TST', order: 7, isActive: true }
-        ];
-    };
-
-    // Generate mock head wise data
-    const generateMockHeadWiseData = (): Omit<HeadWiseRecord, 'id' | 'createdAt'>[] => {
-        const salaryHeads = [
-            { name: 'Basic Pay', type: 'Earning' as const },
-            { name: 'DA', type: 'Earning' as const },
-            { name: 'HRA', type: 'Earning' as const },
-            { name: 'Special Allowance', type: 'Earning' as const },
-            { name: 'Transport Allowance', type: 'Earning' as const },
-            { name: 'PF Deduction', type: 'Deduction' as const },
-            { name: 'ESI Deduction', type: 'Deduction' as const },
-            { name: 'Professional Tax', type: 'Deduction' as const },
-            { name: 'Income Tax', type: 'Deduction' as const }
-        ];
-
-        const groupTypeNames = [
-            'Test NON Teaching',
-            'Test Insurance',
-            'Teaching',
-            'Owner of the company',
-            'Non Teaching',
-            'Administrative',
-            'test'
-        ];
-        const departments = ['JUNIOR SCHOOL', 'SENIOR SCHOOL', 'OFFICE STAFF', 'SERVICE STAFF', 'ADMINISTRATIVE'];
-        const months = [
-            'January',
-            'February',
-            'March',
-            'April',
-            'May',
-            'June',
-            'July',
-            'August',
-            'September',
-            'October',
-            'November',
-            'December'
-        ];
-
-        const mockRecords: Omit<HeadWiseRecord, 'id' | 'createdAt'>[] = [];
-
-        salaryHeads.forEach((head) => {
-            groupTypeNames.forEach((groupType) => {
-                departments.forEach((dept) => {
-                    months.forEach((month) => {
-                        const totalEmployees = 3 + Math.floor(Math.random() * 8);
-                        const baseAmount = head.type === 'Earning' ? 15000 + Math.random() * 25000 : 2000 + Math.random() * 8000;
-                        const totalAmount = baseAmount * totalEmployees;
-                        const averageAmount = totalAmount / totalEmployees;
-                        const maxAmount = averageAmount * 1.5;
-                        const minAmount = averageAmount * 0.7;
-
-                        mockRecords.push({
-                            salaryHead: head.name,
-                            headType: head.type,
-                            groupType: groupType,
-                            departmentName: dept,
-                            totalEmployees,
-                            totalAmount: Math.round(totalAmount),
-                            averageAmount: Math.round(averageAmount),
-                            maxAmount: Math.round(maxAmount),
-                            minAmount: Math.round(minAmount),
-                            month: month,
-                            year: '2025'
-                        });
-                    });
-                });
-            });
-        });
-
-        return mockRecords;
-    };
+    // Memoize mapped data
+    const mappedGroupTypes = useMemo(() => {
+        return groupTypes.map((gt: any) => ({
+            id: gt.HRMGT_Id,
+            groupType: gt.HRMGT_EmployeeGroupType || gt.HRMGT_Code || '',
+            groupCode: gt.HRMGT_Code || '',
+            order: gt.HRMGT_Order || 0,
+            isActive: gt.HRMGT_ActiveFlag !== false
+        }));
+    }, [groupTypes]);
 
     // Filter head wise records based on selected criteria
     useEffect(() => {
         let filtered = headWiseRecords;
 
         if (filters.selectedGroupTypes.length > 0) {
-            filtered = filtered.filter((record) => filters.selectedGroupTypes.includes(record.groupType));
+            // Convert selected group type IDs to names for filtering
+            const selectedGroupTypeNames = mappedGroupTypes
+                .filter((gt: any) => filters.selectedGroupTypes.includes(gt.id.toString()))
+                .map((gt: any) => gt.groupType);
+            filtered = filtered.filter((record) => selectedGroupTypeNames.includes(record.groupType));
         }
 
         if (filters.month) {
@@ -205,24 +104,7 @@ export default function HeadWiseReportPage() {
         }
 
         setFilteredRecords(filtered);
-    }, [filters, headWiseRecords]);
-
-    const handleGroupTypeToggle = (groupType: string) => {
-        setFilters((prev) => ({
-            ...prev,
-            selectedGroupTypes: prev.selectedGroupTypes.includes(groupType)
-                ? prev.selectedGroupTypes.filter((g) => g !== groupType)
-                : [...prev.selectedGroupTypes, groupType]
-        }));
-    };
-
-    const handleSelectAllGroupTypes = () => {
-        const allGroupTypeNames = groupTypes.map((g) => g.groupType);
-        setFilters((prev) => ({
-            ...prev,
-            selectedGroupTypes: prev.selectedGroupTypes.length === allGroupTypeNames.length ? [] : allGroupTypeNames
-        }));
-    };
+    }, [filters, headWiseRecords, mappedGroupTypes]);
 
     const handleFilterChange = (newFilters: HeadWiseFilters) => {
         setFilters(newFilters);
@@ -233,8 +115,69 @@ export default function HeadWiseReportPage() {
             toast.error('Please select month and year');
             return;
         }
-        setShowReport(true);
-        toast.success('Head wise report generated');
+        if (filters.selectedGroupTypes.length === 0) {
+            toast.error('Please select at least one group type');
+            return;
+        }
+
+        // Find month ID from selected month name
+        const selectedMonthObj = months.find((m: any) => m.IVRM_Month_Name?.trim() === filters.month);
+        const monthId = selectedMonthObj?.IVRM_Month_Id?.toString() || '';
+
+        // Prepare search request
+        const searchRequest = {
+            MI_Id: roleId,
+            groupTypeselected: filters.selectedGroupTypes.length > 0
+                ? filters.selectedGroupTypes.map((id) => Number.parseInt(id))
+                : [],
+            departmentselected: [],
+            designationselected: [],
+            HRES_Year: filters.year || '',
+            HRES_Month: monthId || ''
+        };
+
+        searchMutation.mutate(searchRequest, {
+            onSuccess: (response) => {
+                if (response.success && response.data) {
+                    // Map API response to HeadWiseRecord format
+                    const employeeDetails = response.data.employeeDetails || [];
+                    const mappedRecords: HeadWiseRecord[] = employeeDetails.map((emp: any, index: number) => {
+                        // Extract head wise data from employee details
+                        // The structure may vary, so we'll handle different possible formats
+                        const salaryHead = emp.salaryHead || emp.headName || emp.HRMED_Name || '';
+                        const headType = emp.headType || emp.type || (emp.HRMED_EarnDedFlag === 'Earning' ? 'Earning' : 'Deduction') as 'Earning' | 'Deduction';
+                        const groupType = emp.groupType || emp.HRMGT_EmployeeGroupType || '';
+                        const departmentName = emp.departmentName || emp.HRMD_DepartmentName || '';
+                        const totalAmount = emp.totalAmount || emp.amount || emp.HREED_Amount || 0;
+
+                        return {
+                            id: `head-${index}`,
+                            salaryHead,
+                            headType,
+                            groupType,
+                            departmentName,
+                            totalEmployees: emp.totalEmployees || emp.employeeCount || 1,
+                            totalAmount,
+                            averageAmount: emp.averageAmount || (totalAmount / (emp.totalEmployees || 1)),
+                            maxAmount: emp.maxAmount || totalAmount,
+                            minAmount: emp.minAmount || 0,
+                            month: filters.month,
+                            year: filters.year
+                        };
+                    });
+
+                    setHeadWiseRecords(mappedRecords);
+                    setShowReport(true);
+                    toast.success('Head wise report generated successfully');
+                } else {
+                    toast.error(response.message || 'Failed to generate head wise report');
+                }
+            },
+            onError: (error: Error) => {
+                console.error('Error searching head wise report:', error);
+                toast.error(error.message || 'Failed to generate head wise report');
+            }
+        });
     };
 
     const handleCancel = () => {
@@ -243,6 +186,8 @@ export default function HeadWiseReportPage() {
             month: '',
             year: ''
         });
+        setHeadWiseRecords([]);
+        setFilteredRecords([]);
         setShowReport(false);
         toast.info('Filters cleared');
     };
@@ -275,12 +220,13 @@ export default function HeadWiseReportPage() {
             {/* Report Configuration Section */}
             <HeadWiseReportFilters
                 filters={filters}
-                groupTypes={groupTypes}
+                groupTypes={mappedGroupTypes}
+                months={months}
+                years={years}
                 onFilterChange={handleFilterChange}
                 onSearch={handleSearch}
                 onCancel={handleCancel}
-                onSelectAllGroupTypes={handleSelectAllGroupTypes}
-                onGroupTypeToggle={handleGroupTypeToggle}
+                isLoading={isLoadingOnload}
             />
 
             {/* Report Results */}
@@ -354,7 +300,7 @@ export default function HeadWiseReportPage() {
 
                     {/* Data Table */}
                     <DataTable
-                        isLoading={isLoading}
+                        isLoading={isLoadingOnload}
                         columns={headWiseReportColumns}
                         data={filteredRecords as unknown as HeadWiseRecordColumn[]}
                         totalItems={filteredRecords.length}

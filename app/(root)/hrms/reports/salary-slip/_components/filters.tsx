@@ -196,32 +196,25 @@ export function SalarySlipFilters({
                             <SelectValue placeholder='Select month' />
                         </SelectTrigger>
                         <SelectContent>
-                            {months.map((month: any, index: number) => (
-                                <SelectItem
-                                    key={`month-${index}-${month.monthId || month.monthName || index}`}
-                                    value={month.monthName || month.monthId?.toString() || ''}>
-                                    {month.monthName || month.monthId}
-                                </SelectItem>
-                            ))}
-                            {months.length === 0 &&
-                                [
-                                    'January',
-                                    'February',
-                                    'March',
-                                    'April',
-                                    'May',
-                                    'June',
-                                    'July',
-                                    'August',
-                                    'September',
-                                    'October',
-                                    'November',
-                                    'December'
-                                ].map((month, index) => (
-                                    <SelectItem key={`fallback-month-${index}`} value={month}>
-                                        {month}
-                                    </SelectItem>
-                                ))}
+                            {months
+                                .filter((month: any) => {
+                                    const value = month.monthName || month.IVRM_Month_Name || month.monthId?.toString() || month.IVRM_Month_Id?.toString();
+                                    return value && value.trim() !== '';
+                                })
+                                .map((month: any, index: number) => {
+                                    const monthValue = month.monthName || month.IVRM_Month_Name || month.monthId?.toString() || month.IVRM_Month_Id?.toString();
+                                    const monthLabel = month.monthName || month.IVRM_Month_Name || month.monthId || month.IVRM_Month_Id;
+                                    return (
+                                        <SelectItem
+                                            key={`month-${index}-${monthValue}`}
+                                            value={monthValue}>
+                                            {monthLabel}
+                                        </SelectItem>
+                                    );
+                                })}
+                            {months.length === 0 && (
+                                <div className='px-2 py-1.5 text-sm text-muted-foreground'>No months available</div>
+                            )}
                         </SelectContent>
                     </Select>
                 </div>
@@ -236,23 +229,25 @@ export function SalarySlipFilters({
                             <SelectValue placeholder='Select year' />
                         </SelectTrigger>
                         <SelectContent>
-                            {years.map((year: any, index: number) => (
-                                <SelectItem
-                                    key={`year-${index}-${year.yearId || year.yearName || index}`}
-                                    value={year.yearName || year.yearId?.toString() || ''}>
-                                    {year.yearName || year.yearId}
-                                </SelectItem>
-                            ))}
-                            {years.length === 0 &&
-                                currentYear &&
-                                Array.from({ length: 5 }, (_, i) => {
-                                    const year = currentYear - 2 + i;
+                            {years
+                                .filter((year: any) => {
+                                    const value = year.yearName || year.HRMLY_LeaveYear || year.yearId?.toString() || year.HRMLY_Id?.toString();
+                                    return value && value.trim() !== '';
+                                })
+                                .map((year: any, index: number) => {
+                                    const yearValue = year.yearName || year.HRMLY_LeaveYear || year.yearId?.toString() || year.HRMLY_Id?.toString();
+                                    const yearLabel = year.yearName || year.HRMLY_LeaveYear || year.yearId || year.HRMLY_Id;
                                     return (
-                                        <SelectItem key={`fallback-year-${year}`} value={year.toString()}>
-                                            {year}
+                                        <SelectItem
+                                            key={`year-${index}-${yearValue}`}
+                                            value={yearValue}>
+                                            {yearLabel}
                                         </SelectItem>
                                     );
                                 })}
+                            {years.length === 0 && (
+                                <div className='px-2 py-1.5 text-sm text-muted-foreground'>No years available</div>
+                            )}
                         </SelectContent>
                     </Select>
                 </div>

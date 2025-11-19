@@ -40,20 +40,21 @@ export async function getFOMonthEndReportData(
         const response = await api.post<FOMonthEndReportApiResponse>('hrmsfrontoffice', url, requestBody);
         
         console.log('📥 [SERVER] Raw API Response:', JSON.stringify(response, null, 2));
+        const responseData = (response?.data as unknown) as FOMonthEndReportGetDataResponse | undefined;
         console.log('📥 [SERVER] Response Analysis:', {
             hasResponse: !!response,
             success: response?.success,
             message: response?.message,
-            hasData: !!response?.data,
-            classesCount: response?.data?.classes?.length || 0,
-            sectionsCount: response?.data?.sections?.length || 0,
-            monthsCount: response?.data?.months?.length || 0,
-            yearsCount: response?.data?.years?.length || 0
+            hasData: !!responseData,
+            classesCount: responseData?.classes?.length || 0,
+            sectionsCount: responseData?.sections?.length || 0,
+            monthsCount: responseData?.months?.length || 0,
+            yearsCount: responseData?.years?.length || 0
         });
         
         // The API returns: { success: boolean, message: string, data: { classes, sections, months, years }, total: number, page: number, page_size: number }
         if (response && typeof response === 'object' && 'success' in response && 'data' in response) {
-            const responseData = response.data;
+            const responseData = (response.data as unknown) as FOMonthEndReportGetDataResponse;
             
             if (responseData) {
                 return {

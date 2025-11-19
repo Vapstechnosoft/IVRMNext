@@ -6,6 +6,7 @@ import type {
     DesignationDetail,
     MasterDesignationInput,
     MasterDesignationResponse,
+    OnloadGetDesignationDetailsRequest,
     SaveDesignationRequest
 } from '@/types/hrms/master-designation';
 

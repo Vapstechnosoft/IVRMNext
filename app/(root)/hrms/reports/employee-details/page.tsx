@@ -2,7 +2,6 @@
 
 import { Button } from '@/components/ui/button';
 import { CalendarYear } from '@/components/ui/calendar_year';
-import { Checkbox } from '@/components/ui/checkbox';
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
 import { DataTable } from '@/components/ui/data-table/data-table';
 import { Label } from '@/components/ui/extension/field';
@@ -11,7 +10,6 @@ import { MultiSelect } from '@/components/ui/multi-select';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useEmployeeDetailsReportOnload, useFilterEmployeeDetailsReport, useSearchEmployeeDetailsReport } from '@/hooks/hrms/useReports';
-import { type BaseEntity, createLocalCrud } from '@/lib/localdb';
 import { cn } from '@/lib/utils';
 import type { ColumnDef } from '@tanstack/react-table';
 import { format } from 'date-fns';
@@ -21,7 +19,8 @@ import { Controller, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 
 // Employee data structure for reports
-interface Employee extends BaseEntity {
+interface Employee {
+    id: string;
     employeeCode: string;
     employeeName: string;
     fatherName: string;
@@ -63,11 +62,8 @@ interface HeaderForm {
 }
 
 export default function EmployeeDetailsReportPage() {
-    // Database instances
-    const employeeDB = createLocalCrud<Employee>('report:employee-details');
-
     // React Query hooks
-    const { data: onloadData, isLoading: isLoadingOnload } = useEmployeeDetailsReportOnload(30, 2);
+    const { data: onloadData, isLoading: isLoadingOnload, error: onloadError } = useEmployeeDetailsReportOnload(30, 0);
     const filterMutation = useFilterEmployeeDetailsReport();
     const searchMutation = useSearchEmployeeDetailsReport();
 
@@ -89,8 +85,8 @@ export default function EmployeeDetailsReportPage() {
         selectedHeaders: [], // Start with no headers selected
         format: 'Format 1',
         dateFilter: 'Date of Birth',
-        fromDate: new Date('2025-09-17'),
-        toDate: new Date('2025-09-17'),
+        fromDate: null,
+        toDate: null,
         employeeStatus: ['Working'], // Default to Working only
         reportType: 'All',
         // Format 1 specific fields
@@ -113,19 +109,13 @@ export default function EmployeeDetailsReportPage() {
     // Watch form values
     const watchedHeaders = watch('selectedHeaders');
 
-    // Load fallback mock data if API doesn't return data
+    // Show error if API fails
     useEffect(() => {
-        if (!isLoadingOnload && (!onloadData?.data || !onloadData.data.monthdropdown)) {
-            // Load employees from local DB as fallback
-            let empList = employeeDB.list();
-            if (empList.length === 0) {
-                const mockData = generateMockEmployees();
-                mockData.forEach((emp) => employeeDB.create(emp));
-                empList = employeeDB.list();
-            }
-            setEmployees(empList);
+        if (onloadError || (!isLoadingOnload && onloadData && !onloadData.success)) {
+            const errorMessage = onloadError?.message || onloadData?.message || 'Failed to load employee details report data. Please check if the API endpoint is available.';
+            toast.error(errorMessage);
         }
-    }, [isLoadingOnload, onloadData]);
+    }, [onloadError, onloadData, isLoadingOnload]);
 
     // Available header options
     const availableHeaders = [
@@ -185,18 +175,21 @@ export default function EmployeeDetailsReportPage() {
                         ) {
                             setEmployeeDropdownOptions(response.data.employeedropdown);
                         } else {
-                            // Fallback to onload data if filter returns empty
-                            setEmployeeDropdownOptions(onloadEmployeesArray);
+                            // No employees found for the selected type
+                            setEmployeeDropdownOptions([]);
+                            toast.info('No employees found for the selected type');
                         }
                     } else {
-                        // Fallback to onload data on unsuccessful response
-                        setEmployeeDropdownOptions(onloadEmployeesArray);
+                        // API returned unsuccessful response
+                        const errorMsg = response.message || 'Failed to filter employees. Please check if the filter API endpoint is available.';
+                        toast.error(errorMsg);
+                        setEmployeeDropdownOptions([]);
                     }
                 },
-                onError: (error) => {
-                    console.error('Error filtering employees by type:', error);
-                    // Fallback to onload data on error
-                    setEmployeeDropdownOptions(onloadEmployeesArray);
+                onError: (error: any) => {
+                    const errorMsg = error?.message || 'Failed to filter employees. Please check if the filter API endpoint is available.';
+                    toast.error(errorMsg);
+                    setEmployeeDropdownOptions([]);
                 }
             });
         } else if (filters.employeeType === 'Employee' && filters.fromDate && filters.toDate) {
@@ -226,17 +219,21 @@ export default function EmployeeDetailsReportPage() {
                         ) {
                             setEmployeeDropdownOptions(response.data.employeedropdown);
                         } else {
-                            // Fallback to onload data if filter returns empty
-                            setEmployeeDropdownOptions(onloadEmployeesArray);
+                            // No employees found
+                            setEmployeeDropdownOptions([]);
+                            toast.info('No employees found for the selected criteria');
                         }
                     } else {
-                        setEmployeeDropdownOptions(onloadEmployeesArray);
+                        // API returned unsuccessful response
+                        const errorMsg = response.message || 'Failed to filter employees. Please check if the filter API endpoint is available.';
+                        toast.error(errorMsg);
+                        setEmployeeDropdownOptions([]);
                     }
                 },
-                onError: (error) => {
-                    console.error('Error filtering employees:', error);
-                    // Fallback to onload data on error
-                    setEmployeeDropdownOptions(onloadEmployeesArray);
+                onError: (error: any) => {
+                    const errorMsg = error?.message || 'Failed to filter employees. Please check if the filter API endpoint is available.';
+                    toast.error(errorMsg);
+                    setEmployeeDropdownOptions([]);
                 }
             });
         }
@@ -262,92 +259,6 @@ export default function EmployeeDetailsReportPage() {
         }));
     }, [watchedHeaders]);
 
-    // Generate mock employee data
-    const generateMockEmployees = (): Omit<Employee, 'id' | 'createdAt'>[] => {
-        return [
-            {
-                employeeCode: 'EMP001',
-                employeeName: 'MR SUDIPTA RANJAN BHADURI',
-                fatherName: 'MR RANJAN BHADURI',
-                mobileNo: '9876543210',
-                emailId: 'sudipta@vaps.com',
-                dateOfBirth: '1985-05-15',
-                emergencyContactNumber: '9876543211',
-                dateOfJoining: '2020-01-15',
-                departmentName: 'JUNIOR SCHOOL',
-                designationName: 'Assistant Teacher',
-                address: '123 Main Street, Kolkata',
-                qualification: 'M.Ed',
-                experience: '5 years',
-                status: 'Working'
-            },
-            {
-                employeeCode: 'EMP002',
-                employeeName: 'MS RUPLEKHA CHATTERJEE',
-                fatherName: 'MR CHATTERJEE',
-                mobileNo: '9876543212',
-                emailId: 'ruplekha@vaps.com',
-                dateOfBirth: '1988-08-22',
-                emergencyContactNumber: '9876543213',
-                dateOfJoining: '2019-06-10',
-                departmentName: 'OFFICE STAFF',
-                designationName: 'Principal',
-                address: '456 Park Avenue, Kolkata',
-                qualification: 'M.A, B.Ed',
-                experience: '8 years',
-                status: 'Working'
-            },
-            {
-                employeeCode: 'EMP003',
-                employeeName: 'MR JOHN SHAH',
-                fatherName: 'MR SHAH',
-                mobileNo: '9876543214',
-                emailId: 'john@vaps.com',
-                dateOfBirth: '1990-12-03',
-                emergencyContactNumber: '9876543215',
-                dateOfJoining: '2021-03-20',
-                dateOfLeaving: '2024-08-15',
-                departmentName: 'OFFICE STAFF',
-                designationName: 'Office Assistant',
-                address: '789 Central Road, Kolkata',
-                qualification: 'B.Com',
-                experience: '3 years',
-                status: 'Left'
-            },
-            {
-                employeeCode: 'EMP004',
-                employeeName: 'MRS BHASWATI DAS',
-                fatherName: 'MR DAS',
-                mobileNo: '9876543216',
-                emailId: 'bhaswati@vaps.com',
-                dateOfBirth: '1987-04-18',
-                emergencyContactNumber: '9876543217',
-                dateOfJoining: '2018-09-01',
-                departmentName: 'SENIOR SCHOOL',
-                designationName: 'Teacher Helper',
-                address: '321 Lake View, Kolkata',
-                qualification: 'B.A',
-                experience: '6 years',
-                status: 'Working'
-            },
-            {
-                employeeCode: 'EMP005',
-                employeeName: 'MR SANTANU MUKHERJEE',
-                fatherName: 'MR MUKHERJEE',
-                mobileNo: '9876543218',
-                emailId: 'santanu@vaps.com',
-                dateOfBirth: '1983-11-25',
-                emergencyContactNumber: '9876543219',
-                dateOfJoining: '2017-04-12',
-                departmentName: 'SERVICE STAFF',
-                designationName: 'System Manager',
-                address: '654 Garden Street, Kolkata',
-                qualification: 'MCA',
-                experience: '10 years',
-                status: 'Working'
-            }
-        ];
-    };
 
     // Filter employees based on selected criteria
     useEffect(() => {
@@ -386,55 +297,6 @@ export default function EmployeeDetailsReportPage() {
         setFilteredEmployees(filtered);
     }, [filters, employees]);
 
-    const handleGroupTypeToggle = (groupType: string) => {
-        setFilters((prev) => ({
-            ...prev,
-            selectedGroupTypes: prev.selectedGroupTypes.includes(groupType)
-                ? prev.selectedGroupTypes.filter((gt) => gt !== groupType)
-                : [...prev.selectedGroupTypes, groupType]
-        }));
-    };
-
-    const handleSelectAllGroupTypes = () => {
-        setFilters((prev) => ({
-            ...prev,
-            selectedGroupTypes: prev.selectedGroupTypes.length === groupTypes.length ? [] : groupTypes.map((gt) => gt.HRMGT_Id.toString())
-        }));
-    };
-
-    const handleDepartmentToggle = (department: string) => {
-        setFilters((prev) => ({
-            ...prev,
-            selectedDepartments: prev.selectedDepartments.includes(department)
-                ? prev.selectedDepartments.filter((dept) => dept !== department)
-                : [...prev.selectedDepartments, department]
-        }));
-    };
-
-    const handleSelectAllDepartments = () => {
-        setFilters((prev) => ({
-            ...prev,
-            selectedDepartments:
-                prev.selectedDepartments.length === departments.length ? [] : departments.map((dept) => dept.HRMD_Id.toString())
-        }));
-    };
-
-    const handleDesignationToggle = (designation: string) => {
-        setFilters((prev) => ({
-            ...prev,
-            selectedDesignations: prev.selectedDesignations.includes(designation)
-                ? prev.selectedDesignations.filter((des) => des !== designation)
-                : [...prev.selectedDesignations, designation]
-        }));
-    };
-
-    const handleSelectAllDesignations = () => {
-        setFilters((prev) => ({
-            ...prev,
-            selectedDesignations:
-                prev.selectedDesignations.length === designations.length ? [] : designations.map((des) => des.HRMDES_Id.toString())
-        }));
-    };
 
     // Handle employee status change and trigger API automatically
     const handleEmployeeStatusChange = async (status: string, checked: boolean) => {
@@ -493,16 +355,30 @@ export default function EmployeeDetailsReportPage() {
                             address: `${emp.HRME_PerStreet || ''} ${emp.HRME_PerArea || ''} ${emp.HRME_PerCity || ''}`.trim(),
                             qualification: '',
                             experience: '',
-                            status: emp.HRME_LeftFlag ? 'Left' : 'Working',
-                            createdAt: new Date()
+                            status: emp.HRME_LeftFlag ? 'Left' : 'Working'
                         }));
 
                         setEmployees(filteredEmployees);
+                        setShowReport(true);
+                        toast.success('Employee status filter applied successfully');
+                    } else {
+                        setEmployees([]);
+                        setShowReport(false);
+                        toast.info('No employees found for the selected criteria');
                     }
-
-                    setShowReport(true);
-                    toast.success('Employee status filter applied successfully');
+                } else {
+                    // API returned unsuccessful response
+                    const errorMsg = response.message || 'Failed to filter employees. Please check if the filter API endpoint is available.';
+                    toast.error(errorMsg);
+                    setEmployees([]);
+                    setShowReport(false);
                 }
+            },
+            onError: (error: any) => {
+                const errorMsg = error?.message || 'Failed to filter employees. Please check if the filter API endpoint is available.';
+                toast.error(errorMsg);
+                setEmployees([]);
+                setShowReport(false);
             }
         });
     };
@@ -568,8 +444,7 @@ export default function EmployeeDetailsReportPage() {
                             address: `${emp.HRME_PerStreet || ''} ${emp.HRME_PerArea || ''} ${emp.HRME_PerCity || ''}`.trim(),
                             qualification: '',
                             experience: '',
-                            status: emp.HRME_LeftFlag ? 'Left' : 'Working',
-                            createdAt: new Date()
+                            status: emp.HRME_LeftFlag ? 'Left' : 'Working'
                         }));
 
                         setEmployees(mappedEmployees);
@@ -583,7 +458,19 @@ export default function EmployeeDetailsReportPage() {
                         const errorMsg = response.data?.retrunMsg || 'No employee data found for the selected criteria';
                         toast.error(errorMsg);
                     }
+                } else {
+                    // API returned unsuccessful response
+                    const errorMsg = response.message || 'Failed to search employee details. Please check if the search API endpoint is available.';
+                    toast.error(errorMsg);
+                    setEmployees([]);
+                    setShowReport(false);
                 }
+            },
+            onError: (error: any) => {
+                const errorMsg = error?.message || 'Failed to search employee details. Please check if the search API endpoint is available.';
+                toast.error(errorMsg);
+                setEmployees([]);
+                setShowReport(false);
             }
         });
     };
@@ -595,8 +482,8 @@ export default function EmployeeDetailsReportPage() {
             selectedHeaders: defaultHeaders,
             format: 'Format 1',
             dateFilter: 'Date of Birth',
-            fromDate: new Date('2025-09-17'),
-            toDate: new Date('2025-09-17'),
+            fromDate: null,
+            toDate: null,
             employeeStatus: ['Working'], // Reset to default
             reportType: 'All',
             // Format 1 specific fields
@@ -748,16 +635,34 @@ export default function EmployeeDetailsReportPage() {
         return columns;
     }, [filters.selectedHeaders]);
 
+    // Show error message if onload fails
+    if (onloadError || (!isLoadingOnload && onloadData && !onloadData.success)) {
+        return (
+            <div className='min-h-screen'>
+                <div className='container space-y-4 p-1'>
+                    <div className='flex flex-col items-center justify-center space-y-4 rounded-lg bg-destructive/10 py-12'>
+                        <div className='text-center'>
+                            <h3 className='font-semibold text-destructive text-lg'>Error Loading Filter Options</h3>
+                            <p className='text-muted-foreground text-sm mt-2'>
+                                {onloadError?.message || onloadData?.message || 'Failed to load filter options. Please check if the API endpoint is available.'}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        );
+    }
+
     return (
         <div className='min-h-screen'>
             <div className='container space-y-4 p-1'>
                 {/* Report Configuration Section */}
                 <CollapsibleSection
-                    defaultOpen={true}
-                    variant='default'
-                    size='lg'
-                    className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
-                    <div className='space-y-6'>
+                        defaultOpen={true}
+                        variant='default'
+                        size='lg'
+                        className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
+                        <div className='space-y-6'>
                         {/* Format Selection */}
                         <div className='space-y-3'>
                             <Label>Format</Label>
@@ -1175,119 +1080,71 @@ export default function EmployeeDetailsReportPage() {
                             <div className='grid grid-cols-1 gap-6 lg:grid-cols-3'>
                                 {/* Group Type Selection */}
                                 <div className='space-y-3'>
-                                    <div className='flex items-center justify-between'>
-                                        <span className='font-medium text-foreground text-sm'>
-                                            Group Type: <span className='text-red-500'>*</span>
-                                        </span>
-                                        <Button variant='outline' size='sm' onClick={handleSelectAllGroupTypes} className='text-xs'>
-                                            {filters.selectedGroupTypes.length === groupTypes.length ? 'Deselect All' : 'Select All'}
-                                        </Button>
-                                    </div>
-
-                                    <div className='max-h-48 overflow-y-auto rounded-md border bg-background p-3'>
-                                        <div className='space-y-2'>
-                                            <div className='flex items-center gap-2 font-medium text-sm'>
-                                                <Checkbox
-                                                    id='groupTypeAll'
-                                                    checked={filters.selectedGroupTypes.length === groupTypes.length}
-                                                    onCheckedChange={handleSelectAllGroupTypes}
-                                                />
-                                                <Label htmlFor='groupTypeAll' className='cursor-pointer'>
-                                                    All
-                                                </Label>
-                                            </div>
-                                            {groupTypes.map((groupType) => (
-                                                <div key={groupType.HRMGT_Id} className='flex items-center gap-2 text-sm'>
-                                                    <Checkbox
-                                                        id={`groupType-${groupType.HRMGT_Id}`}
-                                                        checked={filters.selectedGroupTypes.includes(groupType.HRMGT_Id.toString())}
-                                                        onCheckedChange={() => handleGroupTypeToggle(groupType.HRMGT_Id.toString())}
-                                                    />
-                                                    <Label htmlFor={`groupType-${groupType.HRMGT_Id}`} className='cursor-pointer'>
-                                                        {groupType.HRMGT_EmployeeGroupType}
-                                                    </Label>
-                                                </div>
-                                            ))}
-                                        </div>
-                                    </div>
+                                    <Label className='font-semibold'>
+                                        Group Type: <span className='text-red-500'>*</span>
+                                    </Label>
+                                    <MultiSelect
+                                        options={groupTypes.map((g) => ({
+                                            label: g.HRMGT_EmployeeGroupType,
+                                            value: String(g.HRMGT_Id)
+                                        }))}
+                                        onValueChange={(values) =>
+                                            setFilters((prev) => ({
+                                                ...prev,
+                                                selectedGroupTypes: values
+                                            }))
+                                        }
+                                        defaultValue={filters.selectedGroupTypes}
+                                        placeholder='Select Group Types'
+                                        className='w-full'
+                                        maxHeight={240}
+                                    />
                                 </div>
 
                                 {/* Department Selection */}
                                 <div className='space-y-3'>
-                                    <div className='flex items-center justify-between'>
-                                        <span className='font-medium text-foreground text-sm'>
-                                            Department: <span className='text-red-500'>*</span>
-                                        </span>
-                                        <Button variant='outline' size='sm' onClick={handleSelectAllDepartments} className='text-xs'>
-                                            {filters.selectedDepartments.length === departments.length ? 'Deselect All' : 'Select All'}
-                                        </Button>
-                                    </div>
-
-                                    <div className='max-h-48 overflow-y-auto rounded-md border bg-background p-3'>
-                                        <div className='space-y-2'>
-                                            <div className='flex items-center gap-2 font-medium text-sm'>
-                                                <Checkbox
-                                                    id='departmentAll'
-                                                    checked={filters.selectedDepartments.length === departments.length}
-                                                    onCheckedChange={handleSelectAllDepartments}
-                                                />
-                                                <Label htmlFor='departmentAll' className='cursor-pointer'>
-                                                    All
-                                                </Label>
-                                            </div>
-                                            {departments.map((department) => (
-                                                <div key={department.HRMD_Id} className='flex items-center gap-2 text-sm'>
-                                                    <Checkbox
-                                                        id={`department-${department.HRMD_Id}`}
-                                                        checked={filters.selectedDepartments.includes(department.HRMD_Id.toString())}
-                                                        onCheckedChange={() => handleDepartmentToggle(department.HRMD_Id.toString())}
-                                                    />
-                                                    <Label htmlFor={`department-${department.HRMD_Id}`} className='cursor-pointer'>
-                                                        {department.HRMD_DepartmentName}
-                                                    </Label>
-                                                </div>
-                                            ))}
-                                        </div>
-                                    </div>
+                                    <Label className='font-semibold'>
+                                        Department: <span className='text-red-500'>*</span>
+                                    </Label>
+                                    <MultiSelect
+                                        options={departments.map((d) => ({
+                                            label: d.HRMD_DepartmentName,
+                                            value: String(d.HRMD_Id)
+                                        }))}
+                                        onValueChange={(values) =>
+                                            setFilters((prev) => ({
+                                                ...prev,
+                                                selectedDepartments: values
+                                            }))
+                                        }
+                                        defaultValue={filters.selectedDepartments}
+                                        placeholder='Select Departments'
+                                        className='w-full'
+                                        maxHeight={240}
+                                    />
                                 </div>
 
                                 {/* Designation Selection */}
                                 <div className='space-y-3'>
-                                    <div className='flex items-center justify-between'>
-                                        <span className='font-medium text-foreground text-sm'>
-                                            Designation: <span className='text-red-500'>*</span>
-                                        </span>
-                                        <Button variant='outline' size='sm' onClick={handleSelectAllDesignations} className='text-xs'>
-                                            {filters.selectedDesignations.length === designations.length ? 'Deselect All' : 'Select All'}
-                                        </Button>
-                                    </div>
-
-                                    <div className='max-h-48 overflow-y-auto rounded-md border bg-background p-3'>
-                                        <div className='space-y-2'>
-                                            <div className='flex items-center gap-2 font-medium text-sm'>
-                                                <Checkbox
-                                                    id='designationAll'
-                                                    checked={filters.selectedDesignations.length === designations.length}
-                                                    onCheckedChange={handleSelectAllDesignations}
-                                                />
-                                                <Label htmlFor='designationAll' className='cursor-pointer'>
-                                                    All
-                                                </Label>
-                                            </div>
-                                            {designations.map((designation) => (
-                                                <div key={designation.HRMDES_Id} className='flex items-center gap-2 text-sm'>
-                                                    <Checkbox
-                                                        id={`designation-${designation.HRMDES_Id}`}
-                                                        checked={filters.selectedDesignations.includes(designation.HRMDES_Id.toString())}
-                                                        onCheckedChange={() => handleDesignationToggle(designation.HRMDES_Id.toString())}
-                                                    />
-                                                    <Label htmlFor={`designation-${designation.HRMDES_Id}`} className='cursor-pointer'>
-                                                        {designation.HRMDES_DesignationName}
-                                                    </Label>
-                                                </div>
-                                            ))}
-                                        </div>
-                                    </div>
+                                    <Label className='font-semibold'>
+                                        Designation: <span className='text-red-500'>*</span>
+                                    </Label>
+                                    <MultiSelect
+                                        options={designations.map((d) => ({
+                                            label: d.HRMDES_DesignationName,
+                                            value: String(d.HRMDES_Id)
+                                        }))}
+                                        onValueChange={(values) =>
+                                            setFilters((prev) => ({
+                                                ...prev,
+                                                selectedDesignations: values
+                                            }))
+                                        }
+                                        defaultValue={filters.selectedDesignations}
+                                        placeholder='Select Designations'
+                                        className='w-full'
+                                        maxHeight={240}
+                                    />
                                 </div>
                             </div>
                         )}
@@ -1304,7 +1161,7 @@ export default function EmployeeDetailsReportPage() {
                             </Button>
                         </div>
                     </div>
-                </CollapsibleSection>
+                    </CollapsibleSection>
 
                 {/* Report Results */}
                 {showReport && (

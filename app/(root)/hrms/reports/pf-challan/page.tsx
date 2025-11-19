@@ -3,7 +3,8 @@
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { DataTable } from '@/components/ui/data-table/data-table';
-import { type BaseEntity, createLocalCrud } from '@/lib/localdb';
+import { HRMS_MI_ID } from '@/constants/hrms-config';
+import { usePFChallanReportOnload, useFilterPFChallanEmployeeData, useSearchPFChallanReport } from '@/hooks/hrms/useReports';
 import { Calculator, Download, FileText, Printer } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';
@@ -11,7 +12,8 @@ import { type PFChallanRecord as PFChallanRecordColumn, pfChallanColumns } from 
 import { PFChallanFilters, type PFChallanFilters as PFChallanFiltersType } from './_components/filters';
 
 // PF challan data structure
-interface PFChallanRecord extends BaseEntity {
+interface PFChallanRecord {
+    id?: string;
     employeeCode: string;
     employeeName: string;
     pfNumber: string;
@@ -40,13 +42,16 @@ interface PFChallanSummary {
 }
 
 export default function PFChallanPage() {
-    // Database instances
-    const pfChallanDB = createLocalCrud<PFChallanRecord>('report:pf-challan');
+    const roleId = HRMS_MI_ID;
+
+    // React Query hooks
+    const { data: onloadData, isLoading: isLoadingOnload, error: onloadError } = usePFChallanReportOnload(roleId);
+    const filterMutation = useFilterPFChallanEmployeeData();
+    const searchMutation = useSearchPFChallanReport();
 
     // State
     const [pfRecords, setPFRecords] = useState<PFChallanRecord[]>([]);
     const [filteredRecords, setFilteredRecords] = useState<PFChallanRecord[]>([]);
-    const [isLoading, setIsLoading] = useState(true);
     const [showChallan, setShowChallan] = useState(false);
 
     const [filters, setFilters] = useState<PFChallanFiltersType>({
@@ -54,88 +59,33 @@ export default function PFChallanPage() {
         year: ''
     });
 
-    // Load data on mount
+    // Memoize dropdown data from API
+    const months = useMemo(() => {
+        const data = onloadData?.data;
+        if (!data) return [];
+        return (data as any).monthdropdown || [];
+    }, [onloadData?.data]);
+
+    const years = useMemo(() => {
+        const data = onloadData?.data;
+        if (!data) return [];
+        return (data as any).leaveyeardropdown || [];
+    }, [onloadData?.data]);
+
+    // Get institution details from API
+    const institutionDetails = useMemo(() => {
+        const data = onloadData?.data;
+        if (!data) return null;
+        return (data as any).institutionDetails || null;
+    }, [onloadData?.data]);
+
+    // Show error if API fails
     useEffect(() => {
-        loadData();
-    }, []);
-
-    const loadData = () => {
-        try {
-            // Load PF records
-            let recordList = pfChallanDB.list();
-            if (recordList.length === 0) {
-                const mockData = generateMockPFData();
-                mockData.forEach((record) => pfChallanDB.create(record));
-                recordList = pfChallanDB.list(); // Reload data after creating mock records
-            }
-            setPFRecords(recordList);
-        } catch (_error) {
-            toast.error('Failed to load data');
-        } finally {
-            setIsLoading(false);
+        if (onloadError || (!isLoadingOnload && onloadData && !onloadData.success)) {
+            const errorMessage = onloadError?.message || onloadData?.message || 'Failed to load PF challan report data. Please check if the API endpoint is available.';
+            toast.error(errorMessage);
         }
-    };
-
-    // Generate mock PF data
-    const generateMockPFData = (): Omit<PFChallanRecord, 'id' | 'createdAt'>[] => {
-        const employees = [
-            { code: 'EMP001', name: 'MR SUDIPTA RANJAN BHADURI' },
-            { code: 'EMP002', name: 'MS RUPLEKHA CHATTERJEE' },
-            { code: 'EMP003', name: 'MR JOHN SHAH' },
-            { code: 'EMP004', name: 'MRS BHASWATI DAS' },
-            { code: 'EMP005', name: 'MR SANTANU MUKHERJEE' },
-            { code: 'EMP006', name: 'MRS PRIYA SHARMA' },
-            { code: 'EMP007', name: 'MR RAJESH KUMAR' },
-            { code: 'EMP008', name: 'MS ANITA SINGH' }
-        ];
-
-        const months = [
-            'January',
-            'February',
-            'March',
-            'April',
-            'May',
-            'June',
-            'July',
-            'August',
-            'September',
-            'October',
-            'November',
-            'December'
-        ];
-        const mockRecords: Omit<PFChallanRecord, 'id' | 'createdAt'>[] = [];
-
-        employees.forEach((emp, empIndex) => {
-            months.forEach((month) => {
-                const basicSalary = 25000 + empIndex * 5000 + Math.random() * 10000;
-                const pfEligibleSalary = Math.min(basicSalary, 15000); // PF ceiling
-                const employeePF = pfEligibleSalary * 0.12; // 12% employee contribution
-                const employerPF = pfEligibleSalary * 0.12; // 12% employer contribution
-                const vpfContribution = Math.random() > 0.7 ? pfEligibleSalary * 0.05 : 0; // 5% VPF (optional)
-                const pensionContribution = pfEligibleSalary * 0.0833; // 8.33% pension
-                const administrationCharges = pfEligibleSalary * 0.005; // 0.5% admin charges
-                const totalPF = employeePF + employerPF + vpfContribution + pensionContribution + administrationCharges;
-
-                mockRecords.push({
-                    employeeCode: emp.code,
-                    employeeName: emp.name,
-                    pfNumber: `PF${emp.code.slice(-3)}${month.slice(0, 3).toUpperCase()}`,
-                    basicSalary: Math.round(basicSalary),
-                    pfEligibleSalary: Math.round(pfEligibleSalary),
-                    employeePF: Math.round(employeePF),
-                    employerPF: Math.round(employerPF),
-                    totalPF: Math.round(totalPF),
-                    vpfContribution: Math.round(vpfContribution),
-                    pensionContribution: Math.round(pensionContribution),
-                    administrationCharges: Math.round(administrationCharges),
-                    month: month,
-                    year: '2025'
-                });
-            });
-        });
-
-        return mockRecords;
-    };
+    }, [onloadError, isLoadingOnload, onloadData]);
 
     // Filter PF records based on selected month/year
     useEffect(() => {
@@ -161,8 +111,73 @@ export default function PFChallanPage() {
             toast.error('Please select month and year');
             return;
         }
-        setShowChallan(true);
-        toast.success('PF Challan generated');
+
+        // Find month ID from selected month name
+        const selectedMonthObj = months.find((m: any) => m.IVRM_Month_Name?.trim() === filters.month);
+        const monthName = selectedMonthObj?.IVRM_Month_Name?.trim() || filters.month;
+
+        // Prepare search request
+        const searchRequest = {
+            MI_Id: roleId,
+            HRES_Month: monthName,
+            HRES_Year: filters.year
+        };
+
+        // Call search API to get PF challan data
+        searchMutation.mutate(searchRequest, {
+            onSuccess: (response) => {
+                if (response.success && response.data) {
+                    // Extract PF challan data from response
+                    const pfData = response.data.getpfgriddata || response.data.pfreport || response.data.employeeDetails || [];
+                    
+                    if (Array.isArray(pfData) && pfData.length > 0) {
+                        // Map API response to PFChallanRecord format
+                        const mappedRecords: PFChallanRecord[] = pfData.map((item: any, index: number) => {
+                            const basicSalary = item.basicamount || item.basicSalary || item.AmountofWages || 0;
+                            const pfEligibleSalary = item.pfEligibleSalary || Math.min(basicSalary, 15000); // PF ceiling
+                            const employeePF = item.HRES_EPF || item.employeePF || pfEligibleSalary * 0.12; // 12% employee contribution
+                            const employerPF = item.HRES_FPF || item.employerPF || pfEligibleSalary * 0.12; // 12% employer contribution
+                            const vpfContribution = item.VPFAmount || item.vpfContribution || 0;
+                            const pensionContribution = pfEligibleSalary * 0.0833; // 8.33% pension
+                            const administrationCharges = pfEligibleSalary * 0.005; // 0.5% admin charges
+                            const totalPF = employeePF + employerPF + vpfContribution + pensionContribution + administrationCharges;
+
+                            return {
+                                id: `pf-${item.HRME_Id || item.HRES_Id || index}`,
+                                employeeCode: item.HRME_EmployeeCode || item.EmployeeCode || item.employeeCode || '',
+                                employeeName: `${item.HRME_EmployeeFirstName || ''} ${item.HRME_EmployeeMiddleName || ''} ${item.HRME_EmployeeLastName || ''}`.trim() || item.EmployeeName || '',
+                                pfNumber: item.HRME_PFAccNo || item.HRME_PFuAN || item.pfNumber || `PF${(item.HRME_EmployeeCode || '').slice(-3)}${filters.month.slice(0, 3).toUpperCase()}`,
+                                basicSalary: Math.round(basicSalary),
+                                pfEligibleSalary: Math.round(pfEligibleSalary),
+                                employeePF: Math.round(employeePF),
+                                employerPF: Math.round(employerPF),
+                                totalPF: Math.round(totalPF),
+                                vpfContribution: Math.round(vpfContribution),
+                                pensionContribution: Math.round(pensionContribution),
+                                administrationCharges: Math.round(administrationCharges),
+                                month: filters.month,
+                                year: filters.year
+                            };
+                        });
+
+                        setPFRecords(mappedRecords);
+                        setShowChallan(true);
+                        toast.success('PF Challan generated successfully');
+                    } else {
+                        // No data returned, but still show the challan structure
+                        setPFRecords([]);
+                        setShowChallan(true);
+                        toast.warning('PF Challan generated but no data found for selected period');
+                    }
+                } else {
+                    toast.error(response.message || 'Failed to generate PF challan');
+                }
+            },
+            onError: (error: Error) => {
+                console.error('Error searching PF challan report:', error);
+                toast.error(error.message || 'Failed to generate PF challan');
+            }
+        });
     };
 
     const handleCancel = () => {
@@ -170,6 +185,8 @@ export default function PFChallanPage() {
             month: '',
             year: ''
         });
+        setPFRecords([]);
+        setFilteredRecords([]);
         setShowChallan(false);
         toast.info('Filters cleared');
     };
@@ -212,7 +229,15 @@ export default function PFChallanPage() {
     return (
         <div className='space-y-6'>
             {/* Report Configuration Section */}
-            <PFChallanFilters filters={filters} onFilterChange={handleFilterChange} onGenerate={handleGenerate} onCancel={handleCancel} />
+            <PFChallanFilters
+                filters={filters}
+                months={months}
+                years={years}
+                onFilterChange={handleFilterChange}
+                onGenerate={handleGenerate}
+                onCancel={handleCancel}
+                isLoading={isLoadingOnload}
+            />
 
             {/* Challan Results */}
             {showChallan && (
@@ -346,7 +371,7 @@ export default function PFChallanPage() {
 
                     {/* Data Table */}
                     <DataTable
-                        isLoading={isLoading}
+                        isLoading={isLoadingOnload}
                         columns={pfChallanColumns}
                         data={filteredRecords as unknown as PFChallanRecordColumn[]}
                         totalItems={filteredRecords.length}
@@ -366,13 +391,14 @@ export default function PFChallanPage() {
                                 <div className='grid grid-cols-2 gap-8 text-sm'>
                                     <div className='space-y-2'>
                                         <div>
-                                            <strong>Establishment Name:</strong> VAPS SCHOOL
+                                            <strong>Establishment Name:</strong>{' '}
+                                            {institutionDetails?.MI_Name || 'N/A'}
                                         </div>
                                         <div>
-                                            <strong>Establishment Code:</strong> WB/KOL/12345
+                                            <strong>Establishment Code:</strong> {institutionDetails?.MI_Code || 'N/A'}
                                         </div>
                                         <div>
-                                            <strong>Establishment ID:</strong> WBKOL12345000
+                                            <strong>Establishment ID:</strong> {institutionDetails?.MI_Id || 'N/A'}
                                         </div>
                                     </div>
                                     <div className='space-y-2'>
@@ -431,6 +457,14 @@ export default function PFChallanPage() {
                                 <div className='text-center text-muted-foreground text-sm'>
                                     This challan should be submitted to the nearest PF office along with the payment by the due date.
                                 </div>
+
+                                {institutionDetails?.MI_Address1 && (
+                                    <div className='text-center text-muted-foreground text-sm'>
+                                        <div>{institutionDetails.MI_Address1}</div>
+                                        {institutionDetails.MI_Address2 && <div>{institutionDetails.MI_Address2}</div>}
+                                        {institutionDetails.MI_Address3 && <div>{institutionDetails.MI_Address3}</div>}
+                                    </div>
+                                )}
 
                                 <div className='flex justify-between pt-8'>
                                     <div className='text-sm'>

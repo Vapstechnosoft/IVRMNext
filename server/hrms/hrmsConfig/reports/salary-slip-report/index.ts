@@ -14,10 +14,11 @@ import type {
 /**
  * Get onload details for salary slip report
  * POST /api/EmployeeSalarySlipGenerationFacade/GetAllDropdownAndDatatableDetailsNew
+ * Request: { MI_Id: number, LogInUserId: number }
  */
 export async function getSalarySlipOnload(
     MI_Id = 30,
-    LogInUserId = 2
+    LogInUserId = 0
 ): Promise<ApiResponse<SalarySlipResponse>> {
     const requestBody: SalarySlipOnloadRequest = {
         MI_Id,
@@ -47,6 +48,8 @@ export async function getSalarySlipOnload(
 /**
  * Filter employees by year and month
  * POST /api/EmployeeSalarySlipGenerationFacade/GetEmployeeDetailsByLeaveYearAndMonthNew
+ * Request: { MI_Id: number, LogInUserId: number, HRES_Year: string, HRES_Month: string }
+ * Response: Returns employees in employeedropdown field
  */
 export async function filterEmployeesByYearMonth(
     requestBody: SalarySlipFilterRequest
@@ -76,6 +79,8 @@ export async function filterEmployeesByYearMonth(
 /**
  * Generate employee salary slip
  * POST /api/EmployeeSalarySlipGenerationFacade/GenerateEmployeeSalarySlipNew
+ * Request: { MI_Id: number, HRES_Year: string, HRES_Month: string, empid: number[], hrmdeS_IdList: number[], hrmD_IdList: number[], groupTypeIdList: number[] }
+ * Note: Arrays should be empty [] when no values are selected, not [0]
  */
 export async function generateSalarySlip(
     requestBody: SalarySlipGenerateRequest

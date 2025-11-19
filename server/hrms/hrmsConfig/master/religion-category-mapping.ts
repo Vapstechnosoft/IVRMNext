@@ -96,8 +96,8 @@ export async function getReligionCategoryMappingList(
             data: get_masterlist,
             get_masterlist: get_masterlist,
             total: total,
-            page: response?.page ?? page,
-            page_size: response?.page_size ?? page_size
+            page: (typeof response?.page === 'number' ? response.page : page) || page,
+            page_size: (typeof response?.page_size === 'number' ? response.page_size : page_size) || page_size
         };
         
         return {

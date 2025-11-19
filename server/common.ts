@@ -1578,104 +1578,104 @@ export async function getUserAccessibleModules() {
                                 }
                             ]
                         },
-                        {
-                            id: 5,
-                            name: 'Exit Management',
-                            icon: 'LogOut',
-                            sub_menu: [
-                                {
-                                    id: 1,
-                                    name: 'Exit',
-                                    icon: 'DoorOpen',
-                                    pages: [
-                                        {
-                                            id: 1,
-                                            name: 'Checklist Master',
-                                            icon: 'ListChecks',
-                                            url: '/hrms/exit-management/exit/checklist-master',
-                                            title: 'Checklist Master',
-                                            description: 'Manage Exit Checklist'
-                                        },
-                                        {
-                                            id: 2,
-                                            name: 'Leaving Reason',
-                                            icon: 'MessageSquare',
-                                            url: '/hrms/exit-management/exit/leaving-reason',
-                                            title: 'Leaving Reason',
-                                            description: 'Manage Leaving Reasons'
-                                        }
-                                    ]
-                                },
-                                {
-                                    id: 2,
-                                    name: 'Transaction',
-                                    icon: 'FileText',
-                                    pages: [
-                                        {
-                                            id: 1,
-                                            name: 'Employee Resign',
-                                            icon: 'UserMinus',
-                                            url: '/hrms/exit-management/transaction/employee-resign',
-                                            title: 'Employee Resign',
-                                            description: 'Process Employee Resignation'
-                                        }
-                                    ]
-                                },
-                                {
-                                    id: 3,
-                                    name: 'Reports',
-                                    icon: 'FileText',
-                                    pages: [
-                                        {
-                                            id: 1,
-                                            name: 'Employee Exit Report',
-                                            icon: 'FileSearch',
-                                            url: '/hrms/exit-management/reports/employee-exit-report',
-                                            title: 'Employee Exit Report',
-                                            description: 'Exit Summary Report'
-                                        },
-                                        {
-                                            id: 2,
-                                            name: 'Relieving Letter',
-                                            icon: 'FileCheck',
-                                            url: '/hrms/exit-management/reports/relieving-letter',
-                                            title: 'Relieving Letter',
-                                            description: 'Generate Relieving Letter'
-                                        }
-                                    ]
-                                }
-                            ]
-                        },
-                        {
-                            id: 6,
-                            name: 'Pre Config',
-                            icon: 'Settings',
-                            sub_menu: [
-                                {
-                                    id: 1,
-                                    name: 'Configuration',
-                                    icon: 'Sliders',
-                                    pages: [
-                                        {
-                                            id: 1,
-                                            name: 'HR Authorisation',
-                                            icon: 'Shield',
-                                            url: '/hrms/pre-config/configuration/hr-authorisation',
-                                            title: 'HR Authorisation',
-                                            description: 'Configure HR Authorizations'
-                                        },
-                                        {
-                                            id: 2,
-                                            name: 'Staff User Creation',
-                                            icon: 'UserPlus',
-                                            url: '/hrms/pre-config/configuration/staff-user-creation',
-                                            title: 'Staff User Creation',
-                                            description: 'Create Staff Users'
-                                        }
-                                    ]
-                                }
-                            ]
-                        }
+                        // {
+                        //     id: 5,
+                        //     name: 'Exit Management',
+                        //     icon: 'LogOut',
+                        //     sub_menu: [
+                        //         {
+                        //             id: 1,
+                        //             name: 'Exit',
+                        //             icon: 'DoorOpen',
+                        //             pages: [
+                        //                 {
+                        //                     id: 1,
+                        //                     name: 'Checklist Master',
+                        //                     icon: 'ListChecks',
+                        //                     url: '/hrms/exit-management/exit/checklist-master',
+                        //                     title: 'Checklist Master',
+                        //                     description: 'Manage Exit Checklist'
+                        //                 },
+                        //                 {
+                        //                     id: 2,
+                        //                     name: 'Leaving Reason',
+                        //                     icon: 'MessageSquare',
+                        //                     url: '/hrms/exit-management/exit/leaving-reason',
+                        //                     title: 'Leaving Reason',
+                        //                     description: 'Manage Leaving Reasons'
+                        //                 }
+                        //             ]
+                        //         },
+                        //         {
+                        //             id: 2,
+                        //             name: 'Transaction',
+                        //             icon: 'FileText',
+                        //             pages: [
+                        //                 {
+                        //                     id: 1,
+                        //                     name: 'Employee Resign',
+                        //                     icon: 'UserMinus',
+                        //                     url: '/hrms/exit-management/transaction/employee-resign',
+                        //                     title: 'Employee Resign',
+                        //                     description: 'Process Employee Resignation'
+                        //                 }
+                        //             ]
+                        //         },
+                        //         {
+                        //             id: 3,
+                        //             name: 'Reports',
+                        //             icon: 'FileText',
+                        //             pages: [
+                        //                 {
+                        //                     id: 1,
+                        //                     name: 'Employee Exit Report',
+                        //                     icon: 'FileSearch',
+                        //                     url: '/hrms/exit-management/reports/employee-exit-report',
+                        //                     title: 'Employee Exit Report',
+                        //                     description: 'Exit Summary Report'
+                        //                 },
+                        //                 {
+                        //                     id: 2,
+                        //                     name: 'Relieving Letter',
+                        //                     icon: 'FileCheck',
+                        //                     url: '/hrms/exit-management/reports/relieving-letter',
+                        //                     title: 'Relieving Letter',
+                        //                     description: 'Generate Relieving Letter'
+                        //                 }
+                        //             ]
+                        //         }
+                        //     ]
+                        // },
+                        // {
+                        //     id: 6,
+                        //     name: 'Pre Config',
+                        //     icon: 'Settings',
+                        //     sub_menu: [
+                        //         {
+                        //             id: 1,
+                        //             name: 'Configuration',
+                        //             icon: 'Sliders',
+                        //             pages: [
+                        //                 {
+                        //                     id: 1,
+                        //                     name: 'HR Authorisation',
+                        //                     icon: 'Shield',
+                        //                     url: '/hrms/pre-config/configuration/hr-authorisation',
+                        //                     title: 'HR Authorisation',
+                        //                     description: 'Configure HR Authorizations'
+                        //                 },
+                        //                 {
+                        //                     id: 2,
+                        //                     name: 'Staff User Creation',
+                        //                     icon: 'UserPlus',
+                        //                     url: '/hrms/pre-config/configuration/staff-user-creation',
+                        //                     title: 'Staff User Creation',
+                        //                     description: 'Create Staff Users'
+                        //                 }
+                        //             ]
+                        //         }
+                        //     ]
+                        // }
                     ]
                 },
                 {

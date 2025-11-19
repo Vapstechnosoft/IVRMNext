@@ -16,6 +16,12 @@ import {
     getEmployeeDetailsReportOnload,
     searchEmployeeDetailsReport
 } from '@/server/hrms/hrmsConfig/reports/employee-details-report';
+import { filterEmployeeContributionData, getEmployeeContributionReportOnload, searchEmployeeContributionDetails } from '@/server/hrms/hrmsConfig/reports/employee-contribution-report';
+import { getEmployeeStrengthReportOnload, searchEmployeeStrengthReport } from '@/server/hrms/hrmsConfig/reports/employee-strength-report';
+import { getESIReportOnload, searchESIReport } from '@/server/hrms/hrmsConfig/reports/esi-report';
+import { getHeadWiseReportOnload, searchHeadWiseReport } from '@/server/hrms/hrmsConfig/reports/head-wise-report';
+import { getBankCashReportOnload, searchBankCashReport } from '@/server/hrms/hrmsConfig/reports/bank-cash-report';
+import { getPFChallanReportOnload, filterPFChallanEmployeeData, searchPFChallanReport } from '@/server/hrms/hrmsConfig/reports/pf-challan-report';
 import { getCumulativeSalaryReportOnload, searchCumulativeSalaryReport } from '@/server/hrms/hrmsConfig/reports/cumulative-salary-report';
 import { getEmployeeInOutReportOnload } from '@/server/hrms/hrmsConfig/reports/employee-inout-report';
 import { getEmployeeLateInEarlyOutReportOnload } from '@/server/hrms/hrmsConfig/reports/employee-latein-earlyout-report';
@@ -36,6 +42,12 @@ import {
 import type { ApiSearchparams } from '@/types';
 import type { EmployeeProfileReportFilterRequest, EmployeeProfileReportSearchRequest } from '@/types/hrms/reports/employee-profile-report';
 import type { EmployeeDetailsReportFilterRequest, EmployeeDetailsReportSearchRequest } from '@/types/hrms/reports/employee-details-report';
+import type { EmployeeContributionReportFilterRequest, EmployeeContributionReportSearchRequest } from '@/types/hrms/reports/employee-contribution-report';
+import type { EmployeeStrengthReportSearchRequest } from '@/types/hrms/reports/employee-strength-report';
+import type { ESIReportSearchRequest } from '@/types/hrms/reports/esi-report';
+import type { HeadWiseReportSearchRequest } from '@/types/hrms/reports/head-wise-report';
+import type { BankCashReportSearchRequest } from '@/types/hrms/reports/bank-cash-report';
+import type { PFChallanReportFilterRequest, PFChallanReportSearchRequest } from '@/types/hrms/reports/pf-challan-report';
 import type { CumulativeSalaryReportSearchRequest } from '@/types/hrms/reports/cumulative-salary-report';
 import type {
     SalarySlipFilterRequest,
@@ -52,10 +64,10 @@ import { toast } from 'sonner';
 // EMPLOYEE PROFILE REPORT
 // ============================================================================
 
-export function useEmployeeProfileReportOnload(roleId = 30) {
+export function useEmployeeProfileReportOnload(MI_Id = 30, LogInUserId = 0) {
     return useQuery({
-        queryKey: [HRMS_QUERY_KEYS.EMPLOYEE_PROFILE_REPORT_ONLOAD, roleId],
-        queryFn: () => getEmployeeProfileReportOnload(roleId),
+        queryKey: [HRMS_QUERY_KEYS.EMPLOYEE_PROFILE_REPORT_ONLOAD, MI_Id, LogInUserId],
+        queryFn: () => getEmployeeProfileReportOnload(MI_Id, LogInUserId),
         staleTime: 5 * 60 * 1000
     });
 }
@@ -98,11 +110,219 @@ export function useSearchEmployeeProfileDetails() {
 // EMPLOYEE DETAILS REPORT
 // ============================================================================
 
-export function useEmployeeDetailsReportOnload(MI_Id = 30, LogInUserId = 2) {
+export function useEmployeeDetailsReportOnload(MI_Id = 30, LogInUserId = 0) {
     return useQuery({
         queryKey: [HRMS_QUERY_KEYS.EMPLOYEE_DETAILS_REPORT_ONLOAD, MI_Id, LogInUserId],
         queryFn: () => getEmployeeDetailsReportOnload(MI_Id, LogInUserId),
         staleTime: 5 * 60 * 1000
+    });
+}
+
+// ============================================================================
+// EMPLOYEE CONTRIBUTION REPORT
+// ============================================================================
+
+export function useEmployeeContributionReportOnload(MI_Id = 30, LogInUserId = 0) {
+    return useQuery({
+        queryKey: [HRMS_QUERY_KEYS.EMPLOYEE_CONTRIBUTION_REPORT_ONLOAD, MI_Id, LogInUserId],
+        queryFn: () => getEmployeeContributionReportOnload(MI_Id, LogInUserId),
+        staleTime: 5 * 60 * 1000
+    });
+}
+
+// ============================================================================
+// EMPLOYEE STRENGTH REPORT
+// ============================================================================
+
+export function useEmployeeStrengthReportOnload(MI_Id = 30, LogInUserId = 0) {
+    return useQuery({
+        queryKey: [HRMS_QUERY_KEYS.EMPLOYEE_STRENGTH_REPORT_ONLOAD, MI_Id, LogInUserId],
+        queryFn: () => getEmployeeStrengthReportOnload(MI_Id, LogInUserId),
+        staleTime: 5 * 60 * 1000
+    });
+}
+
+export function useSearchEmployeeStrengthReport() {
+    const queryClient = useQueryClient();
+
+    return useMutation({
+        mutationFn: (data: EmployeeStrengthReportSearchRequest) => searchEmployeeStrengthReport(data),
+        onSuccess: (response) => {
+            if (!response.success) {
+                toast.error(response.message || 'Failed to search employee strength report');
+            }
+        },
+        onError: (error: Error) => {
+            console.error('Error searching employee strength report:', error);
+            toast.error(error.message || 'Failed to search employee strength report');
+        }
+    });
+}
+
+// ============================================================================
+// ESI REPORT
+// ============================================================================
+
+export function useESIReportOnload(MI_Id = 30, LogInUserId = 0) {
+    return useQuery({
+        queryKey: [HRMS_QUERY_KEYS.ESI_REPORT_ONLOAD, MI_Id, LogInUserId],
+        queryFn: () => getESIReportOnload(MI_Id, LogInUserId),
+        staleTime: 5 * 60 * 1000
+    });
+}
+
+export function useSearchESIReport() {
+    const queryClient = useQueryClient();
+
+    return useMutation({
+        mutationFn: (data: ESIReportSearchRequest) => searchESIReport(data),
+        onSuccess: (response) => {
+            if (!response.success) {
+                toast.error(response.message || 'Failed to search ESI report');
+            }
+        },
+        onError: (error: Error) => {
+            console.error('Error searching ESI report:', error);
+            toast.error(error.message || 'Failed to search ESI report');
+        }
+    });
+}
+
+// ============================================================================
+// HEAD WISE REPORT
+// ============================================================================
+
+export function useHeadWiseReportOnload(MI_Id = 30, LogInUserId = 0) {
+    return useQuery({
+        queryKey: [HRMS_QUERY_KEYS.HEAD_WISE_REPORT_ONLOAD, MI_Id, LogInUserId],
+        queryFn: () => getHeadWiseReportOnload(MI_Id, LogInUserId),
+        staleTime: 5 * 60 * 1000
+    });
+}
+
+export function useSearchHeadWiseReport() {
+    const queryClient = useQueryClient();
+
+    return useMutation({
+        mutationFn: (data: HeadWiseReportSearchRequest) => searchHeadWiseReport(data),
+        onSuccess: (response) => {
+            if (!response.success) {
+                toast.error(response.message || 'Failed to search head wise report');
+            }
+        },
+        onError: (error: Error) => {
+            console.error('Error searching head wise report:', error);
+            toast.error(error.message || 'Failed to search head wise report');
+        }
+    });
+}
+
+// ============================================================================
+// BANK CASH REPORT
+// ============================================================================
+
+export function useBankCashReportOnload(MI_Id = 30, LogInUserId = 0) {
+    return useQuery({
+        queryKey: [HRMS_QUERY_KEYS.BANK_CASH_REPORT_ONLOAD, MI_Id, LogInUserId],
+        queryFn: () => getBankCashReportOnload(MI_Id, LogInUserId),
+        staleTime: 5 * 60 * 1000
+    });
+}
+
+export function useSearchBankCashReport() {
+    const queryClient = useQueryClient();
+
+    return useMutation({
+        mutationFn: (data: BankCashReportSearchRequest) => searchBankCashReport(data),
+        onSuccess: (response) => {
+            if (!response.success) {
+                toast.error(response.message || 'Failed to search bank cash report');
+            }
+        },
+        onError: (error: Error) => {
+            console.error('Error searching bank cash report:', error);
+            toast.error(error.message || 'Failed to search bank cash report');
+        }
+    });
+}
+
+// ============================================================================
+// PF CHALLAN REPORT
+// ============================================================================
+
+export function usePFChallanReportOnload(MI_Id = 30) {
+    return useQuery({
+        queryKey: [HRMS_QUERY_KEYS.PF_CHALLAN_REPORT_ONLOAD, MI_Id],
+        queryFn: () => getPFChallanReportOnload(MI_Id),
+        staleTime: 5 * 60 * 1000
+    });
+}
+
+export function useFilterPFChallanEmployeeData() {
+    const queryClient = useQueryClient();
+
+    return useMutation({
+        mutationFn: (data: PFChallanReportFilterRequest) => filterPFChallanEmployeeData(data),
+        onSuccess: (response) => {
+            if (!response.success) {
+                toast.error(response.message || 'Failed to filter PF challan employee data');
+            }
+        },
+        onError: (error: Error) => {
+            console.error('Error filtering PF challan employee data:', error);
+            toast.error(error.message || 'Failed to filter PF challan employee data');
+        }
+    });
+}
+
+export function useSearchPFChallanReport() {
+    const queryClient = useQueryClient();
+
+    return useMutation({
+        mutationFn: (data: PFChallanReportSearchRequest) => searchPFChallanReport(data),
+        onSuccess: (response) => {
+            if (!response.success) {
+                toast.error(response.message || 'Failed to search PF challan report');
+            }
+        },
+        onError: (error: Error) => {
+            console.error('Error searching PF challan report:', error);
+            toast.error(error.message || 'Failed to search PF challan report');
+        }
+    });
+}
+
+export function useFilterEmployeeContributionReport() {
+    const queryClient = useQueryClient();
+
+    return useMutation({
+        mutationFn: (data: EmployeeContributionReportFilterRequest) => filterEmployeeContributionData(data),
+        onSuccess: (response) => {
+            if (!response.success) {
+                toast.error(response.message || 'Failed to filter employee contribution data');
+            }
+        },
+        onError: (error: Error) => {
+            console.error('Error filtering employee contribution data:', error);
+            toast.error(error.message || 'Failed to filter employee contribution data');
+        }
+    });
+}
+
+export function useSearchEmployeeContributionDetails() {
+    const queryClient = useQueryClient();
+
+    return useMutation({
+        mutationFn: (data: EmployeeContributionReportSearchRequest) => searchEmployeeContributionDetails(data),
+        onSuccess: (response) => {
+            if (!response.success) {
+                toast.error(response.message || 'Failed to search employee contribution details');
+            }
+        },
+        onError: (error: Error) => {
+            console.error('Error searching employee contribution details:', error);
+            toast.error(error.message || 'Failed to search employee contribution details');
+        }
     });
 }
 
@@ -144,10 +364,17 @@ export function useSearchEmployeeDetailsReport() {
 // CUMULATIVE SALARY REPORT
 // ============================================================================
 
-export function useCumulativeSalaryReportOnload(MI_Id = 30) {
+export function useCumulativeSalaryReportOnload(
+    MI_Id = 30,
+    LoginUserId = 0,
+    UserRole = '',
+    is_export = false,
+    page = 1,
+    page_size = 10
+) {
     return useQuery({
-        queryKey: [HRMS_QUERY_KEYS.CUMULATIVE_SALARY_REPORT_ONLOAD, MI_Id],
-        queryFn: () => getCumulativeSalaryReportOnload(MI_Id),
+        queryKey: [HRMS_QUERY_KEYS.CUMULATIVE_SALARY_REPORT_ONLOAD, MI_Id, LoginUserId, UserRole, is_export, page, page_size],
+        queryFn: () => getCumulativeSalaryReportOnload(MI_Id, LoginUserId, UserRole, is_export, page, page_size),
         staleTime: 5 * 60 * 1000
     });
 }
@@ -191,18 +418,25 @@ export function useCumulativeSalaryReportList(
     };
 }
 
-// Legacy hook for backward compatibility
+/**
+ * Search cumulative salary report by selection criteria
+ * Uses the GetEmployeedetailsBySelection endpoint
+ */
 export function useSearchCumulativeSalaryReport() {
-    const _queryClient = useQueryClient();
+    const queryClient = useQueryClient();
 
     return useMutation({
         mutationFn: (data: CumulativeSalaryReportSearchRequest) => {
-            const { searchCumulativeSalaryReport } = require('@/server/hrms/hrmsConfig/reports/cumulative-salary-report');
             return searchCumulativeSalaryReport(data);
         },
         onSuccess: (response: { success: boolean; message?: string }) => {
             if (!response.success) {
                 toast.error(response.message || 'Failed to search salary report');
+            } else {
+                // Invalidate queries to refresh data
+                queryClient.invalidateQueries({
+                    queryKey: [HRMS_QUERY_KEYS.CUMULATIVE_SALARY_REPORT_SEARCH]
+                });
             }
         },
         onError: (error: Error) => {

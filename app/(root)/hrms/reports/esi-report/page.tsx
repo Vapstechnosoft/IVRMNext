@@ -3,39 +3,17 @@
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { DataTable } from '@/components/ui/data-table/data-table';
-import { type BaseEntity, createLocalCrud } from '@/lib/localdb';
+import { HRMS_MI_ID } from '@/constants/hrms-config';
+import { useESIReportOnload, useSearchESIReport } from '@/hooks/hrms/useReports';
 import { Download, Printer } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';
 import { type ESIRecord as ESIRecordColumn, esiReportColumns } from './_components/columns';
 import { type ESIReportFilters as ESIFilters, ESIReportFilters } from './_components/filters';
 
-// Data interfaces from employee-category masters
-interface GroupType extends BaseEntity {
-    groupType: string;
-    groupCode: string;
-    order: number;
-    isActive: boolean;
-}
-
-interface Department extends BaseEntity {
-    departmentName: string;
-    internalTrainingHours: string;
-    order: number;
-    isActive: boolean;
-}
-
-interface Designation extends BaseEntity {
-    designationName: string;
-    basicAmount: string;
-    sanctionedSeats: string;
-    displaySanctionedSeats: boolean;
-    order: number;
-    isActive: boolean;
-}
-
 // ESI report data structure
-interface ESIRecord extends BaseEntity {
+interface ESIRecord {
+    id?: string;
     employeeCode: string;
     employeeName: string;
     groupTypeId: number;
@@ -57,19 +35,15 @@ interface ESIRecord extends BaseEntity {
 }
 
 export default function ESIReportPage() {
-    // Database instances
-    const groupTypeDB = createLocalCrud<GroupType>('master:group-type');
-    const departmentDB = createLocalCrud<Department>('master:department');
-    const designationDB = createLocalCrud<Designation>('master:designation');
-    const esiDB = createLocalCrud<ESIRecord>('report:esi');
+    const roleId = HRMS_MI_ID;
+
+    // React Query hooks
+    const { data: onloadData, isLoading: isLoadingOnload, error: onloadError } = useESIReportOnload(roleId, 0);
+    const searchMutation = useSearchESIReport();
 
     // State
-    const [groupTypes, setGroupTypes] = useState<GroupType[]>([]);
-    const [departments, setDepartments] = useState<Department[]>([]);
-    const [designations, setDesignations] = useState<Designation[]>([]);
     const [esiRecords, setESIRecords] = useState<ESIRecord[]>([]);
     const [filteredRecords, setFilteredRecords] = useState<ESIRecord[]>([]);
-    const [isLoading, setIsLoading] = useState(true);
     const [showReport, setShowReport] = useState(false);
 
     const [filters, setFilters] = useState<ESIFilters>({
@@ -80,165 +54,111 @@ export default function ESIReportPage() {
         year: ''
     });
 
-    // Load data on mount
+    // Memoize dropdown data from API
+    const groupTypes = useMemo(() => {
+        const data = onloadData?.data;
+        if (!data) return [];
+        return (data as any).groupTypedropdown || [];
+    }, [onloadData?.data]);
+
+    const departments = useMemo(() => {
+        const data = onloadData?.data;
+        if (!data) return [];
+        return (data as any).departmentdropdown || [];
+    }, [onloadData?.data]);
+
+    const designations = useMemo(() => {
+        const data = onloadData?.data;
+        if (!data) return [];
+        return (data as any).designationdropdown || [];
+    }, [onloadData?.data]);
+
+    const months = useMemo(() => {
+        const data = onloadData?.data;
+        if (!data) return [];
+        return (data as any).monthdropdown || [];
+    }, [onloadData?.data]);
+
+    const years = useMemo(() => {
+        const data = onloadData?.data;
+        if (!data) return [];
+        return (data as any).leaveyeardropdown || [];
+    }, [onloadData?.data]);
+
+    // Show error if API fails
     useEffect(() => {
-        loadData();
-    }, []);
-
-    const loadData = () => {
-        try {
-            setGroupTypes(groupTypeDB.list().filter((g) => g.isActive));
-            setDepartments(departmentDB.list().filter((d) => d.isActive));
-            setDesignations(designationDB.list().filter((d) => d.isActive));
-
-            // Load ESI records
-            let recordList = esiDB.list();
-            if (recordList.length === 0) {
-                const mockData = generateMockESIData();
-                mockData.forEach((record) => esiDB.create(record));
-                recordList = esiDB.list(); // Reload data after creating mock records
-            }
-            setESIRecords(recordList);
-        } catch (_error) {
-            toast.error('Failed to load data');
-        } finally {
-            setIsLoading(false);
+        if (onloadError || (!isLoadingOnload && onloadData && !onloadData.success)) {
+            const errorMessage = onloadError?.message || onloadData?.message || 'Failed to load ESI report data. Please check if the API endpoint is available.';
+            toast.error(errorMessage);
         }
-    };
+    }, [onloadError, isLoadingOnload, onloadData]);
 
-    // Generate mock ESI data
-    const generateMockESIData = (): Omit<ESIRecord, 'id' | 'createdAt'>[] => {
-        const employees = [
-            {
-                code: 'EMP001',
-                name: 'MR SUDIPTA RANJAN BHADURI',
-                groupTypeId: 1,
-                departmentId: 1,
-                designationId: 1,
-                deptName: 'JUNIOR SCHOOL',
-                desigName: 'Assistant Teacher'
-            },
-            {
-                code: 'EMP002',
-                name: 'MS RUPLEKHA CHATTERJEE',
-                groupTypeId: 1,
-                departmentId: 2,
-                designationId: 2,
-                deptName: 'OFFICE STAFF',
-                desigName: 'Principal'
-            },
-            {
-                code: 'EMP003',
-                name: 'MR JOHN SHAH',
-                groupTypeId: 2,
-                departmentId: 1,
-                designationId: 1,
-                deptName: 'JUNIOR SCHOOL',
-                desigName: 'Assistant Teacher'
-            },
-            {
-                code: 'EMP004',
-                name: 'MRS BHASWATI DAS',
-                groupTypeId: 2,
-                departmentId: 2,
-                designationId: 2,
-                deptName: 'SENIOR SCHOOL',
-                desigName: 'Teacher Helper'
-            },
-            {
-                code: 'EMP005',
-                name: 'MR SANTANU MUKHERJEE',
-                groupTypeId: 1,
-                departmentId: 1,
-                designationId: 2,
-                deptName: 'SERVICE STAFF',
-                desigName: 'System Manager'
-            }
-        ];
+    // Map API data to component format
+    const mappedGroupTypes = useMemo(() => {
+        return groupTypes.map((gt: any) => ({
+            id: gt.HRMGT_Id,
+            groupType: gt.HRMGT_EmployeeGroupType || gt.HRMGT_Code || '',
+            groupCode: gt.HRMGT_Code || '',
+            order: gt.HRMGT_Order || 0,
+            isActive: gt.HRMGT_ActiveFlag !== false
+        }));
+    }, [groupTypes]);
 
-        const mockRecords: Omit<ESIRecord, 'id' | 'createdAt'>[] = [];
-        const months = [
-            'January',
-            'February',
-            'March',
-            'April',
-            'May',
-            'June',
-            'July',
-            'August',
-            'September',
-            'October',
-            'November',
-            'December'
-        ];
+    const mappedDepartments = useMemo(() => {
+        return departments.map((dept: any) => ({
+            id: dept.HRMD_Id,
+            departmentName: dept.HRMD_DepartmentName || '',
+            internalTrainingHours: dept.HRMD_InternalTrainingMinimumHrs?.toString() || '0',
+            order: dept.HRMD_Order || 0,
+            isActive: dept.HRMD_ActiveFlag !== false
+        }));
+    }, [departments]);
 
-        employees.forEach((emp, empIndex) => {
-            months.forEach((month, monthIndex) => {
-                const grossSalary = 25000 + empIndex * 8000 + Math.random() * 5000;
-                const esiEligibleSalary = grossSalary > 21000 ? 21000 : grossSalary; // ESI cap
-                const employeeESI = esiEligibleSalary * 0.0075; // 0.75% employee contribution
-                const employerESI = esiEligibleSalary * 0.0325; // 3.25% employer contribution
-                const totalESI = employeeESI + employerESI;
-
-                mockRecords.push({
-                    employeeCode: emp.code,
-                    employeeName: emp.name,
-                    groupTypeId: emp.groupTypeId,
-                    departmentId: emp.departmentId,
-                    designationId: emp.designationId,
-                    departmentName: emp.deptName,
-                    designationName: emp.desigName,
-                    esiNumber: `ESI${emp.code.slice(-3)}${monthIndex + 1}`,
-                    grossSalary: Math.round(grossSalary),
-                    esiEligibleSalary: Math.round(esiEligibleSalary),
-                    employeeESI: Math.round(employeeESI),
-                    employerESI: Math.round(employerESI),
-                    totalESI: Math.round(totalESI),
-                    month: month,
-                    year: '2025',
-                    workingDays: 26,
-                    presentDays: 24 + Math.floor(Math.random() * 3),
-                    esiStatus: grossSalary > 21000 ? 'Active' : grossSalary < 10000 ? 'Exempted' : 'Active'
-                });
-            });
-        });
-
-        return mockRecords;
-    };
+    const mappedDesignations = useMemo(() => {
+        return designations.map((desig: any) => ({
+            id: desig.HRMDES_Id,
+            designationName: desig.HRMDES_DesignationName || '',
+            basicAmount: desig.HRMDES_BasicAmount?.toString() || '0',
+            sanctionedSeats: desig.HRMDES_SanctionedSeats?.toString() || '0',
+            displaySanctionedSeats: desig.HRMDES_DisplaySanctionedSeatsFlag || false,
+            order: desig.HRMDES_Order || 0,
+            isActive: desig.HRMDES_ActiveFlag !== false
+        }));
+    }, [designations]);
 
     // Cascading filter logic
     const availableDepartments = useMemo(() => {
-        if (filters.groupType === 'All') return departments;
+        if (filters.groupType === 'All') return mappedDepartments;
         // In a real app, departments would be filtered by groupType relationship
-        return departments;
-    }, [filters.groupType, departments]);
+        return mappedDepartments;
+    }, [filters.groupType, mappedDepartments]);
 
     const availableDesignations = useMemo(() => {
-        if (filters.department === 'All') return designations;
+        if (filters.department === 'All') return mappedDesignations;
         // In a real app, designations would be filtered by department relationship
-        return designations;
-    }, [filters.department, designations]);
+        return mappedDesignations;
+    }, [filters.department, mappedDesignations]);
 
     // Filter ESI records based on selected criteria
     useEffect(() => {
         let filtered = esiRecords;
 
         if (filters.groupType !== 'All') {
-            const selectedGroupType = groupTypes.find((g) => g.groupType === filters.groupType);
+            const selectedGroupType = mappedGroupTypes.find((g: any) => g.groupType === filters.groupType);
             if (selectedGroupType) {
                 filtered = filtered.filter((record) => record.groupTypeId === selectedGroupType.id);
             }
         }
 
         if (filters.department !== 'All') {
-            const selectedDepartment = departments.find((d) => d.departmentName === filters.department);
+            const selectedDepartment = mappedDepartments.find((d: any) => d.departmentName === filters.department);
             if (selectedDepartment) {
                 filtered = filtered.filter((record) => record.departmentId === selectedDepartment.id);
             }
         }
 
         if (filters.designation !== 'All') {
-            const selectedDesignation = designations.find((d) => d.designationName === filters.designation);
+            const selectedDesignation = mappedDesignations.find((d: any) => d.designationName === filters.designation);
             if (selectedDesignation) {
                 filtered = filtered.filter((record) => record.designationId === selectedDesignation.id);
             }
@@ -253,7 +173,7 @@ export default function ESIReportPage() {
         }
 
         setFilteredRecords(filtered);
-    }, [filters, esiRecords, groupTypes, departments, designations]);
+    }, [filters, esiRecords, mappedGroupTypes, mappedDepartments, mappedDesignations]);
 
     const handleFilterChange = (newFilters: ESIFilters) => {
         setFilters(newFilters);
@@ -264,8 +184,66 @@ export default function ESIReportPage() {
             toast.error('Please select month and year');
             return;
         }
-        setShowReport(true);
-        toast.success('ESI report generated');
+
+        // Find month ID from selected month name
+        const selectedMonthObj = months.find((m: any) => m.IVRM_Month_Name?.trim() === filters.month);
+        const monthId = selectedMonthObj?.IVRM_Month_Id?.toString() || '';
+
+        // Prepare search request
+        const searchRequest = {
+            MI_Id: roleId,
+            groupTypeselected: filters.groupType !== 'All' && mappedGroupTypes.find((g: any) => g.groupType === filters.groupType)
+                ? [mappedGroupTypes.find((g: any) => g.groupType === filters.groupType)!.id]
+                : [],
+            departmentselected: filters.department !== 'All' && mappedDepartments.find((d: any) => d.departmentName === filters.department)
+                ? [mappedDepartments.find((d: any) => d.departmentName === filters.department)!.id]
+                : [],
+            designationselected: filters.designation !== 'All' && mappedDesignations.find((d: any) => d.designationName === filters.designation)
+                ? [mappedDesignations.find((d: any) => d.designationName === filters.designation)!.id]
+                : [],
+            HRES_Year: filters.year || '',
+            HRES_Month: monthId || ''
+        };
+
+        searchMutation.mutate(searchRequest, {
+            onSuccess: (response) => {
+                if (response.success && response.data) {
+                    // Map API response to ESIRecord format
+                    const employeeDetails = response.data.employeeDetails || [];
+                    const mappedRecords: ESIRecord[] = employeeDetails.map((emp: any, index: number) => ({
+                        id: `emp-${index}`,
+                        employeeCode: emp.HRME_EmployeeCode || emp.employeeCode || '',
+                        employeeName: emp.EmployeeName || emp.employeeName || '',
+                        groupTypeId: emp.HRMGT_Id || emp.groupTypeId || 0,
+                        departmentId: emp.HRMD_Id || emp.departmentId || 0,
+                        designationId: emp.HRMDES_Id || emp.designationId || 0,
+                        departmentName: emp.HRMD_DepartmentName || emp.departmentName || '',
+                        designationName: emp.HRMDES_DesignationName || emp.designationName || '',
+                        esiNumber: emp.HRME_ESIAccNo || emp.esiNumber || '',
+                        grossSalary: emp.basicAmount || emp.grossSalary || 0,
+                        esiEligibleSalary: emp.esiEligibleSalary || (emp.basicAmount > 21000 ? 21000 : emp.basicAmount) || 0,
+                        employeeESI: emp.EmployeeContibution || emp.employeeESI || 0,
+                        employerESI: emp.EmployerContibution || emp.employerESI || 0,
+                        totalESI: emp.totalAmount || emp.totalESI || 0,
+                        month: filters.month,
+                        year: filters.year,
+                        workingDays: emp.HRES_WorkingDays || emp.workingDays || 0,
+                        presentDays: emp.presentDays || 0,
+                        esiStatus: emp.HRME_ESIAccNo ? 'Active' : 'Inactive' as 'Active' | 'Inactive' | 'Exempted'
+                    }));
+
+                    setESIRecords(mappedRecords);
+                    setShowReport(true);
+                    toast.success('ESI report generated successfully');
+                } else {
+                    toast.error(response.message || 'Failed to generate ESI report');
+                }
+            },
+            onError: (error: Error) => {
+                console.error('Error searching ESI report:', error);
+                toast.error(error.message || 'Failed to generate ESI report');
+            }
+        });
     };
 
     const handleCancel = () => {
@@ -276,6 +254,8 @@ export default function ESIReportPage() {
             month: '',
             year: ''
         });
+        setESIRecords([]);
+        setFilteredRecords([]);
         setShowReport(false);
         toast.info('Filters cleared');
     };
@@ -314,12 +294,15 @@ export default function ESIReportPage() {
             {/* Report Configuration Section */}
             <ESIReportFilters
                 filters={filters}
-                groupTypes={groupTypes}
+                groupTypes={mappedGroupTypes}
                 availableDepartments={availableDepartments}
                 availableDesignations={availableDesignations}
+                months={months}
+                years={years}
                 onFilterChange={handleFilterChange}
                 onSearch={handleSearch}
                 onCancel={handleCancel}
+                isLoading={isLoadingOnload}
             />
 
             {/* Report Results */}
@@ -426,7 +409,7 @@ export default function ESIReportPage() {
 
                     {/* Data Table */}
                     <DataTable
-                        isLoading={isLoading}
+                        isLoading={isLoadingOnload}
                         columns={esiReportColumns}
                         data={filteredRecords as unknown as ESIRecordColumn[]}
                         totalItems={filteredRecords.length}

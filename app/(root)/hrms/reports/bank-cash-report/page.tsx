@@ -3,27 +3,24 @@
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { DataTable } from '@/components/ui/data-table/data-table';
-import { createLocalCrud } from '@/lib/localdb';
+import { HRMS_MI_ID } from '@/constants/hrms-config';
+import { useBankCashReportOnload, useSearchBankCashReport } from '@/hooks/hrms/useReports';
 import { Banknote, CreditCard, Download, Printer, Wallet } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';
-import { type BankCashRecord, type Department, type Designation, type GroupType, bankCashColumns } from './_components/columns';
+import { type BankCashRecord, bankCashColumns } from './_components/columns';
 import { BankCashReportFilters, type BankCashReportFilters as BankCashReportFiltersType } from './_components/filters';
 
 export default function BankCashReportPage() {
-    // Database instances
-    const groupTypeDB = createLocalCrud<GroupType>('master:group-type');
-    const departmentDB = createLocalCrud<Department>('master:department');
-    const designationDB = createLocalCrud<Designation>('master:designation');
-    const bankCashDB = createLocalCrud<BankCashRecord>('report:bank-cash');
+    const roleId = HRMS_MI_ID;
+
+    // React Query hooks
+    const { data: onloadData, isLoading: isLoadingOnload, error: onloadError } = useBankCashReportOnload(roleId, 0);
+    const searchMutation = useSearchBankCashReport();
 
     // State
-    const [groupTypes, setGroupTypes] = useState<GroupType[]>([]);
-    const [departments, setDepartments] = useState<Department[]>([]);
-    const [designations, setDesignations] = useState<Designation[]>([]);
     const [bankCashRecords, setBankCashRecords] = useState<BankCashRecord[]>([]);
     const [filteredRecords, setFilteredRecords] = useState<BankCashRecord[]>([]);
-    const [isLoading, setIsLoading] = useState(true);
     const [showReport, setShowReport] = useState(false);
 
     const [filters, setFilters] = useState<BankCashReportFiltersType>({
@@ -35,129 +32,104 @@ export default function BankCashReportPage() {
         year: ''
     });
 
-    // Load data on mount
+    // Memoize dropdown data from API
+    const groupTypes = useMemo(() => {
+        const data = onloadData?.data;
+        if (!data) return [];
+        return (data as any).groupTypedropdown || [];
+    }, [onloadData?.data]);
+
+    const departments = useMemo(() => {
+        const data = onloadData?.data;
+        if (!data) return [];
+        return (data as any).departmentdropdown || [];
+    }, [onloadData?.data]);
+
+    const designations = useMemo(() => {
+        const data = onloadData?.data;
+        if (!data) return [];
+        return (data as any).designationdropdown || [];
+    }, [onloadData?.data]);
+
+    const months = useMemo(() => {
+        const data = onloadData?.data;
+        if (!data) return [];
+        return (data as any).monthdropdown || [];
+    }, [onloadData?.data]);
+
+    const years = useMemo(() => {
+        const data = onloadData?.data;
+        if (!data) return [];
+        return (data as any).leaveyeardropdown || [];
+    }, [onloadData?.data]);
+
+    // Show error if API fails
     useEffect(() => {
-        loadData();
-    }, []);
-
-    const loadData = () => {
-        try {
-            // Load master data
-            const groupTypeList = groupTypeDB.list();
-            const departmentList = departmentDB.list();
-            const designationList = designationDB.list();
-
-            setGroupTypes(groupTypeList);
-            setDepartments(departmentList);
-            setDesignations(designationList);
-
-            // Load or generate bank cash records
-            let recordList = bankCashDB.list();
-            if (recordList.length === 0) {
-                const mockData = generateMockBankCashData(groupTypeList, departmentList, designationList);
-                mockData.forEach((record) => bankCashDB.create(record));
-                recordList = bankCashDB.list();
-            }
-            setBankCashRecords(recordList);
-        } catch (_error) {
-            toast.error('Failed to load data');
-        } finally {
-            setIsLoading(false);
+        if (onloadError || (!isLoadingOnload && onloadData && !onloadData.success)) {
+            const errorMessage = onloadError?.message || onloadData?.message || 'Failed to load bank cash report data. Please check if the API endpoint is available.';
+            toast.error(errorMessage);
         }
-    };
+    }, [onloadError, isLoadingOnload, onloadData]);
 
-    // Generate mock bank cash data
-    const generateMockBankCashData = (
-        groupTypes: GroupType[],
-        departments: Department[],
-        designations: Designation[]
-    ): Omit<BankCashRecord, 'id' | 'createdAt'>[] => {
-        const employees = [
-            'MR SUDIPTA RANJAN BHADURI',
-            'MS RUPLEKHA CHATTERJEE',
-            'MR JOHN SHAH',
-            'MRS BHASWATI DAS',
-            'MR SANTANU MUKHERJEE',
-            'MRS PRIYA SHARMA',
-            'MR RAJESH KUMAR',
-            'MS ANITA SINGH',
-            'MR AMIT KUMAR',
-            'MS DEEPIKA PATEL'
-        ];
+    // Map API data to component format
+    const mappedGroupTypes = useMemo(() => {
+        return groupTypes.map((gt: any) => ({
+            id: gt.HRMGT_Id,
+            groupType: gt.HRMGT_EmployeeGroupType || gt.HRMGT_Code || '',
+            groupCode: gt.HRMGT_Code || '',
+            order: gt.HRMGT_Order || 0,
+            isActive: gt.HRMGT_ActiveFlag !== false
+        }));
+    }, [groupTypes]);
 
-        const banks = ['SBI', 'HDFC Bank', 'ICICI Bank', 'Axis Bank', 'Punjab National Bank'];
-        const months = [
-            'January',
-            'February',
-            'March',
-            'April',
-            'May',
-            'June',
-            'July',
-            'August',
-            'September',
-            'October',
-            'November',
-            'December'
-        ];
-        const paymentStatuses: ('Paid' | 'Pending' | 'Failed')[] = ['Paid', 'Pending', 'Failed'];
-        const mockRecords: Omit<BankCashRecord, 'id' | 'createdAt'>[] = [];
+    const mappedDepartments = useMemo(() => {
+        return departments.map((dept: any) => ({
+            id: dept.HRMD_Id,
+            departmentName: dept.HRMD_DepartmentName || '',
+            internalTrainingHours: dept.HRMD_InternalTrainingMinimumHrs?.toString() || '0',
+            order: dept.HRMD_Order || 0,
+            isActive: dept.HRMD_ActiveFlag !== false
+        }));
+    }, [departments]);
 
-        employees.forEach((empName, index) => {
-            const isBankPayment = Math.random() > 0.3; // 70% bank, 30% cash
-            const grossSalary = 30000 + index * 5000 + Math.random() * 10000;
-            const deductions = grossSalary * (0.1 + Math.random() * 0.1); // 10-20% deductions
-            const netSalary = grossSalary - deductions;
-
-            const month = months[Math.floor(Math.random() * months.length)];
-            const paymentStatus = paymentStatuses[Math.floor(Math.random() * paymentStatuses.length)];
-
-            const groupType = groupTypes[index % groupTypes.length];
-            const department = departments[index % departments.length];
-            const designation = designations[index % designations.length];
-
-            mockRecords.push({
-                employeeCode: `EMP${String(index + 1).padStart(3, '0')}`,
-                employeeName: empName,
-                groupType: groupType?.groupType || 'Default',
-                departmentName: department?.departmentName || 'Default Department',
-                designationName: designation?.designationName || 'Default Designation',
-                paymentMode: isBankPayment ? 'Bank' : 'Cash',
-                bankName: isBankPayment ? banks[Math.floor(Math.random() * banks.length)] : undefined,
-                accountNumber: isBankPayment ? `${Math.floor(Math.random() * 900000000000) + 100000000000}` : undefined,
-                ifscCode: isBankPayment
-                    ? `${banks[Math.floor(Math.random() * banks.length)].substring(0, 4).toUpperCase()}0001234`
-                    : undefined,
-                grossSalary: Math.round(grossSalary),
-                netSalary: Math.round(netSalary),
-                deductions: Math.round(deductions),
-                month: month,
-                year: '2025',
-                paymentDate: `2025-${String(months.indexOf(month) + 1).padStart(2, '0')}-28`,
-                paymentStatus: paymentStatus
-            });
-        });
-
-        return mockRecords;
-    };
+    const mappedDesignations = useMemo(() => {
+        return designations.map((desig: any) => ({
+            id: desig.HRMDES_Id,
+            designationName: desig.HRMDES_DesignationName || '',
+            basicAmount: desig.HRMDES_BasicAmount?.toString() || '0',
+            sanctionedSeats: desig.HRMDES_SanctionedSeats?.toString() || '0',
+            displaySanctionedSeats: desig.HRMDES_DisplaySanctionedSeatsFlag || false,
+            order: desig.HRMDES_Order || 0,
+            isActive: desig.HRMDES_ActiveFlag !== false
+        }));
+    }, [designations]);
 
     // Filter records based on selected criteria
     useEffect(() => {
         let filtered = bankCashRecords;
 
-        // Filter by group types
+        // Filter by group types - convert IDs to names
         if (filters.selectedTypes.length > 0) {
-            filtered = filtered.filter((record) => filters.selectedTypes.includes(record.groupType));
+            const selectedGroupTypeNames = mappedGroupTypes
+                .filter((gt: { id: number; groupType: string }) => filters.selectedTypes.includes(gt.id.toString()))
+                .map((gt: { id: number; groupType: string }) => gt.groupType);
+            filtered = filtered.filter((record) => selectedGroupTypeNames.includes(record.groupType));
         }
 
-        // Filter by departments
+        // Filter by departments - convert IDs to names
         if (filters.selectedDepartments.length > 0) {
-            filtered = filtered.filter((record) => filters.selectedDepartments.includes(record.departmentName));
+            const selectedDepartmentNames = mappedDepartments
+                .filter((d: { id: number; departmentName: string }) => filters.selectedDepartments.includes(d.id.toString()))
+                .map((d: { id: number; departmentName: string }) => d.departmentName);
+            filtered = filtered.filter((record) => selectedDepartmentNames.includes(record.departmentName));
         }
 
-        // Filter by designations
+        // Filter by designations - convert IDs to names
         if (filters.selectedDesignations.length > 0) {
-            filtered = filtered.filter((record) => filters.selectedDesignations.includes(record.designationName));
+            const selectedDesignationNames = mappedDesignations
+                .filter((d: { id: number; designationName: string }) => filters.selectedDesignations.includes(d.id.toString()))
+                .map((d: { id: number; designationName: string }) => d.designationName);
+            filtered = filtered.filter((record) => selectedDesignationNames.includes(record.designationName));
         }
 
         // Filter by payment mode
@@ -174,37 +146,78 @@ export default function BankCashReportPage() {
         }
 
         setFilteredRecords(filtered);
-    }, [filters, bankCashRecords]);
+    }, [filters, bankCashRecords, mappedGroupTypes, mappedDepartments, mappedDesignations]);
 
-    const handleCheckboxChange = (
-        category: 'selectedTypes' | 'selectedDepartments' | 'selectedDesignations',
-        value: string,
-        checked: boolean
-    ) => {
-        setFilters((prev) => ({
-            ...prev,
-            [category]: checked ? [...prev[category], value] : prev[category].filter((item) => item !== value)
-        }));
-    };
-
-    const handleSelectAllChange = (
-        category: 'selectedTypes' | 'selectedDepartments' | 'selectedDesignations',
-        checked: boolean,
-        allOptions: string[]
-    ) => {
-        setFilters((prev) => ({
-            ...prev,
-            [category]: checked ? allOptions : []
-        }));
-    };
-
-    const handleFilterChange = (key: keyof BankCashReportFilters, value: any) => {
-        setFilters((prev) => ({ ...prev, [key]: value }));
+    const handleFilterChange = (newFilters: BankCashReportFiltersType) => {
+        setFilters(newFilters);
     };
 
     const handleSearch = () => {
-        setShowReport(true);
-        toast.success('Bank/Cash Report generated');
+        if (!filters.month || !filters.year) {
+            toast.error('Please select month and year');
+            return;
+        }
+
+        // Find month ID from selected month name
+        const selectedMonthObj = months.find((m: any) => m.IVRM_Month_Name?.trim() === filters.month);
+        const monthId = selectedMonthObj?.IVRM_Month_Id || 0;
+
+        // Find year ID from selected year
+        const selectedYearObj = years.find((y: any) => y.HRMLY_LeaveYear === filters.year);
+        const yearId = selectedYearObj?.HRMLY_Id || 0;
+
+        // Prepare search request
+        const searchRequest = {
+            MI_Id: roleId,
+            HRES_Year: yearId,
+            HRES_Month: monthId,
+            BankCash: filters.paymentMode,
+            departmentselected: filters.selectedDepartments.length > 0
+                ? filters.selectedDepartments.map((id) => Number.parseInt(id))
+                : [],
+            groupTypeselected: filters.selectedTypes.length > 0
+                ? filters.selectedTypes.map((id) => Number.parseInt(id))
+                : []
+        };
+
+        searchMutation.mutate(searchRequest, {
+            onSuccess: (response) => {
+                if (response.success && response.data) {
+                    // Map API response to BankCashRecord format
+                    const employeeDetails = response.data.employeeDetails || [];
+                    const mappedRecords: BankCashRecord[] = employeeDetails.map((emp: any, index: number) => ({
+                        id: index + 1,
+                        createdAt: new Date(),
+                        employeeCode: emp.EmployeeCode || emp.HRME_EmployeeCode || emp.employeeCode || '',
+                        employeeName: emp.EmployeeName || emp.HRME_EmployeeFirstName || emp.employeeName || '',
+                        groupType: emp.groupType || emp.HRMGT_EmployeeGroupType || '',
+                        departmentName: emp.departmentName || emp.HRMD_DepartmentName || '',
+                        designationName: emp.DesignationName || emp.HRMDES_DesignationName || emp.designationName || '',
+                        paymentMode: filters.paymentMode,
+                        bankName: filters.paymentMode === 'Bank' ? (emp.HRMBD_BankName || emp.bankName || '') : undefined,
+                        accountNumber: filters.paymentMode === 'Bank' ? (emp.BankAcNumber || emp.HRME_BankAccountNo || emp.accountNumber || '') : undefined,
+                        ifscCode: filters.paymentMode === 'Bank' ? (emp.HRMBD_IFSCCode || emp.ifscCode || '') : undefined,
+                        grossSalary: emp.grossSalary || emp.totalEarning || 0,
+                        netSalary: emp.NetSalary || emp.netSalary || 0,
+                        deductions: emp.deductions || emp.totalDeduction || (emp.grossSalary || 0) - (emp.NetSalary || 0),
+                        month: filters.month,
+                        year: filters.year,
+                        paymentDate: emp.paymentDate || '',
+                        paymentStatus: ((emp.paymentStatus === 'Paid' || emp.paymentStatus === 'Pending' || emp.paymentStatus === 'Failed') ? emp.paymentStatus : 'Pending') as 'Paid' | 'Pending' | 'Failed'
+                    }));
+
+                    setBankCashRecords(mappedRecords);
+                    setShowReport(true);
+                    toast.success('Bank/Cash Report generated successfully');
+                } else {
+                    toast.error(response.message || 'Failed to generate bank cash report');
+                }
+            },
+            onError: (error: Error) => {
+                console.error('Error searching bank cash report:', error);
+                toast.error(error.message || 'Failed to generate bank cash report');
+            }
+        });
     };
 
     const handleCancel = () => {
@@ -216,6 +229,8 @@ export default function BankCashReportPage() {
             month: '',
             year: ''
         });
+        setBankCashRecords([]);
+        setFilteredRecords([]);
         setShowReport(false);
         toast.info('Filters cleared');
     };
@@ -254,14 +269,15 @@ export default function BankCashReportPage() {
             {/* Report Configuration Section */}
             <BankCashReportFilters
                 filters={filters}
-                groupTypes={groupTypes}
-                departments={departments}
-                designations={designations}
-                onCheckboxChange={handleCheckboxChange}
-                onSelectAllChange={handleSelectAllChange}
+                groupTypes={mappedGroupTypes}
+                departments={mappedDepartments}
+                designations={mappedDesignations}
+                months={months}
+                years={years}
                 onFilterChange={handleFilterChange}
                 onSearch={handleSearch}
                 onCancel={handleCancel}
+                isLoading={isLoadingOnload}
             />
 
             {/* Report Results */}
@@ -358,7 +374,7 @@ export default function BankCashReportPage() {
                         </CardHeader>
                         <CardContent>
                             <DataTable
-                                isLoading={isLoading}
+                                isLoading={isLoadingOnload}
                                 columns={bankCashColumns}
                                 data={filteredRecords}
                                 totalItems={filteredRecords.length}

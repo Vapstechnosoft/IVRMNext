@@ -299,7 +299,7 @@ export default function AddLeaveCreditDetailsForm({ onSuccess, className = '' }:
                                             id={`month-${m}`}
                                             type='number'
                                             step='0.5'
-                                            value={watch('months')[m] ?? 0}
+                                            value={watch('months')?.[m] ?? 0}
                                             onChange={(e) =>
                                                 setValue('months', {
                                                     ...watch('months'),

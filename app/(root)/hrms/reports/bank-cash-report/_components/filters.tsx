@@ -1,12 +1,11 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
-import { Checkbox } from '@/components/ui/checkbox';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
+import { Label } from '@/components/ui/label';
+import { MultiSelect } from '@/components/ui/multi-select';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Search, X } from 'lucide-react';
-import { useEffect, useState } from 'react';
-import type { Department, Designation, GroupType } from './columns';
 
 // Report filters
 export interface BankCashReportFilters {
@@ -20,18 +19,15 @@ export interface BankCashReportFilters {
 
 interface BankCashReportFiltersProps {
     filters: BankCashReportFilters;
-    groupTypes: GroupType[];
-    departments: Department[];
-    designations: Designation[];
-    onCheckboxChange: (category: 'selectedTypes' | 'selectedDepartments' | 'selectedDesignations', value: string, checked: boolean) => void;
-    onSelectAllChange: (
-        category: 'selectedTypes' | 'selectedDepartments' | 'selectedDesignations',
-        checked: boolean,
-        allOptions: string[]
-    ) => void;
-    onFilterChange: (key: keyof BankCashReportFilters, value: any) => void;
+    groupTypes: Array<{ id: number; groupType: string }>;
+    departments: Array<{ id: number; departmentName: string }>;
+    designations: Array<{ id: number; designationName: string }>;
+    months: any[];
+    years: any[];
+    onFilterChange: (filters: BankCashReportFilters) => void;
     onSearch: () => void;
     onCancel: () => void;
+    isLoading?: boolean;
 }
 
 export function BankCashReportFilters({
@@ -39,17 +35,17 @@ export function BankCashReportFilters({
     groupTypes,
     departments,
     designations,
-    onCheckboxChange,
-    onSelectAllChange,
+    months,
+    years,
     onFilterChange,
     onSearch,
-    onCancel
+    onCancel,
+    isLoading = false
 }: BankCashReportFiltersProps) {
-    const [currentYear, setCurrentYear] = useState<number | null>(null);
-
-    useEffect(() => {
-        setCurrentYear(new Date().getFullYear());
-    }, []);
+    const handleInternalFilterChange = (key: keyof BankCashReportFilters, value: any) => {
+        const newFilters = { ...filters, [key]: value };
+        onFilterChange(newFilters);
+    };
 
     return (
         <CollapsibleSection
@@ -59,139 +55,103 @@ export function BankCashReportFilters({
             className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
             <div className='space-y-6'>
                 {/* Filter Sections */}
-                <div className='grid grid-cols-1 gap-6 lg:grid-cols-3'>
+                <div className='grid grid-cols-1 gap-4 md:grid-cols-3'>
                     {/* Group Type Section */}
-                    <div className='space-y-3'>
-                        <div className='flex items-center gap-2'>
-                            <span className='font-medium text-foreground text-sm'>Group Type:</span>
-                            <span className='text-red-500'>*</span>
-                            <div className='flex items-center gap-2'>
-                                <Checkbox
-                                    id='all-groups'
-                                    checked={filters.selectedTypes.length === groupTypes.length}
-                                    onCheckedChange={(checked) =>
-                                        onSelectAllChange(
-                                            'selectedTypes',
-                                            checked as boolean,
-                                            groupTypes.map((g) => g.groupType)
-                                        )
-                                    }
-                                />
-                                <label htmlFor='all-groups' className='cursor-pointer text-sm'>
-                                    All
-                                </label>
-                            </div>
-                        </div>
-                        <div className='h-32 space-y-2 overflow-y-auto rounded-lg border p-3'>
-                            {groupTypes.map((groupType) => (
-                                <div key={groupType.id} className='flex items-center gap-2'>
-                                    <Checkbox
-                                        id={`group-${groupType.id}`}
-                                        checked={filters.selectedTypes.includes(groupType.groupType)}
-                                        onCheckedChange={(checked) =>
-                                            onCheckboxChange('selectedTypes', groupType.groupType, checked as boolean)
-                                        }
-                                    />
-                                    <label htmlFor={`group-${groupType.id}`} className='cursor-pointer text-sm'>
-                                        {groupType.groupType}
-                                    </label>
-                                </div>
-                            ))}
-                        </div>
+                    <div className='space-y-2'>
+                        <Label htmlFor='groupType' className='font-medium text-foreground text-sm'>
+                            Group Type: <span className='text-red-500'>*</span>
+                        </Label>
+                        {isLoading ? (
+                            <div className='h-10 w-full animate-pulse rounded-md bg-muted' />
+                        ) : groupTypes.length === 0 ? (
+                            <div className='text-muted-foreground text-sm'>No group types available</div>
+                        ) : (
+                            <MultiSelect
+                                options={groupTypes
+                                    .filter((group) => group.id != null && group.groupType)
+                                    .map((group) => ({
+                                        label: group.groupType,
+                                        value: group.id.toString()
+                                    }))}
+                                defaultValue={filters.selectedTypes}
+                                onValueChange={(values) =>
+                                    handleInternalFilterChange('selectedTypes', values)
+                                }
+                                placeholder='Select Group Types'
+                                className='w-full'
+                                maxHeight={240}
+                            />
+                        )}
                     </div>
 
                     {/* Department Section */}
-                    <div className='space-y-3'>
-                        <div className='flex items-center gap-2'>
-                            <span className='font-medium text-foreground text-sm'>Department:</span>
-                            <span className='text-red-500'>*</span>
-                            <div className='flex items-center gap-2'>
-                                <Checkbox
-                                    id='all-departments'
-                                    checked={filters.selectedDepartments.length === departments.length}
-                                    onCheckedChange={(checked) =>
-                                        onSelectAllChange(
-                                            'selectedDepartments',
-                                            checked as boolean,
-                                            departments.map((d) => d.departmentName)
-                                        )
-                                    }
-                                />
-                                <label htmlFor='all-departments' className='cursor-pointer text-sm'>
-                                    All
-                                </label>
-                            </div>
-                        </div>
-                        <div className='h-32 space-y-2 overflow-y-auto rounded-lg border p-3'>
-                            {departments.map((department) => (
-                                <div key={department.id} className='flex items-center gap-2'>
-                                    <Checkbox
-                                        id={`dept-${department.id}`}
-                                        checked={filters.selectedDepartments.includes(department.departmentName)}
-                                        onCheckedChange={(checked) =>
-                                            onCheckboxChange('selectedDepartments', department.departmentName, checked as boolean)
-                                        }
-                                    />
-                                    <label htmlFor={`dept-${department.id}`} className='cursor-pointer text-sm'>
-                                        {department.departmentName}
-                                    </label>
-                                </div>
-                            ))}
-                        </div>
+                    <div className='space-y-2'>
+                        <Label htmlFor='department' className='font-medium text-foreground text-sm'>
+                            Department: <span className='text-red-500'>*</span>
+                        </Label>
+                        {isLoading ? (
+                            <div className='h-10 w-full animate-pulse rounded-md bg-muted' />
+                        ) : departments.length === 0 ? (
+                            <div className='text-muted-foreground text-sm'>No departments available</div>
+                        ) : (
+                            <MultiSelect
+                                options={departments
+                                    .filter((dept) => dept.id != null && dept.departmentName)
+                                    .map((dept) => ({
+                                        label: dept.departmentName,
+                                        value: dept.id.toString()
+                                    }))}
+                                defaultValue={filters.selectedDepartments}
+                                onValueChange={(values) =>
+                                    handleInternalFilterChange('selectedDepartments', values)
+                                }
+                                placeholder='Select Departments'
+                                className='w-full'
+                                maxHeight={240}
+                            />
+                        )}
                     </div>
 
                     {/* Designation Section */}
-                    <div className='space-y-3'>
-                        <div className='flex items-center gap-2'>
-                            <span className='font-medium text-foreground text-sm'>Designation:</span>
-                            <span className='text-red-500'>*</span>
-                            <div className='flex items-center gap-2'>
-                                <Checkbox
-                                    id='all-designations'
-                                    checked={filters.selectedDesignations.length === designations.length}
-                                    onCheckedChange={(checked) =>
-                                        onSelectAllChange(
-                                            'selectedDesignations',
-                                            checked as boolean,
-                                            designations.map((d) => d.designationName)
-                                        )
-                                    }
-                                />
-                                <label htmlFor='all-designations' className='cursor-pointer text-sm'>
-                                    All
-                                </label>
-                            </div>
-                        </div>
-                        <div className='h-32 space-y-2 overflow-y-auto rounded-lg border p-3'>
-                            {designations.map((designation) => (
-                                <div key={designation.id} className='flex items-center gap-2'>
-                                    <Checkbox
-                                        id={`desig-${designation.id}`}
-                                        checked={filters.selectedDesignations.includes(designation.designationName)}
-                                        onCheckedChange={(checked) =>
-                                            onCheckboxChange('selectedDesignations', designation.designationName, checked as boolean)
-                                        }
-                                    />
-                                    <label htmlFor={`desig-${designation.id}`} className='cursor-pointer text-sm'>
-                                        {designation.designationName}
-                                    </label>
-                                </div>
-                            ))}
-                        </div>
+                    <div className='space-y-2'>
+                        <Label htmlFor='designation' className='font-medium text-foreground text-sm'>
+                            Designation: <span className='text-red-500'>*</span>
+                        </Label>
+                        {isLoading ? (
+                            <div className='h-10 w-full animate-pulse rounded-md bg-muted' />
+                        ) : designations.length === 0 ? (
+                            <div className='text-muted-foreground text-sm'>No designations available</div>
+                        ) : (
+                            <MultiSelect
+                                options={designations
+                                    .filter((desig) => desig.id != null && desig.designationName)
+                                    .map((desig) => ({
+                                        label: desig.designationName,
+                                        value: desig.id.toString()
+                                    }))}
+                                defaultValue={filters.selectedDesignations}
+                                onValueChange={(values) =>
+                                    handleInternalFilterChange('selectedDesignations', values)
+                                }
+                                placeholder='Select Designations'
+                                className='w-full'
+                                maxHeight={240}
+                            />
+                        )}
                     </div>
                 </div>
 
                 {/* Additional Filters */}
-                <div className='flex items-center justify-center gap-6 pt-4'>
+                <div className='grid grid-cols-1 gap-4 md:grid-cols-3'>
                     {/* Payment Mode */}
                     <div className='space-y-2'>
-                        <span className='font-medium text-foreground text-sm'>
+                        <Label htmlFor='paymentMode' className='font-medium text-foreground text-sm'>
                             Payment Mode: <span className='text-red-500'>*</span>
-                        </span>
+                        </Label>
                         <Select
                             value={filters.paymentMode}
-                            onValueChange={(value) => onFilterChange('paymentMode', value as 'Bank' | 'Cash')}>
-                            <SelectTrigger className='w-40'>
+                            onValueChange={(value) => handleInternalFilterChange('paymentMode', value as 'Bank' | 'Cash')}>
+                            <SelectTrigger>
                                 <SelectValue placeholder='Select' />
                             </SelectTrigger>
                             <SelectContent>
@@ -203,57 +163,56 @@ export function BankCashReportFilters({
 
                     {/* Month Filter */}
                     <div className='space-y-2'>
-                        <span className='font-medium text-foreground text-sm'>
+                        <Label htmlFor='month' className='font-medium text-foreground text-sm'>
                             Month: <span className='text-red-500'>*</span>
-                        </span>
-                        <Select value={filters.month} onValueChange={(value) => onFilterChange('month', value)}>
-                            <SelectTrigger className='w-40'>
-                                <SelectValue placeholder='Select' />
-                            </SelectTrigger>
-                            <SelectContent>
-                                {[
-                                    'January',
-                                    'February',
-                                    'March',
-                                    'April',
-                                    'May',
-                                    'June',
-                                    'July',
-                                    'August',
-                                    'September',
-                                    'October',
-                                    'November',
-                                    'December'
-                                ].map((month) => (
-                                    <SelectItem key={month} value={month}>
-                                        {month}
-                                    </SelectItem>
-                                ))}
-                            </SelectContent>
-                        </Select>
+                        </Label>
+                        {isLoading ? (
+                            <div className='h-10 w-full animate-pulse rounded-md bg-muted' />
+                        ) : months.length === 0 ? (
+                            <div className='text-muted-foreground text-sm'>No months available</div>
+                        ) : (
+                            <Select value={filters.month} onValueChange={(value) => handleInternalFilterChange('month', value)}>
+                                <SelectTrigger>
+                                    <SelectValue placeholder='Select Month' />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {months
+                                        .filter((month) => month.IVRM_Month_Id != null && month.IVRM_Month_Name)
+                                        .map((month) => (
+                                            <SelectItem key={month.IVRM_Month_Id} value={month.IVRM_Month_Name.trim()}>
+                                                {month.IVRM_Month_Name.trim()}
+                                            </SelectItem>
+                                        ))}
+                                </SelectContent>
+                            </Select>
+                        )}
                     </div>
 
                     {/* Year Filter */}
                     <div className='space-y-2'>
-                        <span className='font-medium text-foreground text-sm'>
+                        <Label htmlFor='year' className='font-medium text-foreground text-sm'>
                             Year: <span className='text-red-500'>*</span>
-                        </span>
-                        <Select value={filters.year} onValueChange={(value) => onFilterChange('year', value)}>
-                            <SelectTrigger className='w-32'>
-                                <SelectValue placeholder='Select' />
-                            </SelectTrigger>
-                            <SelectContent>
-                                {currentYear &&
-                                    Array.from({ length: 5 }, (_, i) => {
-                                        const year = currentYear - 2 + i;
-                                        return (
-                                            <SelectItem key={`year-${year}`} value={year.toString()}>
-                                                {year}
+                        </Label>
+                        {isLoading ? (
+                            <div className='h-10 w-full animate-pulse rounded-md bg-muted' />
+                        ) : years.length === 0 ? (
+                            <div className='text-muted-foreground text-sm'>No years available</div>
+                        ) : (
+                            <Select value={filters.year} onValueChange={(value) => handleInternalFilterChange('year', value)}>
+                                <SelectTrigger>
+                                    <SelectValue placeholder='Select Year' />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {years
+                                        .filter((year) => year.HRMLY_Id != null && year.HRMLY_LeaveYear)
+                                        .map((year) => (
+                                            <SelectItem key={year.HRMLY_Id} value={year.HRMLY_LeaveYear}>
+                                                {year.HRMLY_LeaveYear}
                                             </SelectItem>
-                                        );
-                                    })}
-                            </SelectContent>
-                        </Select>
+                                        ))}
+                                </SelectContent>
+                            </Select>
+                        )}
                     </div>
                 </div>
 

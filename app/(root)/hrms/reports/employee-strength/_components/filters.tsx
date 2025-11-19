@@ -155,58 +155,64 @@ export function EmployeeStrengthFilters({
                     </div>
                 </div>
 
-                {/* Date Range Selection */}
-                <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
-                    <div className='space-y-2'>
-                        <span className='font-medium text-foreground text-sm'>From :</span>
-                        <Popover>
-                            <PopoverTrigger asChild>
-                                <Button
-                                    variant='outline'
-                                    className={cn(
-                                        'w-full justify-start text-left font-normal',
-                                        !filters.fromDate && 'text-muted-foreground'
-                                    )}>
-                                    <CalendarIcon className='mr-2 h-4 w-4' />
-                                    {filters.fromDate ? format(filters.fromDate, 'dd-MM-yyyy') : <span>17-09-2025</span>}
-                                </Button>
-                            </PopoverTrigger>
-                            <PopoverContent className='w-auto p-0'>
-                                <DatePickerWithYear
-                                    mode='single'
-                                    selected={filters.fromDate || undefined}
-                                    onDayClick={(day) => onDateChange('fromDate', day)}
-                                    initialFocus
-                                />
-                            </PopoverContent>
-                        </Popover>
-                    </div>
+                {/* Date Range Selection - Hide when "All Employee" is selected */}
+                {!filters.employeeCategories.allEmployee && (
+                    <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
+                        <div className='space-y-2'>
+                            <span className='font-medium text-foreground text-sm'>
+                                From Date: <span className='text-red-500'>*</span>
+                            </span>
+                            <Popover>
+                                <PopoverTrigger asChild>
+                                    <Button
+                                        variant='outline'
+                                        className={cn(
+                                            'w-full justify-start text-left font-normal',
+                                            !filters.fromDate && 'text-muted-foreground'
+                                        )}>
+                                        <CalendarIcon className='mr-2 h-4 w-4' />
+                                        {filters.fromDate ? format(filters.fromDate, 'dd-MM-yyyy') : <span>Select date</span>}
+                                    </Button>
+                                </PopoverTrigger>
+                                <PopoverContent className='w-auto p-0'>
+                                    <DatePickerWithYear
+                                        mode='single'
+                                        selected={filters.fromDate || undefined}
+                                        onDayClick={(day) => onDateChange('fromDate', day)}
+                                        initialFocus
+                                    />
+                                </PopoverContent>
+                            </Popover>
+                        </div>
 
-                    <div className='space-y-2'>
-                        <span className='font-medium text-foreground text-sm'>To :</span>
-                        <Popover>
-                            <PopoverTrigger asChild>
-                                <Button
-                                    variant='outline'
-                                    className={cn(
-                                        'w-full justify-start text-left font-normal',
-                                        !filters.toDate && 'text-muted-foreground'
-                                    )}>
-                                    <CalendarIcon className='mr-2 h-4 w-4' />
-                                    {filters.toDate ? format(filters.toDate, 'dd-MM-yyyy') : <span>17-09-2025</span>}
-                                </Button>
-                            </PopoverTrigger>
-                            <PopoverContent className='w-auto p-0'>
-                                <DatePickerWithYear
-                                    mode='single'
-                                    selected={filters.toDate || undefined}
-                                    onDayClick={(day) => onDateChange('toDate', day)}
-                                    initialFocus
-                                />
-                            </PopoverContent>
-                        </Popover>
+                        <div className='space-y-2'>
+                            <span className='font-medium text-foreground text-sm'>
+                                To Date: <span className='text-red-500'>*</span>
+                            </span>
+                            <Popover>
+                                <PopoverTrigger asChild>
+                                    <Button
+                                        variant='outline'
+                                        className={cn(
+                                            'w-full justify-start text-left font-normal',
+                                            !filters.toDate && 'text-muted-foreground'
+                                        )}>
+                                        <CalendarIcon className='mr-2 h-4 w-4' />
+                                        {filters.toDate ? format(filters.toDate, 'dd-MM-yyyy') : <span>Select date</span>}
+                                    </Button>
+                                </PopoverTrigger>
+                                <PopoverContent className='w-auto p-0'>
+                                    <DatePickerWithYear
+                                        mode='single'
+                                        selected={filters.toDate || undefined}
+                                        onDayClick={(day) => onDateChange('toDate', day)}
+                                        initialFocus
+                                    />
+                                </PopoverContent>
+                            </Popover>
+                        </div>
                     </div>
-                </div>
+                )}
 
                 {/* Action Buttons */}
                 <div className='flex gap-2 pt-4'>

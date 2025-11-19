@@ -19,9 +19,12 @@ interface ESIReportFiltersProps {
     groupTypes: Array<{ id: number; groupType: string }>;
     availableDepartments: Array<{ id: number; departmentName: string }>;
     availableDesignations: Array<{ id: number; designationName: string }>;
+    months: any[];
+    years: any[];
     onFilterChange: (filters: ESIReportFilters) => void;
     onSearch: () => void;
     onCancel: () => void;
+    isLoading?: boolean;
 }
 
 export function ESIReportFilters({
@@ -29,15 +32,13 @@ export function ESIReportFilters({
     groupTypes,
     availableDepartments,
     availableDesignations,
+    months,
+    years,
     onFilterChange,
     onSearch,
-    onCancel
+    onCancel,
+    isLoading = false
 }: ESIReportFiltersProps) {
-    const [currentYear, setCurrentYear] = useState<number | null>(null);
-
-    useEffect(() => {
-        setCurrentYear(new Date().getFullYear());
-    }, []);
 
     const handleFilterChange = (key: keyof ESIReportFilters, value: string) => {
         const newFilters = { ...filters, [key]: value };
@@ -130,31 +131,26 @@ export function ESIReportFilters({
                         <span className='font-medium text-foreground text-sm'>
                             Month: <span className='text-red-500'>*</span>
                         </span>
-                        <Select value={filters.month} onValueChange={(value) => handleFilterChange('month', value)}>
-                            <SelectTrigger>
-                                <SelectValue placeholder='Select' />
-                            </SelectTrigger>
-                            <SelectContent>
-                                {[
-                                    'January',
-                                    'February',
-                                    'March',
-                                    'April',
-                                    'May',
-                                    'June',
-                                    'July',
-                                    'August',
-                                    'September',
-                                    'October',
-                                    'November',
-                                    'December'
-                                ].map((month) => (
-                                    <SelectItem key={month} value={month}>
-                                        {month}
-                                    </SelectItem>
-                                ))}
-                            </SelectContent>
-                        </Select>
+                        {isLoading ? (
+                            <div className='h-10 w-full animate-pulse rounded-md bg-muted' />
+                        ) : months.length === 0 ? (
+                            <div className='text-muted-foreground text-sm'>No months available</div>
+                        ) : (
+                            <Select value={filters.month} onValueChange={(value) => handleFilterChange('month', value)}>
+                                <SelectTrigger>
+                                    <SelectValue placeholder='Select Month' />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {months
+                                        .filter((month) => month.IVRM_Month_Id != null && month.IVRM_Month_Name)
+                                        .map((month) => (
+                                            <SelectItem key={month.IVRM_Month_Id} value={month.IVRM_Month_Name.trim()}>
+                                                {month.IVRM_Month_Name.trim()}
+                                            </SelectItem>
+                                        ))}
+                                </SelectContent>
+                            </Select>
+                        )}
                     </div>
 
                     {/* Year Filter */}
@@ -162,22 +158,26 @@ export function ESIReportFilters({
                         <span className='font-medium text-foreground text-sm'>
                             Year: <span className='text-red-500'>*</span>
                         </span>
-                        <Select value={filters.year} onValueChange={(value) => handleFilterChange('year', value)}>
-                            <SelectTrigger>
-                                <SelectValue placeholder='Select' />
-                            </SelectTrigger>
-                            <SelectContent>
-                                {currentYear &&
-                                    Array.from({ length: 5 }, (_, i) => {
-                                        const year = currentYear - 2 + i;
-                                        return (
-                                            <SelectItem key={year} value={year.toString()}>
-                                                {year}
+                        {isLoading ? (
+                            <div className='h-10 w-full animate-pulse rounded-md bg-muted' />
+                        ) : years.length === 0 ? (
+                            <div className='text-muted-foreground text-sm'>No years available</div>
+                        ) : (
+                            <Select value={filters.year} onValueChange={(value) => handleFilterChange('year', value)}>
+                                <SelectTrigger>
+                                    <SelectValue placeholder='Select Year' />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {years
+                                        .filter((year) => year.HRMLY_Id != null && year.HRMLY_LeaveYear)
+                                        .map((year) => (
+                                            <SelectItem key={year.HRMLY_Id} value={year.HRMLY_LeaveYear}>
+                                                {year.HRMLY_LeaveYear}
                                             </SelectItem>
-                                        );
-                                    })}
-                            </SelectContent>
-                        </Select>
+                                        ))}
+                                </SelectContent>
+                            </Select>
+                        )}
                     </div>
                 </div>
 

@@ -45,6 +45,7 @@ export default function LeaveTransferPage() {
         // Convert form data to LeaveCredit format
         const submitData: LeaveCredit = {
             id: editingCredit?.id || 0,
+            createdAt: editingCredit?.createdAt || new Date(),
             leaveYear: formData.leaveYear,
             leaveName: formData.leaveName,
             employeeName: editingCredit?.employeeName || '', // This would come from employee selection

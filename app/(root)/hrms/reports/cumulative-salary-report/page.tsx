@@ -88,7 +88,7 @@ export default function CumulativeSalaryReportPage(props: { searchParams: Search
     const hasSearchCriteria = !!(month && year);
     
     // React Query hook for dropdowns - always enabled to get filter options
-    const { data: onloadData, isLoading: onloadLoading } = useCumulativeSalaryReportOnload(MI_Id);
+    const { data: onloadData, isLoading: onloadLoading, error: onloadError } = useCumulativeSalaryReportOnload(MI_Id);
     
     // Memoize arrays to prevent unnecessary re-renders
     const groupTypes = useMemo(() => onloadData?.data?.groupTypedropdownlist || [], [onloadData?.data?.groupTypedropdownlist]);
@@ -281,29 +281,57 @@ export default function CumulativeSalaryReportPage(props: { searchParams: Search
         message: reportListQuery.data?.message
     });
 
+    // Show error if API fails
+    useEffect(() => {
+        if (onloadError || (!onloadLoading && onloadData && !onloadData.success)) {
+            const errorMessage = onloadError?.message || onloadData?.message || 'Failed to load cumulative salary report data. Please check if the API endpoint is available.';
+            toast.error(errorMessage);
+        }
+    }, [onloadError, onloadData, onloadLoading]);
+
+    // Show error for search API failures
+    useEffect(() => {
+        if (hasSearchCriteria && reportListQuery.data && !reportListQuery.data.success) {
+            const errorMessage = reportListQuery.data.message || 'Failed to load salary report data. Please check if the search API endpoint is available.';
+            toast.error(errorMessage);
+        }
+    }, [reportListQuery.data, hasSearchCriteria]);
+
     // Show report only when search criteria are present and we have data
     const showReport = hasSearchCriteria && reportListQuery.data?.success;
+
+    // Show error message if onload fails
+    if (onloadError || (!onloadLoading && onloadData && !onloadData.success)) {
+        return (
+            <div className='min-h-screen'>
+                <div className='container space-y-4 p-1'>
+                    <div className='flex flex-col items-center justify-center space-y-4 rounded-lg bg-destructive/10 py-12'>
+                        <div className='text-center'>
+                            <h3 className='font-semibold text-destructive text-lg'>Error Loading Filter Options</h3>
+                            <p className='text-muted-foreground text-sm mt-2'>
+                                {onloadError?.message || onloadData?.message || 'Failed to load filter options. Please check if the API endpoint is available.'}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className='min-h-screen'>
             <div className='container space-y-4 p-1'>
                 {/* Search Form */}
-                {onloadLoading ? (
-                    <div className='flex items-center justify-center rounded-lg bg-muted/50 py-12'>
-                        <div className='text-muted-foreground'>Loading filter options...</div>
-                    </div>
-                ) : (
-                    <CumulativeSalaryReportFilters
-                        control={control}
-                        groupTypes={groupTypes}
-                        departments={departments}
-                        designations={designations}
-                        months={months}
-                        years={years}
-                        onSubmit={handleSubmit(onSubmit)}
-                        onCancel={handleCancel}
-                    />
-                )}
+                <CumulativeSalaryReportFilters
+                    control={control}
+                    groupTypes={groupTypes}
+                    departments={departments}
+                    designations={designations}
+                    months={months}
+                    years={years}
+                    onSubmit={handleSubmit(onSubmit)}
+                    onCancel={handleCancel}
+                />
 
                 {/* Report Results - Only show after search */}
                 {showReport ? (

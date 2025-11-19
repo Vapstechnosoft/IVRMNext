@@ -6,6 +6,7 @@ import type {
     DepartmentDetail,
     MasterDepartmentInput,
     MasterDepartmentResponse,
+    OnloadGetDepartmentDetailsRequest,
     SaveDepartmentRequest
 } from '@/types/hrms/master-department';
 
