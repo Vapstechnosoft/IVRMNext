@@ -133,6 +133,7 @@ export const EXAM_QUERY_KEYS = {
     MASTER_GRADE_EX: 'master-grade-ex',
     MASTER_GRADE_DETAILS: 'master-grade-details',
     MASTER_SUBJECT_GROUP_: 'master-subject-group',
+    MASTER_SUBJECT_GROUP_DROPDOWN_LIST: 'master-subject-group-dropdown-list',
     MASTER_SUBJECT_GROUP_DETAILS: 'master-subject-group-details',
     MASTER_ALL_SUBJECT_GROUP_DETAILS: 'master-all-subject-group-details',
     MASTER_CATEGORY: 'master-category',
