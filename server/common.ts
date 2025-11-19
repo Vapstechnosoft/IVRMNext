@@ -335,11 +335,11 @@ export async function getUserAccessibleModules() {
                                         },
                                         {
                                             id: 26,
-                                            name: 'Master Fee Concession',
+                                            name: 'Fee Master Concession',
                                             icon: 'Settings',
                                             url: '/fees/masters/masterfeeconcession',
-                                            title: 'Master Fee Concession',
-                                            description: 'Manage Master Fee Concession Details'
+                                            title: 'Fee Master Concession',
+                                            description: 'Manage Fee Master Concession Details'
                                         },
 
                                         {

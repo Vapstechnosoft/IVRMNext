@@ -114,7 +114,7 @@ export default function AddFeeTermsHeadFormForm({ onSuccess, termname = '' }: Fe
                     <div className='grid grid-cols-1 gap-5 md:grid-cols-2'>
                         <div className='group flex flex-col gap-1.5'>
                             <Label aria-label='Term' htmlFor='fmT_Id'>
-                                Term <span className='ml-1 text-red-500'>*</span>
+                                Term Name <span className='ml-1 text-red-500'>*</span>
                             </Label>
                             <Controller
                                 name='fmT_Id'
@@ -154,7 +154,7 @@ export default function AddFeeTermsHeadFormForm({ onSuccess, termname = '' }: Fe
 
                         <div className='group flex flex-col gap-1.5'>
                             <Label aria-label='Heads' htmlFor='fmH_Id'>
-                                Heads <span className='ml-1 text-red-500'>*</span>
+                                Fees Head <span className='ml-1 text-red-500'>*</span>
                             </Label>
                             <Controller
                                 name='heads'
@@ -187,7 +187,7 @@ export default function AddFeeTermsHeadFormForm({ onSuccess, termname = '' }: Fe
 
                         <div className='group flex flex-col gap-1.5'>
                             <Label aria-label='Installments' htmlFor='ftI_Id'>
-                                Installments <span className='ml-1 text-red-500'>*</span>
+                                Installment Name <span className='ml-1 text-red-500'>*</span>
                             </Label>
                             <Controller
                                 name='installments'

@@ -79,11 +79,33 @@ export default function AddMasterFeeHeadForm({ onSuccess, headname = '' }: AddMa
             <form onSubmit={handleSubmit(onSubmit)} className='space-y-6'>
                 <div className='space-y-4'>
                     <div className='grid grid-cols-1 gap-4 md:grid-cols-4'>
-                        <InputText
+                        {/* <InputText
                             label='Fee Head'
                             required
                             id='fmH_FeeName'
                             {...register('fmH_FeeName')}
+                            error={errors.fmH_FeeName?.message}
+                            className='transition-colors focus:ring-2 focus:ring-primary/20'
+                        /> */}
+                        <InputText
+                            label='Fee Head'
+                            required
+                            id='fmH_FeeName'
+                            {...register('fmH_FeeName', {
+                                validate: (value) => /^[A-Za-z0-9 ]+$/.test(value) || 'Only letters, numbers and spaces allowed'
+                            })}
+                            onKeyDown={(e) => {
+                                const allowed = /^[A-Za-z0-9 ]$/;
+                                if (!allowed.test(e.key) && e.key.length === 1) {
+                                    e.preventDefault(); // block typing of special chars
+                                }
+                            }}
+                            onPaste={(e) => {
+                                const pasteData = e.clipboardData.getData('text');
+                                if (!/^[A-Za-z0-9 ]+$/.test(pasteData)) {
+                                    e.preventDefault(); // block pasting special chars
+                                }
+                            }}
                             error={errors.fmH_FeeName?.message}
                             className='transition-colors focus:ring-2 focus:ring-primary/20'
                         />
