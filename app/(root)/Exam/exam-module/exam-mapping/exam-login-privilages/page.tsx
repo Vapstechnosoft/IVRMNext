@@ -8,7 +8,8 @@ import { FormProvider, useFormContext } from '@/components/ui/form/form-provider
 // import ExamLoginPrivilegesDetailsPage from './_components/exam-login-privileges-details';
 // import AddExamLoginPrivilegesForm from './_components/add-exam-login-privileges-form';
 import { useExamLoginPrivileges } from '@/hooks/exam/exammodule/exam-mapping';
-import type { IExamLoginPrivileges, IExamLoginPrivilegesView } from '@/types/exam/exam-module/exam-mapping';
+import type { IExamLoginPrivilegesView } from '@/types/exam/exam-module/exam-mapping';
+import type { IExamLoginPrivileges } from '@/types/exam/exam-module/exam-mapping';
 import { Plus, X } from 'lucide-react';
 import { use } from 'react';
 import { ExamLoginPrivilegesColumns } from './_components/columns';

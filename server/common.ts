@@ -158,10 +158,10 @@ export async function getUserAccessibleModules() {
                                         },
                                         {
                                             id: 12,
-                                            name: 'Class Teacher',
+                                            name: 'Master Class Teacher',
                                             icon: 'Settings',
                                             url: '/admission/preadmission/masters/class-teacher',
-                                            title: 'Class Teacher',
+                                            title: 'Master Class Teacher',
                                             description: 'Manage Master Class Teacher Details'
                                         }
                                     ]
@@ -252,6 +252,21 @@ export async function getUserAccessibleModules() {
                                         }
                                     ]
                                 }
+                                // {
+                                //   id: 4,
+                                //   name: "Reports",
+                                //   icon: "Settings",
+                                //   pages: [
+                                //     {
+                                //       id: 21,
+                                //       name: "Student Count Report",
+                                //       icon: "Settings",
+                                //       url: "/admission/preadmission/reports/student-count-report",
+                                //       title: "Student Count Report",
+                                //       description: "Student Count Report",
+                                //     },
+                                //   ],
+                                // },
                             ]
                         }
                     ]
@@ -651,14 +666,14 @@ export async function getUserAccessibleModules() {
                                             title: 'Exam Subject Wizard',
                                             description: 'Manage Exam Subject Wizard Details'
                                         },
-                                        {
-                                            id: 54,
-                                            name: 'Exam Login Privilages',
-                                            icon: 'CalendarDays',
-                                            url: '/Exam/exam-module/exam-mapping/exam-login-privilages',
-                                            title: 'Exam Login Privilages',
-                                            description: 'Manage Exam Login Privilages Details'
-                                        },
+                                        // {
+                                        //     id: 54,
+                                        //     name: 'Exam Login Privilages',
+                                        //     icon: 'CalendarDays',
+                                        //     url: '/Exam/exam-module/exam-mapping/exam-login-privilages',
+                                        //     title: 'Exam Login Privilages',
+                                        //     description: 'Manage Exam Login Privilages Details'
+                                        // },
                                         {
                                             id: 55,
                                             name: 'Yearly category Subject Mapping',

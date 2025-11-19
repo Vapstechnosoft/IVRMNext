@@ -30,20 +30,16 @@ import { ExamSubjectWizardSchema, SubSubjectSubExamSchema } from '@/schemas/exam
 import { getCategoryDropDownByAcademicYearlist } from '@/server/exam/exam-module/exam-mapping/exam-subject-group-mapping';
 import {
     addOrUpdateExamSubjectWizard,
-    getSubExamsMappedList,
     getSubSubjectSubExamList,
-    getSubSubjectsAndSubExamsMappedList,
-    getSubSubjectsMappedList,
     getSubjectsByCategory
 } from '@/server/exam/exam-module/exam-mapping/exam-subject-wizard';
 import { getExamsByCategoryandAcademicYear } from '@/server/exam/exam-module/masters/exam';
 import { getMasterSubExamDropdownList } from '@/server/exam/exam-module/masters/sub-exam';
 import { getMasterSubSubjectDropdownList } from '@/server/exam/exam-module/masters/sus-subject';
 import type { IAcademicYearDropDown } from '@/types/admission/preadmission/masters';
-import type { IExamSubjectWizard, IExamSubjectWizardDetails } from '@/types/exam/exam-module/exam-mapping';
+import type { IExamSubjectWizard } from '@/types/exam/exam-module/exam-mapping';
 import type { ICategory, IMasterGrade } from '@/types/exam/exam-module/masters';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { format, parse } from 'date-fns';
 import { useEffect, useState } from 'react';
 import { Controller, FormProvider, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
@@ -94,7 +90,6 @@ export default function AddExamSubjectWizard({ onSuccess, rowData }: { onSuccess
     const [categories, setCategories] = useState<ICategory[]>([]);
     const [exams, setExams] = useState<{ EME_Id: number; EME_ExamName: string; checked?: boolean }[]>([]);
     const [subjects, setSubjects] = useState<any[]>([]);
-    const [rowSubjects, setRowSubjects] = useState<any[]>([]);
     const [gradeList, setGradeList] = useState<IMasterGrade[]>([]);
 
     const watchYear = watch('ASMAY_Id');
@@ -149,26 +144,20 @@ export default function AddExamSubjectWizard({ onSuccess, rowData }: { onSuccess
     // when rowData (edit) is provided, populate top-level fields
     useEffect(() => {
         if (!rowData) return;
+
         setValue('EYCE_Id', rowData.eycE_Id || 0);
         setValue('ASMAY_Id', rowData.asmaY_Id ?? rowData.asmaY_Id ?? undefined);
         setValue('EYC_Id', rowData.eyC_Id ?? undefined);
         setValue('EMCA_Id', rowData.emcA_Id ?? undefined);
         setValue('EMGR_Id', rowData.emgR_Id ?? undefined);
-        setValue(
-            'EYCE_AttendanceFromDate',
-            rowData.eycE_AttendanceFromDate ? format(parse(rowData.eycE_AttendanceFromDate, 'dd/MM/yyyy', new Date()), 'yyyy-MM-dd') : ''
-        );
-
-        setValue(
-            'EYCE_AttendanceToDate',
-            rowData.eycE_AttendanceToDate ? format(parse(rowData.eycE_AttendanceToDate, 'dd/MM/yyyy', new Date()), 'yyyy-MM-dd') : ''
-        );
+        setValue('EYCE_AttendanceFromDate', rowData.eycE_AttendanceFromDate ?? '');
+        setValue('EYCE_AttendanceToDate', rowData.eycE_AttendanceToDate ?? '');
         setValue('EYCE_SubExamFlg', rowData.eycE_SubExamFlg ?? false);
         setValue('EYCE_SubSubjectFlg', rowData.eycE_SubSubjectFlg ?? false);
         setValue('EYCE_ActiveFlg', rowData.eycE_ActiveFlg ?? true);
         setValue('EYCE_BestOfApplicableFlg', rowData.eycE_BestOfApplicableFlg ?? false);
         setValue('EYCE_BestOf', rowData.eycE_BestOf ?? undefined);
-    }, [rowData, setValue, academicYears, gradeList]);
+    }, [rowData, setValue]);
 
     // when academic year changes -> fetch categories for that year
     useEffect(() => {
@@ -400,7 +389,6 @@ export default function AddExamSubjectWizard({ onSuccess, rowData }: { onSuccess
     const onOpenSubExamModal = async (subject: any) => {
         try {
             setSubExamModalState({ open: true, subject });
-
             const { data: list } = await getMasterSubExamDropdownList(30);
             const safeList = Array.isArray(list) ? list : [];
 
@@ -510,7 +498,6 @@ export default function AddExamSubjectWizard({ onSuccess, rowData }: { onSuccess
     const onOpenSubSubjectSubExamModal = async (subject: any) => {
         try {
             setSubSubjectSubExamModalState({ open: true, subject });
-
             const { data: list } = await getSubSubjectSubExamList(30);
             const safeList = Array.isArray(list) ? list : [];
 
@@ -786,35 +773,25 @@ export default function AddExamSubjectWizard({ onSuccess, rowData }: { onSuccess
                                 {errors.EYC_Id && <FormError>{errors.EYC_Id.message}</FormError>}
                             </div>
 
-                            <Controller
-                                name='exams_list'
-                                control={methods.control}
-                                render={({ field, fieldState }) => (
-                                    <CustomMultiSelectBox
-                                        label='Exam *'
-                                        options={exams.map((ex) => ({
-                                            label: ex.EME_ExamName,
-                                            value: ex.EME_Id.toString()
-                                        }))}
-                                        // Map field.value (form value) to array of string IDs for CustomMultiSelectBox
-                                        value={field.value?.map((s: { EME_Id: number }) => s.EME_Id.toString()) || []}
-                                        onChange={(selectedValues: string[]) => {
-                                            // Update both the form value and local checked state
-                                            const updatedExams = exams.map((ex) => ({
-                                                ...ex,
-                                                checked: selectedValues.includes(ex.EME_Id.toString())
-                                            }));
-                                            setExams(updatedExams);
-
-                                            // Update the form's value: array of selected exam objects
-                                            const selectedExams = exams.filter((ex) => selectedValues.includes(ex.EME_Id.toString()));
-                                            field.onChange(selectedExams);
-                                        }}
-                                        isSearchRequired={true}
-                                        height='220px'
-                                    />
-                                )}
-                            />
+                            <div>
+                                <CustomMultiSelectBox
+                                    label='Exam *'
+                                    options={exams.map((ex) => ({
+                                        label: ex.EME_ExamName,
+                                        value: ex.EME_Id.toString()
+                                    }))}
+                                    value={exams.filter((ex) => ex.checked).map((ex) => ex.EME_Id.toString())}
+                                    onChange={(selectedValues) => {
+                                        const updatedExams = exams.map((ex) => ({
+                                            ...ex,
+                                            checked: selectedValues.includes(ex.EME_Id.toString())
+                                        }));
+                                        setExams(updatedExams);
+                                    }}
+                                    isSearchRequired={true}
+                                    height='220px'
+                                />
+                            </div>
                         </div>
 
                         {/* Right */}
