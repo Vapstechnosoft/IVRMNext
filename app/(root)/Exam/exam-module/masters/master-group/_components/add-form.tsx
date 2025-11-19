@@ -122,7 +122,7 @@ export default function MasterSubjectGroupForm({ onSuccess, className = '', init
         }
 
         if (selectedSubjects.length < data.emG_TotSubjects) {
-            toast.error(`Please select at least ${data.emG_TotSubjects} subjects`);
+            toast.error(`Please select ${data.emG_TotSubjects} (Total Subjects) subjects`);
             return;
         }
 
@@ -159,71 +159,81 @@ export default function MasterSubjectGroupForm({ onSuccess, className = '', init
         <form onSubmit={handleSubmit(onSubmit)} className={`space-y-6 ${className}`}>
             {/* Group Info */}
             <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
-                <InputText label='Group Name' required {...register('emG_GroupName')} error={errors.emG_GroupName?.message} />
+                <div className='flex flex-col gap-1'>
+                    <InputText label='Group Name' required {...register('emG_GroupName')} error={errors.emG_GroupName?.message} />
+                </div>
 
-                <Controller
-                    name='emG_TotSubjects'
-                    control={control}
-                    render={({ field }) => (
-                        <InputNumber
-                            label='Total Subjects'
-                            required
-                            value={field.value ?? 0}
-                            onChange={field.onChange}
-                            minValue={1}
-                            step={1}
-                        />
-                    )}
-                />
-                {errors.emG_TotSubjects && <FormError>{errors.emG_TotSubjects.message}</FormError>}
+                <div className='flex flex-col gap-1'>
+                    <Controller
+                        name='emG_TotSubjects'
+                        control={control}
+                        render={({ field }) => (
+                            <InputNumber
+                                label='Total Subjects'
+                                required
+                                value={field.value ?? 0}
+                                onChange={field.onChange}
+                                minValue={1}
+                                step={1}
+                            />
+                        )}
+                    />
+                    {errors.emG_TotSubjects && <FormError>{errors.emG_TotSubjects.message}</FormError>}
+                </div>
 
-                <Controller
-                    name='emG_MaxAplSubjects'
-                    control={control}
-                    render={({ field }) => (
-                        <InputNumber
-                            label='Max Applicable Subjects'
-                            required
-                            value={field.value ?? 0}
-                            onChange={field.onChange}
-                            minValue={1}
-                            step={1}
-                        />
-                    )}
-                />
-                {errors.emG_MaxAplSubjects && <FormError>{errors.emG_MaxAplSubjects.message}</FormError>}
+                <div className='flex flex-col gap-1'>
+                    <Controller
+                        name='emG_MaxAplSubjects'
+                        control={control}
+                        render={({ field }) => (
+                            <InputNumber
+                                label='Max Applicable Subjects'
+                                required
+                                value={field.value ?? 0}
+                                onChange={field.onChange}
+                                minValue={1}
+                                step={1}
+                            />
+                        )}
+                    />
+                    {errors.emG_MaxAplSubjects && <FormError>{errors.emG_MaxAplSubjects.message}</FormError>}
+                </div>
 
-                <Controller
-                    name='emG_MinAplSubjects'
-                    control={control}
-                    render={({ field }) => (
-                        <InputNumber
-                            label='Min Applicable Subjects'
-                            required
-                            value={field.value ?? 0}
-                            onChange={field.onChange}
-                            minValue={1}
-                            step={1}
-                        />
-                    )}
-                />
-                {errors.emG_MinAplSubjects && <FormError>{errors.emG_MinAplSubjects.message}</FormError>}
+                <div className='flex flex-col gap-1'>
+                    <Controller
+                        name='emG_MinAplSubjects'
+                        control={control}
+                        render={({ field }) => (
+                            <InputNumber
+                                label='Min Applicable Subjects'
+                                required
+                                value={field.value ?? 0}
+                                onChange={field.onChange}
+                                minValue={1}
+                                step={1}
+                            />
+                        )}
+                    />
+                    {errors.emG_MinAplSubjects && <FormError>{errors.emG_MinAplSubjects.message}</FormError>}
+                </div>
 
-                <Controller
-                    name='emG_BestOff'
-                    control={control}
-                    render={({ field }) => (
-                        <InputNumber
-                            label='Best Off Subjects'
-                            required
-                            value={field.value ?? 0}
-                            onChange={field.onChange}
-                            minValue={0}
-                            step={1}
-                        />
-                    )}
-                />
-                {errors.emG_BestOff && <FormError>{errors.emG_BestOff.message}</FormError>}
+                <div className='flex flex-col gap-1'>
+                    <Controller
+                        name='emG_BestOff'
+                        control={control}
+                        render={({ field }) => (
+                            <InputNumber
+                                label='Best Off Subjects'
+                                required
+                                value={field.value ?? 0}
+                                onChange={field.onChange}
+                                minValue={0}
+                                step={1}
+                            />
+                        )}
+                    />
+                    {errors.emG_BestOff && <FormError>{errors.emG_BestOff.message}</FormError>}
+                </div>
             </div>
 
             {/* Subjects Table */}
