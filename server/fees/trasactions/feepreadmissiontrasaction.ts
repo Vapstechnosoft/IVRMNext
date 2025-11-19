@@ -56,10 +56,15 @@ export async function getPreadmissionStudentTermsData(studentId: number): Promis
 }
 
 export async function getPreadmissionStudentTrasactionData(
-    // studentId: number,
-    // academicYear: number
+    studentId: number,
+    termIds: number[],
+    admissionType: string,
+    termgrpflag: string
 ): Promise<IFeePreAdmissionTransactionDetails[]> {
-    const url = 'FeePreadmission/feedashboard?pasR_Id=1625&Grp_Term_flg=T&filterinitialdata=Preadmission&terms_groups=61';
+    const url = '/FeePreadmission/feedashboard?pasR_Id=1625&Grp_Term_flg=T&filterinitialdata=Preadmission&terms_groups=61';
+    //const url = `/FeePreadmission/feedashboard?pasR_Id=${studentId}&Grp_Term_flg=T&filterinitialdata=${admissionType}&${termIds.map(id => `&terms_groups=${id}`).join('')}`;
+
+    console.info('Constructed URL:', url);
     console.info('Requesting preadmission transaction details:', { baseUrlKey: 'fees', url });
     const res = (await api.get('fees', url)) as IFeeTransactionApiResponse;
     console.info('Full preadmission transaction API response:', JSON.stringify(res, null, 2));

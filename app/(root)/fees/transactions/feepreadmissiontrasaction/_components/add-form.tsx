@@ -208,17 +208,20 @@ export default function AddFeePreAdmissionTransactionForm({ onSuccess }: AddFeeP
             setSelectedRows([]);
             return;
         }
+        const termgrpflag = 'T';
 
         const fetchTransactions = async () => {
             setLoadingTransactions(true);
             try {
                 // CORRECTED: Pass both student ID and selected term IDs
-                const res =
-                    await getPreadmissionStudentTrasactionData(
-                        // Number(selectedStudent.amsT_Id),
-                        // selectedTermIds,
-                        // admissionType // if your API expects this too, otherwise remove
-                    );
+                const res = await getPreadmissionStudentTrasactionData(
+                    Number(selectedStudent.amsT_Id),
+                    selectedTermIds,
+
+                    admissionType,
+                    termgrpflag
+                    // if your API expects this too, otherwise remove
+                );
 
                 const initialized = (res || []).map((item) => ({
                     ...item,
