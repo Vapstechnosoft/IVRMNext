@@ -1,148 +1,103 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
+import { Calendar as CalendarPicker } from '@/components/ui/calendar';
 import { FormError, Label } from '@/components/ui/extension/field';
-import { InputText } from '@/components/ui/extension/input-text';
+import { Input } from '@/components/ui/input';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { FEES_QUERY_KEYS } from '@/constants/query-keys';
-import { useAcademicYearDropdown, useMasterFeeYearlyGroup, useMasterGroupListDropDown } from '@/hooks/fees/useMasters';
+import { useAcademicYearDropdown } from '@/hooks/fees/useMasters';
 import { cn } from '@/lib/utils';
 import { YearlyRebateSettingsSchema } from '@/schemas/fees/masters';
-import { addOrUpdateMasterYearlyRebateSettings } from '@/server/fees/masters/yearly_rebate_settings';
+import { addOrUpdateMasterYearlyRebateSettingsFacade } from '@/server/fees/masters/feeyearlyrebatesettingfacade';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useQueryClient } from '@tanstack/react-query';
-import { CheckSquare, ChevronsUpDown, Save, Search, Square } from 'lucide-react';
-import { useEffect, useRef, useState } from 'react';
+import { format } from 'date-fns';
+import { Calendar, Save } from 'lucide-react';
+import { useEffect, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import type { z } from 'zod';
 
-interface FeeGroup {
-    fmgg_Id: number;
-    fmgg_GroupName: string;
-}
-
-interface Payload {
-    mI_Id: number;
-    fyG_Id: number;
-    user_id: number;
-    asmaY_Id: number;
-    grouplist: number[];
-    fyG_RebateTypeFlg: string;
-    fyG_RebateApplicableFlg: boolean;
-    fyG_PartialRebateAmtOrPercentageValue: number;
-}
-
 type FormFields = z.infer<typeof YearlyRebateSettingsSchema.addOrUpdate>;
 
-interface UpdateYearlyGroupFormProps {
+interface UpdateYearlyRebateSettingFormProps {
     onSuccess?: () => void;
     selectedRow: any;
 }
 
-export default function UpdateYearlyRebateSettingForm({ onSuccess, selectedRow }: UpdateYearlyGroupFormProps) {
-    const [search, setSearch] = useState('');
-    const [isPopoverOpen, setIsPopoverOpen] = useState(false);
+export default function UpdateYearlyRebateSettingForm({ onSuccess, selectedRow }: UpdateYearlyRebateSettingFormProps) {
     const [isInitializing, setIsInitializing] = useState(false);
-    const _initRetryRef = useRef<{ tries: number; timerId: any }>({
-        tries: 0,
-        timerId: null
-    });
     const { data: academicYearOptions, isLoading: isAcademicYearLoading } = useAcademicYearDropdown();
-    const { data: groupData, isLoading: isGroupDataLoading } = useMasterGroupListDropDown();
-    const { refetchAll } = useMasterFeeYearlyGroup();
     const queryClient = useQueryClient();
-
-    const feeGroups: FeeGroup[] =
-        groupData?.success && Array.isArray(groupData.data)
-            ? groupData.data.map((group) => ({
-                  fmgg_Id: group.fmG_Id,
-                  fmgg_GroupName: String(group.fmG_GroupName)
-              }))
-            : [];
 
     const {
         control,
         handleSubmit,
         reset,
         watch,
+        setValue,
         formState: { errors, isSubmitting }
     } = useForm<FormFields>({
-        resolver: zodResolver(YearlyRebateSettingsSchema.addOrUpdate),
         mode: 'onChange',
+        resolver: zodResolver(YearlyRebateSettingsSchema.addOrUpdate),
         defaultValues: {
-            academicYear: '',
-            feeGroupIds: [],
-            rebateApplicable: true,
-            rebateType: undefined,
-            rebateValue: 0,
-            rebateDate: ''
+            asmaY_Id: '',
+            fyrebseT_RebateTypeFlg: '',
+            fyrebseT_Id: undefined,
+            fyrebseT_RebateAmtOrPercentValue: 0,
+            fyrebseT_RebateDate: ''
         }
     });
 
-    const rebateType = watch('rebateType');
-    const feeGroupIds = watch('feeGroupIds');
+    const rebateId = watch('fyrebseT_Id');
 
     useEffect(() => {
-        if (!selectedRow) {
-            console.warn('No selectedRow provided');
-            return;
-        }
-
         const academicYearId = selectedRow.asmaY_Id?.toString() ?? '';
-        const academicYearValue = academicYearId;
 
-        let validGroupIds: number[] = [];
+        let rebateTypeId: string | undefined;
+        const rebateTypeFlg = selectedRow.fyrebseT_RebateTypeFlg;
 
-        if (Array.isArray(selectedRow.grouplist) && selectedRow.grouplist.length > 0) {
-            validGroupIds = ((selectedRow.grouplist as Array<number | string>) || [])
-                .map((id: number | string) => (typeof id === 'string' ? Number(id) : id))
-                .filter((id: number) => Number.isFinite(id) && feeGroups.some((fg) => fg.fmgg_Id === id));
+        if (rebateTypeFlg === 'A' || rebateTypeFlg === 'Amount') {
+            rebateTypeId = '0';
+        } else if (rebateTypeFlg === 'P' || rebateTypeFlg === 'Percentage') {
+            rebateTypeId = '1';
         }
 
-        if (
-            validGroupIds.length === 0 &&
-            typeof selectedRow.fmG_Id === 'number' &&
-            feeGroups.some((fg) => fg.fmgg_Id === selectedRow.fmG_Id)
-        ) {
-            validGroupIds = [selectedRow.fmG_Id];
-        }
-
-        if (validGroupIds.length === 0 && selectedRow.fmG_GroupName) {
-            const names = Array.isArray(selectedRow.fmG_GroupName) ? selectedRow.fmG_GroupName : [String(selectedRow.fmG_GroupName)];
-            validGroupIds = feeGroups
-                .filter((fg) =>
-                    names.some((n: string) => String(n).trim() && String(n).toLowerCase() === String(fg.fmgg_GroupName).toLowerCase())
-                )
-                .map((fg) => fg.fmgg_Id);
-        }
-
-        const rawRebateType = selectedRow.fyG_RebateTypeFlg;
-        const mappedRebateType = rawRebateType === 'Percentage' || rawRebateType === 'Amount' ? rawRebateType : undefined;
-
-        const rawRebateValue = selectedRow.fyG_PartialRebateAmtOrPercentageValue;
+        const rawRebateValue = selectedRow.fyrebseT_RebateAmtOrPercentValue;
         const parsedRebateValue = typeof rawRebateValue === 'string' ? Number(rawRebateValue) : rawRebateValue;
-        const rebateValueNumber = Number.isFinite(parsedRebateValue) ? parsedRebateValue : 0;
+        const rebateValue = Number.isFinite(parsedRebateValue) ? parsedRebateValue : 0;
+
+        let rebateDate = '';
+        if (selectedRow.fyrebseT_RebateDate) {
+            try {
+                const date = new Date(selectedRow.fyrebseT_RebateDate);
+                if (!Number.isNaN(date.getTime())) {
+                    rebateDate = format(date, 'yyyy-MM-dd');
+                }
+            } catch (_e) {
+                //ignore
+            }
+        }
 
         const formValues = {
-            academicYear: academicYearValue,
-            feeGroupIds: validGroupIds,
-            rebateApplicable: true,
-            rebateType: mappedRebateType ?? undefined,
-            rebateValue: rebateValueNumber,
-            rebateDate: ''
-        } as any;
+            asmaY_Id: academicYearId,
+            fyrebseT_RebateTypeFlg: rebateTypeFlg === 'A' || rebateTypeFlg === 'Amount' ? 'A' : 'P',
+            fyrebseT_Id: rebateTypeId,
+            fyrebseT_RebateAmtOrPercentValue: rebateValue,
+            fyrebseT_RebateDate: rebateDate
+        };
 
         setIsInitializing(true);
         reset(formValues, { keepValues: false });
 
         Promise.resolve().then(() => setTimeout(() => setIsInitializing(false), 50));
-    }, [selectedRow, academicYearOptions?.data, groupData?.data, reset]);
+    }, [selectedRow, academicYearOptions?.data, reset]);
 
     const onSubmit = async (data: FormFields) => {
         try {
-            let selectedAcademicYear = academicYearOptions?.data?.find((year) => year && year.asmaY_Id.toString() === data.academicYear);
+            let selectedAcademicYear = academicYearOptions?.data?.find((year) => year && year.asmaY_Id.toString() === data.asmaY_Id);
 
             if (!selectedAcademicYear && selectedRow?.asmaY_Id) {
                 selectedAcademicYear = academicYearOptions?.data?.find((y) => String(y.asmaY_Id) === String(selectedRow.asmaY_Id));
@@ -159,82 +114,116 @@ export default function UpdateYearlyRebateSettingForm({ onSuccess, selectedRow }
                 return;
             }
 
+            if (data.fyrebseT_Id === undefined) {
+                toast.error('Please select a Rebate Type');
+                return;
+            }
+
+            const rebateValue = Number(data.fyrebseT_RebateAmtOrPercentValue);
+            if (Number.isNaN(rebateValue) || rebateValue <= 0) {
+                toast.error('Please enter a valid rebate value greater than 0');
+                return;
+            }
+
+            if (!data.fyrebseT_RebateDate) {
+                toast.error('Please select a Rebate Date');
+                return;
+            }
+
             const miIdFromRow = selectedRow.mI_Id ?? (selectedRow as any).mI_ID ?? (selectedRow as any).mi_id ?? 30;
 
-            const payload: Payload = {
+            const payload = {
+                fyrebseT_Id: selectedRow.fyrebseT_Id || Number(data.fyrebseT_Id),
                 mI_Id: Number(miIdFromRow),
-                fyG_Id: selectedRow.fyG_Id || 0,
-                user_id: 21602,
                 asmaY_Id,
-                grouplist: (data.feeGroupIds || []).map((v) => Number(v)),
-                fyG_RebateTypeFlg: data.rebateType ? data.rebateType : '',
-                fyG_RebateApplicableFlg: true,
-                fyG_PartialRebateAmtOrPercentageValue: data.rebateValue ? Number(data.rebateValue) : 0
+                fyrebseT_RebateTypeFlg: data.fyrebseT_RebateTypeFlg,
+                fyrebseT_RebateAmtOrPercentValue: rebateValue,
+                fyrebseT_RebateDate: data.fyrebseT_RebateDate,
+                fyrebseT_ActiveId: selectedRow.fyrebseT_ActiveId ?? true
             };
 
-            const response = await addOrUpdateMasterYearlyRebateSettings(payload as any);
+            const response = await addOrUpdateMasterYearlyRebateSettingsFacade(payload);
 
-            if (response.success) {
-                toast.success(response.message || 'Master Yearly Group updated successfully!');
+            if (response?.success) {
+                toast.success(response.message || 'Rebate settings updated successfully!');
+
                 try {
                     queryClient.invalidateQueries({
-                        predicate: (query) => Array.isArray(query.queryKey) && query.queryKey[0] === FEES_QUERY_KEYS.FEE_YEARLY_GROUPS
+                        predicate: (query) =>
+                            Array.isArray(query.queryKey) && query.queryKey[0] === FEES_QUERY_KEYS.FEE_YEARLY_REBATE_SETTINGS
                     });
-                    try {
-                        refetchAll();
-                    } catch (_e) {
-                        /* ignore*/
-                    }
-                } catch (e) {
-                    console.warn('Failed to invalidate queries:', e);
+                } catch (_e) {
+                    //ignore
                 }
+
                 reset();
                 onSuccess?.();
             } else {
-                toast.error(response.message || 'Failed to update yearly group');
+                toast.error(response?.message || 'Failed to update rebate settings');
             }
-        } catch (error: any) {
-            console.error('Update error:', error);
-            toast.error(error.message || 'Something went wrong');
+        } catch (_err) {
+            toast.error('Something went wrong while updating.');
         }
     };
 
     const handleReset = () => {
-        reset();
-        setSearch('');
+        if (selectedRow) {
+            const academicYearId = selectedRow.asmaY_Id?.toString() ?? '';
+            let rebateTypeId: string | undefined;
+            const rebateTypeFlg = selectedRow.fyrebseT_RebateTypeFlg;
+
+            if (rebateTypeFlg === 'A' || rebateTypeFlg === 'Amount') {
+                rebateTypeId = '0';
+            } else if (rebateTypeFlg === 'P' || rebateTypeFlg === 'Percentage') {
+                rebateTypeId = '1';
+            }
+
+            const rawRebateValue = selectedRow.fyrebseT_RebateAmtOrPercentValue;
+            const parsedRebateValue = typeof rawRebateValue === 'string' ? Number(rawRebateValue) : rawRebateValue;
+            const rebateValue = Number.isFinite(parsedRebateValue) ? parsedRebateValue : 0;
+
+            let rebateDate = '';
+            if (selectedRow.fyrebseT_RebateDate) {
+                try {
+                    const date = new Date(selectedRow.fyrebseT_RebateDate);
+                    if (!Number.isNaN(date.getTime())) {
+                        rebateDate = format(date, 'yyyy-MM-dd');
+                    }
+                } catch (_e) {
+                    //ignore
+                }
+            }
+
+            reset({
+                asmaY_Id: academicYearId,
+                fyrebseT_RebateTypeFlg: rebateTypeFlg === 'A' || rebateTypeFlg === 'Amount' ? 'A' : 'P',
+                fyrebseT_Id: rebateTypeId,
+                fyrebseT_RebateAmtOrPercentValue: rebateValue,
+                fyrebseT_RebateDate: rebateDate
+            });
+        }
     };
 
-    const selectedFeeGroupNames =
-        feeGroups
-            .filter((fg) => feeGroupIds?.includes(fg.fmgg_Id))
-            .map((fg) => fg.fmgg_GroupName)
-            .join(', ') || 'Select Fee Groups';
-
-    if (isAcademicYearLoading || isGroupDataLoading) {
-        return <div>Loading form data...</div>;
+    if (isAcademicYearLoading) {
+        return <div className='p-4'>Loading form data...</div>;
     }
 
     return (
         <div className='p-4'>
             <form onSubmit={handleSubmit(onSubmit)} className='space-y-6'>
-                {/* Academic Year & Fee Groups */}
-                <div className='grid grid-cols-1 gap-6 sm:grid-cols-2'>
-                    {/* Academic Year Dropdown */}
-                    <div className='flex flex-col'>
-                        <Label htmlFor='academicYear'>
-                            Academic Year <span className='text-red-500'>*</span>
-                        </Label>
-                        <Controller
-                            name='academicYear'
-                            control={control}
-                            render={({ field }) => (
-                                <Select
-                                    onValueChange={(value) => field.onChange(value)}
-                                    value={field.value}
-                                    disabled={isAcademicYearLoading}>
+                <div className='grid grid-cols-1 gap-6 border-b pb-4 sm:grid-cols-2'>
+                    <Controller
+                        name='asmaY_Id'
+                        control={control}
+                        render={({ field }) => (
+                            <div className='flex flex-col'>
+                                <label htmlFor='academicYear' className='mb-1 font-medium text-gray-700 text-sm'>
+                                    Academic Year <span className='text-red-500'>*</span>
+                                </label>
+                                <Select onValueChange={field.onChange} value={field.value} disabled={isAcademicYearLoading}>
                                     <SelectTrigger
                                         id='academicYear'
-                                        className={cn('transition-colors', errors.academicYear ? 'border-red-500' : '')}>
+                                        className={cn('transition-colors', errors.asmaY_Id ? 'border-red-500' : '')}>
                                         <SelectValue placeholder='Select Academic Year'>
                                             {(() => {
                                                 const v = field.value;
@@ -243,18 +232,18 @@ export default function UpdateYearlyRebateSettingForm({ onSuccess, selectedRow }
                                                         return (
                                                             academicYearOptions.data.find((year) => year.asmaY_Id.toString() === v)
                                                                 ?.asmaY_Year ??
-                                                            selectedRow.asmaY_Year ??
+                                                            selectedRow?.asmaY_Year ??
                                                             v
                                                         );
                                                     }
-                                                    return selectedRow.asmaY_Year ?? v;
+                                                    return selectedRow?.asmaY_Year ?? v;
                                                 }
                                                 return selectedRow?.asmaY_Year ?? 'Select Academic Year';
                                             })()}
                                         </SelectValue>
                                     </SelectTrigger>
                                     <SelectContent>
-                                        {academicYearOptions?.data && Array.isArray(academicYearOptions.data) ? (
+                                        {academicYearOptions?.data?.length ? (
                                             academicYearOptions.data.map((year) => (
                                                 <SelectItem key={year.asmaY_Id} value={year.asmaY_Id.toString()}>
                                                     {year.asmaY_Year}
@@ -265,192 +254,134 @@ export default function UpdateYearlyRebateSettingForm({ onSuccess, selectedRow }
                                         )}
                                     </SelectContent>
                                 </Select>
-                            )}
-                        />
-                        {!isInitializing && errors.academicYear && <FormError>{errors.academicYear.message}</FormError>}
-                    </div>
+                                {!isInitializing && errors.asmaY_Id && <FormError>{errors.asmaY_Id.message}</FormError>}
+                            </div>
+                        )}
+                    />
 
-                    {/* Fee Group Multi-select Dropdown */}
-                    <div className='flex flex-col'>
-                        <Label>
-                            Fee Groups <span className='text-red-500'>*</span>
-                        </Label>
-                        <Controller
-                            name='feeGroupIds'
-                            control={control}
-                            render={({ field }) => (
-                                <Popover open={isPopoverOpen} onOpenChange={setIsPopoverOpen}>
-                                    <PopoverTrigger asChild>
-                                        <Button
-                                            type='button'
-                                            variant='outline'
-                                            onClick={() => setIsPopoverOpen(!isPopoverOpen)}
-                                            className={cn(
-                                                'w-full justify-between transition-colors',
-                                                errors.feeGroupIds ? 'border-red-500' : 'border-primary/30'
-                                            )}
-                                            disabled={isGroupDataLoading}>
-                                            <span className='truncate'>{selectedFeeGroupNames}</span>
-                                            <ChevronsUpDown className='ml-2 h-4 w-4 shrink-0 opacity-50' />
-                                        </Button>
-                                    </PopoverTrigger>
-                                    <PopoverContent className='w-[260px] p-2 sm:w-[300px]'>
-                                        {/* Search bar */}
-                                        <div className='relative mb-2'>
-                                            <Search className='absolute top-2.5 left-2 h-4 w-4 text-gray-400' />
-                                            <InputText
-                                                placeholder='Search groups...'
-                                                value={search}
-                                                onChange={(e) => setSearch(e.target.value)}
-                                                className='h-8 border-gray-300 pl-8 text-sm focus:border-gray-400 focus:ring-0'
-                                            />
-                                        </div>
+                    <Controller
+                        name='fyrebseT_Id'
+                        control={control}
+                        render={({ field }) => (
+                            <div className='flex flex-col'>
+                                <Label htmlFor='rebateType' className='mb-1 font-medium text-gray-700 text-sm'>
+                                    Rebate Type <span className='text-red-500'>*</span>
+                                </Label>
 
-                                        {/* Fee Group list */}
-                                        <div className='max-h-[260px] overflow-y-auto rounded-md border p-1'>
-                                            {/* Select All */}
-                                            <div
-                                                onClick={() => {
-                                                    const allIds = feeGroups.map((f) => f.fmgg_Id);
-                                                    const allSelected = field.value?.length === allIds.length;
-                                                    field.onChange(allSelected ? [] : allIds);
-                                                }}
-                                                className={cn(
-                                                    'mb-2 flex cursor-pointer items-center gap-2 rounded-md px-2 py-1.5 font-medium text-sm',
-                                                    field.value?.length === feeGroups.length
-                                                        ? 'border-primary bg-primary/5'
-                                                        : 'border-gray-200 hover:border-primary/40'
-                                                )}>
-                                                {field.value?.length === feeGroups.length ? (
-                                                    <CheckSquare className='h-4 w-4 text-primary' />
-                                                ) : (
-                                                    <Square className='h-4 w-4 text-gray-400' />
-                                                )}
-                                                <span>Select All</span>
-                                            </div>
-
-                                            {/* Individual Fee Groups */}
-                                            {feeGroups
-                                                .filter((fg) => fg.fmgg_GroupName.toLowerCase().includes(search.toLowerCase().trim()))
-                                                .map((fg) => {
-                                                    const selected = field.value?.includes(fg.fmgg_Id) || false;
-                                                    return (
-                                                        <div
-                                                            key={fg.fmgg_Id}
-                                                            onClick={() => {
-                                                                const current = Array.isArray(field.value) ? field.value : [];
-                                                                const newValue = selected
-                                                                    ? (current as number[]).filter((v) => v !== fg.fmgg_Id)
-                                                                    : [...(current as number[]), fg.fmgg_Id];
-                                                                field.onChange(newValue);
-                                                            }}
-                                                            className={cn(
-                                                                'mb-1 flex cursor-pointer items-center gap-2 rounded-md border px-2 py-1.5 text-sm',
-                                                                selected
-                                                                    ? 'border-primary bg-primary/5'
-                                                                    : 'border-gray-200 hover:border-primary/40'
-                                                            )}>
-                                                            {selected ? (
-                                                                <CheckSquare className='h-4 w-4 text-primary' />
-                                                            ) : (
-                                                                <Square className='h-4 w-4 text-gray-400' />
-                                                            )}
-                                                            <span>{fg.fmgg_GroupName}</span>
-                                                        </div>
-                                                    );
-                                                })}
-                                        </div>
-                                    </PopoverContent>
-                                </Popover>
-                            )}
-                        />
-                        {errors.feeGroupIds && <FormError>{errors.feeGroupIds.message}</FormError>}
-                    </div>
-                </div>
-
-                {/* Rebate Type and Value */}
-                <div className='grid grid-cols-1 gap-6 sm:grid-cols-2'>
-                    {/* Rebate Type Dropdown */}
-                    <div className='flex flex-col'>
-                        <Label htmlFor='rebateType'>
-                            Rebate Type <span className='text-red-500'>*</span>
-                        </Label>
-                        <Controller
-                            name='rebateType'
-                            control={control}
-                            render={({ field }) => (
                                 <Select
-                                    onValueChange={(value: 'Percentage' | 'Amount') => field.onChange(value)}
-                                    value={field.value ?? undefined}>
-                                    <SelectTrigger
-                                        id='rebateType'
-                                        className={cn('transition-colors', errors.rebateType ? 'border-red-500' : '')}>
+                                    onValueChange={(value) => {
+                                        field.onChange(value);
+                                        setValue('fyrebseT_RebateTypeFlg', value === '0' ? 'A' : 'P');
+                                    }}
+                                    value={field.value}>
+                                    <SelectTrigger className={cn('transition-colors', errors.fyrebseT_Id ? 'border-red-500' : '')}>
                                         <SelectValue placeholder='Select Type' />
                                     </SelectTrigger>
+
                                     <SelectContent>
-                                        <SelectItem value='Percentage'>Percentage</SelectItem>
-                                        <SelectItem value='Amount'>Amount</SelectItem>
+                                        <SelectItem value='0'>Amount</SelectItem>
+                                        <SelectItem value='1'>Percentage</SelectItem>
                                     </SelectContent>
                                 </Select>
-                            )}
-                        />
-                        {errors.rebateType && <FormError>{errors.rebateType.message}</FormError>}
-                    </div>
 
-                    {/* Rebate Value */}
-                    <div className='flex flex-col'>
-                        <Label htmlFor='rebateValue'>
-                            {rebateType === 'Percentage' ? 'Percentage (%)' : 'Amount'} <span className='text-red-500'>*</span>
-                        </Label>
-                        <Controller
-                            name='rebateValue'
-                            control={control}
-                            render={({ field }) => (
-                                <InputText
+                                {!isInitializing && errors.fyrebseT_Id && <FormError>{errors.fyrebseT_Id.message}</FormError>}
+                            </div>
+                        )}
+                    />
+                </div>
+
+                <div className='grid grid-cols-1 gap-6 border-b pb-4 sm:grid-cols-2'>
+                    <Controller
+                        name='fyrebseT_RebateAmtOrPercentValue'
+                        control={control}
+                        render={({ field }) => (
+                            <div className='flex flex-col'>
+                                <label htmlFor='rebateValue' className='mb-1 font-medium text-gray-700 text-sm'>
+                                    {rebateId === '1' ? 'Percentage (%)' : 'Amount'} <span className='text-red-500'>*</span>
+                                </label>
+                                <Input
                                     id='rebateValue'
                                     type='text'
                                     {...field}
+                                    value={field.value || ''}
                                     onChange={(e) => {
                                         const value = e.target.value;
                                         if (value === '' || /^\d*\.?\d*$/.test(value)) {
-                                            field.onChange(value === '' ? '' : value);
+                                            field.onChange(value);
                                         }
                                     }}
-                                    placeholder={rebateType === 'Percentage' ? 'Enter percentage' : 'Enter amount'}
-                                    disabled={!rebateType}
+                                    placeholder={rebateId === '1' ? 'Enter percentage' : 'Enter amount'}
+                                    disabled={!rebateId}
                                     className={cn(
                                         'transition-colors',
-                                        errors.rebateValue ? 'border-red-500' : '',
-                                        !rebateType ? 'cursor-not-allowed opacity-50' : ''
+                                        errors.fyrebseT_RebateAmtOrPercentValue ? 'border-red-500' : '',
+                                        !rebateId ? 'cursor-not-allowed opacity-50' : ''
                                     )}
                                 />
-                            )}
-                        />
-                        {errors.rebateValue && <FormError>{errors.rebateValue.message}</FormError>}
-                    </div>
+                                {!isInitializing && errors.fyrebseT_RebateAmtOrPercentValue && (
+                                    <FormError>{errors.fyrebseT_RebateAmtOrPercentValue.message}</FormError>
+                                )}
+                            </div>
+                        )}
+                    />
+
+                    <Controller
+                        name='fyrebseT_RebateDate'
+                        control={control}
+                        render={({ field }) => {
+                            const selectedDate = field.value ? new Date(field.value) : undefined;
+                            return (
+                                <div className='flex flex-col'>
+                                    <label htmlFor='rebateDate' className='mb-1 font-medium text-gray-700 text-sm'>
+                                        Rebate Date <span className='text-red-500'>*</span>
+                                    </label>
+                                    <Popover>
+                                        <PopoverTrigger asChild>
+                                            <Button
+                                                type='button'
+                                                variant='outline'
+                                                className={cn(
+                                                    'justify-start text-left font-normal transition-colors',
+                                                    !field.value && 'text-muted-foreground',
+                                                    errors.fyrebseT_RebateDate ? 'border-red-500' : ''
+                                                )}>
+                                                <Calendar className='mr-2 h-4 w-4' />
+                                                {field.value ? format(new Date(field.value), 'dd/MM/yyyy') : 'Pick a date'}
+                                            </Button>
+                                        </PopoverTrigger>
+                                        <PopoverContent className='w-auto p-0' align='start'>
+                                            <CalendarPicker
+                                                mode='single'
+                                                selected={selectedDate}
+                                                onSelect={(d) => field.onChange(d ? format(d as Date, 'yyyy-MM-dd') : '')}
+                                                initialFocus
+                                            />
+                                        </PopoverContent>
+                                    </Popover>
+                                    {!isInitializing && errors.fyrebseT_RebateDate && (
+                                        <FormError>{errors.fyrebseT_RebateDate.message}</FormError>
+                                    )}
+                                </div>
+                            );
+                        }}
+                    />
                 </div>
 
-                {/* Action Buttons */}
                 <div className='flex flex-col gap-3 border-t pt-4 sm:flex-row sm:justify-start'>
                     <Button
                         type='button'
                         variant='outline'
                         onClick={handleReset}
-                        className='order-2 w-fit transition-all duration-200 hover:scale-105 sm:order-1'
-                        disabled={isSubmitting}>
+                        disabled={isSubmitting}
+                        className='order-2 w-fit transition-all duration-200 hover:scale-105 sm:order-1'>
                         Reset
                     </Button>
-
                     <Button
                         type='submit'
-                        className='order-1 w-fit transition-all duration-200 hover:scale-105 sm:order-2'
-                        disabled={isSubmitting || !academicYearOptions?.data || !groupData?.success}
-                        isLoading={isSubmitting}
-                        loadingText='Saving...'>
-                        <div className='flex items-center'>
-                            <Save className='mr-2 h-4 w-4' />
-                            Update Master Yearly Group
-                        </div>
+                        disabled={isSubmitting || !academicYearOptions?.data}
+                        className='order-1 w-fit transition-all duration-200 hover:scale-105 sm:order-2'>
+                        <Save className='mr-2 h-4 w-4' />
+                        {isSubmitting ? 'Updating...' : 'Update Rebate Settings'}
                     </Button>
                 </div>
             </form>

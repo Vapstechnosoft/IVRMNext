@@ -16,6 +16,16 @@ export interface IMasterPaymentGatewayList {
     impG_Id: number;
 }
 
+export interface IMasterFeeYearlyRebateSettingFacade {
+    fyrebseT_RebateTypeFlg: string;
+    fyrebseT_RebateDate: string;
+    fyrebseT_RebateAmtOrPercentValue: number;
+    asmaY_Year: string;
+    fyrebseT_Id: number;
+    fyrebseT_ActiveId: boolean;
+    asmaY_Id: number;
+}
+
 export interface IFineSlabList {
     fmfS_Id: number;
     fmfS_ToDay: number;
@@ -273,6 +283,11 @@ export interface IMasterGetUserNameDropdown {
     userId: number;
     normalizedUserName: string;
     ivrtmt_Id: number;
+}
+
+export interface IMasterGetHeadDropdown {
+    fmH_Id: number;
+    fmH_FeeName: string;
 }
 
 export interface IMasterOnlinePaymentHeadgroupList {
