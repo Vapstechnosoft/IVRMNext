@@ -123,7 +123,7 @@ export const FEES_QUERY_KEYS = {
     FEE_CONCESSION_CATEGORY_DROPDOWNDATADETAILS: 'fee_concession_category_dropdowndetails',
     FEE_STUDENT_TRANSACTION: 'fee_student_transaction',
     HEAD_DROP_DOWN: 'head_drop_down',
-    FEE_YEARLY_REBATE_SETTINGS: 'fee_yearly_rebate_settings'
+    FEE_YEARLY_REBATE_SETTINGS: 'fee_yearly_rebate_settings',
     FEE_THIRDPARTY_STUDENTDROPDOWN: 'fee_thirdparty_studentdropdown',
     FEE_THIRDPARTY_RECEIPTDATA: 'fee_thirdparty_receiptdata',
     FEE_THIRDPARTY_EDITDATA: 'fee_thirdparty_editdata'
