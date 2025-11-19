@@ -54,9 +54,11 @@ function SubExamPageContent({
     const [orderModalOpen, setOrderModalOpen] = useState(false);
     const [orderData, setOrderData] = useState<(IMasterSubExam & { id: number })[]>([]);
     const [isOrderSaving, setIsOrderSaving] = useState(false);
+    const [isOrderloading, setIsOrderloading] = useState(true);
     const handleSetOrder = async () => {
         try {
             // Type the API response
+            setOrderModalOpen(true);
             const data: { data: IMasterSubExam[] } = await getMasterSubExamOrderData();
 
             // Map each item and add 'id' field for table usage
@@ -66,7 +68,7 @@ function SubExamPageContent({
             }));
 
             setOrderData(mappedData); // use mappedData here
-            setOrderModalOpen(true);
+            setIsOrderloading(false);
         } catch (error: any) {
             toast.error(error?.message || 'Error fetching sub-exam list.');
         }
@@ -151,7 +153,8 @@ function SubExamPageContent({
                         isOpen={orderModalOpen}
                         onClose={() => setOrderModalOpen(false)}
                         data={orderData}
-                        isLoading={isOrderSaving}
+                        isLoading={isOrderloading}
+                        isSaving={isOrderSaving}
                         columns={[
                             { key: 'id', label: 'SLNO', className: 'text-center w-12' },
                             { key: 'emsE_SubExamName', label: 'Sub-Exam Name', className: 'text-left' },

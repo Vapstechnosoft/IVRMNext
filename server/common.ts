@@ -543,6 +543,21 @@ export async function getUserAccessibleModules() {
                             icon: 'BookOpen',
                             sub_menu: [
                                 {
+                                    id: 9,
+                                    name: 'Configuration',
+                                    icon: 'Settings',
+                                    pages: [
+                                        {
+                                            id: 58,
+                                            name: 'Exam Standard',
+                                            icon: 'BookOpen',
+                                            url: '/Exam/exam-module/configurations/exam-standard',
+                                            title: 'Exam Standard',
+                                            description: 'Manage Exam Standard Details'
+                                        }
+                                    ]
+                                },
+                                {
                                     id: 7,
                                     name: 'Masters',
                                     icon: 'Settings',
@@ -1685,44 +1700,44 @@ export async function getUserAccessibleModules() {
                             ]
                         }
                     ]
-                },
-                {
-                    id: 5,
-                    name: 'IFrame',
-                    icon: 'Users',
-                    menu: [
-                        {
-                            id: 1,
-                            name: 'IFrame',
-                            icon: 'BookOpen',
-                            sub_menu: [
-                                {
-                                    id: 1,
-                                    name: 'IFrame',
-                                    icon: 'Database',
-                                    pages: [
-                                        {
-                                            id: 1,
-                                            name: 'AI Assignment',
-                                            icon: 'BookOpen',
-                                            url: '/iframe/ai-assignment',
-                                            title: 'IFrame',
-                                            description: 'Manage AI Assignment Details'
-                                        },
-                                        {
-                                            id: 2,
-                                            name: 'Question Generator',
-                                            icon: 'BookOpen',
-                                            url: '/iframe/question-generator',
-                                            title: 'IFrame',
-                                            description: 'Manage Question Generator Details'
-                                        }
-                                    ]
-                                }
-                            ]
-                        }
-                    ]
                 }
+                // {
+                //     id: 5,
+                //     name: 'IFrame',
+                //     icon: 'Users',
+                //     menu: [
+                //         {
+                //             id: 1,
+                //             name: 'IFrame',
+                //             icon: 'BookOpen',
+                //             sub_menu: [
+                //                 {
+                //                     id: 1,
+                //                     name: 'IFrame',
+                //                     icon: 'Database',
+                //                     pages: [
+                //                         {
+                //                             id: 1,
+                //                             name: 'AI Assignment',
+                //                             icon: 'BookOpen',
+                //                             url: '/iframe/ai-assignment',
+                //                             title: 'IFrame',
+                //                             description: 'Manage AI Assignment Details'
+                //                         },
+                //                         {
+                //                             id: 2,
+                //                             name: 'Question Generator',
+                //                             icon: 'BookOpen',
+                //                             url: '/iframe/question-generator',
+                //                             title: 'IFrame',
+                //                             description: 'Manage Question Generator Details'
+                //                         }
+                //                     ]
+                //                 }
+                //             ]
+                //         }
+                //     ]
+                // }
             ]
         };
     } else {
