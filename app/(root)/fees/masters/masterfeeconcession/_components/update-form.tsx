@@ -125,13 +125,39 @@ export default function UpdateMasterConcessionForm({ onSuccess, fineslab = '', s
                                 rules={{ required: 'Concession Limit is required' }}
                                 render={({ field, fieldState }) => (
                                     <div>
-                                        <InputNumber
+                                        {/* <InputNumber
                                             label='Concession Limit'
                                             required
                                             id='fmcC_ConcessionApplLimit'
                                             value={field.value ?? 0}
                                             onChange={(value: number) => {
                                                 field.onChange(value); // send number to RHF
+                                            }}
+                                            className='transition-colors focus:ring-2 focus:ring-primary/20'
+                                        /> */}
+
+                                        <InputNumber
+                                            label='Concession Limit'
+                                            required
+                                            id='fmcC_ConcessionApplLimit'
+                                            value={field.value ?? 0}
+                                            onKeyDown={(e) => {
+                                                if (e.key === '-') {
+                                                    e.preventDefault();
+                                                }
+                                            }}
+                                            onPaste={(e) => {
+                                                const paste = e.clipboardData.getData('text');
+                                                if (Number(paste) < 0) {
+                                                    e.preventDefault();
+                                                }
+                                            }}
+                                            onChange={(value: number) => {
+                                                if (value < 0) {
+                                                    field.onChange(0);
+                                                } else {
+                                                    field.onChange(value);
+                                                }
                                             }}
                                             className='transition-colors focus:ring-2 focus:ring-primary/20'
                                         />

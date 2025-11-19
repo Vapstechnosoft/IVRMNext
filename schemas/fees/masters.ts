@@ -522,7 +522,7 @@ export const feePrivilegeSchema = {
         users: z.array(z.string()).min(1, 'Please select at least one User')
     }),
     delete: z.object({
-        ifp_Id: deleteIdSchema('ifp_Id')
+        fgL_Id: deleteIdSchema('flg_Id')
     })
 };
 
