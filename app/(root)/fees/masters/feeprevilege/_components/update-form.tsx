@@ -5,17 +5,24 @@ import { Card, CardContent } from '@/components/ui/card';
 import { FormError, Label } from '@/components/ui/extension/field';
 import { InputText } from '@/components/ui/extension/input-text';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { FEES_QUERY_KEYS } from '@/constants/query-keys';
 import {
     useAcademicYearDropdown,
     useFeeMasterGroupwiseAutoReceiptDropDown,
+    useHeadsByGroupAndAcademicYear,
     useRolesDropdown,
     useUserNameDropdown
 } from '@/hooks/fees/useMasters';
 import { cn } from '@/lib/utils';
+import { feePrivilegeSchema } from '@/schemas/fees/masters';
+import { addOrUpdateFeePrivilege } from '@/server/fees/masters/fee_previlege';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { useQueryClient } from '@tanstack/react-query';
 import { CheckSquare, RotateCcw, Save, Square } from 'lucide-react';
 import { useEffect, useState } from 'react';
-import { type SubmitHandler, useForm } from 'react-hook-form';
+import { Controller, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
+import type { z } from 'zod';
 
 interface DropdownOption {
     value: string;
@@ -27,30 +34,32 @@ interface UserOption {
     normalizedUserName: string;
 }
 
-interface AddMasterClassFormProps {
+interface UpdateFeePrivilegeFormProps {
     onSuccess?: () => void;
+    selectedRow: any;
     className?: string;
 }
 
-type FormFields = {
-    academicYear: string;
-    group: string;
-    roles: string;
-    users: string[];
-};
+type FormFields = z.infer<typeof feePrivilegeSchema.addOrUpdate>;
 
-export default function updateFeePrivilegeForm({ onSuccess, className = '' }: AddMasterClassFormProps) {
+export default function UpdateFeePrivilegeForm({ onSuccess, selectedRow, className = '' }: UpdateFeePrivilegeFormProps) {
+    const [isInitializing, setIsInitializing] = useState(false);
+    const queryClient = useQueryClient();
+
     const {
+        control,
         handleSubmit,
         setValue,
         watch,
         formState: { errors, isSubmitting },
-        trigger,
         reset
     } = useForm<FormFields>({
+        mode: 'onChange',
+        resolver: zodResolver(feePrivilegeSchema.addOrUpdate),
         defaultValues: {
             academicYear: '',
             group: '',
+            heads: [],
             roles: '',
             users: []
         }
@@ -58,6 +67,7 @@ export default function updateFeePrivilegeForm({ onSuccess, className = '' }: Ad
 
     const academicYear = watch('academicYear');
     const group = watch('group');
+    const headsValue = watch('heads');
     const roles = watch('roles');
     const usersValue = watch('users');
 
@@ -73,13 +83,68 @@ export default function updateFeePrivilegeForm({ onSuccess, className = '' }: Ad
 
     const { data: userNameData, isLoading: loadingUserNames, error: userNameError } = useUserNameDropdown(Number(roles || 0));
 
+    const {
+        data: masterHeadName,
+        isLoading: masterHeadNameLoading,
+        refetch: refetchHeadNames
+    } = useHeadsByGroupAndAcademicYear(Number(academicYear), Number(group));
+
     const [hasSubmitted, setHasSubmitted] = useState(false);
     const [academicYearOptions, setAcademicYearOptions] = useState<DropdownOption[]>([]);
     const [roleOptions, setRoleOptions] = useState<DropdownOption[]>([]);
     const [groupOptions, setGroupOptions] = useState<DropdownOption[]>([]);
     const [userOptions, setUserOptions] = useState<UserOption[]>([]);
+    const [headOptions, setHeadOptions] = useState<DropdownOption[]>([]);
     const [userSearch, setUserSearch] = useState('');
+    const [headSearchTerm, setHeadSearchTerm] = useState('');
     const [isLoadingDropdowns, setIsLoadingDropdowns] = useState(false);
+
+    // Initialize form with selected row data
+    useEffect(() => {
+        const initializeForm = async () => {
+            setIsInitializing(true);
+
+            try {
+                // Set basic values from selected row
+                const academicYearId = selectedRow.asmaY_Id?.toString() ?? '';
+                const groupId = selectedRow.fmG_Id?.toString() ?? '';
+                const roleId = selectedRow.ivrmrT_Id?.toString() ?? '';
+
+                // Set form values
+                setValue('academicYear', academicYearId);
+                setValue('group', groupId);
+                setValue('roles', roleId);
+
+                // Wait for data to load and then set heads and users
+                await Promise.resolve();
+
+                // Set heads if available (you might need to adjust this based on your data structure)
+                if (selectedRow.heads && Array.isArray(selectedRow.heads)) {
+                    setValue('heads', selectedRow.heads);
+                }
+
+                // Set users if available (you might need to adjust this based on your data structure)
+                if (selectedRow.users && Array.isArray(selectedRow.users)) {
+                    setValue('users', selectedRow.users);
+                }
+            } catch (_error) {
+                //ignore
+            } finally {
+                setTimeout(() => setIsInitializing(false), 100);
+            }
+        };
+
+        initializeForm();
+    }, [selectedRow, setValue]);
+
+    useEffect(() => {
+        if (academicYear && group) {
+            refetchHeadNames();
+        } else {
+            setHeadOptions([]);
+            setValue('heads', []);
+        }
+    }, [academicYear, group, refetchHeadNames, setValue]);
 
     useEffect(() => {
         setIsLoadingDropdowns(loadingAcademic || loadingRoles);
@@ -139,6 +204,18 @@ export default function updateFeePrivilegeForm({ onSuccess, className = '' }: Ad
     }, [groupData, groupDataError, academicYear]);
 
     useEffect(() => {
+        if (masterHeadName?.data && Array.isArray(masterHeadName.data)) {
+            const opts = masterHeadName.data.map((h: any) => ({
+                value: h.fmH_Id.toString(),
+                label: h.fmH_FeeName
+            }));
+            setHeadOptions(opts);
+        } else {
+            setHeadOptions([]);
+        }
+    }, [masterHeadName]);
+
+    useEffect(() => {
         if (userNameError) {
             toast.error(userNameError.message || 'Error fetching users');
             setUserOptions([]);
@@ -155,7 +232,24 @@ export default function updateFeePrivilegeForm({ onSuccess, className = '' }: Ad
         }
     }, [userNameData, userNameError, roles]);
 
+    const filteredHeadOptions = headOptions.filter((h) => h.label.toLowerCase().includes(headSearchTerm.toLowerCase()));
+
     const filteredUsers = userOptions.filter((u) => u.normalizedUserName.toLowerCase().includes(userSearch.toLowerCase()));
+
+    const toggleHead = (id: string) => {
+        const cur = headsValue || [];
+        const updated = cur.includes(id) ? cur.filter((v) => v !== id) : [...cur, id];
+        setValue('heads', updated, { shouldValidate: hasSubmitted });
+    };
+
+    const selectAllHeads = () => {
+        if ((headsValue || []).length === headOptions.length && headOptions.length) {
+            setValue('heads', [], { shouldValidate: hasSubmitted });
+        } else {
+            const all = headOptions.map((h) => h.value);
+            setValue('heads', all, { shouldValidate: hasSubmitted });
+        }
+    };
 
     const toggleUser = (id: string) => {
         const cur = usersValue || [];
@@ -173,33 +267,69 @@ export default function updateFeePrivilegeForm({ onSuccess, className = '' }: Ad
     };
 
     const handleReset = () => {
-        reset();
+        if (selectedRow) {
+            const academicYearId = selectedRow.asmaY_Id?.toString() ?? '';
+            const groupId = selectedRow.fmG_Id?.toString() ?? '';
+            const roleId = selectedRow.ivrmrT_Id?.toString() ?? '';
+
+            reset({
+                academicYear: academicYearId,
+                group: groupId,
+                roles: roleId,
+                heads: selectedRow.heads || [],
+                users: selectedRow.users || []
+            });
+        }
         setUserSearch('');
+        setHeadSearchTerm('');
         setHasSubmitted(false);
     };
 
-    const handleFormSubmit = async (e: React.MouseEvent) => {
-        e.preventDefault();
-        setHasSubmitted(true);
-        const ok = await trigger();
-        if (ok) handleSubmit(onSubmit)();
-    };
-
-    const onSubmit: SubmitHandler<FormFields> = async (data) => {
+    const onSubmit = async (data: FormFields) => {
         try {
+            const selectedAcademicYear = academicYearOptions.find((year) => year.value === data.academicYear);
+
+            if (!selectedAcademicYear) {
+                toast.error('Please select a valid Academic Year');
+                return;
+            }
+
+            const selectedGroup = groupOptions.find((grp) => grp.value === data.group);
+
+            if (!selectedGroup) {
+                toast.error('Please select a valid Group');
+                return;
+            }
+
+            const selectedRole = roleOptions.find((role) => role.value === data.roles);
+
+            if (!selectedRole) {
+                toast.error('Please select a valid Role');
+                return;
+            }
+
             const payload = {
-                asmaY_Id: Number(data.academicYear),
-                fmG_Id: Number(data.group),
-                roleId: Number(data.roles),
-                saveuser: data.users.map((u) => ({ userId: Number(u) }))
+                asmaY_Id: Number(selectedAcademicYear.value),
+                fmG_ID: Number(selectedGroup.value),
+                mI_Id: 30,
+                UserId: Number(selectedRole.value),
+                grouphead: data.heads.map((h) => ({ FMH_Id: Number(h) })),
+                username: data.users.map((u) => ({ UserId: Number(u) }))
             };
 
-            console.log('Payload →', payload);
-            toast.success('Privilege saved successfully');
+            const res = await addOrUpdateFeePrivilege(payload);
+            if (res) {
+                toast.success('Privilege updated successfully');
+
+                queryClient.invalidateQueries({
+                    predicate: (query) => Array.isArray(query.queryKey) && query.queryKey[0] === FEES_QUERY_KEYS.FEES_PRIVILEGE_LIST
+                });
+            }
+
             handleReset();
             onSuccess?.();
-        } catch (err: any) {
-            toast.error(err.message || 'Error saving privilege');
+        } catch (_err: any) {
+            toast.error('Something went wrong while updating.');
         }
     };
 
@@ -207,104 +337,193 @@ export default function updateFeePrivilegeForm({ onSuccess, className = '' }: Ad
         <div className={`${className} w-full`}>
             <Card className='mx-auto w-full max-w-8xl border-gray-300 shadow-md'>
                 <CardContent className='p-6'>
-                    <div className='space-y-6'>
-                        {/* ---------- Academic Year ---------- */}
-                        <div>
-                            <Label htmlFor='academicYear'>
-                                Academic Year <span className='text-red-500'>*</span>
-                            </Label>
-                            <Select
-                                onValueChange={(v) => {
-                                    setValue('academicYear', v, { shouldValidate: hasSubmitted });
-                                    setValue('group', '');
-                                }}
-                                value={academicYear}
-                                disabled={isLoadingDropdowns}>
-                                <SelectTrigger
-                                    id='academicYear'
-                                    className={cn('mt-1 w-full', errors.academicYear ? 'border-red-500' : 'border-gray-300')}>
-                                    <SelectValue placeholder='Select Academic Year' />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {academicYearOptions.map((o) => (
-                                        <SelectItem key={o.value} value={o.value}>
-                                            {o.label}
-                                        </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
-                            {hasSubmitted && errors.academicYear && <FormError>{errors.academicYear.message}</FormError>}
-                        </div>
-
-                        {/* ---------- Group (Dropdown) - Right after Academic Year ---------- */}
-                        {academicYear && (
-                            <div>
-                                <Label htmlFor='group'>
-                                    Group <span className='text-red-500'>*</span>
-                                </Label>
-                                <Select
-                                    onValueChange={(v) => setValue('group', v, { shouldValidate: hasSubmitted })}
-                                    value={group}
-                                    disabled={loadingGroupData}>
-                                    <SelectTrigger
-                                        id='group'
-                                        className={cn('mt-1 w-full', errors.group ? 'border-red-500' : 'border-gray-300')}>
-                                        <SelectValue placeholder='Select Group' />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        {loadingGroupData ? (
-                                            <div className='px-3 py-2 text-gray-500 text-sm'>Loading groups...</div>
-                                        ) : groupOptions.length === 0 ? (
-                                            <div className='px-3 py-2 text-gray-500 text-sm'>No groups available</div>
-                                        ) : (
-                                            groupOptions.map((o) => (
+                    <form onSubmit={handleSubmit(onSubmit)} className='space-y-6'>
+                        {/* Academic Year */}
+                        <Controller
+                            name='academicYear'
+                            control={control}
+                            render={({ field }) => (
+                                <div>
+                                    <Label htmlFor='academicYear'>
+                                        Academic Year <span className='text-red-500'>*</span>
+                                    </Label>
+                                    <Select
+                                        onValueChange={(v) => {
+                                            field.onChange(v);
+                                            setValue('group', '');
+                                            setValue('heads', []);
+                                        }}
+                                        value={field.value}
+                                        disabled={isLoadingDropdowns}>
+                                        <SelectTrigger
+                                            id='academicYear'
+                                            className={cn('mt-1 w-full', errors.academicYear ? 'border-red-500' : 'border-gray-300')}>
+                                            <SelectValue placeholder='Select Academic Year' />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            {academicYearOptions.map((o) => (
                                                 <SelectItem key={o.value} value={o.value}>
                                                     {o.label}
                                                 </SelectItem>
-                                            ))
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
+                                    {!isInitializing && errors.academicYear && <FormError>{errors.academicYear.message}</FormError>}
+                                </div>
+                            )}
+                        />
+
+                        {academicYear && (
+                            <Controller
+                                name='group'
+                                control={control}
+                                render={({ field }) => (
+                                    <div>
+                                        <Label htmlFor='group'>
+                                            Group <span className='text-red-500'>*</span>
+                                        </Label>
+                                        <Select
+                                            onValueChange={(v) => {
+                                                field.onChange(v);
+                                                setValue('heads', []);
+                                            }}
+                                            value={field.value}
+                                            disabled={loadingGroupData}>
+                                            <SelectTrigger
+                                                id='group'
+                                                className={cn('mt-1 w-full', errors.group ? 'border-red-500' : 'border-gray-300')}>
+                                                <SelectValue placeholder='Select Group' />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                {loadingGroupData ? (
+                                                    <div className='px-3 py-2 text-gray-500 text-sm'>Loading groups...</div>
+                                                ) : groupOptions.length === 0 ? (
+                                                    <div className='px-3 py-2 text-gray-500 text-sm'>No groups available</div>
+                                                ) : (
+                                                    groupOptions.map((o) => (
+                                                        <SelectItem key={o.value} value={o.value}>
+                                                            {o.label}
+                                                        </SelectItem>
+                                                    ))
+                                                )}
+                                            </SelectContent>
+                                        </Select>
+                                        {!isInitializing && errors.group && <FormError>{errors.group.message}</FormError>}
+                                    </div>
+                                )}
+                            />
+                        )}
+
+                        {academicYear && group && (
+                            <div>
+                                <Label>
+                                    Head Name <span className='text-red-500'>*</span>
+                                </Label>
+                                <div className='mt-2 rounded-md border border-gray-300 bg-white p-3'>
+                                    <InputText
+                                        placeholder='Search Head Name...'
+                                        value={headSearchTerm}
+                                        onChange={(e) => setHeadSearchTerm(e.target.value)}
+                                        className='mb-3'
+                                        disabled={!academicYear || !group}
+                                    />
+
+                                    {headOptions.length > 0 && (
+                                        <div
+                                            onClick={selectAllHeads}
+                                            className={cn(
+                                                'mb-2 flex cursor-pointer items-center gap-2 rounded-md border px-2 py-1.5 font-medium text-sm transition-all',
+                                                (headsValue || []).length === headOptions.length && headOptions.length
+                                                    ? 'border-primary bg-primary/5 text-primary'
+                                                    : 'border-gray-300 hover:border-primary/40'
+                                            )}>
+                                            {(headsValue || []).length === headOptions.length && headOptions.length ? (
+                                                <CheckSquare className='h-4 w-4 text-primary' />
+                                            ) : (
+                                                <Square className='h-4 w-4 text-gray-400' />
+                                            )}
+                                            <span>Select All</span>
+                                        </div>
+                                    )}
+
+                                    <div className='max-h-40 overflow-y-auto rounded-md border border-gray-300 p-1'>
+                                        {masterHeadNameLoading ? (
+                                            <div className='py-4 text-center text-gray-500 text-sm'>Loading heads...</div>
+                                        ) : filteredHeadOptions.length === 0 ? (
+                                            <div className='py-4 text-center text-gray-500 text-sm'>
+                                                {!academicYear || !group ? 'Select Academic Year and Group first' : 'No heads found'}
+                                            </div>
+                                        ) : (
+                                            filteredHeadOptions.map((h) => {
+                                                const selected = (headsValue || []).includes(h.value);
+                                                return (
+                                                    <div
+                                                        key={h.value}
+                                                        onClick={() => toggleHead(h.value)}
+                                                        className={cn(
+                                                            'mb-1 flex cursor-pointer items-center gap-2 rounded-md border px-2 py-1.5 text-sm transition-all',
+                                                            selected
+                                                                ? 'border-primary bg-primary/5 text-primary'
+                                                                : 'border-gray-300 hover:border-primary/40'
+                                                        )}>
+                                                        {selected ? (
+                                                            <CheckSquare className='h-4 w-4 text-primary' />
+                                                        ) : (
+                                                            <Square className='h-4 w-4 text-gray-400' />
+                                                        )}
+                                                        <span>{h.label}</span>
+                                                    </div>
+                                                );
+                                            })
                                         )}
-                                    </SelectContent>
-                                </Select>
-                                {hasSubmitted && errors.group && <FormError>{errors.group.message}</FormError>}
+                                    </div>
+                                </div>
+                                {!isInitializing && errors.heads && <FormError>{errors.heads.message}</FormError>}
                             </div>
                         )}
 
-                        {/* ---------- Role ---------- */}
-                        <div>
-                            <Label htmlFor='roles'>
-                                Role <span className='text-red-500'>*</span>
-                            </Label>
-                            <Select
-                                onValueChange={(v) => {
-                                    setValue('roles', v, { shouldValidate: hasSubmitted });
-                                    setValue('users', []);
-                                    setUserSearch('');
-                                }}
-                                value={roles}
-                                disabled={isLoadingDropdowns}>
-                                <SelectTrigger
-                                    id='roles'
-                                    className={cn('mt-1 w-full', errors.roles ? 'border-red-500' : 'border-gray-300')}>
-                                    <SelectValue placeholder='Select Role' />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {loadingRoles ? (
-                                        <div className='px-3 py-2 text-gray-500 text-sm'>Loading roles...</div>
-                                    ) : roleOptions.length === 0 ? (
-                                        <div className='px-3 py-2 text-gray-500 text-sm'>No roles</div>
-                                    ) : (
-                                        roleOptions.map((o) => (
-                                            <SelectItem key={o.value} value={o.value}>
-                                                {o.label}
-                                            </SelectItem>
-                                        ))
-                                    )}
-                                </SelectContent>
-                            </Select>
-                            {hasSubmitted && errors.roles && <FormError>{errors.roles.message}</FormError>}
-                        </div>
+                        {/* Role */}
+                        <Controller
+                            name='roles'
+                            control={control}
+                            render={({ field }) => (
+                                <div>
+                                    <Label htmlFor='roles'>
+                                        Role <span className='text-red-500'>*</span>
+                                    </Label>
+                                    <Select
+                                        onValueChange={(v) => {
+                                            field.onChange(v);
+                                            setValue('users', []);
+                                            setUserSearch('');
+                                        }}
+                                        value={field.value}
+                                        disabled={isLoadingDropdowns}>
+                                        <SelectTrigger
+                                            id='roles'
+                                            className={cn('mt-1 w-full', errors.roles ? 'border-red-500' : 'border-gray-300')}>
+                                            <SelectValue placeholder='Select Role' />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            {loadingRoles ? (
+                                                <div className='px-3 py-2 text-gray-500 text-sm'>Loading roles...</div>
+                                            ) : roleOptions.length === 0 ? (
+                                                <div className='px-3 py-2 text-gray-500 text-sm'>No roles</div>
+                                            ) : (
+                                                roleOptions.map((o) => (
+                                                    <SelectItem key={o.value} value={o.value}>
+                                                        {o.label}
+                                                    </SelectItem>
+                                                ))
+                                            )}
+                                        </SelectContent>
+                                    </Select>
+                                    {!isInitializing && errors.roles && <FormError>{errors.roles.message}</FormError>}
+                                </div>
+                            )}
+                        />
 
-                        {/* ---------- Users (only when role selected) ---------- */}
+                        {/* Users */}
                         {roles && (
                             <div>
                                 <Label>
@@ -318,22 +537,24 @@ export default function updateFeePrivilegeForm({ onSuccess, className = '' }: Ad
                                         className='mb-3'
                                     />
 
-                                    {/* Select All */}
-                                    <div
-                                        onClick={selectAllUsers}
-                                        className={cn(
-                                            'mb-2 flex cursor-pointer items-center gap-2 rounded-md border px-2 py-1.5 font-medium text-sm transition-all',
-                                            (usersValue || []).length === userOptions.length && userOptions.length
-                                                ? 'border-primary bg-primary/5 text-primary'
-                                                : 'border-gray-300 hover:border-primary/40'
-                                        )}>
-                                        {(usersValue || []).length === userOptions.length && userOptions.length ? (
-                                            <CheckSquare className='h-4 w-4 text-primary' />
-                                        ) : (
-                                            <Square className='h-4 w-4 text-gray-400' />
-                                        )}
-                                        <span>Select All</span>
-                                    </div>
+                                    {/* Select All Users */}
+                                    {userOptions.length > 0 && (
+                                        <div
+                                            onClick={selectAllUsers}
+                                            className={cn(
+                                                'mb-2 flex cursor-pointer items-center gap-2 rounded-md border px-2 py-1.5 font-medium text-sm transition-all',
+                                                (usersValue || []).length === userOptions.length && userOptions.length
+                                                    ? 'border-primary bg-primary/5 text-primary'
+                                                    : 'border-gray-300 hover:border-primary/40'
+                                            )}>
+                                            {(usersValue || []).length === userOptions.length && userOptions.length ? (
+                                                <CheckSquare className='h-4 w-4 text-primary' />
+                                            ) : (
+                                                <Square className='h-4 w-4 text-gray-400' />
+                                            )}
+                                            <span>Select All</span>
+                                        </div>
+                                    )}
 
                                     <div className='max-h-40 overflow-y-auto rounded-md border border-gray-300 p-1'>
                                         {loadingUserNames ? (
@@ -366,27 +587,30 @@ export default function updateFeePrivilegeForm({ onSuccess, className = '' }: Ad
                                         )}
                                     </div>
                                 </div>
-                                {hasSubmitted && errors.users && <FormError>{errors.users.message}</FormError>}
+                                {!isInitializing && errors.users && <FormError>{errors.users.message}</FormError>}
                             </div>
                         )}
 
-                        {/* ---------- Buttons ---------- */}
+                        {/* Buttons */}
                         <div className='mt-3 flex justify-start gap-3 border-t pt-5'>
                             <Button
                                 type='button'
                                 variant='outline'
                                 onClick={handleReset}
                                 disabled={isSubmitting}
-                                className='flex w-fit items-center gap-2'>
+                                className='flex w-fit items-center gap-2 transition-all duration-200 hover:scale-105'>
                                 <RotateCcw className='h-4 w-4' />
                                 Reset
                             </Button>
-                            <Button onClick={handleFormSubmit} disabled={isSubmitting} className='flex w-fit items-center gap-2'>
+                            <Button
+                                type='submit'
+                                disabled={isSubmitting}
+                                className='flex w-fit items-center gap-2 transition-all duration-200 hover:scale-105'>
                                 <Save className='h-4 w-4' />
-                                {isSubmitting ? 'Saving...' : 'Save'}
+                                {isSubmitting ? 'Updating...' : 'Update Privilege'}
                             </Button>
                         </div>
-                    </div>
+                    </form>
                 </CardContent>
             </Card>
         </div>
