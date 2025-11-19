@@ -1,55 +1,12 @@
 'use client';
-
-import { Button } from '@/components/ui/button';
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
+import { ActionButtons } from '@/components/ui/form/action-buttons';
+import { useFormContext } from '@/components/ui/form/form-provider';
 import type { IFeePrivilegeList } from '@/types/fees/masters/masters';
 import type { ColumnDef } from '@tanstack/react-table';
-import { Edit } from 'lucide-react';
 import { useCallback } from 'react';
 
-// Define the Fee Privilege type based on your schema
-
-interface ActionButtonsCellProps {
-    rowData: IFeePrivilegeList;
-    openEditForm: (data: IFeePrivilegeList) => void;
-}
-
-function ActionButtonsCell({ rowData, openEditForm }: ActionButtonsCellProps) {
-    const handleEdit = useCallback(() => {
-        openEditForm(rowData);
-    }, [openEditForm, rowData]);
-
-    return (
-        <div className='flex items-center gap-2'>
-            <Button
-                variant='outline'
-                size='sm'
-                onClick={handleEdit}
-                className='w-fit transition-all duration-200 hover:scale-105'
-                aria-label='Edit fee privilege'>
-                <Edit className='h-4 w-4' />
-            </Button>
-        </div>
-    );
-}
-
 export const feePrivilegeColumns: ColumnDef<IFeePrivilegeList>[] = [
-    // {
-    //     id: 'select',
-    //     header: ({ table }) => (
-    //         <Checkbox
-    //             checked={table.getIsAllPageRowsSelected() || (table.getIsSomePageRowsSelected() && 'indeterminate')}
-    //             onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
-    //             aria-label='Select all'
-    //         />
-    //     ),
-    //     cell: ({ row }) => (
-    //         <Checkbox checked={row.getIsSelected()} onCheckedChange={(value) => row.toggleSelected(!!value)} aria-label='Select row' />
-    //     ),
-    //     enableSorting: false,
-    //     enableHiding: false,
-    //     size: 24
-    // },
     {
         accessorKey: 'id',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Sl.No' className='pl-6' />,
@@ -64,7 +21,7 @@ export const feePrivilegeColumns: ColumnDef<IFeePrivilegeList>[] = [
     },
     {
         accessorKey: 'normalizedUserName',
-        header: ({ column }) => <DataTableColumnHeader column={column} title=' User Name' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='User Name' />,
         cell: ({ row }) => <div>{row.getValue('normalizedUserName') || 'N.A'}</div>,
         enableSorting: true,
         enableHiding: true
@@ -83,7 +40,6 @@ export const feePrivilegeColumns: ColumnDef<IFeePrivilegeList>[] = [
         enableSorting: true,
         enableHiding: true
     },
-
     {
         accessorKey: 'ivrmrT_Role',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Roles' />,
@@ -94,11 +50,25 @@ export const feePrivilegeColumns: ColumnDef<IFeePrivilegeList>[] = [
     {
         id: 'actions',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Actions' className='text-start' />,
-        cell: ({ row, table }) => {
-            const openEditForm = (table.options.meta as { openEditForm?: (data: IFeePrivilegeList) => void })?.openEditForm;
-            return <ActionButtonsCell rowData={row.original} openEditForm={openEditForm ?? (() => {})} />;
-        },
+        cell: ({ row }) => <ActionButtonsCell rowData={row.original} />,
         enableSorting: false,
         enableHiding: false
     }
 ];
+
+function ActionButtonsCell({ rowData }: { rowData: IFeePrivilegeList }) {
+    const { openEditForm, openDeleteForm } = useFormContext<IFeePrivilegeList>();
+
+    const handleEdit = useCallback(() => openEditForm(rowData), [openEditForm, rowData]);
+
+    const handleDelete = useCallback((data: IFeePrivilegeList) => openDeleteForm(data), [openDeleteForm]);
+
+    return (
+        <ActionButtons
+            rowData={rowData}
+            buttons={{ edit: true, toggle: false, delete: true }}
+            onEdit={handleEdit}
+            onDelete={handleDelete}
+        />
+    );
+}

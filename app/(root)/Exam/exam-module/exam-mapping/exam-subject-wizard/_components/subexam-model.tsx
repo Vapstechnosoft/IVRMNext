@@ -182,7 +182,7 @@ export default function SubExamModal({ open, subject, onClose, onSave, schema, g
         }));
 
         onSave(subject.ISMS_Id, formatted);
-        toast.success('Sub-Exam mapping saved successfully.');
+
         onClose();
     };
     const renderSkeletonTable = () => (
@@ -202,6 +202,10 @@ export default function SubExamModal({ open, subject, onClose, onSave, schema, g
             </table>
         </div>
     );
+    const updateRowValue = (idx: number, field: keyof SubExamItem, value: any) => {
+        const list = getValues('subexam_list').map((r, i) => (i === idx ? { ...r, [field]: value } : r));
+        methods.setValue('subexam_list', list, { shouldDirty: true, shouldValidate: true });
+    };
 
     // ----------------------------------
     // Table UI
@@ -263,7 +267,13 @@ export default function SubExamModal({ open, subject, onClose, onSave, schema, g
                                                 control={control}
                                                 name={`subexam_list.${idx}.checkedvalue`}
                                                 render={({ field }) => (
-                                                    <Checkbox checked={!!field.value} onCheckedChange={(v) => field.onChange(!!v)} />
+                                                    <Checkbox
+                                                        checked={!!field.value}
+                                                        onCheckedChange={(v) => {
+                                                            field.onChange(!!v);
+                                                            updateRowValue(idx, 'checkedvalue', !!v);
+                                                        }}
+                                                    />
                                                 )}
                                             />
                                         </td>

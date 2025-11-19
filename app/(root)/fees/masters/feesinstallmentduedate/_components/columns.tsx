@@ -31,9 +31,9 @@ export const masterInstallmentDueDateColumns: ColumnDef<IMasterFeesInstallmentDu
         enableHiding: false
     },
     {
-        accessorKey: 'fname',
+        accessorKey: 'ftI_Name',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Installment Name' />,
-        cell: ({ row }) => <div>{row.getValue('fname') ?? '-'}</div>,
+        cell: ({ row }) => <div>{row.getValue('ftI_Name') ?? '-'}</div>,
         enableSorting: true
     },
     {
@@ -74,7 +74,11 @@ function formatDate(dateString: string) {
     return new Date(dateString).toLocaleDateString();
 }
 
-function ActionButtonsCell({ rowData }: { rowData: IMasterFeesInstallmentDueDateList }) {
+function ActionButtonsCell({
+    rowData
+}: {
+    rowData: IMasterFeesInstallmentDueDateList;
+}) {
     const { openEditForm, openToggleForm } = useFormContext<IMasterFeesInstallmentDueDateList>();
 
     const handleEdit = useCallback(

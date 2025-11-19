@@ -121,7 +121,12 @@ export const FEES_QUERY_KEYS = {
     FEE_CONCESSION_CATEGORY_GROUP__DROPDOWN: 'fee_concession_category_group_dropdown',
     FEE_CONCESSION_CATEGORY_HEADS__DROPDOWN: 'fee_concession_category_heads_dropdown',
     FEE_CONCESSION_CATEGORY_DROPDOWNDATADETAILS: 'fee_concession_category_dropdowndetails',
-    FEE_STUDENT_TRANSACTION: 'fee_student_transaction'
+    FEE_STUDENT_TRANSACTION: 'fee_student_transaction',
+    HEAD_DROP_DOWN: 'head_drop_down',
+    FEE_YEARLY_REBATE_SETTINGS: 'fee_yearly_rebate_settings',
+    FEE_THIRDPARTY_STUDENTDROPDOWN: 'fee_thirdparty_studentdropdown',
+    FEE_THIRDPARTY_RECEIPTDATA: 'fee_thirdparty_receiptdata',
+    FEE_THIRDPARTY_EDITDATA: 'fee_thirdparty_editdata'
 };
 
 export const EXAM_QUERY_KEYS = {
@@ -133,6 +138,7 @@ export const EXAM_QUERY_KEYS = {
     MASTER_GRADE_EX: 'master-grade-ex',
     MASTER_GRADE_DETAILS: 'master-grade-details',
     MASTER_SUBJECT_GROUP_: 'master-subject-group',
+    MASTER_SUBJECT_GROUP_DROPDOWN_LIST: 'master-subject-group-dropdown-list',
     MASTER_SUBJECT_GROUP_DETAILS: 'master-subject-group-details',
     MASTER_ALL_SUBJECT_GROUP_DETAILS: 'master-all-subject-group-details',
     MASTER_CATEGORY: 'master-category',
@@ -161,7 +167,9 @@ export const EXAM_QUERY_KEYS = {
     LIFE_SKILLS: 'life-skills',
     LIFE_SKILLS_AREA: 'life-skills-area',
     LIFE_SKILLS_MAPPING: 'life-skills-mapping',
-    LIFE_SKILLS_AREA_MAPPING: 'life-skills-area-mapping'
+    LIFE_SKILLS_AREA_MAPPING: 'life-skills-area-mapping',
+
+    EXAM_STANDARD: 'exam-standared'
 };
 
 export const HRMS_QUERY_KEYS = {

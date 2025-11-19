@@ -9,6 +9,8 @@ import { Plus, X } from 'lucide-react';
 import { use } from 'react';
 import AddThirdPartyTransactionForm from './_components/add-form';
 import { feethirdpartytrasactionColumns } from './_components/columns';
+import ToggleThirdPartyForm from './_components/toggle-form';
+import UpdateThirdPartyForm from './_components/update-form';
 
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 
@@ -81,6 +83,7 @@ function FormSections() {
         isAddFormOpen,
         isEditFormOpen,
         isToggleFormOpen,
+        isDeleteFormOpen,
         selectedRow,
         closeAddForm,
         closeEditForm,
@@ -119,7 +122,7 @@ function FormSections() {
             {isEditFormOpen && selectedRow && (
                 <div ref={editFormRef}>
                     <CollapsibleSection
-                        title='Edit Master Fees Head'
+                        title='Edit Third Party Transaction'
                         defaultOpen={true}
                         variant='outline'
                         size='md'
@@ -133,13 +136,13 @@ function FormSections() {
                                 className='-top-[3.5rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
                                 <X className='h-4 w-4 text-destructive' /> Close
                             </Button>
-                            {/* <UpdateMasterFeeheadForm selectedRow={selectedRow} onSuccess={closeEditForm} /> */}
+                            <UpdateThirdPartyForm selectedRow={selectedRow} onSuccess={closeEditForm} />
                         </div>
                     </CollapsibleSection>
                 </div>
             )}
 
-            {/* {isToggleFormOpen && selectedRow && <ToggleMasterClassForm rowData={selectedRow} onClose={closeToggleForm} />} */}
+            {isDeleteFormOpen && selectedRow && <ToggleThirdPartyForm rowData={selectedRow} onClose={closeToggleForm} />}
         </>
     );
 }

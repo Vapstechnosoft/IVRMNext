@@ -65,24 +65,96 @@ export default function AddMasterModeOfPaymentForm({ onSuccess, className = '' }
             <form onSubmit={handleSubmit(onSubmit)} className='space-y-6'>
                 <div className='space-y-4'>
                     <div className='grid grid-cols-1 gap-4 md:grid-cols-4'>
+                        {/* <InputText
+              label="Mode Of Payment"
+              required
+              id="ivrmmoD_ModeOfPayment"
+              {...register("ivrmmoD_ModeOfPayment")}
+              error={errors.ivrmmoD_ModeOfPayment?.message}
+              className="transition-colors focus:ring-2 focus:ring-primary/20"
+            /> */}
+
                         <InputText
                             label='Mode Of Payment'
                             required
                             id='ivrmmoD_ModeOfPayment'
-                            {...register('ivrmmoD_ModeOfPayment')}
+                            {...register('ivrmmoD_ModeOfPayment', {
+                                validate: (value) => /^[A-Za-z0-9 ]*$/.test(value) || 'Only letters, numbers and spaces allowed'
+                            })}
+                            onKeyDown={(e) => {
+                                const allowed = /^[A-Za-z0-9 ]$/;
+
+                                // Block if key is a single character and not allowed
+                                if (e.key.length === 1 && !allowed.test(e.key)) {
+                                    e.preventDefault();
+                                }
+                            }}
+                            onPaste={(e) => {
+                                const pasteText = e.clipboardData.getData('text');
+                                if (!/^[A-Za-z0-9 ]*$/.test(pasteText)) {
+                                    e.preventDefault();
+                                }
+                            }}
                             error={errors.ivrmmoD_ModeOfPayment?.message}
                             className='transition-colors focus:ring-2 focus:ring-primary/20'
                         />
                         <div className='group flex flex-col gap-1.5'>
+                            {/* <InputText
+                label="Mode Of Payment Code"
+                required
+                id="IVRMMOD_ModeOfPayment_Code"
+                {...register("ivrmmoD_ModeOfPayment_Code")}
+                error={errors.ivrmmoD_ModeOfPayment_Code?.message}
+                className="transition-colors focus:ring-2 focus:ring-primary/20"
+              /> */}
+                            {/* {errors.ivrmmoD_ModeOfPayment_Code && <FormError>{errors.ivrmmoD_ModeOfPayment_Code.message}</FormError>} */}
                             <InputText
                                 label='Mode Of Payment Code'
                                 required
-                                id='IVRMMOD_ModeOfPayment_Code'
-                                {...register('ivrmmoD_ModeOfPayment_Code')}
+                                id='ivrmmoD_ModeOfPayment_Code'
+                                maxLength={1}
+                                {...register('ivrmmoD_ModeOfPayment_Code', {
+                                    validate: (value) => /^[A-Za-z]$/.test(value) || 'Only one alphabet allowed'
+                                })}
+                                onKeyDown={(e) => {
+                                    const allowed = /^[A-Za-z]$/;
+
+                                    // block numbers & special chars
+                                    if (e.key.length === 1 && !allowed.test(e.key)) {
+                                        e.preventDefault();
+                                    }
+                                }}
+                                onPaste={(e) => {
+                                    const pasteText = e.clipboardData.getData('text');
+
+                                    // block paste if not a single alphabet
+                                    if (!/^[A-Za-z]$/.test(pasteText)) {
+                                        e.preventDefault();
+                                    }
+                                }}
                                 error={errors.ivrmmoD_ModeOfPayment_Code?.message}
                                 className='transition-colors focus:ring-2 focus:ring-primary/20'
                             />
-                            {/* {errors.ivrmmoD_ModeOfPayment_Code && <FormError>{errors.ivrmmoD_ModeOfPayment_Code.message}</FormError>} */}
+
+                            <div>
+                                <p>Please choose Code as mentioned below:</p>
+
+                                <p>
+                                    For Cash, code should be <strong>C</strong>
+                                </p>
+                                <p>
+                                    For Bank, code should be <strong>B</strong>
+                                </p>
+                                <p>
+                                    For RTGS/NEFT, code should be <strong>R</strong>
+                                </p>
+                                <p>
+                                    For Swipe/Card, code should be <strong>S</strong>
+                                </p>
+                                <p>
+                                    For UPI, code should be <strong>U</strong>
+                                </p>
+                            </div>
                         </div>
                     </div>
 

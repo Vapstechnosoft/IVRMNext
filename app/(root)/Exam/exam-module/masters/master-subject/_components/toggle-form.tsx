@@ -62,7 +62,7 @@ export default function ToggleMasterSubjectForm({ rowData, onClose }: ToggleMast
                 <AdaptiveBody className='flex flex-col gap-5'>
                     <input type='hidden' {...register('ismS_Id')} />
                     <p>
-                        Are you sure you want to {isActive ? 'deactivate' : 'activate'} <strong>{rowData.ismS_Id}</strong>?
+                        Are you sure you want to {isActive ? 'deactivate' : 'activate'} <strong>{rowData.ismS_SubjectName}</strong>?
                     </p>
                     {errors.ismS_Id && <FormError>{errors.ismS_Id.message}</FormError>}
                 </AdaptiveBody>

@@ -2,14 +2,14 @@
 
 import { Button } from '@/components/ui/button';
 import { Calendar as CalendarPicker } from '@/components/ui/calendar';
-import { FormError } from '@/components/ui/extension/field';
+import { FormError, Label } from '@/components/ui/extension/field';
 import { Input } from '@/components/ui/input';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useAcademicYearDropdown } from '@/hooks/fees/useMasters';
 import { cn } from '@/lib/utils';
 import { YearlyRebateSettingsSchema } from '@/schemas/fees/masters';
-import { addOrUpdateMasterYearlyRebateSettings } from '@/server/fees/masters/yearly_rebate_settings';
+import { addOrUpdateMasterYearlyRebateSettingsFacade } from '@/server/fees/masters/feeyearlyrebatesettingfacade';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { format } from 'date-fns';
 import { Calendar, Save } from 'lucide-react';
@@ -27,25 +27,25 @@ export default function AddMasterYearlyRebateSetting({ onSuccess }: { onSuccess?
         handleSubmit,
         reset,
         watch,
+        setValue,
         formState: { errors, isSubmitting }
     } = useForm<FormFields>({
         mode: 'onChange',
         resolver: zodResolver(YearlyRebateSettingsSchema.addOrUpdate),
         defaultValues: {
-            academicYear: '',
-            rebateApplicable: true,
-            rebateType: undefined,
-            rebateValue: 0,
-            rebateDate: '',
-            feeGroupIds: undefined
+            asmaY_Id: '',
+            fyrebseT_RebateTypeFlg: '',
+            fyrebseT_Id: undefined,
+            fyrebseT_RebateAmtOrPercentValue: 0,
+            fyrebseT_RebateDate: ''
         }
     });
 
-    const rebateType = watch('rebateType');
+    const rebateId = watch('fyrebseT_Id');
 
     const onSubmit = async (data: FormFields) => {
         try {
-            const selectedAcademicYear = academicYearOptions?.data?.find((year) => year.asmaY_Id.toString() === data.academicYear);
+            const selectedAcademicYear = academicYearOptions?.data?.find((year) => year.asmaY_Id.toString() === data.asmaY_Id);
 
             if (!selectedAcademicYear) {
                 toast.error('Please select a valid Academic Year');
@@ -58,18 +58,33 @@ export default function AddMasterYearlyRebateSetting({ onSuccess }: { onSuccess?
                 return;
             }
 
-            const payload = {
-                mI_Id: 30,
-                fyG_Id: 0,
-                user_id: 21602,
-                asmaY_Id,
-                fyG_RebateTypeFlg: data.rebateType ? data.rebateType : '',
-                fyG_RebateApplicableFlg: true,
-                fyG_PartialRebateAmtOrPercentageValue: data.rebateValue ? Number(data.rebateValue) : 0,
-                fyG_RebateDate: data.rebateDate || undefined
-            } as any;
+            if (data.fyrebseT_Id === undefined) {
+                toast.error('Please select a Rebate Type');
+                return;
+            }
 
-            const response = await addOrUpdateMasterYearlyRebateSettings(payload);
+            const rebateValue = Number(data.fyrebseT_RebateAmtOrPercentValue);
+            if (Number.isNaN(rebateValue) || rebateValue <= 0) {
+                toast.error('Please enter a valid rebate value greater than 0');
+                return;
+            }
+
+            if (!data.fyrebseT_RebateDate) {
+                toast.error('Please select a Rebate Date');
+                return;
+            }
+
+            const payload = {
+                fyrebseT_Id: Number(data.fyrebseT_Id),
+                mI_Id: 30,
+                asmaY_Id,
+                fyrebseT_RebateTypeFlg: data.fyrebseT_RebateTypeFlg,
+                fyrebseT_RebateAmtOrPercentValue: rebateValue,
+                fyrebseT_RebateDate: data.fyrebseT_RebateDate,
+                fyrebseT_ActiveId: true
+            };
+
+            const response = await addOrUpdateMasterYearlyRebateSettingsFacade(payload);
 
             if (response?.success) {
                 toast.success(response.message || 'Rebate settings saved successfully!');
@@ -78,18 +93,16 @@ export default function AddMasterYearlyRebateSetting({ onSuccess }: { onSuccess?
             } else {
                 toast.error(response?.message || 'Failed to save rebate settings');
             }
-        } catch (err) {
-            console.error(err);
+        } catch (_err) {
             toast.error('Something went wrong while saving.');
         }
     };
 
     return (
         <form onSubmit={handleSubmit(onSubmit)} className='space-y-6'>
-            {/* Academic Year & Rebate Type */}
             <div className='grid grid-cols-1 gap-6 border-b pb-4 sm:grid-cols-2'>
                 <Controller
-                    name='academicYear'
+                    name='asmaY_Id'
                     control={control}
                     render={({ field }) => (
                         <div className='flex flex-col'>
@@ -97,7 +110,7 @@ export default function AddMasterYearlyRebateSetting({ onSuccess }: { onSuccess?
                                 Academic Year <span className='text-red-500'>*</span>
                             </label>
                             <Select onValueChange={field.onChange} value={field.value}>
-                                <SelectTrigger id='academicYear' className={cn(errors.academicYear ? 'border-red-500' : '')}>
+                                <SelectTrigger id='academicYear' className={cn(errors.asmaY_Id ? 'border-red-500' : '')}>
                                     <SelectValue placeholder='Select Academic Year' />
                                 </SelectTrigger>
                                 <SelectContent>
@@ -112,29 +125,37 @@ export default function AddMasterYearlyRebateSetting({ onSuccess }: { onSuccess?
                                     )}
                                 </SelectContent>
                             </Select>
-                            {errors.academicYear && <FormError>{errors.academicYear.message}</FormError>}
+                            {errors.asmaY_Id && <FormError>{errors.asmaY_Id.message}</FormError>}
                         </div>
                     )}
                 />
 
                 <Controller
-                    name='rebateType'
+                    name='fyrebseT_Id'
                     control={control}
                     render={({ field }) => (
                         <div className='flex flex-col'>
-                            <label htmlFor='rebateType' className='mb-1 font-medium text-gray-700 text-sm'>
+                            <Label htmlFor='rebateType' className='mb-1 font-medium text-gray-700 text-sm'>
                                 Rebate Type <span className='text-red-500'>*</span>
-                            </label>
-                            <Select onValueChange={field.onChange} value={field.value ?? undefined}>
-                                <SelectTrigger id='rebateType' className={cn(errors.rebateType ? 'border-red-500' : '')}>
+                            </Label>
+
+                            <Select
+                                onValueChange={(value) => {
+                                    field.onChange(value);
+                                    setValue('fyrebseT_RebateTypeFlg', value === '0' ? 'A' : 'P');
+                                }}
+                                value={field.value}>
+                                <SelectTrigger className={cn(errors.fyrebseT_Id ? 'border-red-500' : '')}>
                                     <SelectValue placeholder='Select Type' />
                                 </SelectTrigger>
+
                                 <SelectContent>
-                                    <SelectItem value='Percentage'>Percentage</SelectItem>
-                                    <SelectItem value='Amount'>Amount</SelectItem>
+                                    <SelectItem value='0'>Amount</SelectItem>
+                                    <SelectItem value='1'>Percentage</SelectItem>
                                 </SelectContent>
                             </Select>
-                            {errors.rebateType && <FormError>{errors.rebateType.message}</FormError>}
+
+                            {errors.fyrebseT_Id && <FormError>{errors.fyrebseT_Id.message}</FormError>}
                         </div>
                     )}
                 />
@@ -143,37 +164,40 @@ export default function AddMasterYearlyRebateSetting({ onSuccess }: { onSuccess?
             {/* Rebate Value & Rebate Date */}
             <div className='grid grid-cols-1 gap-6 border-b pb-4 sm:grid-cols-2'>
                 <Controller
-                    name='rebateValue'
+                    name='fyrebseT_RebateAmtOrPercentValue'
                     control={control}
                     render={({ field }) => (
                         <div className='flex flex-col'>
                             <label htmlFor='rebateValue' className='mb-1 font-medium text-gray-700 text-sm'>
-                                {rebateType === 'Percentage' ? 'Percentage (%)' : 'Amount'} <span className='text-red-500'>*</span>
+                                {rebateId === '1' ? 'Percentage (%)' : 'Amount'} <span className='text-red-500'>*</span>
                             </label>
                             <Input
                                 id='rebateValue'
                                 type='text'
                                 {...field}
+                                value={field.value || ''}
                                 onChange={(e) => {
                                     const value = e.target.value;
                                     if (value === '' || /^\d*\.?\d*$/.test(value)) {
                                         field.onChange(value);
                                     }
                                 }}
-                                placeholder={rebateType === 'Percentage' ? 'Enter percentage' : 'Enter amount'}
-                                disabled={!rebateType}
+                                placeholder={rebateId === '1' ? 'Enter percentage' : 'Enter amount'}
+                                disabled={!rebateId}
                                 className={cn(
-                                    errors.rebateValue ? 'border-red-500' : '',
-                                    !rebateType ? 'cursor-not-allowed opacity-50' : ''
+                                    errors.fyrebseT_RebateAmtOrPercentValue ? 'border-red-500' : '',
+                                    !rebateId ? 'cursor-not-allowed opacity-50' : ''
                                 )}
                             />
-                            {errors.rebateValue && <FormError>{errors.rebateValue.message}</FormError>}
+                            {errors.fyrebseT_RebateAmtOrPercentValue && (
+                                <FormError>{errors.fyrebseT_RebateAmtOrPercentValue.message}</FormError>
+                            )}
                         </div>
                     )}
                 />
 
                 <Controller
-                    name='rebateDate'
+                    name='fyrebseT_RebateDate'
                     control={control}
                     render={({ field }) => {
                         const selectedDate = field.value ? new Date(field.value) : undefined;
@@ -190,7 +214,7 @@ export default function AddMasterYearlyRebateSetting({ onSuccess }: { onSuccess?
                                             className={cn(
                                                 'justify-start text-left font-normal',
                                                 !field.value && 'text-muted-foreground',
-                                                errors.rebateDate ? 'border-red-500' : ''
+                                                errors.fyrebseT_RebateDate ? 'border-red-500' : ''
                                             )}>
                                             <Calendar className='mr-2 h-4 w-4' />
                                             {field.value ? format(new Date(field.value), 'dd/MM/yyyy') : 'Pick a date'}
@@ -205,7 +229,7 @@ export default function AddMasterYearlyRebateSetting({ onSuccess }: { onSuccess?
                                         />
                                     </PopoverContent>
                                 </Popover>
-                                {errors.rebateDate && <FormError>{errors.rebateDate.message}</FormError>}
+                                {errors.fyrebseT_RebateDate && <FormError>{errors.fyrebseT_RebateDate.message}</FormError>}
                             </div>
                         );
                     }}

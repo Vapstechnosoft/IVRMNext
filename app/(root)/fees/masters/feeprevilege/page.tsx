@@ -10,6 +10,7 @@ import { Plus, X } from 'lucide-react';
 import { use } from 'react';
 import AddFeePrivilegeForm from './_components/add-form';
 import { feePrivilegeColumns } from './_components/columns';
+import ToggleMasterFeePrevilageForm from './_components/toggle-form';
 import UpdateFeePrivilegeForm from './_components/update-form';
 
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
@@ -18,7 +19,7 @@ export default function FeePrivilegePage(props: {
     searchParams: SearchParams;
 }) {
     const _searchParams = use(props.searchParams);
-    const { data: response, isLoading, error } = useFeePrevilegeList();
+    const { data: response, isLoading, error } = useFeePrevilegeList(_searchParams);
 
     return (
         <FormProvider<IFeePrivilegeList>>
@@ -43,15 +44,28 @@ function FeePrivilegePageContent({
         <div className='min-h-screen'>
             <div className='container space-y-6 p-4'>
                 {/* Header */}
-                <div className='flex justify-end'>
-                    <Button type='button' onClick={openAddForm} className='w-fit transition-all duration-200 hover:scale-105'>
-                        <Plus className='mr-2 h-4 w-4' />
+                <div className='flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between'>
+                    <div className='space-y-1'>
+                        {/* <Heading
+              title='Fee Privilege'
+              description='Manage fee privileges and user access'
+            /> */}
+                    </div>
+                    <Button
+                        type='button'
+                        onClick={openAddForm}
+                        className='w-fit shadow-md transition-all duration-200 hover:scale-105 hover:shadow-lg'>
+                        <Plus className='h-4 w-4' />
                         Add Fee Privilege
                     </Button>
                 </div>
 
                 {/* Data Table Section */}
-                <CollapsibleSection defaultOpen={true} variant='default' size='lg' className='transition-shadow duration-300'>
+                <CollapsibleSection
+                    defaultOpen={true}
+                    variant='default'
+                    size='lg'
+                    className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
                     <GenericDataTable<IFeePrivilegeList>
                         {...tableProps}
                         columns={feePrivilegeColumns}
@@ -73,8 +87,17 @@ function FeePrivilegePageContent({
 }
 
 function FormSections() {
-    const { isAddFormOpen, isEditFormOpen, selectedRow, closeAddForm, closeEditForm, addFormRef, editFormRef } =
-        useFormContext<IFeePrivilegeList>();
+    const {
+        isAddFormOpen,
+        isEditFormOpen,
+        selectedRow,
+        isDeleteFormOpen,
+        closeAddForm,
+        closeEditForm,
+        closeToggleForm,
+        addFormRef,
+        editFormRef
+    } = useFormContext<IFeePrivilegeList>();
 
     return (
         <>
@@ -87,16 +110,15 @@ function FormSections() {
                         defaultOpen={true}
                         variant='outline'
                         size='md'
-                        className='transition-all duration-300'>
+                        className='slide-in-from-top-4 animate-in shadow-lg duration-300'>
                         <div className='relative'>
                             <Button
                                 type='button'
                                 onClick={closeAddForm}
-                                variant='outline'
+                                variant='ghost'
                                 size='sm'
-                                className='-top-8 absolute right-4 w-fit transition-all duration-200 hover:scale-105'>
-                                <X className='h-4 w-4' />
-                                Close
+                                className='-top-[3.5rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
+                                <X className='h-4 w-4 text-destructive' /> Close
                             </Button>
                             <AddFeePrivilegeForm onSuccess={closeAddForm} />
                         </div>
@@ -113,22 +135,22 @@ function FormSections() {
                         defaultOpen={true}
                         variant='outline'
                         size='md'
-                        className='transition-all duration-300'>
+                        className='slide-in-from-top-4 animate-in border-primary/20 shadow-lg duration-300'>
                         <div className='relative'>
                             <Button
                                 type='button'
                                 onClick={closeEditForm}
-                                variant='outline'
+                                variant='ghost'
                                 size='sm'
-                                className='-top-8 absolute right-4 w-fit transition-all duration-200 hover:scale-105'>
-                                <X className='h-4 w-4' />
-                                Close
+                                className='-top-[3.5rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
+                                <X className='h-4 w-4 text-destructive' /> Close
                             </Button>
-                            <UpdateFeePrivilegeForm {...({ selectedRow, onSuccess: closeEditForm } as any)} />
+                            <UpdateFeePrivilegeForm selectedRow={selectedRow} onSuccess={closeEditForm} />
                         </div>
                     </CollapsibleSection>
                 </div>
             )}
+            {isDeleteFormOpen && selectedRow && <ToggleMasterFeePrevilageForm rowData={selectedRow} onClose={closeToggleForm} />}
         </>
     );
 }

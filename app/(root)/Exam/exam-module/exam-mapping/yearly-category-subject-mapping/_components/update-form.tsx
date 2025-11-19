@@ -141,7 +141,7 @@ export default function UpdateCategorySubjectMappingForm({ rowData, onSuccess }:
                 setValue('subjects_list', data);
             })();
         }
-    }, [rowData]);
+    }, [rowData, categories]);
 
     useEffect(() => {
         if (!rowData || !rowData.asmaY_Id || academicYears.length === 0) return;
@@ -183,6 +183,34 @@ export default function UpdateCategorySubjectMappingForm({ rowData, onSuccess }:
             }
         } catch (err: any) {
             toast.error(err?.message ?? 'Failed to save');
+        }
+    };
+    const handlereset = () => {
+        if (!rowData) return;
+        reset({
+            userId: 1,
+            eycG_Id: rowData.eycG_Id ?? 0,
+            mI_Id: 30,
+            asmaY_Id: rowData.asmaY_Id ?? 0,
+            emcA_Id: rowData.emcA_Id ?? 0,
+            emG_Id: rowData.emG_Id ?? 0,
+            eyC_BasedOnPaperTypeFlg: rowData.eyC_BasedOnPaperTypeFlg ?? false,
+            subjects_list: []
+        });
+        // Fetch subjects for the selected group on load
+        if (rowData.emG_Id && rowData.asmaY_Id && rowData.eycG_Id) {
+            (async () => {
+                const response = await getYearlyCategorySubjectMappingDetails(rowData.eyC_Id, rowData.eycG_Id, rowData.asmaY_Id);
+
+                const apiResponse = response as unknown as {
+                    success: boolean;
+                    message: string;
+                    data: IYearlyCategorySubjectMappingViewDetails[];
+                };
+
+                const data = apiResponse?.data || [];
+                setValue('subjects_list', data);
+            })();
         }
     };
 
@@ -311,7 +339,6 @@ export default function UpdateCategorySubjectMappingForm({ rowData, onSuccess }:
                                     />
                                 )}
                             />
-                            {errors.subjects_list && <p className='text-red-600 text-sm'>{errors.subjects_list.message}</p>}
                         </div>
                     </div>
 
@@ -319,7 +346,7 @@ export default function UpdateCategorySubjectMappingForm({ rowData, onSuccess }:
                         <Button type='submit' className='w-fit' disabled={isSubmitting}>
                             {isSubmitting ? 'Saving...' : rowData ? 'Update' : 'Save'}
                         </Button>
-                        <Button type='button' variant='outline' className='w-fit' onClick={() => reset()}>
+                        <Button type='button' variant='outline' className='w-fit' onClick={handlereset}>
                             Reset
                         </Button>
                     </div>
