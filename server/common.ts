@@ -528,6 +528,21 @@ export async function getUserAccessibleModules() {
                             icon: 'BookOpen',
                             sub_menu: [
                                 {
+                                    id: 9,
+                                    name: 'Configuration',
+                                    icon: 'Settings',
+                                    pages: [
+                                        {
+                                            id: 58,
+                                            name: 'Exam Standard',
+                                            icon: 'BookOpen',
+                                            url: '/Exam/exam-module/configurations/exam-standard',
+                                            title: 'Exam Standard',
+                                            description: 'Manage Exam Standard Details'
+                                        }
+                                    ]
+                                },
+                                {
                                     id: 7,
                                     name: 'Masters',
                                     icon: 'Settings',
@@ -603,6 +618,38 @@ export async function getUserAccessibleModules() {
                                             url: '/Exam/exam-module/masters/category-class-mapping',
                                             title: 'Category Class Mapping',
                                             description: 'Manage Category Class Mapping Details'
+                                        },
+                                        {
+                                            id: 200,
+                                            name: 'Co-Scholastic Activities',
+                                            icon: 'BookOpen',
+                                            url: '/Exam/exam-module/masters/co-scholastic-activities',
+                                            title: 'Co-Scholastic Activities',
+                                            description: 'Manage Co-Scholastic Activities Details'
+                                        },
+                                        {
+                                            id: 201,
+                                            name: 'Co-Scholastic Area',
+                                            icon: 'BookOpen',
+                                            url: '/Exam/exam-module/masters/co-scholastic-area',
+                                            title: 'Co-Scholastic Area',
+                                            description: 'Manage Co-Scholastic Area Details'
+                                        },
+                                        {
+                                            id: 202,
+                                            name: 'Life Skills',
+                                            icon: 'BookOpen',
+                                            url: '/Exam/exam-module/masters/life-skills',
+                                            title: 'Life Skills',
+                                            description: 'Manage Life Skills Details'
+                                        },
+                                        {
+                                            id: 203,
+                                            name: 'Life-Skills Area',
+                                            icon: 'BookOpen',
+                                            url: '/Exam/exam-module/masters/life-skills-area',
+                                            title: 'Life Skills Area',
+                                            description: 'Manage Life Skills Area Details'
                                         }
                                     ]
                                 },
@@ -650,6 +697,22 @@ export async function getUserAccessibleModules() {
                                             url: '/Exam/exam-module/exam-mapping/exam-term-and-exam-mapping',
                                             title: 'Exam Term And Exam Mapping',
                                             description: 'Manage Exam Term And Exam Mapping Details'
+                                        },
+                                        {
+                                            id: 59,
+                                            name: 'Co-Scholastic Activity Area Mapping',
+                                            icon: 'BookOpen',
+                                            url: '/Exam/exam-module/exam-mapping/co-scholastic-activitiy-area-mapping',
+                                            title: 'Co-Scholastic Activity Area Mapping',
+                                            description: 'Manage Co-Scholastic Activity Area Mapping Details'
+                                        },
+                                        {
+                                            id: 60,
+                                            name: 'Life Skill Area Mapping',
+                                            icon: 'BookOpen',
+                                            url: '/Exam/exam-module/exam-mapping/lifeskill-area-mapping',
+                                            title: 'Life Skill Area Mapping',
+                                            description: 'Manage Life Skill Area Mapping Details'
                                         }
                                     ]
                                 }
