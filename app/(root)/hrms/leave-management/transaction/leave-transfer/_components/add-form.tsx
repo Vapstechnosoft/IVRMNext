@@ -7,13 +7,14 @@ import { MultiSelect } from '@/components/ui/multi-select';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useLeaveCredit, useSaveLeaveCredit } from '@/hooks/hrms/leave-management/useTransactions';
-import { Save } from 'lucide-react';
+import { Save, X } from 'lucide-react';
 import { useState } from 'react';
 import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
 import type { LeaveCredit } from './columns';
 
 interface AddLeaveCreditFormProps {
     onSuccess?: () => void;
+    onCancel?: () => void;
     className?: string;
 }
 
@@ -56,7 +57,7 @@ type LeaveTransferFormData = LeaveCredit & {
     reason?: string;
 };
 
-export default function AddLeaveCreditForm({ onSuccess, className = '' }: AddLeaveCreditFormProps) {
+export default function AddLeaveCreditForm({ onSuccess, onCancel, className = '' }: AddLeaveCreditFormProps) {
     const { refetchAll } = useLeaveCredit();
     const { mutate: saveCredit, isPending } = useSaveLeaveCredit();
     const [activeTab, setActiveTab] = useState('Leave Credit');
@@ -66,7 +67,7 @@ export default function AddLeaveCreditForm({ onSuccess, className = '' }: AddLea
         handleSubmit,
         control,
         watch,
-        setValue,
+        setValue: _setValue,
         reset,
         formState: { errors, isSubmitting }
     } = useForm<LeaveTransferFormData>({
@@ -90,13 +91,12 @@ export default function AddLeaveCreditForm({ onSuccess, className = '' }: AddLea
         // Convert employeeNames array to employeeName string (comma-separated or first selected)
         const submitData = {
             ...data,
-            employeeName: Array.isArray(data.employeeNames) && data.employeeNames.length > 0 
-                ? data.employeeNames.join(', ') 
-                : data.employeeName || ''
+            employeeName:
+                Array.isArray(data.employeeNames) && data.employeeNames.length > 0 ? data.employeeNames.join(', ') : data.employeeName || ''
         };
         // Remove employeeNames from submit data as it's not part of LeaveCredit interface
-        delete (submitData as any).employeeNames;
-        
+        (submitData as any).employeeNames = undefined;
+
         saveCredit(submitData as LeaveCredit, {
             onSuccess: () => {
                 reset();
@@ -125,7 +125,7 @@ export default function AddLeaveCreditForm({ onSuccess, className = '' }: AddLea
                         {/* Step 1: Type, Department, Designation - First line */}
                         <div className='grid grid-cols-1 gap-4 md:grid-cols-3'>
                             <div>
-                                <label htmlFor='type-multiselect' className='font-medium text-sm mb-2 block'>
+                                <label htmlFor='type-multiselect' className='mb-2 block font-medium text-sm'>
                                     Type
                                 </label>
                                 <Controller
@@ -144,7 +144,7 @@ export default function AddLeaveCreditForm({ onSuccess, className = '' }: AddLea
                             </div>
 
                             <div>
-                                <label htmlFor='department-multiselect' className='font-medium text-sm mb-2 block'>
+                                <label htmlFor='department-multiselect' className='mb-2 block font-medium text-sm'>
                                     Department
                                 </label>
                                 <Controller
@@ -163,7 +163,7 @@ export default function AddLeaveCreditForm({ onSuccess, className = '' }: AddLea
                             </div>
 
                             <div>
-                                <label htmlFor='designation-multiselect' className='font-medium text-sm mb-2 block'>
+                                <label htmlFor='designation-multiselect' className='mb-2 block font-medium text-sm'>
                                     Designation
                                 </label>
                                 <Controller
@@ -242,7 +242,7 @@ export default function AddLeaveCreditForm({ onSuccess, className = '' }: AddLea
                         {watch('type')?.length > 0 && watch('department')?.length > 0 && watch('designation')?.length > 0 && (
                             <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
                                 <div>
-                                    <label htmlFor='employee-name-multiselect' className='font-medium text-sm mb-2 block'>
+                                    <label htmlFor='employee-name-multiselect' className='mb-2 block font-medium text-sm'>
                                         Employee Name
                                     </label>
                                     <Controller
@@ -275,6 +275,12 @@ export default function AddLeaveCreditForm({ onSuccess, className = '' }: AddLea
                         )}
 
                         <div className='flex justify-end gap-2'>
+                            {onCancel && (
+                                <Button type='button' variant='outline' onClick={onCancel} disabled={isPending || isSubmitting}>
+                                    <X className='mr-2 h-4 w-4' />
+                                    CANCEL
+                                </Button>
+                            )}
                             <Button type='button' variant='outline' onClick={handleReset} disabled={isPending || isSubmitting}>
                                 Reset
                             </Button>
@@ -291,7 +297,7 @@ export default function AddLeaveCreditForm({ onSuccess, className = '' }: AddLea
                         {/* Step 1: Type, Department, Designation - First line */}
                         <div className='grid grid-cols-1 gap-4 md:grid-cols-3'>
                             <div>
-                                <label htmlFor='type-multiselect-addition' className='font-medium text-sm mb-2 block'>
+                                <label htmlFor='type-multiselect-addition' className='mb-2 block font-medium text-sm'>
                                     Type
                                 </label>
                                 <Controller
@@ -310,7 +316,7 @@ export default function AddLeaveCreditForm({ onSuccess, className = '' }: AddLea
                             </div>
 
                             <div>
-                                <label htmlFor='department-multiselect-addition' className='font-medium text-sm mb-2 block'>
+                                <label htmlFor='department-multiselect-addition' className='mb-2 block font-medium text-sm'>
                                     Department
                                 </label>
                                 <Controller
@@ -329,7 +335,7 @@ export default function AddLeaveCreditForm({ onSuccess, className = '' }: AddLea
                             </div>
 
                             <div>
-                                <label htmlFor='designation-multiselect-addition' className='font-medium text-sm mb-2 block'>
+                                <label htmlFor='designation-multiselect-addition' className='mb-2 block font-medium text-sm'>
                                     Designation
                                 </label>
                                 <Controller
@@ -360,7 +366,9 @@ export default function AddLeaveCreditForm({ onSuccess, className = '' }: AddLea
                                             Leave Year <span className='text-red-500'>*</span>
                                         </label>
                                         <Select value={field.value} onValueChange={field.onChange}>
-                                            <SelectTrigger id='leave-year-select-addition' className={errors.leaveYear ? 'border-red-500' : ''}>
+                                            <SelectTrigger
+                                                id='leave-year-select-addition'
+                                                className={errors.leaveYear ? 'border-red-500' : ''}>
                                                 <SelectValue placeholder='Select Leave Year' />
                                             </SelectTrigger>
                                             <SelectContent>
@@ -386,7 +394,9 @@ export default function AddLeaveCreditForm({ onSuccess, className = '' }: AddLea
                                             Leave Name <span className='text-red-500'>*</span>
                                         </label>
                                         <Select value={field.value} onValueChange={field.onChange}>
-                                            <SelectTrigger id='leave-name-select-addition' className={errors.leaveName ? 'border-red-500' : ''}>
+                                            <SelectTrigger
+                                                id='leave-name-select-addition'
+                                                className={errors.leaveName ? 'border-red-500' : ''}>
                                                 <SelectValue placeholder='Select Leave Name' />
                                             </SelectTrigger>
                                             <SelectContent>
@@ -408,7 +418,7 @@ export default function AddLeaveCreditForm({ onSuccess, className = '' }: AddLea
                         {watch('type')?.length > 0 && watch('department')?.length > 0 && watch('designation')?.length > 0 && (
                             <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
                                 <div>
-                                    <label htmlFor='employee-name-multiselect-addition' className='font-medium text-sm mb-2 block'>
+                                    <label htmlFor='employee-name-multiselect-addition' className='mb-2 block font-medium text-sm'>
                                         Employee Name
                                     </label>
                                     <Controller
@@ -451,6 +461,12 @@ export default function AddLeaveCreditForm({ onSuccess, className = '' }: AddLea
                         )}
 
                         <div className='flex justify-end gap-2'>
+                            {onCancel && (
+                                <Button type='button' variant='outline' onClick={onCancel} disabled={isPending || isSubmitting}>
+                                    <X className='mr-2 h-4 w-4' />
+                                    CANCEL
+                                </Button>
+                            )}
                             <Button type='button' variant='outline' onClick={handleReset} disabled={isPending || isSubmitting}>
                                 Reset
                             </Button>
@@ -467,7 +483,7 @@ export default function AddLeaveCreditForm({ onSuccess, className = '' }: AddLea
                         {/* Step 1: Type, Department, Designation - First line */}
                         <div className='grid grid-cols-1 gap-4 md:grid-cols-3'>
                             <div>
-                                <label htmlFor='type-multiselect-deduction' className='font-medium text-sm mb-2 block'>
+                                <label htmlFor='type-multiselect-deduction' className='mb-2 block font-medium text-sm'>
                                     Type
                                 </label>
                                 <Controller
@@ -486,7 +502,7 @@ export default function AddLeaveCreditForm({ onSuccess, className = '' }: AddLea
                             </div>
 
                             <div>
-                                <label htmlFor='department-multiselect-deduction' className='font-medium text-sm mb-2 block'>
+                                <label htmlFor='department-multiselect-deduction' className='mb-2 block font-medium text-sm'>
                                     Department
                                 </label>
                                 <Controller
@@ -505,7 +521,7 @@ export default function AddLeaveCreditForm({ onSuccess, className = '' }: AddLea
                             </div>
 
                             <div>
-                                <label htmlFor='designation-multiselect-deduction' className='font-medium text-sm mb-2 block'>
+                                <label htmlFor='designation-multiselect-deduction' className='mb-2 block font-medium text-sm'>
                                     Designation
                                 </label>
                                 <Controller
@@ -536,7 +552,9 @@ export default function AddLeaveCreditForm({ onSuccess, className = '' }: AddLea
                                             Leave Year <span className='text-red-500'>*</span>
                                         </label>
                                         <Select value={field.value} onValueChange={field.onChange}>
-                                            <SelectTrigger id='leave-year-select-deduction' className={errors.leaveYear ? 'border-red-500' : ''}>
+                                            <SelectTrigger
+                                                id='leave-year-select-deduction'
+                                                className={errors.leaveYear ? 'border-red-500' : ''}>
                                                 <SelectValue placeholder='Select Leave Year' />
                                             </SelectTrigger>
                                             <SelectContent>
@@ -562,7 +580,9 @@ export default function AddLeaveCreditForm({ onSuccess, className = '' }: AddLea
                                             Leave Name <span className='text-red-500'>*</span>
                                         </label>
                                         <Select value={field.value} onValueChange={field.onChange}>
-                                            <SelectTrigger id='leave-name-select-deduction' className={errors.leaveName ? 'border-red-500' : ''}>
+                                            <SelectTrigger
+                                                id='leave-name-select-deduction'
+                                                className={errors.leaveName ? 'border-red-500' : ''}>
                                                 <SelectValue placeholder='Select Leave Name' />
                                             </SelectTrigger>
                                             <SelectContent>
@@ -584,7 +604,7 @@ export default function AddLeaveCreditForm({ onSuccess, className = '' }: AddLea
                         {watch('type')?.length > 0 && watch('department')?.length > 0 && watch('designation')?.length > 0 && (
                             <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
                                 <div>
-                                    <label htmlFor='employee-name-multiselect-deduction' className='font-medium text-sm mb-2 block'>
+                                    <label htmlFor='employee-name-multiselect-deduction' className='mb-2 block font-medium text-sm'>
                                         Employee Name
                                     </label>
                                     <Controller
@@ -627,6 +647,12 @@ export default function AddLeaveCreditForm({ onSuccess, className = '' }: AddLea
                         )}
 
                         <div className='flex justify-end gap-2'>
+                            {onCancel && (
+                                <Button type='button' variant='outline' onClick={onCancel} disabled={isPending || isSubmitting}>
+                                    <X className='mr-2 h-4 w-4' />
+                                    CANCEL
+                                </Button>
+                            )}
                             <Button type='button' variant='outline' onClick={handleReset} disabled={isPending || isSubmitting}>
                                 Reset
                             </Button>
@@ -643,7 +669,7 @@ export default function AddLeaveCreditForm({ onSuccess, className = '' }: AddLea
                         {/* Step 1: Type, Department, Designation - First line */}
                         <div className='grid grid-cols-1 gap-4 md:grid-cols-3'>
                             <div>
-                                <label htmlFor='type-multiselect-carryforward' className='font-medium text-sm mb-2 block'>
+                                <label htmlFor='type-multiselect-carryforward' className='mb-2 block font-medium text-sm'>
                                     Type
                                 </label>
                                 <Controller
@@ -662,7 +688,7 @@ export default function AddLeaveCreditForm({ onSuccess, className = '' }: AddLea
                             </div>
 
                             <div>
-                                <label htmlFor='department-multiselect-carryforward' className='font-medium text-sm mb-2 block'>
+                                <label htmlFor='department-multiselect-carryforward' className='mb-2 block font-medium text-sm'>
                                     Department
                                 </label>
                                 <Controller
@@ -681,7 +707,7 @@ export default function AddLeaveCreditForm({ onSuccess, className = '' }: AddLea
                             </div>
 
                             <div>
-                                <label htmlFor='designation-multiselect-carryforward' className='font-medium text-sm mb-2 block'>
+                                <label htmlFor='designation-multiselect-carryforward' className='mb-2 block font-medium text-sm'>
                                     Designation
                                 </label>
                                 <Controller
@@ -712,7 +738,9 @@ export default function AddLeaveCreditForm({ onSuccess, className = '' }: AddLea
                                             Leave Year <span className='text-red-500'>*</span>
                                         </label>
                                         <Select value={field.value} onValueChange={field.onChange}>
-                                            <SelectTrigger id='leave-year-select-carryforward' className={errors.leaveYear ? 'border-red-500' : ''}>
+                                            <SelectTrigger
+                                                id='leave-year-select-carryforward'
+                                                className={errors.leaveYear ? 'border-red-500' : ''}>
                                                 <SelectValue placeholder='Select Leave Year' />
                                             </SelectTrigger>
                                             <SelectContent>
@@ -738,7 +766,9 @@ export default function AddLeaveCreditForm({ onSuccess, className = '' }: AddLea
                                             Leave Name <span className='text-red-500'>*</span>
                                         </label>
                                         <Select value={field.value} onValueChange={field.onChange}>
-                                            <SelectTrigger id='leave-name-select-carryforward' className={errors.leaveName ? 'border-red-500' : ''}>
+                                            <SelectTrigger
+                                                id='leave-name-select-carryforward'
+                                                className={errors.leaveName ? 'border-red-500' : ''}>
                                                 <SelectValue placeholder='Select Leave Name' />
                                             </SelectTrigger>
                                             <SelectContent>
@@ -760,7 +790,7 @@ export default function AddLeaveCreditForm({ onSuccess, className = '' }: AddLea
                         {watch('type')?.length > 0 && watch('department')?.length > 0 && watch('designation')?.length > 0 && (
                             <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
                                 <div>
-                                    <label htmlFor='employee-name-multiselect-carryforward' className='font-medium text-sm mb-2 block'>
+                                    <label htmlFor='employee-name-multiselect-carryforward' className='mb-2 block font-medium text-sm'>
                                         Employee Name
                                     </label>
                                     <Controller
@@ -781,6 +811,12 @@ export default function AddLeaveCreditForm({ onSuccess, className = '' }: AddLea
                         )}
 
                         <div className='flex justify-end gap-2'>
+                            {onCancel && (
+                                <Button type='button' variant='outline' onClick={onCancel} disabled={isPending || isSubmitting}>
+                                    <X className='mr-2 h-4 w-4' />
+                                    CANCEL
+                                </Button>
+                            )}
                             <Button type='button' variant='outline' onClick={handleReset} disabled={isPending || isSubmitting}>
                                 Reset
                             </Button>
@@ -795,4 +831,3 @@ export default function AddLeaveCreditForm({ onSuccess, className = '' }: AddLea
         </div>
     );
 }
-

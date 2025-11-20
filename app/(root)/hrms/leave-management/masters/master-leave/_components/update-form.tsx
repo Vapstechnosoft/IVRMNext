@@ -8,18 +8,19 @@ import { InputTextarea } from '@/components/ui/extension/input-textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useMasterLeave, useUpdateMasterLeave } from '@/hooks/hrms/leave-management/useMasters';
 import { MASTER_LEAVE_VALIDATION } from '@/lib/validation/hrms-master-validation';
-import { Save } from 'lucide-react';
+import { Save, X } from 'lucide-react';
 import { useEffect } from 'react';
 import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
 import type { MasterLeave } from './columns';
 
 interface UpdateMasterLeaveFormProps {
     onSuccess?: () => void;
+    onCancel?: () => void;
     className?: string;
     selectedRow: MasterLeave;
 }
 
-export default function UpdateMasterLeaveForm({ onSuccess, className = '', selectedRow: row }: UpdateMasterLeaveFormProps) {
+export default function UpdateMasterLeaveForm({ onSuccess, onCancel, className = '', selectedRow: row }: UpdateMasterLeaveFormProps) {
     const { refetchAll } = useMasterLeave();
     const { mutate: updateMasterLeave, isPending } = useUpdateMasterLeave();
 
@@ -119,7 +120,6 @@ export default function UpdateMasterLeaveForm({ onSuccess, className = '', selec
                                 </div>
                             )}
                         />
-
                     </div>
 
                     <div className='grid grid-cols-1 gap-4 md:grid-cols-1'>
@@ -169,6 +169,12 @@ export default function UpdateMasterLeaveForm({ onSuccess, className = '', selec
                 </div>
 
                 <div className='flex justify-end gap-2'>
+                    {onCancel && (
+                        <Button type='button' variant='outline' onClick={onCancel} disabled={isPending || isSubmitting}>
+                            <X className='mr-2 h-4 w-4' />
+                            CANCEL
+                        </Button>
+                    )}
                     <Button type='button' variant='outline' onClick={handleReset} disabled={isPending || isSubmitting}>
                         Reset
                     </Button>

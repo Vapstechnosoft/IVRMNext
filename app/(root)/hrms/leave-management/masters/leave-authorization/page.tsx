@@ -1,131 +1,120 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
-import { GenericDataTable } from '@/components/ui/data-table/generic-data-table';
+import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/generic-data-table';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
+import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
+import { HRMS_QUERY_KEYS } from '@/constants/query-keys';
+import { useLeaveAuthorization } from '@/hooks/hrms/leave-management/useMasters';
 import { createLocalCrud } from '@/lib/localdb';
-import { Plus } from 'lucide-react';
-import { useEffect, useMemo, useState } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
+import { Plus, X } from 'lucide-react';
+import { use } from 'react';
 import { toast } from 'sonner';
-import { getLeaveAuthorizationColumns, type LeaveAuthorization } from './_components/columns';
-import { LeaveAuthorizationForm } from './_components/leave-authorization-form';
+import AddLeaveAuthorizationForm from './_components/add-form';
+import { type LeaveAuthorization, getLeaveAuthorizationColumns } from './_components/columns';
+import UpdateLeaveAuthorizationForm from './_components/update-form';
 
-const leaveAuthDB = createLocalCrud<LeaveAuthorization>('leaveAuthorization');
+type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 
-export default function LeaveAuthorizationPage() {
-    const [data, setData] = useState<LeaveAuthorization[]>([]);
-    const [isFormOpen, setIsFormOpen] = useState(false);
-    const [editingAuth, setEditingAuth] = useState<LeaveAuthorization | null>(null);
+export default function LeaveAuthorizationPage(props: { searchParams: SearchParams }) {
+    const _searchParams = use(props.searchParams);
+    const { data: response, isLoading, error } = useLeaveAuthorization();
 
-    const loadData = () => {
-        try {
-            const result = leaveAuthDB.list();
-            setData(result);
-        } catch (error) {
-            console.error('Error loading leave authorizations:', error);
-            toast.error('Failed to load leave authorizations');
-        }
-    };
+    return (
+        <FormProvider<LeaveAuthorization>>
+            <LeaveAuthorizationPageContent response={response} isLoading={isLoading} error={error} />
+        </FormProvider>
+    );
+}
 
-    useEffect(() => {
-        loadData();
+function LeaveAuthorizationPageContent({
+    response,
+    isLoading,
+    error
+}: {
+    response: any;
+    isLoading: boolean;
+    error: any;
+}) {
+    const { openAddForm } = useFormContext<LeaveAuthorization>();
+    const { openEditForm, openDeleteForm } = useFormContext<LeaveAuthorization>();
+    const tableProps = useDataTableProps(response);
 
-        // Add sample data if no data exists
-        const existingData = leaveAuthDB.list();
-        if (existingData.length === 0) {
-            const sampleData: Omit<LeaveAuthorization, 'id' | 'createdAt'>[] = [
-                {
-                    institution: 'Vaps Knowledge Services Pvt Ltd',
-                    gradeName: 'Manager',
-                    groupTypeName: 'VKS',
-                    departmentName: 'Sales and Marketing',
-                    designationName: 'Assistant Business Development Manager',
-                    leaveType: 'Comp Off',
-                    orderOfApproval: '1',
-                    approvalPerson: 'Benoy Yogesh Shetty',
-                    finalFlag: false
-                },
-                {
-                    institution: 'Vaps Knowledge Services Pvt Ltd',
-                    gradeName: 'Manager',
-                    groupTypeName: 'VKS',
-                    departmentName: 'Sales and Marketing',
-                    designationName: 'Assistant Business Development Manager',
-                    leaveType: 'Optional Leave',
-                    orderOfApproval: '1',
-                    approvalPerson: 'Benoy Yogesh Shetty',
-                    finalFlag: false
-                },
-                {
-                    institution: 'Vaps Knowledge Services Pvt Ltd',
-                    gradeName: 'Manager',
-                    groupTypeName: 'VKS',
-                    departmentName: 'Sales and Marketing',
-                    designationName: 'Assistant Business Development Manager',
-                    leaveType: 'Optional Leave',
-                    orderOfApproval: '1',
-                    approvalPerson: 'Benoy Yogesh Shetty',
-                    finalFlag: false
-                }
-            ];
-
-            sampleData.forEach((data) => leaveAuthDB.create(data));
-            loadData();
-        }
-    }, []);
-
-    const handleAddClick = () => {
-        setIsFormOpen(true);
-        setEditingAuth(null);
-        // Scroll to form
-        setTimeout(() => {
-            const formElement = document.getElementById('leave-auth-form');
-            if (formElement) {
-                formElement.scrollIntoView({ behavior: 'smooth' });
+    const columns = getLeaveAuthorizationColumns({
+        onEdit: openEditForm,
+        onDelete: (id: number) => {
+            // Find the row by id and open delete form
+            const row = response?.data?.find((r: LeaveAuthorization) => r.id === id);
+            if (row) {
+                openDeleteForm(row);
             }
-        }, 100);
-    };
-
-    const handleFormClose = () => {
-        setIsFormOpen(false);
-        setEditingAuth(null);
-    };
-
-    const handleFormSubmit = (formData: LeaveAuthorization) => {
-        try {
-            if (editingAuth) {
-                leaveAuthDB.update(editingAuth.id, formData);
-                toast.success('Leave authorization updated successfully');
-            } else {
-                leaveAuthDB.create(formData);
-                toast.success('Leave authorization created successfully');
-            }
-            loadData();
-            handleFormClose();
-        } catch (error) {
-            console.error('Error saving leave authorization:', error);
-            toast.error('Failed to save leave authorization');
         }
-    };
+    });
 
-    const handleEdit = (auth: LeaveAuthorization) => {
-        setEditingAuth(auth);
-        setIsFormOpen(true);
-        // Scroll to form
-        setTimeout(() => {
-            const formElement = document.getElementById('leave-auth-form');
-            if (formElement) {
-                formElement.scrollIntoView({ behavior: 'smooth' });
-            }
-        }, 100);
-    };
+    return (
+        <div className='min-h-screen'>
+            <div className='container space-y-4 p-1'>
+                {/* Header */}
+                <div className='flex justify-end'>
+                    <Button
+                        type='button'
+                        onClick={openAddForm}
+                        className='w-fit shadow-md transition-all duration-200 hover:scale-105 hover:shadow-lg'>
+                        <Plus className='h-4 w-4' />
+                        Add Leave Authorization
+                    </Button>
+                </div>
 
-    const handleDelete = (id: number) => {
-        if (window.confirm('Are you sure you want to delete this leave authorization?')) {
+                {/* Data Table Section */}
+                <CollapsibleSection
+                    defaultOpen={true}
+                    variant='default'
+                    size='lg'
+                    className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
+                    <GenericDataTable<LeaveAuthorization>
+                        {...tableProps}
+                        columns={columns}
+                        isLoading={isLoading}
+                        error={error}
+                        showViewOptions={false}
+                        columnPinning={{ right: ['actions'] }}
+                        loadingMessage='Loading leave authorizations...'
+                        noDataTitle='No Leave Authorizations Found'
+                        noDataDescription='Get started by creating your first leave authorization'
+                        errorTitle='Error Loading Leave Authorizations'
+                    />
+                </CollapsibleSection>
+
+                {/* Forms */}
+                <FormSections />
+            </div>
+        </div>
+    );
+}
+
+function FormSections() {
+    const {
+        isAddFormOpen,
+        isEditFormOpen,
+        isDeleteFormOpen,
+        selectedRow,
+        closeAddForm,
+        closeEditForm,
+        closeDeleteForm,
+        addFormRef,
+        editFormRef
+    } = useFormContext<LeaveAuthorization>();
+    const queryClient = useQueryClient();
+    const leaveAuthDB = createLocalCrud<LeaveAuthorization>('leaveAuthorization');
+
+    const handleDelete = () => {
+        if (selectedRow) {
             try {
-                leaveAuthDB.remove(id);
+                leaveAuthDB.remove(selectedRow.id);
                 toast.success('Leave authorization deleted successfully');
-                loadData();
+                queryClient.invalidateQueries({ queryKey: [HRMS_QUERY_KEYS.LEAVE_AUTHORIZATION] });
+                closeDeleteForm();
             } catch (error) {
                 console.error('Error deleting leave authorization:', error);
                 toast.error('Failed to delete leave authorization');
@@ -133,49 +122,74 @@ export default function LeaveAuthorizationPage() {
         }
     };
 
-    const columns = useMemo(() => getLeaveAuthorizationColumns({ onEdit: handleEdit, onDelete: handleDelete }), [handleEdit, handleDelete]);
-
     return (
-        <div className='min-h-screen'>
-            <div className='container space-y-4 p-1'>
-                <div className='flex justify-end'>
-                    <Button onClick={handleAddClick} variant='default' className='w-fit'>
-                        <Plus className='mr-2 h-4 w-4' />
-                        Add Leave Authorization
-                    </Button>
+        <>
+            {/* Add Form */}
+            {isAddFormOpen && (
+                <div ref={addFormRef}>
+                    <CollapsibleSection
+                        title='Add New Leave Authorization'
+                        description='Fill in the details below to create a new leave authorization'
+                        defaultOpen={true}
+                        variant='outline'
+                        size='md'
+                        className='slide-in-from-top-4 animate-in shadow-lg duration-300'>
+                        <div className='relative'>
+                            <Button
+                                type='button'
+                                onClick={closeAddForm}
+                                variant='ghost'
+                                size='sm'
+                                className='-top-[3.5rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
+                                <X className='h-4 w-4 text-destructive' /> Close
+                            </Button>
+                            <AddLeaveAuthorizationForm onSuccess={closeAddForm} />
+                        </div>
+                    </CollapsibleSection>
                 </div>
+            )}
 
-                {/* Grid View Section */}
-                <CollapsibleSection
-                    title=''
-                    description=''
-                    defaultOpen={true}
-                    variant='default'
-                    size='lg'
-                    className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
-                    {/* Data Table */}
-                    <GenericDataTable data={data} columns={columns} totalItems={data.length} isLoading={false} />
-                </CollapsibleSection>
+            {/* Edit Form */}
+            {isEditFormOpen && selectedRow && (
+                <div ref={editFormRef}>
+                    <CollapsibleSection
+                        title='Edit Leave Authorization'
+                        defaultOpen={true}
+                        variant='outline'
+                        size='md'
+                        className='slide-in-from-top-4 animate-in border-primary/20 shadow-lg duration-300'>
+                        <div className='relative'>
+                            <Button
+                                type='button'
+                                onClick={closeEditForm}
+                                variant='ghost'
+                                size='sm'
+                                className='-top-[3.5rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
+                                <X className='h-4 w-4 text-destructive' /> Close
+                            </Button>
+                            <UpdateLeaveAuthorizationForm selectedRow={selectedRow} onSuccess={closeEditForm} onCancel={closeEditForm} />
+                        </div>
+                    </CollapsibleSection>
+                </div>
+            )}
 
-                {/* Form Section */}
-                {isFormOpen && (
-                    <div id='leave-auth-form'>
-                        <CollapsibleSection
-                            title={editingAuth ? 'Edit Leave Authorization' : 'Add Leave Authorization'}
-                            description=''
-                            defaultOpen={true}
-                            variant='default'
-                            size='lg'
-                            className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
-                            <LeaveAuthorizationForm
-                                editingLeaveAuthorization={editingAuth}
-                                onSubmit={handleFormSubmit}
-                                onCancel={handleFormClose}
-                            />
-                        </CollapsibleSection>
+            {/* Delete Form */}
+            {isDeleteFormOpen && selectedRow && (
+                <div className='fixed inset-0 z-50 flex items-center justify-center bg-black/50'>
+                    <div className='mx-4 w-full max-w-md rounded-lg border bg-background p-6 shadow-lg'>
+                        <h2 className='mb-4 font-semibold text-lg'>Delete Leave Authorization</h2>
+                        <p className='mb-6'>Are you sure you want to delete this leave authorization? This action cannot be undone.</p>
+                        <div className='flex justify-end gap-2'>
+                            <Button type='button' variant='outline' onClick={closeDeleteForm}>
+                                Cancel
+                            </Button>
+                            <Button type='button' variant='destructive' onClick={handleDelete}>
+                                Delete
+                            </Button>
+                        </div>
                     </div>
-                )}
-            </div>
-        </div>
+                </div>
+            )}
+        </>
     );
 }
