@@ -110,21 +110,39 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
         }
     });
 
+    // Sibling details controlled by react-hook-form
+    const {
+        fields: siblingFields,
+        append: appendSibling,
+        remove,
+        replace: replaceSiblings
+    } = useFieldArray({
+        control,
+        name: 'siblingsDetails'
+    });
+
+    // Previous School Details controlled by react-hook-form
+    const {
+        fields: previousSchoolFields,
+        append: appendPreviousSchool,
+        remove: removePreviousSchool,
+        replace: replacePreviousSchools
+    } = useFieldArray({
+        control,
+        name: 'previousSchoolDetails'
+    });
+
     useEffect(() => {
         if (rowData) {
             const existingId = rowData.pasr_id ?? rowData.pasR_Id ?? rowData.pasRId ?? 0;
             setValue('pasR_Id', existingId);
 
-            // Auto-fill siblingsDetails and previousSchoolDetails arrays if present
-            if (rowData.siblingsDetails || rowData.previousSchoolDetails) {
-                reset({
-                    ...getValues(),
-                    siblingsDetails: rowData.siblingsDetails || [],
-                    previousSchoolDetails: rowData.previousSchoolDetails || []
-                });
-            }
-
             Object.entries(rowData).forEach(([key, value]) => {
+                // Skip siblingsDetails and previousSchoolDetails - handle them separately
+                if (key === 'siblingsDetails' || key === 'previousSchoolDetails') {
+                    return;
+                }
+
                 if (key === 'pasR_DOB' && value) {
                     setValue(key, new Date(value as string));
                     return;
@@ -166,8 +184,18 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
 
                 setValue(key as any, normalized);
             });
+
             setValue('pasA_WillingToContributeFlg', rowData.pasA_WillingToContributeFlg ? 1 : 0);
             setValue('pasA_WillingToContributeRemarks', rowData.pasA_WillingToContributeRemarks ?? undefined);
+
+            // Handle siblingsDetails and previousSchoolDetails arrays AFTER all other fields
+            if (rowData.siblingsDetails && Array.isArray(rowData.siblingsDetails) && rowData.siblingsDetails.length > 0) {
+                replaceSiblings(rowData.siblingsDetails);
+            }
+
+            if (rowData.previousSchoolDetails && Array.isArray(rowData.previousSchoolDetails) && rowData.previousSchoolDetails.length > 0) {
+                replacePreviousSchools(rowData.previousSchoolDetails);
+            }
 
             if (rowData.selectedSourceDetails) {
                 setSelectedSourceItems(rowData.selectedSourceDetails);
@@ -203,7 +231,7 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                 });
             }
         }
-    }, [rowData, setValue]);
+    }, [rowData, setValue, replaceSiblings, replacePreviousSchools]);
 
     const [isDobOpen, setIsDobOpen] = useState(false);
     const [filteredClasses, setFilteredClasses] = useState<IPreadmissionClassDropdown[]>([]);
@@ -213,26 +241,6 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
     const [selectedSourceItems, setSelectedSourceItems] = useState<{ pamS_Id: string; pamS_SourceName: string }[]>([]);
     const [selectedReferenceItems, setSelectedReferenceItems] = useState<{ pamR_Id: string; pamR_ReferenceName: string }[]>([]);
     const [sameAsResidential, setSameAsResidential] = useState(false);
-
-    // Sibling details controlled by react-hook-form
-    const {
-        fields: siblingFields,
-        append: appendSibling,
-        remove
-    } = useFieldArray({
-        control,
-        name: 'siblingsDetails'
-    });
-
-    // Previous School Details controlled by react-hook-form
-    const {
-        fields: previousSchoolFields,
-        append: appendPreviousSchool,
-        remove: removePreviousSchool
-    } = useFieldArray({
-        control,
-        name: 'previousSchoolDetails'
-    });
 
     const [previousSchool, setPreviousSchool] = useState({
         pasrpS_Id: 0,
@@ -465,7 +473,6 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
         setCurrentStep((prev) => Math.max(prev - 1, 1));
     };
 
-    // Removed unused goToStep function
     const handlePhoneChange = (phone: string, countryData: any, fieldName: string) => {
         // If empty or equal to dial code only, clear
         if (!phone || phone === countryData?.dialCode) {
