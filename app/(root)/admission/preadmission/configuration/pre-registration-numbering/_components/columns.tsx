@@ -33,14 +33,14 @@ export const preRegistrationnumberingColumns: ColumnDef<IMasterTransactionNumber
     {
         accessorKey: 'imN_ZeroPrefixFlag',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Zero Prefix' />,
-        cell: ({ row }) => <div>{row.getValue('imN_ZeroPrefixFlag') ? 'Yes' : 'No'}</div>,
+        cell: ({ row }) => <div>{row.getValue('imN_ZeroPrefixFlag')}</div>,
         enableSorting: true,
         enableHiding: true
     },
     {
         accessorKey: 'imN_RestartNumFlag',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Restart Numbering' />,
-        cell: ({ row }) => <div>{row.getValue('imN_RestartNumFlag') ? 'Yes' : 'No'}</div>,
+        cell: ({ row }) => <div>{row.getValue('imN_RestartNumFlag')}</div>,
         enableSorting: true,
         enableHiding: true
     },
@@ -54,7 +54,7 @@ export const preRegistrationnumberingColumns: ColumnDef<IMasterTransactionNumber
     {
         accessorKey: 'imN_SuffixAcadYearCode',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Academic Year Suffix' />,
-        cell: ({ row }) => <div>{row.getValue('imN_SuffixAcadYearCode') ? 'Yes' : 'No'}</div>,
+        cell: ({ row }) => <div>{row.getValue('imN_SuffixAcadYearCode')}</div>,
         enableSorting: true,
         enableHiding: true
     },

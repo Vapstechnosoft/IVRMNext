@@ -10,12 +10,15 @@ import { Plus, X } from 'lucide-react';
 import { use } from 'react';
 import AddMasterSectionForm from './_components/add-form';
 import { masterSectionColumns } from './_components/columns';
+import ReorderSectionForm from './_components/reorder-form';
 import ToggleMasterSectionForm from './_components/toggle-form';
 import UpdateMasterSectionForm from './_components/update-form';
 
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 
-export default function MasterSectionPage(props: { searchParams: SearchParams }) {
+export default function MasterSectionPage(props: {
+    searchParams: SearchParams;
+}) {
     const searchParams = use(props.searchParams);
     const { data: response, isLoading, error } = useMasterSection(searchParams);
 
@@ -58,6 +61,9 @@ function MasterSectionPageContent({
                     variant='default'
                     size='lg'
                     className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
+                    <div className='flex justify-end'>
+                        <ReorderSectionForm />
+                    </div>
                     <GenericDataTable<IMasterSectionList>
                         {...tableProps}
                         columns={masterSectionColumns}

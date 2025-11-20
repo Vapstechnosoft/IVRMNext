@@ -83,6 +83,7 @@ const steps = [
 
 export default function AddStudentApplicationForm({ onSuccess, className = '' }: AddStudentApplicationFormProps) {
     const [currentStep, setCurrentStep] = useState(1);
+    const [openPopover, setOpenPopover] = useState<string | null>(null);
     const {
         watch,
         control,
@@ -295,9 +296,9 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
         setCurrentStep((prev) => Math.max(prev - 1, 1));
     };
 
-    const goToStep = (step: number) => {
-        setCurrentStep(step);
-    };
+    //   const goToStep = (step: number) => {
+    //     setCurrentStep(step);
+    //   };
 
     const onSubmit: SubmitHandler<FormFields | any> = async (data: FormFields) => {
         if (data.pasR_UndertakingFlag === 0) {
@@ -487,7 +488,10 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
 
                 if (existingIndex >= 0) {
                     const updated = [...prev];
-                    updated[existingIndex] = { ...updated[existingIndex], isUploading: true };
+                    updated[existingIndex] = {
+                        ...updated[existingIndex],
+                        isUploading: true
+                    };
                     return updated;
                 }
                 return [
@@ -1049,7 +1053,9 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
                                                         <Label htmlFor='pasR_DOB'>
                                                             Date of Birth <span className='ml-1 text-red-500'>*</span>
                                                         </Label>
-                                                        <Popover>
+                                                        <Popover
+                                                            open={openPopover === 'pasR_DOB'}
+                                                            onOpenChange={(open) => setOpenPopover(open ? 'pasR_DOB' : null)}>
                                                             <PopoverTrigger asChild>
                                                                 <Button
                                                                     variant={'outline'}
@@ -1070,6 +1076,7 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
                                                                         if (date) {
                                                                             field.onChange(date);
                                                                             handleDOBChange(date);
+                                                                            setOpenPopover(null);
                                                                         }
                                                                     }}
                                                                     disabled={(date: Date) =>
