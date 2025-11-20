@@ -13,6 +13,11 @@ const withPWA = require('@ducanh2912/next-pwa').default({
 
 const nextConfig: NextConfig = {
     reactStrictMode: false,
+    experimental: {
+        serverActions: {
+            bodySizeLimit: '5mb'
+        }
+    },
     images: {
         remotePatterns: [
             {

@@ -482,6 +482,17 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
 
     const handleDocumentUpload = async (amsmD_Id: number, file: File, documentName: string) => {
         try {
+            // Restrict file size to 5MB
+            if (file.size > 5 * 1024 * 1024) {
+                toast.error('File size should not exceed 5MB');
+                return;
+            }
+            // Block DOC and XLSX files
+            const allowedTypes = ['application/pdf', 'image/jpeg', 'image/jpg', 'image/png'];
+            if (!allowedTypes.includes(file.type)) {
+                toast.error(' Only Pdf,PNG, JPG, and JPEG formats are allowed');
+                return;
+            }
             // Set uploading state - ADD document if it doesn't exist
             setUploadedDocuments((prev) => {
                 const existingIndex = prev.findIndex((doc) => doc.amsmD_Id === amsmD_Id);
@@ -575,6 +586,18 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
 
     const handleStudentPhotoUpload = async (file: File) => {
         try {
+            // Validate file type
+            const allowedFormats = ['image/jpeg', 'image/jpg', 'image/png'];
+            if (!allowedFormats.includes(file.type)) {
+                toast.error('Only PNG, JPG, and JPEG formats are allowed');
+                return;
+            }
+            // Restrict photo size to 5MB
+            if (file.size > 5 * 1024 * 1024) {
+                toast.error('Photo size should not exceed 5MB');
+                return;
+            }
+
             setStudentPhoto({ pasR_Student_Pic_Path: '', isUploading: true });
             setStudentPhotoError(null);
 
@@ -664,6 +687,18 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
 
     const handleFatherPhotoUpload = async (file: File) => {
         try {
+            // Validate file type
+            const allowedFormats = ['image/jpeg', 'image/jpg', 'image/png'];
+            if (!allowedFormats.includes(file.type)) {
+                toast.error('Only PNG, JPG, and JPEG formats are allowed');
+                return;
+            }
+            // Restrict photo size to 5MB
+            if (file.size > 5 * 1024 * 1024) {
+                toast.error('Photo size should not exceed 5MB');
+                return;
+            }
+
             setFatherPhoto({ pasR_FatherPhoto: '', isUploading: true });
             setFatherPhotoError(null);
 
@@ -709,6 +744,18 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
 
     const handleMotherPhotoUpload = async (file: File) => {
         try {
+            // Validate file type
+            const allowedFormats = ['image/jpeg', 'image/jpg', 'image/png'];
+            if (!allowedFormats.includes(file.type)) {
+                toast.error('Only PNG, JPG, and JPEG formats are allowed');
+                return;
+            }
+            // Restrict photo size to 5MB
+            if (file.size > 5 * 1024 * 1024) {
+                toast.error('Photo size should not exceed 5MB');
+                return;
+            }
+
             setMotherPhoto({ pasR_MotherPhoto: '', isUploading: true });
             setMotherPhotoError(null);
 
@@ -947,7 +994,7 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
                                                                         Click to upload
                                                                     </span>
                                                                     <span className='mt-1 max-w-[250px] text-gray-600 text-sm'>
-                                                                        Upload recent passport-size photo (Max size: 1MB, Format: JPG, PNG)
+                                                                        Upload recent passport-size photo (Max size: 5MB, Format: JPG, PNG)
                                                                     </span>
                                                                 </>
                                                             )}
@@ -960,8 +1007,8 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
                                                                 onChange={(e) => {
                                                                     const file = e.target.files?.[0];
                                                                     if (file) {
-                                                                        if (file.size > 1 * 1024 * 1024) {
-                                                                            toast.error('File size must be less than 1MB');
+                                                                        if (file.size > 5 * 1024 * 1024) {
+                                                                            toast.error('File size must be less than 5MB');
                                                                             e.target.value = '';
                                                                             return;
                                                                         }
@@ -1785,7 +1832,7 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
                                                                                 Click to upload
                                                                             </span>
                                                                             <span className='mt-1 max-w-[250px] text-gray-600 text-sm'>
-                                                                                Upload recent passport-size photo (Max size: 1MB, Format:
+                                                                                Upload recent passport-size photo (Max size: 5MB, Format:
                                                                                 JPG, PNG)
                                                                             </span>
                                                                         </>
@@ -1799,8 +1846,8 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
                                                                         onChange={(e) => {
                                                                             const file = e.target.files?.[0];
                                                                             if (file) {
-                                                                                if (file.size > 1 * 1024 * 1024) {
-                                                                                    toast.error('File size must be less than 1MB');
+                                                                                if (file.size > 5 * 1024 * 1024) {
+                                                                                    toast.error('File size must be less than 5MB');
                                                                                     e.target.value = '';
                                                                                     return;
                                                                                 }
@@ -2076,7 +2123,7 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
                                                                                 Click to upload
                                                                             </span>
                                                                             <span className='mt-1 max-w-[250px] text-gray-600 text-sm'>
-                                                                                Upload recent passport-size photo (Max size: 1MB, Format:
+                                                                                Upload recent passport-size photo (Max size: 5MB, Format:
                                                                                 JPG, PNG)
                                                                             </span>
                                                                         </>
@@ -2090,8 +2137,8 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
                                                                         onChange={(e) => {
                                                                             const file = e.target.files?.[0];
                                                                             if (file) {
-                                                                                if (file.size > 1 * 1024 * 1024) {
-                                                                                    toast.error('File size must be less than 1MB');
+                                                                                if (file.size > 5 * 1024 * 1024) {
+                                                                                    toast.error('File size must be less than 5MB');
                                                                                     e.target.value = '';
                                                                                     return;
                                                                                 }
@@ -2526,9 +2573,9 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
                                                                                     onChange={(e) => {
                                                                                         const file = e.target.files?.[0];
                                                                                         if (file) {
-                                                                                            if (file.size > 1 * 1024 * 1024) {
+                                                                                            if (file.size > 5 * 1024 * 1024) {
                                                                                                 toast.error(
-                                                                                                    'File size must be less than 1MB'
+                                                                                                    'File size must be less than 5MB'
                                                                                                 );
                                                                                                 e.target.value = ''; // Reset input
                                                                                                 return;
