@@ -101,7 +101,28 @@ export default function AddLeaveCreditDetailsForm({ onSuccess, onCancel, classNa
     }, [leaveName, setValue]);
 
     const onSubmit: SubmitHandler<LeaveCreditDetail> = async (data) => {
-        saveDetails(data, {
+        // Map LeaveCreditDetail to the expected API format
+        const apiData = {
+            HRML_Id: 0, // Will be set by the API if creating new
+            HRMLD_NoOfDays: String(data.noOfDays || 0),
+            HRMLD_MaxLeaveApplicable: data.maxLeaveApplicable || 0,
+            Emp_types: data.type || [],
+            dept_types: data.department || [],
+            desig_types: data.designation || [],
+            grade_types: data.grade || [],
+            HRMLD_CarryForFlg: data.leaveCarryForward || false,
+            HRMLD_EncashFlg: data.leaveEncashment || false,
+            HRMLDCF_MaxLeaveAplFlg: false, // Default value
+            HRMLDCF_MaxLeaveCF: 0, // Default value
+            selectedcarryMonthList: [], // Default value
+            selectedMonthList: data.months ? Object.keys(data.months).filter(m => (data.months?.[m] || 0) > 0).map(m => {
+                const monthIndex = MONTHS.indexOf(m);
+                return monthIndex >= 0 ? monthIndex + 1 : 0;
+            }).filter(m => m > 0) : [],
+            ...data
+        };
+        
+        saveDetails(apiData, {
             onSuccess: () => {
                 reset();
                 refetchAll();

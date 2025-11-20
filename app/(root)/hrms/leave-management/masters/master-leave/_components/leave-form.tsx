@@ -4,7 +4,9 @@ import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { InputText } from '@/components/ui/extension/input-text';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useMasterLeaveDropdowns } from '@/hooks/hrms/leave-management/useMasters';
 import { X } from 'lucide-react';
+import { useMemo } from 'react';
 import { type SubmitHandler, useForm } from 'react-hook-form';
 import type { MasterLeave } from './columns';
 
@@ -15,6 +17,16 @@ interface LeaveFormProps {
 }
 
 export function LeaveForm({ editingLeave, onSubmit, onCancel }: LeaveFormProps) {
+    const { data: dropdownData, isLoading: isLoadingDropdowns } = useMasterLeaveDropdowns();
+
+    // Extract leave type options from API
+    const leaveTypeOptions = useMemo(() => {
+        if (!dropdownData?.data?.leaveTypes || !Array.isArray(dropdownData.data.leaveTypes)) {
+            return [];
+        }
+        return dropdownData.data.leaveTypes;
+    }, [dropdownData]);
+
     const {
         register,
         handleSubmit,
@@ -71,16 +83,26 @@ export function LeaveForm({ editingLeave, onSubmit, onCancel }: LeaveFormProps) 
                     <label htmlFor='leave-type-select' className='font-medium text-sm'>
                         Leave Type *
                     </label>
-                    <Select value={watch('leaveType')} onValueChange={(value) => setValue('leaveType', value)}>
+                    <Select 
+                        value={watch('leaveType')} 
+                        onValueChange={(value) => setValue('leaveType', value)}
+                        disabled={isLoadingDropdowns}
+                    >
                         <SelectTrigger id='leave-type-select' className={errors.leaveType ? 'border-red-500' : ''}>
-                            <SelectValue placeholder='Select Leave Type' />
+                            <SelectValue placeholder={isLoadingDropdowns ? 'Loading...' : 'Select Leave Type'} />
                         </SelectTrigger>
                         <SelectContent>
-                            <SelectItem value='On_Duty'>On Duty</SelectItem>
-                            <SelectItem value='Comp_Off'>Comp Off</SelectItem>
-                            <SelectItem value='LWP'>LWP</SelectItem>
-                            <SelectItem value='EL'>Emergency Leave</SelectItem>
-                            <SelectItem value='SL'>Sick Leave</SelectItem>
+                            {leaveTypeOptions.length > 0 ? (
+                                leaveTypeOptions.map((option) => (
+                                    <SelectItem key={option.value} value={option.value}>
+                                        {option.label}
+                                    </SelectItem>
+                                ))
+                            ) : (
+                                <div className='px-2 py-1.5 text-sm text-muted-foreground'>
+                                    {isLoadingDropdowns ? 'Loading options...' : 'No options available'}
+                                </div>
+                            )}
                         </SelectContent>
                     </Select>
                     {errors.leaveType && <p className='mt-1 text-red-500 text-xs'>{errors.leaveType.message}</p>}

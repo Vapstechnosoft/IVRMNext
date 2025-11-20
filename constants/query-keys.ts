@@ -254,6 +254,9 @@ export const HRMS_QUERY_KEYS = {
     EMPLOYEE_INOUT_REPORT: 'attendance_employee_inout_report',
     EMPLOYEE_INOUT_REPORT_ONLOAD: 'attendance_employee_inout_report_onload',
     EMPLOYEE_INOUT_REPORT_SEARCH: 'attendance_employee_inout_report_search',
+    EMPLOYEE_INOUT_REPORT_DEPARTMENTS: 'attendance_employee_inout_report_departments',
+    EMPLOYEE_INOUT_REPORT_DESIGNATIONS: 'attendance_employee_inout_report_designations',
+    EMPLOYEE_INOUT_REPORT_EMPLOYEES: 'attendance_employee_inout_report_employees',
     EMPLOYEE_ABSENT_REPORT: 'attendance_employee_absent_report',
     EMPLOYEE_LATEIN_EARLYOUT_REPORT: 'attendance_employee_latein_earlyout_report',
     EMPLOYEE_LATEIN_EARLYOUT_REPORT_ONLOAD: 'attendance_employee_latein_earlyout_report_onload',
@@ -284,10 +287,12 @@ export const HRMS_QUERY_KEYS = {
     LEAVE_CREDIT_DEDUCTION: 'leave_leave_credit_deduction',
     LEAVE_CREDIT_ADDITION: 'leave_leave_credit_addition',
     LEAVE_CARRYFORWARD: 'leave_leave_carryforward',
+    LEAVE_TRANSFER: 'leave_leave_transfer',
     COMP_OFF_APPROVAL: 'leave_comp_off_approval',
     COMP_OFF_REQUEST: 'leave_comp_off_request',
     // Leave Management Apply Leave
     LEAVE_BALANCE: 'leave_leave_balance',
     LEAVE_HISTORY: 'leave_leave_history',
-    APPLY_LEAVE: 'leave_apply_leave'
+    APPLY_LEAVE: 'leave_apply_leave',
+    LEAVE_APPROVAL: 'leave_leave_approval'
 };

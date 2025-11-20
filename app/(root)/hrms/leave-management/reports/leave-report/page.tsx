@@ -36,7 +36,7 @@ export default function LeaveReportPage() {
     const types: Array<{ id: number; name: string }> = [];
     const departments: Array<{ id: number; name: string }> = [];
     const designations: Array<{ id: number; name: string }> = [];
-    const employees: Employee[] = [];
+    const employees: Array<{ id: number; employeeCode: string; employeeName: string; designation?: string; department?: string }> = [];
     const isLoadingTypes = false;
     const isLoadingDepartments = false;
     const isLoadingDesignations = false;

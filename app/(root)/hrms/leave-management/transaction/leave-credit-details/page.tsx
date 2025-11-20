@@ -112,7 +112,29 @@ function FormSections() {
     const [activeTab, _setActiveTab] = useState('Leave Credit');
 
     const handleFormSubmit = (formData: LeaveCreditDetail) => {
-        saveCreditDetails(formData, {
+        // Map LeaveCreditDetail to the expected API format
+        const apiData = {
+            HRML_Id: formData.id || 0,
+            HRMLD_NoOfDays: String(formData.noOfDays || 0),
+            HRMLD_MaxLeaveApplicable: formData.maxLeaveApplicable || 0,
+            Emp_types: formData.type || [],
+            dept_types: formData.department || [],
+            desig_types: formData.designation || [],
+            grade_types: formData.grade || [],
+            HRMLD_CarryForFlg: formData.leaveCarryForward || false,
+            HRMLD_EncashFlg: formData.leaveEncashment || false,
+            HRMLDCF_MaxLeaveAplFlg: false,
+            HRMLDCF_MaxLeaveCF: 0,
+            selectedcarryMonthList: [],
+            selectedMonthList: formData.months ? Object.keys(formData.months).filter(m => (formData.months?.[m] || 0) > 0).map(m => {
+                const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+                const monthIndex = MONTHS.indexOf(m);
+                return monthIndex >= 0 ? monthIndex + 1 : 0;
+            }).filter(m => m > 0) : [],
+            ...formData
+        };
+        
+        saveCreditDetails(apiData, {
             onSuccess: () => {
                 toast.success(selectedRow ? 'Leave credit details updated successfully' : 'Leave credit details saved successfully');
                 refetchAll();

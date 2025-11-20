@@ -50,7 +50,7 @@ export default function Form10Page() {
 
     // React Query hooks
     const { data: onloadData, isLoading: isLoadingOnload, error: onloadError } = usePFForm10ReportOnload(roleId);
-    const filterMutation = useFilterPFForm10EmployeeData();
+    const _filterMutation = useFilterPFForm10EmployeeData();
     const searchMutation = useSearchPFForm10Report();
 
     // State
@@ -127,7 +127,7 @@ export default function Form10Page() {
         }
 
         // Find month name from selected month
-        const selectedMonthObj = months.find((m) => m.IVRM_Month_Name?.trim() === filters.month);
+        const selectedMonthObj = months.find((m: any) => m.IVRM_Month_Name?.trim() === filters.month);
         const monthName = selectedMonthObj?.IVRM_Month_Name?.trim() || filters.month;
 
         // Prepare search request

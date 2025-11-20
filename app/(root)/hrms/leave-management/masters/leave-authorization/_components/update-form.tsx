@@ -5,10 +5,10 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { FormError } from '@/components/ui/extension/field';
 import { InputText } from '@/components/ui/extension/input-text';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { useLeaveAuthorization, useUpdateLeaveAuthorization } from '@/hooks/hrms/leave-management/useMasters';
+import { useLeaveAuthorization, useLeaveAuthorizationDropdowns, useLeaveAuthorizationForEdit, useUpdateLeaveAuthorization } from '@/hooks/hrms/leave-management/useMasters';
 import { LEAVE_AUTHORIZATION_VALIDATION } from '@/lib/validation/hrms-master-validation';
 import { Save, X } from 'lucide-react';
-import { useEffect } from 'react';
+import { useEffect, useMemo } from 'react';
 import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
 import type { LeaveAuthorization } from './columns';
 
@@ -27,6 +27,53 @@ export default function UpdateLeaveAuthorizationForm({
 }: UpdateLeaveAuthorizationFormProps) {
     const { refetchAll } = useLeaveAuthorization();
     const { mutate: updateLeaveAuthorization, isPending } = useUpdateLeaveAuthorization();
+    const { data: dropdownData, isLoading: isLoadingDropdowns } = useLeaveAuthorizationDropdowns();
+    
+    // Fetch leave authorization data for editing from API
+    const { data: editData, isLoading: isLoadingEditData, error: editError } = useLeaveAuthorizationForEdit(row?.id || null);
+
+    // Extract dropdown options from API
+    const gradeOptions = useMemo(() => {
+        if (!dropdownData?.data?.grades || !Array.isArray(dropdownData.data.grades)) {
+            return [];
+        }
+        return dropdownData.data.grades;
+    }, [dropdownData]);
+
+    const groupTypeOptions = useMemo(() => {
+        if (!dropdownData?.data?.groupTypes || !Array.isArray(dropdownData.data.groupTypes)) {
+            return [];
+        }
+        return dropdownData.data.groupTypes;
+    }, [dropdownData]);
+
+    const departmentOptions = useMemo(() => {
+        if (!dropdownData?.data?.departments || !Array.isArray(dropdownData.data.departments)) {
+            return [];
+        }
+        return dropdownData.data.departments;
+    }, [dropdownData]);
+
+    const designationOptions = useMemo(() => {
+        if (!dropdownData?.data?.designations || !Array.isArray(dropdownData.data.designations)) {
+            return [];
+        }
+        return dropdownData.data.designations;
+    }, [dropdownData]);
+
+    const leaveTypeOptions = useMemo(() => {
+        if (!dropdownData?.data?.leaveTypes || !Array.isArray(dropdownData.data.leaveTypes)) {
+            return [];
+        }
+        return dropdownData.data.leaveTypes;
+    }, [dropdownData]);
+
+    const approvalPersonOptions = useMemo(() => {
+        if (!dropdownData?.data?.approvalPersons || !Array.isArray(dropdownData.data.approvalPersons)) {
+            return [];
+        }
+        return dropdownData.data.approvalPersons;
+    }, [dropdownData]);
 
     const {
         register,
@@ -40,8 +87,23 @@ export default function UpdateLeaveAuthorizationForm({
         mode: 'onChange'
     });
 
+    // Load data from API when edit data is fetched
     useEffect(() => {
-        if (row) {
+        if (editData?.data) {
+            const apiRow = editData.data;
+            reset({
+                institution: apiRow.institution || 'Vaps Knowledge Services Pvt Ltd',
+                gradeName: apiRow.gradeName || '',
+                groupTypeName: apiRow.groupTypeName || '',
+                departmentName: apiRow.departmentName || '',
+                designationName: apiRow.designationName || '',
+                leaveType: apiRow.leaveType || '',
+                orderOfApproval: apiRow.orderOfApproval || '',
+                approvalPerson: apiRow.approvalPerson || '',
+                finalFlag: apiRow.finalFlag ?? false
+            });
+        } else if (row && !isLoadingEditData) {
+            // Fallback to selectedRow if API data is not available
             reset({
                 institution: row.institution || 'Vaps Knowledge Services Pvt Ltd',
                 gradeName: row.gradeName || '',
@@ -54,7 +116,7 @@ export default function UpdateLeaveAuthorizationForm({
                 finalFlag: row.finalFlag ?? false
             });
         }
-    }, [row, reset]);
+    }, [editData, row, reset, isLoadingEditData]);
 
     const onSubmit: SubmitHandler<LeaveAuthorization> = async (data) => {
         updateLeaveAuthorization(
@@ -75,6 +137,34 @@ export default function UpdateLeaveAuthorizationForm({
     const handleReset = () => {
         reset();
     };
+
+    // Show loading state while fetching edit data
+    if (isLoadingEditData) {
+        return (
+            <div className={`${className} flex items-center justify-center p-8`}>
+                <div className='text-center'>
+                    <div className='mb-2 text-sm text-muted-foreground'>Loading leave authorization data...</div>
+                </div>
+            </div>
+        );
+    }
+
+    // Show error state if edit data failed to load
+    if (editError) {
+        return (
+            <div className={`${className} flex items-center justify-center p-8`}>
+                <div className='text-center'>
+                    <div className='mb-2 text-sm text-red-600'>{editError.message || 'Failed to load leave authorization data'}</div>
+                    {onCancel && (
+                        <Button type='button' variant='outline' onClick={onCancel} className='mt-4'>
+                            <X className='mr-2 h-4 w-4' />
+                            CANCEL
+                        </Button>
+                    )}
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className={`${className}`}>
@@ -102,15 +192,22 @@ export default function UpdateLeaveAuthorizationForm({
                                     <label htmlFor='grade-select' className='mb-2 block font-medium text-gray-700 text-sm'>
                                         Select Grade <span className='text-red-500'>*</span>
                                     </label>
-                                    <Select value={field.value} onValueChange={field.onChange}>
+                                    <Select value={field.value} onValueChange={field.onChange} disabled={isLoadingDropdowns}>
                                         <SelectTrigger id='grade-select' className={errors.gradeName ? 'border-red-500' : ''}>
-                                            <SelectValue placeholder='--Select--' />
+                                            <SelectValue placeholder={isLoadingDropdowns ? 'Loading...' : '--Select--'} />
                                         </SelectTrigger>
                                         <SelectContent>
-                                            <SelectItem value='Manager'>Manager</SelectItem>
-                                            <SelectItem value='Executive'>Executive</SelectItem>
-                                            <SelectItem value='Senior Manager'>Senior Manager</SelectItem>
-                                            <SelectItem value='Director'>Director</SelectItem>
+                                            {gradeOptions.length > 0 ? (
+                                                gradeOptions.map((option) => (
+                                                    <SelectItem key={option.value} value={option.value}>
+                                                        {option.label}
+                                                    </SelectItem>
+                                                ))
+                                            ) : (
+                                                <div className='px-2 py-1.5 text-sm text-muted-foreground'>
+                                                    {isLoadingDropdowns ? 'Loading options...' : 'No options available'}
+                                                </div>
+                                            )}
                                         </SelectContent>
                                     </Select>
                                     {errors.gradeName && <FormError>{errors.gradeName.message}</FormError>}
@@ -127,15 +224,22 @@ export default function UpdateLeaveAuthorizationForm({
                                     <label htmlFor='group-type-select' className='mb-2 block font-medium text-gray-700 text-sm'>
                                         Group Type <span className='text-red-500'>*</span>
                                     </label>
-                                    <Select value={field.value} onValueChange={field.onChange}>
+                                    <Select value={field.value} onValueChange={field.onChange} disabled={isLoadingDropdowns}>
                                         <SelectTrigger id='group-type-select' className={errors.groupTypeName ? 'border-red-500' : ''}>
-                                            <SelectValue placeholder='--Select--' />
+                                            <SelectValue placeholder={isLoadingDropdowns ? 'Loading...' : '--Select--'} />
                                         </SelectTrigger>
                                         <SelectContent>
-                                            <SelectItem value='VKS'>VKS</SelectItem>
-                                            <SelectItem value='Admin'>Admin</SelectItem>
-                                            <SelectItem value='HR'>HR</SelectItem>
-                                            <SelectItem value='Finance'>Finance</SelectItem>
+                                            {groupTypeOptions.length > 0 ? (
+                                                groupTypeOptions.map((option) => (
+                                                    <SelectItem key={option.value} value={option.value}>
+                                                        {option.label}
+                                                    </SelectItem>
+                                                ))
+                                            ) : (
+                                                <div className='px-2 py-1.5 text-sm text-muted-foreground'>
+                                                    {isLoadingDropdowns ? 'Loading options...' : 'No options available'}
+                                                </div>
+                                            )}
                                         </SelectContent>
                                     </Select>
                                     {errors.groupTypeName && <FormError>{errors.groupTypeName.message}</FormError>}
@@ -152,16 +256,22 @@ export default function UpdateLeaveAuthorizationForm({
                                     <label htmlFor='department-select' className='mb-2 block font-medium text-gray-700 text-sm'>
                                         Department Type <span className='text-red-500'>*</span>
                                     </label>
-                                    <Select value={field.value} onValueChange={field.onChange}>
+                                    <Select value={field.value} onValueChange={field.onChange} disabled={isLoadingDropdowns}>
                                         <SelectTrigger id='department-select' className={errors.departmentName ? 'border-red-500' : ''}>
-                                            <SelectValue placeholder='--Select--' />
+                                            <SelectValue placeholder={isLoadingDropdowns ? 'Loading...' : '--Select--'} />
                                         </SelectTrigger>
                                         <SelectContent>
-                                            <SelectItem value='Sales and Marketing'>Sales and Marketing</SelectItem>
-                                            <SelectItem value='Human Resources'>Human Resources</SelectItem>
-                                            <SelectItem value='Finance'>Finance</SelectItem>
-                                            <SelectItem value='Operations'>Operations</SelectItem>
-                                            <SelectItem value='IT'>IT</SelectItem>
+                                            {departmentOptions.length > 0 ? (
+                                                departmentOptions.map((option) => (
+                                                    <SelectItem key={option.value} value={option.value}>
+                                                        {option.label}
+                                                    </SelectItem>
+                                                ))
+                                            ) : (
+                                                <div className='px-2 py-1.5 text-sm text-muted-foreground'>
+                                                    {isLoadingDropdowns ? 'Loading options...' : 'No options available'}
+                                                </div>
+                                            )}
                                         </SelectContent>
                                     </Select>
                                     {errors.departmentName && <FormError>{errors.departmentName.message}</FormError>}
@@ -178,20 +288,22 @@ export default function UpdateLeaveAuthorizationForm({
                                     <label htmlFor='designation-select' className='mb-2 block font-medium text-gray-700 text-sm'>
                                         Designation Type <span className='text-red-500'>*</span>
                                     </label>
-                                    <Select value={field.value} onValueChange={field.onChange}>
+                                    <Select value={field.value} onValueChange={field.onChange} disabled={isLoadingDropdowns}>
                                         <SelectTrigger id='designation-select' className={errors.designationName ? 'border-red-500' : ''}>
-                                            <SelectValue placeholder='--Select--' />
+                                            <SelectValue placeholder={isLoadingDropdowns ? 'Loading...' : '--Select--'} />
                                         </SelectTrigger>
                                         <SelectContent>
-                                            <SelectItem value='Assistant Business Development Manager'>
-                                                Assistant Business Development Manager
-                                            </SelectItem>
-                                            <SelectItem value='Business Development Manager'>Business Development Manager</SelectItem>
-                                            <SelectItem value='Senior Business Development Manager'>
-                                                Senior Business Development Manager
-                                            </SelectItem>
-                                            <SelectItem value='Team Lead'>Team Lead</SelectItem>
-                                            <SelectItem value='Senior Manager'>Senior Manager</SelectItem>
+                                            {designationOptions.length > 0 ? (
+                                                designationOptions.map((option) => (
+                                                    <SelectItem key={option.value} value={option.value}>
+                                                        {option.label}
+                                                    </SelectItem>
+                                                ))
+                                            ) : (
+                                                <div className='px-2 py-1.5 text-sm text-muted-foreground'>
+                                                    {isLoadingDropdowns ? 'Loading options...' : 'No options available'}
+                                                </div>
+                                            )}
                                         </SelectContent>
                                     </Select>
                                     {errors.designationName && <FormError>{errors.designationName.message}</FormError>}
@@ -211,17 +323,22 @@ export default function UpdateLeaveAuthorizationForm({
                                     <label htmlFor='leave-type-select' className='mb-2 block font-medium text-gray-700 text-sm'>
                                         Leave Type <span className='text-red-500'>*</span>
                                     </label>
-                                    <Select value={field.value} onValueChange={field.onChange}>
+                                    <Select value={field.value} onValueChange={field.onChange} disabled={isLoadingDropdowns}>
                                         <SelectTrigger id='leave-type-select' className={errors.leaveType ? 'border-red-500' : ''}>
-                                            <SelectValue placeholder='--Select--' />
+                                            <SelectValue placeholder={isLoadingDropdowns ? 'Loading...' : '--Select--'} />
                                         </SelectTrigger>
                                         <SelectContent>
-                                            <SelectItem value='Comp Off'>Comp Off</SelectItem>
-                                            <SelectItem value='Optional Leave'>Optional Leave</SelectItem>
-                                            <SelectItem value='Casual Leave'>Casual Leave</SelectItem>
-                                            <SelectItem value='Sick Leave'>Sick Leave</SelectItem>
-                                            <SelectItem value='Emergency Leave'>Emergency Leave</SelectItem>
-                                            <SelectItem value='Privilege Leave'>Privilege Leave</SelectItem>
+                                            {leaveTypeOptions.length > 0 ? (
+                                                leaveTypeOptions.map((option) => (
+                                                    <SelectItem key={option.value} value={option.value}>
+                                                        {option.label}
+                                                    </SelectItem>
+                                                ))
+                                            ) : (
+                                                <div className='px-2 py-1.5 text-sm text-muted-foreground'>
+                                                    {isLoadingDropdowns ? 'Loading options...' : 'No options available'}
+                                                </div>
+                                            )}
                                         </SelectContent>
                                     </Select>
                                     {errors.leaveType && <FormError>{errors.leaveType.message}</FormError>}
@@ -248,17 +365,24 @@ export default function UpdateLeaveAuthorizationForm({
                                     <label htmlFor='approval-person-select' className='mb-2 block font-medium text-gray-700 text-sm'>
                                         Approval Person <span className='text-red-500'>*</span>
                                     </label>
-                                    <Select value={field.value} onValueChange={field.onChange}>
+                                    <Select value={field.value} onValueChange={field.onChange} disabled={isLoadingDropdowns}>
                                         <SelectTrigger
                                             id='approval-person-select'
                                             className={errors.approvalPerson ? 'border-red-500' : ''}>
-                                            <SelectValue placeholder='--Select--' />
+                                            <SelectValue placeholder={isLoadingDropdowns ? 'Loading...' : '--Select--'} />
                                         </SelectTrigger>
                                         <SelectContent>
-                                            <SelectItem value='Benoy Yogesh Shetty'>Benoy Yogesh Shetty</SelectItem>
-                                            <SelectItem value='R Siddesh Kumar'>R Siddesh Kumar</SelectItem>
-                                            <SelectItem value='John Doe'>John Doe</SelectItem>
-                                            <SelectItem value='Jane Smith'>Jane Smith</SelectItem>
+                                            {approvalPersonOptions.length > 0 ? (
+                                                approvalPersonOptions.map((option) => (
+                                                    <SelectItem key={option.value} value={option.value}>
+                                                        {option.label}
+                                                    </SelectItem>
+                                                ))
+                                            ) : (
+                                                <div className='px-2 py-1.5 text-sm text-muted-foreground'>
+                                                    {isLoadingDropdowns ? 'Loading options...' : 'No options available'}
+                                                </div>
+                                            )}
                                         </SelectContent>
                                     </Select>
                                     {errors.approvalPerson && <FormError>{errors.approvalPerson.message}</FormError>}

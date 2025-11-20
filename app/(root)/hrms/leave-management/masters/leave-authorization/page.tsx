@@ -4,13 +4,9 @@ import { Button } from '@/components/ui/button';
 import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/generic-data-table';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
-import { HRMS_QUERY_KEYS } from '@/constants/query-keys';
-import { useLeaveAuthorization } from '@/hooks/hrms/leave-management/useMasters';
-import { createLocalCrud } from '@/lib/localdb';
-import { useQueryClient } from '@tanstack/react-query';
+import { useDeleteLeaveAuthorization, useLeaveAuthorization } from '@/hooks/hrms/leave-management/useMasters';
 import { Plus, X } from 'lucide-react';
 import { use } from 'react';
-import { toast } from 'sonner';
 import AddLeaveAuthorizationForm from './_components/add-form';
 import { type LeaveAuthorization, getLeaveAuthorizationColumns } from './_components/columns';
 import UpdateLeaveAuthorizationForm from './_components/update-form';
@@ -105,20 +101,25 @@ function FormSections() {
         addFormRef,
         editFormRef
     } = useFormContext<LeaveAuthorization>();
-    const queryClient = useQueryClient();
-    const leaveAuthDB = createLocalCrud<LeaveAuthorization>('leaveAuthorization');
+    const { mutate: deleteLeaveAuthorization, isPending: isDeleting } = useDeleteLeaveAuthorization();
 
     const handleDelete = () => {
         if (selectedRow) {
-            try {
-                leaveAuthDB.remove(selectedRow.id);
-                toast.success('Leave authorization deleted successfully');
-                queryClient.invalidateQueries({ queryKey: [HRMS_QUERY_KEYS.LEAVE_AUTHORIZATION] });
-                closeDeleteForm();
-            } catch (error) {
-                console.error('Error deleting leave authorization:', error);
-                toast.error('Failed to delete leave authorization');
-            }
+            // Extract HRLA_Id from the row data if available, otherwise use 0
+            const HRLA_Id = (selectedRow as any)._HRLA_Id || 0;
+            const HRLAON_Id = selectedRow.id || 0;
+
+            deleteLeaveAuthorization(
+                {
+                    HRLA_Id: HRLA_Id,
+                    HRLAON_Id: HRLAON_Id
+                },
+                {
+                    onSuccess: () => {
+                        closeDeleteForm();
+                    }
+                }
+            );
         }
     };
 
@@ -180,11 +181,11 @@ function FormSections() {
                         <h2 className='mb-4 font-semibold text-lg'>Delete Leave Authorization</h2>
                         <p className='mb-6'>Are you sure you want to delete this leave authorization? This action cannot be undone.</p>
                         <div className='flex justify-end gap-2'>
-                            <Button type='button' variant='outline' onClick={closeDeleteForm}>
+                            <Button type='button' variant='outline' onClick={closeDeleteForm} disabled={isDeleting}>
                                 Cancel
                             </Button>
-                            <Button type='button' variant='destructive' onClick={handleDelete}>
-                                Delete
+                            <Button type='button' variant='destructive' onClick={handleDelete} disabled={isDeleting}>
+                                {isDeleting ? 'Deleting...' : 'Delete'}
                             </Button>
                         </div>
                     </div>

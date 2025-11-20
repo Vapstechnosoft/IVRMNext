@@ -51,7 +51,7 @@ export default function Form5Page() {
 
     // React Query hooks
     const { data: onloadData, isLoading: isLoadingOnload, error: onloadError } = usePFForm5ReportOnload(roleId);
-    const filterMutation = useFilterPFForm5EmployeeData();
+    const _filterMutation = useFilterPFForm5EmployeeData();
     const searchMutation = useSearchPFForm5Report();
 
     // State
@@ -121,7 +121,7 @@ export default function Form5Page() {
         }
 
         // Find month name from selected month
-        const selectedMonthObj = months.find((m) => m.IVRM_Month_Name?.trim() === filters.month);
+        const selectedMonthObj = months.find((m: any) => m.IVRM_Month_Name?.trim() === filters.month);
         const monthName = selectedMonthObj?.IVRM_Month_Name?.trim() || filters.month;
 
         // Prepare search request

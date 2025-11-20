@@ -413,10 +413,7 @@ export function RetirementReportFilters({
                                     }))}
                                 defaultValue={filters.selectedGroupTypes || []}
                                 onValueChange={(values) =>
-                                    onFilterChange({
-                                        ...filters,
-                                        selectedGroupTypes: values
-                                    })
+                                    onFilterChange('selectedGroupTypes', values)
                                 }
                                 placeholder='Select Group Types'
                                 className='w-full'
@@ -444,10 +441,7 @@ export function RetirementReportFilters({
                                     }))}
                                 defaultValue={filters.selectedDepartments || []}
                                 onValueChange={(values) =>
-                                    onFilterChange({
-                                        ...filters,
-                                        selectedDepartments: values
-                                    })
+                                    onFilterChange('selectedDepartments', values)
                                 }
                                 placeholder='Select Departments'
                                 className='w-full'
@@ -475,10 +469,7 @@ export function RetirementReportFilters({
                                     }))}
                                 defaultValue={filters.selectedDesignations || []}
                                 onValueChange={(values) =>
-                                    onFilterChange({
-                                        ...filters,
-                                        selectedDesignations: values
-                                    })
+                                    onFilterChange('selectedDesignations', values)
                                 }
                                 placeholder='Select Designations'
                                 className='w-full'

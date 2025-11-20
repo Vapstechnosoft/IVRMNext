@@ -1,5 +1,4 @@
-import { api } from '@/lib/apiService';
-import type { ApiResponse } from '@/types/api';
+import { api, type ApiResponse } from '@/lib/apiService';
 import type {
     EmployeeAdvanceReportOnloadRequest,
     EmployeeAdvanceReportOnloadResponse,
@@ -34,7 +33,7 @@ export async function getEmployeeAdvanceReportOnload(
         if (response && typeof response === 'object') {
             return {
                 success: true,
-                data: response as EmployeeAdvanceReportOnloadResponse,
+                data: response as unknown as EmployeeAdvanceReportOnloadResponse,
                 message: 'Employee advance report onload data fetched successfully'
             };
         }
@@ -75,7 +74,7 @@ export async function searchEmployeeAdvanceReport(
         if (response && typeof response === 'object') {
             return {
                 success: true,
-                data: response as EmployeeAdvanceReportSearchResponse,
+                data: response as unknown as EmployeeAdvanceReportSearchResponse,
                 message: 'Employee advance report data fetched successfully'
             };
         }

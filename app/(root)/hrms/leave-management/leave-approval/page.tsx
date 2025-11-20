@@ -4,7 +4,8 @@ import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/
 import { AdaptiveDialog } from '@/components/ui/extension/adaptive-dialog';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
-import { use, useEffect, useMemo, useState } from 'react';
+import { useLeaveApprovalStatus } from '@/hooks/hrms/leave-management/useLeaveApproval';
+import { use, useMemo } from 'react';
 import { toast } from 'sonner';
 import { type LeaveApprovalRow, getLeaveApprovalColumns } from './_components/columns';
 import { LeaveApprovalForm, type LeaveApprovalFormData } from './_components/leave-approval-form';
@@ -13,92 +14,37 @@ type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 
 export default function LeaveApprovalPage(props: { searchParams: SearchParams }) {
     const _searchParams = use(props.searchParams);
-    const [data, setData] = useState<LeaveApprovalRow[]>([]);
-    const [isLoading, setIsLoading] = useState(false);
+    const { data: response, isLoading, error } = useLeaveApprovalStatus();
 
-    // Seed demo data
-    useEffect(() => {
-        setIsLoading(true);
-        // Simulate API call
-        setTimeout(() => {
-            setData([
-                {
-                    id: 1,
-                    employeeCode: '1503',
-                    employeeName: 'chandrakala j k',
-                    leaveName: 'Sick Leave',
-                    fromDate: '2024-01-01',
-                    toDate: '2024-01-01',
-                    totalDays: 1,
-                    leaveStatus: 'Approved',
-                    remark: 'Approved'
-                },
-                {
-                    id: 2,
-                    employeeCode: '12354',
-                    employeeName: 'test staff',
-                    leaveName: 'Sick Leave',
-                    fromDate: '2024-09-01',
-                    toDate: '2024-09-01',
-                    totalDays: 1,
-                    leaveStatus: 'Approved',
-                    remark: 'Approved'
-                },
-                {
-                    id: 3,
-                    employeeCode: '0123',
-                    employeeName: 'suresh',
-                    leaveName: 'Sick Leave',
-                    fromDate: '2025-07-12',
-                    toDate: '2025-07-14',
-                    totalDays: 3,
-                    leaveStatus: 'Applied',
-                    remark: ''
-                },
-                {
-                    id: 4,
-                    employeeCode: '0456',
-                    employeeName: 'rajesh kumar',
-                    leaveName: 'Casual Leave',
-                    fromDate: '2025-01-15',
-                    toDate: '2025-01-17',
-                    totalDays: 3,
-                    leaveStatus: 'Pending',
-                    remark: ''
-                }
-            ]);
-            setIsLoading(false);
-        }, 500);
-    }, []);
-
-    // Create mock response for useDataTableProps
+    // Create response for useDataTableProps
     const mockResponse = {
-        data: data,
-        total: data.length,
+        data: response?.data || [],
+        total: response?.data?.length || 0,
         page: 1,
         pageSize: 10
     };
 
     return (
         <FormProvider<LeaveApprovalRow>>
-            <LeaveApprovalPageContent data={data} setData={setData} isLoading={isLoading} mockResponse={mockResponse} />
+            <LeaveApprovalPageContent response={response} isLoading={isLoading} error={error} mockResponse={mockResponse} />
         </FormProvider>
     );
 }
 
 function LeaveApprovalPageContent({
-    data,
-    setData,
+    response,
     isLoading,
+    error,
     mockResponse
 }: {
-    data: LeaveApprovalRow[];
-    setData: (data: LeaveApprovalRow[]) => void;
+    response: any;
     isLoading: boolean;
+    error: any;
     mockResponse: any;
 }) {
     const { openEditForm } = useFormContext<LeaveApprovalRow>();
     const tableProps = useDataTableProps(mockResponse);
+    const { refetchAll: _refetchApprovalStatus } = useLeaveApprovalStatus();
 
     const handleApprove = (row: LeaveApprovalRow) => {
         openEditForm(row);
@@ -111,7 +57,7 @@ function LeaveApprovalPageContent({
     const columns = useMemo(() => getLeaveApprovalColumns({ onApprove: handleApprove, onReject: handleReject }), []);
 
     // Filter pending leaves
-    const pendingLeaves = data.filter((item) => item.leaveStatus === 'Applied' || item.leaveStatus === 'Pending');
+    const pendingLeaves = (response?.data || []).filter((item: LeaveApprovalRow) => item.leaveStatus === 'Applied' || item.leaveStatus === 'Pending');
 
     return (
         <div className='min-h-screen'>
@@ -149,7 +95,7 @@ function LeaveApprovalPageContent({
                         {...tableProps}
                         columns={columns}
                         isLoading={isLoading}
-                        error={undefined}
+                        error={error}
                         showViewOptions={false}
                         columnPinning={{ right: ['actions'] }}
                         loadingMessage='Loading leave approvals...'
@@ -160,37 +106,23 @@ function LeaveApprovalPageContent({
                 </CollapsibleSection>
 
                 {/* Forms */}
-                <FormSections data={data} setData={setData} />
+                <FormSections />
             </div>
         </div>
     );
 }
 
-function FormSections({
-    data,
-    setData
-}: {
-    data: LeaveApprovalRow[];
-    setData: (data: LeaveApprovalRow[]) => void;
-}) {
+function FormSections() {
     const { isEditFormOpen, selectedRow, closeEditForm } = useFormContext<LeaveApprovalRow>();
+    const { refetchAll } = useLeaveApprovalStatus();
 
     const handleFormSubmit = (formData: LeaveApprovalFormData) => {
         if (!selectedRow) return;
 
-        const updatedData = data.map((item) => {
-            if (item.id === selectedRow.id) {
-                return {
-                    ...item,
-                    leaveStatus: formData.action === 'approve' ? 'Approved' : 'Rejected',
-                    remark: formData.remark || (formData.action === 'approve' ? 'Approved' : 'Rejected')
-                };
-            }
-            return item;
-        });
-
-        setData(updatedData);
+        // TODO: Call approve/reject API endpoint when available
+        // For now, just show success message and refresh data
         toast.success(`Leave ${formData.action === 'approve' ? 'approved' : 'rejected'} successfully`);
+        refetchAll();
         closeEditForm();
     };
 

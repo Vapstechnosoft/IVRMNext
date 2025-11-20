@@ -51,7 +51,7 @@ export default function LoanReportPage() {
 
     // Debug: Log when showReport changes
     useEffect(() => {
-        console.log('🔵 showReport changed:', showReport);
+        // showReport state tracked for UI updates
     }, [showReport]);
 
     // Filter employees when filters change (for Individual mode)
@@ -104,14 +104,10 @@ export default function LoanReportPage() {
     };
 
     const handleSearch = () => {
-        console.log('🔵 handleSearch called', { filters, showReport });
-
         // Show the sheet template immediately, even without data
         setShowReport(true);
         setLoanRecords([]);
         setFilteredRecords([]);
-
-        console.log('🔵 showReport set to true, filteredRecords cleared');
 
         // Show immediate feedback
         toast.info('Generating report...');
@@ -249,7 +245,7 @@ export default function LoanReportPage() {
                                 filters.year || getValue(item, 'HRELT_Year')?.toString() || responseData.HRELT_Year?.toString() || '';
 
                             records.push({
-                                id: `loan-${getValue(item, 'HREL_Id') || getValue(item, 'HRELT_Id') || index}`,
+                                id: Number(getValue(item, 'HREL_Id') || getValue(item, 'HRELT_Id') || index) || index + 1,
                                 employeeCode: employeeCode,
                                 employeeName: employeeName,
                                 groupType: groupType,
@@ -307,7 +303,7 @@ export default function LoanReportPage() {
 
                             if (loanAmount > 0) {
                                 records.push({
-                                    id: `loan-total-${index}`,
+                                    id: (index + 1000000), // Use a large number to avoid conflicts
                                     employeeCode: employeeCode,
                                     employeeName: employeeName,
                                     groupType: 'N/A',

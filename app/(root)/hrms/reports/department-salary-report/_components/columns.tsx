@@ -7,7 +7,6 @@ import type { ColumnDef } from '@tanstack/react-table';
 export interface DepartmentSalaryRecord {
     id?: string;
     employeeCode: string;
-    employeeCode: string;
     employeeName: string;
     groupType: string;
     department: string;

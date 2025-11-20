@@ -1,17 +1,705 @@
 'use server';
 
+import { HRMS_MI_ID } from '@/constants/hrms-config';
+import { api, type ApiResponse } from '@/lib/apiService';
 import { createLocalCrud } from '@/lib/localdb';
 import type { LeaveCreditDetail } from '@/app/(root)/hrms/leave-management/transaction/leave-credit-details/_components/columns';
+import type {
+    GetLeaveCreditDetailsRequest,
+    GetLeaveCreditDetailsResponseData,
+    LeaveCreditDetailItem,
+    GetLeaveCodeRequest,
+    GetLeaveCodeResponseData,
+    LeaveCodeItem,
+    GetLeaveCreditDepartmentsRequest,
+    GetLeaveCreditDepartmentsResponseData,
+    DepartmentItem,
+    GetLeaveCreditDesignationRequest,
+    GetLeaveCreditDesignationResponseData,
+    DesignationItem,
+    GetLeaveCreditGradeRequest,
+    GetLeaveCreditGradeResponseData,
+    GradeItem,
+    GetLeaveMasterRequest,
+    GetLeaveMasterResponseData,
+    LeaveMasterItem,
+    SaveLeaveCreditDetailsRequest,
+    SaveLeaveCreditDetailsResponseData,
+    GetLeaveDetailsCreditMonthRequest,
+    GetLeaveDetailsCreditMonthResponseData,
+    LeaveDetailsCreditMonthItem,
+    GetLeaveDetailsCFRequest,
+    GetLeaveDetailsCFResponseData,
+    LeaveDetailsCFItem,
+    GetLeaveDetailsCFMonthRequest,
+    GetLeaveDetailsCFMonthResponseData,
+    LeaveDetailsCFMonthItem,
+    GetLeaveDetailsEnCashRequest,
+    GetLeaveDetailsEnCashResponseData,
+    LeaveDetailsEnCashItem
+} from '@/types/hrms/leave-management/leave-credit-details';
 
-export async function getLeaveCreditDetails() {
-    const db = createLocalCrud<LeaveCreditDetail>('leaveCreditDetails');
-    const data = db.list();
-
+/**
+ * Map API response data to LeaveCreditDetail format
+ */
+function mapApiDataToLeaveCreditDetail(apiData: LeaveCreditDetailItem, index: number): LeaveCreditDetail {
     return {
-        success: true,
-        data: data,
-        message: 'Data fetched successfully'
+        id: apiData.HRMLD_Id || apiData.id || index + 1,
+        createdAt: apiData.createdAt || new Date(),
+        type: [], // Will be populated from other fields if needed
+        department: apiData.HRMD_DepartmentName ? [apiData.HRMD_DepartmentName] : [],
+        designation: apiData.HRMDES_DesignationName ? [apiData.HRMDES_DesignationName] : [],
+        grade: apiData.HRMG_GradeName ? [apiData.HRMG_GradeName] : undefined,
+        leaveName: apiData.HRML_LeaveName || apiData.leaveName || '',
+        leaveCode: apiData.HRML_LeaveCode || apiData.leaveCode || '',
+        noOfDays: typeof apiData.HRMLD_NoOfDays === 'string' 
+            ? parseFloat(apiData.HRMLD_NoOfDays) || 0 
+            : (apiData.HRMLD_NoOfDays || apiData.noOfDays || 0),
+        maxLeaveApplicable: apiData.HRMLD_MaxLeaveApplicable || apiData.maxLeaveApplicable || 0,
+        leaveCarryForward: apiData.HRMLD_CarryForFlg ?? apiData.leaveCarryForward ?? false,
+        leaveEncashment: apiData.HRMLD_EncashFlg ?? apiData.leaveEncashment ?? false,
+        leaveCreditMonthWise: false, // Default value
+        creditMonths: [],
+        months: {}
     };
+}
+
+/**
+ * Get leave credit details
+ * POST /api/LeaveCreditWrapperFacade/GetLeave
+ * 
+ * @param request - Request payload with MI_Id
+ * @returns Leave credit details data
+ */
+export async function getLeaveCreditDetails(request?: { MI_Id?: number }): Promise<ApiResponse<LeaveCreditDetail[]>> {
+    const url = '/api/LeaveCreditWrapperFacade/GetLeave';
+
+    const requestBody: GetLeaveCreditDetailsRequest = {
+        MI_Id: request?.MI_Id || HRMS_MI_ID
+    };
+
+    console.log('💳 ========== GET LEAVE CREDIT DETAILS ==========');
+    console.log('💳 [SERVER] Request URL:', url);
+    console.log('💳 [SERVER] Request Body:', JSON.stringify(requestBody, null, 2));
+
+    try {
+        const response = await api.post<GetLeaveCreditDetailsResponseData>('hmslms', url, requestBody);
+        
+        console.log('💳 [SERVER] Response:', JSON.stringify(response, null, 2));
+
+        // Handle the response structure
+        let responseData: GetLeaveCreditDetailsResponseData;
+        if (response && typeof response === 'object' && 'success' in response && 'data' in response) {
+            // Already wrapped in ApiResponse format
+            responseData = (response as any).data;
+        } else {
+            // Raw response data
+            responseData = response as unknown as GetLeaveCreditDetailsResponseData;
+        }
+
+        // Extract leave credit details list from response
+        let detailsList: LeaveCreditDetailItem[] = [];
+        
+        if (responseData.GridviewDetails && Array.isArray(responseData.GridviewDetails)) {
+            detailsList = responseData.GridviewDetails;
+        } else if (responseData.leaveCreditDetails && Array.isArray(responseData.leaveCreditDetails)) {
+            detailsList = responseData.leaveCreditDetails;
+        } else if (responseData.leaveCreditList && Array.isArray(responseData.leaveCreditList)) {
+            detailsList = responseData.leaveCreditList;
+        } else if (responseData.leaveDetails && Array.isArray(responseData.leaveDetails)) {
+            detailsList = responseData.leaveDetails;
+        } else if (Array.isArray(responseData)) {
+            detailsList = responseData;
+        }
+
+        // Map API data to frontend format
+        const mappedData = detailsList.map((item, index) => mapApiDataToLeaveCreditDetail(item, index));
+
+        const responseDataAny = responseData as any;
+        return {
+            success: true,
+            message: responseDataAny?.retrunMsg || responseDataAny?.message || 'Leave credit details fetched successfully',
+            data: mappedData
+        };
+    } catch (error: any) {
+        console.error('🔴 [SERVER] Error:', error);
+        console.error('🔴 [SERVER] Error message:', error?.message);
+        console.error('🔴 [SERVER] Error response:', error?.response?.data);
+
+        // Extract error message from API response
+        const errorMessage = error?.response?.data?.message || 
+                           error?.response?.data?.retrunMsg || 
+                           error?.message || 
+                           'Failed to fetch leave credit details';
+
+        // Throw error so hooks can catch and display it
+        throw new Error(errorMessage);
+    }
+}
+
+/**
+ * Get leave code
+ * POST /api/LeaveCreditWrapperFacade/GetLeaveCode
+ * 
+ * @param request - Request payload with leavecode
+ * @returns Leave code data
+ */
+export async function getLeaveCode(request: GetLeaveCodeRequest): Promise<ApiResponse<GetLeaveCodeResponseData>> {
+    const url = '/api/LeaveCreditWrapperFacade/GetLeaveCode';
+
+    const requestBody: GetLeaveCodeRequest = {
+        leavecode: request.leavecode || 0
+    };
+
+    console.log('🔑 ========== GET LEAVE CODE ==========');
+    console.log('🔑 [SERVER] Request URL:', url);
+    console.log('🔑 [SERVER] Request Body:', JSON.stringify(requestBody, null, 2));
+
+    try {
+        const response = await api.post<GetLeaveCodeResponseData>('hmslms', url, requestBody);
+        
+        console.log('🔑 [SERVER] Response:', JSON.stringify(response, null, 2));
+
+        // Handle the response structure
+        if (response && typeof response === 'object' && 'success' in response && 'data' in response) {
+            // Already wrapped in ApiResponse format
+            return response as ApiResponse<GetLeaveCodeResponseData>;
+        }
+
+        // Wrap raw response data
+        return {
+            success: (response as any)?.success ?? true,
+            message: (response as any)?.message || (response as any)?.retrunMsg || (response as any)?.message || 'Data fetched successfully',
+            data: response as unknown as GetLeaveCodeResponseData
+        };
+    } catch (error: any) {
+        console.error('🔴 [SERVER] Error:', error);
+        console.error('🔴 [SERVER] Error message:', error?.message);
+        console.error('🔴 [SERVER] Error response:', error?.response?.data);
+
+        // Extract error message from API response
+        const errorMessage = error?.response?.data?.message || 
+                           error?.response?.data?.retrunMsg || 
+                           error?.message || 
+                           'Failed to fetch leave code';
+
+        // Throw error so hooks can catch and display it
+        throw new Error(errorMessage);
+    }
+}
+
+/**
+ * Get departments for leave credit details
+ * POST /api/LeaveCreditWrapperFacade/GetDepartments
+ * 
+ * @param request - Request payload with MI_Id and emptypes array
+ * @returns Departments data
+ */
+export async function getLeaveCreditDepartments(request: GetLeaveCreditDepartmentsRequest): Promise<ApiResponse<GetLeaveCreditDepartmentsResponseData>> {
+    const url = '/api/LeaveCreditWrapperFacade/GetDepartments';
+
+    const requestBody: GetLeaveCreditDepartmentsRequest = {
+        MI_Id: request.MI_Id || HRMS_MI_ID,
+        emptypes: request.emptypes || []
+    };
+
+    console.log('🏢 ========== GET LEAVE CREDIT DEPARTMENTS ==========');
+    console.log('🏢 [SERVER] Request URL:', url);
+    console.log('🏢 [SERVER] Request Body:', JSON.stringify(requestBody, null, 2));
+
+    try {
+        const response = await api.post<GetLeaveCreditDepartmentsResponseData>('hmslms', url, requestBody);
+        
+        console.log('🏢 [SERVER] Response:', JSON.stringify(response, null, 2));
+
+        // Handle the response structure
+        if (response && typeof response === 'object' && 'success' in response && 'data' in response) {
+            // Already wrapped in ApiResponse format
+            return response as ApiResponse<GetLeaveCreditDepartmentsResponseData>;
+        }
+
+        // Wrap raw response data
+        return {
+            success: (response as any)?.success ?? true,
+            message: (response as any)?.message || (response as any)?.retrunMsg || (response as any)?.message || 'Data fetched successfully',
+            data: response as unknown as GetLeaveCreditDepartmentsResponseData
+        };
+    } catch (error: any) {
+        console.error('🔴 [SERVER] Error:', error);
+        console.error('🔴 [SERVER] Error message:', error?.message);
+        console.error('🔴 [SERVER] Error response:', error?.response?.data);
+
+        // Extract error message from API response
+        const errorMessage = error?.response?.data?.message || 
+                           error?.response?.data?.retrunMsg || 
+                           error?.message || 
+                           'Failed to fetch departments';
+
+        // Throw error so hooks can catch and display it
+        throw new Error(errorMessage);
+    }
+}
+
+/**
+ * Get designation for leave credit details
+ * POST /api/LeaveCreditWrapperFacade/GetDesignation
+ * 
+ * @param request - Request payload with MI_Id and emptypes array
+ * @returns Designation data
+ */
+export async function getLeaveCreditDesignation(request: GetLeaveCreditDesignationRequest): Promise<ApiResponse<GetLeaveCreditDesignationResponseData>> {
+    const url = '/api/LeaveCreditWrapperFacade/GetDesignation';
+
+    const requestBody: GetLeaveCreditDesignationRequest = {
+        MI_Id: request.MI_Id || HRMS_MI_ID,
+        emptypes: request.emptypes || []
+    };
+
+    console.log('👔 ========== GET LEAVE CREDIT DESIGNATION ==========');
+    console.log('👔 [SERVER] Request URL:', url);
+    console.log('👔 [SERVER] Request Body:', JSON.stringify(requestBody, null, 2));
+
+    try {
+        const response = await api.post<GetLeaveCreditDesignationResponseData>('hmslms', url, requestBody);
+        
+        console.log('👔 [SERVER] Response:', JSON.stringify(response, null, 2));
+
+        // Handle the response structure
+        if (response && typeof response === 'object' && 'success' in response && 'data' in response) {
+            // Already wrapped in ApiResponse format
+            return response as ApiResponse<GetLeaveCreditDesignationResponseData>;
+        }
+
+        // Wrap raw response data
+        return {
+            success: (response as any)?.success ?? true,
+            message: (response as any)?.message || (response as any)?.retrunMsg || (response as any)?.message || 'Data fetched successfully',
+            data: response as unknown as GetLeaveCreditDesignationResponseData
+        };
+    } catch (error: any) {
+        console.error('🔴 [SERVER] Error:', error);
+        console.error('🔴 [SERVER] Error message:', error?.message);
+        console.error('🔴 [SERVER] Error response:', error?.response?.data);
+
+        // Extract error message from API response
+        const errorMessage = error?.response?.data?.message || 
+                           error?.response?.data?.retrunMsg || 
+                           error?.message || 
+                           'Failed to fetch designation';
+
+        // Throw error so hooks can catch and display it
+        throw new Error(errorMessage);
+    }
+}
+
+/**
+ * Get grade for leave credit details
+ * POST /api/LeaveCreditWrapperFacade/GetGrade
+ * 
+ * @param request - Request payload with MI_Id and emptypes array
+ * @returns Grade data
+ */
+export async function getLeaveCreditGrade(request: GetLeaveCreditGradeRequest): Promise<ApiResponse<GetLeaveCreditGradeResponseData>> {
+    const url = '/api/LeaveCreditWrapperFacade/GetGrade';
+
+    const requestBody: GetLeaveCreditGradeRequest = {
+        MI_Id: request.MI_Id || HRMS_MI_ID,
+        emptypes: request.emptypes || []
+    };
+
+    console.log('⭐ ========== GET LEAVE CREDIT GRADE ==========');
+    console.log('⭐ [SERVER] Request URL:', url);
+    console.log('⭐ [SERVER] Request Body:', JSON.stringify(requestBody, null, 2));
+
+    try {
+        const response = await api.post<GetLeaveCreditGradeResponseData>('hmslms', url, requestBody);
+        
+        console.log('⭐ [SERVER] Response:', JSON.stringify(response, null, 2));
+
+        // Handle the response structure
+        if (response && typeof response === 'object' && 'success' in response && 'data' in response) {
+            // Already wrapped in ApiResponse format
+            return response as ApiResponse<GetLeaveCreditGradeResponseData>;
+        }
+
+        // Wrap raw response data
+        return {
+            success: (response as any)?.success ?? true,
+            message: (response as any)?.message || (response as any)?.retrunMsg || (response as any)?.message || 'Data fetched successfully',
+            data: response as unknown as GetLeaveCreditGradeResponseData
+        };
+    } catch (error: any) {
+        console.error('🔴 [SERVER] Error:', error);
+        console.error('🔴 [SERVER] Error message:', error?.message);
+        console.error('🔴 [SERVER] Error response:', error?.response?.data);
+
+        // Extract error message from API response
+        const errorMessage = error?.response?.data?.message || 
+                           error?.response?.data?.retrunMsg || 
+                           error?.message || 
+                           'Failed to fetch grade';
+
+        // Throw error so hooks can catch and display it
+        throw new Error(errorMessage);
+    }
+}
+
+/**
+ * Get leave master (credit months) data
+ * POST /api/LeaveCreditWrapperFacade/LeaveMaster
+ * 
+ * @param request - Request payload with MI_Id, HRML_LeaveCode, and HRMLDCM_Id
+ * @returns Leave master data
+ */
+export async function getLeaveMaster(request: GetLeaveMasterRequest): Promise<ApiResponse<GetLeaveMasterResponseData>> {
+    const url = '/api/LeaveCreditWrapperFacade/LeaveMaster';
+
+    const requestBody: GetLeaveMasterRequest = {
+        MI_Id: request.MI_Id || HRMS_MI_ID,
+        HRML_LeaveCode: request.HRML_LeaveCode || '',
+        HRMLDCM_Id: request.HRMLDCM_Id || 0
+    };
+
+    console.log('📅 ========== GET LEAVE MASTER ==========');
+    console.log('📅 [SERVER] Request URL:', url);
+    console.log('📅 [SERVER] Request Body:', JSON.stringify(requestBody, null, 2));
+
+    try {
+        const response = await api.post<GetLeaveMasterResponseData>('hmslms', url, requestBody);
+        
+        console.log('📅 [SERVER] Response:', JSON.stringify(response, null, 2));
+
+        // Handle the response structure
+        if (response && typeof response === 'object' && 'success' in response && 'data' in response) {
+            // Already wrapped in ApiResponse format
+            return response as ApiResponse<GetLeaveMasterResponseData>;
+        }
+
+        // Wrap raw response data
+        return {
+            success: (response as any)?.success ?? true,
+            message: (response as any)?.message || (response as any)?.retrunMsg || (response as any)?.message || 'Data fetched successfully',
+            data: response as unknown as GetLeaveMasterResponseData
+        };
+    } catch (error: any) {
+        console.error('🔴 [SERVER] Error:', error);
+        console.error('🔴 [SERVER] Error message:', error?.message);
+        console.error('🔴 [SERVER] Error response:', error?.response?.data);
+
+        // Extract error message from API response
+        const errorMessage = error?.response?.data?.message || 
+                           error?.response?.data?.retrunMsg || 
+                           error?.message || 
+                           'Failed to fetch leave master';
+
+        // Throw error so hooks can catch and display it
+        throw new Error(errorMessage);
+    }
+}
+
+/**
+ * Get leave details CF Month data
+ * POST /api/LeaveCreditWrapperFacade/LeaveDetailsCFMonth
+ * 
+ * @param request - Request payload with HRMLDCFM_Id and HRMLDCFM_MonthId
+ * @returns Leave details CF Month data
+ */
+export async function getLeaveDetailsCFMonth(request: GetLeaveDetailsCFMonthRequest): Promise<ApiResponse<GetLeaveDetailsCFMonthResponseData>> {
+    const url = '/api/LeaveCreditWrapperFacade/LeaveDetailsCFMonth';
+
+    const requestBody: GetLeaveDetailsCFMonthRequest = {
+        HRMLDCFM_Id: request.HRMLDCFM_Id || 0,
+        HRMLDCFM_MonthId: request.HRMLDCFM_MonthId || 0
+    };
+
+    console.log('📆🔄 ========== GET LEAVE DETAILS CF MONTH ==========');
+    console.log('📆🔄 [SERVER] Request URL:', url);
+    console.log('📆🔄 [SERVER] Request Body:', JSON.stringify(requestBody, null, 2));
+
+    try {
+        const response = await api.post<GetLeaveDetailsCFMonthResponseData>('hmslms', url, requestBody);
+        
+        console.log('📆🔄 [SERVER] Response:', JSON.stringify(response, null, 2));
+
+        // Handle the response structure
+        if (response && typeof response === 'object' && 'success' in response && 'data' in response) {
+            // Already wrapped in ApiResponse format
+            return response as ApiResponse<GetLeaveDetailsCFMonthResponseData>;
+        }
+
+        // Wrap raw response data
+        return {
+            success: (response as any)?.success ?? true,
+            message: (response as any)?.message || (response as any)?.retrunMsg || (response as any)?.message || 'Data fetched successfully',
+            data: response as unknown as GetLeaveDetailsCFMonthResponseData
+        };
+    } catch (error: any) {
+        console.error('🔴 [SERVER] Error:', error);
+        console.error('🔴 [SERVER] Error message:', error?.message);
+        console.error('🔴 [SERVER] Error response:', error?.response?.data);
+
+        // Extract error message from API response
+        const errorMessage = error?.response?.data?.message || 
+                           error?.response?.data?.retrunMsg || 
+                           error?.message || 
+                           'Failed to fetch leave details CF month';
+
+        // Throw error so hooks can catch and display it
+        throw new Error(errorMessage);
+    }
+}
+
+/**
+ * Get leave details EnCash (Encashment) data
+ * POST /api/LeaveCreditWrapperFacade/LeaveDetailsEnCash
+ * 
+ * @param request - Request payload with encashment details
+ * @returns Leave details EnCash data
+ */
+export async function getLeaveDetailsEnCash(request: GetLeaveDetailsEnCashRequest): Promise<ApiResponse<GetLeaveDetailsEnCashResponseData>> {
+    const url = '/api/LeaveCreditWrapperFacade/LeaveDetailsEnCash';
+
+    const requestBody: GetLeaveDetailsEnCashRequest = {
+        HRMLDEC_Id: request.HRMLDEC_Id || 0,
+        HRMLDEC_ServiceAplFlg: request.HRMLDEC_ServiceAplFlg ?? true,
+        HRMLDEC_ServiceYear: request.HRMLDEC_ServiceYear || '',
+        HRMLDEC_ServiceMonth: request.HRMLDEC_ServiceMonth || '',
+        HRMLDEC_ServiceDays: request.HRMLDEC_ServiceDays || '',
+        HRMLDEC_MaxLeaveFlg: request.HRMLDEC_MaxLeaveFlg ?? true,
+        HRMLDEC_MaxLeaves: request.HRMLDEC_MaxLeaves || 0,
+        HRMLDEC_MinLeaveFlg: request.HRMLDEC_MinLeaveFlg ?? true,
+        HRMLDEC_MinLeaves: request.HRMLDEC_MinLeaves || 0,
+        HRMLDEC_ScheduleFlg: request.HRMLDEC_ScheduleFlg || '',
+        HRMLDEC_ScheduleYear: request.HRMLDEC_ScheduleYear || '',
+        HRMLDEC_ScheduleMonth: request.HRMLDEC_ScheduleMonth || ''
+    };
+
+    console.log('💰 ========== GET LEAVE DETAILS ENCASH ==========');
+    console.log('💰 [SERVER] Request URL:', url);
+    console.log('💰 [SERVER] Request Body:', JSON.stringify(requestBody, null, 2));
+
+    try {
+        const response = await api.post<GetLeaveDetailsEnCashResponseData>('hmslms', url, requestBody);
+        
+        console.log('💰 [SERVER] Response:', JSON.stringify(response, null, 2));
+
+        // Handle the response structure
+        if (response && typeof response === 'object' && 'success' in response && 'data' in response) {
+            // Already wrapped in ApiResponse format
+            return response as ApiResponse<GetLeaveDetailsEnCashResponseData>;
+        }
+
+        // Wrap raw response data
+        return {
+            success: (response as any)?.success ?? true,
+            message: (response as any)?.message || (response as any)?.retrunMsg || (response as any)?.message || 'Data fetched successfully',
+            data: response as unknown as GetLeaveDetailsEnCashResponseData
+        };
+    } catch (error: any) {
+        console.error('🔴 [SERVER] Error:', error);
+        console.error('🔴 [SERVER] Error message:', error?.message);
+        console.error('🔴 [SERVER] Error response:', error?.response?.data);
+
+        // Extract error message from API response
+        const errorMessage = error?.response?.data?.message || 
+                           error?.response?.data?.retrunMsg || 
+                           error?.message || 
+                           'Failed to fetch leave details encash';
+
+        // Throw error so hooks can catch and display it
+        throw new Error(errorMessage);
+    }
+}
+
+/**
+ * Get leave details CF (Carry Forward) data
+ * POST /api/LeaveCreditWrapperFacade/LeaveDetailsCF
+ * 
+ * @param request - Request payload with HRMLDCF_Id and HRMLDCF_MaxLeaveAplFlg
+ * @returns Leave details CF data
+ */
+export async function getLeaveDetailsCF(request: GetLeaveDetailsCFRequest): Promise<ApiResponse<GetLeaveDetailsCFResponseData>> {
+    const url = '/api/LeaveCreditWrapperFacade/LeaveDetailsCF';
+
+    const requestBody: GetLeaveDetailsCFRequest = {
+        HRMLDCF_Id: request.HRMLDCF_Id || 0,
+        HRMLDCF_MaxLeaveAplFlg: request.HRMLDCF_MaxLeaveAplFlg ?? true
+    };
+
+    console.log('🔄 ========== GET LEAVE DETAILS CF ==========');
+    console.log('🔄 [SERVER] Request URL:', url);
+    console.log('🔄 [SERVER] Request Body:', JSON.stringify(requestBody, null, 2));
+
+    try {
+        const response = await api.post<GetLeaveDetailsCFResponseData>('hmslms', url, requestBody);
+        
+        console.log('🔄 [SERVER] Response:', JSON.stringify(response, null, 2));
+
+        // Handle the response structure
+        if (response && typeof response === 'object' && 'success' in response && 'data' in response) {
+            // Already wrapped in ApiResponse format
+            return response as ApiResponse<GetLeaveDetailsCFResponseData>;
+        }
+
+        // Wrap raw response data
+        return {
+            success: (response as any)?.success ?? true,
+            message: (response as any)?.message || (response as any)?.retrunMsg || (response as any)?.message || 'Data fetched successfully',
+            data: response as unknown as GetLeaveDetailsCFResponseData
+        };
+    } catch (error: any) {
+        console.error('🔴 [SERVER] Error:', error);
+        console.error('🔴 [SERVER] Error message:', error?.message);
+        console.error('🔴 [SERVER] Error response:', error?.response?.data);
+
+        // Extract error message from API response
+        const errorMessage = error?.response?.data?.message || 
+                           error?.response?.data?.retrunMsg || 
+                           error?.message || 
+                           'Failed to fetch leave details CF';
+
+        // Throw error so hooks can catch and display it
+        throw new Error(errorMessage);
+    }
+}
+
+/**
+ * Get leave details credit month data
+ * POST /api/LeaveCreditWrapperFacade/LeaveDetailsCreditMonth
+ * 
+ * @param request - Request payload with HRMLDCM_Id and HRMLDCM_LCMonthCode
+ * @returns Leave details credit month data
+ */
+export async function getLeaveDetailsCreditMonth(request: GetLeaveDetailsCreditMonthRequest): Promise<ApiResponse<GetLeaveDetailsCreditMonthResponseData>> {
+    const url = '/api/LeaveCreditWrapperFacade/LeaveDetailsCreditMonth';
+
+    const requestBody: GetLeaveDetailsCreditMonthRequest = {
+        HRMLDCM_Id: request.HRMLDCM_Id || 0,
+        HRMLDCM_LCMonthCode: request.HRMLDCM_LCMonthCode || ''
+    };
+
+    console.log('📆 ========== GET LEAVE DETAILS CREDIT MONTH ==========');
+    console.log('📆 [SERVER] Request URL:', url);
+    console.log('📆 [SERVER] Request Body:', JSON.stringify(requestBody, null, 2));
+
+    try {
+        const response = await api.post<GetLeaveDetailsCreditMonthResponseData>('hmslms', url, requestBody);
+        
+        console.log('📆 [SERVER] Response:', JSON.stringify(response, null, 2));
+
+        // Handle the response structure
+        if (response && typeof response === 'object' && 'success' in response && 'data' in response) {
+            // Already wrapped in ApiResponse format
+            return response as ApiResponse<GetLeaveDetailsCreditMonthResponseData>;
+        }
+
+        // Wrap raw response data
+        return {
+            success: (response as any)?.success ?? true,
+            message: (response as any)?.message || (response as any)?.retrunMsg || (response as any)?.message || 'Data fetched successfully',
+            data: response as unknown as GetLeaveDetailsCreditMonthResponseData
+        };
+    } catch (error: any) {
+        console.error('🔴 [SERVER] Error:', error);
+        console.error('🔴 [SERVER] Error message:', error?.message);
+        console.error('🔴 [SERVER] Error response:', error?.response?.data);
+
+        // Extract error message from API response
+        const errorMessage = error?.response?.data?.message || 
+                           error?.response?.data?.retrunMsg || 
+                           error?.message || 
+                           'Failed to fetch leave details credit month';
+
+        // Throw error so hooks can catch and display it
+        throw new Error(errorMessage);
+    }
+}
+
+/**
+ * Save leave credit details
+ * POST /api/LeaveCreditWrapperFacade/SaveData
+ * 
+ * @param data - Request payload with leave credit details data
+ * @returns Save response
+ */
+export async function saveLeaveCreditDetails(data: SaveLeaveCreditDetailsRequest): Promise<ApiResponse<SaveLeaveCreditDetailsResponseData>> {
+    const url = '/api/LeaveCreditWrapperFacade/SaveData';
+
+    const requestBody: SaveLeaveCreditDetailsRequest = {
+        ...data, // Include any additional fields first
+        MI_Id: data.MI_Id || HRMS_MI_ID,
+        HRML_Id: data.HRML_Id || 0,
+        HRMLD_NoOfDays: data.HRMLD_NoOfDays || '',
+        HRMLD_MaxLeaveApplicable: data.HRMLD_MaxLeaveApplicable || 0,
+        LoginId: data.LoginId || 0,
+        Emp_types: data.Emp_types || [],
+        dept_types: data.dept_types || [],
+        desig_types: data.desig_types || [],
+        grade_types: data.grade_types || [],
+        HRMLD_CarryForFlg: data.HRMLD_CarryForFlg ?? false,
+        HRMLD_EncashFlg: data.HRMLD_EncashFlg ?? false,
+        HRMLDCF_MaxLeaveAplFlg: data.HRMLDCF_MaxLeaveAplFlg ?? false,
+        HRMLDCF_MaxLeaveCF: data.HRMLDCF_MaxLeaveCF || 0,
+        selectedcarryMonthList: data.selectedcarryMonthList || [],
+        selectedMonthList: data.selectedMonthList || []
+    };
+
+    console.log('💾 ========== SAVE LEAVE CREDIT DETAILS ==========');
+    console.log('💾 [SERVER] Request URL:', url);
+    console.log('💾 [SERVER] Request Body:', JSON.stringify(requestBody, null, 2));
+
+    try {
+        const response = await api.post<SaveLeaveCreditDetailsResponseData>('hmslms', url, requestBody);
+        
+        console.log('💾 [SERVER] Response:', JSON.stringify(response, null, 2));
+
+        // Handle the response structure
+        let responseData: SaveLeaveCreditDetailsResponseData;
+        if (response && typeof response === 'object' && 'success' in response && 'data' in response) {
+            // Already wrapped in ApiResponse format
+            responseData = (response as any).data || {};
+        } else {
+            // Raw response data
+            responseData = (response as unknown as SaveLeaveCreditDetailsResponseData) || {};
+        }
+
+        // Extract success message
+        const successMessage = responseData?.retrunMsg || 
+                              responseData?.message || 
+                              (response as any)?.message || 
+                              (responseData?.returnval_add ? 'Leave credit detail created successfully' : 
+                               responseData?.returnval_Update ? 'Leave credit detail updated successfully' : 
+                               'Leave credit detail saved successfully');
+
+        // Check for duplicate status
+        if (responseData?.dupr || responseData?.returnduplicatestatus) {
+            const duplicateMessage = responseData?.returnduplicatestatus || 'Duplicate record found';
+            return {
+                success: false,
+                message: duplicateMessage,
+                data: responseData
+            };
+        }
+
+        return {
+            success: responseData?.returnval ?? (response as any)?.success ?? true,
+            message: successMessage,
+            data: responseData
+        };
+    } catch (error: any) {
+        console.error('🔴 [SERVER] Error:', error);
+        console.error('🔴 [SERVER] Error message:', error?.message);
+        console.error('🔴 [SERVER] Error response:', error?.response?.data);
+
+        // Extract error message from API response
+        const errorMessage = error?.response?.data?.message || 
+                           error?.response?.data?.retrunMsg || 
+                           error?.message || 
+                           'Failed to save leave credit details';
+
+        // Throw error so hooks can catch and display it
+        throw new Error(errorMessage);
+    }
 }
 
 export async function addOrUpdateLeaveCreditDetails(detail: LeaveCreditDetail) {

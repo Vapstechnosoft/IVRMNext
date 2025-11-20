@@ -40,20 +40,12 @@ interface YearlyTotals {
     closingBalance: number;
 }
 
-// Employee data for dropdown
-interface Employee {
-    id: number;
-    code: string;
-    name: string;
-    pfNumber?: string;
-}
-
 export default function PFForm3APage() {
     const roleId = HRMS_MI_ID;
 
     // React Query hooks
     const { data: onloadData, isLoading: isLoadingOnload, error: onloadError } = usePFForm3AReportOnload(roleId);
-    const filterMutation = useFilterPFForm3AEmployeeData();
+    const _filterMutation = useFilterPFForm3AEmployeeData();
     const searchMutation = useSearchPFForm3AReport();
 
     // State
@@ -118,7 +110,7 @@ export default function PFForm3APage() {
         }
 
         // Find employee ID from selected employee code
-        const selectedEmployee = employees.find((emp) => emp.code === filters.employeeCode);
+        const selectedEmployee = employees.find((emp: any) => emp.code === filters.employeeCode);
         if (!selectedEmployee) {
             toast.error('Selected employee not found');
             return;

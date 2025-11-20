@@ -164,7 +164,7 @@ export function useEmployeeStrengthReportOnload(MI_Id = 30, LogInUserId = 0) {
 }
 
 export function useSearchEmployeeStrengthReport() {
-    const queryClient = useQueryClient();
+    const _queryClient = useQueryClient();
 
     return useMutation({
         mutationFn: (data: EmployeeStrengthReportSearchRequest) => searchEmployeeStrengthReport(data),
@@ -193,7 +193,7 @@ export function useESIReportOnload(MI_Id = 30, LogInUserId = 0) {
 }
 
 export function useSearchESIReport() {
-    const queryClient = useQueryClient();
+    const _queryClient = useQueryClient();
 
     return useMutation({
         mutationFn: (data: ESIReportSearchRequest) => searchESIReport(data),
@@ -222,7 +222,7 @@ export function useHeadWiseReportOnload(MI_Id = 30, LogInUserId = 0) {
 }
 
 export function useSearchHeadWiseReport() {
-    const queryClient = useQueryClient();
+    const _queryClient = useQueryClient();
 
     return useMutation({
         mutationFn: (data: HeadWiseReportSearchRequest) => searchHeadWiseReport(data),
@@ -251,7 +251,7 @@ export function useBankCashReportOnload(MI_Id = 30, LogInUserId = 0) {
 }
 
 export function useSearchBankCashReport() {
-    const queryClient = useQueryClient();
+    const _queryClient = useQueryClient();
 
     return useMutation({
         mutationFn: (data: BankCashReportSearchRequest) => searchBankCashReport(data),
@@ -739,6 +739,58 @@ export function useEmployeeInOutReportList(
             });
         }
     };
+}
+
+export function useEmployeeInOutReportDepartments(
+    MI_Id = 30,
+    UserId = 0,
+    IVRMRT_Id = 0,
+    multipletype = '',
+    enabled = true
+) {
+    return useQuery({
+        queryKey: [HRMS_QUERY_KEYS.EMPLOYEE_INOUT_REPORT_DEPARTMENTS, MI_Id, UserId, IVRMRT_Id, multipletype],
+        queryFn: async () => {
+            const { getEmployeeInOutReportDepartments } = await import('@/server/hrms/hrmsConfig/reports/employee-inout-report');
+            return getEmployeeInOutReportDepartments(MI_Id, UserId, IVRMRT_Id, multipletype);
+        },
+        staleTime: 2 * 60 * 1000,
+        enabled: enabled && multipletype.length > 0 // Only fetch when types are selected
+    });
+}
+
+export function useEmployeeInOutReportDesignations(
+    MI_Id = 30,
+    multipledep = '',
+    enabled = true
+) {
+    return useQuery({
+        queryKey: [HRMS_QUERY_KEYS.EMPLOYEE_INOUT_REPORT_DESIGNATIONS, MI_Id, multipledep],
+        queryFn: async () => {
+            const { getEmployeeInOutReportDesignations } = await import('@/server/hrms/hrmsConfig/reports/employee-inout-report');
+            return getEmployeeInOutReportDesignations(MI_Id, multipledep);
+        },
+        staleTime: 2 * 60 * 1000,
+        enabled: enabled && multipledep.length > 0 // Only fetch when departments are selected
+    });
+}
+
+export function useEmployeeInOutReportEmployees(
+    MI_Id = 30,
+    multipledes = '',
+    multipledep = '',
+    multipletype = '',
+    enabled = true
+) {
+    return useQuery({
+        queryKey: [HRMS_QUERY_KEYS.EMPLOYEE_INOUT_REPORT_EMPLOYEES, MI_Id, multipledes, multipledep, multipletype],
+        queryFn: async () => {
+            const { getEmployeeInOutReportEmployees } = await import('@/server/hrms/hrmsConfig/reports/employee-inout-report');
+            return getEmployeeInOutReportEmployees(MI_Id, multipledes, multipledep, multipletype);
+        },
+        staleTime: 2 * 60 * 1000,
+        enabled: enabled && (multipledes.length > 0 || multipledep.length > 0 || multipletype.length > 0) // Only fetch when at least one filter is selected
+    });
 }
 
 // ============================================================================

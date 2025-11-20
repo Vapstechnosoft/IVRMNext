@@ -2,10 +2,16 @@
 
 import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/generic-data-table';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
-import { useEmployeeInOutReportList, useEmployeeInOutReportOnload } from '@/hooks/hrms/useReports';
+import { 
+    useEmployeeInOutReportList, 
+    useEmployeeInOutReportOnload,
+    useEmployeeInOutReportDepartments,
+    useEmployeeInOutReportDesignations,
+    useEmployeeInOutReportEmployees
+} from '@/hooks/hrms/useReports';
 import type { ApiSearchparams } from '@/types';
 import { Download, Printer } from 'lucide-react';
-import React, { use, useEffect, useMemo } from 'react';
+import React, { use, useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 import { type InOutRow, employeeInOutReportColumns } from './_components/columns';
@@ -95,13 +101,295 @@ export default function EmployeeInOutReportPage(props: { searchParams: SearchPar
     
     // Memoize arrays to prevent unnecessary re-renders
     const groupTypesData = useMemo(() => onloadData?.data?.types || [], [onloadData?.data?.types]);
-    const groupTypesOptions = useMemo(() => 
-        groupTypesData.map(gt => ({
-            label: gt.hrmgT_EmployeeGroupType,
-            value: String(gt.hrmgT_Id)
-        })),
-        [groupTypesData]
+    const groupTypesOptions = useMemo(() => {
+        if (!Array.isArray(groupTypesData) || groupTypesData.length === 0) {
+            return [];
+        }
+        
+        // Use a Set to track unique values and prevent duplicates
+        const seenValues = new Set<string>();
+        
+        return groupTypesData
+            .map((gt: any, _index: number) => {
+                // Try different field name variations (API might return different cases)
+                // Based on user's API response, it uses HRMGT_Id and HRMGT_EmployeeGroupType
+                const id = gt.HRMGT_Id ?? gt.hrmgT_Id ?? gt.HRGT_Id ?? gt.id ?? gt.value;
+                const name = gt.HRMGT_EmployeeGroupType ?? gt.hrmgT_EmployeeGroupType ?? gt.HRGT_EmployeeGroupType ?? gt.label ?? gt.name ?? gt.employeeGroupType;
+                
+                // Ensure we have valid id and name
+                if (id === undefined || id === null || name === undefined || name === null || name === '') {
+                    return null;
+                }
+                
+                const valueStr = String(id);
+                const labelStr = String(name);
+                
+                // Skip if we've already seen this value (prevent duplicates)
+                if (seenValues.has(valueStr)) {
+                    return null;
+                }
+                seenValues.add(valueStr);
+                
+                return {
+                    label: labelStr,
+                    value: valueStr
+                };
+            })
+            .filter((item: any): item is { label: string; value: string } => 
+                item !== null && 
+                item !== undefined && 
+                item.value !== undefined && 
+                item.value !== null && 
+                item.value !== '' &&
+                item.label !== undefined && 
+                item.label !== null && 
+                item.label !== ''
+            );
+    }, [groupTypesData]);
+
+    // Build comma-separated strings for API calls
+    const multipletype = useMemo(() => type.join(','), [type]);
+    const multipledep = useMemo(() => department.join(','), [department]);
+    const multipledes = useMemo(() => designation.join(','), [designation]);
+
+    // Cascading dropdown hooks
+    const { 
+        data: departmentsData, 
+        isLoading: isLoadingDepartments 
+    } = useEmployeeInOutReportDepartments(
+        MI_Id, 
+        LoginUserId, 
+        0, // IVRMRT_Id
+        multipletype,
+        multipletype.length > 0
     );
+
+    const { 
+        data: designationsData, 
+        isLoading: isLoadingDesignations 
+    } = useEmployeeInOutReportDesignations(
+        MI_Id,
+        multipledep,
+        multipledep.length > 0
+    );
+
+    const { 
+        data: employeesData, 
+        isLoading: isLoadingEmployees 
+    } = useEmployeeInOutReportEmployees(
+        MI_Id,
+        multipledes,
+        multipledep,
+        multipletype,
+        (multipledes.length > 0 || multipledep.length > 0 || multipletype.length > 0) && allOrIndividual === 'Individual'
+    );
+
+    // Transform API responses to filter component format
+    const departmentsOptions = useMemo(() => {
+        if (!departmentsData?.data) {
+            return [];
+        }
+
+        let deptData: any[] = [];
+        const data = departmentsData.data as any;
+
+        // Handle different response structures
+        if (Array.isArray(data)) {
+            deptData = data;
+        } else if (data && typeof data === 'object') {
+            // Try common wrapper properties
+            deptData = data.departmentList || 
+                      data.departmentdropdown || 
+                      data.DepartmentTempDto || 
+                      data.departmentdropdownlist ||
+                      data.$values ||
+                      (Array.isArray(data) ? data : []);
+        }
+
+        if (!Array.isArray(deptData) || deptData.length === 0) {
+            return [];
+        }
+
+        // Use a Set to track unique values and prevent duplicates
+        const seenValues = new Set<string>();
+        
+        // Transform to options format using correct field names
+        return deptData
+            .map((dept: any) => {
+                // Use correct HRMS field names
+                const id = dept.HRMD_Id ?? dept.hrmdT_Id ?? dept.id ?? dept.value ?? dept.departmentId;
+                const name = dept.HRMD_DepartmentName ?? dept.hrmdT_DepartmentName ?? dept.label ?? dept.name ?? dept.departmentName;
+                
+                if (id === undefined || id === null || name === undefined || name === null || name === '') {
+                    return null;
+                }
+                
+                const valueStr = String(id);
+                const labelStr = String(name);
+                
+                // Skip if we've already seen this value (prevent duplicates)
+                if (seenValues.has(valueStr)) {
+                    return null;
+                }
+                seenValues.add(valueStr);
+                
+                return {
+                    label: labelStr,
+                    value: valueStr
+                };
+            })
+            .filter((item: any): item is { label: string; value: string } => 
+                item !== null && 
+                item !== undefined && 
+                item.value !== undefined && 
+                item.value !== null && 
+                item.value !== '' &&
+                item.label !== undefined && 
+                item.label !== null && 
+                item.label !== ''
+            );
+    }, [departmentsData]);
+
+    const designationsOptions = useMemo(() => {
+        if (!designationsData?.data) {
+            return [];
+        }
+
+        let desgData: any[] = [];
+        const data = designationsData.data as any;
+
+        // Handle different response structures
+        if (Array.isArray(data)) {
+            desgData = data;
+        } else if (data && typeof data === 'object') {
+            // Try common wrapper properties
+            desgData = data.designationlList || 
+                      data.designationdropdown || 
+                      data.DesignationTempDto || 
+                      data.designationdropdownlist ||
+                      data.designationarray ||
+                      data.$values ||
+                      (Array.isArray(data) ? data : []);
+        }
+
+        if (!Array.isArray(desgData) || desgData.length === 0) {
+            return [];
+        }
+
+        // Use a Set to track unique values and prevent duplicates
+        const seenValues = new Set<string>();
+        
+        // Transform to options format using correct field names
+        return desgData
+            .map((desg: any) => {
+                // Use correct HRMS field names
+                const id = desg.HRMDES_Id ?? desg.hrmdsT_Id ?? desg.id ?? desg.value ?? desg.designationId;
+                const name = desg.HRMDES_DesignationName ?? desg.hrmdsT_DesignationName ?? desg.label ?? desg.name ?? desg.designationName;
+                
+                if (id === undefined || id === null || name === undefined || name === null || name === '') {
+                    return null;
+                }
+                
+                const valueStr = String(id);
+                const labelStr = String(name);
+                
+                // Skip if we've already seen this value (prevent duplicates)
+                if (seenValues.has(valueStr)) {
+                    return null;
+                }
+                seenValues.add(valueStr);
+                
+                return {
+                    label: labelStr,
+                    value: valueStr
+                };
+            })
+            .filter((item: any): item is { label: string; value: string } => 
+                item !== null && 
+                item !== undefined && 
+                item.value !== undefined && 
+                item.value !== null && 
+                item.value !== '' &&
+                item.label !== undefined && 
+                item.label !== null && 
+                item.label !== ''
+            );
+    }, [designationsData]);
+
+    const employeesOptions = useMemo(() => {
+        if (!employeesData?.data) {
+            return [];
+        }
+
+        let empData: any[] = [];
+        const data = employeesData.data as any;
+
+        // Handle different response structures
+        if (Array.isArray(data)) {
+            empData = data;
+        } else if (data && typeof data === 'object') {
+            // Try common wrapper properties
+            empData = data.employeeList || 
+                     data.employees || 
+                     data.EmployeeTempDto || 
+                     data.employeedropdownlist ||
+                     data.$values ||
+                     (Array.isArray(data) ? data : []);
+        }
+
+        if (!Array.isArray(empData) || empData.length === 0) {
+            return [];
+        }
+
+        // Use a Set to track unique values and prevent duplicates
+        const seenValues = new Set<string>();
+        
+        // Transform to options format
+        return empData
+            .map((emp: any) => {
+                // Try common employee field patterns
+                const code = emp.HRME_EmployeeCode ?? 
+                            emp.HREM_EmployeeCode ?? 
+                            emp.employeeCode ?? 
+                            emp.EmployeeCode ?? 
+                            emp.code ?? 
+                            emp.value ?? 
+                            emp.id;
+                const name = emp.HRME_EmployeeName ?? 
+                            emp.HRME_EmployeeFirstName ?? 
+                            emp.HREM_EmployeeName ?? 
+                            emp.employeeName ?? 
+                            emp.EmployeeName ?? 
+                            emp.name ?? 
+                            emp.label;
+                
+                if (code === undefined || code === null || code === '') {
+                    return null;
+                }
+                
+                const valueStr = String(code);
+                
+                // Skip if we've already seen this value (prevent duplicates)
+                if (seenValues.has(valueStr)) {
+                    return null;
+                }
+                seenValues.add(valueStr);
+                
+                const displayName = name && code ? `${name} (${code})` : name || code || String(emp);
+                
+                return {
+                    label: displayName,
+                    value: valueStr
+                };
+            })
+            .filter((item: any): item is { label: string; value: string } => 
+                item !== null && 
+                item !== undefined && 
+                item.value !== undefined && 
+                item.value !== null && 
+                item.value !== ''
+            );
+    }, [employeesData]);
     
     // React Query hook for report data - only enabled when search criteria are present
     const reportListQuery = useEmployeeInOutReportList(
@@ -124,7 +412,7 @@ export default function EmployeeInOutReportPage(props: { searchParams: SearchPar
     );
 
     // Form for filters
-    const { handleSubmit, reset, watch, control, setValue } = useForm<ReportFilters>({
+    const { handleSubmit, reset, watch: _watch, control, setValue: _setValue } = useForm<ReportFilters>({
         mode: 'onChange',
         defaultValues: {
             type: [],
@@ -263,13 +551,61 @@ export default function EmployeeInOutReportPage(props: { searchParams: SearchPar
                     <EmployeeInOutReportFilters
                         filters={filtersForComponent}
                         branches={[]}
-                        departments={[]} // TODO: Update when department dropdown is available in API
-                        designations={[]} // TODO: Update when designation dropdown is available in API
+                        departments={departmentsOptions}
+                        designations={designationsOptions}
                         groupTypes={groupTypesOptions}
-                        employees={[]} // TODO: Update when employees data is available in API response
+                        employees={employeesOptions}
                         onFilterChange={() => {
                             // No-op: Form is controlled by URL params, filters component manages its own state
                             // Only onSubmit will update the URL and trigger a re-render
+                        }}
+                        onTypeChange={(types) => {
+                            // When types change, update URL to trigger department fetch
+                            const params = new URLSearchParams();
+                            if (fromDate) params.set('fromDate', fromDate);
+                            if (toDate) params.set('toDate', toDate);
+                            if (types.length > 0) {
+                                params.set('type', types.join(','));
+                            }
+                            // Clear dependent filters
+                            params.set('department', '');
+                            params.set('designation', '');
+                            params.set('employeeCode', '');
+                            if (allOrIndividual) params.set('allOrIndividual', allOrIndividual);
+                            if (timeInTimeOut) params.set('timeInTimeOut', timeInTimeOut);
+                            router.push(`/hrms/attendance-management/reports/employee-inout-report?${params.toString()}`);
+                        }}
+                        onDepartmentChange={(departments) => {
+                            // When departments change, update URL to trigger designation fetch
+                            const params = new URLSearchParams();
+                            if (fromDate) params.set('fromDate', fromDate);
+                            if (toDate) params.set('toDate', toDate);
+                            if (type.length > 0) params.set('type', type.join(','));
+                            if (departments.length > 0) {
+                                params.set('department', departments.join(','));
+                            }
+                            // Clear dependent filters
+                            params.set('designation', '');
+                            params.set('employeeCode', '');
+                            if (allOrIndividual) params.set('allOrIndividual', allOrIndividual);
+                            if (timeInTimeOut) params.set('timeInTimeOut', timeInTimeOut);
+                            router.push(`/hrms/attendance-management/reports/employee-inout-report?${params.toString()}`);
+                        }}
+                        onDesignationChange={(designations) => {
+                            // When designations change, update URL to trigger employee fetch
+                            const params = new URLSearchParams();
+                            if (fromDate) params.set('fromDate', fromDate);
+                            if (toDate) params.set('toDate', toDate);
+                            if (type.length > 0) params.set('type', type.join(','));
+                            if (department.length > 0) params.set('department', department.join(','));
+                            if (designations.length > 0) {
+                                params.set('designation', designations.join(','));
+                            }
+                            // Clear dependent filters
+                            params.set('employeeCode', '');
+                            if (allOrIndividual) params.set('allOrIndividual', allOrIndividual);
+                            if (timeInTimeOut) params.set('timeInTimeOut', timeInTimeOut);
+                            router.push(`/hrms/attendance-management/reports/employee-inout-report?${params.toString()}`);
                         }}
                         onSearch={handleSubmit(onSubmit)}
                         onCancel={handleCancel}
@@ -277,6 +613,9 @@ export default function EmployeeInOutReportPage(props: { searchParams: SearchPar
                             toast.info('Export functionality will be implemented when search endpoint is available');
                         }}
                         onPrint={() => window.print()}
+                        isLoadingDepartments={isLoadingDepartments}
+                        isLoadingDesignations={isLoadingDesignations}
+                        isLoadingEmployees={isLoadingEmployees}
                     />
                 )}
 

@@ -5,8 +5,7 @@ import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
 import { HRMS_QUERY_KEYS } from '@/constants/query-keys';
-import { useMasterLeave, useUpdateMasterLeave } from '@/hooks/hrms/leave-management/useMasters';
-import { createLocalCrud } from '@/lib/localdb';
+import { useDeleteMasterLeave, useMasterLeave, useUpdateMasterLeave } from '@/hooks/hrms/leave-management/useMasters';
 import { useQueryClient } from '@tanstack/react-query';
 import { Plus, X } from 'lucide-react';
 import { use } from 'react';
@@ -108,21 +107,17 @@ function FormSections() {
         addFormRef,
         editFormRef
     } = useFormContext<MasterLeave>();
-    const queryClient = useQueryClient();
-    const masterLeaveDB = createLocalCrud<MasterLeave>('masterLeave');
+    const _queryClient = useQueryClient();
     const { mutate: updateMasterLeave } = useUpdateMasterLeave();
+    const { mutate: deleteMasterLeave, isPending: isDeleting } = useDeleteMasterLeave();
 
     const handleDelete = () => {
         if (selectedRow) {
-            try {
-                masterLeaveDB.remove(selectedRow.id);
-                toast.success('Master leave deleted successfully');
-                queryClient.invalidateQueries({ queryKey: [HRMS_QUERY_KEYS.MASTER_LEAVE] });
-                closeDeleteForm();
-            } catch (error) {
-                console.error('Error deleting master leave:', error);
-                toast.error('Failed to delete master leave');
-            }
+            deleteMasterLeave(selectedRow.id, {
+                onSuccess: () => {
+                    closeDeleteForm();
+                }
+            });
         }
     };
 
@@ -196,11 +191,11 @@ function FormSections() {
                         <h2 className='mb-4 font-semibold text-lg'>Delete Master Leave</h2>
                         <p className='mb-6'>Are you sure you want to delete this master leave? This action cannot be undone.</p>
                         <div className='flex justify-end gap-2'>
-                            <Button type='button' variant='outline' onClick={closeDeleteForm}>
+                            <Button type='button' variant='outline' onClick={closeDeleteForm} disabled={isDeleting}>
                                 Cancel
                             </Button>
-                            <Button type='button' variant='destructive' onClick={handleDelete}>
-                                Delete
+                            <Button type='button' variant='destructive' onClick={handleDelete} disabled={isDeleting}>
+                                {isDeleting ? 'Deleting...' : 'Delete'}
                             </Button>
                         </div>
                     </div>

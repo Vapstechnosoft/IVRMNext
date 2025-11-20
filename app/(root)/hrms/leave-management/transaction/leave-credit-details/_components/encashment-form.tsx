@@ -77,14 +77,14 @@ export function EncashmentForm({
                         render={({ field }) => (
                             <MultiSelect
                                 options={types.map((t) => ({ label: t.name, value: t.id.toString() }))}
-                                onValueChange={(values) => field.onChange(values.map((v) => Number.parseInt(v)))}
-                                defaultValue={field.value?.map((v) => v.toString()) || []}
+                                onValueChange={(values) => field.onChange(values.map((v: string) => Number.parseInt(v)))}
+                                defaultValue={field.value?.map((v: number) => v.toString()) || []}
                                 placeholder='Select Types'
                                 maxHeight={200}
                             />
                         )}
                     />
-                    {errors.type && <FormError>{errors.type.message}</FormError>}
+                    {errors.type && <FormError>{String(errors.type.message)}</FormError>}
                 </div>
 
                 {/* Department */}
@@ -99,14 +99,14 @@ export function EncashmentForm({
                         render={({ field }) => (
                             <MultiSelect
                                 options={departments.map((d) => ({ label: d.name, value: d.id.toString() }))}
-                                onValueChange={(values) => field.onChange(values.map((v) => Number.parseInt(v)))}
-                                defaultValue={field.value?.map((v) => v.toString()) || []}
+                                onValueChange={(values) => field.onChange(values.map((v: string) => Number.parseInt(v)))}
+                                defaultValue={field.value?.map((v: number) => v.toString()) || []}
                                 placeholder='Select Departments'
                                 maxHeight={200}
                             />
                         )}
                     />
-                    {errors.department && <FormError>{errors.department.message}</FormError>}
+                    {errors.department && <FormError>{String(errors.department.message)}</FormError>}
                 </div>
 
                 {/* Designation */}
@@ -121,14 +121,14 @@ export function EncashmentForm({
                         render={({ field }) => (
                             <MultiSelect
                                 options={designations.map((d) => ({ label: d.name, value: d.id.toString() }))}
-                                onValueChange={(values) => field.onChange(values.map((v) => Number.parseInt(v)))}
-                                defaultValue={field.value?.map((v) => v.toString()) || []}
+                                onValueChange={(values) => field.onChange(values.map((v: string) => Number.parseInt(v)))}
+                                defaultValue={field.value?.map((v: number) => v.toString()) || []}
                                 placeholder='Select Designations'
                                 maxHeight={200}
                             />
                         )}
                     />
-                    {errors.designation && <FormError>{errors.designation.message}</FormError>}
+                    {errors.designation && <FormError>{String(errors.designation.message)}</FormError>}
                 </div>
 
                 {/* Grade */}
@@ -140,8 +140,8 @@ export function EncashmentForm({
                         render={({ field }) => (
                             <MultiSelect
                                 options={grades.map((g) => ({ label: g.name, value: g.id.toString() }))}
-                                onValueChange={(values) => field.onChange(values.map((v) => Number.parseInt(v)))}
-                                defaultValue={field.value?.map((v) => v.toString()) || []}
+                                onValueChange={(values) => field.onChange(values.map((v: string) => Number.parseInt(v)))}
+                                defaultValue={field.value?.map((v: number) => v.toString()) || []}
                                 placeholder='Select Grades'
                                 maxHeight={200}
                             />
@@ -175,7 +175,7 @@ export function EncashmentForm({
                             </Select>
                         )}
                     />
-                    {errors.leaveName && <FormError>{errors.leaveName.message}</FormError>}
+                    {errors.leaveName && <FormError>{String(errors.leaveName.message)}</FormError>}
                 </div>
 
                 <div>
@@ -197,7 +197,7 @@ export function EncashmentForm({
                             />
                         )}
                     />
-                    {errors.noOfDays && <FormError>{errors.noOfDays.message}</FormError>}
+                    {errors.noOfDays && <FormError>{String(errors.noOfDays.message)}</FormError>}
                 </div>
             </div>
 
@@ -313,7 +313,7 @@ export function EncashmentForm({
                                 />
                             )}
                         />
-                        {errors.maxLeaveApplicable && <FormError>{errors.maxLeaveApplicable.message}</FormError>}
+                        {errors.maxLeaveApplicable && <FormError>{String(errors.maxLeaveApplicable.message)}</FormError>}
                     </div>
                 )}
             </div>
@@ -350,7 +350,7 @@ export function EncashmentForm({
                                 />
                             )}
                         />
-                        {errors.minLeaveApplicable && <FormError>{errors.minLeaveApplicable.message}</FormError>}
+                        {errors.minLeaveApplicable && <FormError>{String(errors.minLeaveApplicable.message)}</FormError>}
                     </div>
                 )}
             </div>
