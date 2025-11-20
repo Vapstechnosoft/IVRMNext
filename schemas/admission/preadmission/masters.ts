@@ -1,7 +1,7 @@
 import {
     createAlphanumericSchema,
+    createOptionalAlphaNumericSchemaNotOptional,
     createOptionalStringSchema,
-    createOptionalStringSchemaNotAllowNumbersOnly,
     createStringOnlySchema,
     createStringSchema,
     createStringSchemaNotAllowNumbersOnly,
@@ -80,7 +80,7 @@ export const masterSectionSchema = {
     addOrUpdate: z.object({
         asmS_Id: z.number().int({ message: 'AsmS_Id is required' }).optional(),
         asmc_sectioncode: createAlphanumericSchema('Code', 1, 5),
-        asmc_sectionname: createStringSchema('Name', 1, 20),
+        asmc_sectionname: createStringOnlySchema('Name', 1, 20),
         asmc_maxcapacity: z
             .number()
             .min(1, { message: 'Minimum Capacity should be 1' })
@@ -96,7 +96,7 @@ export const masterSectionSchema = {
 export const masterReligionSchema = {
     addOrUpdate: z.object({
         ivrmmR_Id: z.number().int({ message: 'IVRMMR_ID is required' }).optional(),
-        ivrmmR_Name: createStringSchema('Religion Name', 1, 50)
+        ivrmmR_Name: createOptionalAlphaNumericSchemaNotOptional('Religion Name', 1, 50)
     }),
     delete: z.object({
         ivrmmR_Id: deleteIdSchema('ivrmmR_Id')
@@ -171,8 +171,8 @@ export const masterExchangeClassTeacherSchema = {
 export const masterDocumentSchema = {
     addOrUpdate: z.object({
         amsmD_Id: z.number().int({ message: 'AMSMD_ID is required' }).optional(),
-        amsmD_DocumentName: createStringSchemaNotAllowNumbersOnly('Document Name', 1, 100),
-        amsmD_Description: createOptionalStringSchemaNotAllowNumbersOnly('Description', 1, 1000),
+        amsmD_DocumentName: createStringOnlySchema('Document Name', 1, 100),
+        amsmD_Description: createOptionalAlphaNumericSchemaNotOptional('Description', 1, 1000),
         amsmD_FLAG: z.number().int({ message: 'Mandatory Flag is required' })
     }),
     delete: z.object({
@@ -194,8 +194,8 @@ export const masterReferenceSchema = {
 export const masterSourceSchema = {
     addOrUpdate: z.object({
         pamS_Id: z.number().int({ message: 'PAMS_ID is required' }).optional(),
-        pamS_SourceName: createStringSchemaNotAllowNumbersOnly('Source Name', 1, 50),
-        pamS_SourceDesc: createStringSchemaNotAllowNumbersOnly('Description', 1, 500)
+        pamS_SourceName: createStringOnlySchema('Source Name', 1, 50),
+        pamS_SourceDesc: createStringOnlySchema('Description', 1, 500)
     }),
     delete: z.object({
         pamS_Id: deleteIdSchema('pamS_Id')

@@ -277,3 +277,31 @@ export function createOptionalStringWithLettersSchema(field: string, min: number
             .or(z.literal(''))
     ); // empty allowed
 }
+
+//with number letter not optional
+export function createOptionalAlphaNumericSchemaNotOptional(field: string, min: number, max: number) {
+    return (
+        z
+            .string()
+            .min(min, { message: `${field} must have at least ${min} characters` })
+            .max(max, { message: `Maximum ${max} characters allowed for ${field}` })
+
+            // Only letters and numbers allowed
+            .regex(/^[A-Za-z0-9]+$/, {
+                message: `${field} can contain only letters and numbers`
+            })
+
+            // No leading or trailing spaces
+            .refine((value) => value.trim() === value, {
+                message: `${field} cannot have leading or trailing spaces`
+            })
+
+            // Must contain at least one alphabet
+            .refine((value) => /[A-Za-z]/.test(value), {
+                message: `${field} must contain at least one letter`
+            })
+
+            // Optional (undefined allowed, but empty string not allowed)
+            .optional()
+    );
+}

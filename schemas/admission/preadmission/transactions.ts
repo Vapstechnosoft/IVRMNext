@@ -143,7 +143,7 @@ export const studentApplicationFormSchema = {
                     pasrS_SiblingsName: createStringOnlyOptionalSchema('Sibling Name', 1, 100),
                     pasrS_SiblingsClass: createStringOnlyOptionalSchema('Sibling Class', 1, 100),
                     pasrS_SiblingsAdmissionNo: createOptionalNumberOnlyStringSchema('Sibling Admission No', 1, 50),
-                    pasrS_SiblingsSection: createOptionalStringSchema('Sibling Section', 1, 50)
+                    pasrS_SiblingsSection: createStringOnlyOptionalSchema('Sibling Section', 1, 50)
                 })
             )
             .optional(),
@@ -312,7 +312,7 @@ export const studentApplicationFormUpdateSchema = {
         // Final
         pasR_UndertakingFlag: z.number().int({ message: 'Undertaking Flag is required' }),
 
-        // Siblings Details
+        // Siblings Details (array, like add schema)
         siblingsDetails: z
             .array(
                 z.object({
@@ -320,19 +320,23 @@ export const studentApplicationFormUpdateSchema = {
                     pasrS_SiblingsName: createStringOnlyOptionalSchema('Sibling Name', 1, 100),
                     pasrS_SiblingsClass: createStringOnlyOptionalSchema('Sibling Class', 1, 100),
                     pasrS_SiblingsAdmissionNo: createOptionalNumberOnlyStringSchema('Sibling Admission No', 1, 50),
-                    pasrS_SiblingsSection: createOptionalStringSchema('Sibling Section', 1, 50)
+                    pasrS_SiblingsSection: createStringOnlyOptionalSchema('Sibling Section', 1, 50)
                 })
             )
             .optional(),
 
-        // Previous School Details
-        previousSchoolDetails: z.object({
-            pasrpS_PrvSchoolName: createOptionalAlphaNumericSchema('Previous School Name', 1, 150),
-            pasrpS_PreviousClass: createOptionalNumberOnlyStringSchema('Previous Class', 1, 100),
-            pasrpS_Board: createStringOnlyOptionalSchema('Board', 1, 100),
-            pasrpS_LeftYear: createOptionalNumberOnlyStringSchema('Left Year', 1, 10),
-            pasrpS_LeftReason: createStringOnlyOptionalSchema('Reason for Leaving', 1, 150),
-            pasrpS_Address: createOptionalStringWithLettersSchema('School Address', 1, 200)
-        })
+        // Previous School Details (array, like siblingsDetails)
+        previousSchoolDetails: z
+            .array(
+                z.object({
+                    pasrpS_PrvSchoolName: createOptionalAlphaNumericSchema('Previous School Name', 1, 150),
+                    pasrpS_PreviousClass: createOptionalNumberOnlyStringSchema('Previous Class', 1, 100),
+                    pasrpS_Board: createStringOnlyOptionalSchema('Board', 1, 100),
+                    pasrpS_LeftYear: createOptionalNumberOnlyStringSchema('Left Year', 1, 10),
+                    pasrpS_LeftReason: createStringOnlyOptionalSchema('Reason for Leaving', 1, 150),
+                    pasrpS_Address: createOptionalStringWithLettersSchema('School Address', 1, 200)
+                })
+            )
+            .optional()
     })
 };

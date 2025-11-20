@@ -226,7 +226,7 @@ export const studentApplicationColumns: ColumnDef<IPreadmissionStudentApplicatio
                                 pamR_Id: String(r.pamR_Id)
                             })),
                             siblingsDetails: resp?.student_siblings || [],
-                            previousSchoolList: resp?.previous_schools || [],
+                            previousSchoolDetails: resp?.previous_schools || [],
                             selectedDocuments: (resp?.student_documents || []).map((d: any) => ({
                                 pasrD_Id: d.pasrD_Id,
                                 pasR_Id: d.pasR_Id,
