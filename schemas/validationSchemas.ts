@@ -139,6 +139,10 @@ export function createEmailSchema(field: string, min: number, max: number, optio
         .email({ message: `${field} must be a valid email address` })
         .refine((value) => value.trim() === value, {
             message: `${field} cannot have leading or trailing spaces`
+        })
+        // ❗ Must contain at least one letter before @
+        .refine((value) => /[A-Za-z]/.test(value.split('@')[0]), {
+            message: `${field} must contain at least one letter before '@'`
         });
 
     if (optional) {
@@ -171,4 +175,62 @@ export function createCustomStringSchema(field: string, min: number, max: number
             message: 'Grade Name should not start with a special character'
         })
         .refine((val) => !/^[0-9]+$/.test(val), { message: 'Grade Name cannot be only numbers' });
+}
+
+export function createOptionalAlphaNumericSchema(field: string, min: number, max: number) {
+    return (
+        z
+            .string()
+            .max(max, { message: `Maximum ${max} characters allowed for ${field}` })
+
+            // ❗ No leading or trailing spaces
+            .refine((value) => value.length === 0 || value.trim() === value, {
+                message: `${field} cannot have leading or trailing spaces`
+            })
+
+            // ❗ Cannot start with a special character
+            .refine((value) => value.length === 0 || /^[A-Za-z0-9]/.test(value), {
+                message: `${field} cannot start with a special character`
+            })
+
+            // ❗ Must contain at least one alphabet if not empty
+            .refine((value) => value.length === 0 || /[A-Za-z]/.test(value), { message: `${field} must contain at least one letter` })
+
+            // ❗ Minimum length when not empty
+            .refine((value) => value.length === 0 || value.length >= min, {
+                message: `${field} must have at least ${min} characters or be empty.`
+            })
+
+            .optional()
+            .or(z.literal(''))
+    );
+}
+
+//pancard schema
+
+export function createAlphanumericSchemaPanCard(field: string, optional = false) {
+    const baseSchema = z
+        .string()
+        .length(10, { message: `${field} must be exactly 10 characters` })
+        .refine((value) => /^[A-Za-z0-9]+$/.test(value), {
+            message: `${field} must contain only alphanumeric characters`
+        })
+        .refine((value) => /[A-Za-z]/.test(value), {
+            message: `${field} must contain at least one letter`
+        })
+        .refine((value) => /\d/.test(value), {
+            message: `${field} must contain at least one number`
+        })
+        .refine((value) => value.trim() === value, {
+            message: `${field} cannot have leading or trailing spaces`
+        });
+
+    if (optional) {
+        return baseSchema
+            .optional()
+            .or(z.literal(''))
+            .transform((v) => (v === '' ? undefined : v));
+    }
+
+    return baseSchema;
 }

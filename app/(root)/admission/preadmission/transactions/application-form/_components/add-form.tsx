@@ -35,7 +35,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { format } from 'date-fns';
 import { CalendarIcon, Check, ChevronLeft, ChevronRight, Eye, Save, Trash } from 'lucide-react';
 import { useState } from 'react';
-import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
+import { Controller, type SubmitHandler, useFieldArray, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import type { z } from 'zod';
 import { IneligibleClassesDialog } from './InEligibleDialog';
@@ -102,20 +102,19 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
         }
     });
 
+    // Define siblingFields using useFieldArray
+    const {
+        fields: siblingFields,
+        append: appendSibling,
+        remove
+    } = useFieldArray({
+        control,
+        name: 'siblingsDetails'
+    });
+
     const [selectedSourceItems, setSelectedSourceItems] = useState<{ pamS_Id: string; pamS_SourceName: string }[]>([]);
     const [selectedReferenceItems, setSelectedReferenceItems] = useState<{ pamR_Id: string; pamR_ReferenceName: string }[]>([]);
     const [sameAsResidential, setSameAsResidential] = useState(false);
-    const [siblings, setSiblings] = useState<
-        Array<{
-            pasrS_Id: number;
-            pasR_Id: number;
-            pasrS_SiblingsName: string;
-            pasrS_SiblingsClass: string;
-            pasrS_SiblingsAdmissionNo: string;
-            pasrS_SiblingsSection: string;
-        }>
-    >([]);
-
     const [filteredClasses, setFilteredClasses] = useState<IPreadmissionClassDropdown[]>([]);
     const [isClassDisabled, setIsClassDisabled] = useState(true);
     const [showIneligibleDialog, setShowIneligibleDialog] = useState(false);
@@ -296,9 +295,9 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
         setCurrentStep((prev) => Math.max(prev - 1, 1));
     };
 
-    //   const goToStep = (step: number) => {
-    //     setCurrentStep(step);
-    //   };
+    const goToStep = (step: number) => {
+        setCurrentStep(step);
+    };
 
     const onSubmit: SubmitHandler<FormFields | any> = async (data: FormFields) => {
         if (data.pasR_UndertakingFlag === 0) {
@@ -339,17 +338,15 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
                 selectedRefrenceDetails: selectedReferenceItems.map((item) => ({
                     pamR_Id: item.pamR_Id
                 })),
-                siblingsDetails: siblings
-                    .filter((sibling) => sibling.pasrS_SiblingsName !== '')
-                    .map((sibling) => ({
-                        ...sibling,
-                        verrejstatus: '',
-                        pasrS_SchoolName: '',
-                        pasrS_Age: 0,
-                        pasrS_Gender: '',
-                        pasrS_Institution: '',
-                        pasrS_DOB: ''
-                    })),
+                siblingsDetails: siblingFields.map((sibling: any) => ({
+                    ...sibling,
+                    verrejstatus: '',
+                    pasrS_SchoolName: '',
+                    pasrS_Age: 0,
+                    pasrS_Gender: '',
+                    pasrS_Institution: '',
+                    pasrS_DOB: ''
+                })),
                 previousSchoolList:
                     previousSchool.pasrpS_PrvSchoolName !== ''
                         ? [
@@ -397,7 +394,6 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
         setSelectedSourceItems([]);
         setSelectedReferenceItems([]);
         setSameAsResidential(false);
-        setSiblings([]);
         setPreviousSchool({
             pasrpS_Id: 0,
             pasR_Id: 0,
@@ -449,31 +445,17 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
 
     // Add these functions after handleSameAsResidential
     const addSibling = () => {
-        setSiblings([
-            ...siblings,
-            {
-                pasrS_Id: 0,
-                pasR_Id: 0,
-                pasrS_SiblingsName: '',
-                pasrS_SiblingsClass: '',
-                pasrS_SiblingsAdmissionNo: '',
-                pasrS_SiblingsSection: ''
-            }
-        ]);
+        appendSibling({
+            pasrS_Id: 0,
+            pasrS_SiblingsName: '',
+            pasrS_SiblingsClass: '',
+            pasrS_SiblingsAdmissionNo: '',
+            pasrS_SiblingsSection: ''
+        });
     };
 
     const removeSibling = (index: number) => {
-        setSiblings(siblings.filter((_, i) => i !== index));
-    };
-
-    const updateSibling = (index: number, field: string, value: string) => {
-        const updatedSiblings = siblings.map((sibling, i) => {
-            if (i === index) {
-                return { ...sibling, [field]: value };
-            }
-            return sibling;
-        });
-        setSiblings(updatedSiblings);
+        remove(index);
     };
 
     const updatePreviousSchool = (field: string, value: string) => {
@@ -490,7 +472,7 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
             // Block DOC and XLSX files
             const allowedTypes = ['application/pdf', 'image/jpeg', 'image/jpg', 'image/png'];
             if (!allowedTypes.includes(file.type)) {
-                toast.error(' Only Pdf,PNG, JPG, and JPEG formats are allowed');
+                toast.error(' Only Pdf, PNG, JPG, and JPEG formats are allowed');
                 return;
             }
             // Set uploading state - ADD document if it doesn't exist
@@ -816,7 +798,7 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
                                             <div className='flex flex-col items-center'>
                                                 <Button
                                                     type='button'
-                                                    // onClick={() => goToStep(step.id)}
+                                                    onClick={() => goToStep(step.id)}
                                                     disabled={isSubmitting}
                                                     className={cn(
                                                         'flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full border-2 font-semibold transition-all duration-300 hover:scale-110 disabled:cursor-not-allowed disabled:opacity-50',
@@ -866,7 +848,7 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
                                             <div className='flex flex-col items-center'>
                                                 <button
                                                     type='button'
-                                                    // onClick={() => goToStep(step.id)}
+                                                    onClick={() => goToStep(step.id)}
                                                     disabled={isSubmitting}
                                                     className={cn(
                                                         'flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full border-2 font-semibold transition-all duration-300 hover:scale-110 disabled:cursor-not-allowed disabled:opacity-50',
@@ -2021,6 +2003,7 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
                                                                     value={field.value || 0}
                                                                     onChange={(value) => field.onChange(Number.isNaN(value) ? 0 : value)}
                                                                     minValue={0}
+                                                                    maxDigits={15}
                                                                 />
                                                             )}
                                                         />
@@ -2715,14 +2698,14 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
                                                 </Button>
                                             </div>
 
-                                            {siblings.length === 0 ? (
+                                            {siblingFields.length === 0 ? (
                                                 <p className='text-gray-500 text-sm'>
                                                     No siblings added yet. Click "Add Sibling" to add details.
                                                 </p>
                                             ) : (
                                                 <div className='space-y-4'>
-                                                    {siblings.map((sibling, index) => (
-                                                        <div key={index} className='rounded-lg border border-gray-200 bg-gray-50 p-4'>
+                                                    {siblingFields.map((sibling, index) => (
+                                                        <div key={sibling.id} className='rounded-lg border border-gray-200 bg-gray-50 p-4'>
                                                             <div className='mb-3 flex items-center justify-between'>
                                                                 <h4 className='font-medium text-gray-700 text-sm'>Sibling {index + 1}</h4>
                                                                 <Button
@@ -2736,43 +2719,70 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
                                                                 </Button>
                                                             </div>
                                                             <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
-                                                                <InputText
-                                                                    label='Sibling Name'
-                                                                    id={`sibling_name_${index}`}
-                                                                    placeholder='Enter sibling name'
-                                                                    value={sibling.pasrS_SiblingsName}
-                                                                    onChange={(e) =>
-                                                                        updateSibling(index, 'pasrS_SiblingsName', e.target.value)
-                                                                    }
+                                                                <Controller
+                                                                    control={control}
+                                                                    name={`siblingsDetails.${index}.pasrS_SiblingsName`}
+                                                                    render={({ field }) => (
+                                                                        <InputText
+                                                                            label='Sibling Name'
+                                                                            id={`sibling_name_${index}`}
+                                                                            placeholder='Enter sibling name'
+                                                                            {...field}
+                                                                            error={
+                                                                                errors.siblingsDetails?.[index]?.pasrS_SiblingsName?.message
+                                                                            }
+                                                                        />
+                                                                    )}
                                                                 />
-                                                                <InputText
-                                                                    label='Class'
-                                                                    id={`sibling_class_${index}`}
-                                                                    placeholder='Enter class'
-                                                                    value={sibling.pasrS_SiblingsClass}
-                                                                    onChange={(e) =>
-                                                                        updateSibling(index, 'pasrS_SiblingsClass', e.target.value)
-                                                                    }
+                                                                <Controller
+                                                                    control={control}
+                                                                    name={`siblingsDetails.${index}.pasrS_SiblingsClass`}
+                                                                    render={({ field }) => (
+                                                                        <InputText
+                                                                            label='Class'
+                                                                            id={`sibling_class_${index}`}
+                                                                            placeholder='Enter class'
+                                                                            {...field}
+                                                                            error={
+                                                                                errors.siblingsDetails?.[index]?.pasrS_SiblingsClass
+                                                                                    ?.message
+                                                                            }
+                                                                        />
+                                                                    )}
                                                                 />
-                                                                <InputText
-                                                                    label='Admission No'
-                                                                    id={`sibling_admission_${index}`}
-                                                                    placeholder='Enter admission number'
-                                                                    value={sibling.pasrS_SiblingsAdmissionNo}
-                                                                    onChange={(e) =>
-                                                                        updateSibling(index, 'pasrS_SiblingsAdmissionNo', e.target.value)
-                                                                    }
+                                                                <Controller
+                                                                    control={control}
+                                                                    name={`siblingsDetails.${index}.pasrS_SiblingsAdmissionNo`}
+                                                                    render={({ field }) => (
+                                                                        <InputText
+                                                                            label='Admission No'
+                                                                            id={`sibling_admission_${index}`}
+                                                                            placeholder='Enter admission number'
+                                                                            {...field}
+                                                                            error={
+                                                                                errors.siblingsDetails?.[index]?.pasrS_SiblingsAdmissionNo
+                                                                                    ?.message
+                                                                            }
+                                                                        />
+                                                                    )}
                                                                 />
-                                                                <InputText
-                                                                    label='Section'
-                                                                    id={`sibling_section_${index}`}
-                                                                    placeholder='Enter section'
-                                                                    value={sibling.pasrS_SiblingsSection}
-                                                                    onChange={(e) =>
-                                                                        updateSibling(index, 'pasrS_SiblingsSection', e.target.value)
-                                                                    }
-                                                                    minLength={1}
-                                                                    maxLength={10}
+                                                                <Controller
+                                                                    control={control}
+                                                                    name={`siblingsDetails.${index}.pasrS_SiblingsSection`}
+                                                                    render={({ field }) => (
+                                                                        <InputText
+                                                                            label='Section'
+                                                                            id={`sibling_section_${index}`}
+                                                                            placeholder='Enter section'
+                                                                            {...field}
+                                                                            minLength={1}
+                                                                            maxLength={10}
+                                                                            error={
+                                                                                errors.siblingsDetails?.[index]?.pasrS_SiblingsSection
+                                                                                    ?.message
+                                                                            }
+                                                                        />
+                                                                    )}
                                                                 />
                                                             </div>
                                                         </div>
