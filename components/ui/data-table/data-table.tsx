@@ -170,7 +170,13 @@ export const DataTable = forwardRef<DataTableRef, DataTableProps<any, any>>(func
         <div className='w-full space-y-2.5 overflow-auto'>
             {/* Toolbar */}
             {isSearchRequired && (
-                <DataTableToolbar table={table} data={data} showExportOptions={showExportOptions} showViewOptions={showViewOptions} />
+                <DataTableToolbar
+                    table={table}
+                    data={data}
+                    showExportOptions={showExportOptions}
+                    showViewOptions={showViewOptions}
+                    columns={columns}
+                />
             )}
 
             {/* Table Content */}

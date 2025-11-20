@@ -6,7 +6,7 @@ import { useDebounce } from '@/hooks/utils/use-debounce';
 import { blobToFile, enhanceAndConvertToWav } from '@/lib/audio-utils';
 import { tableSearchVariables } from '@/lib/data-table.config';
 import { exportToExcel } from '@/lib/utils';
-import type { Table } from '@tanstack/react-table';
+import type { ColumnDef, Table } from '@tanstack/react-table';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { DownloadIcon, FileSpreadsheet, FileText, Mic, MicOff, Settings2, X } from 'lucide-react';
@@ -14,14 +14,21 @@ import { parseAsString, useQueryState } from 'nuqs';
 import { useEffect, useRef, useState } from 'react';
 import { DropdownMenu, DropdownMenuCheckboxItem, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '../dropdown-menu';
 
-interface DataTableToolbarProps<TData> {
+interface DataTableToolbarProps<TData, TValue> {
     table: Table<TData>;
     data: TData[];
+    columns: ColumnDef<TData, TValue>[];
     showExportOptions?: boolean;
     showViewOptions?: boolean;
 }
 
-export function DataTableToolbar<TData>({ table, data, showExportOptions = true, showViewOptions = true }: DataTableToolbarProps<TData>) {
+export function DataTableToolbar<TData, TValue>({
+    table,
+    data,
+    columns,
+    showExportOptions = true,
+    showViewOptions = true
+}: DataTableToolbarProps<TData, TValue>) {
     const [searchQuery, setSearchQuery] = useQueryState(
         tableSearchVariables.search,
         parseAsString.withOptions({ shallow: false }).withDefault('')
@@ -79,22 +86,93 @@ export function DataTableToolbar<TData>({ table, data, showExportOptions = true,
 
     // Column settings
     const anyColumnHiding = table.getAllColumns().filter((c) => typeof c.accessorFn !== 'undefined' && c.getCanHide());
-    const allCols = anyColumnHiding.map((c) => c.id).join(',');
-    const [searchColumns, setSearchColumns] = useQueryState(
-        tableSearchVariables.search_columns,
-        parseAsString.withOptions({ shallow: false }).withDefault(allCols)
-    );
-    const allSearchableColumns = anyColumnHiding.map((c) => c.id);
-    const selectedSearchColumns = searchColumns ? searchColumns.split(',') : allSearchableColumns;
+    const getColumnTitle = (col: any) => {
+        const header = col.header || col.columnDef?.header;
 
-    const toggleSearchColumn = (colId: string, checked: boolean) => {
-        const updated = checked ? [...new Set([...selectedSearchColumns, colId])] : selectedSearchColumns.filter((id) => id !== colId);
-        setSearchColumns(updated.join(',') || null);
+        // CASE 1: Simple text header
+        if (typeof header === 'string') return header;
+
+        // CASE 2: JSX header component
+        if (typeof header === 'function') {
+            try {
+                // Simulate flexRender behavior: call with empty context
+                const rendered = header({} as any);
+
+                // Extract `title` prop from your <DataTableColumnHeader title="..." />
+                if (rendered?.props?.title) return rendered.props.title;
+
+                // If header directly returns text: header={() => "Name"}
+                if (typeof rendered === 'string') return rendered;
+            } catch (e) {
+                console.warn('Header parse failed', e);
+            }
+        }
+
+        // CASE 3: JSX with no title prop but children
+        if (header?.props?.children) return header.props.children;
+
+        // FALLBACK: accessorKey or id
+        return col.accessorKey ?? col.id ?? 'Unknown';
     };
 
+    const getColumnId = (col: any): string => {
+        // priority: accessorKey → id → fallback safe title
+        if (typeof col.accessorKey === 'string') return col.accessorKey;
+        if (typeof col.id === 'string') return col.id;
+
+        const title = getColumnTitle(col) ?? 'col';
+        return title.toLowerCase().replace(/\s+/g, '_');
+    };
+
+    const columnItems = columns
+        .map((col) => {
+            const id = getColumnId(col);
+            const title = getColumnTitle(col);
+
+            return { id, title };
+        })
+        .filter((col) => !['select', 'slno', 'actions'].includes(col.id)); // exclude
+
+    console.log('columnItems', columnItems);
+
+    // all searchable column ids
+    const allSearchableColumns = columnItems.map((c) => c.id); // id must be string
+
+    // ---- useQueryState to persist selection in URL (same key you already use) ----
+    const [searchColumns, setSearchColumns] = useQueryState(
+        tableSearchVariables.search_columns,
+        parseAsString
+            .withOptions({ shallow: false })
+            .withDefault(allSearchableColumns.join(',')) // default = ALL selected
+    );
+
+    // normalize to array for local usage
+    const selectedSearchColumns = searchColumns ? searchColumns.split(',').filter(Boolean) : allSearchableColumns; // fallback to ALL selected
+
+    // ---- toggle single column (add/remove) ----
+    const toggleSearchColumn = (colId: string, checked: boolean) => {
+        const current = new Set(selectedSearchColumns);
+        if (checked) {
+            current.add(colId);
+        } else {
+            current.delete(colId);
+        }
+
+        const updated = Array.from(current);
+
+        // if nothing selected, set null to clear param; otherwise join
+        setSearchColumns(updated.length ? updated.join(',') : null);
+    };
+
+    // ---- toggle select all / deselect all ----
     const toggleSelectAllSearchColumns = () => {
-        const newCols = selectedSearchColumns.length === allSearchableColumns.length ? '' : allSearchableColumns.join(',');
-        setSearchColumns(newCols || null);
+        // If all currently selected -> deselect all (set explicit empty string)
+        if (selectedSearchColumns.length === allSearchableColumns.length) {
+            setSearchColumns(''); // explicit "none"
+        } else {
+            // otherwise select all
+            setSearchColumns(allSearchableColumns.join(','));
+        }
     };
 
     // Voice Search
@@ -302,50 +380,43 @@ export function DataTableToolbar<TData>({ table, data, showExportOptions = true,
                     </Popover>
                 )}
                 {anyColumnHiding.length > 0 && (
-                    <>
-                        <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                                <Button variant='outline' size='sm' className='hidden h-8 w-fit sm:flex'>
-                                    <Settings2 className='mr-1 h-4 w-4' />
-                                    Search Columns
-                                </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align='end' className='w-[180px]'>
-                                <DropdownMenuItem
-                                    onSelect={(e) => {
-                                        e.preventDefault();
-                                        toggleSelectAllSearchColumns();
-                                    }}>
-                                    {selectedSearchColumns.length === allSearchableColumns.length ? 'Deselect All' : 'Select All'}
-                                </DropdownMenuItem>
-                                <div className='my-1 border-t' />
-                                {anyColumnHiding.map((column) => {
-                                    const displayName =
-                                        (column.columnDef.meta as any)?.title ||
-                                        column.id
-                                            .split('_')
-                                            .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
-                                            .join(' ');
-                                    return (
-                                        <DropdownMenuCheckboxItem
-                                            key={column.id}
-                                            checked={selectedSearchColumns.includes(column.id)}
-                                            onCheckedChange={(v) => toggleSearchColumn(column.id, !!v)}>
-                                            {displayName}
-                                        </DropdownMenuCheckboxItem>
-                                    );
-                                })}
-                            </DropdownMenuContent>
-                        </DropdownMenu>
-                        {showViewOptions && (
-                            <DropdownMenu>
-                                <DropdownMenuTrigger asChild>
-                                    <Button variant='outline' size='sm' className='hidden h-8 w-fit sm:flex'>
-                                        <Settings2 className='mr-1 h-4 w-4' />
-                                        View
-                                    </Button>
-                                </DropdownMenuTrigger>
-                                <DropdownMenuContent align='end' className='w-[150px]'>
+                    <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                            <Button variant='outline' size='sm' className='h-8 w-fit'>
+                                <Settings2 className='mr-1 h-4 w-4' />
+                                Filters
+                            </Button>
+                        </DropdownMenuTrigger>
+
+                        <DropdownMenuContent align='end' className='w-[220px]'>
+                            {/* SELECT / DESELECT ALL */}
+                            <DropdownMenuItem
+                                onSelect={(e) => {
+                                    e.preventDefault();
+                                    toggleSelectAllSearchColumns();
+                                }}>
+                                {selectedSearchColumns.length === allSearchableColumns.length ? 'Deselect All' : 'Select All'}
+                            </DropdownMenuItem>
+
+                            <div className='my-1 border-t' />
+
+                            {/* COLUMN SEARCH CHECKBOXES */}
+                            {columnItems.map((col) => {
+                                const isChecked = selectedSearchColumns.includes(col.id);
+                                return (
+                                    <DropdownMenuCheckboxItem
+                                        key={col.id}
+                                        checked={isChecked}
+                                        onCheckedChange={(v) => toggleSearchColumn(col.id, !!v)}>
+                                        {col.title}
+                                    </DropdownMenuCheckboxItem>
+                                );
+                            })}
+
+                            {/* VIEW OPTIONS */}
+                            {showViewOptions && (
+                                <>
+                                    <div className='my-1 border-t' />
                                     {anyColumnHiding.map((column) => {
                                         const displayName =
                                             (column.columnDef.meta as any)?.title ||
@@ -353,6 +424,7 @@ export function DataTableToolbar<TData>({ table, data, showExportOptions = true,
                                                 .split('_')
                                                 .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
                                                 .join(' ');
+
                                         return (
                                             <DropdownMenuCheckboxItem
                                                 key={column.id}
@@ -362,10 +434,10 @@ export function DataTableToolbar<TData>({ table, data, showExportOptions = true,
                                             </DropdownMenuCheckboxItem>
                                         );
                                     })}
-                                </DropdownMenuContent>
-                            </DropdownMenu>
-                        )}
-                    </>
+                                </>
+                            )}
+                        </DropdownMenuContent>
+                    </DropdownMenu>
                 )}
             </div>
         </div>

@@ -94,7 +94,8 @@ export default function AddExamSubjectWizard({ onSuccess, rowData }: { onSuccess
     const [exams, setExams] = useState<{ EME_Id: number; EME_ExamName: string; checked?: boolean }[]>([]);
     const [subjects, setSubjects] = useState<any[]>([]);
     const [gradeList, setGradeList] = useState<IMasterGrade[]>([]);
-
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
     const watchYear = watch('ASMAY_Id');
     const watchCategory = watch('EYC_Id');
     const watchEMCA_ID = watch('EMCA_Id');
@@ -826,7 +827,7 @@ export default function AddExamSubjectWizard({ onSuccess, rowData }: { onSuccess
                                             fieldState={fieldState}
                                             label='Attendance From'
                                             placeholder='Select Attendance From Date'
-                                            fromDate={new Date()}
+                                            fromDate={today}
                                         />
                                     )}
                                 />

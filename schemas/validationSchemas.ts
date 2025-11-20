@@ -163,7 +163,7 @@ export function createCustomStringSchema(field: string, min: number, max: number
         .string({ message: `${field} is required` })
         .min(min, { message: `Minimum ${min} characters required for ${field}` })
         .max(max, { message: `Maximum ${max} characters allowed for ${field}` })
-        .refine((val) => /[A-Za-z0-9]/.test(val), { message: 'Grade Name cannot contain only special characters' })
+        .refine((val) => /[A-Za-z0-9]/.test(val), { message: `${field} cannot contain only special characters` })
         .refine((value) => value.trim() === value, {
             message: `${field} cannot have leading or trailing spaces`
         })

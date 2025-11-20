@@ -32,7 +32,7 @@ export default function AddExamTermAndExamMapping({ onSuccess }: { onSuccess?: (
         defaultValues: {
             ecT_Id: 0,
             mI_Id: orgId,
-            asmaY_Id: 0,
+            asmaY_Id: undefined,
             emcA_Id: 0,
             ecT_TermName: '',
             ecT_TermStartDate: '',
@@ -83,7 +83,7 @@ export default function AddExamTermAndExamMapping({ onSuccess }: { onSuccess?: (
             setAcademicYears([]);
         } else if (academicData?.data && Array.isArray(academicData.data)) {
             const formattedYears: IAcademicYearDropDown[] = academicData.data.map((item: any) => ({
-                asmaY_Id: item.asmaY_Id ?? '',
+                asmaY_Id: item.asmaY_Id,
                 asmaY_Year: item.asmaY_Year ?? '',
                 asmaY_Order: item.asmaY_Order ?? 0
             }));
@@ -269,7 +269,7 @@ export default function AddExamTermAndExamMapping({ onSuccess }: { onSuccess?: (
         reset({
             ecT_Id: 0,
             mI_Id: orgId,
-            asmaY_Id: 0,
+            asmaY_Id: undefined,
             emcA_Id: 0,
             ecT_TermName: '',
             ecT_TermStartDate: '',
@@ -330,13 +330,15 @@ export default function AddExamTermAndExamMapping({ onSuccess }: { onSuccess?: (
                                         <Label>
                                             Academic Year <span className='text-red-500'>*</span>
                                         </Label>
+
                                         <Select
-                                            value={field.value ? String(field.value) : undefined}
+                                            value={!field.value || field.value === 0 ? undefined : String(field.value)}
                                             onValueChange={(val) => !topLocked && field.onChange(Number(val))}
                                             disabled={topLocked}>
                                             <SelectTrigger>
                                                 <SelectValue placeholder='Select Academic Year' />
                                             </SelectTrigger>
+
                                             <SelectContent>
                                                 {academicYears.map((y) => (
                                                     <SelectItem key={y.asmaY_Id} value={String(y.asmaY_Id)}>
@@ -345,6 +347,7 @@ export default function AddExamTermAndExamMapping({ onSuccess }: { onSuccess?: (
                                                 ))}
                                             </SelectContent>
                                         </Select>
+
                                         {fieldState.error && <FormError>{fieldState.error.message}</FormError>}
                                     </div>
                                 )}
@@ -430,13 +433,15 @@ export default function AddExamTermAndExamMapping({ onSuccess }: { onSuccess?: (
                                         <Label>
                                             Category <span className='text-red-500'>*</span>
                                         </Label>
+
                                         <Select
+                                            value={!field.value || field.value === 0 ? undefined : String(field.value)}
                                             onValueChange={(val) => !topLocked && field.onChange(Number(val))}
-                                            value={field.value ? String(field.value) : undefined}
                                             disabled={topLocked}>
                                             <SelectTrigger>
                                                 <SelectValue placeholder='Select Category' />
                                             </SelectTrigger>
+
                                             <SelectContent>
                                                 {categories.map((c) => (
                                                     <SelectItem key={c.emcA_Id} value={String(c.emcA_Id)}>
@@ -445,10 +450,12 @@ export default function AddExamTermAndExamMapping({ onSuccess }: { onSuccess?: (
                                                 ))}
                                             </SelectContent>
                                         </Select>
+
                                         {fieldState.error && <FormError>{fieldState.error.message}</FormError>}
                                     </div>
                                 )}
                             />
+
                             <div className='flex flex-rows-3 gap-4'>
                                 <Controller
                                     control={control}

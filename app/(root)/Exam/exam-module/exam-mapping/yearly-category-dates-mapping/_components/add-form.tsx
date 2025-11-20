@@ -41,7 +41,8 @@ export default function AddYearlyCategoryDatesMapping({ onSuccess }: { onSuccess
     const { refetchAll } = useYearlyCategoryDateMapping();
     const { control, handleSubmit, reset, setValue, formState } = methods;
     const { isSubmitting } = formState;
-
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
     const [academicYears, setAcademicYears] = useState<{ asmaY_Id: number; asmaY_Year: string }[]>([]);
     const [categories, setCategories] = useState<{ emcA_Id: number; emcA_CategoryName: string }[]>([]);
     const { data: academicData, isLoading: loadingAcademic, error: academicError } = useAcademicYearDropdown();
@@ -117,21 +118,24 @@ export default function AddYearlyCategoryDatesMapping({ onSuccess }: { onSuccess
                                         <Label>
                                             Academic Year <span className='text-red-500'>*</span>
                                         </Label>
+
                                         <Select
-                                            key={field.value || 'empty'}
-                                            onValueChange={(val) => field.onChange(Number(val))}
-                                            value={field.value?.toString() || ''}>
+                                            value={field.value.toString() || ''} // IMPORTANT
+                                            onValueChange={field.onChange} // IMPORTANT
+                                        >
                                             <SelectTrigger>
                                                 <SelectValue placeholder='Select Academic Year' />
                                             </SelectTrigger>
+
                                             <SelectContent>
                                                 {academicYears.map((y) => (
-                                                    <SelectItem key={y.asmaY_Id} value={String(y.asmaY_Id)}>
+                                                    <SelectItem key={y.asmaY_Id} value={y.asmaY_Id.toString()}>
                                                         {y.asmaY_Year}
                                                     </SelectItem>
                                                 ))}
                                             </SelectContent>
                                         </Select>
+
                                         {fieldState.error && <FormError>{fieldState.error.message}</FormError>}
                                     </div>
                                 )}
@@ -146,7 +150,7 @@ export default function AddYearlyCategoryDatesMapping({ onSuccess }: { onSuccess
                                         fieldState={fieldState}
                                         label='Exam Start Date'
                                         placeholder='Select Exam Start Date'
-                                        fromDate={new Date()}
+                                        fromDate={today}
                                     />
                                 )}
                             />
@@ -161,9 +165,7 @@ export default function AddYearlyCategoryDatesMapping({ onSuccess }: { onSuccess
                                         label='Marks Entry Last Date'
                                         placeholder='Select Marks Entry Last Date'
                                         fromDate={
-                                            methods.watch('eyC_ExamEndDate') === ''
-                                                ? new Date()
-                                                : new Date(methods.watch('eyC_ExamEndDate'))
+                                            methods.watch('eyC_ExamEndDate') === '' ? today : new Date(methods.watch('eyC_ExamEndDate'))
                                         }
                                     />
                                 )}
@@ -180,7 +182,7 @@ export default function AddYearlyCategoryDatesMapping({ onSuccess }: { onSuccess
                                         placeholder='Select Marks Publish Date'
                                         fromDate={
                                             methods.watch('eyC_MarksProcessLastDate') === ''
-                                                ? new Date()
+                                                ? today
                                                 : new Date(methods.watch('eyC_MarksProcessLastDate'))
                                         }
                                     />
@@ -224,9 +226,7 @@ export default function AddYearlyCategoryDatesMapping({ onSuccess }: { onSuccess
                                         label='Exam End Date'
                                         placeholder='Select Exam End Date'
                                         fromDate={
-                                            methods.watch('eyC_ExamStartDate') === ''
-                                                ? new Date()
-                                                : new Date(methods.watch('eyC_ExamStartDate'))
+                                            methods.watch('eyC_ExamStartDate') === '' ? today : new Date(methods.watch('eyC_ExamStartDate'))
                                         }
                                     />
                                 )}
@@ -243,7 +243,7 @@ export default function AddYearlyCategoryDatesMapping({ onSuccess }: { onSuccess
                                         placeholder='Select Marks Process Last Date'
                                         fromDate={
                                             methods.watch('eyC_MarksEntryLastDate') === ''
-                                                ? new Date()
+                                                ? today
                                                 : new Date(methods.watch('eyC_MarksEntryLastDate'))
                                         }
                                     />
