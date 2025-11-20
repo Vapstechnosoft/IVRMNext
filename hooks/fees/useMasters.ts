@@ -36,6 +36,7 @@ import {
     getcategorygroupdropdown,
     getcategoryheadsdropdown
 } from '@/server/fees/masters/concession_category_head_group_mapping';
+import { getMasterTermsPeriod } from '@/server/fees/masters/fee_terms_period';
 import { getfeeInstallmentDueDate } from '@/server/fees/masters/feeinstallmentduedate';
 import { getMasterFeeYearlyRebateSettinFacade } from '@/server/fees/masters/feeyearlyrebatesettingfacade';
 import { getFineSlab } from '@/server/fees/masters/fineSlab';
@@ -942,6 +943,23 @@ export const useMasterFeeYearlyRebateSettingFacade = (searchParams?: ApiSearchpa
         refetchAll: () => {
             return queryClient.invalidateQueries({
                 queryKey: [FEES_QUERY_KEYS.FEE_YEARLY_REBATE_SETTINGS]
+            });
+        }
+    };
+};
+
+export const useMasterTermsPeriod = (searchParams?: ApiSearchparams) => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [FEES_QUERY_KEYS.FEE_TERMS_PERIOD, searchParams ?? {}],
+            queryFn: async () => getMasterTermsPeriod(searchParams),
+            staleTime: 0
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [FEES_QUERY_KEYS.FEE_TERMS_PERIOD]
             });
         }
     };

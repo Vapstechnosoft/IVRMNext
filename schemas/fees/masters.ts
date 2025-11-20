@@ -648,3 +648,14 @@ export const masterFeePrivilege = {
             })
     })
 };
+
+export const masterTermPeriodSchema = {
+    addOrUpdate: z.object({
+        asmay_Id: z.number({ message: 'Academic Year is required' }),
+        fmt_id: z.number({ message: 'Term is required' }),
+        fmh_id: z.number({ message: 'Head is required' })
+    }),
+    delete: z.object({
+        fmtfhdD_Id: deleteIdSchema('fmtfhdD_Id')
+    })
+};

@@ -581,3 +581,14 @@ export interface IFeeOnlinehaedgroupMappingList {
         preAdmFlag: boolean;
     }>;
 }
+
+export interface IMasterTermsPeriodList {
+    yearname: number;
+    termname: string;
+    fromMonth: string;
+    fmtToMonth: string;
+    fmtP_Year: string;
+    feeFlag: string;
+    fmtP_Id: number;
+    user_Id: number;
+}

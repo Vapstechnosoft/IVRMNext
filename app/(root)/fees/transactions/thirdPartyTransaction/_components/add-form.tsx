@@ -392,6 +392,41 @@ export default function AddThirdPartyTransactionForm({ onSuccess, thirdparty = '
                     <InputText {...register('towards')} error={errors.towards?.message} className='min-w-[400px]' />
                 </div>
 
+                <div className='flex items-center gap-4'>
+                    <Label className='min-w-[150px] text-right'>
+                        Date <span className='text-red-500'>*</span>
+                    </Label>
+
+                    <Controller
+                        name='date'
+                        control={control}
+                        defaultValue={format(new Date(), 'yyyy-MM-dd')}
+                        render={({ field }) => {
+                            const selectedDate = field.value ? new Date(field.value) : new Date();
+                            return (
+                                <Popover>
+                                    <PopoverTrigger asChild>
+                                        <Button
+                                            type='button'
+                                            variant='outline'
+                                            className={cn('justify-start text-left font-normal', errors.date ? 'border-red-500' : '')}>
+                                            <Calendar className='mr-2 h-4 w-4' />
+                                            {format(selectedDate, 'dd/MM/yyyy')}
+                                        </Button>
+                                    </PopoverTrigger>
+                                    <PopoverContent className='w-auto p-0'>
+                                        <CalendarPicker
+                                            mode='single'
+                                            selected={selectedDate}
+                                            onSelect={(d) => field.onChange(d ? format(d, 'yyyy-MM-dd') : '')}
+                                        />
+                                    </PopoverContent>
+                                </Popover>
+                            );
+                        }}
+                    />
+                </div>
+
                 <div className='flex items-center justify-center space-x-6 rounded-lg border border-gray-300 bg-white px-4 py-2'>
                     <Controller
                         control={control}
@@ -515,7 +550,7 @@ export default function AddThirdPartyTransactionForm({ onSuccess, thirdparty = '
                             </Label>
 
                             <Controller
-                                name='date'
+                                name='chequeDate'
                                 control={control}
                                 defaultValue={format(new Date(), 'yyyy-MM-dd')}
                                 render={({ field }) => {

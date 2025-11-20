@@ -126,7 +126,8 @@ export const FEES_QUERY_KEYS = {
     FEE_YEARLY_REBATE_SETTINGS: 'fee_yearly_rebate_settings',
     FEE_THIRDPARTY_STUDENTDROPDOWN: 'fee_thirdparty_studentdropdown',
     FEE_THIRDPARTY_RECEIPTDATA: 'fee_thirdparty_receiptdata',
-    FEE_THIRDPARTY_EDITDATA: 'fee_thirdparty_editdata'
+    FEE_THIRDPARTY_EDITDATA: 'fee_thirdparty_editdata',
+    FEE_TERMS_PERIOD: 'fee_terms_period'
 };
 
 export const EXAM_QUERY_KEYS = {
