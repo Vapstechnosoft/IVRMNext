@@ -24,7 +24,9 @@ export const ADMISSION_QUERY_KEYS = {
     UNMAPPED_CASTE_CATEGORY_DROPDOWN: 'unmapped_caste_category_dropdown',
     MASTER_CLASS_TEACHER: 'master_class_teacher',
     MASTER_CLASS_TEACHER_EMPLOYEE: 'master_class_teacher_employee',
-    MASTER_EXCHANGE_CLASS_TEACHER_MAPPING: 'exchange_class_teacher_mapping'
+    MASTER_EXCHANGE_CLASS_TEACHER_MAPPING: 'exchange_class_teacher_mapping',
+    MASTER_CLASS_SET_ORDER: 'master_class_set_order',
+    MASTER_SECTION_SET_ORDER: 'master_section_set_order'
 };
 
 export const PREADMISSION_QUERY_KEYS = {

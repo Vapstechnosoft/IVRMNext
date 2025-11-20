@@ -14,7 +14,7 @@ export default async function Navbar() {
     return (
         <header className='sticky top-0 z-30 w-full border-border/40 border-b bg-background'>
             <div className='container flex max-h-14 items-center overflow-clip py-2'>
-                <div className='flex w-full items-center gap-4'>
+                <div className='flex w-full items-center gap-2'>
                     <Logo size='icon' herf={ROUTES.DASHBOARD} />
                     <NavigationSystem />
                     <div className='flex items-center gap-4'>
@@ -26,7 +26,7 @@ export default async function Navbar() {
                                 placeholder='Search...'
                                 required
                                 id='search'
-                                className='w-[300px] transition-colors focus:ring-2 focus:ring-primary/20'
+                                className='w-[200px] transition-colors focus:ring-2 focus:ring-primary/20'
                             />
                         </div>
                         <div className='flex cursor-pointer items-center gap-1'>
