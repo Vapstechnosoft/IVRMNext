@@ -40,14 +40,9 @@ export const studentApplicationFormSchema = {
         pasR_FatherNationality: z.number().int({ message: 'Nationality is required' }),
         pasR_MotherNationality: z.number().int({ message: 'Nationality is required' }),
 
-        pasR_MobileNo: z
-            .string()
-            .refine((val) => val.length === 10, {
-                message: 'Mobile number must be exactly 10 digits'
-            })
-            .refine((val) => !val.startsWith('0'), {
-                message: 'Mobile number cannot start with 0'
-            }),
+        pasR_MobileNo: z.string().refine((val) => !val.startsWith('0'), {
+            message: 'Mobile number cannot start with 0'
+        }),
 
         pasR_BirthPlace: createStringOnlyOptionalSchema('Student Birth Place', 1, 100),
         religion_Id: z.number().int({ message: 'Religion is required' }),
@@ -110,10 +105,7 @@ export const studentApplicationFormSchema = {
         pasR_FatherOfficeAddr: createOptionalStringSchema('Father Office Address', 1, 100),
         pasR_FatherMobleNo: z
             .string()
-            .refine((val) => val === '' || val.length === 10, {
-                message: 'Mobile number must be exactly 10 digits'
-            })
-            .refine((val) => val === '' || !val.startsWith('0'), {
+            .refine((val) => !val.startsWith('0'), {
                 message: 'Mobile number cannot start with 0'
             })
             .optional(),
@@ -132,10 +124,7 @@ export const studentApplicationFormSchema = {
         pasR_MotherOfficeAddr: createOptionalStringSchema('Mother Office Address', 1, 100),
         pasR_MotherMobleNo: z
             .string()
-            .refine((val) => val === '' || val.length === 10, {
-                message: 'Mobile number must be exactly 10 digits'
-            })
-            .refine((val) => val === '' || !val.startsWith('0'), {
+            .refine((val) => !val.startsWith('0'), {
                 message: 'Mobile number cannot start with 0'
             })
             .optional(),
@@ -151,9 +140,7 @@ export const studentApplicationFormSchema = {
         // Alternate Contact
         pasR_AltContactNo: z
             .string()
-            .refine((val) => val === '' || val.length === 10, {
-                message: 'Mobile number must be exactly 10 digits'
-            })
+
             .refine((val) => val === '' || !val.startsWith('0'), {
                 message: 'Mobile number cannot start with 0'
             })
@@ -187,15 +174,9 @@ export const studentApplicationFormUpdateSchema = {
         pasR_FatherNationality: z.string().min(1, 'Father nationality is required'),
         pasR_MotherNationality: z.string().min(1, 'Mother nationality is required'),
 
-        pasR_MobileNo: z
-            .string()
-            .refine((val) => val.length === 10, {
-                message: 'Mobile number must be exactly 10 digits'
-            })
-            .refine((val) => !val.startsWith('0'), {
-                message: 'Mobile number cannot start with 0'
-            }),
-
+        pasR_MobileNo: z.string().refine((val) => !val.startsWith('0'), {
+            message: 'Mobile number cannot start with 0'
+        }),
         pasR_BirthPlace: createStringOnlyOptionalSchema('Student Birth Place', 1, 100),
         religion_Id: z.number().int({ message: 'Religion is required' }),
         caste_Id: z.number().int({ message: 'Caste is required' }),
@@ -255,10 +236,7 @@ export const studentApplicationFormUpdateSchema = {
         pasR_FatherOfficeAddr: createOptionalStringSchema('Father Office Address', 1, 100),
         pasR_FatherMobleNo: z
             .string()
-            .refine((val) => val === '' || val.length === 10, {
-                message: 'Mobile number must be exactly 10 digits'
-            })
-            .refine((val) => val === '' || !val.startsWith('0'), {
+            .refine((val) => !val.startsWith('0'), {
                 message: 'Mobile number cannot start with 0'
             })
             .optional(),
@@ -278,10 +256,7 @@ export const studentApplicationFormUpdateSchema = {
         pasR_MotherOfficeAddr: createOptionalStringSchema('Mother Office Address', 1, 100),
         pasR_MotherMobleNo: z
             .string()
-            .refine((val) => val === '' || val.length === 10, {
-                message: 'Mobile number must be exactly 10 digits'
-            })
-            .refine((val) => val === '' || !val.startsWith('0'), {
+            .refine((val) => !val.startsWith('0'), {
                 message: 'Mobile number cannot start with 0'
             })
             .optional(),
@@ -297,9 +272,7 @@ export const studentApplicationFormUpdateSchema = {
         // Alternate Contact
         pasR_AltContactNo: z
             .string()
-            .refine((val) => val === '' || val.length === 10, {
-                message: 'Mobile number must be exactly 10 digits'
-            })
+
             .refine((val) => val === '' || !val.startsWith('0'), {
                 message: 'Mobile number cannot start with 0'
             })

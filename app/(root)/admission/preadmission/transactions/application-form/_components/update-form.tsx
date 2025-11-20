@@ -10,6 +10,8 @@ import { InputText } from '@/components/ui/extension/input-text';
 import { InputTextarea } from '@/components/ui/extension/input-textarea';
 import { MultiSelect } from '@/components/ui/multi-select';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import PhoneInput from 'react-phone-input-2';
+import 'react-phone-input-2/lib/style.css';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useAcademicYearMasterConfiguration } from '@/hooks/admission/preadmission/useConfigurations';
@@ -34,7 +36,7 @@ import type { IPreadmissionClassDropdown } from '@/types/admission/preadmission/
 import { zodResolver } from '@hookform/resolvers/zod';
 import { format } from 'date-fns';
 import { CalendarIcon, Check, ChevronLeft, ChevronRight, Eye, Save, Trash } from 'lucide-react';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import type { z } from 'zod';
@@ -85,6 +87,7 @@ const steps = [
 
 export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, className = '' }: UpdateStudentApplicationFormProps) {
     const [currentStep, setCurrentStep] = useState(1);
+    const [phoneValues, setPhoneValues] = useState<Record<string, string>>({});
 
     const {
         watch,
@@ -418,6 +421,27 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
     const goToStep = (step: number) => {
         setCurrentStep(step);
     };
+    const handlePhoneChange = (phone: string, countryData: any, fieldName: string) => {
+        // If empty or equal to dial code only, clear
+        if (!phone || phone === countryData?.dialCode) {
+            setPhoneValues((prev) => ({ ...prev, [fieldName]: '' }));
+            setValue(fieldName as any, '');
+            // trigger validation for this field
+            trigger(fieldName as any);
+            return;
+        }
+
+        const countryCode = countryData?.dialCode || '91';
+        let numberPart = phone.replace(/[^\d]/g, '');
+        if (numberPart.startsWith(countryCode)) {
+            numberPart = numberPart.slice(String(countryCode).length);
+        }
+        const formattedPhone = `+${countryCode} ${numberPart}`;
+        setPhoneValues((prev) => ({ ...prev, [fieldName]: formattedPhone }));
+        // Store only digits as a number in form state
+        setValue(fieldName as any, formattedPhone);
+        trigger(fieldName as any);
+    };
 
     const onSubmit: SubmitHandler<FormFields | any> = async (data: FormFields) => {
         if (data.pasR_UndertakingFlag === 0) {
@@ -596,6 +620,14 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
             setValue('pasR_PerState', conState ? Number(conState) : undefined);
             setValue('pasR_PerCity', conCity);
             setValue('pasR_PerPincode', conPincode);
+
+            if (perZipLength && typeof conPincode === 'string') {
+                setValue('pasR_PerPincode', conPincode.slice(0, perZipLength));
+            } else if (perZipLength && typeof conPincode === 'number') {
+                setValue('pasR_PerPincode', String(conPincode).slice(0, perZipLength));
+            } else {
+                setValue('pasR_PerPincode', conPincode);
+            }
         }
     };
 
@@ -1001,6 +1033,37 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
             }
         }
     };
+    // derive zip/pincode length allowed from selected country (useMemo to wait for data)
+
+    const conCountryObj = useMemo(() => {
+        if (!country?.data || conConuntryId === undefined || conConuntryId === null || conConuntryId === '') return undefined;
+        return country.data.find((c: any) => String(c.ivrmmC_Id) === String(conConuntryId));
+    }, [country?.data, conConuntryId]);
+
+    const perCountryObj = useMemo(() => {
+        if (!country?.data || perConuntryId === undefined || perConuntryId === null || perConuntryId === '') return undefined;
+        return country.data.find((c: any) => String(c.ivrmmC_Id) === String(perConuntryId));
+    }, [country?.data, perConuntryId]);
+
+    const conZipLength: number | undefined = conCountryObj?.ivrmmC_ZipNoLength ?? undefined;
+    const perZipLength: number | undefined = perCountryObj?.ivrmmC_ZipNoLength ?? undefined;
+
+    const prevConCountryRef = useRef<any>(undefined);
+    const prevPerCountryRef = useRef<any>(undefined);
+
+    useEffect(() => {
+        if (prevConCountryRef.current !== undefined && String(prevConCountryRef.current) !== String(conConuntryId)) {
+            setValue('pasR_ConPincode', '');
+        }
+        prevConCountryRef.current = conConuntryId;
+    }, [conConuntryId, setValue]);
+
+    useEffect(() => {
+        if (prevPerCountryRef.current !== undefined && String(prevPerCountryRef.current) !== String(perConuntryId)) {
+            setValue('pasR_PerPincode', '');
+        }
+        prevPerCountryRef.current = perConuntryId;
+    }, [perConuntryId, setValue]);
 
     return (
         <>
@@ -1369,20 +1432,42 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                                                 />
                                                 {errors.pasR_DOB && <FormError>{errors.pasR_DOB.message}</FormError>}
                                             </div>
-                                            <div className='flex flex-col gap-1.5'>
+                                            <div className='flex flex-col gap-1.5 '>
                                                 <Controller
                                                     name='pasR_MobileNo'
                                                     control={control}
                                                     render={({ field }) => (
-                                                        <MobileNumberInput
-                                                            label='Mobile No.'
-                                                            id='pasR_MobileNo'
-                                                            required
-                                                            value={field.value === '' || field.value == null ? '' : field.value}
-                                                            onChange={(value) => field.onChange(value)}
-                                                            type='number'
-                                                            showSpinner={false}
-                                                        />
+                                                        <div>
+                                                            <Label htmlFor='pasR_MobileNo'>Mobile No.</Label>
+                                                            <PhoneInput
+                                                                country='in'
+                                                                value={
+                                                                    phoneValues['pasR_MobileNo'] ??
+                                                                    (field.value != null ? String(field.value) : null)
+                                                                }
+                                                                onChange={(phone: any, countryData: any) =>
+                                                                    handlePhoneChange(phone, countryData, 'pasR_MobileNo')
+                                                                }
+                                                                onBlur={() => trigger('pasR_MobileNo')}
+                                                                inputProps={{
+                                                                    id: 'pasR_MobileNo',
+                                                                    name: 'pasR_MobileNo',
+                                                                    required: false,
+                                                                    style: {
+                                                                        width: '87%',
+                                                                        height: '36px',
+                                                                        marginLeft: '40px',
+                                                                        boxSizing: 'border-box',
+                                                                        borderRadius: '4px',
+                                                                        padding: '16.5px 14px',
+                                                                        fontSize: '16px'
+                                                                    }
+                                                                }}
+                                                                containerClass='w-full'
+                                                                inputClass='w-full px-4 py-2 rounded border text-sm focus:outline-none focus:ring-2 focus:ring-blue-500'
+                                                                enableSearch
+                                                            />
+                                                        </div>
                                                     )}
                                                 />
                                                 {errors.pasR_MobileNo && <FormError>{errors.pasR_MobileNo.message}</FormError>}
@@ -1833,14 +1918,30 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                                                             name='pasR_ConPincode'
                                                             control={control}
                                                             render={({ field }) => (
-                                                                <MobileNumberInput
-                                                                    label='Pin Code/Zip Code'
-                                                                    id='pasR_ConPincode'
-                                                                    value={field.value === '' || field.value == null ? '' : field.value}
-                                                                    onChange={(value) => field.onChange(value)}
-                                                                    type='number'
-                                                                    showSpinner={false}
-                                                                />
+                                                                <>
+                                                                    <MobileNumberInput
+                                                                        label='Pin Code/Zip Code'
+                                                                        id='pasR_ConPincode'
+                                                                        value={field.value}
+                                                                        onChange={(valueOrEvent: any) => {
+                                                                            // MobileNumberInput forwards the input event; accept either event or string
+                                                                            const raw = valueOrEvent?.target?.value ?? valueOrEvent;
+                                                                            const str = raw == null ? '' : String(raw).replace(/\D/g, '');
+                                                                            const truncated = conZipLength
+                                                                                ? str.slice(0, conZipLength)
+                                                                                : str;
+                                                                            field.onChange(truncated);
+                                                                        }}
+                                                                        maxLength={conZipLength}
+                                                                        type='number'
+                                                                        showSpinner={false}
+                                                                    />
+                                                                    {conCountryObj && conZipLength && (
+                                                                        <span className='mt-1 text-muted-foreground text-xs'>
+                                                                            {`Max ${conZipLength} digits for ${conCountryObj.ivrmmC_CountryName}`}
+                                                                        </span>
+                                                                    )}
+                                                                </>
                                                             )}
                                                         />
                                                         {errors.pasR_ConPincode && <FormError>{errors.pasR_ConPincode.message}</FormError>}
@@ -1966,15 +2067,30 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                                                             name='pasR_PerPincode'
                                                             control={control}
                                                             render={({ field }) => (
-                                                                <MobileNumberInput
-                                                                    label='Pin Code/Zip Code'
-                                                                    id='pasR_PerPincode'
-                                                                    value={field.value === '' || field.value == null ? '' : field.value}
-                                                                    onChange={(value) => field.onChange(value)}
-                                                                    type='number'
-                                                                    showSpinner={false}
-                                                                    disabled={sameAsResidential}
-                                                                />
+                                                                <>
+                                                                    <MobileNumberInput
+                                                                        label='Pin Code/Zip Code'
+                                                                        id='pasR_PerPincode'
+                                                                        value={field.value}
+                                                                        onChange={(valueOrEvent: any) => {
+                                                                            const raw = valueOrEvent?.target?.value ?? valueOrEvent;
+                                                                            const str = raw == null ? '' : String(raw).replace(/\D/g, '');
+                                                                            const truncated = perZipLength
+                                                                                ? str.slice(0, perZipLength)
+                                                                                : str;
+                                                                            field.onChange(truncated);
+                                                                        }}
+                                                                        maxLength={perZipLength}
+                                                                        type='number'
+                                                                        showSpinner={false}
+                                                                        disabled={sameAsResidential}
+                                                                    />
+                                                                    {perCountryObj && perZipLength && (
+                                                                        <span className='mt-1 text-muted-foreground text-xs'>
+                                                                            {`Max ${perZipLength} digits for ${perCountryObj.ivrmmC_CountryName}`}
+                                                                        </span>
+                                                                    )}
+                                                                </>
                                                             )}
                                                         />
                                                         {errors.pasR_PerPincode && <FormError>{errors.pasR_PerPincode.message}</FormError>}
@@ -2237,19 +2353,42 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                                                         {...register('pasR_FatherOfficeAddr')}
                                                         error={errors.pasR_FatherOfficeAddr?.message}
                                                     />
-                                                    <div className='flex flex-col gap-1.5'>
+                                                    <div className='flex flex-col gap-1.5 '>
                                                         <Controller
                                                             name='pasR_FatherMobleNo'
                                                             control={control}
                                                             render={({ field }) => (
-                                                                <MobileNumberInput
-                                                                    label='Mobile No.'
-                                                                    id='pasR_FatherMobleNo'
-                                                                    value={field.value === '' || field.value == null ? '' : field.value}
-                                                                    onChange={(value) => field.onChange(value)}
-                                                                    type='number'
-                                                                    showSpinner={false}
-                                                                />
+                                                                <div>
+                                                                    <Label htmlFor='pasR_FatherMobleNo'>Mobile No.</Label>
+                                                                    <PhoneInput
+                                                                        country='in'
+                                                                        value={
+                                                                            phoneValues['pasR_FatherMobleNo'] ??
+                                                                            (field.value != null ? String(field.value) : null)
+                                                                        }
+                                                                        onChange={(phone: any, countryData: any) =>
+                                                                            handlePhoneChange(phone, countryData, 'pasR_FatherMobleNo')
+                                                                        }
+                                                                        onBlur={() => trigger('pasR_FatherMobleNo')}
+                                                                        inputProps={{
+                                                                            id: 'pasR_FatherMobleNo',
+                                                                            name: 'pasR_FatherMobleNo',
+                                                                            required: false,
+                                                                            style: {
+                                                                                width: '87%',
+                                                                                height: '36px',
+                                                                                marginLeft: '40px',
+                                                                                boxSizing: 'border-box',
+                                                                                borderRadius: '4px',
+                                                                                padding: '16.5px 14px',
+                                                                                fontSize: '16px'
+                                                                            }
+                                                                        }}
+                                                                        containerClass='w-full'
+                                                                        inputClass='w-full px-4 py-2 rounded border text-sm focus:outline-none focus:ring-2 focus:ring-blue-500'
+                                                                        enableSearch
+                                                                    />
+                                                                </div>
                                                             )}
                                                         />
                                                         {errors.pasR_FatherMobleNo && (
@@ -2548,19 +2687,42 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                                                         {...register('pasR_MotherOfficeAddr')}
                                                         error={errors.pasR_MotherOfficeAddr?.message}
                                                     />
-                                                    <div className='flex flex-col gap-1.5'>
+                                                    <div className='flex flex-col gap-1.5 '>
                                                         <Controller
                                                             name='pasR_MotherMobleNo'
                                                             control={control}
                                                             render={({ field }) => (
-                                                                <MobileNumberInput
-                                                                    label='Mobile No.'
-                                                                    id='pasR_MotherMobleNo'
-                                                                    value={field.value === '' || field.value == null ? '' : field.value}
-                                                                    onChange={(value) => field.onChange(value)}
-                                                                    type='number'
-                                                                    showSpinner={false}
-                                                                />
+                                                                <div>
+                                                                    <Label htmlFor='pasR_MotherMobleNo'>Mobile No.</Label>
+                                                                    <PhoneInput
+                                                                        country='in'
+                                                                        value={
+                                                                            phoneValues['pasR_MotherMobleNo'] ??
+                                                                            (field.value != null ? String(field.value) : null)
+                                                                        }
+                                                                        onChange={(phone: any, countryData: any) =>
+                                                                            handlePhoneChange(phone, countryData, 'pasR_MotherMobleNo')
+                                                                        }
+                                                                        onBlur={() => trigger('pasR_MotherMobleNo')}
+                                                                        inputProps={{
+                                                                            id: 'pasR_MotherMobleNo',
+                                                                            name: 'pasR_MotherMobleNo',
+                                                                            required: false,
+                                                                            style: {
+                                                                                width: '87%',
+                                                                                height: '36px',
+                                                                                marginLeft: '40px',
+                                                                                boxSizing: 'border-box',
+                                                                                borderRadius: '4px',
+                                                                                padding: '16.5px 14px',
+                                                                                fontSize: '16px'
+                                                                            }
+                                                                        }}
+                                                                        containerClass='w-full'
+                                                                        inputClass='w-full px-4 py-2 rounded border text-sm focus:outline-none focus:ring-2 focus:ring-blue-500'
+                                                                        enableSearch
+                                                                    />
+                                                                </div>
                                                             )}
                                                         />
                                                         {errors.pasR_MotherMobleNo && (
@@ -2619,19 +2781,42 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                                             <div className='space-y-4'>
                                                 <h3 className='font-semibold text-gray-800 text-lg'>Additional Contact</h3>
                                                 <div className='grid grid-cols-1 gap-6 md:grid-cols-2'>
-                                                    <div className='flex flex-col gap-1.5'>
+                                                    <div className='flex flex-col gap-1.5 '>
                                                         <Controller
                                                             name='pasR_AltContactNo'
                                                             control={control}
                                                             render={({ field }) => (
-                                                                <MobileNumberInput
-                                                                    label='Alternate Contact No.'
-                                                                    id='pasR_AltContactNo'
-                                                                    value={field.value === '' || field.value == null ? '' : field.value}
-                                                                    onChange={(value) => field.onChange(value)}
-                                                                    type='number'
-                                                                    showSpinner={false}
-                                                                />
+                                                                <div>
+                                                                    <Label htmlFor='pasR_AltContactNo'>Mobile No.</Label>
+                                                                    <PhoneInput
+                                                                        country='in'
+                                                                        value={
+                                                                            phoneValues['pasR_AltContactNo'] ??
+                                                                            (field.value != null ? String(field.value) : null)
+                                                                        }
+                                                                        onChange={(phone: any, countryData: any) =>
+                                                                            handlePhoneChange(phone, countryData, 'pasR_AltContactNo')
+                                                                        }
+                                                                        onBlur={() => trigger('pasR_AltContactNo')}
+                                                                        inputProps={{
+                                                                            id: 'pasR_AltContactNo',
+                                                                            name: 'pasR_AltContactNo',
+                                                                            required: false,
+                                                                            style: {
+                                                                                width: '87%',
+                                                                                height: '36px',
+                                                                                marginLeft: '40px',
+                                                                                boxSizing: 'border-box',
+                                                                                borderRadius: '4px',
+                                                                                padding: '16.5px 14px',
+                                                                                fontSize: '16px'
+                                                                            }
+                                                                        }}
+                                                                        containerClass='w-full'
+                                                                        inputClass='w-full px-4 py-2 rounded border text-sm focus:outline-none focus:ring-2 focus:ring-blue-500'
+                                                                        enableSearch
+                                                                    />
+                                                                </div>
                                                             )}
                                                         />
                                                         {errors.pasR_AltContactNo && (
