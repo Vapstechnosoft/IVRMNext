@@ -98,6 +98,8 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
         trigger,
         setValue,
         getValues,
+        setError,
+        clearErrors,
         formState: { errors, isSubmitting }
     } = useForm<FormFields>({
         resolver: zodResolver(studentApplicationFormUpdateSchema.update),
@@ -380,12 +382,18 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                 'pasR_ConCountry',
                 'pasR_ConState',
                 'pasR_ConCity',
+                // include pincode fields so their validation runs when moving to next step
+                'pasR_ConPincode',
                 'pasR_PerStreet',
                 'pasR_PerArea',
                 'pasR_PerCountry',
                 'pasR_PerState',
                 'pasR_PerCity'
             ];
+            // Only validate Permanent pincode when it's not marked same as residential
+            if (!sameAsResidential) {
+                fieldsToValidate.push('pasR_PerPincode');
+            }
         } else if (currentStep === 3) {
             fieldsToValidate = ['pasR_FatherName', 'pasR_FatherNationality', 'pasR_MotherName', 'pasR_MotherNationality'];
 
@@ -425,7 +433,30 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
 
         const isValid = await trigger(fieldsToValidate as any);
 
+        // Additional client-side checks for pincode length because schema is static
         if (isValid) {
+            if (currentStep === 2) {
+                const conPincodeVal = String(watch('pasR_ConPincode') ?? '');
+                if (conZipLength && conPincodeVal !== '' && conPincodeVal.length !== conZipLength) {
+                    setError('pasR_ConPincode', {
+                        type: 'manual',
+                        message: `Pin code must be ${conZipLength} digits`
+                    });
+                    return;
+                }
+
+                if (!sameAsResidential) {
+                    const perPincodeVal = String(watch('pasR_PerPincode') ?? '');
+                    if (perZipLength && perPincodeVal !== '' && perPincodeVal.length !== perZipLength) {
+                        setError('pasR_PerPincode', {
+                            type: 'manual',
+                            message: `Pin code must be ${perZipLength} digits`
+                        });
+                        return;
+                    }
+                }
+            }
+
             setCurrentStep((prev) => Math.min(prev + 1, steps.length));
         }
     };
@@ -1423,7 +1454,10 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                                                     control={control}
                                                     render={({ field }) => (
                                                         <div>
-                                                            <Label htmlFor='pasR_MobileNo'>Mobile No.</Label>
+                                                            <Label htmlFor='pasR_MobileNo'>
+                                                                Mobile No.
+                                                                <span className='ml-1 text-red-500'>*</span>
+                                                            </Label>
                                                             <PhoneInput
                                                                 country='in'
                                                                 value={
@@ -1902,6 +1936,20 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                                                         <Controller
                                                             name='pasR_ConPincode'
                                                             control={control}
+                                                            rules={
+                                                                conZipLength
+                                                                    ? {
+                                                                          minLength: {
+                                                                              value: conZipLength,
+                                                                              message: `Pin code must be ${conZipLength} digits`
+                                                                          },
+                                                                          maxLength: {
+                                                                              value: conZipLength,
+                                                                              message: `Pin code must be ${conZipLength} digits`
+                                                                          }
+                                                                      }
+                                                                    : undefined
+                                                            }
                                                             render={({ field }) => (
                                                                 <>
                                                                     <MobileNumberInput
@@ -1916,14 +1964,30 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                                                                                 ? str.slice(0, conZipLength)
                                                                                 : str;
                                                                             field.onChange(truncated);
+                                                                            // Set/clear manual error so message appears immediately
+                                                                            if (
+                                                                                conZipLength &&
+                                                                                truncated !== '' &&
+                                                                                String(truncated).length !== conZipLength
+                                                                            ) {
+                                                                                setError('pasR_ConPincode', {
+                                                                                    type: 'manual',
+                                                                                    message: `Pin code must be ${conZipLength} digits`
+                                                                                });
+                                                                            } else {
+                                                                                clearErrors('pasR_ConPincode');
+                                                                            }
+                                                                            // trigger resolver validation as well
+                                                                            trigger('pasR_ConPincode');
                                                                         }}
+                                                                        minLength={conZipLength}
                                                                         maxLength={conZipLength}
                                                                         type='number'
                                                                         showSpinner={false}
                                                                     />
                                                                     {conCountryObj && conZipLength && (
                                                                         <span className='mt-1 text-muted-foreground text-xs'>
-                                                                            {`Max ${conZipLength} digits for ${conCountryObj.ivrmmC_CountryName}`}
+                                                                            {`Pin code must be ${conZipLength} digits for ${conCountryObj.ivrmmC_CountryName}`}
                                                                         </span>
                                                                     )}
                                                                 </>
@@ -2051,6 +2115,20 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                                                         <Controller
                                                             name='pasR_PerPincode'
                                                             control={control}
+                                                            rules={
+                                                                perZipLength
+                                                                    ? {
+                                                                          minLength: {
+                                                                              value: perZipLength,
+                                                                              message: `Pin code must be ${perZipLength} digits`
+                                                                          },
+                                                                          maxLength: {
+                                                                              value: perZipLength,
+                                                                              message: `Pin code must be ${perZipLength} digits`
+                                                                          }
+                                                                      }
+                                                                    : undefined
+                                                            }
                                                             render={({ field }) => (
                                                                 <>
                                                                     <MobileNumberInput
@@ -2064,7 +2142,23 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                                                                                 ? str.slice(0, perZipLength)
                                                                                 : str;
                                                                             field.onChange(truncated);
+                                                                            // Set/clear manual error so message appears immediately
+                                                                            if (
+                                                                                perZipLength &&
+                                                                                truncated !== '' &&
+                                                                                String(truncated).length !== perZipLength
+                                                                            ) {
+                                                                                setError('pasR_PerPincode', {
+                                                                                    type: 'manual',
+                                                                                    message: `Pin code must be ${perZipLength} digits`
+                                                                                });
+                                                                            } else {
+                                                                                clearErrors('pasR_PerPincode');
+                                                                            }
+                                                                            // trigger resolver validation as well
+                                                                            trigger('pasR_PerPincode');
                                                                         }}
+                                                                        minLength={perZipLength}
                                                                         maxLength={perZipLength}
                                                                         type='number'
                                                                         showSpinner={false}
@@ -2072,7 +2166,7 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                                                                     />
                                                                     {perCountryObj && perZipLength && (
                                                                         <span className='mt-1 text-muted-foreground text-xs'>
-                                                                            {`Max ${perZipLength} digits for ${perCountryObj.ivrmmC_CountryName}`}
+                                                                            {`Pin code must be ${perZipLength} digits for ${perCountryObj.ivrmmC_CountryName}`}
                                                                         </span>
                                                                     )}
                                                                 </>
