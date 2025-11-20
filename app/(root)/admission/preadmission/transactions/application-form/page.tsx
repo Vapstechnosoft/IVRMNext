@@ -26,7 +26,7 @@ export default function StudentApplicationPage(props: {
         data: response,
         isLoading,
         error,
-        refetchAll
+        refetch: refetchAll
     } = useStudentApplicationList(activePreadmission?.data?.asmaY_Id ?? 0, searchParams);
 
     return (

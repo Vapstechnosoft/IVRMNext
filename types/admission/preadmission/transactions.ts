@@ -9,6 +9,8 @@ export interface ICasteDropdown {
 export interface ICountryDropdown {
     ivrmmC_Id: number;
     ivrmmC_CountryName: string;
+    ivrmmC_CountryPhCode: string;
+    ivrmmC_ZipNoLength: number;
 }
 export interface IStateDropdown {
     ivrmmS_Id: number;
