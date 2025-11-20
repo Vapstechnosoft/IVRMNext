@@ -3,7 +3,7 @@
 import { Button } from '@/components/ui/button';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { X } from 'lucide-react';
+import { Search, X } from 'lucide-react';
 
 export interface Form3AFilters {
     year: string;
@@ -12,13 +12,23 @@ export interface Form3AFilters {
 
 interface PFForm3AFiltersProps {
     filters: Form3AFilters;
-    employees: Array<{ code: string; name: string; pfNumber: string }>;
+    employees: Array<{ id?: number; code: string; name: string; pfNumber?: string }>;
     onFilterChange: (filters: Form3AFilters) => void;
     onGenerate: () => void;
     onCancel: () => void;
+    isLoading?: boolean;
+    years?: string[];
 }
 
-export function PFForm3AFilters({ filters, employees, onFilterChange, onGenerate, onCancel }: PFForm3AFiltersProps) {
+export function PFForm3AFilters({
+    filters,
+    employees,
+    onFilterChange,
+    onGenerate,
+    onCancel,
+    isLoading = false,
+    years = []
+}: PFForm3AFiltersProps) {
     const handleSelectChange = (key: keyof Form3AFilters, value: string) => {
         onFilterChange({ ...filters, [key]: value });
     };
@@ -41,11 +51,21 @@ export function PFForm3AFilters({ filters, employees, onFilterChange, onGenerate
                             <SelectValue placeholder='Select' />
                         </SelectTrigger>
                         <SelectContent>
-                            {['2023', '2024', '2025'].map((year) => (
-                                <SelectItem key={year} value={year}>
-                                    {year}
+                            {isLoading ? (
+                                <SelectItem value='' disabled>
+                                    Loading...
                                 </SelectItem>
-                            ))}
+                            ) : years.length === 0 ? (
+                                <SelectItem value='' disabled>
+                                    No data available
+                                </SelectItem>
+                            ) : (
+                                years.map((year) => (
+                                    <SelectItem key={year} value={year}>
+                                        {year}
+                                    </SelectItem>
+                                ))
+                            )}
                         </SelectContent>
                     </Select>
                 </div>
@@ -60,19 +80,30 @@ export function PFForm3AFilters({ filters, employees, onFilterChange, onGenerate
                             <SelectValue placeholder='Select Employee' />
                         </SelectTrigger>
                         <SelectContent>
-                            {employees.map((emp) => (
-                                <SelectItem key={emp.code} value={emp.code}>
-                                    {emp.name} ({emp.code})
+                            {isLoading ? (
+                                <SelectItem value='' disabled>
+                                    Loading...
                                 </SelectItem>
-                            ))}
+                            ) : employees.length === 0 ? (
+                                <SelectItem value='' disabled>
+                                    No employees available
+                                </SelectItem>
+                            ) : (
+                                employees.map((emp) => (
+                                    <SelectItem key={emp.code} value={emp.code}>
+                                        {emp.name} ({emp.code})
+                                    </SelectItem>
+                                ))
+                            )}
                         </SelectContent>
                     </Select>
                 </div>
             </div>
 
             {/* Action Buttons */}
-            <div className='flex justify-center gap-2 pt-4'>
-                <Button onClick={onGenerate} className='bg-blue-600 hover:bg-blue-700'>
+            <div className='flex gap-2 pt-4'>
+                <Button onClick={onGenerate}>
+                    <Search className='mr-2 h-4 w-4' />
                     GENERATE
                 </Button>
                 <Button variant='outline' onClick={onCancel}>

@@ -39,13 +39,28 @@ export function CumulativeSalaryReportFilters({
     onCancel
 }: CumulativeSalaryReportFiltersProps) {
     return (
-        <CollapsibleSection
-            defaultOpen={true}
-            variant='outline'
-            size='lg'
-            className='shadow-lg'
-            headerClassName=''>
-            <form onSubmit={onSubmit} className='space-y-6'>
+        <CollapsibleSection defaultOpen={true} variant='outline' size='lg' className='shadow-lg' headerClassName=''>
+            <form
+                onSubmit={(e) => {
+                    console.log('🔵 [CUMULATIVE SALARY] Form onSubmit triggered', {
+                        event: e,
+                        type: e.type,
+                        target: e.target,
+                        currentTarget: e.currentTarget,
+                        formData: new FormData(e.currentTarget as HTMLFormElement),
+                        timestamp: new Date().toISOString()
+                    });
+                    console.log('🔵 [CUMULATIVE SALARY] Calling onSubmit handler (react-hook-form handleSubmit)...');
+                    // Call the onSubmit handler (which is handleSubmit from react-hook-form)
+                    // It will handle preventDefault internally
+                    const result = onSubmit(e);
+                    if (result instanceof Promise) {
+                        result.catch((error) => {
+                            console.error('🔴 [CUMULATIVE SALARY] Error in onSubmit:', error);
+                        });
+                    }
+                }}
+                className='space-y-6'>
                 <div className='grid grid-cols-1 gap-6 lg:grid-cols-5'>
                     {/* Group Type (MultiSelect) */}
                     <div className='space-y-3'>
@@ -162,7 +177,20 @@ export function CumulativeSalaryReportFilters({
 
                 {/* Search and Cancel Buttons */}
                 <div className='flex gap-2 pt-4'>
-                    <Button type='submit' className='w-fit transition-all duration-200 hover:scale-105'>
+                    <Button
+                        type='submit'
+                        className='w-fit transition-all duration-200 hover:scale-105'
+                        onClick={(e) => {
+                            console.log('🔵 [CUMULATIVE SALARY] SEARCH button clicked', {
+                                event: e,
+                                type: e.type,
+                                target: e.target,
+                                currentTarget: e.currentTarget,
+                                buttonType: (e.target as HTMLButtonElement)?.type,
+                                form: e.currentTarget?.form,
+                                timestamp: new Date().toISOString()
+                            });
+                        }}>
                         <RefreshCw className='mr-2 h-4 w-4' />
                         SEARCH
                     </Button>

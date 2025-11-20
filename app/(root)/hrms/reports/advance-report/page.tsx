@@ -3,12 +3,13 @@
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { DataTable } from '@/components/ui/data-table/data-table';
-import { createLocalCrud } from '@/lib/localdb';
+import { HRMS_MI_ID } from '@/constants/hrms-config';
+import { useEmployeeAdvanceReportOnload, useSearchEmployeeAdvanceReport } from '@/hooks/hrms/useReports';
 import { Calculator, CreditCard, DollarSign, Download, FileText, Printer, TrendingUp, Users } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';
 import { type EmployeeAdvanceRecord, advanceReportColumns, advanceTypeSummaryColumns } from './_components/columns';
-import { type AdvanceFilters, AdvanceReportFilters, type FilterOptions } from './_components/filters';
+import { type AdvanceFilters, AdvanceReportFilters } from './_components/filters';
 
 // Advance Summary
 interface AdvanceSummary {
@@ -37,18 +38,16 @@ interface AdvanceTypeSummary {
 }
 
 export default function AdvanceReportPage() {
-    // Database instances
-    const advanceDB = createLocalCrud<EmployeeAdvanceRecord>('report:employee-advance');
+    const roleId = HRMS_MI_ID;
+    const LogInUserId = 0;
+
+    // React Query hooks
+    const { data: onloadData, isLoading: isLoadingOnload, error: onloadError } = useEmployeeAdvanceReportOnload(roleId, LogInUserId);
+    const searchMutation = useSearchEmployeeAdvanceReport();
 
     // State
     const [advanceRecords, setAdvanceRecords] = useState<EmployeeAdvanceRecord[]>([]);
     const [filteredRecords, setFilteredRecords] = useState<EmployeeAdvanceRecord[]>([]);
-    const [filterOptions, setFilterOptions] = useState<FilterOptions>({
-        groupTypes: [],
-        departments: [],
-        designations: []
-    });
-    const [isLoading, setIsLoading] = useState(true);
     const [showReport, setShowReport] = useState(false);
 
     const [filters, setFilters] = useState<AdvanceFilters>({
@@ -59,200 +58,74 @@ export default function AdvanceReportPage() {
         year: ''
     });
 
-    // Load data on mount
+    // Memoize dropdown data from API
+    const months = useMemo(() => {
+        const data = onloadData?.data;
+        if (!data) return [];
+        return (data as any).monthdropdown || [];
+    }, [onloadData?.data]);
+
+    const years = useMemo(() => {
+        const data = onloadData?.data;
+        if (!data) return [];
+        return (data as any).leaveyeardropdown || [];
+    }, [onloadData?.data]);
+
+    const groupTypes = useMemo(() => {
+        const data = onloadData?.data;
+        if (!data) return [];
+        return (data as any).groupTypedropdown || [];
+    }, [onloadData?.data]);
+
+    const departments = useMemo(() => {
+        const data = onloadData?.data;
+        if (!data) return [];
+        return (data as any).departmentdropdown || [];
+    }, [onloadData?.data]);
+
+    const designations = useMemo(() => {
+        const data = onloadData?.data;
+        if (!data) return [];
+        return (data as any).designationdropdown || [];
+    }, [onloadData?.data]);
+
+    // Show error if API fails
     useEffect(() => {
-        loadData();
-    }, []);
-
-    const loadData = () => {
-        try {
-            // Load Employee Advance records
-            let recordList = advanceDB.list();
-            if (recordList.length === 0) {
-                const mockData = generateMockAdvanceData();
-                mockData.forEach((record) => advanceDB.create(record));
-                recordList = advanceDB.list(); // Reload data after creating mock records
-            }
-            setAdvanceRecords(recordList);
-
-            // Extract filter options
-            const groupTypes = [...new Set(recordList.map((r) => r.groupType))];
-            const departments = [...new Set(recordList.map((r) => r.department))];
-            const designations = [...new Set(recordList.map((r) => r.designation))];
-
-            setFilterOptions({
-                groupTypes,
-                departments,
-                designations
-            });
-        } catch (_error) {
-            toast.error('Failed to load data');
-        } finally {
-            setIsLoading(false);
+        if (onloadError || (!isLoadingOnload && onloadData && !onloadData.success)) {
+            const errorMessage =
+                onloadError?.message ||
+                onloadData?.message ||
+                'Failed to load employee advance report data. Please check if the API endpoint is available.';
+            toast.error(errorMessage);
         }
-    };
-
-    // Generate mock Employee Advance data
-    const generateMockAdvanceData = (): Omit<EmployeeAdvanceRecord, 'id' | 'createdAt'>[] => {
-        const groupTypes = ['Test NON Teaching', 'Test Insurance', 'Teaching', 'Owner of the company', 'Non Teaching', 'Administrative'];
-        const departments = ['Teaching', 'JUNIOR SCHOOL', 'SENIOR SCHOOL', 'OFFICE STAFF', 'Service Staff', 'Administrative', 'Principal'];
-        const designations = [
-            'Assistant Teacher',
-            'Principal',
-            'Vice Principal',
-            'Office Assistant',
-            'System Manager',
-            'Teacher Helper',
-            'Electrician'
-        ];
-        const advanceTypes: ('Salary Advance' | 'Festival Advance' | 'Medical Advance' | 'Emergency Advance' | 'Travel Advance')[] = [
-            'Salary Advance',
-            'Festival Advance',
-            'Medical Advance',
-            'Emergency Advance',
-            'Travel Advance'
-        ];
-        const statuses: ('Pending' | 'Approved' | 'Rejected' | 'Partially Recovered' | 'Fully Recovered')[] = [
-            'Pending',
-            'Approved',
-            'Rejected',
-            'Partially Recovered',
-            'Fully Recovered'
-        ];
-        const approvers = ['HR Manager', 'Principal', 'Finance Head', 'Admin Manager'];
-        const reasons = [
-            'Medical emergency',
-            'Festival expenses',
-            'Home renovation',
-            'Child education fees',
-            'Marriage expenses',
-            'Travel expenses',
-            'Personal loan repayment',
-            'Family emergency'
-        ];
-
-        const employees = [
-            'MR SUDIPTA RANJAN BHADURI',
-            'MS RUPLEKHA CHATTERJEE',
-            'MR JOHN SHAH',
-            'MRS BHASWATI DAS',
-            'MR SANTANU MUKHERJEE',
-            'MRS PRIYA SHARMA',
-            'MR RAJESH KUMAR',
-            'MS ANITA SINGH',
-            'MR AMIT KUMAR',
-            'MS DEEPIKA PATEL',
-            'MR ROHIT GUPTA',
-            'MRS KAVITA SINGH'
-        ];
-
-        const months = [
-            'January',
-            'February',
-            'March',
-            'April',
-            'May',
-            'June',
-            'July',
-            'August',
-            'September',
-            'October',
-            'November',
-            'December'
-        ];
-        const mockRecords: Omit<EmployeeAdvanceRecord, 'id' | 'createdAt'>[] = [];
-
-        employees.forEach((empName, empIndex) => {
-            // Generate 1-3 advance requests per employee per year
-            const numAdvances = Math.floor(Math.random() * 3) + 1;
-
-            for (let i = 0; i < numAdvances; i++) {
-                const month = months[Math.floor(Math.random() * months.length)];
-                const basicSalary = 30000 + empIndex * 3000 + Math.random() * 10000;
-                const advanceAmount = Math.floor(basicSalary * (0.2 + Math.random() * 0.5)); // 20-70% of basic salary
-                const approvedAmount = Math.random() > 0.1 ? advanceAmount : advanceAmount * 0.8; // 90% approval rate
-                const status = statuses[Math.floor(Math.random() * statuses.length)];
-                const advanceType = advanceTypes[Math.floor(Math.random() * advanceTypes.length)];
-
-                const requestDate = `2025-${String(months.indexOf(month) + 1).padStart(
-                    2,
-                    '0'
-                )}-${String(Math.floor(Math.random() * 28) + 1).padStart(2, '0')}`;
-                const approvalDate =
-                    status !== 'Pending'
-                        ? `2025-${String(months.indexOf(month) + 1).padStart(
-                              2,
-                              '0'
-                          )}-${String(Math.floor(Math.random() * 28) + 1).padStart(2, '0')}`
-                        : '';
-
-                const totalInstallments = Math.floor(Math.random() * 12) + 1; // 1-12 installments
-                const installmentAmount = Math.floor(approvedAmount / totalInstallments);
-
-                let recoveredAmount = 0;
-                if (status === 'Fully Recovered') {
-                    recoveredAmount = approvedAmount;
-                } else if (status === 'Partially Recovered') {
-                    recoveredAmount = Math.floor(approvedAmount * (0.1 + Math.random() * 0.8));
-                }
-
-                const remainingAmount = approvedAmount - recoveredAmount;
-                const advancePercentage = Math.round((advanceAmount / basicSalary) * 100);
-
-                mockRecords.push({
-                    employeeCode: `EMP${String(empIndex + 1).padStart(3, '0')}`,
-                    employeeName: empName,
-                    groupType: groupTypes[empIndex % groupTypes.length],
-                    department: departments[empIndex % departments.length],
-                    designation: designations[empIndex % designations.length],
-                    advanceRequestDate: requestDate,
-                    advanceType: advanceType,
-                    advanceAmount: Math.round(advanceAmount),
-                    approvedAmount: Math.round(approvedAmount),
-                    advanceReason: reasons[Math.floor(Math.random() * reasons.length)],
-                    approvalDate: approvalDate,
-                    approvedBy: approvers[Math.floor(Math.random() * approvers.length)],
-                    recoveryStartDate:
-                        status === 'Approved' || status.includes('Recovered')
-                            ? `2025-${String(months.indexOf(month) + 2).padStart(2, '0')}-01`
-                            : '',
-                    recoveryEndDate:
-                        status === 'Approved' || status.includes('Recovered')
-                            ? `2025-${String(months.indexOf(month) + totalInstallments + 1).padStart(2, '0')}-01`
-                            : '',
-                    totalInstallments: totalInstallments,
-                    installmentAmount: installmentAmount,
-                    recoveredAmount: Math.round(recoveredAmount),
-                    remainingAmount: Math.round(remainingAmount),
-                    status: status,
-                    month: month,
-                    year: '2025',
-                    basicSalary: Math.round(basicSalary),
-                    advancePercentage: advancePercentage
-                });
-            }
-        });
-
-        return mockRecords;
-    };
+    }, [onloadError, isLoadingOnload, onloadData]);
 
     // Filter records based on selected criteria
     useEffect(() => {
         let filtered = advanceRecords;
 
-        // Filter by group types
+        // Filter by group types (by ID)
         if (filters.selectedGroupTypes.length > 0) {
-            filtered = filtered.filter((record) => filters.selectedGroupTypes.includes(record.groupType));
+            filtered = filtered.filter((record) => {
+                // TODO: Map group type ID to name when API is integrated
+                return filters.selectedGroupTypes.includes(record.groupType);
+            });
         }
 
-        // Filter by departments
+        // Filter by departments (by ID)
         if (filters.selectedDepartments.length > 0) {
-            filtered = filtered.filter((record) => filters.selectedDepartments.includes(record.department));
+            filtered = filtered.filter((record) => {
+                // TODO: Map department ID to name when API is integrated
+                return filters.selectedDepartments.includes(record.department);
+            });
         }
 
-        // Filter by designations
+        // Filter by designations (by ID)
         if (filters.selectedDesignations.length > 0) {
-            filtered = filtered.filter((record) => filters.selectedDesignations.includes(record.designation));
+            filtered = filtered.filter((record) => {
+                // TODO: Map designation ID to name when API is integrated
+                return filters.selectedDesignations.includes(record.designation);
+            });
         }
 
         // Filter by month
@@ -268,9 +141,136 @@ export default function AdvanceReportPage() {
         setFilteredRecords(filtered);
     }, [filters, advanceRecords]);
 
+    const handleFilterChange = (newFilters: AdvanceFilters) => {
+        setFilters(newFilters);
+    };
+
     const handleSearch = () => {
-        setShowReport(true);
-        toast.success('Employee Advance Report generated');
+        if (!filters.month || !filters.year) {
+            toast.error('Please select both month and year');
+            return;
+        }
+
+        // Find month name from selected month
+        const selectedMonthObj = months.find((m: any) => m.IVRM_Month_Name?.trim() === filters.month);
+        const monthName = selectedMonthObj?.IVRM_Month_Name?.trim() || filters.month;
+
+        // Find selected department IDs
+        const selectedDepartmentIds = filters.selectedDepartments
+            .map((id) => {
+                const dept = departments.find((d: any) => d.HRMD_Id?.toString() === id);
+                return dept?.HRMD_Id;
+            })
+            .filter((id): id is number => id !== undefined);
+
+        // Find selected designation IDs
+        const selectedDesignationIds = filters.selectedDesignations
+            .map((id) => {
+                const desg = designations.find((d: any) => d.HRMDES_Id?.toString() === id);
+                return desg?.HRMDES_Id;
+            })
+            .filter((id): id is number => id !== undefined);
+
+        // Find selected year
+        const selectedYearObj = years.find((y: any) => y.HRMLY_LeaveYear === filters.year);
+        const yearValue = selectedYearObj ? Number.parseInt(selectedYearObj.HRMLY_LeaveYear) : Number.parseInt(filters.year) || 0;
+
+        // Prepare search request
+        const searchRequest = {
+            MI_Id: roleId,
+            hrmD_IdList: selectedDepartmentIds.length > 0 ? selectedDepartmentIds : [],
+            hrmdeS_IdList: selectedDesignationIds.length > 0 ? selectedDesignationIds : [],
+            HRESA_AdvYear: yearValue,
+            HRESA_AdvMonth: monthName
+        };
+
+        // Call search API
+        searchMutation.mutate(searchRequest, {
+            onSuccess: (response) => {
+                if (response.success && response.data) {
+                    // Extract employee details from response
+                    const employeeData = response.data.employeeDetails || [];
+
+                    if (Array.isArray(employeeData) && employeeData.length > 0) {
+                        // Map API response to EmployeeAdvanceRecord format
+                        const mappedRecords: EmployeeAdvanceRecord[] = employeeData.map((item: any, index: number) => {
+                            const advanceAmount = item.HRESA_AppliedAmount || item.advanceAmount || 0;
+                            const approvedAmount = item.HRESA_ApprovedAmount || item.approvedAmount || 0;
+                            const recoveredAmount = item.HRESA_RecoveredAmount || item.recoveredAmount || 0;
+                            const remainingAmount = item.HRESA_RemainingAmount || item.remainingAmount || approvedAmount - recoveredAmount;
+
+                            // Determine status
+                            let status: 'Pending' | 'Approved' | 'Rejected' | 'Partially Recovered' | 'Fully Recovered' = 'Pending';
+                            if (item.HRESA_Status) {
+                                const apiStatus = item.HRESA_Status.toLowerCase();
+                                if (apiStatus.includes('rejected')) {
+                                    status = 'Rejected';
+                                } else if (apiStatus.includes('fully recovered') || remainingAmount === 0) {
+                                    status = 'Fully Recovered';
+                                } else if (apiStatus.includes('partially recovered') || recoveredAmount > 0) {
+                                    status = 'Partially Recovered';
+                                } else if (apiStatus.includes('approved')) {
+                                    status = 'Approved';
+                                }
+                            }
+
+                            // Calculate advance percentage
+                            const basicSalary = item.HRME_BasicSalary || item.basicSalary || 0;
+                            const advancePercentage = basicSalary > 0 ? Math.round((advanceAmount / basicSalary) * 100) : 0;
+
+                            return {
+                                id: `advance-${item.HRESA_Id || index}`,
+                                employeeCode: item.HRME_EmployeeCode || item.EmployeeCode || '',
+                                employeeName:
+                                    `${item.HRME_EmployeeFirstName || ''} ${item.HRME_EmployeeMiddleName || ''} ${item.HRME_EmployeeLastName || ''}`.trim() ||
+                                    '',
+                                groupType: item.HRMGT_EmployeeGroupType || item.groupType || 'N/A',
+                                department: item.HRMD_DepartmentName || item.department || 'N/A',
+                                designation: item.HRMDES_DesignationName || item.designation || 'N/A',
+                                advanceRequestDate: item.HRESA_EntryDate || item.advanceRequestDate || '',
+                                advanceType: (item.HRESA_AdvanceType || item.advanceType || 'Salary Advance') as
+                                    | 'Salary Advance'
+                                    | 'Festival Advance'
+                                    | 'Medical Advance'
+                                    | 'Emergency Advance'
+                                    | 'Travel Advance',
+                                advanceAmount: Math.round(advanceAmount),
+                                approvedAmount: Math.round(approvedAmount),
+                                advanceReason: item.HRESA_Reason || item.advanceReason || '',
+                                approvalDate: item.HRESA_ApprovalDate || item.approvalDate || '',
+                                approvedBy: item.HRESA_ApprovedBy || item.approvedBy || '',
+                                recoveryStartDate: item.HRESA_RecoveryStartDate || item.recoveryStartDate || '',
+                                recoveryEndDate: item.HRESA_RecoveryEndDate || item.recoveryEndDate || '',
+                                totalInstallments: item.HRESA_TotalInstallments || item.totalInstallments || 0,
+                                installmentAmount: item.HRESA_InstallmentAmount || item.installmentAmount || 0,
+                                recoveredAmount: Math.round(recoveredAmount),
+                                remainingAmount: Math.round(remainingAmount),
+                                status: status,
+                                month: filters.month,
+                                year: filters.year,
+                                basicSalary: Math.round(basicSalary),
+                                advancePercentage: advancePercentage
+                            };
+                        });
+
+                        setAdvanceRecords(mappedRecords);
+                        setShowReport(true);
+                        toast.success('Employee Advance Report generated successfully');
+                    } else {
+                        // No data returned
+                        setAdvanceRecords([]);
+                        setShowReport(true);
+                        toast.warning('Employee Advance Report generated but no data found for selected period');
+                    }
+                } else {
+                    toast.error(response.message || 'Failed to generate Employee Advance Report');
+                }
+            },
+            onError: (error: Error) => {
+                console.error('Error searching advance report:', error);
+                toast.error(error.message || 'Failed to generate Employee Advance Report');
+            }
+        });
     };
 
     const handleCancel = () => {
@@ -281,12 +281,10 @@ export default function AdvanceReportPage() {
             month: '',
             year: ''
         });
+        setAdvanceRecords([]);
+        setFilteredRecords([]);
         setShowReport(false);
         toast.info('Filters cleared');
-    };
-
-    const handleFilterChange = (newFilters: AdvanceFilters) => {
-        setFilters(newFilters);
     };
 
     const handleExport = () => {
@@ -372,14 +370,18 @@ export default function AdvanceReportPage() {
 
     return (
         <div className='space-y-6'>
-
             {/* Report Configuration Section */}
             <AdvanceReportFilters
                 filters={filters}
-                filterOptions={filterOptions}
+                groupTypes={groupTypes}
+                departments={departments}
+                designations={designations}
+                months={months}
+                years={years}
                 onFilterChange={handleFilterChange}
                 onSearch={handleSearch}
                 onCancel={handleCancel}
+                isLoading={isLoadingOnload}
             />
 
             {/* Report Results */}
@@ -468,7 +470,7 @@ export default function AdvanceReportPage() {
                         </CardHeader>
                         <CardContent>
                             <DataTable
-                                isLoading={isLoading}
+                                isLoading={isLoadingOnload}
                                 columns={advanceTypeSummaryColumns}
                                 data={advanceTypeSummaries}
                                 totalItems={advanceTypeSummaries.length}
@@ -563,7 +565,7 @@ export default function AdvanceReportPage() {
                         </CardHeader>
                         <CardContent>
                             <DataTable
-                                isLoading={isLoading}
+                                isLoading={isLoadingOnload}
                                 columns={advanceReportColumns}
                                 data={filteredRecords}
                                 totalItems={filteredRecords.length}

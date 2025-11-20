@@ -5,20 +5,26 @@ import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { useCumulativeSalaryReportList, useCumulativeSalaryReportOnload } from '@/hooks/hrms/useReports';
 import type { ApiSearchparams } from '@/types';
-import type { SalaryReportRecord } from '@/types/hrms/reports/cumulative-salary-report';
 import { Download, Printer } from 'lucide-react';
-import { use, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
+import { use, useEffect, useMemo, useRef, useState } from 'react';
+import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import { type CumulativeSalaryRecord, cumulativeSalaryColumns } from './_components/columns';
 import { CumulativeSalaryReportFilters, type ReportFilters } from './_components/filters';
-import { useForm } from 'react-hook-form';
 
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 
 export default function CumulativeSalaryReportPage(props: { searchParams: SearchParams }) {
     const rawSearchParams = use(props.searchParams);
     const router = useRouter();
+
+    console.log('🔵 [CUMULATIVE SALARY] Component rendered/re-rendered', {
+        rawSearchParams,
+        month: rawSearchParams?.month,
+        year: rawSearchParams?.year,
+        timestamp: new Date().toISOString()
+    });
 
     // Convert Next.js searchParams to ApiSearchparams format
     const searchParams: ApiSearchparams = {
@@ -66,41 +72,92 @@ export default function CumulativeSalaryReportPage(props: { searchParams: Search
 
     // Extract filter params from URL
     const MI_Id = 30;
-    const month = typeof rawSearchParams?.month === 'string' ? rawSearchParams.month : Array.isArray(rawSearchParams?.month) ? rawSearchParams.month[0] : '';
-    const year = typeof rawSearchParams?.year === 'string' ? rawSearchParams.year : Array.isArray(rawSearchParams?.year) ? rawSearchParams.year[0] : '';
-    const groupType = typeof rawSearchParams?.groupType === 'string' 
-        ? rawSearchParams.groupType.split(',').map(Number).filter(Boolean)
-        : Array.isArray(rawSearchParams?.groupType)
-          ? rawSearchParams.groupType.flatMap(g => typeof g === 'string' ? g.split(',').map(Number).filter(Boolean) : [])
-          : [];
-    const department = typeof rawSearchParams?.department === 'string'
-        ? rawSearchParams.department.split(',').map(Number).filter(Boolean)
-        : Array.isArray(rawSearchParams?.department)
-          ? rawSearchParams.department.flatMap(d => typeof d === 'string' ? d.split(',').map(Number).filter(Boolean) : [])
-          : [];
-    const designation = typeof rawSearchParams?.designation === 'string'
-        ? rawSearchParams.designation.split(',').map(Number).filter(Boolean)
-        : Array.isArray(rawSearchParams?.designation)
-          ? rawSearchParams.designation.flatMap(d => typeof d === 'string' ? d.split(',').map(Number).filter(Boolean) : [])
-          : [];
+    const month =
+        typeof rawSearchParams?.month === 'string'
+            ? rawSearchParams.month
+            : Array.isArray(rawSearchParams?.month)
+              ? rawSearchParams.month[0]
+              : '';
+    const year =
+        typeof rawSearchParams?.year === 'string'
+            ? rawSearchParams.year
+            : Array.isArray(rawSearchParams?.year)
+              ? rawSearchParams.year[0]
+              : '';
+
+    // Memoize arrays to prevent unnecessary re-renders and infinite loops
+    const groupType = useMemo(() => {
+        if (typeof rawSearchParams?.groupType === 'string') {
+            return rawSearchParams.groupType.split(',').map(Number).filter(Boolean);
+        }
+        if (Array.isArray(rawSearchParams?.groupType)) {
+            return rawSearchParams.groupType.flatMap((g) => (typeof g === 'string' ? g.split(',').map(Number).filter(Boolean) : []));
+        }
+        return [];
+    }, [rawSearchParams?.groupType]);
+
+    const department = useMemo(() => {
+        if (typeof rawSearchParams?.department === 'string') {
+            return rawSearchParams.department.split(',').map(Number).filter(Boolean);
+        }
+        if (Array.isArray(rawSearchParams?.department)) {
+            return rawSearchParams.department.flatMap((d) => (typeof d === 'string' ? d.split(',').map(Number).filter(Boolean) : []));
+        }
+        return [];
+    }, [rawSearchParams?.department]);
+
+    const designation = useMemo(() => {
+        if (typeof rawSearchParams?.designation === 'string') {
+            return rawSearchParams.designation.split(',').map(Number).filter(Boolean);
+        }
+        if (Array.isArray(rawSearchParams?.designation)) {
+            return rawSearchParams.designation.flatMap((d) => (typeof d === 'string' ? d.split(',').map(Number).filter(Boolean) : []));
+        }
+        return [];
+    }, [rawSearchParams?.designation]);
 
     // Check if we have search criteria (month and year are required)
     const hasSearchCriteria = !!(month && year);
-    
+
+    // State to control when to show the report template (even without data)
+    const [showReport, setShowReport] = useState(false);
+    const hasInitializedShowReport = useRef(false);
+
+    console.log('🔵 [CUMULATIVE SALARY] Search criteria check', {
+        month,
+        year,
+        hasSearchCriteria,
+        groupType,
+        department,
+        designation,
+        showReport
+    });
+
     // React Query hook for dropdowns - always enabled to get filter options
     const { data: onloadData, isLoading: onloadLoading, error: onloadError } = useCumulativeSalaryReportOnload(MI_Id);
-    
+
     // Memoize arrays to prevent unnecessary re-renders
     const groupTypes = useMemo(() => onloadData?.data?.groupTypedropdownlist || [], [onloadData?.data?.groupTypedropdownlist]);
     const departments = useMemo(() => onloadData?.data?.departmentdropdownlist || [], [onloadData?.data?.departmentdropdownlist]);
     const designations = useMemo(() => onloadData?.data?.designationdropdownlist || [], [onloadData?.data?.designationdropdownlist]);
     const months = useMemo(() => onloadData?.data?.monthdropdown || [], [onloadData?.data?.monthdropdown]);
     const years = useMemo(() => onloadData?.data?.leaveyeardropdown || [], [onloadData?.data?.leaveyeardropdown]);
-    
+
     // Get year and month IDs from dropdowns for API
     const yearId = years.find((y) => y.HRMLY_LeaveYear === year)?.HRMLY_Id;
     const monthId = months.find((m) => m.IVRM_Month_Name.trim() === month)?.IVRM_Month_Id;
-    
+
+    console.log('🔵 [CUMULATIVE SALARY] Month/Year ID lookup', {
+        month,
+        year,
+        monthId,
+        yearId,
+        monthsAvailable: months.length,
+        yearsAvailable: years.length,
+        monthMatch: months.find((m) => m.IVRM_Month_Name.trim() === month),
+        yearMatch: years.find((y) => y.HRMLY_LeaveYear === year)
+    });
+
     // React Query hook for report data - only enabled when search criteria are present
     const reportListQuery = useCumulativeSalaryReportList(
         searchParams,
@@ -119,6 +176,40 @@ export default function CumulativeSalaryReportPage(props: { searchParams: Search
         hasSearchCriteria // Only fetch when month and year are selected
     );
 
+    console.log('🔵 [CUMULATIVE SALARY] Report query state', {
+        isLoading: reportListQuery.isLoading,
+        isFetching: reportListQuery.isFetching,
+        hasData: !!reportListQuery.data,
+        dataSuccess: reportListQuery.data?.success,
+        enabled: hasSearchCriteria,
+        monthId,
+        yearId,
+        monthName: month,
+        yearName: year,
+        filterParams: {
+            month: monthId?.toString(),
+            year: yearId?.toString(),
+            groupTypeIdList: groupType.length > 0 ? groupType : undefined,
+            hrmD_IdList: department.length > 0 ? department : undefined,
+            hrmdeS_IdList: designation.length > 0 ? designation : undefined
+        },
+        queryStatus: reportListQuery.status,
+        queryError: reportListQuery.error
+    });
+
+    // Debug: Check if query should be refetching
+    useEffect(() => {
+        if (hasSearchCriteria) {
+            console.log('🔵 [CUMULATIVE SALARY] Query should be enabled, checking if it needs to refetch...', {
+                hasSearchCriteria,
+                monthId,
+                yearId,
+                isLoading: reportListQuery.isLoading,
+                isFetching: reportListQuery.isFetching,
+                hasData: !!reportListQuery.data
+            });
+        }
+    }, [hasSearchCriteria, monthId, yearId, reportListQuery.isLoading, reportListQuery.isFetching, reportListQuery.data]);
 
     // Form for filters
     const { handleSubmit, reset, watch, control, setValue } = useForm<ReportFilters>({
@@ -133,23 +224,52 @@ export default function CumulativeSalaryReportPage(props: { searchParams: Search
     });
 
     // Sync form with URL params - use useEffect instead of useMemo to avoid render issues
+    // Note: setValue is stable and doesn't need to be in dependencies (react-hook-form guarantee)
     useEffect(() => {
         setValue('groupType', groupType.map(String));
         setValue('department', department.map(String));
         setValue('designation', designation.map(String));
         setValue('month', month);
         setValue('year', year);
-    }, [groupType, department, designation, month, year, setValue]);
+    }, [groupType, department, designation, month, year]); // Removed setValue to prevent infinite loops
 
-    const onSubmit = (data: ReportFilters) => {
+    // Show report template when URL has search params (month and year) - only set once on mount
+    useEffect(() => {
+        if (hasSearchCriteria && !hasInitializedShowReport.current) {
+            setShowReport(true);
+            hasInitializedShowReport.current = true;
+        }
+    }, [hasSearchCriteria]); // Only depend on hasSearchCriteria to avoid loops
+
+    const onSubmit = async (data: ReportFilters) => {
+        console.log('🔵 [CUMULATIVE SALARY] onSubmit function called', {
+            data,
+            month: data.month,
+            year: data.year,
+            groupType: data.groupType,
+            department: data.department,
+            designation: data.designation,
+            timestamp: new Date().toISOString()
+        });
+
+        // Show the report template immediately, even without data
+        setShowReport(true);
+
         if (!data.month || !data.year) {
-            toast.error('Please select month and year to generate report');
+            console.warn('🔴 [CUMULATIVE SALARY] Validation failed: month or year missing', {
+                month: data.month,
+                year: data.year
+            });
+            toast.warning('Please select month and year for accurate results. Showing report template.');
+            // Still show the template even if validation fails
             return;
         }
 
+        console.log('🔵 [CUMULATIVE SALARY] Validation passed, building URL params...');
+
         // Build URL params
         const params = new URLSearchParams();
-        
+
         // Add filter params
         if (data.month) params.set('month', data.month);
         if (data.year) params.set('year', data.year);
@@ -162,12 +282,22 @@ export default function CumulativeSalaryReportPage(props: { searchParams: Search
         if (data.designation && data.designation.length > 0) {
             params.set('designation', data.designation.join(','));
         }
-        
+
         // Reset pagination when filters change
         params.set('page', '1');
-        
+
+        const finalUrl = `/hrms/reports/cumulative-salary-report?${params.toString()}`;
+        console.log('🔵 [CUMULATIVE SALARY] Navigating to:', finalUrl);
+        console.log('🔵 [CUMULATIVE SALARY] URL params:', params.toString());
+
         // Navigate with new params
-        router.push(`/hrms/reports/cumulative-salary-report?${params.toString()}`);
+        console.log('🔵 [CUMULATIVE SALARY] About to call router.push with URL:', finalUrl);
+        router.push(finalUrl);
+        console.log('🔵 [CUMULATIVE SALARY] router.push called');
+
+        // Note: router.refresh() is for server components, but we're using client component
+        // The component should re-render automatically when URL changes
+        // If it doesn't, we might need to use useSearchParams() instead
     };
 
     const handleCancel = () => {
@@ -178,6 +308,8 @@ export default function CumulativeSalaryReportPage(props: { searchParams: Search
             month: '',
             year: ''
         });
+        setShowReport(false);
+        hasInitializedShowReport.current = false;
         router.push('/hrms/reports/cumulative-salary-report');
     };
 
@@ -193,48 +325,50 @@ export default function CumulativeSalaryReportPage(props: { searchParams: Search
     // Transform API data to table format
     const reportData = useMemo(() => {
         const response = reportListQuery.data;
-        
+
         if (!response?.success) {
             return [];
         }
-        
+
         if (!response.data?.data?.rows) {
             return [];
         }
 
         const rows = response.data.data.rows;
-        
+
         // Check if rows contain salary report data
         if (Array.isArray(rows) && rows.length > 0) {
             const firstRow = rows[0] as any;
-            
+
             // Check if it's a salary report record (has salary-related fields)
             if (firstRow && ('basic' in firstRow || 'grossEarning' in firstRow || 'netSalary' in firstRow)) {
-                return rows.map((record: any): CumulativeSalaryRecord => ({
-                    ...record,
-                    employeeName: `${record.HRME_EmployeeFirstName || ''} ${
-                        record.HRME_EmployeeMiddleName || ''
-                    } ${record.HRME_EmployeeLastName || ''}`.trim(),
-                    designation: record.HRMDES_DesignationName || record.designation,
-                    basic: record.basic || 0,
-                    da: record.da || 0,
-                    hra: record.hra || 0,
-                    conveyance: record.conveyance || 0,
-                    medical: record.medical || 0,
-                    splAllowance: record.splAllowance || 0,
-                    grossEarning: record.grossEarning || 0,
-                    pf: record.pf || 0,
-                    esi: record.esi || 0,
-                    others: record.others || 0,
-                    pt: record.pt || 0,
-                    grossDeduction: record.grossDeduction || 0,
-                    leaveDedDays: record.leaveDedDays || 0,
-                    leaveDedPrevDays: record.leaveDedPrevDays || 0,
-                    netSalary: record.netSalary || 0
-                }));
+                return rows.map(
+                    (record: any): CumulativeSalaryRecord => ({
+                        ...record,
+                        employeeName: `${record.HRME_EmployeeFirstName || ''} ${
+                            record.HRME_EmployeeMiddleName || ''
+                        } ${record.HRME_EmployeeLastName || ''}`.trim(),
+                        designation: record.HRMDES_DesignationName || record.designation,
+                        basic: record.basic || 0,
+                        da: record.da || 0,
+                        hra: record.hra || 0,
+                        conveyance: record.conveyance || 0,
+                        medical: record.medical || 0,
+                        splAllowance: record.splAllowance || 0,
+                        grossEarning: record.grossEarning || 0,
+                        pf: record.pf || 0,
+                        esi: record.esi || 0,
+                        others: record.others || 0,
+                        pt: record.pt || 0,
+                        grossDeduction: record.grossDeduction || 0,
+                        leaveDedDays: record.leaveDedDays || 0,
+                        leaveDedPrevDays: record.leaveDedPrevDays || 0,
+                        netSalary: record.netSalary || 0
+                    })
+                );
             }
         }
-        
+
         return [];
     }, [reportListQuery.data]);
 
@@ -284,7 +418,10 @@ export default function CumulativeSalaryReportPage(props: { searchParams: Search
     // Show error if API fails
     useEffect(() => {
         if (onloadError || (!onloadLoading && onloadData && !onloadData.success)) {
-            const errorMessage = onloadError?.message || onloadData?.message || 'Failed to load cumulative salary report data. Please check if the API endpoint is available.';
+            const errorMessage =
+                onloadError?.message ||
+                onloadData?.message ||
+                'Failed to load cumulative salary report data. Please check if the API endpoint is available.';
             toast.error(errorMessage);
         }
     }, [onloadError, onloadData, onloadLoading]);
@@ -292,13 +429,19 @@ export default function CumulativeSalaryReportPage(props: { searchParams: Search
     // Show error for search API failures
     useEffect(() => {
         if (hasSearchCriteria && reportListQuery.data && !reportListQuery.data.success) {
-            const errorMessage = reportListQuery.data.message || 'Failed to load salary report data. Please check if the search API endpoint is available.';
+            const errorMessage =
+                reportListQuery.data.message || 'Failed to load salary report data. Please check if the search API endpoint is available.';
             toast.error(errorMessage);
         }
     }, [reportListQuery.data, hasSearchCriteria]);
 
-    // Show report only when search criteria are present and we have data
-    const showReport = hasSearchCriteria && reportListQuery.data?.success;
+    // Show report template when search criteria are present (even without API data)
+    // The showReport state is set to true when user clicks search
+    // We also show it if we have successful data
+    const shouldShowReport = showReport || (hasSearchCriteria && reportListQuery.data?.success);
+
+    // Force refetch when search criteria change - removed to prevent infinite loops
+    // React Query will automatically refetch when query key changes
 
     // Show error message if onload fails
     if (onloadError || (!onloadLoading && onloadData && !onloadData.success)) {
@@ -308,8 +451,10 @@ export default function CumulativeSalaryReportPage(props: { searchParams: Search
                     <div className='flex flex-col items-center justify-center space-y-4 rounded-lg bg-destructive/10 py-12'>
                         <div className='text-center'>
                             <h3 className='font-semibold text-destructive text-lg'>Error Loading Filter Options</h3>
-                            <p className='text-muted-foreground text-sm mt-2'>
-                                {onloadError?.message || onloadData?.message || 'Failed to load filter options. Please check if the API endpoint is available.'}
+                            <p className='mt-2 text-muted-foreground text-sm'>
+                                {onloadError?.message ||
+                                    onloadData?.message ||
+                                    'Failed to load filter options. Please check if the API endpoint is available.'}
                             </p>
                         </div>
                     </div>
@@ -329,12 +474,20 @@ export default function CumulativeSalaryReportPage(props: { searchParams: Search
                     designations={designations}
                     months={months}
                     years={years}
-                    onSubmit={handleSubmit(onSubmit)}
+                    onSubmit={handleSubmit(
+                        (data) => {
+                            console.log('🔵 [CUMULATIVE SALARY] handleSubmit wrapper called with data:', data);
+                            return onSubmit(data);
+                        },
+                        (errors) => {
+                            console.error('🔴 [CUMULATIVE SALARY] Form validation errors:', errors);
+                        }
+                    )}
                     onCancel={handleCancel}
                 />
 
                 {/* Report Results - Only show after search */}
-                {showReport ? (
+                {shouldShowReport ? (
                     <CollapsibleSection
                         defaultOpen={true}
                         variant='default'
@@ -347,9 +500,7 @@ export default function CumulativeSalaryReportPage(props: { searchParams: Search
                                 <h3 className='font-semibold text-foreground text-lg'>
                                     Cumulative Salary Report - {watch('month')} {watch('year')}
                                 </h3>
-                                <p className='text-muted-foreground text-sm'>
-                                    Total Records: {tableProps.totalItems} employees
-                                </p>
+                                <p className='text-muted-foreground text-sm'>Total Records: {tableProps.totalItems} employees</p>
                             </div>
                             <div className='flex gap-2'>
                                 <Button variant='outline' onClick={handleExport} prefix={<Download className='size-4' />}>

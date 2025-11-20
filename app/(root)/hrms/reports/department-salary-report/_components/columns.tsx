@@ -1,11 +1,12 @@
 'use client';
 
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
-import type { BaseEntity } from '@/lib/localdb';
 import type { ColumnDef } from '@tanstack/react-table';
 
 // Department Salary Report data structure
-export interface DepartmentSalaryRecord extends BaseEntity {
+export interface DepartmentSalaryRecord {
+    id?: string;
+    employeeCode: string;
     employeeCode: string;
     employeeName: string;
     groupType: string;
@@ -43,13 +44,6 @@ export interface DepartmentSummary {
     averageNetSalary: number;
     highestSalary: number;
     lowestSalary: number;
-}
-
-// Filter options
-export interface FilterOptions {
-    groupTypes: string[];
-    departments: string[];
-    designations: string[];
 }
 
 // Table columns for main salary records

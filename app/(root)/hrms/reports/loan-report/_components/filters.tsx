@@ -2,6 +2,7 @@
 
 import { Button } from '@/components/ui/button';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
+import { Label } from '@/components/ui/label';
 import { MultiSelect } from '@/components/ui/multi-select';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -91,68 +92,98 @@ export function LoanReportFilters({
             <div className='grid grid-cols-1 gap-6 lg:grid-cols-3'>
                 {/* Group Type Section */}
                 <div className='space-y-2'>
-                    <span className='font-medium text-foreground text-sm'>
+                    <Label htmlFor='group-type' className='font-medium text-foreground text-sm'>
                         Group Type: <span className='text-red-500'>*</span>
-                    </span>
-                    <MultiSelect
-                        options={groupTypes.map((gt) => ({
-                            label: gt.HRMGT_EmployeeGroupType,
-                            value: gt.HRMGT_Id.toString()
-                        }))}
-                        defaultValue={filters.selectedGroupTypes.map((id) => id.toString())}
-                        onValueChange={(values) => {
-                            onFilterChange({
-                                ...filters,
-                                selectedGroupTypes: values.map((v) => Number.parseInt(v)),
-                                selectedEmployee: '' // Reset employee when filters change
-                            });
-                        }}
-                        placeholder='Select group types'
-                    />
+                    </Label>
+                    {isLoading ? (
+                        <div className='h-10 w-full animate-pulse rounded-md bg-muted' />
+                    ) : groupTypes.length === 0 ? (
+                        <div className='text-muted-foreground text-sm'>No group types available</div>
+                    ) : (
+                        <MultiSelect
+                            options={groupTypes
+                                .filter((gt) => gt.HRMGT_Id && gt.HRMGT_EmployeeGroupType && gt.HRMGT_ActiveFlag)
+                                .map((gt) => ({
+                                    label: gt.HRMGT_EmployeeGroupType,
+                                    value: gt.HRMGT_Id.toString()
+                                }))}
+                            defaultValue={filters.selectedGroupTypes.map((id) => id.toString())}
+                            onValueChange={(values) => {
+                                onFilterChange({
+                                    ...filters,
+                                    selectedGroupTypes: values.map((v) => Number.parseInt(v)),
+                                    selectedEmployee: '' // Reset employee when filters change
+                                });
+                            }}
+                            placeholder='Select Group Types'
+                            className='w-full'
+                            maxHeight={240}
+                        />
+                    )}
                 </div>
 
                 {/* Department Section */}
                 <div className='space-y-2'>
-                    <span className='font-medium text-foreground text-sm'>
+                    <Label htmlFor='department' className='font-medium text-foreground text-sm'>
                         Department: <span className='text-red-500'>*</span>
-                    </span>
-                    <MultiSelect
-                        options={departments.map((dept) => ({
-                            label: dept.HRMD_DepartmentName,
-                            value: dept.HRMD_Id.toString()
-                        }))}
-                        defaultValue={filters.selectedDepartments.map((id) => id.toString())}
-                        onValueChange={(values) => {
-                            onFilterChange({
-                                ...filters,
-                                selectedDepartments: values.map((v) => Number.parseInt(v)),
-                                selectedEmployee: '' // Reset employee when filters change
-                            });
-                        }}
-                        placeholder='Select departments'
-                    />
+                    </Label>
+                    {isLoading ? (
+                        <div className='h-10 w-full animate-pulse rounded-md bg-muted' />
+                    ) : departments.length === 0 ? (
+                        <div className='text-muted-foreground text-sm'>No departments available</div>
+                    ) : (
+                        <MultiSelect
+                            options={departments
+                                .filter((dept) => dept.HRMD_Id && dept.HRMD_DepartmentName && dept.HRMD_ActiveFlag)
+                                .map((dept) => ({
+                                    label: dept.HRMD_DepartmentName,
+                                    value: dept.HRMD_Id.toString()
+                                }))}
+                            defaultValue={filters.selectedDepartments.map((id) => id.toString())}
+                            onValueChange={(values) => {
+                                onFilterChange({
+                                    ...filters,
+                                    selectedDepartments: values.map((v) => Number.parseInt(v)),
+                                    selectedEmployee: '' // Reset employee when filters change
+                                });
+                            }}
+                            placeholder='Select Departments'
+                            className='w-full'
+                            maxHeight={240}
+                        />
+                    )}
                 </div>
 
                 {/* Designation Section */}
                 <div className='space-y-2'>
-                    <span className='font-medium text-foreground text-sm'>
+                    <Label htmlFor='designation' className='font-medium text-foreground text-sm'>
                         Designation: <span className='text-red-500'>*</span>
-                    </span>
-                    <MultiSelect
-                        options={designations.map((desg) => ({
-                            label: desg.HRMDES_DesignationName,
-                            value: desg.HRMDES_Id.toString()
-                        }))}
-                        defaultValue={filters.selectedDesignations.map((id) => id.toString())}
-                        onValueChange={(values) => {
-                            onFilterChange({
-                                ...filters,
-                                selectedDesignations: values.map((v) => Number.parseInt(v)),
-                                selectedEmployee: '' // Reset employee when filters change
-                            });
-                        }}
-                        placeholder='Select designations'
-                    />
+                    </Label>
+                    {isLoading ? (
+                        <div className='h-10 w-full animate-pulse rounded-md bg-muted' />
+                    ) : designations.length === 0 ? (
+                        <div className='text-muted-foreground text-sm'>No designations available</div>
+                    ) : (
+                        <MultiSelect
+                            options={designations
+                                .filter((desg) => desg.HRMDES_Id && desg.HRMDES_DesignationName && desg.HRMDES_ActiveFlag)
+                                .map((desg) => ({
+                                    label: desg.HRMDES_DesignationName,
+                                    value: desg.HRMDES_Id.toString()
+                                }))}
+                            defaultValue={filters.selectedDesignations.map((id) => id.toString())}
+                            onValueChange={(values) => {
+                                onFilterChange({
+                                    ...filters,
+                                    selectedDesignations: values.map((v) => Number.parseInt(v)),
+                                    selectedEmployee: '' // Reset employee when filters change
+                                });
+                            }}
+                            placeholder='Select Designations'
+                            className='w-full'
+                            maxHeight={240}
+                        />
+                    )}
                 </div>
             </div>
 
@@ -160,25 +191,37 @@ export function LoanReportFilters({
             {filters.reportScope === 'individual' && (
                 <div className='flex items-center justify-center pt-4'>
                     <div className='w-80 space-y-2'>
-                        <span className='font-medium text-foreground text-sm'>
+                        <Label htmlFor='employee' className='font-medium text-foreground text-sm'>
                             Employee: <span className='text-red-500'>*</span>
-                        </span>
-                        <Select
-                            value={filters.selectedEmployee}
-                            onValueChange={(value) => handleFilterChange('selectedEmployee', value)}
-                            disabled={employees.length === 0}>
-                            <SelectTrigger>
-                                <SelectValue placeholder={employees.length === 0 ? 'Select filters first' : 'Select Employee'} />
-                            </SelectTrigger>
-                            <SelectContent>
-                                {employees.map((emp) => (
-                                    <SelectItem key={emp.HRME_Id} value={emp.HRME_Id.toString()}>
-                                        {`${emp.HRME_EmployeeFirstName} ${emp.HRME_EmployeeMiddleName || ''} ${emp.HRME_EmployeeLastName || ''}`.trim()}{' '}
-                                        ({emp.HRME_EmployeeCode})
-                                    </SelectItem>
-                                ))}
-                            </SelectContent>
-                        </Select>
+                        </Label>
+                        {isLoading ? (
+                            <div className='h-10 w-full animate-pulse rounded-md bg-muted' />
+                        ) : employees.length === 0 ? (
+                            <div className='text-muted-foreground text-sm'>No employees available. Please apply filters first.</div>
+                        ) : (
+                            <Select
+                                value={filters.selectedEmployee}
+                                onValueChange={(value) => handleFilterChange('selectedEmployee', value)}
+                                disabled={employees.length === 0}>
+                                <SelectTrigger id='employee'>
+                                    <SelectValue placeholder={employees.length === 0 ? 'Select filters first' : 'Select Employee'} />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {employees
+                                        .filter((emp) => emp.HRME_Id && emp.HRME_EmployeeCode)
+                                        .map((emp) => {
+                                            const employeeName =
+                                                `${emp.HRME_EmployeeFirstName || ''} ${emp.HRME_EmployeeMiddleName || ''} ${emp.HRME_EmployeeLastName || ''}`.trim() ||
+                                                emp.HRME_EmployeeCode;
+                                            return (
+                                                <SelectItem key={emp.HRME_Id} value={emp.HRME_Id.toString()}>
+                                                    {employeeName} ({emp.HRME_EmployeeCode})
+                                                </SelectItem>
+                                            );
+                                        })}
+                                </SelectContent>
+                            </Select>
+                        )}
                     </div>
                 </div>
             )}
@@ -188,84 +231,83 @@ export function LoanReportFilters({
                 <div className='flex items-center justify-center gap-6 pt-4'>
                     {/* Month Filter */}
                     <div className='space-y-2'>
-                        <span className='font-medium text-foreground text-sm'>
+                        <Label htmlFor='month' className='font-medium text-foreground text-sm'>
                             Month: <span className='text-red-500'>*</span>
-                        </span>
-                        <Select value={filters.month} onValueChange={(value) => handleFilterChange('month', value)}>
-                            <SelectTrigger className='w-40'>
-                                <SelectValue placeholder='Select' />
-                            </SelectTrigger>
-                            <SelectContent>
-                                {months.map((month: any) => (
-                                    <SelectItem
-                                        key={month.IVRM_Month_Id || month.IVRM_Month_Name}
-                                        value={month.IVRM_Month_Name || month.IVRM_Month_Id?.toString() || ''}>
-                                        {month.IVRM_Month_Name || month.IVRM_Month_Id}
-                                    </SelectItem>
-                                ))}
-                                {months.length === 0 &&
-                                    [
-                                        'January',
-                                        'February',
-                                        'March',
-                                        'April',
-                                        'May',
-                                        'June',
-                                        'July',
-                                        'August',
-                                        'September',
-                                        'October',
-                                        'November',
-                                        'December'
-                                    ].map((month) => (
-                                        <SelectItem key={month} value={month}>
-                                            {month}
-                                        </SelectItem>
-                                    ))}
-                            </SelectContent>
-                        </Select>
+                        </Label>
+                        {isLoading ? (
+                            <div className='h-10 w-40 animate-pulse rounded-md bg-muted' />
+                        ) : months.length === 0 ? (
+                            <div className='text-muted-foreground text-sm'>No months available</div>
+                        ) : (
+                            <Select value={filters.month} onValueChange={(value) => handleFilterChange('month', value)}>
+                                <SelectTrigger id='month' className='w-40'>
+                                    <SelectValue placeholder='Select' />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {months
+                                        .filter((m: any) => m.IVRM_Month_Name && m.Is_Active)
+                                        .map((month: any) => (
+                                            <SelectItem key={month.IVRM_Month_Id} value={month.IVRM_Month_Name.trim()}>
+                                                {month.IVRM_Month_Name.trim()}
+                                            </SelectItem>
+                                        ))}
+                                </SelectContent>
+                            </Select>
+                        )}
                     </div>
 
                     {/* Year Filter */}
                     <div className='space-y-2'>
-                        <span className='font-medium text-foreground text-sm'>
+                        <Label htmlFor='year' className='font-medium text-foreground text-sm'>
                             Year: <span className='text-red-500'>*</span>
-                        </span>
-                        <Select value={filters.year} onValueChange={(value) => handleFilterChange('year', value)}>
-                            <SelectTrigger className='w-32'>
-                                <SelectValue placeholder='Select' />
-                            </SelectTrigger>
-                            <SelectContent>
-                                {years.map((year: any) => (
-                                    <SelectItem
-                                        key={year.HRMLY_Id || year.HRMLY_LeaveYear}
-                                        value={year.HRMLY_LeaveYear || year.HRMLY_Id?.toString() || ''}>
-                                        {year.HRMLY_LeaveYear || year.HRMLY_Id}
-                                    </SelectItem>
-                                ))}
-                                {years.length === 0 &&
-                                    currentYear &&
-                                    Array.from({ length: 5 }, (_, i) => {
-                                        const year = currentYear - 2 + i;
-                                        return (
-                                            <SelectItem key={`year-${year}`} value={year.toString()}>
-                                                {year}
+                        </Label>
+                        {isLoading ? (
+                            <div className='h-10 w-32 animate-pulse rounded-md bg-muted' />
+                        ) : years.length === 0 ? (
+                            <div className='text-muted-foreground text-sm'>No years available</div>
+                        ) : (
+                            <Select value={filters.year} onValueChange={(value) => handleFilterChange('year', value)}>
+                                <SelectTrigger id='year' className='w-32'>
+                                    <SelectValue placeholder='Select' />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {years
+                                        .filter((y: any) => y.HRMLY_LeaveYear && y.HRMLY_ActiveFlag)
+                                        .map((year: any) => (
+                                            <SelectItem key={year.HRMLY_Id} value={year.HRMLY_LeaveYear}>
+                                                {year.HRMLY_LeaveYear}
                                             </SelectItem>
-                                        );
-                                    })}
-                            </SelectContent>
-                        </Select>
+                                        ))}
+                                </SelectContent>
+                            </Select>
+                        )}
                     </div>
                 </div>
             )}
 
             {/* Action Buttons */}
-            <div className='flex justify-center gap-2 pt-4'>
-                <Button onClick={onSearch} disabled={isLoading}>
+            <div className='flex gap-2 pt-4'>
+                <Button
+                    type='button'
+                    onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        console.log('🔵 SEARCH button clicked');
+                        onSearch();
+                    }}
+                    disabled={isLoading}>
                     <Search className='mr-2 h-4 w-4' />
                     SEARCH
                 </Button>
-                <Button variant='outline' onClick={onCancel} disabled={isLoading}>
+                <Button
+                    type='button'
+                    variant='outline'
+                    onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        onCancel();
+                    }}
+                    disabled={isLoading}>
                     <X className='mr-2 h-4 w-4' />
                     CANCEL
                 </Button>

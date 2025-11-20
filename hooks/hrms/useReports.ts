@@ -7,6 +7,7 @@
 
 import { HRMS_QUERY_KEYS } from '@/constants/query-keys';
 import { getFOMonthEndReportData } from '@/server/hrms/attendance-management/reports/fo-monthend-report';
+import { getEmployeeAdvanceReportOnload, searchEmployeeAdvanceReport } from '@/server/hrms/hrmsConfig/reports/advance-report';
 import { getBankCashReportOnload, searchBankCashReport } from '@/server/hrms/hrmsConfig/reports/bank-cash-report';
 import { getCumulativeSalaryReportOnload, searchCumulativeSalaryReport } from '@/server/hrms/hrmsConfig/reports/cumulative-salary-report';
 import {
@@ -33,12 +34,23 @@ import { getEmployeeYearlyReportList, getEmployeeYearlyReportOnload } from '@/se
 import { getESIReportOnload, searchESIReport } from '@/server/hrms/hrmsConfig/reports/esi-report';
 import { getHeadWiseReportOnload, searchHeadWiseReport } from '@/server/hrms/hrmsConfig/reports/head-wise-report';
 import { filterEmployeesForLoanReport, getEmployeeLoanDetails, getLoanReportBasicData } from '@/server/hrms/hrmsConfig/reports/loan-report';
+import { getMonthEndReportOnload, searchMonthEndReport } from '@/server/hrms/hrmsConfig/reports/month-end-report';
 import {
     filterPFChallanEmployeeData,
     getPFChallanReportOnload,
     searchPFChallanReport
 } from '@/server/hrms/hrmsConfig/reports/pf-challan-report';
+import {
+    filterPFForm3AEmployeeData,
+    getPFForm3AReportOnload,
+    searchPFForm3AReport
+} from '@/server/hrms/hrmsConfig/reports/pf-form-3a-report';
 import { filterPFForm5EmployeeData, getPFForm5ReportOnload, searchPFForm5Report } from '@/server/hrms/hrmsConfig/reports/pf-form-5-report';
+import {
+    filterPFForm6AEmployeeData,
+    getPFForm6AReportOnload,
+    searchPFForm6AReport
+} from '@/server/hrms/hrmsConfig/reports/pf-form-6a-report';
 import {
     filterPFForm10EmployeeData,
     getPFForm10ReportOnload,
@@ -46,6 +58,7 @@ import {
 } from '@/server/hrms/hrmsConfig/reports/pf-form-10-report';
 import { filterEmployeesByYearMonth, generateSalarySlip, getSalarySlipOnload } from '@/server/hrms/hrmsConfig/reports/salary-slip-report';
 import type { ApiSearchparams } from '@/types';
+import type { EmployeeAdvanceReportSearchRequest } from '@/types/hrms/reports/advance-report';
 import type { BankCashReportSearchRequest } from '@/types/hrms/reports/bank-cash-report';
 import type { CumulativeSalaryReportSearchRequest } from '@/types/hrms/reports/cumulative-salary-report';
 import type {
@@ -58,8 +71,11 @@ import type { EmployeeStrengthReportSearchRequest } from '@/types/hrms/reports/e
 import type { ESIReportSearchRequest } from '@/types/hrms/reports/esi-report';
 import type { HeadWiseReportSearchRequest } from '@/types/hrms/reports/head-wise-report';
 import type { LoanReportFilterRequest, LoanReportSearchRequest } from '@/types/hrms/reports/loan-report';
+import type { MonthEndReportSearchRequest } from '@/types/hrms/reports/month-end-report';
 import type { PFChallanReportFilterRequest, PFChallanReportSearchRequest } from '@/types/hrms/reports/pf-challan-report';
+import type { PFForm3AReportFilterRequest, PFForm3AReportSearchRequest } from '@/types/hrms/reports/pf-form-3a-report';
 import type { PFForm5ReportFilterRequest, PFForm5ReportSearchRequest } from '@/types/hrms/reports/pf-form-5-report';
+import type { PFForm6AReportFilterRequest, PFForm6AReportSearchRequest } from '@/types/hrms/reports/pf-form-6a-report';
 import type { PFForm10ReportFilterRequest, PFForm10ReportSearchRequest } from '@/types/hrms/reports/pf-form-10-report';
 import type { SalarySlipFilterRequest, SalarySlipGenerateRequest } from '@/types/hrms/reports/salary-slip-report';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
@@ -389,6 +405,127 @@ export function useSearchPFForm5Report() {
     });
 }
 
+// ============================================================================
+// PF FORM 3A REPORT
+// ============================================================================
+
+export function usePFForm3AReportOnload(MI_Id = 30) {
+    return useQuery({
+        queryKey: [HRMS_QUERY_KEYS.PF_FORM_3A_REPORT_ONLOAD, MI_Id],
+        queryFn: () => getPFForm3AReportOnload(MI_Id),
+        staleTime: 5 * 60 * 1000
+    });
+}
+
+export function useFilterPFForm3AEmployeeData() {
+    const queryClient = useQueryClient();
+
+    return useMutation({
+        mutationFn: (data: PFForm3AReportFilterRequest) => filterPFForm3AEmployeeData(data),
+        onSuccess: (response) => {
+            if (!response.success) {
+                toast.error(response.message || 'Failed to filter PF Form 3A employee data');
+            }
+        },
+        onError: (error: Error) => {
+            console.error('Error filtering PF Form 3A employee data:', error);
+            toast.error(error.message || 'Failed to filter PF Form 3A employee data');
+        }
+    });
+}
+
+export function useSearchPFForm3AReport() {
+    const queryClient = useQueryClient();
+
+    return useMutation({
+        mutationFn: (data: PFForm3AReportSearchRequest) => searchPFForm3AReport(data),
+        onSuccess: (response) => {
+            if (!response.success) {
+                toast.error(response.message || 'Failed to search PF Form 3A report');
+            }
+        },
+        onError: (error: Error) => {
+            console.error('Error searching PF Form 3A report:', error);
+            toast.error(error.message || 'Failed to search PF Form 3A report');
+        }
+    });
+}
+
+// ============================================================================
+// PF FORM 6A REPORT
+// ============================================================================
+
+export function usePFForm6AReportOnload(MI_Id = 30) {
+    return useQuery({
+        queryKey: [HRMS_QUERY_KEYS.PF_FORM_6A_REPORT_ONLOAD, MI_Id],
+        queryFn: () => getPFForm6AReportOnload(MI_Id),
+        staleTime: 5 * 60 * 1000
+    });
+}
+
+export function useFilterPFForm6AEmployeeData() {
+    const queryClient = useQueryClient();
+
+    return useMutation({
+        mutationFn: (data: PFForm6AReportFilterRequest) => filterPFForm6AEmployeeData(data),
+        onSuccess: (response) => {
+            if (!response.success) {
+                toast.error(response.message || 'Failed to filter PF Form 6A employee data');
+            }
+        },
+        onError: (error: Error) => {
+            console.error('Error filtering PF Form 6A employee data:', error);
+            toast.error(error.message || 'Failed to filter PF Form 6A employee data');
+        }
+    });
+}
+
+export function useSearchPFForm6AReport() {
+    const queryClient = useQueryClient();
+
+    return useMutation({
+        mutationFn: (data: PFForm6AReportSearchRequest) => searchPFForm6AReport(data),
+        onSuccess: (response) => {
+            if (!response.success) {
+                toast.error(response.message || 'Failed to search PF Form 6A report');
+            }
+        },
+        onError: (error: Error) => {
+            console.error('Error searching PF Form 6A report:', error);
+            toast.error(error.message || 'Failed to search PF Form 6A report');
+        }
+    });
+}
+
+// ============================================================================
+// MONTH END REPORT
+// ============================================================================
+
+export function useMonthEndReportOnload(MI_Id = 30) {
+    return useQuery({
+        queryKey: [HRMS_QUERY_KEYS.MONTH_END_REPORT_ONLOAD, MI_Id],
+        queryFn: () => getMonthEndReportOnload(MI_Id),
+        staleTime: 5 * 60 * 1000
+    });
+}
+
+export function useSearchMonthEndReport() {
+    const queryClient = useQueryClient();
+
+    return useMutation({
+        mutationFn: (data: MonthEndReportSearchRequest) => searchMonthEndReport(data),
+        onSuccess: (response) => {
+            if (!response.success) {
+                toast.error(response.message || 'Failed to search month end report');
+            }
+        },
+        onError: (error: Error) => {
+            console.error('Error searching month end report:', error);
+            toast.error(error.message || 'Failed to search month end report');
+        }
+    });
+}
+
 export function useFilterEmployeeContributionReport() {
     const queryClient = useQueryClient();
 
@@ -486,16 +623,38 @@ export function useCumulativeSalaryReportList(
 ) {
     const queryClient = useQueryClient();
 
+    const query = useQuery({
+        queryKey: [HRMS_QUERY_KEYS.CUMULATIVE_SALARY_REPORT_SEARCH, searchParams ?? {}, filterParams ?? {}],
+        queryFn: async () => {
+            console.log('🔵 [CUMULATIVE SALARY] Query function called', {
+                searchParams,
+                filterParams,
+                timestamp: new Date().toISOString()
+            });
+            const { getCumulativeSalaryReportList } = await import('@/server/hrms/hrmsConfig/reports/cumulative-salary-report');
+            const result = await getCumulativeSalaryReportList(searchParams, filterParams);
+            console.log('🔵 [CUMULATIVE SALARY] Query function completed', {
+                success: result.success,
+                hasData: !!result.data,
+                timestamp: new Date().toISOString()
+            });
+            return result;
+        },
+        staleTime: 0,
+        enabled // Only fetch when enabled (when search criteria are present)
+    });
+
+    console.log('🔵 [CUMULATIVE SALARY] useQuery hook state', {
+        enabled,
+        status: query.status,
+        isLoading: query.isLoading,
+        isFetching: query.isFetching,
+        hasData: !!query.data,
+        queryKey: [HRMS_QUERY_KEYS.CUMULATIVE_SALARY_REPORT_SEARCH, searchParams ?? {}, filterParams ?? {}]
+    });
+
     return {
-        ...useQuery({
-            queryKey: [HRMS_QUERY_KEYS.CUMULATIVE_SALARY_REPORT_SEARCH, searchParams ?? {}, filterParams ?? {}],
-            queryFn: async () => {
-                const { getCumulativeSalaryReportList } = await import('@/server/hrms/hrmsConfig/reports/cumulative-salary-report');
-                return getCumulativeSalaryReportList(searchParams, filterParams);
-            },
-            staleTime: 0,
-            enabled // Only fetch when enabled (when search criteria are present)
-        }),
+        ...query,
         refetchAll: () => {
             return queryClient.invalidateQueries({
                 queryKey: [HRMS_QUERY_KEYS.CUMULATIVE_SALARY_REPORT_SEARCH]
@@ -890,6 +1049,35 @@ export function useGetEmployeeLoanDetails() {
         onError: (error: Error) => {
             console.error('Error getting employee loan details:', error);
             toast.error(error.message || 'Failed to get loan details');
+        }
+    });
+}
+
+// ============================================================================
+// ADVANCE REPORT
+// ============================================================================
+
+export function useEmployeeAdvanceReportOnload(MI_Id = 30, LogInUserId = 0) {
+    return useQuery({
+        queryKey: [HRMS_QUERY_KEYS.ADVANCE_REPORT_ONLOAD, MI_Id, LogInUserId],
+        queryFn: () => getEmployeeAdvanceReportOnload(MI_Id, LogInUserId),
+        staleTime: 5 * 60 * 1000
+    });
+}
+
+export function useSearchEmployeeAdvanceReport() {
+    const queryClient = useQueryClient();
+
+    return useMutation({
+        mutationFn: (data: EmployeeAdvanceReportSearchRequest) => searchEmployeeAdvanceReport(data),
+        onSuccess: (response) => {
+            if (!response.success) {
+                toast.error(response.message || 'Failed to search advance report');
+            }
+        },
+        onError: (error: Error) => {
+            console.error('Error searching advance report:', error);
+            toast.error(error.message || 'Failed to search advance report');
         }
     });
 }
