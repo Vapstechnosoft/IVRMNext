@@ -2,21 +2,20 @@
 
 import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/generic-data-table';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
-import { 
-    useEmployeeInOutReportList, 
-    useEmployeeInOutReportOnload,
+import {
     useEmployeeInOutReportDepartments,
     useEmployeeInOutReportDesignations,
-    useEmployeeInOutReportEmployees
+    useEmployeeInOutReportEmployees,
+    useEmployeeInOutReportList,
+    useEmployeeInOutReportOnload
 } from '@/hooks/hrms/useReports';
 import type { ApiSearchparams } from '@/types';
-import { Download, Printer } from 'lucide-react';
-import React, { use, useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { toast } from 'sonner';
-import { type InOutRow, employeeInOutReportColumns } from './_components/columns';
-import { EmployeeInOutReportFilters, type EmployeeInOutReportFilters as ReportFilters } from './_components/filters';
+import { use, useEffect, useMemo } from 'react';
 import { useForm } from 'react-hook-form';
+import { toast } from 'sonner';
+import { employeeInOutReportColumns } from './_components/columns';
+import { EmployeeInOutReportFilters, type EmployeeInOutReportFilters as ReportFilters } from './_components/filters';
 
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 
@@ -72,78 +71,113 @@ export default function EmployeeInOutReportPage(props: { searchParams: SearchPar
     const MI_Id = 30;
     const LoginUserId = 0;
     const UserRole = '';
-    const fromDate = typeof rawSearchParams?.fromDate === 'string' ? rawSearchParams.fromDate : Array.isArray(rawSearchParams?.fromDate) ? rawSearchParams.fromDate[0] : '';
-    const toDate = typeof rawSearchParams?.toDate === 'string' ? rawSearchParams.toDate : Array.isArray(rawSearchParams?.toDate) ? rawSearchParams.toDate[0] : '';
-    const type = typeof rawSearchParams?.type === 'string' 
-        ? rawSearchParams.type.split(',').map(Number).filter(Boolean)
-        : Array.isArray(rawSearchParams?.type)
-          ? rawSearchParams.type.flatMap(t => typeof t === 'string' ? t.split(',').map(Number).filter(Boolean) : [])
-          : [];
-    const department = typeof rawSearchParams?.department === 'string'
-        ? rawSearchParams.department.split(',').map(Number).filter(Boolean)
-        : Array.isArray(rawSearchParams?.department)
-          ? rawSearchParams.department.flatMap(d => typeof d === 'string' ? d.split(',').map(Number).filter(Boolean) : [])
-          : [];
-    const designation = typeof rawSearchParams?.designation === 'string'
-        ? rawSearchParams.designation.split(',').map(Number).filter(Boolean)
-        : Array.isArray(rawSearchParams?.designation)
-          ? rawSearchParams.designation.flatMap(d => typeof d === 'string' ? d.split(',').map(Number).filter(Boolean) : [])
-          : [];
-    const allOrIndividual = typeof rawSearchParams?.allOrIndividual === 'string' ? rawSearchParams.allOrIndividual as 'All' | 'Individual' : Array.isArray(rawSearchParams?.allOrIndividual) ? rawSearchParams.allOrIndividual[0] as 'All' | 'Individual' : 'All';
-    const employeeCode = typeof rawSearchParams?.employeeCode === 'string' ? rawSearchParams.employeeCode : Array.isArray(rawSearchParams?.employeeCode) ? rawSearchParams.employeeCode[0] : '';
-    const timeInTimeOut = typeof rawSearchParams?.timeInTimeOut === 'string' ? rawSearchParams.timeInTimeOut as 'Time In' | 'Time Out' | 'In Out' : Array.isArray(rawSearchParams?.timeInTimeOut) ? rawSearchParams.timeInTimeOut[0] as 'Time In' | 'Time Out' | 'In Out' : undefined;
+    const fromDate =
+        typeof rawSearchParams?.fromDate === 'string'
+            ? rawSearchParams.fromDate
+            : Array.isArray(rawSearchParams?.fromDate)
+              ? rawSearchParams.fromDate[0]
+              : '';
+    const toDate =
+        typeof rawSearchParams?.toDate === 'string'
+            ? rawSearchParams.toDate
+            : Array.isArray(rawSearchParams?.toDate)
+              ? rawSearchParams.toDate[0]
+              : '';
+    const type =
+        typeof rawSearchParams?.type === 'string'
+            ? rawSearchParams.type.split(',').map(Number).filter(Boolean)
+            : Array.isArray(rawSearchParams?.type)
+              ? rawSearchParams.type.flatMap((t) => (typeof t === 'string' ? t.split(',').map(Number).filter(Boolean) : []))
+              : [];
+    const department =
+        typeof rawSearchParams?.department === 'string'
+            ? rawSearchParams.department.split(',').map(Number).filter(Boolean)
+            : Array.isArray(rawSearchParams?.department)
+              ? rawSearchParams.department.flatMap((d) => (typeof d === 'string' ? d.split(',').map(Number).filter(Boolean) : []))
+              : [];
+    const designation =
+        typeof rawSearchParams?.designation === 'string'
+            ? rawSearchParams.designation.split(',').map(Number).filter(Boolean)
+            : Array.isArray(rawSearchParams?.designation)
+              ? rawSearchParams.designation.flatMap((d) => (typeof d === 'string' ? d.split(',').map(Number).filter(Boolean) : []))
+              : [];
+    const allOrIndividual =
+        typeof rawSearchParams?.allOrIndividual === 'string'
+            ? (rawSearchParams.allOrIndividual as 'All' | 'Individual')
+            : Array.isArray(rawSearchParams?.allOrIndividual)
+              ? (rawSearchParams.allOrIndividual[0] as 'All' | 'Individual')
+              : 'All';
+    const employeeCode =
+        typeof rawSearchParams?.employeeCode === 'string'
+            ? rawSearchParams.employeeCode
+            : Array.isArray(rawSearchParams?.employeeCode)
+              ? rawSearchParams.employeeCode[0]
+              : '';
+    const timeInTimeOut =
+        typeof rawSearchParams?.timeInTimeOut === 'string'
+            ? (rawSearchParams.timeInTimeOut as 'Time In' | 'Time Out' | 'In Out')
+            : Array.isArray(rawSearchParams?.timeInTimeOut)
+              ? (rawSearchParams.timeInTimeOut[0] as 'Time In' | 'Time Out' | 'In Out')
+              : undefined;
 
     // Check if we have search criteria (fromDate and toDate are required)
     const hasSearchCriteria = !!(fromDate && toDate);
-    
+
     // React Query hook for dropdowns - always enabled to get filter options
     const { data: onloadData, isLoading: onloadLoading } = useEmployeeInOutReportOnload(MI_Id, LoginUserId, UserRole);
-    
+
     // Memoize arrays to prevent unnecessary re-renders
     const groupTypesData = useMemo(() => onloadData?.data?.types || [], [onloadData?.data?.types]);
     const groupTypesOptions = useMemo(() => {
         if (!Array.isArray(groupTypesData) || groupTypesData.length === 0) {
             return [];
         }
-        
+
         // Use a Set to track unique values and prevent duplicates
         const seenValues = new Set<string>();
-        
+
         return groupTypesData
             .map((gt: any, _index: number) => {
                 // Try different field name variations (API might return different cases)
                 // Based on user's API response, it uses HRMGT_Id and HRMGT_EmployeeGroupType
                 const id = gt.HRMGT_Id ?? gt.hrmgT_Id ?? gt.HRGT_Id ?? gt.id ?? gt.value;
-                const name = gt.HRMGT_EmployeeGroupType ?? gt.hrmgT_EmployeeGroupType ?? gt.HRGT_EmployeeGroupType ?? gt.label ?? gt.name ?? gt.employeeGroupType;
-                
+                const name =
+                    gt.HRMGT_EmployeeGroupType ??
+                    gt.hrmgT_EmployeeGroupType ??
+                    gt.HRGT_EmployeeGroupType ??
+                    gt.label ??
+                    gt.name ??
+                    gt.employeeGroupType;
+
                 // Ensure we have valid id and name
                 if (id === undefined || id === null || name === undefined || name === null || name === '') {
                     return null;
                 }
-                
+
                 const valueStr = String(id);
                 const labelStr = String(name);
-                
+
                 // Skip if we've already seen this value (prevent duplicates)
                 if (seenValues.has(valueStr)) {
                     return null;
                 }
                 seenValues.add(valueStr);
-                
+
                 return {
                     label: labelStr,
                     value: valueStr
                 };
             })
-            .filter((item: any): item is { label: string; value: string } => 
-                item !== null && 
-                item !== undefined && 
-                item.value !== undefined && 
-                item.value !== null && 
-                item.value !== '' &&
-                item.label !== undefined && 
-                item.label !== null && 
-                item.label !== ''
+            .filter(
+                (item: any): item is { label: string; value: string } =>
+                    item !== null &&
+                    item !== undefined &&
+                    item.value !== undefined &&
+                    item.value !== null &&
+                    item.value !== '' &&
+                    item.label !== undefined &&
+                    item.label !== null &&
+                    item.label !== ''
             );
     }, [groupTypesData]);
 
@@ -153,30 +187,21 @@ export default function EmployeeInOutReportPage(props: { searchParams: SearchPar
     const multipledes = useMemo(() => designation.join(','), [designation]);
 
     // Cascading dropdown hooks
-    const { 
-        data: departmentsData, 
-        isLoading: isLoadingDepartments 
-    } = useEmployeeInOutReportDepartments(
-        MI_Id, 
-        LoginUserId, 
+    const { data: departmentsData, isLoading: isLoadingDepartments } = useEmployeeInOutReportDepartments(
+        MI_Id,
+        LoginUserId,
         0, // IVRMRT_Id
         multipletype,
         multipletype.length > 0
     );
 
-    const { 
-        data: designationsData, 
-        isLoading: isLoadingDesignations 
-    } = useEmployeeInOutReportDesignations(
+    const { data: designationsData, isLoading: isLoadingDesignations } = useEmployeeInOutReportDesignations(
         MI_Id,
         multipledep,
         multipledep.length > 0
     );
 
-    const { 
-        data: employeesData, 
-        isLoading: isLoadingEmployees 
-    } = useEmployeeInOutReportEmployees(
+    const { data: employeesData, isLoading: isLoadingEmployees } = useEmployeeInOutReportEmployees(
         MI_Id,
         multipledes,
         multipledep,
@@ -198,12 +223,13 @@ export default function EmployeeInOutReportPage(props: { searchParams: SearchPar
             deptData = data;
         } else if (data && typeof data === 'object') {
             // Try common wrapper properties
-            deptData = data.departmentList || 
-                      data.departmentdropdown || 
-                      data.DepartmentTempDto || 
-                      data.departmentdropdownlist ||
-                      data.$values ||
-                      (Array.isArray(data) ? data : []);
+            deptData =
+                data.departmentList ||
+                data.departmentdropdown ||
+                data.DepartmentTempDto ||
+                data.departmentdropdownlist ||
+                data.$values ||
+                (Array.isArray(data) ? data : []);
         }
 
         if (!Array.isArray(deptData) || deptData.length === 0) {
@@ -212,41 +238,42 @@ export default function EmployeeInOutReportPage(props: { searchParams: SearchPar
 
         // Use a Set to track unique values and prevent duplicates
         const seenValues = new Set<string>();
-        
+
         // Transform to options format using correct field names
         return deptData
             .map((dept: any) => {
                 // Use correct HRMS field names
                 const id = dept.HRMD_Id ?? dept.hrmdT_Id ?? dept.id ?? dept.value ?? dept.departmentId;
                 const name = dept.HRMD_DepartmentName ?? dept.hrmdT_DepartmentName ?? dept.label ?? dept.name ?? dept.departmentName;
-                
+
                 if (id === undefined || id === null || name === undefined || name === null || name === '') {
                     return null;
                 }
-                
+
                 const valueStr = String(id);
                 const labelStr = String(name);
-                
+
                 // Skip if we've already seen this value (prevent duplicates)
                 if (seenValues.has(valueStr)) {
                     return null;
                 }
                 seenValues.add(valueStr);
-                
+
                 return {
                     label: labelStr,
                     value: valueStr
                 };
             })
-            .filter((item: any): item is { label: string; value: string } => 
-                item !== null && 
-                item !== undefined && 
-                item.value !== undefined && 
-                item.value !== null && 
-                item.value !== '' &&
-                item.label !== undefined && 
-                item.label !== null && 
-                item.label !== ''
+            .filter(
+                (item: any): item is { label: string; value: string } =>
+                    item !== null &&
+                    item !== undefined &&
+                    item.value !== undefined &&
+                    item.value !== null &&
+                    item.value !== '' &&
+                    item.label !== undefined &&
+                    item.label !== null &&
+                    item.label !== ''
             );
     }, [departmentsData]);
 
@@ -263,13 +290,14 @@ export default function EmployeeInOutReportPage(props: { searchParams: SearchPar
             desgData = data;
         } else if (data && typeof data === 'object') {
             // Try common wrapper properties
-            desgData = data.designationlList || 
-                      data.designationdropdown || 
-                      data.DesignationTempDto || 
-                      data.designationdropdownlist ||
-                      data.designationarray ||
-                      data.$values ||
-                      (Array.isArray(data) ? data : []);
+            desgData =
+                data.designationlList ||
+                data.designationdropdown ||
+                data.DesignationTempDto ||
+                data.designationdropdownlist ||
+                data.designationarray ||
+                data.$values ||
+                (Array.isArray(data) ? data : []);
         }
 
         if (!Array.isArray(desgData) || desgData.length === 0) {
@@ -278,41 +306,42 @@ export default function EmployeeInOutReportPage(props: { searchParams: SearchPar
 
         // Use a Set to track unique values and prevent duplicates
         const seenValues = new Set<string>();
-        
+
         // Transform to options format using correct field names
         return desgData
             .map((desg: any) => {
                 // Use correct HRMS field names
                 const id = desg.HRMDES_Id ?? desg.hrmdsT_Id ?? desg.id ?? desg.value ?? desg.designationId;
                 const name = desg.HRMDES_DesignationName ?? desg.hrmdsT_DesignationName ?? desg.label ?? desg.name ?? desg.designationName;
-                
+
                 if (id === undefined || id === null || name === undefined || name === null || name === '') {
                     return null;
                 }
-                
+
                 const valueStr = String(id);
                 const labelStr = String(name);
-                
+
                 // Skip if we've already seen this value (prevent duplicates)
                 if (seenValues.has(valueStr)) {
                     return null;
                 }
                 seenValues.add(valueStr);
-                
+
                 return {
                     label: labelStr,
                     value: valueStr
                 };
             })
-            .filter((item: any): item is { label: string; value: string } => 
-                item !== null && 
-                item !== undefined && 
-                item.value !== undefined && 
-                item.value !== null && 
-                item.value !== '' &&
-                item.label !== undefined && 
-                item.label !== null && 
-                item.label !== ''
+            .filter(
+                (item: any): item is { label: string; value: string } =>
+                    item !== null &&
+                    item !== undefined &&
+                    item.value !== undefined &&
+                    item.value !== null &&
+                    item.value !== '' &&
+                    item.label !== undefined &&
+                    item.label !== null &&
+                    item.label !== ''
             );
     }, [designationsData]);
 
@@ -329,12 +358,13 @@ export default function EmployeeInOutReportPage(props: { searchParams: SearchPar
             empData = data;
         } else if (data && typeof data === 'object') {
             // Try common wrapper properties
-            empData = data.employeeList || 
-                     data.employees || 
-                     data.EmployeeTempDto || 
-                     data.employeedropdownlist ||
-                     data.$values ||
-                     (Array.isArray(data) ? data : []);
+            empData =
+                data.employeeList ||
+                data.employees ||
+                data.EmployeeTempDto ||
+                data.employeedropdownlist ||
+                data.$values ||
+                (Array.isArray(data) ? data : []);
         }
 
         if (!Array.isArray(empData) || empData.length === 0) {
@@ -343,54 +373,53 @@ export default function EmployeeInOutReportPage(props: { searchParams: SearchPar
 
         // Use a Set to track unique values and prevent duplicates
         const seenValues = new Set<string>();
-        
+
         // Transform to options format
         return empData
             .map((emp: any) => {
                 // Try common employee field patterns
-                const code = emp.HRME_EmployeeCode ?? 
-                            emp.HREM_EmployeeCode ?? 
-                            emp.employeeCode ?? 
-                            emp.EmployeeCode ?? 
-                            emp.code ?? 
-                            emp.value ?? 
-                            emp.id;
-                const name = emp.HRME_EmployeeName ?? 
-                            emp.HRME_EmployeeFirstName ?? 
-                            emp.HREM_EmployeeName ?? 
-                            emp.employeeName ?? 
-                            emp.EmployeeName ?? 
-                            emp.name ?? 
-                            emp.label;
-                
+                const code =
+                    emp.HRME_EmployeeCode ??
+                    emp.HREM_EmployeeCode ??
+                    emp.employeeCode ??
+                    emp.EmployeeCode ??
+                    emp.code ??
+                    emp.value ??
+                    emp.id;
+                const name =
+                    emp.HRME_EmployeeName ??
+                    emp.HRME_EmployeeFirstName ??
+                    emp.HREM_EmployeeName ??
+                    emp.employeeName ??
+                    emp.EmployeeName ??
+                    emp.name ??
+                    emp.label;
+
                 if (code === undefined || code === null || code === '') {
                     return null;
                 }
-                
+
                 const valueStr = String(code);
-                
+
                 // Skip if we've already seen this value (prevent duplicates)
                 if (seenValues.has(valueStr)) {
                     return null;
                 }
                 seenValues.add(valueStr);
-                
+
                 const displayName = name && code ? `${name} (${code})` : name || code || String(emp);
-                
+
                 return {
                     label: displayName,
                     value: valueStr
                 };
             })
-            .filter((item: any): item is { label: string; value: string } => 
-                item !== null && 
-                item !== undefined && 
-                item.value !== undefined && 
-                item.value !== null && 
-                item.value !== ''
+            .filter(
+                (item: any): item is { label: string; value: string } =>
+                    item !== null && item !== undefined && item.value !== undefined && item.value !== null && item.value !== ''
             );
     }, [employeesData]);
-    
+
     // React Query hook for report data - only enabled when search criteria are present
     const reportListQuery = useEmployeeInOutReportList(
         searchParams,
@@ -412,7 +441,13 @@ export default function EmployeeInOutReportPage(props: { searchParams: SearchPar
     );
 
     // Form for filters
-    const { handleSubmit, reset, watch: _watch, control, setValue: _setValue } = useForm<ReportFilters>({
+    const {
+        handleSubmit,
+        reset,
+        watch: _watch,
+        control,
+        setValue
+    } = useForm<ReportFilters>({
         mode: 'onChange',
         defaultValues: {
             type: [],
@@ -449,7 +484,7 @@ export default function EmployeeInOutReportPage(props: { searchParams: SearchPar
 
         // Build URL params
         const params = new URLSearchParams();
-        
+
         // Add filter params
         if (data.fromDate) params.set('fromDate', data.fromDate);
         if (data.toDate) params.set('toDate', data.toDate);
@@ -471,10 +506,10 @@ export default function EmployeeInOutReportPage(props: { searchParams: SearchPar
         if (data.timeInTimeOut) {
             params.set('timeInTimeOut', data.timeInTimeOut);
         }
-        
+
         // Reset pagination when filters change
         params.set('page', '1');
-        
+
         // Navigate with new params
         router.push(`/hrms/attendance-management/reports/employee-inout-report?${params.toString()}`);
     };
@@ -490,7 +525,7 @@ export default function EmployeeInOutReportPage(props: { searchParams: SearchPar
         if (!responseData || !Array.isArray(responseData?.rows)) {
             return [];
         }
-        
+
         // TODO: Map API response rows to InOutRow format when search endpoint is available
         // For now, return empty array
         return [];
@@ -504,7 +539,7 @@ export default function EmployeeInOutReportPage(props: { searchParams: SearchPar
         searchParams,
         onSearchParamsChange: (newParams: any) => {
             const params = new URLSearchParams();
-            
+
             // Preserve existing filter params
             if (fromDate) params.set('fromDate', fromDate);
             if (toDate) params.set('toDate', toDate);
@@ -514,14 +549,14 @@ export default function EmployeeInOutReportPage(props: { searchParams: SearchPar
             if (allOrIndividual) params.set('allOrIndividual', allOrIndividual);
             if (employeeCode) params.set('employeeCode', employeeCode);
             if (timeInTimeOut) params.set('timeInTimeOut', timeInTimeOut);
-            
+
             // Add/update pagination and sort params
             Object.entries(newParams).forEach(([key, value]) => {
                 if (value !== undefined && value !== null && value !== '') {
                     params.set(key, String(value));
                 }
             });
-            
+
             router.push(`/hrms/attendance-management/reports/employee-inout-report?${params.toString()}`);
         }
     });
@@ -530,23 +565,26 @@ export default function EmployeeInOutReportPage(props: { searchParams: SearchPar
     const showReport = hasSearchCriteria && reportListQuery.data?.success && transformedData.length > 0;
 
     // Memoize filters object to prevent unnecessary re-renders
-    const filtersForComponent = useMemo(() => ({
-        type: type.map(String),
-        department: department.map(String),
-        designation: designation.map(String),
-        allOrIndividual: allOrIndividual,
-        codeOrName: 'Code' as const,
-        query: employeeCode,
-        fromDate: fromDate,
-        toDate: toDate,
-        timeInTimeOut: timeInTimeOut
-    }), [type, department, designation, allOrIndividual, employeeCode, fromDate, toDate, timeInTimeOut]);
+    const filtersForComponent = useMemo(
+        () => ({
+            type: type.map(String),
+            department: department.map(String),
+            designation: designation.map(String),
+            allOrIndividual: allOrIndividual,
+            codeOrName: 'Code' as const,
+            query: employeeCode,
+            fromDate: fromDate,
+            toDate: toDate,
+            timeInTimeOut: timeInTimeOut
+        }),
+        [type, department, designation, allOrIndividual, employeeCode, fromDate, toDate, timeInTimeOut]
+    );
 
     return (
         <div className='min-h-screen'>
             <div className='container space-y-4 p-1'>
                 {onloadLoading ? (
-                    <div className='text-center py-8'>Loading filter options...</div>
+                    <div className='py-8 text-center'>Loading filter options...</div>
                 ) : (
                     <EmployeeInOutReportFilters
                         filters={filtersForComponent}
