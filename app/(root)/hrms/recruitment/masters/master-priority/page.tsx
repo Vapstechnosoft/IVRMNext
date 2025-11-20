@@ -147,12 +147,12 @@ export default function MasterPriorityPage() {
             <div className='container space-y-4 p-1'>
                 {/* Header */}
                 <div className='flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between'>
-                    <div className='space-y-1'>
+                    {/* <div className='space-y-1'>
                         <Heading
                             title='Master Priority Management'
                             description='Manage priority levels and their ordering for recruitment processes'
                         />
-                    </div>
+                    </div> */}
                     <Button
                         type='button'
                         onClick={handleAddClick}
@@ -165,8 +165,8 @@ export default function MasterPriorityPage() {
 
                 {/* Data Table Section - Collapsible but default open */}
                 <CollapsibleSection
-                    title='Master Priorities Data'
-                    description='View, search, and manage all priority levels in the system'
+                    // title='Master Priorities Data'
+                    // description='View, search, and manage all priority levels in the system'
                     defaultOpen={true}
                     variant='default'
                     size='lg'
@@ -179,8 +179,8 @@ export default function MasterPriorityPage() {
                 {isFormOpen && (
                     <div ref={formRef} className='slide-in-from-top-4 animate-in duration-300'>
                         <CollapsibleSection
-                            title={editingId ? 'Update Master Priority' : 'Add New Master Priority'}
-                            description='Fill in the details below to create a new priority level'
+                            // title={editingId ? 'Update Master Priority' : 'Add New Master Priority'}
+                            // description='Fill in the details below to create a new priority level'
                             defaultOpen={true}
                             variant='outline'
                             size='md'
