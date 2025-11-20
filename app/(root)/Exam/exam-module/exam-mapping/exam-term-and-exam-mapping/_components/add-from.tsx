@@ -332,8 +332,9 @@ export default function AddExamTermAndExamMapping({ onSuccess }: { onSuccess?: (
                                         </Label>
 
                                         <Select
-                                            value={!field.value || field.value === 0 ? undefined : String(field.value)}
-                                            onValueChange={(val) => !topLocked && field.onChange(Number(val))}
+                                            key={field.value} // <— forces remount when value changes
+                                            value={field.value && field.value !== 0 ? String(field.value) : undefined}
+                                            onValueChange={(val) => field.onChange(Number(val))}
                                             disabled={topLocked}>
                                             <SelectTrigger>
                                                 <SelectValue placeholder='Select Academic Year' />
@@ -435,8 +436,9 @@ export default function AddExamTermAndExamMapping({ onSuccess }: { onSuccess?: (
                                         </Label>
 
                                         <Select
-                                            value={!field.value || field.value === 0 ? undefined : String(field.value)}
-                                            onValueChange={(val) => !topLocked && field.onChange(Number(val))}
+                                            key={field.value} // <— forces remount when value changes
+                                            value={field.value && field.value !== 0 ? String(field.value) : undefined}
+                                            onValueChange={(val) => field.onChange(Number(val))}
                                             disabled={topLocked}>
                                             <SelectTrigger>
                                                 <SelectValue placeholder='Select Category' />

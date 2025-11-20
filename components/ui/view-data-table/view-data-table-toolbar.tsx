@@ -21,6 +21,8 @@ interface DataTableToolbarProps<TData> {
     showViewOptions?: boolean;
     showSearchColumns?: boolean;
     showSearch?: boolean;
+    showSorting?: boolean;
+    onSearchQueryChange?: (value: string) => void;
 }
 
 export function DataTableToolbar<TData>({
@@ -29,12 +31,11 @@ export function DataTableToolbar<TData>({
     showExportOptions = true,
     showViewOptions = true,
     showSearchColumns = false,
-    showSearch = false
+    showSearch,
+    showSorting = false,
+    onSearchQueryChange
 }: DataTableToolbarProps<TData>) {
-    const [searchQuery, setSearchQuery] = useQueryState(
-        tableSearchVariables.search,
-        parseAsString.withOptions({ shallow: false }).withDefault('')
-    );
+    const [searchQuery, setSearchQuery] = useState('');
 
     // Add local state for immediate input feedback
     const [localSearchQuery, setLocalSearchQuery] = useState(searchQuery || ''); // Initialize with searchQuery
@@ -58,8 +59,9 @@ export function DataTableToolbar<TData>({
     useEffect(() => {
         if (debouncedSearchQuery !== searchQuery) {
             isUserInputRef.current = true;
-            setSearchQuery(debouncedSearchQuery || null); // Use null to clear the param
+            setSearchQuery(debouncedSearchQuery); // Use null to clear the param
             table.setPageIndex(0);
+            onSearchQueryChange?.(debouncedSearchQuery);
         }
     }, [debouncedSearchQuery]);
 
@@ -71,7 +73,7 @@ export function DataTableToolbar<TData>({
     const handleReset = () => {
         isUserInputRef.current = true;
         setLocalSearchQuery('');
-        setSearchQuery(null); // Clear the URL param completely
+        setSearchQuery(''); // Clear the URL param completely
         table.resetColumnFilters();
         table.resetColumnVisibility();
         table.resetSorting();

@@ -36,6 +36,7 @@ export function DataTableToolbar<TData, TValue>({
     const [localSearchQuery, setLocalSearchQuery] = useState('');
     const debouncedSearchQuery = useDebounce(localSearchQuery, 500);
     const isUserInputRef = useRef(false);
+    const [showSearchColumns, setShowSearchColumns] = useState(false);
 
     // Clear on hard refresh
     useEffect(() => {
@@ -379,7 +380,7 @@ export function DataTableToolbar<TData, TValue>({
                         </PopoverContent>
                     </Popover>
                 )}
-                {anyColumnHiding.length > 0 && (
+                {anyColumnHiding.length > 0 && showSearchColumns && (
                     <DropdownMenu>
                         <DropdownMenuTrigger asChild>
                             <Button variant='outline' size='sm' className='h-8 w-fit'>
