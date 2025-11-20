@@ -2459,6 +2459,7 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
                                                                     value={field.value || 0}
                                                                     onChange={(value) => field.onChange(Number.isNaN(value) ? 0 : value)}
                                                                     minValue={0}
+                                                                    maxDigits={15}
                                                                 />
                                                             )}
                                                         />

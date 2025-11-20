@@ -113,6 +113,15 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
             const existingId = rowData.pasr_id ?? rowData.pasR_Id ?? rowData.pasRId ?? 0;
             setValue('pasR_Id', existingId);
 
+            // Auto-fill siblingsDetails and previousSchoolDetails arrays if present
+            if (rowData.siblingsDetails || rowData.previousSchoolDetails) {
+                reset({
+                    ...getValues(),
+                    siblingsDetails: rowData.siblingsDetails || [],
+                    previousSchoolDetails: rowData.previousSchoolDetails || []
+                });
+            }
+
             Object.entries(rowData).forEach(([key, value]) => {
                 if (key === 'pasR_DOB' && value) {
                     setValue(key, new Date(value as string));
@@ -164,9 +173,8 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
             if (rowData.selectedRefrenceDetails) {
                 setSelectedReferenceItems(rowData.selectedRefrenceDetails);
             }
-            // Sibling details are now controlled by useFieldArray and set via reset if needed
-            if (rowData.previousSchoolList?.[0]) {
-                setPreviousSchool(rowData.previousSchoolList[0]);
+            if (rowData.previousSchoolDetails?.[0]) {
+                setPreviousSchool(rowData.previousSchoolDetails[0]);
             }
             if (rowData.selectedDocuments) {
                 setUploadedDocuments(rowData.selectedDocuments);
@@ -203,6 +211,7 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
     const [selectedSourceItems, setSelectedSourceItems] = useState<{ pamS_Id: string; pamS_SourceName: string }[]>([]);
     const [selectedReferenceItems, setSelectedReferenceItems] = useState<{ pamR_Id: string; pamR_ReferenceName: string }[]>([]);
     const [sameAsResidential, setSameAsResidential] = useState(false);
+
     // Sibling details controlled by react-hook-form
     const {
         fields: siblingFields,
@@ -211,6 +220,16 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
     } = useFieldArray({
         control,
         name: 'siblingsDetails'
+    });
+
+    // Previous School Details controlled by react-hook-form
+    const {
+        fields: previousSchoolFields,
+        append: appendPreviousSchool,
+        remove: removePreviousSchool
+    } = useFieldArray({
+        control,
+        name: 'previousSchoolDetails'
     });
 
     const [previousSchool, setPreviousSchool] = useState({
@@ -415,9 +434,7 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
         setCurrentStep((prev) => Math.max(prev - 1, 1));
     };
 
-    const goToStep = (step: number) => {
-        setCurrentStep(step);
-    };
+    // Removed unused goToStep function
     const handlePhoneChange = (phone: string, countryData: any, fieldName: string) => {
         // If empty or equal to dial code only, clear
         if (!phone || phone === countryData?.dialCode) {
@@ -522,20 +539,14 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                     pasrS_Institution: '',
                     pasrS_DOB: ''
                 })),
-                previousSchoolList: previousSchool.pasrpS_PrvSchoolName
-                    ? [
-                          {
-                              ...Object.fromEntries(
-                                  Object.entries(previousSchool).filter(([k]) => k !== 'createdDate' && k !== 'updatedDate')
-                              ),
-                              pasrpS_TcNo: '',
-                              pasrpS_PreviousPer: '',
-                              pasrpS_PreviousGrade: '',
-                              pasrpS_PreviousMarks: '',
-                              pasrpS_ConcOrScholarshipFlg: ''
-                          }
-                      ]
-                    : [],
+                previousSchoolList: (getValues('previousSchoolDetails') || []).map((school: any) => ({
+                    ...school,
+                    pasrpS_TcNo: '',
+                    pasrpS_PreviousPer: '',
+                    pasrpS_PreviousGrade: '',
+                    pasrpS_PreviousMarks: '',
+                    pasrpS_ConcOrScholarshipFlg: ''
+                })),
                 examSubjectDTO: [],
                 elesubsubject: [],
                 selectedDocuments: uploadedDocuments.map((doc) => ({
@@ -635,10 +646,6 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
             pasrS_SiblingsAdmissionNo: '',
             pasrS_SiblingsSection: ''
         });
-    };
-
-    const updatePreviousSchool = (field: string, value: string) => {
-        setPreviousSchool({ ...previousSchool, [field]: value });
     };
 
     const handleDocumentUpload = async (amsmD_Id: number, file: File, documentName: string) => {
@@ -3239,50 +3246,149 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                                         {/* Previous School Details Section */}
                                         <div className='space-y-4'>
                                             <h3 className='font-semibold text-gray-800 text-lg'>Previous School Details</h3>
-                                            <div className='grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3'>
-                                                <InputText
-                                                    label='Previous School Name'
-                                                    id='pasrpS_PrvSchoolName'
-                                                    placeholder='Enter school name'
-                                                    value={previousSchool.pasrpS_PrvSchoolName}
-                                                    onChange={(e) => updatePreviousSchool('pasrpS_PrvSchoolName', e.target.value)}
-                                                />
-                                                <InputText
-                                                    label='Previous Class'
-                                                    id='pasrpS_PreviousClass'
-                                                    placeholder='Enter class'
-                                                    value={previousSchool.pasrpS_PreviousClass}
-                                                    onChange={(e) => updatePreviousSchool('pasrpS_PreviousClass', e.target.value)}
-                                                />
-                                                <InputText
-                                                    label='Board'
-                                                    id='pasrpS_Board'
-                                                    placeholder='Enter board'
-                                                    value={previousSchool.pasrpS_Board}
-                                                    onChange={(e) => updatePreviousSchool('pasrpS_Board', e.target.value)}
-                                                />
-                                                <InputText
-                                                    label='Left Year'
-                                                    id='pasrpS_LeftYear'
-                                                    placeholder='Enter year'
-                                                    value={previousSchool.pasrpS_LeftYear}
-                                                    onChange={(e) => updatePreviousSchool('pasrpS_LeftYear', e.target.value)}
-                                                />
-                                                <InputText
-                                                    label='Reason for Leaving'
-                                                    id='pasrpS_LeftReason'
-                                                    placeholder='Enter reason'
-                                                    value={previousSchool.pasrpS_LeftReason}
-                                                    onChange={(e) => updatePreviousSchool('pasrpS_LeftReason', e.target.value)}
-                                                />
-                                                <InputText
-                                                    label='School Address'
-                                                    id='pasrpS_Address'
-                                                    placeholder='Enter address'
-                                                    value={previousSchool.pasrpS_Address}
-                                                    onChange={(e) => updatePreviousSchool('pasrpS_Address', e.target.value)}
-                                                />
+                                            <div className='mb-2'>
+                                                <Button
+                                                    type='button'
+                                                    variant='outline'
+                                                    onClick={() =>
+                                                        appendPreviousSchool({
+                                                            pasrpS_PrvSchoolName: '',
+                                                            pasrpS_PreviousClass: '',
+                                                            pasrpS_Board: '',
+                                                            pasrpS_LeftYear: '',
+                                                            pasrpS_LeftReason: '',
+                                                            pasrpS_Address: ''
+                                                        })
+                                                    }
+                                                    disabled={isSubmitting}
+                                                    className='w-fit'>
+                                                    <span className='mr-2'>+</span>
+                                                    Add Previous School
+                                                </Button>
                                             </div>
+                                            {previousSchoolFields.length === 0 ? (
+                                                <p className='text-gray-500 text-sm'>
+                                                    No previous school details added yet. Click "Add Previous School" to add details.
+                                                </p>
+                                            ) : (
+                                                <div className='space-y-4'>
+                                                    {previousSchoolFields.map((field, index) => (
+                                                        <div key={field.id} className='rounded-lg border border-gray-200 bg-gray-50 p-4'>
+                                                            <div className='mb-3 flex items-center justify-between'>
+                                                                <h4 className='font-medium text-gray-700 text-sm'>
+                                                                    Previous School {index + 1}
+                                                                </h4>
+                                                                <Button
+                                                                    type='button'
+                                                                    variant='ghost'
+                                                                    size='sm'
+                                                                    onClick={() => removePreviousSchool(index)}
+                                                                    disabled={isSubmitting}
+                                                                    className='h-8 w-fit bg-error text-white'>
+                                                                    Remove
+                                                                </Button>
+                                                            </div>
+                                                            <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
+                                                                <Controller
+                                                                    name={`previousSchoolDetails.${index}.pasrpS_PrvSchoolName`}
+                                                                    control={control}
+                                                                    render={({ field }) => (
+                                                                        <InputText
+                                                                            label='Previous School Name'
+                                                                            id={`prev_school_name_${index}`}
+                                                                            placeholder='Enter school name'
+                                                                            {...field}
+                                                                            error={
+                                                                                errors.previousSchoolDetails?.[index]?.pasrpS_PrvSchoolName
+                                                                                    ?.message
+                                                                            }
+                                                                        />
+                                                                    )}
+                                                                />
+                                                                <Controller
+                                                                    name={`previousSchoolDetails.${index}.pasrpS_PreviousClass`}
+                                                                    control={control}
+                                                                    render={({ field }) => (
+                                                                        <InputText
+                                                                            label='Previous Class'
+                                                                            id={`prev_class_${index}`}
+                                                                            placeholder='Enter class'
+                                                                            {...field}
+                                                                            error={
+                                                                                errors.previousSchoolDetails?.[index]?.pasrpS_PreviousClass
+                                                                                    ?.message
+                                                                            }
+                                                                        />
+                                                                    )}
+                                                                />
+                                                                <Controller
+                                                                    name={`previousSchoolDetails.${index}.pasrpS_Board`}
+                                                                    control={control}
+                                                                    render={({ field }) => (
+                                                                        <InputText
+                                                                            label='Board'
+                                                                            id={`prev_board_${index}`}
+                                                                            placeholder='Enter board'
+                                                                            {...field}
+                                                                            error={
+                                                                                errors.previousSchoolDetails?.[index]?.pasrpS_Board?.message
+                                                                            }
+                                                                        />
+                                                                    )}
+                                                                />
+                                                                <Controller
+                                                                    name={`previousSchoolDetails.${index}.pasrpS_LeftYear`}
+                                                                    control={control}
+                                                                    render={({ field }) => (
+                                                                        <InputText
+                                                                            label='Left Year'
+                                                                            id={`prev_left_year_${index}`}
+                                                                            placeholder='Enter year'
+                                                                            {...field}
+                                                                            error={
+                                                                                errors.previousSchoolDetails?.[index]?.pasrpS_LeftYear
+                                                                                    ?.message
+                                                                            }
+                                                                        />
+                                                                    )}
+                                                                />
+                                                                <Controller
+                                                                    name={`previousSchoolDetails.${index}.pasrpS_LeftReason`}
+                                                                    control={control}
+                                                                    render={({ field }) => (
+                                                                        <InputText
+                                                                            label='Reason for Leaving'
+                                                                            id={`prev_left_reason_${index}`}
+                                                                            placeholder='Enter reason'
+                                                                            {...field}
+                                                                            error={
+                                                                                errors.previousSchoolDetails?.[index]?.pasrpS_LeftReason
+                                                                                    ?.message
+                                                                            }
+                                                                        />
+                                                                    )}
+                                                                />
+                                                                <Controller
+                                                                    name={`previousSchoolDetails.${index}.pasrpS_Address`}
+                                                                    control={control}
+                                                                    render={({ field }) => (
+                                                                        <InputText
+                                                                            label='School Address'
+                                                                            id={`prev_address_${index}`}
+                                                                            placeholder='Enter address'
+                                                                            {...field}
+                                                                            error={
+                                                                                errors.previousSchoolDetails?.[index]?.pasrpS_Address
+                                                                                    ?.message
+                                                                            }
+                                                                        />
+                                                                    )}
+                                                                />
+                                                            </div>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            )}
                                         </div>
 
                                         <InputTextarea
