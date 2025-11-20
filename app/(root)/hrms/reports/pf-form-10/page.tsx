@@ -3,7 +3,8 @@
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { DataTable } from '@/components/ui/data-table/data-table';
-import { type BaseEntity, createLocalCrud } from '@/lib/localdb';
+import { HRMS_MI_ID } from '@/constants/hrms-config';
+import { useFilterPFForm10EmployeeData, usePFForm10ReportOnload, useSearchPFForm10Report } from '@/hooks/hrms/useReports';
 import { Calculator, Download, FileText, Printer } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';
@@ -11,7 +12,8 @@ import { type Form10Record as Form10RecordColumn, form10Columns } from './_compo
 import { type Form10Filters, PFForm10Filters } from './_components/filters';
 
 // Form 10 data structure (Annual PF Statement)
-interface Form10Record extends BaseEntity {
+interface Form10Record {
+    id?: string;
     employeeCode: string;
     employeeName: string;
     pfNumber: string;
@@ -44,13 +46,16 @@ interface Form10Summary {
 }
 
 export default function Form10Page() {
-    // Database instances
-    const form10DB = createLocalCrud<Form10Record>('report:form-10');
+    const roleId = HRMS_MI_ID;
+
+    // React Query hooks
+    const { data: onloadData, isLoading: isLoadingOnload, error: onloadError } = usePFForm10ReportOnload(roleId);
+    const filterMutation = useFilterPFForm10EmployeeData();
+    const searchMutation = useSearchPFForm10Report();
 
     // State
     const [form10Records, setForm10Records] = useState<Form10Record[]>([]);
     const [filteredRecords, setFilteredRecords] = useState<Form10Record[]>([]);
-    const [isLoading, setIsLoading] = useState(true);
     const [showForm, setShowForm] = useState(false);
 
     const [filters, setFilters] = useState<Form10Filters>({
@@ -58,121 +63,43 @@ export default function Form10Page() {
         year: ''
     });
 
-    // Load data on mount
+    // Memoize dropdown data from API
+    const months = useMemo(() => {
+        const data = onloadData?.data;
+        if (!data) return [];
+        return (data as any).monthdropdown || [];
+    }, [onloadData?.data]);
+
+    const years = useMemo(() => {
+        const data = onloadData?.data;
+        if (!data) return [];
+        return (data as any).leaveyeardropdown || [];
+    }, [onloadData?.data]);
+
+    // Get institution details from API
+    const institutionDetails = useMemo(() => {
+        const data = onloadData?.data;
+        if (!data) return null;
+        return (data as any).institutionDetails || null;
+    }, [onloadData?.data]);
+
+    // Get financial year from API
+    const financialYear = useMemo(() => {
+        const data = onloadData?.data;
+        if (!data) return null;
+        return (data as any).IMFY_FinancialYear || null;
+    }, [onloadData?.data]);
+
+    // Show error if API fails
     useEffect(() => {
-        loadData();
-    }, []);
-
-    const loadData = () => {
-        try {
-            // Load Form 10 records
-            let recordList = form10DB.list();
-            if (recordList.length === 0) {
-                const mockData = generateMockForm10Data();
-                mockData.forEach((record) => form10DB.create(record));
-                recordList = form10DB.list(); // Reload data after creating mock records
-            }
-            setForm10Records(recordList);
-        } catch (_error) {
-            toast.error('Failed to load data');
-        } finally {
-            setIsLoading(false);
+        if (onloadError || (!isLoadingOnload && onloadData && !onloadData.success)) {
+            const errorMessage =
+                onloadError?.message ||
+                onloadData?.message ||
+                'Failed to load PF Form 10 report data. Please check if the API endpoint is available.';
+            toast.error(errorMessage);
         }
-    };
-
-    // Generate mock Form 10 data
-    const generateMockForm10Data = (referenceYear = 2024): Omit<Form10Record, 'id' | 'createdAt'>[] => {
-        const employees = [
-            {
-                code: 'EMP001',
-                name: 'MR SUDIPTA RANJAN BHADURI',
-                father: 'LATE RANJAN BHADURI',
-                joining: '2020-04-01'
-            },
-            {
-                code: 'EMP002',
-                name: 'MS RUPLEKHA CHATTERJEE',
-                father: 'MR SUBRATA CHATTERJEE',
-                joining: '2021-06-15'
-            },
-            {
-                code: 'EMP003',
-                name: 'MR JOHN SHAH',
-                father: 'MR DINESH SHAH',
-                joining: '2019-08-20'
-            },
-            {
-                code: 'EMP004',
-                name: 'MRS BHASWATI DAS',
-                father: 'MR KRISHNA DAS',
-                joining: '2022-01-10'
-            },
-            {
-                code: 'EMP005',
-                name: 'MR SANTANU MUKHERJEE',
-                father: 'MR BIMAL MUKHERJEE',
-                joining: '2020-11-25'
-            },
-            {
-                code: 'EMP006',
-                name: 'MRS PRIYA SHARMA',
-                father: 'MR RAJESH SHARMA',
-                joining: '2021-03-12'
-            },
-            {
-                code: 'EMP007',
-                name: 'MR RAJESH KUMAR',
-                father: 'MR SURESH KUMAR',
-                joining: '2020-07-08'
-            },
-            {
-                code: 'EMP008',
-                name: 'MS ANITA SINGH',
-                father: 'MR VIJAY SINGH',
-                joining: '2022-09-05'
-            }
-        ];
-
-        const months = ['March']; // Form 10 is typically generated for financial year end (March)
-        const mockRecords: Omit<Form10Record, 'id' | 'createdAt'>[] = [];
-
-        employees.forEach((emp, empIndex) => {
-            months.forEach((month) => {
-                const yearsOfService = referenceYear - new Date(emp.joining).getFullYear();
-                const openingBalance = Math.max(0, (yearsOfService - 1) * 25000 + empIndex * 10000);
-                const monthlyContribution = 1800 + empIndex * 200;
-                const employeeContribution = monthlyContribution * 12;
-                const employerContribution = monthlyContribution * 12;
-                const vpfContribution = Math.random() > 0.6 ? monthlyContribution * 6 : 0; // Some employees have VPF
-                const interestEarned = (openingBalance + employeeContribution + employerContribution) * 0.085; // 8.5% interest
-                const withdrawalAmount = Math.random() > 0.8 ? Math.random() * 50000 : 0; // Some withdrawals
-                const totalContribution = employeeContribution + employerContribution + vpfContribution;
-                const closingBalance = openingBalance + totalContribution + interestEarned - withdrawalAmount;
-
-                mockRecords.push({
-                    employeeCode: emp.code,
-                    employeeName: emp.name,
-                    pfNumber: `PF${emp.code.slice(-3)}/2025`,
-                    fatherName: emp.father,
-                    dateOfJoining: emp.joining,
-                    dateOfLeaving: Math.random() > 0.9 ? '2024-12-31' : undefined, // Some employees left
-                    openingBalance: Math.round(openingBalance),
-                    employeeContribution: Math.round(employeeContribution),
-                    employerContribution: Math.round(employerContribution),
-                    vpfContribution: Math.round(vpfContribution),
-                    interestEarned: Math.round(interestEarned),
-                    totalContribution: Math.round(totalContribution),
-                    withdrawalAmount: Math.round(withdrawalAmount),
-                    closingBalance: Math.round(closingBalance),
-                    month: month,
-                    year: '2025',
-                    financialYear: '2024-25'
-                });
-            });
-        });
-
-        return mockRecords;
-    };
+    }, [onloadError, isLoadingOnload, onloadData]);
 
     // Filter Form 10 records based on selected month/year
     useEffect(() => {
@@ -198,8 +125,92 @@ export default function Form10Page() {
             toast.error('Please select month and year');
             return;
         }
-        setShowForm(true);
-        toast.success('Form 10 generated');
+
+        // Find month name from selected month
+        const selectedMonthObj = months.find((m) => m.IVRM_Month_Name?.trim() === filters.month);
+        const monthName = selectedMonthObj?.IVRM_Month_Name?.trim() || filters.month;
+
+        // Prepare search request
+        const searchRequest = {
+            MI_Id: roleId,
+            HRES_Month: monthName,
+            HRES_Year: filters.year
+        };
+
+        // Call search API to get PF Form 10 data
+        searchMutation.mutate(searchRequest, {
+            onSuccess: (response) => {
+                if (response.success && response.data) {
+                    // Extract PF Form 10 data from response
+                    const pfData = response.data.getpfgriddata || response.data.pfreport || response.data.employeeDetails || [];
+
+                    if (Array.isArray(pfData) && pfData.length > 0) {
+                        // Map API response to Form10Record format
+                        const mappedRecords: Form10Record[] = pfData.map((item: any, index: number) => {
+                            const openingBalance = item.openingBalance || item.HRES_Ac21 || 0;
+                            const employeeContribution = item.HRES_EPF || item.employeeContribution || 0;
+                            const employerContribution = item.HRES_FPF || item.employerContribution || 0;
+                            const vpfContribution = item.VPFAmount || item.vpfContribution || 0;
+                            const interestEarned = item.interestEarned || item.HRES_Ac22 || 0;
+                            const withdrawalAmount = item.withdrawalAmount || item.DepositWithdrow || 0;
+                            const totalContribution = employeeContribution + employerContribution + vpfContribution;
+                            const closingBalance = openingBalance + totalContribution + interestEarned - withdrawalAmount;
+
+                            // Calculate financial year from month and year
+                            const monthNum = selectedMonthObj?.IVRM_Month_Id || 0;
+                            const currentYear = Number.parseInt(filters.year);
+                            const financialYear =
+                                monthNum >= 4
+                                    ? `${currentYear}-${(currentYear + 1).toString().slice(-2)}`
+                                    : `${currentYear - 1}-${currentYear.toString().slice(-2)}`;
+
+                            return {
+                                id: `form10-${item.HRME_Id || item.HRES_Id || index}`,
+                                employeeCode: item.HRME_EmployeeCode || item.EmployeeCode || item.employeeCode || '',
+                                employeeName:
+                                    `${item.HRME_EmployeeFirstName || ''} ${item.HRME_EmployeeMiddleName || ''} ${item.HRME_EmployeeLastName || ''}`.trim() ||
+                                    item.EmployeeName ||
+                                    '',
+                                pfNumber:
+                                    item.HRME_PFAccNo ||
+                                    item.HRME_PFuAN ||
+                                    item.pfNumber ||
+                                    `PF${(item.HRME_EmployeeCode || '').slice(-3)}/${filters.year}`,
+                                fatherName: item.HRME_FatherName || item.FatherHusbandName || item.fatherName || '',
+                                dateOfJoining: item.HRME_DOJ || item.dateOfJoining || '',
+                                dateOfLeaving: item.HRME_DOL || item.dateOfLeaving,
+                                openingBalance: Math.round(openingBalance),
+                                employeeContribution: Math.round(employeeContribution),
+                                employerContribution: Math.round(employerContribution),
+                                vpfContribution: Math.round(vpfContribution),
+                                interestEarned: Math.round(interestEarned),
+                                totalContribution: Math.round(totalContribution),
+                                withdrawalAmount: Math.round(withdrawalAmount),
+                                closingBalance: Math.round(closingBalance),
+                                month: filters.month,
+                                year: filters.year,
+                                financialYear
+                            };
+                        });
+
+                        setForm10Records(mappedRecords);
+                        setShowForm(true);
+                        toast.success('Form 10 generated successfully');
+                    } else {
+                        // No data returned, but still show the form structure
+                        setForm10Records([]);
+                        setShowForm(true);
+                        toast.warning('Form 10 generated but no data found for selected period');
+                    }
+                } else {
+                    toast.error(response.message || 'Failed to generate Form 10');
+                }
+            },
+            onError: (error: Error) => {
+                console.error('Error searching PF Form 10 report:', error);
+                toast.error(error.message || 'Failed to generate Form 10');
+            }
+        });
     };
 
     const handleCancel = () => {
@@ -207,6 +218,8 @@ export default function Form10Page() {
             month: '',
             year: ''
         });
+        setForm10Records([]);
+        setFilteredRecords([]);
         setShowForm(false);
         toast.info('Filters cleared');
     };
@@ -249,7 +262,15 @@ export default function Form10Page() {
     return (
         <div className='space-y-6'>
             {/* Report Configuration Section */}
-            <PFForm10Filters filters={filters} onFilterChange={handleFilterChange} onGenerate={handleGenerate} onCancel={handleCancel} />
+            <PFForm10Filters
+                filters={filters}
+                months={months}
+                years={years}
+                onFilterChange={handleFilterChange}
+                onGenerate={handleGenerate}
+                onCancel={handleCancel}
+                isLoading={isLoadingOnload}
+            />
 
             {/* Form 10 Results */}
             {showForm && (
@@ -377,7 +398,7 @@ export default function Form10Page() {
                             <CardContent className='space-y-3'>
                                 <div className='flex justify-between'>
                                     <span className='text-sm'>Financial Year:</span>
-                                    <span className='font-semibold'>2024-25</span>
+                                    <span className='font-semibold'>{financialYear || 'N/A'}</span>
                                 </div>
                                 <div className='flex justify-between'>
                                     <span className='text-sm'>Statement Period:</span>
@@ -387,11 +408,11 @@ export default function Form10Page() {
                                 </div>
                                 <div className='flex justify-between'>
                                     <span className='text-sm'>Organization:</span>
-                                    <span className='font-semibold'>VAPS SCHOOL</span>
+                                    <span className='font-semibold'>{institutionDetails?.MI_Name || 'N/A'}</span>
                                 </div>
                                 <div className='flex justify-between'>
                                     <span className='text-sm'>PF Code:</span>
-                                    <span className='font-semibold'>WB/KOL/12345</span>
+                                    <span className='font-semibold'>{institutionDetails?.MI_Code || 'N/A'}</span>
                                 </div>
                                 <div className='flex justify-between'>
                                     <span className='text-sm'>Interest Rate:</span>
@@ -403,7 +424,7 @@ export default function Form10Page() {
 
                     {/* Data Table */}
                     <DataTable
-                        isLoading={isLoading}
+                        isLoading={isLoadingOnload}
                         columns={form10Columns}
                         data={filteredRecords as unknown as Form10RecordColumn[]}
                         totalItems={filteredRecords.length}
@@ -424,18 +445,18 @@ export default function Form10Page() {
                                 <div className='grid grid-cols-2 gap-8 text-sm'>
                                     <div className='space-y-2'>
                                         <div>
-                                            <strong>Establishment Name:</strong> VAPS SCHOOL
+                                            <strong>Establishment Name:</strong> {institutionDetails?.MI_Name || 'N/A'}
                                         </div>
                                         <div>
-                                            <strong>Establishment Code:</strong> WB/KOL/12345
+                                            <strong>Establishment Code:</strong> {institutionDetails?.MI_Code || 'N/A'}
                                         </div>
                                         <div>
-                                            <strong>Establishment ID:</strong> WBKOL12345000
+                                            <strong>Establishment ID:</strong> {institutionDetails?.MI_Id || 'N/A'}
                                         </div>
                                     </div>
                                     <div className='space-y-2'>
                                         <div>
-                                            <strong>Financial Year:</strong> 2024-25
+                                            <strong>Financial Year:</strong> {financialYear || 'N/A'}
                                         </div>
                                         <div>
                                             <strong>Statement Period:</strong> {filters.month} {filters.year}
