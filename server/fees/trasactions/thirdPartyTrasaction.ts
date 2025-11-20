@@ -61,3 +61,9 @@ export async function geteditThirdpartytrasaction(mi_id: number, asmaY_Id: numbe
     console.info('ThirdPartyTransaction', url);
     return await api.get<IThirdPartyTransactionEditdata[]>('fees', url);
 }
+
+export async function deleteThirdPartyTrasaction(fyp_id: number) {
+    const url = `/ThirdPartyTransaction/delete/${fyp_id}`;
+    console.info(url);
+    return await api.delete('fees', url);
+}

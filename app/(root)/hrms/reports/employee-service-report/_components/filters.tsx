@@ -1,10 +1,10 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
+import { CalendarYear } from '@/components/ui/calendar_year';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { CalendarYear } from '@/components/ui/calendar_year';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
 import { CalendarIcon, Search, X } from 'lucide-react';
@@ -50,8 +50,6 @@ export function EmployeeServiceFilters({
 }: EmployeeServiceFiltersProps) {
     return (
         <CollapsibleSection
-            title='EMPLOYEE OFFER AND EXPERIENCE REPORT'
-            description='Configure filters to generate service certificates and experience reports'
             defaultOpen={true}
             variant='default'
             size='lg'
@@ -148,7 +146,10 @@ export function EmployeeServiceFilters({
                                 <PopoverTrigger asChild>
                                     <Button
                                         variant='outline'
-                                        className={cn('w-full justify-start text-left font-normal', !filters.currentDate && 'text-muted-foreground')}>
+                                        className={cn(
+                                            'w-full justify-start text-left font-normal',
+                                            !filters.currentDate && 'text-muted-foreground'
+                                        )}>
                                         <CalendarIcon className='mr-2 h-4 w-4' />
                                         {filters.currentDate ? format(filters.currentDate, 'dd-MM-yyyy') : <span>17-09-2025</span>}
                                     </Button>
@@ -190,7 +191,8 @@ export function EmployeeServiceFilters({
                                     <div>{selectedEmployeeDetails.employee.employeeName}</div>
                                     <div>{selectedEmployeeDetails.employee.employeeCode}</div>
                                     <div>
-                                        {selectedEmployeeDetails.employee.departmentName} - {selectedEmployeeDetails.employee.designationName}
+                                        {selectedEmployeeDetails.employee.departmentName} -{' '}
+                                        {selectedEmployeeDetails.employee.designationName}
                                     </div>
                                 </div>
                             </div>
@@ -213,4 +215,3 @@ export function EmployeeServiceFilters({
         </CollapsibleSection>
     );
 }
-

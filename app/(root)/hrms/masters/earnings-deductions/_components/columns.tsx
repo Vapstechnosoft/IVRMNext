@@ -32,15 +32,16 @@ export const columns: ColumnDef<EarningsDeductionDetail>[] = [
         header: ({ column }) => <DataTableColumnHeader column={column} title='Category' className='whitespace-nowrap' />,
         cell: ({ row }) => {
             const value = row.getValue('HRMED_EarnDedFlag') as string;
-            const badgeClass = value === 'Earning' 
-                ? 'bg-green-100 text-green-800 border-green-200' 
-                : value === 'Deduction'
-                ? 'bg-red-100 text-red-800 border-red-200'
-                : value === 'Arrear'
-                ? 'bg-blue-100 text-blue-800 border-blue-200'
-                : 'bg-purple-100 text-purple-800 border-purple-200';
+            const badgeClass =
+                value === 'Earning'
+                    ? 'bg-green-100 text-green-800 border-green-200'
+                    : value === 'Deduction'
+                      ? 'bg-red-100 text-red-800 border-red-200'
+                      : value === 'Arrear'
+                        ? 'bg-blue-100 text-blue-800 border-blue-200'
+                        : 'bg-purple-100 text-purple-800 border-purple-200';
             return (
-                <span className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold ${badgeClass}`}>
+                <span className={`inline-flex items-center rounded-full border px-2.5 py-0.5 font-semibold text-xs ${badgeClass}`}>
                     {value}
                 </span>
             );
@@ -80,42 +81,28 @@ function ActionButtonsCell({ rowData }: { rowData: EarningsDeductionDetail }) {
 
     const handleToggle = useCallback(
         async (data: EarningsDeductionDetail, newState: boolean) => {
-            console.log('🔵 [TOGGLE] handleToggle called');
-            console.log('🔵 [TOGGLE] Record ID:', data.HRMED_Id);
-            console.log('🔵 [TOGGLE] Record Name:', data.HRMED_Name);
-            console.log('🔵 [TOGGLE] Current State:', data.HRMED_ActiveFlag);
-            console.log('🔵 [TOGGLE] New State:', newState);
-            console.log('🔵 [TOGGLE] MI_Id:', HRMS_MI_ID);
-            
             try {
-                console.log('🟡 [TOGGLE] Calling toggleMutation.mutateAsync...');
                 const result = await toggleMutation.mutateAsync({
                     HRMED_Id: data.HRMED_Id,
                     HRMED_ActiveFlag: newState,
                     MI_Id: HRMS_MI_ID
                 });
-                
-                console.log('🟢 [TOGGLE] Toggle result:', result);
-                
+
                 if (result?.success) {
                     const successMsg = result?.message || `Earnings/Deduction ${newState ? 'activated' : 'deactivated'} successfully`;
-                    console.log('✅ [TOGGLE] Success! Message:', successMsg);
                     toast.success(successMsg);
                 } else {
                     const errorMsg = result?.message || `Failed to ${newState ? 'activate' : 'deactivate'} earnings/deduction`;
-                    console.log('❌ [TOGGLE] Failed. Message:', errorMsg);
                     toast.error(errorMsg);
                 }
             } catch (error: any) {
-                console.log('🔴 [TOGGLE] Error caught');
                 console.error('🔴 [TOGGLE] Error:', error);
                 console.error('🔴 [TOGGLE] Error message:', error?.message);
-                
-                const errorMsg = error?.response?.data?.message 
-                    || error?.message 
-                    || `Failed to ${newState ? 'activate' : 'deactivate'} earnings/deduction`;
-                
-                console.log('🔴 [TOGGLE] Showing error toast:', errorMsg);
+
+                const errorMsg =
+                    error?.response?.data?.message ||
+                    error?.message ||
+                    `Failed to ${newState ? 'activate' : 'deactivate'} earnings/deduction`;
                 toast.error(errorMsg);
             }
         },
@@ -155,15 +142,16 @@ export function getEditableColumns(onOrderChange: (rowId: number, newOrder: numb
             header: ({ column }) => <DataTableColumnHeader column={column} title='Category' className='whitespace-nowrap' />,
             cell: ({ row }) => {
                 const value = row.getValue('HRMED_EarnDedFlag') as string;
-                const badgeClass = value === 'Earning' 
-                    ? 'bg-green-100 text-green-800 border-green-200' 
-                    : value === 'Deduction'
-                    ? 'bg-red-100 text-red-800 border-red-200'
-                    : value === 'Arrear'
-                    ? 'bg-blue-100 text-blue-800 border-blue-200'
-                    : 'bg-purple-100 text-purple-800 border-purple-200';
+                const badgeClass =
+                    value === 'Earning'
+                        ? 'bg-green-100 text-green-800 border-green-200'
+                        : value === 'Deduction'
+                          ? 'bg-red-100 text-red-800 border-red-200'
+                          : value === 'Arrear'
+                            ? 'bg-blue-100 text-blue-800 border-blue-200'
+                            : 'bg-purple-100 text-purple-800 border-purple-200';
                 return (
-                    <span className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold ${badgeClass}`}>
+                    <span className={`inline-flex items-center rounded-full border px-2.5 py-0.5 font-semibold text-xs ${badgeClass}`}>
                         {value}
                     </span>
                 );

@@ -9,8 +9,8 @@ import { format } from 'date-fns';
 import { Calculator, CalendarIcon, Clock, Download, Printer, UserCheck, Users } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';
-import { RetirementReportFilters, type RetirementFilters } from './_components/filters';
-import { getRetirementColumns, headerFields, type RetirementRecord as RetirementRecordColumn } from './_components/columns';
+import { type RetirementRecord as RetirementRecordColumn, getRetirementColumns, headerFields } from './_components/columns';
+import { type RetirementFilters, RetirementReportFilters } from './_components/filters';
 
 // Retirement Report data structure
 interface RetirementRecord extends BaseEntity {
@@ -49,7 +49,6 @@ interface RetirementSummary {
     totalGratuityAmount: number;
     averageServiceYears: number;
 }
-
 
 export default function RetirementReportPage() {
     // Database instances

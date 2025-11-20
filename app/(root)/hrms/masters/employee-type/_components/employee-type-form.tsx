@@ -54,10 +54,8 @@ export default function EmployeeTypeForm({ selectedRow, onSuccess, className = '
     }, [selectedRow, reset]);
 
     const onSubmit: SubmitHandler<FormFields> = async (data) => {
-        console.log('🔵 [FORM] Employee Type submit - Data:', data);
         try {
             const response = await saveMutation.mutateAsync(data);
-            console.log('🟢 [FORM] Employee Type response:', response);
 
             if (response?.success) {
                 toast.success(response.message || (isEditMode ? 'Employee type updated successfully' : 'Employee type saved successfully'));
@@ -65,11 +63,9 @@ export default function EmployeeTypeForm({ selectedRow, onSuccess, className = '
                 refetchAll();
                 onSuccess?.();
             } else {
-                console.log('❌ [FORM] Employee Type failed:', response?.message);
                 toast.error(response?.message || (isEditMode ? 'Failed to update employee type' : 'Failed to save employee type'));
             }
         } catch (error: any) {
-            console.log('🔴 [FORM] Employee Type error:', error);
             toast.error(error.message || 'An error occurred');
         }
     };
@@ -118,9 +114,7 @@ export default function EmployeeTypeForm({ selectedRow, onSuccess, className = '
                         </div>
                     </Button>
                     {isEditMode && !isDirty && (
-                        <span className='order-3 flex items-center text-sm text-muted-foreground sm:order-3'>
-                            No changes made
-                        </span>
+                        <span className='order-3 flex items-center text-muted-foreground text-sm sm:order-3'>No changes made</span>
                     )}
                 </div>
             </form>

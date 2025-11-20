@@ -228,11 +228,11 @@ export default function MasterLocationPage() {
                                                 id='locationName'
                                                 {...register('locationName', { required: 'Location Name is required' })}
                                                 error={errors.locationName?.message}
-                                                className='transition-colors focus:ring-2 focus:ring-primary/20'
+                                                className='mt-0 transition-colors focus:ring-2 focus:ring-primary/20'
                                             />
                                         </div>
 
-                                        <div className='grid grid-cols-1 gap-4 lg:grid-cols-2 items-start'>
+                                        <div className='grid grid-cols-1 items-start gap-4 lg:grid-cols-2'>
                                             <InputText
                                                 label='Location Desc.'
                                                 required
@@ -246,14 +246,14 @@ export default function MasterLocationPage() {
                                                 <Label htmlFor='isActive' className='invisible'>
                                                     Location Desc. <span className='ml-1 text-red-500'>*</span>
                                                 </Label>
-                                                <div className='flex items-center h-9'>
+                                                <div className='flex h-9 items-center'>
                                                     <input
                                                         type='checkbox'
                                                         id='isActive'
                                                         {...register('isActive')}
                                                         className='mr-2 h-4 w-4 border-border text-primary focus:ring-primary'
                                                     />
-                                                    <label htmlFor='isActive' className='text-sm font-medium cursor-pointer'>
+                                                    <label htmlFor='isActive' className='cursor-pointer font-medium text-sm'>
                                                         Active
                                                     </label>
                                                 </div>

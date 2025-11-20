@@ -1,26 +1,16 @@
 'use client';
 
-import { Heading } from '@/components/layout/heading';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { DataTable } from '@/components/ui/data-table/data-table';
 import { HRMS_MI_ID } from '@/constants/hrms-config';
-import {
-    useFilterEmployeesForLoanReport,
-    useGetEmployeeLoanDetails,
-    useLoanReportOnload
-} from '@/hooks/hrms/useReports';
+import { useFilterEmployeesForLoanReport, useGetEmployeeLoanDetails, useLoanReportOnload } from '@/hooks/hrms/useReports';
 import type { EmployeeDropdown } from '@/types/hrms/reports/loan-report';
 import { Calculator, CreditCard, DollarSign, Download, Percent, Printer, TrendingUp, Users } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';
-import { LoanReportFilters, type LoanFilters } from './_components/filters';
-import {
-    loanReportColumns,
-    loanTypeSummaryColumns,
-    type EmployeeLoanRecord,
-    type LoanTypeSummary
-} from './_components/columns';
+import { type EmployeeLoanRecord, type LoanTypeSummary, loanReportColumns, loanTypeSummaryColumns } from './_components/columns';
+import { type LoanFilters, LoanReportFilters } from './_components/filters';
 
 // Loan Summary
 interface LoanSummary {
@@ -78,9 +68,7 @@ export default function LoanReportPage() {
     useEffect(() => {
         if (filters.reportScope === 'individual') {
             const hasFilters =
-                filters.selectedGroupTypes.length > 0 ||
-                filters.selectedDepartments.length > 0 ||
-                filters.selectedDesignations.length > 0;
+                filters.selectedGroupTypes.length > 0 || filters.selectedDepartments.length > 0 || filters.selectedDesignations.length > 0;
 
             if (hasFilters) {
                 const request = {
@@ -116,7 +104,7 @@ export default function LoanReportPage() {
     }, [filters.reportScope, filters.selectedGroupTypes, filters.selectedDepartments, filters.selectedDesignations]);
 
     // Generate mock Employee Loan data
-    const generateMockLoanData = (): Omit<EmployeeLoanRecord, 'id' | 'createdAt'>[] => {
+    const _generateMockLoanData = (): Omit<EmployeeLoanRecord, 'id' | 'createdAt'>[] => {
         const groupTypes = ['Test NON Teaching', 'Test Insurance', 'Teaching', 'Owner of the company', 'Non Teaching', 'Administrative'];
         const departments = [
             'Teaching',
@@ -356,8 +344,8 @@ export default function LoanReportPage() {
                 if (response.success && response.data) {
                     // Process the response data to populate loan records
                     // The response structure may vary, so we'll need to adapt based on actual response
-                    const employeeLoanDetails = response.data.employeeSalaryslipDetails || [];
-                    const loanTotalAmount = response.data.EmploanTotalAmount || [];
+                    const _employeeLoanDetails = response.data.employeeSalaryslipDetails || [];
+                    const _loanTotalAmount = response.data.EmploanTotalAmount || [];
 
                     // Transform API response to EmployeeLoanRecord format
                     // Note: This mapping needs to be adjusted based on actual API response structure
@@ -498,16 +486,8 @@ export default function LoanReportPage() {
             .sort((a, b) => b.totalAmount - a.totalAmount);
     }, [filteredRecords]);
 
-
     return (
         <div className='space-y-6'>
-            <div className='flex-between flex-wrap gap-4'>
-                <Heading
-                    title='Employee Loan Report'
-                    description='Comprehensive report for employee loan applications, approvals, and repayment tracking'
-                />
-            </div>
-
             {/* Report Configuration Section */}
             <LoanReportFilters
                 filters={filters}
@@ -530,7 +510,8 @@ export default function LoanReportPage() {
                     <div className='flex items-center justify-between rounded-lg border bg-card p-4'>
                         <div>
                             <h3 className='font-semibold text-foreground text-lg'>
-                                Employee Loan Report - {filters.reportScope === 'all' ? `${filters.month} ${filters.year}` : ''} ({filters.reportScope.toUpperCase()})
+                                Employee Loan Report - {filters.reportScope === 'all' ? `${filters.month} ${filters.year}` : ''} (
+                                {filters.reportScope.toUpperCase()})
                             </h3>
                             <p className='text-muted-foreground text-sm'>
                                 Total Loans: {filteredRecords.length} | Total Amount: ₹{loanSummary.totalLoanAmount.toLocaleString()} |

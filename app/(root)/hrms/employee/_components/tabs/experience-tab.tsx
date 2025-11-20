@@ -12,7 +12,7 @@ import { useState } from 'react';
 import { Controller, useFieldArray } from 'react-hook-form';
 import { StandardTabActions } from './standard-tab-actions';
 
-export function ExperienceTab({ control, register, errors, isSubmitting }: any) {
+export function ExperienceTab({ control, register, errors, isSubmitting, onClear }: any) {
     const { fields, append, remove } = useFieldArray({
         control,
         name: 'experienceDetails'
@@ -79,7 +79,10 @@ export function ExperienceTab({ control, register, errors, isSubmitting }: any) 
                                             <Label>Join Date</Label>
                                             <Popover open={open} onOpenChange={setOpen}>
                                                 <PopoverTrigger asChild>
-                                                    <Button variant='outline' className='h-9 w-full justify-start text-left font-normal' type='button'>
+                                                    <Button
+                                                        variant='outline'
+                                                        className='h-9 w-full justify-start text-left font-normal'
+                                                        type='button'>
                                                         <CalendarIcon className='mr-2 h-4 w-4' />
                                                         {field.value ? format(new Date(field.value), 'dd/MM/yyyy') : 'Select date'}
                                                     </Button>
@@ -112,7 +115,10 @@ export function ExperienceTab({ control, register, errors, isSubmitting }: any) 
                                             <Label>Exit Date</Label>
                                             <Popover open={open} onOpenChange={setOpen}>
                                                 <PopoverTrigger asChild>
-                                                    <Button variant='outline' className='h-9 w-full justify-start text-left font-normal' type='button'>
+                                                    <Button
+                                                        variant='outline'
+                                                        className='h-9 w-full justify-start text-left font-normal'
+                                                        type='button'>
                                                         <CalendarIcon className='mr-2 h-4 w-4' />
                                                         {field.value ? format(new Date(field.value), 'dd/MM/yyyy') : 'Select date'}
                                                     </Button>
@@ -177,7 +183,7 @@ export function ExperienceTab({ control, register, errors, isSubmitting }: any) 
                 ))}
             </div>
 
-            <StandardTabActions errors={errors} isSubmitting={isSubmitting} />
+            <StandardTabActions errors={errors} isSubmitting={isSubmitting} onClear={onClear} />
         </div>
     );
 }

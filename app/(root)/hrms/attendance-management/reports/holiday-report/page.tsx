@@ -1,6 +1,5 @@
 'use client';
 
-import { Heading } from '@/components/layout/heading';
 import { GenericDataTable } from '@/components/ui/data-table/generic-data-table';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { createLocalCrud } from '@/lib/localdb';
@@ -23,9 +22,7 @@ export default function HolidayReportPage() {
     }, []);
 
     // Generate calendar years starting from current year
-    const calendarYears = currentYear
-        ? Array.from({ length: 6 }, (_, i) => (currentYear + i).toString())
-        : [];
+    const calendarYears = currentYear ? Array.from({ length: 6 }, (_, i) => (currentYear + i).toString()) : [];
 
     const [filters, setFilters] = useState<HolidayReportFilters>({
         calendarYear: '',
@@ -72,12 +69,6 @@ export default function HolidayReportPage() {
     return (
         <div className='min-h-screen'>
             <div className='container space-y-4 p-1'>
-                <div className='flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between'>
-                    <div className='space-y-1'>
-                        <Heading title='Holiday Report' description='' />
-                    </div>
-                </div>
-
                 <HolidayReportFiltersComponent
                     filters={filters}
                     calendarYears={calendarYears}
@@ -88,8 +79,6 @@ export default function HolidayReportPage() {
 
                 {showReport && (
                     <CollapsibleSection
-                        title='HOLIDAY REPORT'
-                        description=''
                         defaultOpen={true}
                         variant='default'
                         size='lg'
@@ -107,4 +96,3 @@ export default function HolidayReportPage() {
         </div>
     );
 }
-

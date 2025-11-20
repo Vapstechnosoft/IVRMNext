@@ -1,11 +1,11 @@
 'use client';
 
-import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
-import * as React from 'react';
+import { Label } from '@/components/ui/label';
 import { TimePickerInput } from '@/components/ui/time-picker/time-picker-input';
 import type { Period } from '@/components/ui/time-picker/time-picker-utils';
-import { ChevronUp, ChevronDown } from 'lucide-react';
+import { ChevronDown, ChevronUp } from 'lucide-react';
+import * as React from 'react';
 
 interface TimePicker12HourProps {
     value?: string; // HH:mm format
@@ -59,12 +59,12 @@ export function TimePicker12Hour({ value, onChange, disabled = false, required =
         if (!date) return;
         const newPeriod = period === 'AM' ? 'PM' : 'AM';
         setPeriod(newPeriod);
-        
+
         // Convert current hour to 12-hour format, then apply new period
         const currentHour24 = date.getHours();
         const currentHour12 = currentHour24 === 0 ? 12 : currentHour24 > 12 ? currentHour24 - 12 : currentHour24;
         const newDate = new Date(date);
-        
+
         if (newPeriod === 'PM') {
             if (currentHour12 === 12) {
                 newDate.setHours(12);
@@ -78,7 +78,7 @@ export function TimePicker12Hour({ value, onChange, disabled = false, required =
                 newDate.setHours(currentHour12);
             }
         }
-        
+
         handleDateChange(newDate);
     }, [date, period, handleDateChange]);
 
@@ -88,7 +88,7 @@ export function TimePicker12Hour({ value, onChange, disabled = false, required =
         const currentHour24 = date.getHours();
         const hour12 = currentHour24 === 0 ? 12 : currentHour24 > 12 ? currentHour24 - 12 : currentHour24;
         const newHour12 = hour12 >= 12 ? 1 : hour12 + 1;
-        
+
         if (period === 'PM') {
             newDate.setHours(newHour12 === 12 ? 12 : newHour12 + 12);
         } else {
@@ -103,7 +103,7 @@ export function TimePicker12Hour({ value, onChange, disabled = false, required =
         const currentHour24 = date.getHours();
         const hour12 = currentHour24 === 0 ? 12 : currentHour24 > 12 ? currentHour24 - 12 : currentHour24;
         const newHour12 = hour12 <= 1 ? 12 : hour12 - 1;
-        
+
         if (period === 'PM') {
             newDate.setHours(newHour12 === 12 ? 12 : newHour12 + 12);
         } else {
@@ -146,7 +146,7 @@ export function TimePicker12Hour({ value, onChange, disabled = false, required =
                         type='button'
                         onClick={incrementHour}
                         disabled={disabled}
-                        className='rounded-t border border-input p-1 hover:bg-accent disabled:opacity-50 disabled:cursor-not-allowed'>
+                        className='rounded-t border border-input p-1 hover:bg-accent disabled:cursor-not-allowed disabled:opacity-50'>
                         <ChevronUp className='h-3 w-3' />
                     </button>
                     <TimePickerInput
@@ -158,22 +158,22 @@ export function TimePicker12Hour({ value, onChange, disabled = false, required =
                         onRightFocus={() => minuteRef.current?.focus()}
                         disabled={disabled}
                         id={`${name}-hours` || 'hours'}
-                        className='w-12 border-x border-input text-center'
+                        className='w-12 border-input border-x text-center'
                     />
                     <button
                         type='button'
                         onClick={decrementHour}
                         disabled={disabled}
-                        className='rounded-b border border-input p-1 hover:bg-accent disabled:opacity-50 disabled:cursor-not-allowed'>
+                        className='rounded-b border border-input p-1 hover:bg-accent disabled:cursor-not-allowed disabled:opacity-50'>
                         <ChevronDown className='h-3 w-3' />
                     </button>
                 </div>
-                <Label htmlFor={`${name}-hours` || 'hours'} className='text-xs mt-1'>
+                <Label htmlFor={`${name}-hours` || 'hours'} className='mt-1 text-xs'>
                     Hours
                 </Label>
             </div>
 
-            <span className='text-lg font-semibold'>:</span>
+            <span className='font-semibold text-lg'>:</span>
 
             <div className='flex flex-col items-center'>
                 <div className='flex flex-col items-center'>
@@ -181,7 +181,7 @@ export function TimePicker12Hour({ value, onChange, disabled = false, required =
                         type='button'
                         onClick={incrementMinute}
                         disabled={disabled}
-                        className='rounded-t border border-input p-1 hover:bg-accent disabled:opacity-50 disabled:cursor-not-allowed'>
+                        className='rounded-t border border-input p-1 hover:bg-accent disabled:cursor-not-allowed disabled:opacity-50'>
                         <ChevronUp className='h-3 w-3' />
                     </button>
                     <TimePickerInput
@@ -192,17 +192,17 @@ export function TimePicker12Hour({ value, onChange, disabled = false, required =
                         onLeftFocus={() => hourRef.current?.focus()}
                         disabled={disabled}
                         id={`${name}-minutes` || 'minutes'}
-                        className='w-12 border-x border-input text-center'
+                        className='w-12 border-input border-x text-center'
                     />
                     <button
                         type='button'
                         onClick={decrementMinute}
                         disabled={disabled}
-                        className='rounded-b border border-input p-1 hover:bg-accent disabled:opacity-50 disabled:cursor-not-allowed'>
+                        className='rounded-b border border-input p-1 hover:bg-accent disabled:cursor-not-allowed disabled:opacity-50'>
                         <ChevronDown className='h-3 w-3' />
                     </button>
                 </div>
-                <Label htmlFor={`${name}-minutes` || 'minutes'} className='text-xs mt-1'>
+                <Label htmlFor={`${name}-minutes` || 'minutes'} className='mt-1 text-xs'>
                     Minutes
                 </Label>
             </div>
@@ -212,10 +212,9 @@ export function TimePicker12Hour({ value, onChange, disabled = false, required =
                 onClick={handlePeriodChange}
                 disabled={disabled}
                 variant='outline'
-                className='h-[72px] px-3 text-sm font-medium'>
+                className='h-[72px] px-3 font-medium text-sm'>
                 {period}
             </Button>
         </div>
     );
 }
-

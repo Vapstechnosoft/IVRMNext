@@ -10,16 +10,7 @@ import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { MultiSelect } from '@/components/ui/multi-select';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useApproveSalaries, useSalaryApprovalOnload, useSearchSalaryApproval } from '@/hooks/hrms/useTransactions';
-import type {
-    DepartmentDropdown,
-    DesignationDropdown,
-    EmployeeDetail,
-    GroupTypeDropdown,
-    LeaveYearDropdown,
-    MonthDropdown,
-    SalaryApprovalRequest,
-    SalaryApprovalSearchRequest
-} from '@/types/hrms/salary-approval';
+import type { EmployeeDetail, SalaryApprovalRequest, SalaryApprovalSearchRequest } from '@/types/hrms/salary-approval';
 import type { ColumnDef } from '@tanstack/react-table';
 import { CheckCircle, RefreshCw, X, XCircle } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
@@ -100,57 +91,37 @@ export default function SalaryApprovalPage() {
     }, [hasSearched, filterEmployees]);
 
     const onSubmit: SubmitHandler<SearchForm> = async (data: SearchForm) => {
-        console.log('🟢 [SALARY APPROVAL - FRONTEND] onSubmit - START');
-        console.log('📝 [SALARY APPROVAL - FRONTEND] Form data:', JSON.stringify(data, null, 2));
-        console.log('📊 [SALARY APPROVAL - FRONTEND] Form summary:', {
-            groupTypeCount: data.groupType?.length || 0,
-            departmentCount: data.department?.length || 0,
-            designationCount: data.designation?.length || 0,
-            salaryMonth: data.salaryMonth,
-            salaryYear: data.salaryYear
-        });
-
         const payload: SalaryApprovalSearchRequest = {
             MI_Id: 30,
             HRES_Year: data.salaryYear || '',
             HRES_Month: data.salaryMonth || '',
-            groupTypeIdList: (data.groupType || []).length > 0
-                ? (data.groupType || []).map((v) => {
-                      const groupType = groupTypeOptions.find((g) => g.HRMGT_EmployeeGroupType === v);
-                      return groupType?.HRMGT_Id || 0;
-                  })
-                : [0],
-            hrmD_IdList: (data.department || []).length > 0
-                ? (data.department || []).map((v) => {
-                      const dept = departmentOptions.find((d) => d.HRMD_DepartmentName === v);
-                      return dept?.HRMD_Id || 0;
-                  })
-                : [0],
-            hrmdeS_IdList: (data.designation || []).length > 0
-                ? (data.designation || []).map((v) => {
-                      const desg = designationOptions.find((d) => d.HRMDES_DesignationName === v);
-                      return desg?.HRMDES_Id || 0;
-                  })
-                : [0],
+            groupTypeIdList:
+                (data.groupType || []).length > 0
+                    ? (data.groupType || []).map((v) => {
+                          const groupType = groupTypeOptions.find((g) => g.HRMGT_EmployeeGroupType === v);
+                          return groupType?.HRMGT_Id || 0;
+                      })
+                    : [0],
+            hrmD_IdList:
+                (data.department || []).length > 0
+                    ? (data.department || []).map((v) => {
+                          const dept = departmentOptions.find((d) => d.HRMD_DepartmentName === v);
+                          return dept?.HRMD_Id || 0;
+                      })
+                    : [0],
+            hrmdeS_IdList:
+                (data.designation || []).length > 0
+                    ? (data.designation || []).map((v) => {
+                          const desg = designationOptions.find((d) => d.HRMDES_DesignationName === v);
+                          return desg?.HRMDES_Id || 0;
+                      })
+                    : [0],
             LogInUserId: 0
         };
 
-        console.log('📤 [SALARY APPROVAL - FRONTEND] Prepared payload:', JSON.stringify(payload, null, 2));
-        console.log('📊 [SALARY APPROVAL - FRONTEND] Payload summary:', {
-            MI_Id: payload.MI_Id,
-            HRES_Year: payload.HRES_Year,
-            HRES_Month: payload.HRES_Month,
-            groupTypeIdsCount: payload.groupTypeIdList.length,
-            departmentIdsCount: payload.hrmD_IdList.length,
-            designationIdsCount: payload.hrmdeS_IdList.length,
-            LogInUserId: payload.LogInUserId
-        });
-
         searchMutation.mutate(payload, {
             onSuccess: (responseData) => {
-                console.log('✅ [SALARY APPROVAL - FRONTEND] onSubmit - onSuccess');
                 const employeeList = responseData.ReportData || [];
-                console.log('📊 [SALARY APPROVAL - FRONTEND] Employees received:', employeeList.length);
 
                 setEmployees(employeeList);
                 setFilteredEmployees(employeeList);
@@ -168,14 +139,11 @@ export default function SalaryApprovalPage() {
 
                         const fromDateStr = `${String(fromDate.getDate()).padStart(2, '0')}/${String(fromDate.getMonth() + 1).padStart(2, '0')}/${fromDate.getFullYear()}`;
                         const toDateStr = `${String(toDate.getDate()).padStart(2, '0')}/${String(toDate.getMonth() + 1).padStart(2, '0')}/${toDate.getFullYear()}`;
-                        
+
                         setFromDate(fromDateStr);
                         setToDate(toDateStr);
-                        console.log('📅 [SALARY APPROVAL - FRONTEND] Date range set:', { fromDate: fromDateStr, toDate: toDateStr });
                     }
                 }
-
-                console.log('🟢 [SALARY APPROVAL - FRONTEND] onSubmit - END (Success)');
                 toast.success(`Search completed successfully. Found ${employeeList.length} employees`);
             },
             onError: (error) => {
@@ -205,10 +173,6 @@ export default function SalaryApprovalPage() {
     };
 
     const handleApprove = async () => {
-        console.log('🟢 [SALARY APPROVAL - FRONTEND] handleApprove - START');
-        console.log('📊 [SALARY APPROVAL - FRONTEND] Selected employees:', selectedEmployees.length);
-        console.log('📋 [SALARY APPROVAL - FRONTEND] Selected employee IDs:', selectedEmployees);
-
         if (selectedEmployees.length === 0) {
             console.warn('⚠️ [SALARY APPROVAL - FRONTEND] No employees selected');
             toast.error('Please select at least one employee to approve');
@@ -230,28 +194,12 @@ export default function SalaryApprovalPage() {
             approvalStatus: 'Approved'
         };
 
-        console.log('📤 [SALARY APPROVAL - FRONTEND] Approval payload:', JSON.stringify(payload, null, 2));
-        console.log('📊 [SALARY APPROVAL - FRONTEND] Approval details:', {
-            MI_Id: payload.MI_Id,
-            HRES_Year: payload.HRES_Year,
-            HRES_Month: payload.HRES_Month,
-            employeeCount: payload.employeeIdList.length,
-            approvalStatus: payload.approvalStatus
-        });
-
         approveMutation.mutate(payload, {
             onSuccess: (data) => {
-                console.log('✅ [SALARY APPROVAL - FRONTEND] handleApprove - onSuccess');
-                console.log('📊 [SALARY APPROVAL - FRONTEND] Approval result:', {
-                    approvedCount: data.approvedCount,
-                    failedCount: data.failedCount,
-                    message: data.message
-                });
                 if (data.approvedCount > 0) {
                     toast.success(`Successfully approved ${data.approvedCount} employee(s)`);
                 }
                 setSelectedEmployees([]);
-                console.log('🟢 [SALARY APPROVAL - FRONTEND] handleApprove - END (Success)');
             },
             onError: (error) => {
                 console.error('❌ [SALARY APPROVAL - FRONTEND] handleApprove - onError');
@@ -262,10 +210,6 @@ export default function SalaryApprovalPage() {
     };
 
     const handleReject = async () => {
-        console.log('🟢 [SALARY APPROVAL - FRONTEND] handleReject - START');
-        console.log('📊 [SALARY APPROVAL - FRONTEND] Selected employees:', selectedEmployees.length);
-        console.log('📋 [SALARY APPROVAL - FRONTEND] Selected employee IDs:', selectedEmployees);
-
         if (selectedEmployees.length === 0) {
             console.warn('⚠️ [SALARY APPROVAL - FRONTEND] No employees selected');
             toast.error('Please select at least one employee to reject');
@@ -287,28 +231,12 @@ export default function SalaryApprovalPage() {
             approvalStatus: 'Rejected'
         };
 
-        console.log('📤 [SALARY APPROVAL - FRONTEND] Rejection payload:', JSON.stringify(payload, null, 2));
-        console.log('📊 [SALARY APPROVAL - FRONTEND] Rejection details:', {
-            MI_Id: payload.MI_Id,
-            HRES_Year: payload.HRES_Year,
-            HRES_Month: payload.HRES_Month,
-            employeeCount: payload.employeeIdList.length,
-            approvalStatus: payload.approvalStatus
-        });
-
         approveMutation.mutate(payload, {
             onSuccess: (data) => {
-                console.log('✅ [SALARY APPROVAL - FRONTEND] handleReject - onSuccess');
-                console.log('📊 [SALARY APPROVAL - FRONTEND] Rejection result:', {
-                    approvedCount: data.approvedCount,
-                    failedCount: data.failedCount,
-                    message: data.message
-                });
                 if (data.approvedCount > 0) {
                     toast.success(`Successfully rejected ${data.approvedCount} employee(s)`);
                 }
                 setSelectedEmployees([]);
-                console.log('🟢 [SALARY APPROVAL - FRONTEND] handleReject - END (Success)');
             },
             onError: (error) => {
                 console.error('❌ [SALARY APPROVAL - FRONTEND] handleReject - onError');
@@ -323,8 +251,6 @@ export default function SalaryApprovalPage() {
             <div className='container space-y-4 p-1'>
                 {/* Search Form */}
                 <CollapsibleSection
-                    title='SALARY APPROVAL'
-                    description='Search and filter employee salary records for approval'
                     defaultOpen={true}
                     variant='outline'
                     size='lg'
@@ -410,35 +336,33 @@ export default function SalaryApprovalPage() {
                                                 <SelectValue placeholder='Select Month' />
                                             </SelectTrigger>
                                             <SelectContent>
-                                                {Array.isArray(monthOptions) && monthOptions.length > 0 ? (
-                                                    monthOptions.map((month: any) => (
-                                                        <SelectItem
-                                                            key={month.IVRM_Month_Id || month.value}
-                                                            value={month.IVRM_Month_Name || month.value || month.label}>
-                                                            {month.IVRM_Month_Name || month.label || month.value}
-                                                        </SelectItem>
-                                                    ))
-                                                ) : (
-                                                    // Fallback to static months if dropdown is not available
-                                                    [
-                                                        'January',
-                                                        'February',
-                                                        'March',
-                                                        'April',
-                                                        'May',
-                                                        'June',
-                                                        'July',
-                                                        'August',
-                                                        'September',
-                                                        'October',
-                                                        'November',
-                                                        'December'
-                                                    ].map((month) => (
-                                                        <SelectItem key={month} value={month}>
-                                                            {month}
-                                                        </SelectItem>
-                                                    ))
-                                                )}
+                                                {Array.isArray(monthOptions) && monthOptions.length > 0
+                                                    ? monthOptions.map((month: any) => (
+                                                          <SelectItem
+                                                              key={month.IVRM_Month_Id || month.value}
+                                                              value={month.IVRM_Month_Name || month.value || month.label}>
+                                                              {month.IVRM_Month_Name || month.label || month.value}
+                                                          </SelectItem>
+                                                      ))
+                                                    : // Fallback to static months if dropdown is not available
+                                                      [
+                                                          'January',
+                                                          'February',
+                                                          'March',
+                                                          'April',
+                                                          'May',
+                                                          'June',
+                                                          'July',
+                                                          'August',
+                                                          'September',
+                                                          'October',
+                                                          'November',
+                                                          'December'
+                                                      ].map((month) => (
+                                                          <SelectItem key={month} value={month}>
+                                                              {month}
+                                                          </SelectItem>
+                                                      ))}
                                             </SelectContent>
                                         </Select>
                                     )}
@@ -496,8 +420,6 @@ export default function SalaryApprovalPage() {
                 {/* Employee List Table */}
                 {hasSearched && (
                     <CollapsibleSection
-                        title='EMPLOYEE LIST'
-                        description={`View and approve/reject employee salaries (${selectedEmployees.length} selected)`}
                         defaultOpen={true}
                         variant='default'
                         size='lg'
@@ -598,7 +520,8 @@ function SalaryApprovalTable({
             header: ({ column }) => <DataTableColumnHeader column={column} title='Employee Name' />,
             cell: ({ row }) => {
                 const employee = row.original;
-                const fullName = `${employee.HRME_EmployeeFirstName} ${employee.HRME_EmployeeMiddleName || ''} ${employee.HRME_EmployeeLastName || ''}`.trim();
+                const fullName =
+                    `${employee.HRME_EmployeeFirstName} ${employee.HRME_EmployeeMiddleName || ''} ${employee.HRME_EmployeeLastName || ''}`.trim();
                 return <div>{fullName}</div>;
             },
             enableSorting: true,

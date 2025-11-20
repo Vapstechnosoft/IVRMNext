@@ -5,15 +5,20 @@ import { Button } from '@/components/ui/button';
 interface StandardTabActionsProps {
     errors: any;
     isSubmitting: boolean;
+    onClear?: () => void;
 }
 
-export function StandardTabActions({ isSubmitting }: StandardTabActionsProps) {
+export function StandardTabActions({ isSubmitting, onClear }: StandardTabActionsProps) {
     return (
         <div className='flex flex-col gap-3 pt-4 sm:flex-row sm:justify-center'>
             <Button type='submit' className='bg-primary px-8 text-primary-foreground hover:opacity-90' disabled={isSubmitting}>
                 {isSubmitting ? 'Saving...' : 'Save & Proceed'}
             </Button>
-            <Button type='button' className='bg-secondary px-8 text-secondary-foreground hover:opacity-90'>
+            <Button 
+                type='button' 
+                className='bg-secondary px-8 text-secondary-foreground hover:opacity-90'
+                onClick={onClear}
+            >
                 Clear
             </Button>
             <Button type='button' className='bg-accent px-8 text-accent-foreground hover:opacity-90'>
@@ -25,4 +30,3 @@ export function StandardTabActions({ isSubmitting }: StandardTabActionsProps) {
         </div>
     );
 }
-

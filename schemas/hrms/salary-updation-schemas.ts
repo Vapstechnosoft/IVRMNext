@@ -2,8 +2,27 @@ import { z } from 'zod';
 
 /**
  * Salary Updation Schemas
+ * Requirements:
+ * - Group Type – Not mandatory
+ * - Department – Not mandatory
+ * - Designation – Not mandatory
+ * - Month – Not mandatory
+ * - Year – Not mandatory
+ * - Head – Not mandatory
+ * - Earning/Deduction – Radio buttons – Select any one
+ * - Amount Type – Radio buttons – Select any one
  */
 export const salaryUpdationSchema = {
+    search: z.object({
+        HRES_Year: z.string().optional(),
+        HRES_Month: z.string().optional(),
+        groupTypeIdList: z.array(z.number()).optional(),
+        hrmD_IdList: z.array(z.number()).optional(),
+        hrmdeS_IdList: z.array(z.number()).optional(),
+        HRMED_Id: z.number().optional(),
+        earningDeduction: z.enum(['Earning', 'Deduction']).optional(),
+        amountType: z.enum(['Amount', 'Percentage']).optional()
+    }),
     addOrUpdate: z
         .object({
             HRESU_Id: z.number().optional(),

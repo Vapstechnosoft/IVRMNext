@@ -2,206 +2,177 @@
 
 import { Button } from '@/components/ui/button';
 import { DataTable } from '@/components/ui/data-table/data-table';
-import { type BaseEntity, createLocalCrud } from '@/lib/localdb';
+import { useEmployeeContributionReportOnload, useFilterEmployeeContributionReport, useSearchEmployeeContributionDetails } from '@/hooks/hrms/useReports';
 import { Download, Printer } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';
-import { EmployeeContributionFilters, type ContributionReportFilters } from './_components/filters';
-import { employeeContributionColumns, type EmployeeContribution, type GroupType, type Department, type Designation } from './_components/columns';
-
+import {
+    type EmployeeContribution,
+    employeeContributionColumns
+} from './_components/columns';
+import { type ContributionReportFilters, EmployeeContributionFilters } from './_components/filters';
 
 export default function EmployeeContributionReportPage() {
-    // Database instances
-    const groupTypeDB = createLocalCrud<GroupType>('master:group-type');
-    const departmentDB = createLocalCrud<Department>('master:department');
-    const designationDB = createLocalCrud<Designation>('master:designation');
-    const contributionDB = createLocalCrud<EmployeeContribution>('report:employee-contribution');
+    // React Query hooks
+    const { data: onloadData, isLoading: isLoadingOnload, error: onloadError } = useEmployeeContributionReportOnload(30, 0);
+    const filterMutation = useFilterEmployeeContributionReport();
+    const searchMutation = useSearchEmployeeContributionDetails();
 
     // State
-    const [groupTypes, setGroupTypes] = useState<GroupType[]>([]);
-    const [departments, setDepartments] = useState<Department[]>([]);
-    const [designations, setDesignations] = useState<Designation[]>([]);
     const [contributions, setContributions] = useState<EmployeeContribution[]>([]);
     const [filteredContributions, setFilteredContributions] = useState<EmployeeContribution[]>([]);
-    const [isLoading, setIsLoading] = useState(true);
     const [showReport, setShowReport] = useState(false);
+    const [isFiltering, setIsFiltering] = useState(false);
+
+    // Memoize dropdown data from API
+    const groupTypes = useMemo(() => {
+        const data = onloadData?.data;
+        if (!data) return [];
+        return (data as any).groupTypedropdown || [];
+    }, [onloadData?.data]);
+
+    const departments = useMemo(() => {
+        const data = onloadData?.data;
+        if (!data) return [];
+        return (data as any).departmentdropdown || [];
+    }, [onloadData?.data]);
+
+    const designations = useMemo(() => {
+        const data = onloadData?.data;
+        if (!data) return [];
+        return (data as any).designationdropdown || [];
+    }, [onloadData?.data]);
+
+    const months = useMemo(() => {
+        const data = onloadData?.data;
+        if (!data) return [];
+        return (data as any).monthdropdown || [];
+    }, [onloadData?.data]);
+
+    const years = useMemo(() => {
+        const data = onloadData?.data;
+        if (!data) return [];
+        return (data as any).leaveyeardropdown || [];
+    }, [onloadData?.data]);
+
+    const earningHeads = useMemo(() => {
+        const data = onloadData?.data;
+        if (!data) return [];
+        return (data as any).earningdropdown || [];
+    }, [onloadData?.data]);
+
+    const deductionHeads = useMemo(() => {
+        const data = onloadData?.data;
+        if (!data) return [];
+        return (data as any).detectiondropdown || [];
+    }, [onloadData?.data]);
 
     const [filters, setFilters] = useState<ContributionReportFilters>({
-        groupType: 'All',
-        department: 'All',
-        designation: 'All',
+        groupType: [] as number[],
+        department: [] as number[],
+        designation: [] as number[],
         contributionType: 'Earning',
         dateType: 'Month',
         selectedMonth: '',
         selectedYear: '',
         fromDate: null,
         toDate: null,
-        reportType: 'All'
+        reportType: 'All',
+        selectedEmployees: [] as number[],
+        selectedEarningHead: 0,
+        selectedDeductionHead: 0
     });
 
-    // Load data on mount
+    // Employee dropdown state - populated from filter API
+    const [employees, setEmployees] = useState<any[]>([]);
+
+    // Show error if API fails
     useEffect(() => {
-        loadData();
-    }, []);
-
-    const loadData = () => {
-        try {
-            setGroupTypes(groupTypeDB.list().filter((g) => g.isActive));
-            setDepartments(departmentDB.list().filter((d) => d.isActive));
-            setDesignations(designationDB.list().filter((d) => d.isActive));
-
-            // Load contribution data
-            let contributionList = contributionDB.list();
-            if (contributionList.length === 0) {
-                const mockData = generateMockContributions();
-                mockData.forEach((contribution) => contributionDB.create(contribution));
-                contributionList = contributionDB.list(); // Reload data after creating mock records
-            }
-            setContributions(contributionList);
-        } catch (_error) {
-            toast.error('Failed to load data');
-        } finally {
-            setIsLoading(false);
+        if (onloadError || (!isLoadingOnload && onloadData && !onloadData.success)) {
+            const errorMessage = onloadError?.message || onloadData?.message || 'Failed to load employee contribution report data. Please check if the API endpoint is available.';
+            toast.error(errorMessage);
         }
-    };
-
-    // Generate mock contribution data
-    const generateMockContributions = (): Omit<EmployeeContribution, 'id' | 'createdAt'>[] => {
-        const employees = [
-            {
-                code: 'EMP001',
-                name: 'MR SUDIPTA RANJAN BHADURI',
-                groupTypeId: 1,
-                departmentId: 1,
-                designationId: 1,
-                deptName: 'JUNIOR SCHOOL',
-                desigName: 'Assistant Teacher'
-            },
-            {
-                code: 'EMP002',
-                name: 'MS RUPLEKHA CHATTERJEE',
-                groupTypeId: 1,
-                departmentId: 2,
-                designationId: 2,
-                deptName: 'OFFICE STAFF',
-                desigName: 'Principal'
-            },
-            {
-                code: 'EMP003',
-                name: 'MR JOHN SHAH',
-                groupTypeId: 2,
-                departmentId: 1,
-                designationId: 1,
-                deptName: 'JUNIOR SCHOOL',
-                desigName: 'Assistant Teacher'
-            },
-            {
-                code: 'EMP004',
-                name: 'MRS BHASWATI DAS',
-                groupTypeId: 2,
-                departmentId: 2,
-                designationId: 2,
-                deptName: 'SENIOR SCHOOL',
-                desigName: 'Teacher Helper'
-            },
-            {
-                code: 'EMP005',
-                name: 'MR SANTANU MUKHERJEE',
-                groupTypeId: 1,
-                departmentId: 1,
-                designationId: 2,
-                deptName: 'SERVICE STAFF',
-                desigName: 'System Manager'
-            }
-        ];
-
-        const mockContributions: Omit<EmployeeContribution, 'id' | 'createdAt'>[] = [];
-        const contributionTypes: ('Earning' | 'Deduction')[] = ['Earning', 'Deduction'];
-
-        employees.forEach((emp, empIndex) => {
-            contributionTypes.forEach((type) => {
-                const monthlyAmount = 40000 + empIndex * 5000;
-                const pfContribution = monthlyAmount * 0.12;
-                const esiContribution = monthlyAmount * 0.0175;
-                const professionalTax = 200;
-
-                mockContributions.push({
-                    employeeCode: emp.code,
-                    employeeName: emp.name,
-                    groupTypeId: emp.groupTypeId,
-                    departmentId: emp.departmentId,
-                    designationId: emp.designationId,
-                    departmentName: emp.deptName,
-                    designationName: emp.desigName,
-                    contributionType: type,
-                    contributionHead: type === 'Earning' ? 'Basic Pay' : 'PF Contribution',
-                    monthlyAmount: Math.round(monthlyAmount),
-                    contributionDate: '2025-09-17',
-                    pfContribution: Math.round(pfContribution),
-                    esiContribution: Math.round(esiContribution),
-                    professionalTax: professionalTax,
-                    totalContribution: Math.round(pfContribution + esiContribution + professionalTax),
-                    cumulativeContribution: Math.round((pfContribution + esiContribution + professionalTax) * 6) // 6 months cumulative
-                });
-            });
-        });
-
-        return mockContributions;
-    };
-
-    // Cascading filter logic
-    const availableDepartments = useMemo(() => {
-        if (filters.groupType === 'All') return departments;
-        // In a real app, departments would be filtered by groupType relationship
-        return departments;
-    }, [filters.groupType, departments]);
-
-    const availableDesignations = useMemo(() => {
-        if (filters.department === 'All') return designations;
-        // In a real app, designations would be filtered by department relationship
-        return designations;
-    }, [filters.department, designations]);
+    }, [onloadError, isLoadingOnload, onloadData]);
 
     // Filter contributions based on selected criteria
     useEffect(() => {
-        let filtered = contributions;
+        // Filter local contributions if any exist
+        if (contributions.length > 0) {
+            setFilteredContributions(contributions);
+        }
+    }, [filters, contributions]);
 
-        if (filters.groupType !== 'All') {
-            const selectedGroupType = groupTypes.find((g) => g.groupType === filters.groupType);
-            if (selectedGroupType) {
-                filtered = filtered.filter((contribution) => contribution.groupTypeId === selectedGroupType.id);
-            }
+    // Fetch employees when Individual is selected and filters are applied
+    useEffect(() => {
+        // Only fetch employees if Individual is selected and we have date filters
+        if (filters.reportType !== 'Individual') {
+            setEmployees([]);
+            return;
         }
 
-        if (filters.department !== 'All') {
-            const selectedDepartment = departments.find((d) => d.departmentName === filters.department);
-            if (selectedDepartment) {
-                filtered = filtered.filter((contribution) => contribution.departmentId === selectedDepartment.id);
-            }
+        // Check if we have required date filters
+        const hasDateFilters =
+            (filters.dateType === 'Month' && filters.selectedMonth && filters.selectedYear) ||
+            (filters.dateType === 'Between Dates' && filters.fromDate && filters.toDate);
+
+        if (!hasDateFilters) {
+            setEmployees([]);
+            return;
         }
 
-        if (filters.designation !== 'All') {
-            const selectedDesignation = designations.find((d) => d.designationName === filters.designation);
-            if (selectedDesignation) {
-                filtered = filtered.filter((contribution) => contribution.designationId === selectedDesignation.id);
+        // Find month ID from selected month value
+        const selectedMonthObj = months.find((m: any) => m.IVRM_Month_Id?.toString() === filters.selectedMonth);
+        const monthId = selectedMonthObj?.IVRM_Month_Id?.toString() || filters.selectedMonth || '';
+
+        // Prepare filter request to get employees
+        const filterRequest = {
+            MI_Id: 30,
+            FormatType: 'Individual',
+            MonthBetweenDates: filters.dateType === 'Month' ? 'Month' : 'Between Dates',
+            hreS_Month: filters.dateType === 'Month' ? monthId : '',
+            hreS_Year: filters.dateType === 'Month' ? filters.selectedYear : '',
+            FromDate: filters.dateType === 'Between Dates' && filters.fromDate ? filters.fromDate.toISOString() : '',
+            ToDate: filters.dateType === 'Between Dates' && filters.toDate ? filters.toDate.toISOString() : '',
+            designationselected: filters.designation.length > 0 ? filters.designation : [0],
+            departmentselected: filters.department.length > 0 ? filters.department : [0],
+            groupTypeselected: filters.groupType.length > 0 ? filters.groupType : [0]
+        };
+
+        filterMutation.mutate(filterRequest, {
+            onSuccess: (response) => {
+                if (response.success && response.data) {
+                    const employeeList = (response.data as any).employeedropdown || [];
+                    setEmployees(Array.isArray(employeeList) ? employeeList : []);
+                } else {
+                    setEmployees([]);
+                }
+            },
+            onError: () => {
+                setEmployees([]);
             }
-        }
-
-        // Filter by contribution type
-        filtered = filtered.filter((contribution) => contribution.contributionType === filters.contributionType);
-
-        setFilteredContributions(filtered);
-    }, [filters, contributions, groupTypes, departments, designations]);
+        });
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [
+        filters.reportType,
+        filters.dateType,
+        filters.selectedMonth,
+        filters.selectedYear,
+        filters.fromDate,
+        filters.toDate,
+        filters.groupType,
+        filters.department,
+        filters.designation
+    ]);
 
     const handleFilterChange = (key: keyof ContributionReportFilters, value: any) => {
         const newFilters = { ...filters, [key]: value };
 
         // Reset dependent filters when parent changes
         if (key === 'groupType') {
-            newFilters.department = 'All';
-            newFilters.designation = 'All';
+            newFilters.department = [];
+            newFilters.designation = [];
         } else if (key === 'department') {
-            newFilters.designation = 'All';
+            newFilters.designation = [];
         }
 
         setFilters(newFilters);
@@ -218,23 +189,107 @@ export default function EmployeeContributionReportPage() {
             return;
         }
 
-        setShowReport(true);
-        toast.success('Employee contribution report generated');
+        if (filters.reportType === 'Individual' && filters.selectedEmployees.length === 0) {
+            toast.error('Please select at least one employee');
+            return;
+        }
+
+        setIsFiltering(true);
+
+        // Find month ID from selected month value
+        const selectedMonthObj = months.find((m: any) => m.IVRM_Month_Id?.toString() === filters.selectedMonth);
+        const monthId = selectedMonthObj?.IVRM_Month_Id?.toString() || filters.selectedMonth || '';
+
+        // Prepare search request body (using getEmployeedetailsBySelection for detailed data)
+        const searchRequestBody = {
+            MI_Id: 30,
+            designationselected: filters.designation.length > 0 ? filters.designation : [0],
+            departmentselected: filters.department.length > 0 ? filters.department : [0],
+            groupTypeselected: filters.groupType.length > 0 ? filters.groupType : [0],
+            MonthBetweenDates: filters.dateType === 'Month' ? 'Month' : 'Between Dates',
+            hreS_Month: filters.dateType === 'Month' ? monthId : '',
+            hreS_Year: filters.dateType === 'Month' ? filters.selectedYear : '',
+            FromDate: filters.dateType === 'Between Dates' && filters.fromDate ? filters.fromDate.toISOString() : '',
+            ToDate: filters.dateType === 'Between Dates' && filters.toDate ? filters.toDate.toISOString() : '',
+            FormatType: filters.reportType || 'All',
+            HRME_Id: filters.reportType === 'Individual' && filters.selectedEmployees.length > 0 ? filters.selectedEmployees[0] : 0, // Use first selected employee for Individual, 0 for All
+            EarningDeduction: filters.contributionType,
+            EarningHead: filters.contributionType === 'Earning' && filters.selectedEarningHead > 0 ? filters.selectedEarningHead : 0,
+            DeductionHead: filters.contributionType === 'Deduction' && filters.selectedDeductionHead > 0 ? filters.selectedDeductionHead : 0
+        };
+
+        searchMutation.mutate(searchRequestBody, {
+            onSuccess: (response) => {
+                setIsFiltering(false);
+                if (response.success && response.data) {
+                    // Extract contribution data from response
+                    const contributionData = (response.data as any).employeeContributionDetails;
+                    
+                    if (Array.isArray(contributionData) && contributionData.length > 0) {
+                        // Map API response to EmployeeContribution format
+                        const mappedContributions: EmployeeContribution[] = contributionData.map((item: any, index: number) => ({
+                            id: item.HRME_Id || index + 1,
+                            employeeCode: item.EmployeeCode || item.HRME_EmployeeCode || '',
+                            employeeName: `${item.HRME_EmployeeFirstName || ''} ${item.HRME_EmployeeMiddleName || ''} ${item.HRME_EmployeeLastName || ''}`.trim(),
+                            groupTypeId: item.HRMGT_Id || 0,
+                            departmentId: item.HRMD_Id || 0,
+                            designationId: item.HRMDES_Id || 0,
+                            departmentName: item.departmentName || '',
+                            designationName: item.designationName || '',
+                            contributionType: filters.contributionType,
+                            contributionHead: item.EarningHead || item.DeductionHead || '',
+                            monthlyAmount: item.GrossSalary || item.selectedHeadAmount || 0,
+                            contributionDate: item.hreS_Month && item.hreS_Year ? `${item.hreS_Month}-${item.hreS_Year}` : new Date().toISOString().split('T')[0],
+                            pfContribution: item.pfContribution || 0,
+                            esiContribution: item.esiContribution || 0,
+                            professionalTax: item.professionalTax || 0,
+                            totalContribution: (item.pfContribution || 0) + (item.esiContribution || 0) + (item.professionalTax || 0),
+                            cumulativeContribution: item.cumulativeContribution || 0,
+                            createdAt: new Date()
+                        }));
+
+                        setContributions(mappedContributions);
+                        setFilteredContributions(mappedContributions);
+                        setShowReport(true);
+                        toast.success('Employee contribution report generated successfully');
+                    } else {
+                        setContributions([]);
+                        setFilteredContributions([]);
+                        setShowReport(true);
+                        toast.info('No contribution data found for the selected filters');
+                    }
+                } else {
+                    const errorMsg = response.message || 'Failed to search employee contribution details. Please check if the search API endpoint is available.';
+                    toast.error(errorMsg);
+                    setShowReport(false);
+                }
+            },
+            onError: (error: any) => {
+                setIsFiltering(false);
+                const errorMsg = error?.message || 'Failed to search employee contribution details. Please check if the search API endpoint is available.';
+                toast.error(errorMsg);
+                setShowReport(false);
+            }
+        });
     };
 
     const handleCancel = () => {
         setFilters({
-            groupType: 'All',
-            department: 'All',
-            designation: 'All',
+            groupType: [],
+            department: [],
+            designation: [],
             contributionType: 'Earning',
             dateType: 'Month',
             selectedMonth: '',
             selectedYear: '',
             fromDate: null,
             toDate: null,
-            reportType: 'All'
+            reportType: 'All',
+            selectedEmployees: [],
+            selectedEarningHead: 0,
+            selectedDeductionHead: 0
         });
+        setEmployees([]);
         setShowReport(false);
         toast.info('Filters cleared');
     };
@@ -268,6 +323,19 @@ export default function EmployeeContributionReportPage() {
         );
     }, [filteredContributions]);
 
+    // Show error message if API failed
+    if (onloadError || (!isLoadingOnload && onloadData && !onloadData.success)) {
+        return (
+            <div className='flex items-center justify-center rounded-lg border border-red-200 bg-red-50 p-8'>
+                <div className='text-center'>
+                    <h3 className='font-semibold text-red-800 text-lg'>Failed to Load Data</h3>
+                    <p className='text-red-600 mt-2'>
+                        {onloadError?.message || onloadData?.message || 'Failed to load employee contribution report data. Please check if the API endpoint is available.'}
+                    </p>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className='space-y-6'>
@@ -275,11 +343,17 @@ export default function EmployeeContributionReportPage() {
             <EmployeeContributionFilters
                 filters={filters}
                 groupTypes={groupTypes}
-                availableDepartments={availableDepartments}
-                availableDesignations={availableDesignations}
+                departments={departments}
+                designations={designations}
+                months={months}
+                years={years}
+                employees={employees}
+                earningHeads={earningHeads}
+                deductionHeads={deductionHeads}
                 onFilterChange={handleFilterChange}
                 onSearch={handleSearch}
                 onCancel={handleCancel}
+                isLoading={isLoadingOnload}
             />
 
             {/* Report Results */}
@@ -332,7 +406,7 @@ export default function EmployeeContributionReportPage() {
 
                     {/* Data Table */}
                     <DataTable
-                        isLoading={isLoading}
+                        isLoading={isLoadingOnload || isFiltering}
                         columns={employeeContributionColumns}
                         data={filteredContributions}
                         totalItems={filteredContributions.length}

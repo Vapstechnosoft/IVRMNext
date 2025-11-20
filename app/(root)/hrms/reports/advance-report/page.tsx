@@ -1,20 +1,14 @@
 'use client';
 
-import { Heading } from '@/components/layout/heading';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { DataTable } from '@/components/ui/data-table/data-table';
-import { type BaseEntity, createLocalCrud } from '@/lib/localdb';
+import { createLocalCrud } from '@/lib/localdb';
 import { Calculator, CreditCard, DollarSign, Download, FileText, Printer, TrendingUp, Users } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';
-import { AdvanceReportFilters, type AdvanceFilters, type FilterOptions } from './_components/filters';
-import {
-    advanceReportColumns,
-    advanceTypeSummaryColumns,
-    type AdvanceTypeSummary as AdvanceTypeSummaryColumn,
-    type EmployeeAdvanceRecord
-} from './_components/columns';
+import { type EmployeeAdvanceRecord, advanceReportColumns, advanceTypeSummaryColumns } from './_components/columns';
+import { type AdvanceFilters, AdvanceReportFilters, type FilterOptions } from './_components/filters';
 
 // Advance Summary
 interface AdvanceSummary {
@@ -41,7 +35,6 @@ interface AdvanceTypeSummary {
     recoveredAmount: number;
     remainingAmount: number;
 }
-
 
 export default function AdvanceReportPage() {
     // Database instances
@@ -377,15 +370,8 @@ export default function AdvanceReportPage() {
             .sort((a, b) => b.totalAmount - a.totalAmount);
     }, [filteredRecords]);
 
-
     return (
         <div className='space-y-6'>
-            <div className='flex-between flex-wrap gap-4'>
-                <Heading
-                    title='Employee Advance Report'
-                    description='Comprehensive report for employee advance requests, approvals, and recovery status'
-                />
-            </div>
 
             {/* Report Configuration Section */}
             <AdvanceReportFilters

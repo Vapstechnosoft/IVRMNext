@@ -57,9 +57,18 @@ export const feePrivilegeColumns: ColumnDef<IFeePrivilegeList>[] = [
 ];
 
 function ActionButtonsCell({ rowData }: { rowData: IFeePrivilegeList }) {
-    const { openEditForm } = useFormContext<IFeePrivilegeList>();
+    const { openEditForm, openDeleteForm } = useFormContext<IFeePrivilegeList>();
 
     const handleEdit = useCallback(() => openEditForm(rowData), [openEditForm, rowData]);
 
-    return <ActionButtons rowData={rowData} buttons={{ edit: true, toggle: true }} onEdit={handleEdit} />;
+    const handleDelete = useCallback((data: IFeePrivilegeList) => openDeleteForm(data), [openDeleteForm]);
+
+    return (
+        <ActionButtons
+            rowData={rowData}
+            buttons={{ edit: true, toggle: false, delete: true }}
+            onEdit={handleEdit}
+            onDelete={handleDelete}
+        />
+    );
 }

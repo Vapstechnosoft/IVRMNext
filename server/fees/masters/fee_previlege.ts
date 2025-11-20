@@ -40,3 +40,10 @@ export async function getHeadDropDown(asmay_Id: number, fmg_Id: number) {
     const url = `/FeePrevilege/heads-by-group-and-academic-year?mi_Id=30&asmay_Id=${asmay_Id}&fmg_Id=${fmg_Id}`;
     return await api.get<IMasterGetHeadDropdown[]>('fees', url);
 }
+
+export async function deleteFeePrivilege(id: number) {
+    const url = `/FeePrevilege/delete?flg_Id=${id}`;
+    console.info('deleted url', url);
+
+    return await api.delete('fees', url);
+}

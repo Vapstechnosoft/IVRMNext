@@ -9,25 +9,17 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { HRMS_MI_ID } from '@/constants/hrms-config';
 import { useSaveEmployeeLoan } from '@/hooks/hrms/useTransactions';
 import { cn } from '@/lib/utils';
-import { EMPLOYEE_LOAN_VALIDATION } from '@/lib/validation/hrms-transaction-validation';
+import { employeeLoanFormSchema } from '@/schemas/hrms/employee-loan-schemas';
 import type { EmployeeLoanOnloadResponse } from '@/types/hrms/employee-loan';
+import { zodResolver } from '@hookform/resolvers/zod';
 import { format } from 'date-fns';
 import { CalendarIcon, Save } from 'lucide-react';
-import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
 import { useMemo } from 'react';
+import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
+import type { z } from 'zod';
 
-interface EmployeeLoanForm {
-    employeeId: number;
-    loanTypeId: number;
-    amount: number;
-    installments: number;
-    startDate: string;
-    modeOfPayment?: string;
-    referenceNo?: string;
-    loanInterest?: number;
-    loanEMI?: number;
-}
+type EmployeeLoanForm = z.infer<typeof employeeLoanFormSchema>;
 
 interface AddFormProps {
     onloadData: EmployeeLoanOnloadResponse | undefined;
@@ -50,6 +42,7 @@ export default function AddEmployeeLoanForm({ onloadData, onSuccess, className =
         control,
         formState: { errors, isSubmitting }
     } = useForm<EmployeeLoanForm>({
+        resolver: zodResolver(employeeLoanFormSchema),
         mode: 'onChange',
         defaultValues: {
             employeeId: 0,
@@ -106,7 +99,6 @@ export default function AddEmployeeLoanForm({ onloadData, onSuccess, className =
                     <Controller
                         name='employeeId'
                         control={control}
-                        rules={EMPLOYEE_LOAN_VALIDATION.employeeId}
                         render={({ field }) => (
                             <div className='space-y-2'>
                                 <Label>Employee *</Label>
@@ -143,7 +135,6 @@ export default function AddEmployeeLoanForm({ onloadData, onSuccess, className =
                         <Controller
                             name='startDate'
                             control={control}
-                            rules={EMPLOYEE_LOAN_VALIDATION.appliedDate}
                             render={({ field }) => (
                                 <Popover>
                                     <PopoverTrigger asChild>
@@ -176,7 +167,6 @@ export default function AddEmployeeLoanForm({ onloadData, onSuccess, className =
                     <Controller
                         name='loanTypeId'
                         control={control}
-                        rules={EMPLOYEE_LOAN_VALIDATION.loanTypeId}
                         render={({ field }) => (
                             <div className='space-y-2'>
                                 <Label>Loan Type *</Label>
@@ -202,7 +192,6 @@ export default function AddEmployeeLoanForm({ onloadData, onSuccess, className =
                     <Controller
                         name='modeOfPayment'
                         control={control}
-                        rules={EMPLOYEE_LOAN_VALIDATION.modeOfPayment}
                         render={({ field }) => (
                             <div className='space-y-2'>
                                 <Label>Mode Of Payment *</Label>
@@ -230,7 +219,6 @@ export default function AddEmployeeLoanForm({ onloadData, onSuccess, className =
                     <Controller
                         name='referenceNo'
                         control={control}
-                        rules={EMPLOYEE_LOAN_VALIDATION.referenceNo}
                         render={({ field }) => (
                             <div className='space-y-2'>
                                 <Label>Reference No.</Label>
@@ -254,7 +242,7 @@ export default function AddEmployeeLoanForm({ onloadData, onSuccess, className =
                         id='amount'
                         step='0.01'
                         placeholder='Enter loan amount (max 10 digits including decimals)'
-                        {...register('amount', EMPLOYEE_LOAN_VALIDATION.loanAmount)}
+                        {...register('amount', { valueAsNumber: true })}
                         error={errors.amount?.message}
                         className='transition-colors focus:ring-2 focus:ring-primary/20'
                     />
@@ -265,7 +253,7 @@ export default function AddEmployeeLoanForm({ onloadData, onSuccess, className =
                         id='loanInterest'
                         step='0.01'
                         placeholder='Enter loan interest (max 5 digits including decimals)'
-                        {...register('loanInterest', EMPLOYEE_LOAN_VALIDATION.loanInterest)}
+                        {...register('loanInterest', { valueAsNumber: true })}
                         error={errors.loanInterest?.message}
                         className='transition-colors focus:ring-2 focus:ring-primary/20'
                     />
@@ -277,7 +265,7 @@ export default function AddEmployeeLoanForm({ onloadData, onSuccess, className =
                         type='number'
                         id='installments'
                         placeholder='Enter loan installments (max 4 digits)'
-                        {...register('installments', EMPLOYEE_LOAN_VALIDATION.loanInstallments)}
+                        {...register('installments', { valueAsNumber: true })}
                         error={errors.installments?.message}
                         className='transition-colors focus:ring-2 focus:ring-primary/20'
                     />
@@ -288,7 +276,7 @@ export default function AddEmployeeLoanForm({ onloadData, onSuccess, className =
                         id='loanEMI'
                         step='0.01'
                         placeholder='Enter loan EMI (max 10 digits including decimals)'
-                        {...register('loanEMI', EMPLOYEE_LOAN_VALIDATION.loanEMI)}
+                        {...register('loanEMI', { valueAsNumber: true })}
                         error={errors.loanEMI?.message}
                         className='transition-colors focus:ring-2 focus:ring-primary/20'
                     />
@@ -319,4 +307,3 @@ export default function AddEmployeeLoanForm({ onloadData, onSuccess, className =
         </div>
     );
 }
-

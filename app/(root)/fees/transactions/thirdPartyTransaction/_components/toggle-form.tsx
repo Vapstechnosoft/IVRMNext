@@ -5,7 +5,7 @@ import { AdaptiveBody, AdaptiveDialog, AdaptiveFooter } from '@/components/ui/ex
 import { FormError } from '@/components/ui/extension/field';
 import { useFeeThirdParty } from '@/hooks/fees/useTrasactions';
 import { thirdPartyTransactionSchema } from '@/schemas/fees/trasactions';
-import { deleteAmountEntry } from '@/server/fees/trasactions/feeAmountEntry';
+import { deleteThirdPartyTrasaction } from '@/server/fees/trasactions/thirdPartyTrasaction';
 import type { IFeeThirdPartyTransaction } from '@/types/fees/transactions/transactions';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Trash2 } from 'lucide-react';
@@ -40,7 +40,7 @@ export default function ToggleThirdPartyForm({ rowData, onClose }: ToggleThirdPa
 
     const onSubmit: SubmitHandler<FormFields | any> = async () => {
         try {
-            const response = await deleteAmountEntry(30, Number(rowData.fyptP_Id), Number(rowData.fyptP_Id));
+            const response = await deleteThirdPartyTrasaction(Number(rowData.fyP_Id));
             if (response?.success) {
                 toast.success(response.message || 'Deleted successfully');
                 refetchAll();

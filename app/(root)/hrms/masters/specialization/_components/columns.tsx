@@ -44,14 +44,19 @@ function ActionButtonsCell({ rowData }: { rowData: SpecializationItem }) {
     const handleToggle = useCallback(
         async (data: SpecializationItem, newState: boolean) => {
             try {
-                await toggleMutation.mutateAsync({
+                const res = await toggleMutation.mutateAsync({
                     HRMSPL_Id: data.HRMSPL_Id,
                     HRMSPL_ActiveFlg: newState,
                     MI_Id: HRMS_MI_ID
                 });
-                toast.success(`Specialization ${newState ? 'activated' : 'deactivated'} successfully`);
-            } catch (_error) {
-                toast.error(`Failed to ${newState ? 'activate' : 'deactivate'} specialization`);
+                if (res?.success) {
+                    toast.success(res?.message || `Specialization ${newState ? 'activated' : 'deactivated'} successfully`);
+                } else {
+                    toast.error(res?.message || `Failed to ${newState ? 'activate' : 'deactivate'} specialization`);
+                }
+            } catch (error: any) {
+                const errorMessage = error?.response?.data?.message || error?.message || `Failed to ${newState ? 'activate' : 'deactivate'} specialization`;
+                toast.error(errorMessage);
             }
         },
         [toggleMutation]

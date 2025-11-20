@@ -3,7 +3,6 @@
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
 import type { EmployeeListItem } from '@/types/hrms/employee';
 import type { ColumnDef } from '@tanstack/react-table';
-import { Download } from 'lucide-react';
 import { ActionsCell } from './actions-cell';
 
 export const employeeColumns: ColumnDef<EmployeeListItem>[] = [
@@ -60,14 +59,14 @@ export const employeeColumns: ColumnDef<EmployeeListItem>[] = [
             const firstName = row.original.HRME_EmployeeFirstName;
             const lastName = row.original.HRME_EmployeeLastName;
             const initials = `${firstName?.charAt(0) || ''}${lastName?.charAt(0) || ''}`.toUpperCase();
-            
+
             return (
                 <div className='flex items-center gap-2'>
                     <div className='relative h-10 w-10'>
                         {photoUrl ? (
                             <>
-                                <img 
-                                    src={photoUrl} 
+                                <img
+                                    src={photoUrl}
                                     alt={`${firstName} ${lastName}`}
                                     className='h-10 w-10 rounded-full object-cover'
                                     onError={(e) => {
@@ -83,25 +82,25 @@ export const employeeColumns: ColumnDef<EmployeeListItem>[] = [
                                         }
                                     }}
                                 />
-                                <div className='initials-fallback absolute inset-0 hidden h-10 w-10 items-center justify-center rounded-full bg-primary/10 text-sm font-medium text-primary'>
+                                <div className='initials-fallback absolute inset-0 hidden h-10 w-10 items-center justify-center rounded-full bg-primary/10 font-medium text-primary text-sm'>
                                     {initials || '?'}
                                 </div>
                             </>
                         ) : (
-                            <div className='flex h-10 w-10 items-center justify-center rounded-full bg-primary/10 text-sm font-medium text-primary'>
+                            <div className='flex h-10 w-10 items-center justify-center rounded-full bg-primary/10 font-medium text-primary text-sm'>
                                 {initials || '?'}
                             </div>
                         )}
                     </div>
-                    <button 
-                        className='text-xs text-primary hover:underline'
+                    <button
+                        type='button'
+                        className='text-primary text-xs hover:underline'
                         onClick={() => {
                             if (photoUrl) {
                                 window.open(photoUrl, '_blank');
                             }
                         }}
-                        disabled={!photoUrl}
-                    >
+                        disabled={!photoUrl}>
                         Download
                     </button>
                 </div>

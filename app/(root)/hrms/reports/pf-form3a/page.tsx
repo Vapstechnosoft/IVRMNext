@@ -1,6 +1,5 @@
 'use client';
 
-import { Heading } from '@/components/layout/heading';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { DataTable } from '@/components/ui/data-table/data-table';
@@ -8,8 +7,8 @@ import { type BaseEntity, createLocalCrud } from '@/lib/localdb';
 import { Calculator, Calendar, DollarSign, Download, Printer, TrendingUp, User } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
-import { PFForm3AFilters, type Form3AFilters } from './_components/filters';
-import { form3AColumns, type MonthlyTransaction as MonthlyTransactionColumn } from './_components/columns';
+import { form3AColumns } from './_components/columns';
+import { type Form3AFilters, PFForm3AFilters } from './_components/filters';
 
 // Form 3A data structure (Individual Employee Account Card)
 interface Form3ARecord extends BaseEntity {
@@ -56,7 +55,6 @@ interface Employee {
     name: string;
     pfNumber: string;
 }
-
 
 export default function PFForm3APage() {
     // Database instances
@@ -287,15 +285,16 @@ export default function PFForm3APage() {
         toast.success('Print dialog opened');
     };
 
-
     return (
         <div className='space-y-6'>
-            <div className='flex-between flex-wrap gap-4'>
-                <Heading title='PF Form 3A' description='Individual Account Card - Employee wise Provident Fund Statement' />
-            </div>
-
             {/* Report Configuration Section */}
-            <PFForm3AFilters filters={filters} employees={employees} onFilterChange={handleFilterChange} onGenerate={handleGenerate} onCancel={handleCancel} />
+            <PFForm3AFilters
+                filters={filters}
+                employees={employees}
+                onFilterChange={handleFilterChange}
+                onGenerate={handleGenerate}
+                onCancel={handleCancel}
+            />
 
             {/* Form 3A Results */}
             {showForm && selectedRecord && (

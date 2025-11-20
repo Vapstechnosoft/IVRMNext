@@ -3,9 +3,9 @@
 import { Button } from '@/components/ui/button';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import type { BaseEntity } from '@/lib/localdb';
 import { Search, X } from 'lucide-react';
 import { useEffect, useState } from 'react';
-import { type BaseEntity } from '@/lib/localdb';
 
 export interface GroupType extends BaseEntity {
     groupType: string;
@@ -103,8 +103,6 @@ export function SalaryCertificateFilters({
 
     return (
         <CollapsibleSection
-            title='SALARY CERTIFICATE'
-            description='Generate employee salary certificates with detailed breakdown'
             defaultOpen={true}
             variant='default'
             size='lg'
@@ -235,7 +233,9 @@ export function SalaryCertificateFilters({
                         <label htmlFor='employee-select' className='font-medium text-foreground text-sm'>
                             Employee: <span className='text-red-500'>*</span>
                         </label>
-                        <Select value={filters.selectedEmployee} onValueChange={(value) => handleInternalFilterChange('selectedEmployee', value)}>
+                        <Select
+                            value={filters.selectedEmployee}
+                            onValueChange={(value) => handleInternalFilterChange('selectedEmployee', value)}>
                             <SelectTrigger id='employee-select'>
                                 <SelectValue placeholder='Select' />
                             </SelectTrigger>
@@ -252,10 +252,12 @@ export function SalaryCertificateFilters({
 
                 {/* Action Buttons */}
                 <div className='flex gap-2 pt-4'>
-                    <Button onClick={onGenerate} className='bg-blue-600 hover:bg-blue-700'>
+                    <Button onClick={onGenerate}>
+                        <Search className='mr-2 h-4 w-4' />
                         GENERATE SLIP
                     </Button>
                     <Button variant='outline' onClick={onCancel}>
+                        <X className='mr-2 h-4 w-4' />
                         CANCEL
                     </Button>
                 </div>
@@ -263,4 +265,3 @@ export function SalaryCertificateFilters({
         </CollapsibleSection>
     );
 }
-

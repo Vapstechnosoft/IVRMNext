@@ -45,11 +45,7 @@ export const getLeaveYearColumns = ({ onEdit, onDelete }: LeaveYearColumnsProps)
         header: ({ column }) => <DataTableColumnHeader column={column} title='Status' />,
         cell: ({ row }) => {
             const isActive = row.getValue('isActive') as boolean;
-            return (
-                <span className={isActive ? 'text-green-600' : 'text-red-600'}>
-                    {isActive ? 'Active' : 'Inactive'}
-                </span>
-            );
+            return <span className={isActive ? 'text-green-600' : 'text-red-600'}>{isActive ? 'Active' : 'Inactive'}</span>;
         }
     },
     {

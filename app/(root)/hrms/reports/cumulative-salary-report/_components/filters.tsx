@@ -1,12 +1,12 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
-import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { Label } from '@/components/ui/extension/field';
+import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { MultiSelect } from '@/components/ui/multi-select';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Controller, type Control } from 'react-hook-form';
 import { RefreshCw, X } from 'lucide-react';
+import { type Control, Controller } from 'react-hook-form';
 
 // Report filters
 export interface ReportFilters {
@@ -40,8 +40,6 @@ export function CumulativeSalaryReportFilters({
 }: CumulativeSalaryReportFiltersProps) {
     return (
         <CollapsibleSection
-            title='CUMULATIVE SALARY REPORT'
-            description='Search and filter employee salary records'
             defaultOpen={true}
             variant='outline'
             size='lg'
@@ -176,4 +174,3 @@ export function CumulativeSalaryReportFilters({
         </CollapsibleSection>
     );
 }
-

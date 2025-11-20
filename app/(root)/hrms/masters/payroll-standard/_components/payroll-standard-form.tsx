@@ -11,7 +11,7 @@ import { useMasterPayrollStandard } from '@/hooks/hrms/useMasters';
 import type { PayrollStandardDetail } from '@/types/hrms/master-payroll-standard';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Save } from 'lucide-react';
-import { useEffect, useRef } from 'react';
+import { useEffect } from 'react';
 import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import * as z from 'zod';
@@ -139,11 +139,6 @@ export default function PayrollStandardForm({ existingData, className = '' }: Pa
     // Pre-populate form with existing data
     useEffect(() => {
         if (existingData) {
-            console.log('📝 [PAYROLL STANDARD FORM] Loading existing data:', JSON.stringify(existingData, null, 2));
-            console.log('📝 [FORM] HRC_IncrementMonth from API:', existingData.HRC_IncrementMonth);
-            console.log('📝 [FORM] HRC_SalaryFromDay from API:', existingData.HRC_SalaryFromDay);
-            console.log('📝 [FORM] HRC_SalaryToDay from API:', existingData.HRC_SalaryToDay);
-
             // Helper function to convert 0 to undefined for empty display
             const clearZero = (value: number | undefined) => (value === 0 ? undefined : value);
 
@@ -196,19 +191,10 @@ export default function PayrollStandardForm({ existingData, className = '' }: Pa
                 HRC_SalaryToDay: existingData.HRC_SalaryToDay ?? 31,
                 HRC_ActiveFlag: existingData.HRC_ActiveFlag ?? true
             } as any);
-
-            console.log('📝 [PAYROLL STANDARD FORM] Form reset complete');
         }
     }, [existingData, reset]);
 
     const onSubmit: SubmitHandler<FormFields> = async (data) => {
-        console.log('🔵 ========== PAYROLL STANDARD FORM SUBMIT ==========');
-        console.log('🔵 [FORM] onSubmit handler CALLED! This means validation passed!');
-        console.log('🔵 [FORM] Form submit - Data:', JSON.stringify(data, null, 2));
-        console.log('🔵 [FORM] HRC_Id:', data.HRC_Id);
-        console.log('🔵 [FORM] HRC_ArrearSalaryReport:', data.HRC_ArrearSalaryReport);
-        console.log('🔵 [FORM] HRC_ArrearRequired:', data.HRC_ArrearRequired);
-
         // Map form fields to API fields
         const payload = {
             HRC_Id: data.HRC_Id || 0,
@@ -261,28 +247,16 @@ export default function PayrollStandardForm({ existingData, className = '' }: Pa
             HRC_ActiveFlag: data.HRC_ActiveFlag ?? true
         };
 
-        console.log('🟠 [FORM] Prepared payload:', JSON.stringify(payload, null, 2));
-        console.log('🟠 [FORM] Calling saveMutation...');
-
         saveMutation.mutate(payload, {
             onSuccess: (response) => {
-                console.log('🟢 [FORM] Save mutation onSuccess called');
-                console.log('🟢 [FORM] Response:', JSON.stringify(response, null, 2));
-
                 if (response?.success) {
-                    console.log('✅ [FORM] Save successful');
                     toast.success(response.message || 'Payroll standard saved successfully');
                 } else {
-                    console.log('❌ [FORM] Save failed');
                     toast.error(response?.message || 'Failed to save payroll standard');
                 }
-                console.log('🔵 ========== PAYROLL STANDARD FORM SUBMIT END ==========');
             },
             onError: (error: any) => {
-                console.log('🔴 [FORM] Save mutation onError called');
-                console.log('🔴 [FORM] Error:', error);
                 toast.error(error.message || 'An error occurred');
-                console.log('🔵 ========== PAYROLL STANDARD FORM SUBMIT END ==========');
             }
         });
     };
@@ -323,22 +297,10 @@ export default function PayrollStandardForm({ existingData, className = '' }: Pa
     ];
 
     // Add debug logging for form state changes
-    const formValues = watch();
-    console.log('📝 [PAYROLL STANDARD FORM] Current form values:', formValues);
-    console.log('📝 [PAYROLL STANDARD FORM] Form errors:', errors);
-    if (errors.HRC_SalaryFromDay) {
-        console.log('❌ [FORM] HRC_SalaryFromDay error:', errors.HRC_SalaryFromDay.message);
-    }
-    if (errors.HRC_SalaryToDay) {
-        console.log('❌ [FORM] HRC_SalaryToDay error:', errors.HRC_SalaryToDay.message);
-    }
-    console.log('📝 [PAYROLL STANDARD FORM] isSubmitting:', isSubmitting);
+    const _formValues = watch();
+    // Error handling for HRC_SalaryFromDay and HRC_SalaryToDay done in form validation
 
     const handleFormSubmit = (e?: React.FormEvent) => {
-        console.log('🔵 [PAYROLL STANDARD FORM] handleFormSubmit triggered!', e?.type);
-        console.log('🔵 [FORM] Current form errors:', errors);
-        console.log('🔵 [FORM] All error keys:', Object.keys(errors));
-        console.log('🔵 [FORM] Current form values:', watch());
         return handleSubmit(onSubmit)(e);
     };
 
@@ -365,7 +327,8 @@ export default function PayrollStandardForm({ existingData, className = '' }: Pa
                             render={({ field }) => {
                                 const containerRefCallback = (containerElement: HTMLDivElement | null) => {
                                     if (!containerElement) return;
-                                    const findInput = () => containerElement.querySelector('input[type="text"], input[type="number"]') as HTMLInputElement;
+                                    const findInput = () =>
+                                        containerElement.querySelector('input[type="text"], input[type="number"]') as HTMLInputElement;
                                     const attachListener = () => {
                                         const inputElement = findInput();
                                         if (!inputElement) {
@@ -376,7 +339,7 @@ export default function PayrollStandardForm({ existingData, className = '' }: Pa
                                         const handleInput = (e: Event) => {
                                             const target = e.target as HTMLInputElement;
                                             const inputValue = target.value.trim();
-                                            if (inputValue !== '' && !isNaN(Number(inputValue))) {
+                                            if (inputValue !== '' && !Number.isNaN(Number(inputValue))) {
                                                 const numValue = Number(inputValue);
                                                 const currentValue = field.value || 0;
                                                 if (Math.abs(numValue - currentValue) > 0.0001) {
@@ -417,7 +380,8 @@ export default function PayrollStandardForm({ existingData, className = '' }: Pa
                             render={({ field }) => {
                                 const containerRefCallback = (containerElement: HTMLDivElement | null) => {
                                     if (!containerElement) return;
-                                    const findInput = () => containerElement.querySelector('input[type="text"], input[type="number"]') as HTMLInputElement;
+                                    const findInput = () =>
+                                        containerElement.querySelector('input[type="text"], input[type="number"]') as HTMLInputElement;
                                     const attachListener = () => {
                                         const inputElement = findInput();
                                         if (!inputElement) {
@@ -428,7 +392,7 @@ export default function PayrollStandardForm({ existingData, className = '' }: Pa
                                         const handleInput = (e: Event) => {
                                             const target = e.target as HTMLInputElement;
                                             const inputValue = target.value.trim();
-                                            if (inputValue !== '' && !isNaN(Number(inputValue))) {
+                                            if (inputValue !== '' && !Number.isNaN(Number(inputValue))) {
                                                 const numValue = Number(inputValue);
                                                 const currentValue = field.value || 0;
                                                 if (Math.abs(numValue - currentValue) > 0.0001) {
@@ -470,7 +434,8 @@ export default function PayrollStandardForm({ existingData, className = '' }: Pa
                             render={({ field }) => {
                                 const containerRefCallback = (containerElement: HTMLDivElement | null) => {
                                     if (!containerElement) return;
-                                    const findInput = () => containerElement.querySelector('input[type="text"], input[type="number"]') as HTMLInputElement;
+                                    const findInput = () =>
+                                        containerElement.querySelector('input[type="text"], input[type="number"]') as HTMLInputElement;
                                     const attachListener = () => {
                                         const inputElement = findInput();
                                         if (!inputElement) {
@@ -481,7 +446,7 @@ export default function PayrollStandardForm({ existingData, className = '' }: Pa
                                         const handleInput = (e: Event) => {
                                             const target = e.target as HTMLInputElement;
                                             const inputValue = target.value.trim();
-                                            if (inputValue !== '' && !isNaN(Number(inputValue))) {
+                                            if (inputValue !== '' && !Number.isNaN(Number(inputValue))) {
                                                 const numValue = Number(inputValue);
                                                 const currentValue = field.value || 0;
                                                 if (Math.abs(numValue - currentValue) > 0.0001) {
@@ -523,7 +488,8 @@ export default function PayrollStandardForm({ existingData, className = '' }: Pa
                             render={({ field }) => {
                                 const containerRefCallback = (containerElement: HTMLDivElement | null) => {
                                     if (!containerElement) return;
-                                    const findInput = () => containerElement.querySelector('input[type="text"], input[type="number"]') as HTMLInputElement;
+                                    const findInput = () =>
+                                        containerElement.querySelector('input[type="text"], input[type="number"]') as HTMLInputElement;
                                     const attachListener = () => {
                                         const inputElement = findInput();
                                         if (!inputElement) {
@@ -534,12 +500,15 @@ export default function PayrollStandardForm({ existingData, className = '' }: Pa
                                         const handleInput = (e: Event) => {
                                             const target = e.target as HTMLInputElement;
                                             const inputValue = target.value.trim();
-                                            if (inputValue !== '' && !isNaN(Number(inputValue))) {
+                                            if (inputValue !== '' && !Number.isNaN(Number(inputValue))) {
                                                 const numValue = Number(inputValue);
                                                 const currentValue = field.value || 0;
                                                 if (Math.abs(numValue - currentValue) > 0.0001) {
                                                     field.onChange(numValue);
-                                                    setValue('HRC_EPFPerAfterRetirement', numValue, { shouldDirty: true, shouldValidate: true });
+                                                    setValue('HRC_EPFPerAfterRetirement', numValue, {
+                                                        shouldDirty: true,
+                                                        shouldValidate: true
+                                                    });
                                                 }
                                             }
                                         };
@@ -558,7 +527,10 @@ export default function PayrollStandardForm({ existingData, className = '' }: Pa
                                             onChange={(value) => {
                                                 const numValue = value !== null && value !== undefined ? Number(value) : 0;
                                                 field.onChange(numValue);
-                                                setValue('HRC_EPFPerAfterRetirement', numValue, { shouldDirty: true, shouldValidate: true });
+                                                setValue('HRC_EPFPerAfterRetirement', numValue, {
+                                                    shouldDirty: true,
+                                                    shouldValidate: true
+                                                });
                                             }}
                                             onBlur={field.onBlur}
                                             error={errors.HRC_EPFPerAfterRetirement?.message}
@@ -575,7 +547,8 @@ export default function PayrollStandardForm({ existingData, className = '' }: Pa
                             render={({ field }) => {
                                 const containerRefCallback = (containerElement: HTMLDivElement | null) => {
                                     if (!containerElement) return;
-                                    const findInput = () => containerElement.querySelector('input[type="text"], input[type="number"]') as HTMLInputElement;
+                                    const findInput = () =>
+                                        containerElement.querySelector('input[type="text"], input[type="number"]') as HTMLInputElement;
                                     const attachListener = () => {
                                         const inputElement = findInput();
                                         if (!inputElement) {
@@ -586,12 +559,15 @@ export default function PayrollStandardForm({ existingData, className = '' }: Pa
                                         const handleInput = (e: Event) => {
                                             const target = e.target as HTMLInputElement;
                                             const inputValue = target.value.trim();
-                                            if (inputValue !== '' && !isNaN(Number(inputValue))) {
+                                            if (inputValue !== '' && !Number.isNaN(Number(inputValue))) {
                                                 const numValue = Number(inputValue);
                                                 const currentValue = field.value || 0;
                                                 if (Math.abs(numValue - currentValue) > 0.0001) {
                                                     field.onChange(numValue);
-                                                    setValue('HRC_EPFPerAfterRetirement2', numValue, { shouldDirty: true, shouldValidate: true });
+                                                    setValue('HRC_EPFPerAfterRetirement2', numValue, {
+                                                        shouldDirty: true,
+                                                        shouldValidate: true
+                                                    });
                                                 }
                                             }
                                         };
@@ -610,7 +586,10 @@ export default function PayrollStandardForm({ existingData, className = '' }: Pa
                                             onChange={(value) => {
                                                 const numValue = value !== null && value !== undefined ? Number(value) : 0;
                                                 field.onChange(numValue);
-                                                setValue('HRC_EPFPerAfterRetirement2', numValue, { shouldDirty: true, shouldValidate: true });
+                                                setValue('HRC_EPFPerAfterRetirement2', numValue, {
+                                                    shouldDirty: true,
+                                                    shouldValidate: true
+                                                });
                                             }}
                                             onBlur={field.onBlur}
                                             error={errors.HRC_EPFPerAfterRetirement2?.message}
@@ -627,7 +606,8 @@ export default function PayrollStandardForm({ existingData, className = '' }: Pa
                             render={({ field }) => {
                                 const containerRefCallback = (containerElement: HTMLDivElement | null) => {
                                     if (!containerElement) return;
-                                    const findInput = () => containerElement.querySelector('input[type="text"], input[type="number"]') as HTMLInputElement;
+                                    const findInput = () =>
+                                        containerElement.querySelector('input[type="text"], input[type="number"]') as HTMLInputElement;
                                     const attachListener = () => {
                                         const inputElement = findInput();
                                         if (!inputElement) {
@@ -638,7 +618,7 @@ export default function PayrollStandardForm({ existingData, className = '' }: Pa
                                         const handleInput = (e: Event) => {
                                             const target = e.target as HTMLInputElement;
                                             const inputValue = target.value.trim();
-                                            if (inputValue !== '' && !isNaN(Number(inputValue))) {
+                                            if (inputValue !== '' && !Number.isNaN(Number(inputValue))) {
                                                 const numValue = Number(inputValue);
                                                 const currentValue = field.value || 0;
                                                 if (Math.abs(numValue - currentValue) > 0.0001) {
@@ -679,7 +659,8 @@ export default function PayrollStandardForm({ existingData, className = '' }: Pa
                             render={({ field }) => {
                                 const containerRefCallback = (containerElement: HTMLDivElement | null) => {
                                     if (!containerElement) return;
-                                    const findInput = () => containerElement.querySelector('input[type="text"], input[type="number"]') as HTMLInputElement;
+                                    const findInput = () =>
+                                        containerElement.querySelector('input[type="text"], input[type="number"]') as HTMLInputElement;
                                     const attachListener = () => {
                                         const inputElement = findInput();
                                         if (!inputElement) {
@@ -690,7 +671,7 @@ export default function PayrollStandardForm({ existingData, className = '' }: Pa
                                         const handleInput = (e: Event) => {
                                             const target = e.target as HTMLInputElement;
                                             const inputValue = target.value.trim();
-                                            if (inputValue !== '' && !isNaN(Number(inputValue))) {
+                                            if (inputValue !== '' && !Number.isNaN(Number(inputValue))) {
                                                 const numValue = Number(inputValue);
                                                 const currentValue = field.value || 0;
                                                 if (Math.abs(numValue - currentValue) > 0.0001) {
@@ -730,7 +711,8 @@ export default function PayrollStandardForm({ existingData, className = '' }: Pa
                             render={({ field }) => {
                                 const containerRefCallback = (containerElement: HTMLDivElement | null) => {
                                     if (!containerElement) return;
-                                    const findInput = () => containerElement.querySelector('input[type="text"], input[type="number"]') as HTMLInputElement;
+                                    const findInput = () =>
+                                        containerElement.querySelector('input[type="text"], input[type="number"]') as HTMLInputElement;
                                     const attachListener = () => {
                                         const inputElement = findInput();
                                         if (!inputElement) {
@@ -741,7 +723,7 @@ export default function PayrollStandardForm({ existingData, className = '' }: Pa
                                         const handleInput = (e: Event) => {
                                             const target = e.target as HTMLInputElement;
                                             const inputValue = target.value.trim();
-                                            if (inputValue !== '' && !isNaN(Number(inputValue))) {
+                                            if (inputValue !== '' && !Number.isNaN(Number(inputValue))) {
                                                 const numValue = Number(inputValue);
                                                 const currentValue = field.value || 0;
                                                 if (Math.abs(numValue - currentValue) > 0.0001) {
@@ -782,7 +764,8 @@ export default function PayrollStandardForm({ existingData, className = '' }: Pa
                             render={({ field }) => {
                                 const containerRefCallback = (containerElement: HTMLDivElement | null) => {
                                     if (!containerElement) return;
-                                    const findInput = () => containerElement.querySelector('input[type="text"], input[type="number"]') as HTMLInputElement;
+                                    const findInput = () =>
+                                        containerElement.querySelector('input[type="text"], input[type="number"]') as HTMLInputElement;
                                     const attachListener = () => {
                                         const inputElement = findInput();
                                         if (!inputElement) {
@@ -793,7 +776,7 @@ export default function PayrollStandardForm({ existingData, className = '' }: Pa
                                         const handleInput = (e: Event) => {
                                             const target = e.target as HTMLInputElement;
                                             const inputValue = target.value.trim();
-                                            if (inputValue !== '' && !isNaN(Number(inputValue))) {
+                                            if (inputValue !== '' && !Number.isNaN(Number(inputValue))) {
                                                 const numValue = Number(inputValue);
                                                 const currentValue = field.value || 0;
                                                 if (Math.abs(numValue - currentValue) > 0.0001) {
@@ -833,7 +816,8 @@ export default function PayrollStandardForm({ existingData, className = '' }: Pa
                             render={({ field }) => {
                                 const containerRefCallback = (containerElement: HTMLDivElement | null) => {
                                     if (!containerElement) return;
-                                    const findInput = () => containerElement.querySelector('input[type="text"], input[type="number"]') as HTMLInputElement;
+                                    const findInput = () =>
+                                        containerElement.querySelector('input[type="text"], input[type="number"]') as HTMLInputElement;
                                     const attachListener = () => {
                                         const inputElement = findInput();
                                         if (!inputElement) {
@@ -844,7 +828,7 @@ export default function PayrollStandardForm({ existingData, className = '' }: Pa
                                         const handleInput = (e: Event) => {
                                             const target = e.target as HTMLInputElement;
                                             const inputValue = target.value.trim();
-                                            if (inputValue !== '' && !isNaN(Number(inputValue))) {
+                                            if (inputValue !== '' && !Number.isNaN(Number(inputValue))) {
                                                 const numValue = Number(inputValue);
                                                 const currentValue = field.value || 0;
                                                 if (Math.abs(numValue - currentValue) > 0.0001) {
@@ -885,7 +869,8 @@ export default function PayrollStandardForm({ existingData, className = '' }: Pa
                             render={({ field }) => {
                                 const containerRefCallback = (containerElement: HTMLDivElement | null) => {
                                     if (!containerElement) return;
-                                    const findInput = () => containerElement.querySelector('input[type="text"], input[type="number"]') as HTMLInputElement;
+                                    const findInput = () =>
+                                        containerElement.querySelector('input[type="text"], input[type="number"]') as HTMLInputElement;
                                     const attachListener = () => {
                                         const inputElement = findInput();
                                         if (!inputElement) {
@@ -896,7 +881,7 @@ export default function PayrollStandardForm({ existingData, className = '' }: Pa
                                         const handleInput = (e: Event) => {
                                             const target = e.target as HTMLInputElement;
                                             const inputValue = target.value.trim();
-                                            if (inputValue !== '' && !isNaN(Number(inputValue))) {
+                                            if (inputValue !== '' && !Number.isNaN(Number(inputValue))) {
                                                 const numValue = Number(inputValue);
                                                 const currentValue = field.value || 0;
                                                 if (Math.abs(numValue - currentValue) > 0.0001) {
@@ -936,7 +921,8 @@ export default function PayrollStandardForm({ existingData, className = '' }: Pa
                             render={({ field }) => {
                                 const containerRefCallback = (containerElement: HTMLDivElement | null) => {
                                     if (!containerElement) return;
-                                    const findInput = () => containerElement.querySelector('input[type="text"], input[type="number"]') as HTMLInputElement;
+                                    const findInput = () =>
+                                        containerElement.querySelector('input[type="text"], input[type="number"]') as HTMLInputElement;
                                     const attachListener = () => {
                                         const inputElement = findInput();
                                         if (!inputElement) {
@@ -947,7 +933,7 @@ export default function PayrollStandardForm({ existingData, className = '' }: Pa
                                         const handleInput = (e: Event) => {
                                             const target = e.target as HTMLInputElement;
                                             const inputValue = target.value.trim();
-                                            if (inputValue !== '' && !isNaN(Number(inputValue))) {
+                                            if (inputValue !== '' && !Number.isNaN(Number(inputValue))) {
                                                 const numValue = Number(inputValue);
                                                 const currentValue = field.value || 0;
                                                 if (Math.abs(numValue - currentValue) > 0.0001) {
@@ -987,7 +973,8 @@ export default function PayrollStandardForm({ existingData, className = '' }: Pa
                             render={({ field }) => {
                                 const containerRefCallback = (containerElement: HTMLDivElement | null) => {
                                     if (!containerElement) return;
-                                    const findInput = () => containerElement.querySelector('input[type="text"], input[type="number"]') as HTMLInputElement;
+                                    const findInput = () =>
+                                        containerElement.querySelector('input[type="text"], input[type="number"]') as HTMLInputElement;
                                     const attachListener = () => {
                                         const inputElement = findInput();
                                         if (!inputElement) {
@@ -998,7 +985,7 @@ export default function PayrollStandardForm({ existingData, className = '' }: Pa
                                         const handleInput = (e: Event) => {
                                             const target = e.target as HTMLInputElement;
                                             const inputValue = target.value.trim();
-                                            if (inputValue !== '' && !isNaN(Number(inputValue))) {
+                                            if (inputValue !== '' && !Number.isNaN(Number(inputValue))) {
                                                 const numValue = Number(inputValue);
                                                 const currentValue = field.value || 0;
                                                 if (Math.abs(numValue - currentValue) > 0.0001) {
@@ -1038,7 +1025,8 @@ export default function PayrollStandardForm({ existingData, className = '' }: Pa
                             render={({ field }) => {
                                 const containerRefCallback = (containerElement: HTMLDivElement | null) => {
                                     if (!containerElement) return;
-                                    const findInput = () => containerElement.querySelector('input[type="text"], input[type="number"]') as HTMLInputElement;
+                                    const findInput = () =>
+                                        containerElement.querySelector('input[type="text"], input[type="number"]') as HTMLInputElement;
                                     const attachListener = () => {
                                         const inputElement = findInput();
                                         if (!inputElement) {
@@ -1049,7 +1037,7 @@ export default function PayrollStandardForm({ existingData, className = '' }: Pa
                                         const handleInput = (e: Event) => {
                                             const target = e.target as HTMLInputElement;
                                             const inputValue = target.value.trim();
-                                            if (inputValue !== '' && !isNaN(Number(inputValue))) {
+                                            if (inputValue !== '' && !Number.isNaN(Number(inputValue))) {
                                                 const numValue = Number(inputValue);
                                                 const currentValue = field.value || 0;
                                                 if (Math.abs(numValue - currentValue) > 0.0001) {
@@ -1102,7 +1090,8 @@ export default function PayrollStandardForm({ existingData, className = '' }: Pa
                             render={({ field }) => {
                                 const containerRefCallback = (containerElement: HTMLDivElement | null) => {
                                     if (!containerElement) return;
-                                    const findInput = () => containerElement.querySelector('input[type="text"], input[type="number"]') as HTMLInputElement;
+                                    const findInput = () =>
+                                        containerElement.querySelector('input[type="text"], input[type="number"]') as HTMLInputElement;
                                     const attachListener = () => {
                                         const inputElement = findInput();
                                         if (!inputElement) {
@@ -1113,7 +1102,7 @@ export default function PayrollStandardForm({ existingData, className = '' }: Pa
                                         const handleInput = (e: Event) => {
                                             const target = e.target as HTMLInputElement;
                                             const inputValue = target.value.trim();
-                                            if (inputValue !== '' && !isNaN(Number(inputValue))) {
+                                            if (inputValue !== '' && !Number.isNaN(Number(inputValue))) {
                                                 const numValue = Number(inputValue);
                                                 const currentValue = field.value || 0;
                                                 if (Math.abs(numValue - currentValue) > 0.0001) {
@@ -1170,7 +1159,8 @@ export default function PayrollStandardForm({ existingData, className = '' }: Pa
                             render={({ field }) => {
                                 const containerRefCallback = (containerElement: HTMLDivElement | null) => {
                                     if (!containerElement) return;
-                                    const findInput = () => containerElement.querySelector('input[type="text"], input[type="number"]') as HTMLInputElement;
+                                    const findInput = () =>
+                                        containerElement.querySelector('input[type="text"], input[type="number"]') as HTMLInputElement;
                                     const attachListener = () => {
                                         const inputElement = findInput();
                                         if (!inputElement) {
@@ -1181,7 +1171,7 @@ export default function PayrollStandardForm({ existingData, className = '' }: Pa
                                         const handleInput = (e: Event) => {
                                             const target = e.target as HTMLInputElement;
                                             const inputValue = target.value.trim();
-                                            if (inputValue !== '' && !isNaN(Number(inputValue))) {
+                                            if (inputValue !== '' && !Number.isNaN(Number(inputValue))) {
                                                 const numValue = Number(inputValue);
                                                 const currentValue = field.value || 0;
                                                 if (Math.abs(numValue - currentValue) > 0.0001) {
@@ -1222,7 +1212,8 @@ export default function PayrollStandardForm({ existingData, className = '' }: Pa
                             render={({ field }) => {
                                 const containerRefCallback = (containerElement: HTMLDivElement | null) => {
                                     if (!containerElement) return;
-                                    const findInput = () => containerElement.querySelector('input[type="text"], input[type="number"]') as HTMLInputElement;
+                                    const findInput = () =>
+                                        containerElement.querySelector('input[type="text"], input[type="number"]') as HTMLInputElement;
                                     const attachListener = () => {
                                         const inputElement = findInput();
                                         if (!inputElement) {
@@ -1233,7 +1224,7 @@ export default function PayrollStandardForm({ existingData, className = '' }: Pa
                                         const handleInput = (e: Event) => {
                                             const target = e.target as HTMLInputElement;
                                             const inputValue = target.value.trim();
-                                            if (inputValue !== '' && !isNaN(Number(inputValue))) {
+                                            if (inputValue !== '' && !Number.isNaN(Number(inputValue))) {
                                                 const numValue = Number(inputValue);
                                                 const currentValue = field.value || 0;
                                                 if (Math.abs(numValue - currentValue) > 0.0001) {
@@ -1273,7 +1264,8 @@ export default function PayrollStandardForm({ existingData, className = '' }: Pa
                             render={({ field }) => {
                                 const containerRefCallback = (containerElement: HTMLDivElement | null) => {
                                     if (!containerElement) return;
-                                    const findInput = () => containerElement.querySelector('input[type="text"], input[type="number"]') as HTMLInputElement;
+                                    const findInput = () =>
+                                        containerElement.querySelector('input[type="text"], input[type="number"]') as HTMLInputElement;
                                     const attachListener = () => {
                                         const inputElement = findInput();
                                         if (!inputElement) {
@@ -1284,7 +1276,7 @@ export default function PayrollStandardForm({ existingData, className = '' }: Pa
                                         const handleInput = (e: Event) => {
                                             const target = e.target as HTMLInputElement;
                                             const inputValue = target.value.trim();
-                                            if (inputValue !== '' && !isNaN(Number(inputValue))) {
+                                            if (inputValue !== '' && !Number.isNaN(Number(inputValue))) {
                                                 const numValue = Number(inputValue);
                                                 const currentValue = field.value || 0;
                                                 if (Math.abs(numValue - currentValue) > 0.0001) {
@@ -1543,7 +1535,8 @@ export default function PayrollStandardForm({ existingData, className = '' }: Pa
                             render={({ field }) => {
                                 const containerRefCallback = (containerElement: HTMLDivElement | null) => {
                                     if (!containerElement) return;
-                                    const findInput = () => containerElement.querySelector('input[type="text"], input[type="number"]') as HTMLInputElement;
+                                    const findInput = () =>
+                                        containerElement.querySelector('input[type="text"], input[type="number"]') as HTMLInputElement;
                                     const attachListener = () => {
                                         const inputElement = findInput();
                                         if (!inputElement) {
@@ -1554,7 +1547,7 @@ export default function PayrollStandardForm({ existingData, className = '' }: Pa
                                         const handleInput = (e: Event) => {
                                             const target = e.target as HTMLInputElement;
                                             const inputValue = target.value.trim();
-                                            if (inputValue !== '' && !isNaN(Number(inputValue))) {
+                                            if (inputValue !== '' && !Number.isNaN(Number(inputValue))) {
                                                 const numValue = Number(inputValue);
                                                 const currentValue = field.value || 0;
                                                 if (Math.abs(numValue - currentValue) > 0.0001) {
@@ -1607,7 +1600,8 @@ export default function PayrollStandardForm({ existingData, className = '' }: Pa
                             render={({ field }) => {
                                 const containerRefCallback = (containerElement: HTMLDivElement | null) => {
                                     if (!containerElement) return;
-                                    const findInput = () => containerElement.querySelector('input[type="text"], input[type="number"]') as HTMLInputElement;
+                                    const findInput = () =>
+                                        containerElement.querySelector('input[type="text"], input[type="number"]') as HTMLInputElement;
                                     const attachListener = () => {
                                         const inputElement = findInput();
                                         if (!inputElement) {
@@ -1618,7 +1612,7 @@ export default function PayrollStandardForm({ existingData, className = '' }: Pa
                                         const handleInput = (e: Event) => {
                                             const target = e.target as HTMLInputElement;
                                             const inputValue = target.value.trim();
-                                            if (inputValue !== '' && !isNaN(Number(inputValue))) {
+                                            if (inputValue !== '' && !Number.isNaN(Number(inputValue))) {
                                                 const numValue = Number(inputValue);
                                                 const currentValue = field.value || 0;
                                                 if (Math.abs(numValue - currentValue) > 0.0001) {
@@ -1683,7 +1677,8 @@ export default function PayrollStandardForm({ existingData, className = '' }: Pa
                             render={({ field }) => {
                                 const containerRefCallback = (containerElement: HTMLDivElement | null) => {
                                     if (!containerElement) return;
-                                    const findInput = () => containerElement.querySelector('input[type="text"], input[type="number"]') as HTMLInputElement;
+                                    const findInput = () =>
+                                        containerElement.querySelector('input[type="text"], input[type="number"]') as HTMLInputElement;
                                     const attachListener = () => {
                                         const inputElement = findInput();
                                         if (!inputElement) {
@@ -1694,12 +1689,15 @@ export default function PayrollStandardForm({ existingData, className = '' }: Pa
                                         const handleInput = (e: Event) => {
                                             const target = e.target as HTMLInputElement;
                                             const inputValue = target.value.trim();
-                                            if (inputValue !== '' && !isNaN(Number(inputValue))) {
+                                            if (inputValue !== '' && !Number.isNaN(Number(inputValue))) {
                                                 const numValue = Number(inputValue);
                                                 const currentValue = field.value || 0;
                                                 if (Math.abs(numValue - currentValue) > 0.0001) {
                                                     field.onChange(numValue);
-                                                    setValue('HRC_IncrementOnceInMonths', numValue, { shouldDirty: true, shouldValidate: true });
+                                                    setValue('HRC_IncrementOnceInMonths', numValue, {
+                                                        shouldDirty: true,
+                                                        shouldValidate: true
+                                                    });
                                                 }
                                             }
                                         };
@@ -1717,7 +1715,10 @@ export default function PayrollStandardForm({ existingData, className = '' }: Pa
                                             onChange={(value) => {
                                                 const numValue = value !== null && value !== undefined ? Number(value) : 0;
                                                 field.onChange(numValue);
-                                                setValue('HRC_IncrementOnceInMonths', numValue, { shouldDirty: true, shouldValidate: true });
+                                                setValue('HRC_IncrementOnceInMonths', numValue, {
+                                                    shouldDirty: true,
+                                                    shouldValidate: true
+                                                });
                                             }}
                                             onBlur={field.onBlur}
                                             error={errors.HRC_IncrementOnceInMonths?.message}
@@ -1734,7 +1735,8 @@ export default function PayrollStandardForm({ existingData, className = '' }: Pa
                             render={({ field }) => {
                                 const containerRefCallback = (containerElement: HTMLDivElement | null) => {
                                     if (!containerElement) return;
-                                    const findInput = () => containerElement.querySelector('input[type="text"], input[type="number"]') as HTMLInputElement;
+                                    const findInput = () =>
+                                        containerElement.querySelector('input[type="text"], input[type="number"]') as HTMLInputElement;
                                     const attachListener = () => {
                                         const inputElement = findInput();
                                         if (!inputElement) {
@@ -1745,7 +1747,7 @@ export default function PayrollStandardForm({ existingData, className = '' }: Pa
                                         const handleInput = (e: Event) => {
                                             const target = e.target as HTMLInputElement;
                                             const inputValue = target.value.trim();
-                                            if (inputValue !== '' && !isNaN(Number(inputValue))) {
+                                            if (inputValue !== '' && !Number.isNaN(Number(inputValue))) {
                                                 const numValue = Number(inputValue);
                                                 const currentValue = field.value || 0;
                                                 if (Math.abs(numValue - currentValue) > 0.0001) {
@@ -1852,15 +1854,7 @@ export default function PayrollStandardForm({ existingData, className = '' }: Pa
                         disabled={isSubmitting || saveMutation.isPending || !isDirty}
                         className='order-1 w-fit bg-purple-600 transition-all duration-200 hover:scale-105 hover:bg-purple-700'
                         isLoading={isSubmitting || saveMutation.isPending}
-                        loadingText='Saving...'
-                        onClick={() => {
-                            console.log('🔵 [PAYROLL STANDARD FORM] Save button clicked!');
-                            console.log('🔵 [FORM] Button disabled:', isSubmitting || saveMutation.isPending);
-                            console.log('🔵 [FORM] isSubmitting:', isSubmitting);
-                            console.log('🔵 [FORM] saveMutation.isPending:', saveMutation.isPending);
-                            console.log('🔵 [FORM] Current errors:', errors);
-                            console.log('🔵 [FORM] Error count:', Object.keys(errors).length);
-                        }}>
+                        loadingText='Saving...'>
                         <div className='flex items-center'>
                             <Save className='mr-2 h-4 w-4' />
                             SAVE
@@ -1875,9 +1869,7 @@ export default function PayrollStandardForm({ existingData, className = '' }: Pa
                         CANCEL
                     </Button>
                     {!isDirty && (
-                        <span className='order-3 flex items-center text-sm text-muted-foreground sm:order-3'>
-                            No changes made
-                        </span>
+                        <span className='order-3 flex items-center text-muted-foreground text-sm sm:order-3'>No changes made</span>
                     )}
                 </div>
             </form>

@@ -1,6 +1,6 @@
 'use client';
 
-import { Heading } from '@/components/layout/heading';
+import { Button } from '@/components/ui/button';
 import { GenericDataTable } from '@/components/ui/data-table/generic-data-table';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { createLocalCrud } from '@/lib/localdb';
@@ -10,6 +10,8 @@ import { type GPSLocationReportFilters, GPSLocationReportFilters as GPSLocationR
 
 export default function GPSLocationReportPage() {
     const db = createLocalCrud<GPSLog>('attendance:gps-location-attendance'); // reuse same storage
+    const [showReport, setShowReport] = useState(false);
+    const [selectedRows, setSelectedRows] = useState<GPSLog[]>([]);
     const [filters, setFilters] = useState<GPSLocationReportFilters>({
         filterType: 'Between Date',
         fromDate: '',
@@ -34,7 +36,7 @@ export default function GPSLocationReportPage() {
     }, [data, filters]);
 
     const handleSearch = () => {
-        // TODO: Implement report generation
+        setShowReport(true);
     };
 
     const handleCancel = () => {
@@ -44,23 +46,22 @@ export default function GPSLocationReportPage() {
             toDate: '',
             employee: ''
         });
+        setShowReport(false);
+        setSelectedRows([]);
     };
 
     const handleExport = () => {
-        // TODO: Implement export functionality
+        /* TODO: implement export functionality */
+        console.log('Exporting selected rows:', selectedRows);
     };
 
-    const handlePrint = () => window.print();
+    const handleRowSelectionChange = (rows: GPSLog[]) => {
+        setSelectedRows(rows);
+    };
 
     return (
         <div className='min-h-screen'>
             <div className='container space-y-4 p-1'>
-                <div className='flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between'>
-                    <div className='space-y-1'>
-                        <Heading title='Attendance GPS Location Report' description='' />
-                    </div>
-                </div>
-
                 <GPSLocationReportFiltersComponent
                     filters={filters}
                     employees={employees}
@@ -68,26 +69,27 @@ export default function GPSLocationReportPage() {
                     onSearch={handleSearch}
                     onCancel={handleCancel}
                     onExport={handleExport}
-                    onPrint={handlePrint}
+                    onPrint={() => window.print()}
                 />
 
-                <CollapsibleSection
-                    title='Attendance GPS Location Report'
-                    description=''
-                    defaultOpen={true}
-                    variant='default'
-                    size='lg'
-                    className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
-                    <GenericDataTable
-                        isLoading={false}
-                        columns={gpsLocationReportColumns}
-                        data={filtered}
-                        totalItems={filtered.length}
-                        showViewOptions
-                    />
-                </CollapsibleSection>
+                {showReport && (
+                    <CollapsibleSection
+                        title='Attendance GPS Location Report'
+                        description=''
+                        defaultOpen={true}
+                        variant='default'
+                        size='lg'
+                        className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
+                        <GenericDataTable
+                            isLoading={false}
+                            columns={gpsLocationReportColumns}
+                            data={filtered}
+                            totalItems={filtered.length}
+                            showViewOptions
+                        />
+                    </CollapsibleSection>
+                )}
             </div>
         </div>
     );
 }
-

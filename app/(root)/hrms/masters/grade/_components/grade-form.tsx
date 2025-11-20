@@ -10,7 +10,7 @@ import { gradeSchema } from '@/schemas/hrms/employee-category-schemas';
 import type { GradeDetail } from '@/types/hrms/master-grade';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Save } from 'lucide-react';
-import { useEffect, useRef } from 'react';
+import { useEffect } from 'react';
 import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import type { z } from 'zod';
@@ -51,17 +51,12 @@ export default function GradeForm({ selectedRow, onSuccess, className = '' }: Gr
             HRMG_ActiveFlag: true
         }
     });
-    
+
     // Debug form state
-    const formValues = watch();
-    console.log('📝 [GRADE FORM] Current form values:', formValues);
-    console.log('📝 [GRADE FORM] Form errors:', errors);
-    console.log('📝 [GRADE FORM] isDirty:', isDirty);
-    console.log('📝 [GRADE FORM] isSubmitting:', isSubmitting);
+    const _formValues = watch();
 
     useEffect(() => {
         if (selectedRow) {
-            console.log('📝 [GRADE FORM] Edit mode - Loading selectedRow:', JSON.stringify(selectedRow, null, 2));
             reset({
                 HRMG_Id: selectedRow.HRMG_Id,
                 MI_Id: selectedRow.MI_Id,
@@ -73,31 +68,15 @@ export default function GradeForm({ selectedRow, onSuccess, className = '' }: Gr
                 HRMG_Order: selectedRow.HRMG_Order,
                 HRMG_ActiveFlag: selectedRow.HRMG_ActiveFlag
             });
-            console.log('📝 [GRADE FORM] Form reset with edit data');
         } else {
-            console.log('📝 [GRADE FORM] Add mode - No selectedRow');
         }
     }, [selectedRow, reset]);
 
-    const handleFormSubmit = (e?: React.FormEvent) => {
-        console.log('🔵 [GRADE FORM] handleFormSubmit triggered!', e?.type);
-        console.log('🔵 [GRADE FORM] Current form errors:', errors);
-        console.log('🔵 [GRADE FORM] HRMG_Id error details:', errors.HRMG_Id);
-        console.log('🔵 [GRADE FORM] HRMG_Id error message:', errors.HRMG_Id?.message);
-        console.log('🔵 [GRADE FORM] HRMG_Id error type:', errors.HRMG_Id?.type);
-        console.log('🔵 [GRADE FORM] Current form values:', watch());
-        console.log('🔵 [GRADE FORM] HRMG_Id value:', watch('HRMG_Id'));
-    };
+    const handleFormSubmit = (_e?: React.FormEvent) => {};
 
     const onSubmit: SubmitHandler<FormFields> = async (data) => {
-        console.log('🔵 ========== GRADE FORM SUBMIT ==========');
-        console.log('🔵 [FORM] onSubmit handler CALLED! This means validation passed!');
-        console.log('🔵 [FORM] Grade submit - Data:', JSON.stringify(data, null, 2));
-        console.log('🔵 [FORM] Is Edit Mode:', isEditMode);
-        
         try {
             const response = await saveMutation.mutateAsync(data);
-            console.log('🟢 [FORM] Grade response:', JSON.stringify(response, null, 2));
 
             if (response?.success) {
                 toast.success(response.message || (isEditMode ? 'Grade updated successfully' : 'Grade saved successfully'));
@@ -105,15 +84,11 @@ export default function GradeForm({ selectedRow, onSuccess, className = '' }: Gr
                 refetchAll();
                 onSuccess?.();
             } else {
-                console.log('❌ [FORM] Grade failed:', response?.message);
                 toast.error(response?.message || (isEditMode ? 'Failed to update grade' : 'Failed to save grade'));
             }
         } catch (error: any) {
-            console.log('🔴 [FORM] Grade error:', error);
             toast.error(error.message || 'An error occurred');
         }
-        
-        console.log('🔵 ========== GRADE FORM SUBMIT END ==========');
     };
 
     const handleReset = () => {
@@ -122,11 +97,11 @@ export default function GradeForm({ selectedRow, onSuccess, className = '' }: Gr
 
     return (
         <div className={className}>
-            <form 
+            <form
                 onSubmit={(e) => {
                     handleFormSubmit(e);
                     handleSubmit(onSubmit)(e);
-                }} 
+                }}
                 className='space-y-6'>
                 <input type='hidden' {...register('HRMG_Id')} />
                 <input type='hidden' {...register('MI_Id')} />
@@ -156,7 +131,8 @@ export default function GradeForm({ selectedRow, onSuccess, className = '' }: Gr
                             render={({ field }) => {
                                 const containerRefCallback = (containerElement: HTMLDivElement | null) => {
                                     if (!containerElement) return;
-                                    const findInput = () => containerElement.querySelector('input[type="text"], input[type="number"]') as HTMLInputElement;
+                                    const findInput = () =>
+                                        containerElement.querySelector('input[type="text"], input[type="number"]') as HTMLInputElement;
                                     const attachListener = () => {
                                         const inputElement = findInput();
                                         if (!inputElement) {
@@ -167,7 +143,7 @@ export default function GradeForm({ selectedRow, onSuccess, className = '' }: Gr
                                         const handleInput = (e: Event) => {
                                             const target = e.target as HTMLInputElement;
                                             const inputValue = target.value.trim();
-                                            if (inputValue !== '' && !isNaN(Number(inputValue))) {
+                                            if (inputValue !== '' && !Number.isNaN(Number(inputValue))) {
                                                 const numValue = Number(inputValue);
                                                 const currentValue = field.value || 0;
                                                 if (Math.abs(numValue - currentValue) > 0.0001) {
@@ -206,7 +182,8 @@ export default function GradeForm({ selectedRow, onSuccess, className = '' }: Gr
                             render={({ field }) => {
                                 const containerRefCallback = (containerElement: HTMLDivElement | null) => {
                                     if (!containerElement) return;
-                                    const findInput = () => containerElement.querySelector('input[type="text"], input[type="number"]') as HTMLInputElement;
+                                    const findInput = () =>
+                                        containerElement.querySelector('input[type="text"], input[type="number"]') as HTMLInputElement;
                                     const attachListener = () => {
                                         const inputElement = findInput();
                                         if (!inputElement) {
@@ -217,7 +194,7 @@ export default function GradeForm({ selectedRow, onSuccess, className = '' }: Gr
                                         const handleInput = (e: Event) => {
                                             const target = e.target as HTMLInputElement;
                                             const inputValue = target.value.trim();
-                                            if (inputValue !== '' && !isNaN(Number(inputValue))) {
+                                            if (inputValue !== '' && !Number.isNaN(Number(inputValue))) {
                                                 const numValue = Number(inputValue);
                                                 const currentValue = field.value || 0;
                                                 if (Math.abs(numValue - currentValue) > 0.0001) {
@@ -256,7 +233,8 @@ export default function GradeForm({ selectedRow, onSuccess, className = '' }: Gr
                             render={({ field }) => {
                                 const containerRefCallback = (containerElement: HTMLDivElement | null) => {
                                     if (!containerElement) return;
-                                    const findInput = () => containerElement.querySelector('input[type="text"], input[type="number"]') as HTMLInputElement;
+                                    const findInput = () =>
+                                        containerElement.querySelector('input[type="text"], input[type="number"]') as HTMLInputElement;
                                     const attachListener = () => {
                                         const inputElement = findInput();
                                         if (!inputElement) {
@@ -267,7 +245,7 @@ export default function GradeForm({ selectedRow, onSuccess, className = '' }: Gr
                                         const handleInput = (e: Event) => {
                                             const target = e.target as HTMLInputElement;
                                             const inputValue = target.value.trim();
-                                            if (inputValue !== '' && !isNaN(Number(inputValue))) {
+                                            if (inputValue !== '' && !Number.isNaN(Number(inputValue))) {
                                                 const numValue = Number(inputValue);
                                                 const currentValue = field.value || 0;
                                                 if (Math.abs(numValue - currentValue) > 0.0001) {
@@ -306,7 +284,8 @@ export default function GradeForm({ selectedRow, onSuccess, className = '' }: Gr
                             render={({ field }) => {
                                 const containerRefCallback = (containerElement: HTMLDivElement | null) => {
                                     if (!containerElement) return;
-                                    const findInput = () => containerElement.querySelector('input[type="text"], input[type="number"]') as HTMLInputElement;
+                                    const findInput = () =>
+                                        containerElement.querySelector('input[type="text"], input[type="number"]') as HTMLInputElement;
                                     const attachListener = () => {
                                         const inputElement = findInput();
                                         if (!inputElement) {
@@ -317,7 +296,7 @@ export default function GradeForm({ selectedRow, onSuccess, className = '' }: Gr
                                         const handleInput = (e: Event) => {
                                             const target = e.target as HTMLInputElement;
                                             const inputValue = target.value.trim();
-                                            if (inputValue !== '' && !isNaN(Number(inputValue))) {
+                                            if (inputValue !== '' && !Number.isNaN(Number(inputValue))) {
                                                 const numValue = Number(inputValue);
                                                 const currentValue = field.value || 0;
                                                 if (Math.abs(numValue - currentValue) > 0.0001) {
@@ -367,13 +346,7 @@ export default function GradeForm({ selectedRow, onSuccess, className = '' }: Gr
                     <Button
                         type='submit'
                         disabled={isSubmitting || (isEditMode && !isDirty)}
-                        onClick={() => {
-                            console.log('🔵 [GRADE FORM] Save button clicked!');
-                            console.log('🔵 [GRADE FORM] Button disabled:', isSubmitting || (isEditMode && !isDirty));
-                            console.log('🔵 [GRADE FORM] isSubmitting:', isSubmitting);
-                            console.log('🔵 [GRADE FORM] isEditMode:', isEditMode);
-                            console.log('🔵 [GRADE FORM] isDirty:', isDirty);
-                        }}
+                        onClick={() => {}}
                         className='order-1 w-fit transition-all duration-200 hover:scale-105 sm:order-2'
                         isLoading={isSubmitting}
                         loadingText={isEditMode ? 'Updating...' : 'Saving...'}>

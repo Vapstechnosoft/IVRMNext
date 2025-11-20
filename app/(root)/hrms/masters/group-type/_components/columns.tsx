@@ -15,7 +15,12 @@ export const columns: ColumnDef<GroupTypeDetail>[] = [
     {
         id: 'slNo',
         header: () => <div className='text-center font-medium'>Sl No</div>,
-        cell: ({ row }) => <div className='text-center'>{row.index + 1}</div>,
+        cell: ({ row, table }) => {
+            const pageIndex = table.getState().pagination.pageIndex;
+            const pageSize = table.getState().pagination.pageSize;
+            const continuousIndex = pageIndex * pageSize + row.index + 1;
+            return <div className='text-center'>{continuousIndex}</div>;
+        },
         enableSorting: false,
         size: 60
     },
@@ -29,7 +34,11 @@ export const columns: ColumnDef<GroupTypeDetail>[] = [
     },
     {
         accessorKey: 'HRMGT_Order',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Order' className='whitespace-nowrap' />
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Order' className='whitespace-nowrap' />,
+        cell: ({ row }) => {
+            const orderValue = row.original.HRMGT_Order;
+            return <div>{orderValue ?? '-'}</div>;
+        }
     },
     {
         id: 'actions',
@@ -45,7 +54,6 @@ function ActionButtonsCell({ rowData }: { rowData: GroupTypeDetail }) {
 
     const handleEdit = useCallback(
         (data: GroupTypeDetail) => {
-            console.log('🔵 [TOGGLE] Edit button clicked for:', data.HRMGT_Id);
             openEditForm(data as any);
         },
         [openEditForm]
@@ -53,35 +61,22 @@ function ActionButtonsCell({ rowData }: { rowData: GroupTypeDetail }) {
 
     const handleToggle = useCallback(
         async (data: GroupTypeDetail, newState: boolean) => {
-            console.log('🔵 [TOGGLE] handleToggle called');
-            console.log('🔵 [TOGGLE] Record ID:', data.HRMGT_Id);
-            console.log('🔵 [TOGGLE] Record Name:', data.HRMGT_EmployeeGroupType);
-            console.log('🔵 [TOGGLE] Current State:', data.HRMGT_ActiveFlag);
-            console.log('🔵 [TOGGLE] New State:', newState);
-            
             try {
-                console.log('🟡 [TOGGLE] Calling toggleMutation.mutateAsync...');
                 const result = await toggleMutation.mutateAsync({
                     HRMGT_Id: data.HRMGT_Id,
                     HRMGT_ActiveFlag: newState,
                     MI_Id: HRMS_MI_ID
                 });
-                
-                console.log('🟢 [TOGGLE] Toggle result:', result);
-                
+
                 // Check if the record is mapped/in use
                 const retrunMsg = (result as any)?.retrunMsg || '';
-                console.log('🟢 [TOGGLE] retrunMsg:', retrunMsg);
-                
+
                 if (retrunMsg === 'Mapped') {
-                    console.log('⚠️ [TOGGLE] Record is mapped - cannot deactivate');
                     toast.error('Cannot deactivate - Group Type is currently assigned/in use');
                 } else {
-                    console.log('✅ [TOGGLE] Success! Message: Group Type ' + (newState ? 'activated' : 'deactivated') + ' successfully');
                     toast.success(`Group Type ${newState ? 'activated' : 'deactivated'} successfully`);
                 }
-            } catch (error) {
-                console.log('🔴 [TOGGLE] Error:', error);
+            } catch (_error) {
                 toast.error(`Failed to ${newState ? 'activate' : 'deactivate'} group type`);
             }
         },
@@ -104,7 +99,12 @@ export function getEditableColumns(onOrderChange: (rowId: number, newOrder: numb
         {
             id: 'slNo',
             header: () => <div className='text-center font-medium'>Sl No</div>,
-            cell: ({ row }) => <div className='text-center'>{row.index + 1}</div>,
+            cell: ({ row, table }) => {
+                const pageIndex = table.getState().pagination.pageIndex;
+                const pageSize = table.getState().pagination.pageSize;
+                const continuousIndex = pageIndex * pageSize + row.index + 1;
+                return <div className='text-center'>{continuousIndex}</div>;
+            },
             enableSorting: false,
             size: 60
         },

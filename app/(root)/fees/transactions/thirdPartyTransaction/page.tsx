@@ -83,6 +83,7 @@ function FormSections() {
         isAddFormOpen,
         isEditFormOpen,
         isToggleFormOpen,
+        isDeleteFormOpen,
         selectedRow,
         closeAddForm,
         closeEditForm,
@@ -141,7 +142,7 @@ function FormSections() {
                 </div>
             )}
 
-            {isToggleFormOpen && selectedRow && <ToggleThirdPartyForm rowData={selectedRow} onClose={closeToggleForm} />}
+            {isDeleteFormOpen && selectedRow && <ToggleThirdPartyForm rowData={selectedRow} onClose={closeToggleForm} />}
         </>
     );
 }

@@ -23,8 +23,6 @@ interface PFForm6AFiltersProps {
 export function PFForm6AFilters({ filters, onDateChange, onGenerate, onCancel }: PFForm6AFiltersProps) {
     return (
         <CollapsibleSection
-            title='PF FORM 6A'
-            description='Generate annual return of PF contributions for the specified period'
             defaultOpen={true}
             variant='default'
             size='lg'
@@ -38,13 +36,21 @@ export function PFForm6AFilters({ filters, onDateChange, onGenerate, onCancel }:
                         <PopoverTrigger asChild>
                             <Button
                                 variant='outline'
-                                className={cn('w-[200px] justify-start text-left font-normal', !filters.fromDate && 'text-muted-foreground')}>
+                                className={cn(
+                                    'w-[200px] justify-start text-left font-normal',
+                                    !filters.fromDate && 'text-muted-foreground'
+                                )}>
                                 <CalendarIcon className='mr-2 h-4 w-4' />
                                 {filters.fromDate ? format(filters.fromDate, 'dd-MM-yyyy') : '17-09-2025'}
                             </Button>
                         </PopoverTrigger>
                         <PopoverContent className='w-auto p-0'>
-                            <CalendarYear mode='single' selected={filters.fromDate} onDayClick={(day) => onDateChange('fromDate', day)} initialFocus />
+                            <CalendarYear
+                                mode='single'
+                                selected={filters.fromDate}
+                                onDayClick={(day) => onDateChange('fromDate', day)}
+                                initialFocus
+                            />
                         </PopoverContent>
                     </Popover>
                 </div>
@@ -62,7 +68,12 @@ export function PFForm6AFilters({ filters, onDateChange, onGenerate, onCancel }:
                             </Button>
                         </PopoverTrigger>
                         <PopoverContent className='w-auto p-0'>
-                            <CalendarYear mode='single' selected={filters.toDate} onDayClick={(day) => onDateChange('toDate', day)} initialFocus />
+                            <CalendarYear
+                                mode='single'
+                                selected={filters.toDate}
+                                onDayClick={(day) => onDateChange('toDate', day)}
+                                initialFocus
+                            />
                         </PopoverContent>
                     </Popover>
                 </div>
@@ -81,4 +92,3 @@ export function PFForm6AFilters({ filters, onDateChange, onGenerate, onCancel }:
         </CollapsibleSection>
     );
 }
-

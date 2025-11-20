@@ -128,12 +128,12 @@ import { toast } from 'sonner';
 // DEPARTMENT
 // ============================================================================
 
-export const useMasterDepartment = (roleId: number, _searchParams?: ApiSearchparams) => {
+export const useMasterDepartment = (roleId: number, searchParams?: ApiSearchparams) => {
     const queryClient = useQueryClient();
 
     const listQuery = useQuery({
-        queryKey: [HRMS_QUERY_KEYS.MASTER_DEPARTMENT, { roleId }],
-        queryFn: async () => getMasterDepartmentList(roleId),
+        queryKey: [HRMS_QUERY_KEYS.MASTER_DEPARTMENT, roleId, searchParams ?? {}],
+        queryFn: async () => getMasterDepartmentList(roleId, searchParams),
         staleTime: 0
     });
 
@@ -202,12 +202,12 @@ export const useMasterDepartment = (roleId: number, _searchParams?: ApiSearchpar
 // DESIGNATION
 // ============================================================================
 
-export const useMasterDesignation = (roleId: number, _searchParams?: ApiSearchparams) => {
+export const useMasterDesignation = (roleId: number, searchParams?: ApiSearchparams) => {
     const queryClient = useQueryClient();
 
     const listQuery = useQuery({
-        queryKey: [HRMS_QUERY_KEYS.MASTER_DESIGNATION, { roleId }],
-        queryFn: async () => getMasterDesignationList(roleId),
+        queryKey: [HRMS_QUERY_KEYS.MASTER_DESIGNATION, roleId, searchParams ?? {}],
+        queryFn: async () => getMasterDesignationList(roleId, searchParams),
         staleTime: 0
     });
 
@@ -281,12 +281,12 @@ export const useMasterDesignation = (roleId: number, _searchParams?: ApiSearchpa
 // GRADE
 // ============================================================================
 
-export const useMasterGrade = (roleId: number, _searchParams?: ApiSearchparams) => {
+export const useMasterGrade = (roleId: number, searchParams?: ApiSearchparams) => {
     const queryClient = useQueryClient();
 
     const listQuery = useQuery({
-        queryKey: [HRMS_QUERY_KEYS.MASTER_GRADE, { roleId }],
-        queryFn: async () => getMasterGradeList(roleId),
+        queryKey: [HRMS_QUERY_KEYS.MASTER_GRADE, roleId, searchParams ?? {}],
+        queryFn: async () => getMasterGradeList(roleId, searchParams),
         staleTime: 0
     });
 
@@ -457,13 +457,13 @@ export function useMasterBankDetails(id: number) {
 // COURSE
 // ============================================================================
 
-export function useMasterCourse(roleId: number) {
+export function useMasterCourse(roleId: number, searchParams?: ApiSearchparams) {
     const queryClient = useQueryClient();
 
     const listQuery = useQuery({
-        queryKey: [HRMS_QUERY_KEYS.MASTER_COURSE, roleId],
-        queryFn: async () => getMasterCourseList(roleId),
-        staleTime: 5 * 60 * 1000
+        queryKey: [HRMS_QUERY_KEYS.MASTER_COURSE, roleId, searchParams ?? {}],
+        queryFn: async () => getMasterCourseList(roleId, searchParams),
+        staleTime: 0
     });
 
     const saveMutation = useMutation({
@@ -539,12 +539,12 @@ export function useMasterCourseDetails(id: number) {
 // EMPLOYEE TYPE
 // ============================================================================
 
-export const useMasterEmployeeType = (roleId: number, _searchParams?: ApiSearchparams) => {
+export const useMasterEmployeeType = (roleId: number, searchParams?: ApiSearchparams) => {
     const queryClient = useQueryClient();
 
     const listQuery = useQuery({
-        queryKey: [HRMS_QUERY_KEYS.MASTER_EMPLOYEE_TYPE, { roleId }],
-        queryFn: async () => getMasterEmployeeTypeList(roleId),
+        queryKey: [HRMS_QUERY_KEYS.MASTER_EMPLOYEE_TYPE, roleId, searchParams ?? {}],
+        queryFn: async () => getMasterEmployeeTypeList(roleId, searchParams),
         staleTime: 0
     });
 
@@ -580,12 +580,12 @@ export const useMasterEmployeeType = (roleId: number, _searchParams?: ApiSearchp
 // GENDER
 // ============================================================================
 
-export const useMasterGender = (roleId: number, _searchParams?: ApiSearchparams) => {
+export const useMasterGender = (roleId: number, searchParams?: ApiSearchparams) => {
     const queryClient = useQueryClient();
 
     const listQuery = useQuery({
-        queryKey: [HRMS_QUERY_KEYS.MASTER_GENDER, { roleId }],
-        queryFn: async () => getMasterGenderList(roleId),
+        queryKey: [HRMS_QUERY_KEYS.MASTER_GENDER, roleId, searchParams ?? {}],
+        queryFn: async () => getMasterGenderList(roleId, searchParams),
         staleTime: 0
     });
 
@@ -703,12 +703,12 @@ export function useMasterLoanDetails(id: number) {
 // MARITAL STATUS
 // ============================================================================
 
-export const useMasterMaritalStatus = (roleId: number, _searchParams?: ApiSearchparams) => {
+export const useMasterMaritalStatus = (roleId: number, searchParams?: ApiSearchparams) => {
     const queryClient = useQueryClient();
 
     const listQuery = useQuery({
-        queryKey: [HRMS_QUERY_KEYS.MASTER_MARITAL_STATUS, { roleId }],
-        queryFn: async () => getMasterMaritalStatusList(roleId),
+        queryKey: [HRMS_QUERY_KEYS.MASTER_MARITAL_STATUS, roleId, searchParams ?? {}],
+        queryFn: async () => getMasterMaritalStatusList(roleId, searchParams),
         staleTime: 0
     });
 
@@ -794,13 +794,13 @@ export function useMasterSpecializationDetails(id: number) {
 // GROUP TYPE
 // ============================================================================
 
-export function useMasterGroupType(roleId: number) {
+export function useMasterGroupType(roleId: number, searchParams?: ApiSearchparams) {
     const queryClient = useQueryClient();
 
     const listQuery = useQuery({
-        queryKey: [HRMS_QUERY_KEYS.MASTER_GROUP_TYPE, roleId],
-        queryFn: async () => getMasterGroupTypeList(roleId),
-        staleTime: 5 * 60 * 1000
+        queryKey: [HRMS_QUERY_KEYS.MASTER_GROUP_TYPE, roleId, searchParams ?? {}],
+        queryFn: async () => getMasterGroupTypeList(roleId, searchParams),
+        staleTime: 0
     });
 
     const saveMutation = useMutation({
@@ -880,13 +880,13 @@ export function useMasterGroupTypeDetails(id: number) {
 // PROFESSIONAL TAX
 // ============================================================================
 
-export function useMasterProfessionalTax(roleId: number) {
+export function useMasterProfessionalTax(roleId: number, searchParams?: ApiSearchparams) {
     const queryClient = useQueryClient();
 
     const listQuery = useQuery({
-        queryKey: [HRMS_QUERY_KEYS.MASTER_PROFESSIONAL_TAX, roleId],
-        queryFn: async () => getMasterProfessionalTaxList(roleId),
-        staleTime: 5 * 60 * 1000
+        queryKey: [HRMS_QUERY_KEYS.MASTER_PROFESSIONAL_TAX, roleId, searchParams ?? {}],
+        queryFn: async () => getMasterProfessionalTaxList(roleId, searchParams),
+        staleTime: 0
     });
 
     const saveMutation = useMutation({
@@ -945,13 +945,13 @@ export function useMasterProfessionalTaxDetails(id: number) {
 // LEAVE YEAR
 // ============================================================================
 
-export function useMasterLeaveYear(roleId: number) {
+export function useMasterLeaveYear(roleId: number, searchParams?: ApiSearchparams) {
     const queryClient = useQueryClient();
 
     const listQuery = useQuery({
-        queryKey: [HRMS_QUERY_KEYS.MASTER_LEAVE_YEAR, roleId],
-        queryFn: async () => getMasterLeaveYearList(roleId),
-        staleTime: 5 * 60 * 1000
+        queryKey: [HRMS_QUERY_KEYS.MASTER_LEAVE_YEAR, roleId, searchParams ?? {}],
+        queryFn: async () => getMasterLeaveYearList(roleId, searchParams),
+        staleTime: 0
     });
 
     const saveMutation = useMutation({
@@ -1190,19 +1190,14 @@ export function useMasterPayrollStandardDetails(id: number) {
 // RELIGION CATEGORY MAPPING
 // ============================================================================
 
-export function useReligionCategoryMapping() {
+export function useReligionCategoryMapping(searchParams?: ApiSearchparams) {
     return useQuery({
-        queryKey: [HRMS_QUERY_KEYS.RELIGION_CATEGORY_MAPPING],
+        queryKey: [HRMS_QUERY_KEYS.RELIGION_CATEGORY_MAPPING, searchParams ?? {}],
         queryFn: async () => {
-            console.log('🟣 [HOOK] useReligionCategoryMapping queryFn called');
-            const result = await getReligionCategoryMappingList();
-            console.log('🟣 [HOOK] getReligionCategoryMappingList result:', result);
-            console.log('🟣 [HOOK] result.data:', result?.data);
-            console.log('🟣 [HOOK] result.data.get_masterlist:', result?.data?.get_masterlist);
-            console.log('🟣 [HOOK] result.data.get_masterlist length:', result?.data?.get_masterlist?.length || 0);
+            const result = await getReligionCategoryMappingList(searchParams);
             return result;
         },
-        staleTime: 1000 * 60 * 5
+        staleTime: 0
     });
 }
 
@@ -1227,13 +1222,13 @@ export function useSaveReligionCategoryMapping() {
     });
 }
 
-export function useReligionCategoryMappingCRUD() {
+export function useReligionCategoryMappingCRUD(searchParams?: ApiSearchparams) {
     const queryClient = useQueryClient();
 
     const listQuery = useQuery({
-        queryKey: [HRMS_QUERY_KEYS.RELIGION_CATEGORY_MAPPING],
-        queryFn: () => getReligionCategoryMappingList(),
-        staleTime: 1000 * 60 * 5
+        queryKey: [HRMS_QUERY_KEYS.RELIGION_CATEGORY_MAPPING, searchParams ?? {}],
+        queryFn: () => getReligionCategoryMappingList(searchParams),
+        staleTime: 0
     });
 
     const saveMutation = useMutation({
@@ -1340,11 +1335,11 @@ export function useActivateDeactivateReligionCategoryMapping() {
 // GROUP DEPT DESSG MAPPING
 // ============================================================================
 
-export function useGroupDeptDessgMapping() {
+export function useGroupDeptDessgMapping(searchParams?: ApiSearchparams) {
     return useQuery({
-        queryKey: [HRMS_QUERY_KEYS.GROUP_DEPT_DESSG_MAPPING],
-        queryFn: () => getGroupDeptDessgMappingList(),
-        staleTime: 1000 * 60 * 5
+        queryKey: [HRMS_QUERY_KEYS.GROUP_DEPT_DESSG_MAPPING, searchParams ?? {}],
+        queryFn: () => getGroupDeptDessgMappingList(searchParams),
+        staleTime: 0
     });
 }
 

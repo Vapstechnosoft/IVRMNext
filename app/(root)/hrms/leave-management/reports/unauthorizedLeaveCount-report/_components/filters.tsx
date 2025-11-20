@@ -2,8 +2,9 @@
 
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
-import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { InputText } from '@/components/ui/extension/input-text';
+import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
+import { MultiSelect } from '@/components/ui/multi-select';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { X } from 'lucide-react';
 
@@ -13,7 +14,9 @@ export interface UnauthorizedLeaveCountFilters {
     rangeMode: 'Month Wise' | 'Date Wise';
     companyQuery: string;
     selectedCompanies: string[];
-    department: string;
+    selectedCompany: string; // Single company for Department Wise mode
+    selectedDepartments: string[]; // Multi-select departments for Department Wise mode
+    department: string; // Keep for backward compatibility if needed
     year: string;
     month: string;
     fromDate: string;
@@ -28,13 +31,19 @@ interface UnauthorizedLeaveCountFiltersProps {
 }
 
 const availableCompanies = ['All', 'Vaps Knowledge Services Pvt Ltd', 'Vaps Infotech Pvt Ltd', 'Unnathi Marketing'];
+const availableCompaniesWithoutAll = ['Vaps Knowledge Services Pvt Ltd', 'Vaps Infotech Pvt Ltd', 'Unnathi Marketing'];
+const availableDepartments = [
+    'Hardware and Network',
+    'Human Resource',
+    'IT',
+    'Finance',
+    'Marketing',
+    'Sales',
+    'Operations',
+    'Administration'
+];
 
-export function UnauthorizedLeaveCountFilters({
-    filters,
-    onFilterChange,
-    onReport,
-    onCancel
-}: UnauthorizedLeaveCountFiltersProps) {
+export function UnauthorizedLeaveCountFilters({ filters, onFilterChange, onReport, onCancel }: UnauthorizedLeaveCountFiltersProps) {
     return (
         <CollapsibleSection
             title='UNAUTHORIZED LEAVE COUNT REPORT'
@@ -81,43 +90,71 @@ export function UnauthorizedLeaveCountFilters({
                                 <div className='mt-2 max-h-40 space-y-1 overflow-y-auto'>
                                     {availableCompanies
                                         .filter((c) => c.toLowerCase().includes(filters.companyQuery.toLowerCase()))
-                                        .map((c) => (
-                                            <label key={c} className='flex items-center gap-2 text-sm'>
-                                                <Checkbox
-                                                    checked={filters.selectedCompanies.includes(c)}
-                                                    onCheckedChange={(checked) => {
-                                                        if (checked) {
-                                                            onFilterChange('selectedCompanies', [...filters.selectedCompanies, c]);
-                                                        } else {
-                                                            onFilterChange(
-                                                                'selectedCompanies',
-                                                                filters.selectedCompanies.filter((x) => x !== c)
-                                                            );
-                                                        }
-                                                    }}
-                                                />
-                                                <span>{c}</span>
-                                            </label>
-                                        ))}
+                                        .map((c) => {
+                                            const checkboxId = `company-${c}`;
+                                            return (
+                                                <label key={c} htmlFor={checkboxId} className='flex items-center gap-2 text-sm'>
+                                                    <Checkbox
+                                                        id={checkboxId}
+                                                        checked={filters.selectedCompanies.includes(c)}
+                                                        onCheckedChange={(checked) => {
+                                                            if (checked) {
+                                                                onFilterChange('selectedCompanies', [...filters.selectedCompanies, c]);
+                                                            } else {
+                                                                onFilterChange(
+                                                                    'selectedCompanies',
+                                                                    filters.selectedCompanies.filter((x) => x !== c)
+                                                                );
+                                                            }
+                                                        }}
+                                                    />
+                                                    <span>{c}</span>
+                                                </label>
+                                            );
+                                        })}
                                 </div>
                             </div>
                         </div>
                     ) : (
-                        <div>
-                            <label htmlFor='department-select' className='font-medium text-sm'>
-                                Department Name
-                            </label>
-                            <Select value={filters.department} onValueChange={(value) => onFilterChange('department', value)}>
-                                <SelectTrigger id='department-select'>
-                                    <SelectValue placeholder='Select Department' />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value='All'>All</SelectItem>
-                                    <SelectItem value='Hardware and Network'>Hardware and Network</SelectItem>
-                                    <SelectItem value='Human Resource'>Human Resource</SelectItem>
-                                </SelectContent>
-                            </Select>
-                        </div>
+                        <>
+                            {/* Company Name - Single Select (No "All" option) */}
+                            <div>
+                                <label htmlFor='company-select' className='font-medium text-sm'>
+                                    Company Name
+                                </label>
+                                <Select
+                                    value={filters.selectedCompany}
+                                    onValueChange={(value) => onFilterChange('selectedCompany', value)}>
+                                    <SelectTrigger id='company-select'>
+                                        <SelectValue placeholder='Select Company' />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {availableCompaniesWithoutAll.map((company) => (
+                                            <SelectItem key={company} value={company}>
+                                                {company}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                            </div>
+                            {/* Department - Multi-Select */}
+                            <div>
+                                <label htmlFor='department-multiselect' className='font-medium text-sm'>
+                                    Department Name
+                                </label>
+                                <MultiSelect
+                                    options={availableDepartments.map((dept) => ({
+                                        label: dept,
+                                        value: dept
+                                    }))}
+                                    onValueChange={(values) => onFilterChange('selectedDepartments', values)}
+                                    defaultValue={filters.selectedDepartments}
+                                    placeholder='Select Departments'
+                                    className='w-full'
+                                    maxHeight={240}
+                                />
+                            </div>
+                        </>
                     )}
 
                     {/* Detail Level Selection */}
@@ -241,8 +278,8 @@ export function UnauthorizedLeaveCountFilters({
 
                     {/* Action Buttons */}
                     <div className='flex gap-2 md:col-span-3'>
-                        <Button onClick={onReport}>Report</Button>
-                        <Button variant='destructive' onClick={onCancel}>
+                        <Button onClick={onReport} variant='default'>Report</Button>
+                        <Button variant='outline' onClick={onCancel}>
                             <X className='mr-2 h-4 w-4' />
                             Cancel
                         </Button>

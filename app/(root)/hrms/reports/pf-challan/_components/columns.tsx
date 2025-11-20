@@ -99,4 +99,3 @@ export const pfChallanColumns: ColumnDef<PFChallanRecord>[] = [
         enableHiding: true
     }
 ];
-

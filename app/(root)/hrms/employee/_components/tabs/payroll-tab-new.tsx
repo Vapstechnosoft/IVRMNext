@@ -1,14 +1,20 @@
 'use client';
 
-import { useEmployeeSalaryDetails, useSaveEmployeeEarning, useSaveEmployeeDeduction, useSaveEmployeeArrear, useEmployeeRegisterById } from '@/hooks/hrms/useEmployeeRegister';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Checkbox } from '@/components/ui/checkbox';
 import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
-import type { EmployeeSalaryDetailItem } from '@/types/hrms/employee-register';
-import { useMemo, useState, useEffect } from 'react';
-import { toast } from 'sonner';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { HRMS_MI_ID } from '@/constants/hrms-config';
+import {
+    useEmployeeRegisterById,
+    useEmployeeSalaryDetails,
+    useSaveEmployeeArrear,
+    useSaveEmployeeDeduction,
+    useSaveEmployeeEarning
+} from '@/hooks/hrms/useEmployeeRegister';
+import type { EmployeeSalaryDetailItem } from '@/types/hrms/employee-register';
+import { useEffect, useMemo, useState } from 'react';
+import { toast } from 'sonner';
 
 interface PayrollTabProps {
     employeeId: number | null;
@@ -98,9 +104,7 @@ export function PayrollTab({ employeeId, employeeCode }: PayrollTabProps) {
     }, [deductions]);
 
     const totalArrear = useMemo(() => {
-        return arrears
-            .filter((item) => item.HREED_ActiveFlag)
-            .reduce((sum, item) => sum + (item.localAmount || item.HREED_Amount || 0), 0);
+        return arrears.filter((item) => item.HREED_ActiveFlag).reduce((sum, item) => sum + (item.localAmount || item.HREED_Amount || 0), 0);
     }, [arrears]);
 
     const netSalary = totalEarning + totalArrear - totalDeduction;
@@ -111,21 +115,10 @@ export function PayrollTab({ employeeId, employeeCode }: PayrollTabProps) {
             return;
         }
 
-        console.log('🔍 [PAYROLL SAVE] Form - Starting save process', {
-            employeeId,
-            employeeCode,
-            earningsCount: earnings.length,
-            deductionsCount: deductions.length,
-            arrearsCount: arrears.length,
-            activeEarnings: earnings.filter((item) => item.HREED_ActiveFlag).length,
-            activeDeductions: deductions.filter((item) => item.HREED_ActiveFlag).length,
-            activeArrears: arrears.filter((item) => item.HREED_ActiveFlag).length
-        });
-
         try {
             // Get employee details for required fields
             const empDetails = (employeeData?.employeedetailList?.[0] || {}) as any;
-            
+
             // Helper function to create base payload wrapper with employee data
             const createBasePayload = () => ({
                 Type: 'string',
@@ -243,95 +236,40 @@ export function PayrollTab({ employeeId, employeeCode }: PayrollTabProps) {
                     ...createBasePayload()
                 }));
 
-            console.log('🔍 [PAYROLL SAVE] Form - Prepared payloads', {
-                earningsPayload: {
-                    count: earningsPayload.length,
-                    items: earningsPayload.map((item) => ({
-                        HREED_Id: item.HREED_Id,
-                        HRMED_Name: item.HRMED_Name,
-                        HREED_Amount: item.HREED_Amount,
-                        HREED_Percentage: item.HREED_Percentage,
-                        HREED_ActiveFlag: item.HREED_ActiveFlag,
-                        hasBasePayload: !!item.Type
-                    }))
-                },
-                deductionsPayload: {
-                    count: deductionsPayload.length,
-                    items: deductionsPayload.map((item) => ({
-                        HREED_Id: item.HREED_Id,
-                        HRMED_Name: item.HRMED_Name,
-                        HREED_Amount: item.HREED_Amount,
-                        HREED_Percentage: item.HREED_Percentage,
-                        HREED_ActiveFlag: item.HREED_ActiveFlag,
-                        hasBasePayload: !!item.Type
-                    }))
-                },
-                arrearsPayload: {
-                    count: arrearsPayload.length,
-                    items: arrearsPayload.map((item) => ({
-                        HREED_Id: item.HREED_Id,
-                        HRMED_Name: item.HRMED_Name,
-                        HREED_Amount: item.HREED_Amount,
-                        HREED_Percentage: item.HREED_Percentage,
-                        HREED_ActiveFlag: item.HREED_ActiveFlag,
-                        hasBasePayload: !!item.Type
-                    }))
-                }
-            });
-
             // Call all three endpoints
             const promises = [];
 
             if (earningsPayload.length > 0) {
-                console.log('🔍 [PAYROLL SAVE] Form - Calling saveEarningMutation with', earningsPayload.length, 'items');
                 promises.push(saveEarningMutation.mutateAsync(earningsPayload));
             }
 
             if (deductionsPayload.length > 0) {
-                console.log('🔍 [PAYROLL SAVE] Form - Calling saveDeductionMutation with', deductionsPayload.length, 'items');
                 promises.push(saveDeductionMutation.mutateAsync(deductionsPayload));
             }
 
             if (arrearsPayload.length > 0) {
-                console.log('🔍 [PAYROLL SAVE] Form - Calling saveArrearMutation with', arrearsPayload.length, 'items');
                 promises.push(saveArrearMutation.mutateAsync(arrearsPayload));
             }
 
             if (promises.length === 0) {
-                console.log('🔍 [PAYROLL SAVE] Form - No active items to save');
                 toast.info('No active payroll items to save');
                 return;
             }
-
-            console.log('🔍 [PAYROLL SAVE] Form - Waiting for', promises.length, 'API calls to complete');
             const results = await Promise.all(promises);
-            
-            // Log each result summary (minimal)
-            results.forEach((result, index) => {
-                console.log(`🔍 [PAYROLL SAVE] Form - Result ${index + 1}:`, {
-                    success: result?.success,
-                    message: result?.message?.substring(0, 50) // First 50 chars only
-                });
-            });
-            
+
+            // Results processed below
+
             // Check if any API call failed
-            const failedResults = results.filter(result => !result?.success);
+            const failedResults = results.filter((result) => !result?.success);
             if (failedResults.length > 0) {
                 const errorMessages = failedResults
-                    .map(result => result?.message || 'Unknown error')
+                    .map((result) => result?.message || 'Unknown error')
                     .filter((msg, index, arr) => arr.indexOf(msg) === index) // Remove duplicates
                     .join(', ');
-                
-                console.log('🔍 [PAYROLL SAVE] Form - Save failed:', errorMessages);
                 toast.error(`Failed to save payroll details: ${errorMessages}`);
                 return;
             }
-            
-            // Refetch payroll data
-            console.log('🔍 [PAYROLL SAVE] Form - Refetching payroll data');
             await refetch();
-            
-            console.log('🔍 [PAYROLL SAVE] Form - Save successful');
             toast.success('Payroll details saved successfully');
         } catch (error: any) {
             console.error('🔍 [PAYROLL SAVE] Form - Error saving payroll details:', error);
@@ -348,11 +286,7 @@ export function PayrollTab({ employeeId, employeeCode }: PayrollTabProps) {
     const isSaving = saveEarningMutation.isPending || saveDeductionMutation.isPending || saveArrearMutation.isPending;
 
     if (isLoading) {
-        return (
-            <div className='rounded-md border p-6 text-center text-muted-foreground'>
-                Loading payroll details...
-            </div>
-        );
+        return <div className='rounded-md border p-6 text-center text-muted-foreground'>Loading payroll details...</div>;
     }
 
     return (
@@ -368,10 +302,10 @@ export function PayrollTab({ employeeId, employeeCode }: PayrollTabProps) {
                             <TableRow>
                                 <TableHead className='w-16'>Serial NO.</TableHead>
                                 <TableHead>Earnings</TableHead>
-                                <TableHead className='text-right w-24'>Actual %</TableHead>
-                                <TableHead className='text-right w-24'>% Applicable</TableHead>
-                                <TableHead className='text-right w-32'>Amount</TableHead>
-                                <TableHead className='text-right w-32'>Max Amount</TableHead>
+                                <TableHead className='w-24 text-right'>Actual %</TableHead>
+                                <TableHead className='w-24 text-right'>% Applicable</TableHead>
+                                <TableHead className='w-32 text-right'>Amount</TableHead>
+                                <TableHead className='w-32 text-right'>Max Amount</TableHead>
                                 <TableHead>Details</TableHead>
                                 <TableHead className='w-16'>Action</TableHead>
                             </TableRow>
@@ -409,7 +343,9 @@ export function PayrollTab({ employeeId, employeeCode }: PayrollTabProps) {
                                                 type='number'
                                                 className='h-8 w-24 text-right'
                                                 value={item.localAmount ?? item.HREED_Amount ?? 0}
-                                                onChange={(e) => updateEarning(index, 'localAmount', parseFloat(e.target.value) || 0)}
+                                                onChange={(e) =>
+                                                    updateEarning(index, 'localAmount', Number.parseFloat(e.target.value) || 0)
+                                                }
                                             />
                                         </TableCell>
                                         <TableCell className='text-right'>
@@ -417,13 +353,15 @@ export function PayrollTab({ employeeId, employeeCode }: PayrollTabProps) {
                                                 type='number'
                                                 className='h-8 w-24 text-right'
                                                 value={item.localMaxAmount ?? item.HREED_ApplicableMaxValue ?? 0}
-                                                onChange={(e) => updateEarning(index, 'localMaxAmount', parseFloat(e.target.value) || 0)}
+                                                onChange={(e) =>
+                                                    updateEarning(index, 'localMaxAmount', Number.parseFloat(e.target.value) || 0)
+                                                }
                                             />
                                         </TableCell>
                                         <TableCell>{item.HREED_MaxApplicableFlg ? 'Yes' : 'No'}</TableCell>
                                         <TableCell>
-                                            <Checkbox 
-                                                checked={item.HREED_ActiveFlag || false} 
+                                            <Checkbox
+                                                checked={item.HREED_ActiveFlag || false}
                                                 onCheckedChange={(checked) => updateEarning(index, 'HREED_ActiveFlag', checked)}
                                             />
                                         </TableCell>
@@ -451,10 +389,10 @@ export function PayrollTab({ employeeId, employeeCode }: PayrollTabProps) {
                             <TableRow>
                                 <TableHead className='w-16'>Serial NO.</TableHead>
                                 <TableHead>Deductions</TableHead>
-                                <TableHead className='text-right w-24'>Actual %</TableHead>
-                                <TableHead className='text-right w-24'>% Applicable</TableHead>
-                                <TableHead className='text-right w-32'>Amount</TableHead>
-                                <TableHead className='text-right w-32'>Max Amount</TableHead>
+                                <TableHead className='w-24 text-right'>Actual %</TableHead>
+                                <TableHead className='w-24 text-right'>% Applicable</TableHead>
+                                <TableHead className='w-32 text-right'>Amount</TableHead>
+                                <TableHead className='w-32 text-right'>Max Amount</TableHead>
                                 <TableHead>Details</TableHead>
                                 <TableHead className='w-16'>Action</TableHead>
                             </TableRow>
@@ -492,7 +430,9 @@ export function PayrollTab({ employeeId, employeeCode }: PayrollTabProps) {
                                                 type='number'
                                                 className='h-8 w-24 text-right'
                                                 value={item.localAmount ?? item.HREED_Amount ?? 0}
-                                                onChange={(e) => updateDeduction(index, 'localAmount', parseFloat(e.target.value) || 0)}
+                                                onChange={(e) =>
+                                                    updateDeduction(index, 'localAmount', Number.parseFloat(e.target.value) || 0)
+                                                }
                                             />
                                         </TableCell>
                                         <TableCell className='text-right'>
@@ -500,13 +440,15 @@ export function PayrollTab({ employeeId, employeeCode }: PayrollTabProps) {
                                                 type='number'
                                                 className='h-8 w-24 text-right'
                                                 value={item.localMaxAmount ?? item.HREED_ApplicableMaxValue ?? 0}
-                                                onChange={(e) => updateDeduction(index, 'localMaxAmount', parseFloat(e.target.value) || 0)}
+                                                onChange={(e) =>
+                                                    updateDeduction(index, 'localMaxAmount', Number.parseFloat(e.target.value) || 0)
+                                                }
                                             />
                                         </TableCell>
                                         <TableCell>{item.HREED_MaxApplicableFlg ? 'Yes' : 'No'}</TableCell>
                                         <TableCell>
-                                            <Checkbox 
-                                                checked={item.HREED_ActiveFlag || false} 
+                                            <Checkbox
+                                                checked={item.HREED_ActiveFlag || false}
                                                 onCheckedChange={(checked) => updateDeduction(index, 'HREED_ActiveFlag', checked)}
                                             />
                                         </TableCell>
@@ -534,9 +476,9 @@ export function PayrollTab({ employeeId, employeeCode }: PayrollTabProps) {
                             <TableRow>
                                 <TableHead className='w-16'>Serial NO.</TableHead>
                                 <TableHead>Arrear Head</TableHead>
-                                <TableHead className='text-right w-24'>Actual %</TableHead>
-                                <TableHead className='text-right w-24'>% Applicable</TableHead>
-                                <TableHead className='text-right w-32'>Amount</TableHead>
+                                <TableHead className='w-24 text-right'>Actual %</TableHead>
+                                <TableHead className='w-24 text-right'>% Applicable</TableHead>
+                                <TableHead className='w-32 text-right'>Amount</TableHead>
                                 <TableHead>Details</TableHead>
                                 <TableHead className='w-16'>Action</TableHead>
                             </TableRow>
@@ -574,13 +516,13 @@ export function PayrollTab({ employeeId, employeeCode }: PayrollTabProps) {
                                                 type='number'
                                                 className='h-8 w-24 text-right'
                                                 value={item.localAmount ?? item.HREED_Amount ?? 0}
-                                                onChange={(e) => updateArrear(index, 'localAmount', parseFloat(e.target.value) || 0)}
+                                                onChange={(e) => updateArrear(index, 'localAmount', Number.parseFloat(e.target.value) || 0)}
                                             />
                                         </TableCell>
                                         <TableCell>{item.HREED_MaxApplicableFlg ? 'Yes' : 'No'}</TableCell>
                                         <TableCell>
-                                            <Checkbox 
-                                                checked={item.HREED_ActiveFlag || false} 
+                                            <Checkbox
+                                                checked={item.HREED_ActiveFlag || false}
                                                 onCheckedChange={(checked) => updateArrear(index, 'HREED_ActiveFlag', checked)}
                                             />
                                         </TableCell>
@@ -600,7 +542,7 @@ export function PayrollTab({ employeeId, employeeCode }: PayrollTabProps) {
             {/* Net Salary */}
             <div className='rounded-md border-2 border-primary bg-primary/5 p-4'>
                 <div className='flex justify-center'>
-                    <span className='text-xl font-bold'>Net Salary: ₹{netSalary.toFixed(2)}</span>
+                    <span className='font-bold text-xl'>Net Salary: ₹{netSalary.toFixed(2)}</span>
                 </div>
             </div>
 
@@ -609,12 +551,7 @@ export function PayrollTab({ employeeId, employeeCode }: PayrollTabProps) {
                 <Button variant='outline' type='button'>
                     PREVIOUS
                 </Button>
-                <Button 
-                    type='button' 
-                    className='bg-primary text-primary-foreground'
-                    onClick={handleSave}
-                    disabled={isSaving}
-                >
+                <Button type='button' className='bg-primary text-primary-foreground' onClick={handleSave} disabled={isSaving}>
                     {isSaving ? 'SAVING...' : 'SUBMIT'}
                 </Button>
                 <Button variant='outline' type='button'>

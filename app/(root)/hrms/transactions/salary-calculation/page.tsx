@@ -11,12 +11,8 @@ import { MultiSelect } from '@/components/ui/multi-select';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useGenerateSalary, useSalaryCalculationOnload, useSearchSalaryCalculation } from '@/hooks/hrms/useTransactions';
 import type {
-    DepartmentDropdown,
     DesignationDropdown,
     EmployeeDropdown,
-    GroupTypeDropdown,
-    LeaveYearDropdown,
-    MonthDropdown,
     SalaryCalculationGenerateRequest,
     SalaryCalculationSearchRequest
 } from '@/types/hrms/salary-calculation';
@@ -228,8 +224,6 @@ export default function SalaryCalculationPage() {
             <div className='container space-y-4 p-1'>
                 {/* Search Form */}
                 <CollapsibleSection
-                    title='SALARY CALCULATION'
-                    description='Search and filter employee salary records'
                     defaultOpen={true}
                     variant='outline'
                     size='lg'
@@ -377,8 +371,6 @@ export default function SalaryCalculationPage() {
                 {/* Employee List Table */}
                 {hasSearched && (
                     <CollapsibleSection
-                        title='EMPLOYEE LIST'
-                        description={`View and calculate employee salaries (${selectedEmployees.length} selected)`}
                         defaultOpen={true}
                         variant='default'
                         size='lg'

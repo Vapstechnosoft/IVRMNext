@@ -10,9 +10,14 @@ import type {
     EmployeeDetailsReportSearchResponse
 } from '@/types/hrms/reports/employee-details-report';
 
+/**
+ * Get onload data for employee details report
+ * POST /api/EmployeeDetailsReportFacade/onloadgetdetails
+ * Returns dropdown data (months, leave years, departments, designations, employee types, group types)
+ */
 export async function getEmployeeDetailsReportOnload(
     MI_Id = 30,
-    LogInUserId = 2
+    LogInUserId = 0
 ): Promise<ApiResponse<EmployeeDetailsReportOnloadResponse>> {
     const requestBody: EmployeeDetailsReportOnloadRequest = {
         MI_Id,
@@ -20,7 +25,7 @@ export async function getEmployeeDetailsReportOnload(
     };
     const response = await api.post<EmployeeDetailsReportOnloadResponse>(
         'hrms',
-        '/api/EmployeeDetailsReportFacade/onloadgetdetailsNew',
+        '/api/EmployeeDetailsReportFacade/onloadgetdetails',
         requestBody
     );
 

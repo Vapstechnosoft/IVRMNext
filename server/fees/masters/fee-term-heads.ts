@@ -23,6 +23,7 @@ export async function addOrUpdateFeeTermHead(data: any) {
 
 export async function deleteFeeTermHead(mi_id: number, id: number) {
     const url = `/FeeMasterTerms/delete_mapped_term_heads?mi_Id=30&fmtfh_Id=${id}`;
+    console.info('deleted url', url);
 
     return await api.post('fees', url);
 }

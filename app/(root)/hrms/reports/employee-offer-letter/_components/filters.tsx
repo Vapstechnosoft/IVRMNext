@@ -6,10 +6,10 @@ import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import type { BaseEntity } from '@/lib/localdb';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
 import { CalendarIcon, Search, X } from 'lucide-react';
-import { type BaseEntity } from '@/lib/localdb';
 
 export interface GroupType extends BaseEntity {
     groupType: string;
@@ -226,7 +226,9 @@ export function EmployeeOfferLetterFilters({
                             <span className='font-medium text-foreground text-sm'>Report Type:</span>
                             <RadioGroup
                                 value={filters.reportType}
-                                onValueChange={(value) => handleInternalFilterChange('reportType', value as 'Experience Certificate' | 'Offer Letter')}
+                                onValueChange={(value) =>
+                                    handleInternalFilterChange('reportType', value as 'Experience Certificate' | 'Offer Letter')
+                                }
                                 className='space-y-3'>
                                 <div className='flex items-center space-x-2'>
                                     <RadioGroupItem value='Experience Certificate' id='experience-certificate' />
@@ -260,4 +262,3 @@ export function EmployeeOfferLetterFilters({
         </CollapsibleSection>
     );
 }
-

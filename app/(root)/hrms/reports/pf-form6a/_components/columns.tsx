@@ -106,4 +106,3 @@ export const form6AColumns: ColumnDef<Form6ARecord>[] = [
         enableHiding: true
     }
 ];
-

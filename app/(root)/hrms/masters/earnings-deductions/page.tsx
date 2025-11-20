@@ -46,10 +46,6 @@ function MasterEarningsDeductionsPageContent({
     const [isEditOrderMode, setIsEditOrderMode] = useState(false);
     const [editedRows, setEditedRows] = useState<EarningsDeductionDetail[]>([]);
     const [filterCategory, setFilterCategory] = useState<string>('all');
-    
-    console.log('📊 [PAGE] Total rows from API:', rows.length);
-    console.log('📊 [PAGE] Type dropdown items:', typeDropdown.length);
-    console.log('📊 [PAGE] Current filter:', filterCategory);
 
     const handleSetOrder = () => {
         setIsEditOrderMode(true);
@@ -79,13 +75,9 @@ function MasterEarningsDeductionsPageContent({
     const displayColumns = isEditOrderMode ? getEditableColumns(handleOrderChange) : columns;
 
     // Filter data based on selected category
-    const filteredRows = filterCategory === 'all' 
-        ? rows 
-        : rows.filter(row => row.HRMED_EarnDedFlag === filterCategory);
-    
+    const filteredRows = filterCategory === 'all' ? rows : rows.filter((row) => row.HRMED_EarnDedFlag === filterCategory);
+
     const displayData = isEditOrderMode ? editedRows : filteredRows;
-    
-    console.log('📊 [PAGE] Filtered rows count:', filteredRows.length);
 
     return (
         <div className='min-h-screen'>
@@ -104,12 +96,12 @@ function MasterEarningsDeductionsPageContent({
                             <option value='Gross'>Gross</option>
                         </select>
                         {filterCategory !== 'all' && (
-                            <span className='text-sm text-muted-foreground'>
+                            <span className='text-muted-foreground text-sm'>
                                 Showing {filteredRows.length} of {rows.length} items
                             </span>
                         )}
                     </div>
-                    
+
                     {/* Action Buttons */}
                     <div className='flex gap-2'>
                         {isEditOrderMode ? (

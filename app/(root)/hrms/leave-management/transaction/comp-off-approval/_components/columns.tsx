@@ -2,10 +2,10 @@
 
 import { Button } from '@/components/ui/button';
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
-import { type BaseEntity } from '@/lib/localdb';
+import type { BaseEntity } from '@/lib/localdb';
+import { cn } from '@/lib/utils';
 import type { ColumnDef } from '@tanstack/react-table';
 import { Check, X } from 'lucide-react';
-import { cn } from '@/lib/utils';
 
 export interface CompOffApproval extends BaseEntity {
     employeeName: string;
@@ -93,17 +93,10 @@ export const getCompOffApprovalColumns = ({
             const entity = row.original;
             return (
                 <div className='flex gap-2'>
-                    <Button
-                        size='sm'
-                        onClick={() => onApprove(entity)}
-                        disabled={entity.hrStatus === 'Approved'}>
+                    <Button size='sm' onClick={() => onApprove(entity)} disabled={entity.hrStatus === 'Approved'}>
                         <Check className='mr-1 h-4 w-4' /> Approve
                     </Button>
-                    <Button
-                        size='sm'
-                        variant='destructive'
-                        onClick={() => onReject(entity)}
-                        disabled={entity.hrStatus === 'Rejected'}>
+                    <Button size='sm' variant='destructive' onClick={() => onReject(entity)} disabled={entity.hrStatus === 'Rejected'}>
                         <X className='mr-1 h-4 w-4' /> Reject
                     </Button>
                 </div>

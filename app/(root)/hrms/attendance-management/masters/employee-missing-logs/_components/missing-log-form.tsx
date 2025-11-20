@@ -3,7 +3,6 @@
 import { Button } from '@/components/ui/button';
 import { DatePickerWithYear } from '@/components/ui/date-picker-year';
 import { FormError } from '@/components/ui/extension/field';
-import { InputText } from '@/components/ui/extension/input-text';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
@@ -14,8 +13,8 @@ import { format } from 'date-fns';
 import { CalendarIcon, Eye, Plus, RefreshCw, Save, Trash2, Upload, X } from 'lucide-react';
 import { Controller, type SubmitHandler, useFieldArray, useForm } from 'react-hook-form';
 import type { z } from 'zod';
-import type { MissingLog } from './columns';
 import { TimePicker12Hour } from '../../master-shift/_components/time-picker-12hour';
+import type { MissingLog } from './columns';
 
 export type MissingLogFormData = z.infer<typeof employeeMissingLogsSchema.addOrUpdate>;
 
@@ -119,9 +118,7 @@ export function MissingLogForm({ editingMissingLog, onSubmit, onCancel }: Missin
                     <label className='font-medium text-sm' htmlFor='employeeName'>
                         Employee Name <span className='text-red-500'>*</span>
                     </label>
-                    <Select
-                        value={watch('employeeName')}
-                        onValueChange={(value) => setValue('employeeName', value)}>
+                    <Select value={watch('employeeName')} onValueChange={(value) => setValue('employeeName', value)}>
                         <SelectTrigger id='employeeName' className={errors.employeeName ? 'border-red-500' : ''}>
                             <SelectValue placeholder='--Select--' />
                         </SelectTrigger>
@@ -187,22 +184,22 @@ export function MissingLogForm({ editingMissingLog, onSubmit, onCancel }: Missin
 
             {/* Missing Time Entry Grid */}
             <div className='space-y-4'>
-                <div className='border-b-2 border-primary pb-2'>
-                    <h3 className='text-base font-semibold'>Missing Time Entry</h3>
+                <div className='border-primary border-b-2 pb-2'>
+                    <h3 className='font-semibold text-base'>Missing Time Entry</h3>
                 </div>
 
                 <div className='overflow-x-auto'>
                     <table className='w-full border-collapse'>
                         <thead>
                             <tr className='bg-primary/10'>
-                                <th className='border border-input px-3 py-2 text-left text-sm font-semibold'>Sl. No.</th>
-                                <th className='border border-input px-3 py-2 text-left text-sm font-semibold'>Times</th>
-                                <th className='border border-input px-3 py-2 text-left text-sm font-semibold'>IN/OUT</th>
-                                <th className='border border-input px-3 py-2 text-left text-sm font-semibold'>Enter Missing Time</th>
-                                <th className='border border-input px-3 py-2 text-left text-sm font-semibold'>Upload</th>
-                                <th className='border border-input px-3 py-2 text-left text-sm font-semibold'>View</th>
-                                <th className='border border-input px-3 py-2 text-left text-sm font-semibold'>Remarks</th>
-                                <th className='border border-input px-3 py-2 text-center text-sm font-semibold'>Action</th>
+                                <th className='border border-input px-3 py-2 text-left font-semibold text-sm'>Sl. No.</th>
+                                <th className='border border-input px-3 py-2 text-left font-semibold text-sm'>Times</th>
+                                <th className='border border-input px-3 py-2 text-left font-semibold text-sm'>IN/OUT</th>
+                                <th className='border border-input px-3 py-2 text-left font-semibold text-sm'>Enter Missing Time</th>
+                                <th className='border border-input px-3 py-2 text-left font-semibold text-sm'>Upload</th>
+                                <th className='border border-input px-3 py-2 text-left font-semibold text-sm'>View</th>
+                                <th className='border border-input px-3 py-2 text-left font-semibold text-sm'>Remarks</th>
+                                <th className='border border-input px-3 py-2 text-center font-semibold text-sm'>Action</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -225,15 +222,15 @@ export function MissingLogForm({ editingMissingLog, onSubmit, onCancel }: Missin
                                                     />
                                                 )}
                                             />
-                                            {errors.entries?.[index]?.time && (
-                                                <FormError>{errors.entries[index]?.time?.message}</FormError>
-                                            )}
+                                            {errors.entries?.[index]?.time && <FormError>{errors.entries[index]?.time?.message}</FormError>}
                                             <div>
-                                                <label className='mb-1 block text-xs font-medium'>Input/Output</label>
+                                                <label htmlFor={`inOut-${index}`} className='mb-1 block font-medium text-xs'>
+                                                    Input/Output
+                                                </label>
                                                 <Select
                                                     value={watch(`entries.${index}.inOut`)}
                                                     onValueChange={(value) => setValue(`entries.${index}.inOut`, value as 'IN' | 'OUT')}>
-                                                    <SelectTrigger className='w-full'>
+                                                    <SelectTrigger id={`inOut-${index}`} className='w-full'>
                                                         <SelectValue placeholder='Select' />
                                                     </SelectTrigger>
                                                     <SelectContent>
@@ -258,14 +255,13 @@ export function MissingLogForm({ editingMissingLog, onSubmit, onCancel }: Missin
                                             />
                                             <Button
                                                 type='button'
-                                                variant='outline'
+                                                variant='warning'
                                                 size='sm'
-                                                onClick={() => document.getElementById(`upload-${index}`)?.click()}
-                                                className='bg-yellow-500 text-white hover:bg-yellow-600'>
+                                                onClick={() => document.getElementById(`upload-${index}`)?.click()}>
                                                 <Upload className='mr-2 h-4 w-4' /> Choose File
                                             </Button>
                                             {watch(`entries.${index}.file`) && (
-                                                <span className='text-xs text-muted-foreground' title={watch(`entries.${index}.file`)}>
+                                                <span className='text-muted-foreground text-xs' title={watch(`entries.${index}.file`)}>
                                                     {(watch(`entries.${index}.file`) || '').length > 20
                                                         ? `${(watch(`entries.${index}.file`) || '').substring(0, 20)}...`
                                                         : watch(`entries.${index}.file`) || ''}

@@ -6,7 +6,7 @@ import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Search, X } from 'lucide-react';
 import { useEffect, useState } from 'react';
-import { FilterOptions } from './columns';
+import type { FilterOptions } from './columns';
 
 // Report filters
 export interface DepartmentSalaryFilters {
@@ -48,8 +48,6 @@ export function DepartmentSalaryReportFilters({
 
     return (
         <CollapsibleSection
-            title='DEPARTMENT SALARY REPORT'
-            description='Configure filters to generate departmental salary analysis'
             defaultOpen={true}
             variant='default'
             size='lg'
@@ -111,7 +109,9 @@ export function DepartmentSalaryReportFilters({
                                     <Checkbox
                                         id={`dept-${department}`}
                                         checked={filters.selectedDepartments.includes(department)}
-                                        onCheckedChange={(checked) => onCheckboxChange('selectedDepartments', department, checked as boolean)}
+                                        onCheckedChange={(checked) =>
+                                            onCheckboxChange('selectedDepartments', department, checked as boolean)
+                                        }
                                     />
                                     <label htmlFor={`dept-${department}`} className='cursor-pointer text-sm'>
                                         {department}
@@ -143,7 +143,9 @@ export function DepartmentSalaryReportFilters({
                                     <Checkbox
                                         id={`desig-${designation}`}
                                         checked={filters.selectedDesignations.includes(designation)}
-                                        onCheckedChange={(checked) => onCheckboxChange('selectedDesignations', designation, checked as boolean)}
+                                        onCheckedChange={(checked) =>
+                                            onCheckboxChange('selectedDesignations', designation, checked as boolean)
+                                        }
                                     />
                                     <label htmlFor={`desig-${designation}`} className='cursor-pointer text-sm'>
                                         {designation}
@@ -226,4 +228,3 @@ export function DepartmentSalaryReportFilters({
         </CollapsibleSection>
     );
 }
-

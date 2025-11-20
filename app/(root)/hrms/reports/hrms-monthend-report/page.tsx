@@ -1,6 +1,5 @@
 'use client';
 
-import { Heading } from '@/components/layout/heading';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { DataTable } from '@/components/ui/data-table/data-table';
@@ -8,8 +7,8 @@ import { type BaseEntity, createLocalCrud } from '@/lib/localdb';
 import { Building, Calculator, Download, Printer, TrendingUp, UserCheck, Users } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';
-import { HRMSMonthEndFilters, type FilterOptions, type MonthEndFilters } from './_components/filters';
-import { monthEndReportColumns, type MonthEndRecord as MonthEndRecordColumn } from './_components/columns';
+import { type MonthEndRecord as MonthEndRecordColumn, monthEndReportColumns } from './_components/columns';
+import { type FilterOptions, HRMSMonthEndFilters, type MonthEndFilters } from './_components/filters';
 
 // Month End Report data structure
 interface MonthEndRecord extends BaseEntity {
@@ -50,7 +49,6 @@ interface MonthEndSummary {
     totalNetSalary: number;
     averageNetSalary: number;
 }
-
 
 export default function HRMSMonthEndReportPage() {
     // Database instances
@@ -355,15 +353,8 @@ export default function HRMSMonthEndReportPage() {
         return summary;
     }, [filteredRecords]);
 
-
     return (
         <div className='space-y-6'>
-            <div className='flex-between flex-wrap gap-4'>
-                <Heading
-                    title='HRMS Month End Report'
-                    description='Comprehensive monthly report for employee attendance, salary, and performance'
-                />
-            </div>
 
             {/* Report Configuration Section */}
             <HRMSMonthEndFilters

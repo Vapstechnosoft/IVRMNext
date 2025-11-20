@@ -1,21 +1,23 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
 import { type BaseEntity } from '@/lib/localdb';
 import type { ColumnDef } from '@tanstack/react-table';
 import { Edit, Trash2 } from 'lucide-react';
-import { cn } from '@/lib/utils';
 
 export interface LeaveCreditTransaction extends BaseEntity {
     type: string[];
     department: string[];
     designation: string[];
     leaveYear: string;
-    fromDate?: string;
-    toDate?: string;
-    employee?: string;
-    lossOfPay: boolean;
+    fromDate: string;
+    toDate: string;
+    totalDays: number;
+    employee: string;
+    lossOfPayType: 'none' | 'full' | 'half' | 'oneFourth' | 'threeFourth';
+    lossOfPayAmount?: number;
     leaveName: string;
     availed: number;
 }
@@ -30,13 +32,35 @@ export const getLeaveCreditTransactionColumns = ({
     onDelete
 }: LeaveCreditTransactionColumnsProps): ColumnDef<LeaveCreditTransaction>[] => [
     {
-        accessorKey: 'leaveYear',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Leave Year' />,
-        cell: ({ row }) => <div>{row.getValue('leaveYear')}</div>
+        id: 'select',
+        header: ({ table }) => (
+            <Checkbox
+                checked={table.getIsAllPageRowsSelected() || (table.getIsSomePageRowsSelected() && 'indeterminate')}
+                onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
+                aria-label='Select all'
+            />
+        ),
+        cell: ({ row }) => (
+            <Checkbox checked={row.getIsSelected()} onCheckedChange={(value) => row.toggleSelected(!!value)} aria-label='Select row' />
+        ),
+        enableSorting: false,
+        enableHiding: false,
+        size: 24
+    },
+    {
+        id: 'sl',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='SNO' />,
+        cell: ({ row, table }) => {
+            const pageIndex = table.getState().pagination.pageIndex;
+            const pageSize = table.getState().pagination.pageSize;
+            const continuousIndex = pageIndex * pageSize + row.index + 1;
+            return <div className='font-medium'>{continuousIndex}</div>;
+        },
+        enableSorting: false
     },
     {
         accessorKey: 'employee',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Employee' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Employee Name' />,
         cell: ({ row }) => <div className='font-medium'>{row.getValue('employee') || '-'}</div>
     },
     {
@@ -45,16 +69,13 @@ export const getLeaveCreditTransactionColumns = ({
         cell: ({ row }) => <div>{row.getValue('leaveName')}</div>
     },
     {
-        accessorKey: 'availed',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Availed' />,
-        cell: ({ row }) => <div className='text-center'>{row.getValue('availed')}</div>
-    },
-    {
         accessorKey: 'fromDate',
         header: ({ column }) => <DataTableColumnHeader column={column} title='From Date' />,
         cell: ({ row }) => {
             const date = row.getValue('fromDate') as string;
-            return <div>{date ? new Date(date).toLocaleDateString() : '-'}</div>;
+            if (!date) return <div>-</div>;
+            const dateObj = new Date(date);
+            return <div>{dateObj.toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' })}</div>;
         }
     },
     {
@@ -62,24 +83,15 @@ export const getLeaveCreditTransactionColumns = ({
         header: ({ column }) => <DataTableColumnHeader column={column} title='To Date' />,
         cell: ({ row }) => {
             const date = row.getValue('toDate') as string;
-            return <div>{date ? new Date(date).toLocaleDateString() : '-'}</div>;
+            if (!date) return <div>-</div>;
+            const dateObj = new Date(date);
+            return <div>{dateObj.toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' })}</div>;
         }
     },
     {
-        accessorKey: 'lossOfPay',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Loss of Pay' />,
-        cell: ({ row }) => {
-            const lossOfPay = row.getValue('lossOfPay') as boolean;
-            return (
-                <span
-                    className={cn(
-                        'inline-flex rounded-full px-2 py-1 font-medium text-xs',
-                        lossOfPay ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700'
-                    )}>
-                    {lossOfPay ? 'Yes' : 'No'}
-                </span>
-            );
-        }
+        accessorKey: 'availed',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Availed' />,
+        cell: ({ row }) => <div className='text-center'>{row.getValue('availed')}</div>
     },
     {
         id: 'actions',

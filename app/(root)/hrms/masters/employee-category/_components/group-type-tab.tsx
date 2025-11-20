@@ -6,7 +6,9 @@ import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
 import { HRMS_MI_ID } from '@/constants/hrms-config';
 import { useMasterGroupType } from '@/hooks/hrms/useMasters';
+import type { ApiSearchparams } from '@/types';
 import type { GroupTypeDetail } from '@/types/hrms/master-group-type';
+import { parseAsInteger, parseAsString, useQueryState } from 'nuqs';
 import { ListOrdered, Plus, Save, X } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { toast } from 'sonner';
@@ -15,15 +17,29 @@ import GroupTypeForm from '../../group-type/_components/group-type-form';
 
 export default function GroupTypeTab() {
     const roleId = HRMS_MI_ID;
-    const { listQuery } = useMasterGroupType(roleId);
-
-    console.log('📊 [GROUP TYPE TAB] Main component - isLoading:', listQuery.isLoading);
-    console.log('📊 [GROUP TYPE TAB] Main component - isFetching:', listQuery.isFetching);
-    console.log('📊 [GROUP TYPE TAB] Main component - dataUpdatedAt:', listQuery.dataUpdatedAt);
+    
+    // Read pagination and search params from URL
+    const [page] = useQueryState('page', parseAsInteger.withDefault(1));
+    const [page_size] = useQueryState('page_size', parseAsInteger.withDefault(10));
+    const [search_query] = useQueryState('search_query', parseAsString.withDefault(''));
+    const [search_column] = useQueryState('search_column', parseAsString.withDefault(''));
+    const [sort_column] = useQueryState('sort_column', parseAsString.withDefault(''));
+    const [sort_direction] = useQueryState('sort_direction', parseAsString.withDefault(''));
+    
+    const searchParams: ApiSearchparams = {
+        page,
+        page_size,
+        search_query: search_query || undefined,
+        search_column: search_column || undefined,
+        sort_column: sort_column || undefined,
+        sort_direction: sort_direction || undefined
+    };
+    
+    const { listQuery, refetchAll } = useMasterGroupType(roleId, searchParams);
 
     return (
         <FormProvider<GroupTypeDetail>>
-            <GroupTypeTabContent response={listQuery.data} isLoading={listQuery.isLoading} error={listQuery.error} />
+            <GroupTypeTabContent response={listQuery.data} isLoading={listQuery.isLoading} error={listQuery.error} refetch={refetchAll} />
         </FormProvider>
     );
 }
@@ -31,60 +47,52 @@ export default function GroupTypeTab() {
 function GroupTypeTabContent({
     response,
     isLoading,
-    error
+    error,
+    refetch
 }: {
     response: any;
     isLoading: boolean;
     error: any;
+    refetch: () => void;
 }) {
     const { openAddForm } = useFormContext<GroupTypeDetail>();
     const { saveOrderMutation } = useMasterGroupType(HRMS_MI_ID);
     // Memoize array to prevent unnecessary re-renders
-    const rows: GroupTypeDetail[] = useMemo(() => response?.grouptypeList ?? [], [response?.grouptypeList]);
-
-    console.log('📊 [GROUP TYPE TAB] Component render - rows count:', rows.length);
-    console.log('📊 [GROUP TYPE TAB] Sample row orders:', rows.slice(0, 3).map(r => `ID=${r.HRMGT_Id}, Order=${r.HRMGT_Order}`));
+    // API now returns data as an array directly, or in grouptypeList for backward compatibility
+    const rows: GroupTypeDetail[] = useMemo(() => {
+        if (Array.isArray(response?.data)) {
+            return response.data;
+        }
+        return response?.grouptypeList ?? [];
+    }, [response?.data, response?.grouptypeList]);
 
     const [isEditOrderMode, setIsEditOrderMode] = useState(false);
     const [editedRows, setEditedRows] = useState<GroupTypeDetail[]>([]);
 
     const handleSetOrder = () => {
-        console.log('🔵 [ORDER] Set Order button clicked');
-        console.log('🔵 [ORDER] Current rows count:', rows.length);
         setIsEditOrderMode(true);
         setEditedRows([...rows]);
     };
 
     const handleCancelOrder = () => {
-        console.log('🔵 [ORDER] Cancel Order clicked');
         setIsEditOrderMode(false);
         setEditedRows([]);
     };
 
     const handleSaveOrder = async () => {
-        console.log('🔵 [ORDER] ========== SAVE ORDER ==========');
-        console.log('🔵 [ORDER] Edited rows to save:', JSON.stringify(editedRows, null, 2));
-        console.log('🔵 [ORDER] Number of rows:', editedRows.length);
-        
         try {
-            console.log('🟡 [ORDER] Calling saveOrderMutation.mutateAsync...');
             await saveOrderMutation.mutateAsync(editedRows);
-            console.log('🟢 [ORDER] Save order successful');
             toast.success('Order saved successfully');
             setIsEditOrderMode(false);
             setEditedRows([]);
-        } catch (error) {
-            console.log('🔴 [ORDER] Error saving order:', error);
+        } catch (_error) {
             toast.error('Failed to save order');
         }
-        console.log('🔵 [ORDER] ========== SAVE ORDER END ==========');
     };
 
     const handleOrderChange = (rowId: number, newOrder: number) => {
-        console.log('🔵 [ORDER] Order changed - Row ID:', rowId, 'New Order:', newOrder);
         setEditedRows((prev) => {
             const updated = prev.map((row) => (row.HRMGT_Id === rowId ? { ...row, HRMGT_Order: newOrder } : row));
-            console.log('🔵 [ORDER] Updated row:', updated.find(r => r.HRMGT_Id === rowId));
             return updated;
         });
     };
@@ -148,7 +156,7 @@ function GroupTypeTabContent({
                 className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
                 <GenericDataTable<GroupTypeDetail>
                     data={displayData}
-                    totalItems={displayData.length}
+                    totalItems={response?.total ?? displayData.length}
                     columns={displayColumns}
                     isLoading={isLoading}
                     error={error}
@@ -160,12 +168,12 @@ function GroupTypeTabContent({
                 />
             </CollapsibleSection>
 
-            <FormSections />
+            <FormSections refetch={refetch} />
         </div>
     );
 }
 
-function FormSections() {
+function FormSections({ refetch }: { refetch: () => void }) {
     const { isAddFormOpen, isEditFormOpen, selectedRow, closeAddForm, closeEditForm, addFormRef, editFormRef } =
         useFormContext<GroupTypeDetail>();
 
@@ -189,7 +197,12 @@ function FormSections() {
                                 className='-top-[3.5rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
                                 <X className='h-4 w-4 text-destructive' /> Close
                             </Button>
-                            <GroupTypeForm onSuccess={closeAddForm} />
+                            <GroupTypeForm
+                                onSuccess={() => {
+                                    closeAddForm();
+                                    refetch();
+                                }}
+                            />
                         </div>
                     </CollapsibleSection>
                 </div>
@@ -212,7 +225,13 @@ function FormSections() {
                                 className='-top-[3.5rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
                                 <X className='h-4 w-4 text-destructive' /> Close
                             </Button>
-                            <GroupTypeForm selectedRow={selectedRow} onSuccess={closeEditForm} />
+                            <GroupTypeForm
+                                selectedRow={selectedRow}
+                                onSuccess={() => {
+                                    closeEditForm();
+                                    refetch();
+                                }}
+                            />
                         </div>
                     </CollapsibleSection>
                 </div>

@@ -27,11 +27,9 @@ export interface MonthlySalaryDetail extends BaseEntity {
     professionalTax: number;
 }
 
-interface MonthlySalaryDetailColumnsProps {
-    onViewDetails: (monthData: MonthlySalaryDetail) => void;
-}
-
-export const getMonthlySalaryDetailColumns = (onViewDetails: (monthData: MonthlySalaryDetail) => void): ColumnDef<MonthlySalaryDetail>[] => [
+export const getMonthlySalaryDetailColumns = (
+    onViewDetails: (monthData: MonthlySalaryDetail) => void
+): ColumnDef<MonthlySalaryDetail>[] => [
     {
         accessorKey: 'id',
         header: ({ column }) => <DataTableColumnHeader column={column} title='SL. No.' />,
@@ -71,4 +69,3 @@ export const getMonthlySalaryDetailColumns = (onViewDetails: (monthData: Monthly
         enableHiding: false
     }
 ];
-

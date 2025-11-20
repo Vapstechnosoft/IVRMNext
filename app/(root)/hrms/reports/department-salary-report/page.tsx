@@ -1,15 +1,20 @@
 'use client';
 
-import { Heading } from '@/components/layout/heading';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { DataTable } from '@/components/ui/data-table/data-table';
-import { type BaseEntity, createLocalCrud } from '@/lib/localdb';
+import { createLocalCrud } from '@/lib/localdb';
 import { Building, Calculator, DollarSign, Download, Printer, TrendingUp, Users } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';
-import { DepartmentSalaryReportFilters, type DepartmentSalaryFilters } from './_components/filters';
-import { departmentSalaryColumns, departmentSummaryColumns, type DepartmentSalaryRecord, type DepartmentSummary, type FilterOptions } from './_components/columns';
+import {
+    type DepartmentSalaryRecord,
+    type DepartmentSummary,
+    type FilterOptions,
+    departmentSalaryColumns,
+    departmentSummaryColumns
+} from './_components/columns';
+import { type DepartmentSalaryFilters, DepartmentSalaryReportFilters } from './_components/filters';
 
 // Overall Summary
 interface OverallSummary {
@@ -357,13 +362,8 @@ export default function DepartmentSalaryReportPage() {
             .sort((a, b) => b.totalNetSalary - a.totalNetSalary);
     }, [filteredRecords]);
 
-
     return (
         <div className='space-y-6'>
-            <div className='flex-between flex-wrap gap-4'>
-                <Heading title='Department Salary Report' description='Comprehensive departmental salary analysis and breakdown report' />
-            </div>
-
             {/* Report Configuration Section */}
             <DepartmentSalaryReportFilters
                 filters={filters}

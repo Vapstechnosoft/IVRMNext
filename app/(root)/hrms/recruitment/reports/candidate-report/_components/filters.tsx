@@ -40,9 +40,7 @@ export function CandidateReportFilters({
                     <span className='font-medium text-sm'>
                         Institution <span className='text-red-500'>*</span>
                     </span>
-                    <Select
-                        value={filters.institution}
-                        onValueChange={(value) => onFilterChange({ ...filters, institution: value })}>
+                    <Select value={filters.institution} onValueChange={(value) => onFilterChange({ ...filters, institution: value })}>
                         <SelectTrigger>
                             <SelectValue placeholder='--Select--' />
                         </SelectTrigger>
@@ -59,9 +57,7 @@ export function CandidateReportFilters({
                     <span className='font-medium text-sm'>
                         Candidate Name <span className='text-red-500'>*</span>
                     </span>
-                    <Select
-                        value={filters.candidateId}
-                        onValueChange={(value) => onFilterChange({ ...filters, candidateId: value })}>
+                    <Select value={filters.candidateId} onValueChange={(value) => onFilterChange({ ...filters, candidateId: value })}>
                         <SelectTrigger>
                             <SelectValue placeholder='Select Candidate' />
                         </SelectTrigger>
