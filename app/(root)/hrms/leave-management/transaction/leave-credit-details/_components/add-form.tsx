@@ -2,7 +2,7 @@
 
 import { useEffect } from 'react';
 import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
-import { Save } from 'lucide-react';
+import { Save, X } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -27,6 +27,7 @@ const leaveNameToCodeMap: Record<string, string> = {
 
 interface AddLeaveCreditDetailsFormProps {
     onSuccess?: () => void;
+    onCancel?: () => void;
     className?: string;
 }
 
@@ -55,7 +56,7 @@ const designationOptions = [
     { label: 'Manager HR', value: 'Manager HR' }
 ];
 
-export default function AddLeaveCreditDetailsForm({ onSuccess, className = '' }: AddLeaveCreditDetailsFormProps) {
+export default function AddLeaveCreditDetailsForm({ onSuccess, onCancel, className = '' }: AddLeaveCreditDetailsFormProps) {
     const { refetchAll } = useLeaveCreditDetails();
     const { mutate: saveDetails, isPending } = useSaveLeaveCreditDetails();
 
@@ -316,6 +317,12 @@ export default function AddLeaveCreditDetailsForm({ onSuccess, className = '' }:
                 </div>
 
                 <div className='flex justify-end gap-2'>
+                    {onCancel && (
+                        <Button type='button' variant='outline' onClick={onCancel} disabled={isPending || isSubmitting}>
+                            <X className='mr-2 h-4 w-4' />
+                            CANCEL
+                        </Button>
+                    )}
                     <Button type='button' variant='outline' onClick={handleReset} disabled={isPending || isSubmitting}>
                         Reset
                     </Button>

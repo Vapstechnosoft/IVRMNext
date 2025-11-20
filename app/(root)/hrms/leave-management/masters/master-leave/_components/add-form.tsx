@@ -8,16 +8,17 @@ import { InputTextarea } from '@/components/ui/extension/input-textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useMasterLeave, useSaveMasterLeave } from '@/hooks/hrms/leave-management/useMasters';
 import { MASTER_LEAVE_VALIDATION } from '@/lib/validation/hrms-master-validation';
-import { Save } from 'lucide-react';
+import { Save, X } from 'lucide-react';
 import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
 import type { MasterLeave } from './columns';
 
 interface AddMasterLeaveFormProps {
     onSuccess?: () => void;
+    onCancel?: () => void;
     className?: string;
 }
 
-export default function AddMasterLeaveForm({ onSuccess, className = '' }: AddMasterLeaveFormProps) {
+export default function AddMasterLeaveForm({ onSuccess, onCancel, className = '' }: AddMasterLeaveFormProps) {
     const { refetchAll } = useMasterLeave();
     const { mutate: saveMasterLeave, isPending } = useSaveMasterLeave();
 
@@ -161,6 +162,12 @@ export default function AddMasterLeaveForm({ onSuccess, className = '' }: AddMas
                 </div>
 
                 <div className='flex justify-end gap-2'>
+                    {onCancel && (
+                        <Button type='button' variant='outline' onClick={onCancel} disabled={isPending || isSubmitting}>
+                            <X className='mr-2 h-4 w-4' />
+                            CANCEL
+                        </Button>
+                    )}
                     <Button type='button' variant='outline' onClick={handleReset} disabled={isPending || isSubmitting}>
                         Reset
                     </Button>

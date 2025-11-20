@@ -7,13 +7,14 @@ import { MultiSelect } from '@/components/ui/multi-select';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useLeaveCredit, useSaveLeaveCredit } from '@/hooks/hrms/leave-management/useTransactions';
-import { Save } from 'lucide-react';
+import { Save, X } from 'lucide-react';
 import { useState } from 'react';
 import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
 import type { LeaveCredit } from './columns';
 
 interface AddLeaveCreditFormProps {
     onSuccess?: () => void;
+    onCancel?: () => void;
     className?: string;
 }
 
@@ -56,7 +57,7 @@ type LeaveTransferFormData = LeaveCredit & {
     reason?: string;
 };
 
-export default function AddLeaveCreditForm({ onSuccess, className = '' }: AddLeaveCreditFormProps) {
+export default function AddLeaveCreditForm({ onSuccess, onCancel, className = '' }: AddLeaveCreditFormProps) {
     const { refetchAll } = useLeaveCredit();
     const { mutate: saveCredit, isPending } = useSaveLeaveCredit();
     const [activeTab, setActiveTab] = useState('Leave Credit');
@@ -275,6 +276,12 @@ export default function AddLeaveCreditForm({ onSuccess, className = '' }: AddLea
                         )}
 
                         <div className='flex justify-end gap-2'>
+                            {onCancel && (
+                                <Button type='button' variant='outline' onClick={onCancel} disabled={isPending || isSubmitting}>
+                                    <X className='mr-2 h-4 w-4' />
+                                    CANCEL
+                                </Button>
+                            )}
                             <Button type='button' variant='outline' onClick={handleReset} disabled={isPending || isSubmitting}>
                                 Reset
                             </Button>
@@ -451,6 +458,12 @@ export default function AddLeaveCreditForm({ onSuccess, className = '' }: AddLea
                         )}
 
                         <div className='flex justify-end gap-2'>
+                            {onCancel && (
+                                <Button type='button' variant='outline' onClick={onCancel} disabled={isPending || isSubmitting}>
+                                    <X className='mr-2 h-4 w-4' />
+                                    CANCEL
+                                </Button>
+                            )}
                             <Button type='button' variant='outline' onClick={handleReset} disabled={isPending || isSubmitting}>
                                 Reset
                             </Button>
@@ -627,6 +640,12 @@ export default function AddLeaveCreditForm({ onSuccess, className = '' }: AddLea
                         )}
 
                         <div className='flex justify-end gap-2'>
+                            {onCancel && (
+                                <Button type='button' variant='outline' onClick={onCancel} disabled={isPending || isSubmitting}>
+                                    <X className='mr-2 h-4 w-4' />
+                                    CANCEL
+                                </Button>
+                            )}
                             <Button type='button' variant='outline' onClick={handleReset} disabled={isPending || isSubmitting}>
                                 Reset
                             </Button>
@@ -781,6 +800,12 @@ export default function AddLeaveCreditForm({ onSuccess, className = '' }: AddLea
                         )}
 
                         <div className='flex justify-end gap-2'>
+                            {onCancel && (
+                                <Button type='button' variant='outline' onClick={onCancel} disabled={isPending || isSubmitting}>
+                                    <X className='mr-2 h-4 w-4' />
+                                    CANCEL
+                                </Button>
+                            )}
                             <Button type='button' variant='outline' onClick={handleReset} disabled={isPending || isSubmitting}>
                                 Reset
                             </Button>

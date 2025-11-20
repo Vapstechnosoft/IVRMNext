@@ -7,16 +7,17 @@ import { InputText } from '@/components/ui/extension/input-text';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useLeaveAuthorization, useSaveLeaveAuthorization } from '@/hooks/hrms/leave-management/useMasters';
 import { LEAVE_AUTHORIZATION_VALIDATION } from '@/lib/validation/hrms-master-validation';
-import { Save } from 'lucide-react';
+import { Save, X } from 'lucide-react';
 import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
 import type { LeaveAuthorization } from './columns';
 
 interface AddLeaveAuthorizationFormProps {
     onSuccess?: () => void;
+    onCancel?: () => void;
     className?: string;
 }
 
-export default function AddLeaveAuthorizationForm({ onSuccess, className = '' }: AddLeaveAuthorizationFormProps) {
+export default function AddLeaveAuthorizationForm({ onSuccess, onCancel, className = '' }: AddLeaveAuthorizationFormProps) {
     const { refetchAll } = useLeaveAuthorization();
     const { mutate: saveLeaveAuthorization, isPending } = useSaveLeaveAuthorization();
 
@@ -263,6 +264,12 @@ export default function AddLeaveAuthorizationForm({ onSuccess, className = '' }:
 
                 {/* Action Buttons */}
                 <div className='flex justify-end gap-2'>
+                    {onCancel && (
+                        <Button type='button' variant='outline' onClick={onCancel} disabled={isPending || isSubmitting}>
+                            <X className='mr-2 h-4 w-4' />
+                            CANCEL
+                        </Button>
+                    )}
                     <Button type='button' variant='outline' onClick={handleReset} disabled={isPending || isSubmitting}>
                         Reset
                     </Button>

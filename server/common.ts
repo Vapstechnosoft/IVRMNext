@@ -1510,6 +1510,14 @@ export async function getUserAccessibleModules() {
                                             url: '/hrms/leave-management/apply-leave',
                                             title: 'Apply Leave',
                                             description: 'Submit Leave Application'
+                                        },
+                                        {
+                                            id: 2,
+                                            name: 'Leave Approval',
+                                            icon: 'CheckCircle',
+                                            url: '/hrms/leave-management/leave-approval',
+                                            title: 'Leave Approval',
+                                            description: 'Approve or Reject Leave Requests'
                                         }
                                     ]
                                 },
@@ -1547,7 +1555,7 @@ export async function getUserAccessibleModules() {
                                             name: 'Leave Credit Details',
                                             icon: 'Info',
                                             url: '/hrms/leave-management/transaction/leave-credit-details',
-                                            title: 'Leave Credit Details',
+                                            title: 'Leave  Details',
                                             description: 'View Leave Credit Details'
                                         },
                                         {
@@ -1557,6 +1565,14 @@ export async function getUserAccessibleModules() {
                                             url: '/hrms/leave-management/transaction/leave-credit-transaction',
                                             title: 'Leave Transaction',
                                             description: 'Leave Transaction'
+                                        },
+                                        {
+                                            id: 6,
+                                            name: 'Leave Opening Balance',
+                                            icon: 'Database',
+                                            url: '/hrms/leave-management/transaction/leave-opening-balance',
+                                            title: 'Leave Opening Balance',
+                                            description: 'Manage Leave Opening Balance'
                                         }
                                     ]
                                 },
@@ -1573,22 +1589,22 @@ export async function getUserAccessibleModules() {
                                             title: 'Leave Report',
                                             description: 'Leave Summary Report'
                                         },
-                                        {
-                                            id: 2,
-                                            name: 'Overall Report',
-                                            icon: 'BarChart3',
-                                            url: '/hrms/leave-management/reports/overAll-report',
-                                            title: 'Overall Report',
-                                            description: 'Overall Leave Analysis'
-                                        },
-                                        {
-                                            id: 3,
-                                            name: 'Unauthorized Leave Report',
-                                            icon: 'AlertTriangle',
-                                            url: '/hrms/leave-management/reports/unauthorizedLeaveCount-report',
-                                            title: 'Unauthorized Leave Report',
-                                            description: 'Unauthorized Leave Count'
-                                        }
+                                        // {
+                                        //     id: 2,
+                                        //     name: 'Overall Report',
+                                        //     icon: 'BarChart3',
+                                        //     url: '/hrms/leave-management/reports/overAll-report',
+                                        //     title: 'Overall Report',
+                                        //     description: 'Overall Leave Analysis'
+                                        // },
+                                        // {
+                                        //     id: 3,
+                                        //     name: 'Unauthorized Leave Report',
+                                        //     icon: 'AlertTriangle',
+                                        //     url: '/hrms/leave-management/reports/unauthorizedLeaveCount-report',
+                                        //     title: 'Unauthorized Leave Report',
+                                        //     description: 'Unauthorized Leave Count'
+                                        // }
                                     ]
                                 }
                             ]
