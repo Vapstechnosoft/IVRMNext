@@ -37,7 +37,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { format } from 'date-fns';
 import { CalendarIcon, Check, ChevronLeft, ChevronRight, Eye, Save, Trash } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
+import { Controller, type SubmitHandler, useFieldArray, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import type { z } from 'zod';
 import { IneligibleClassesDialog } from './InEligibleDialog';
@@ -164,9 +164,7 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
             if (rowData.selectedRefrenceDetails) {
                 setSelectedReferenceItems(rowData.selectedRefrenceDetails);
             }
-            if (rowData.siblingsDetails) {
-                setSiblings(rowData.siblingsDetails);
-            }
+            // Sibling details are now controlled by useFieldArray and set via reset if needed
             if (rowData.previousSchoolList?.[0]) {
                 setPreviousSchool(rowData.previousSchoolList[0]);
             }
@@ -205,16 +203,15 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
     const [selectedSourceItems, setSelectedSourceItems] = useState<{ pamS_Id: string; pamS_SourceName: string }[]>([]);
     const [selectedReferenceItems, setSelectedReferenceItems] = useState<{ pamR_Id: string; pamR_ReferenceName: string }[]>([]);
     const [sameAsResidential, setSameAsResidential] = useState(false);
-    const [siblings, setSiblings] = useState<
-        Array<{
-            pasrS_Id: number;
-            pasR_Id: number;
-            pasrS_SiblingsName: string;
-            pasrS_SiblingsClass: string;
-            pasrS_SiblingsAdmissionNo: string;
-            pasrS_SiblingsSection: string;
-        }>
-    >([]);
+    // Sibling details controlled by react-hook-form
+    const {
+        fields: siblingFields,
+        append: appendSibling,
+        remove
+    } = useFieldArray({
+        control,
+        name: 'siblingsDetails'
+    });
 
     const [previousSchool, setPreviousSchool] = useState({
         pasrpS_Id: 0,
@@ -516,7 +513,7 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                 selectedRefrenceDetails: selectedReferenceItems.map((item) => ({
                     pamR_Id: item.pamR_Id
                 })),
-                siblingsDetails: siblings.map((sibling) => ({
+                siblingsDetails: (getValues('siblingsDetails') || []).map((sibling: any) => ({
                     ...Object.fromEntries(Object.entries(sibling).filter(([k]) => k !== 'createdDate' && k !== 'updatedDate')),
                     verrejstatus: '',
                     pasrS_SchoolName: '',
@@ -554,7 +551,7 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
             const response = await addStudentApplicationForm(payload);
 
             if (response && (response.success === true || response.status === 200)) {
-                toast.success(response.message || 'Form data captured successfully');
+                toast.success('Successfully Updated Student Application ');
                 reset();
                 refetchDropdowns();
                 handleReset();
@@ -575,7 +572,6 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
         setSelectedSourceItems([]);
         setSelectedReferenceItems([]);
         setSameAsResidential(false);
-        setSiblings([]);
         setPreviousSchool({
             pasrpS_Id: 0,
             pasR_Id: 0,
@@ -632,31 +628,13 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
     };
 
     const addSibling = () => {
-        setSiblings([
-            ...siblings,
-            {
-                pasrS_Id: 0,
-                pasR_Id: 0,
-                pasrS_SiblingsName: '',
-                pasrS_SiblingsClass: '',
-                pasrS_SiblingsAdmissionNo: '',
-                pasrS_SiblingsSection: ''
-            }
-        ]);
-    };
-
-    const removeSibling = (index: number) => {
-        setSiblings(siblings.filter((_, i) => i !== index));
-    };
-
-    const updateSibling = (index: number, field: string, value: string) => {
-        const updatedSiblings = siblings.map((sibling, i) => {
-            if (i === index) {
-                return { ...sibling, [field]: value };
-            }
-            return sibling;
+        appendSibling({
+            pasrS_Id: 0,
+            pasrS_SiblingsName: '',
+            pasrS_SiblingsClass: '',
+            pasrS_SiblingsAdmissionNo: '',
+            pasrS_SiblingsSection: ''
         });
-        setSiblings(updatedSiblings);
     };
 
     const updatePreviousSchool = (field: string, value: string) => {
@@ -674,7 +652,7 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
             const allowedTypes = ['application/pdf', 'image/jpeg', 'image/jpg', 'image/png'];
 
             if (!allowedTypes.includes(file.type)) {
-                toast.error(' Only Pdf,PNG, JPG, and JPEG formats are allowed');
+                toast.error(' Only Pdf, PNG, JPG, and JPEG formats are allowed');
                 return;
             }
             setUploadedDocuments((prev) => {
@@ -2406,6 +2384,7 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                                                                     value={field.value || 0}
                                                                     onChange={(value) => field.onChange(Number.isNaN(value) ? 0 : value)}
                                                                     minValue={0}
+                                                                    maxDigits={15}
                                                                 />
                                                             )}
                                                         />
@@ -3150,7 +3129,7 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                                             </p>
                                         </div>
 
-                                        {/* Sibling Details Section */}
+                                        {/* Sibling Details Section (controlled) */}
                                         <div className='space-y-4'>
                                             <div className='flex items-center justify-between'>
                                                 <h3 className='font-semibold text-gray-800 text-lg'>Sibling Details</h3>
@@ -3166,62 +3145,89 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                                                 </Button>
                                             </div>
 
-                                            {siblings.length === 0 ? (
+                                            {siblingFields.length === 0 ? (
                                                 <p className='text-gray-500 text-sm'>
                                                     No siblings added yet. Click "Add Sibling" to add details.
                                                 </p>
                                             ) : (
                                                 <div className='space-y-4'>
-                                                    {siblings.map((sibling, index) => (
-                                                        <div key={index} className='rounded-lg border border-gray-200 bg-gray-50 p-4'>
+                                                    {siblingFields.map((field, index) => (
+                                                        <div key={field.id} className='rounded-lg border border-gray-200 bg-gray-50 p-4'>
                                                             <div className='mb-3 flex items-center justify-between'>
                                                                 <h4 className='font-medium text-gray-700 text-sm'>Sibling {index + 1}</h4>
                                                                 <Button
                                                                     type='button'
                                                                     variant='ghost'
                                                                     size='sm'
-                                                                    onClick={() => removeSibling(index)}
+                                                                    onClick={() => remove(index)}
                                                                     disabled={isSubmitting}
                                                                     className='h-8 w-fit bg-error text-white'>
                                                                     Remove
                                                                 </Button>
                                                             </div>
                                                             <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
-                                                                <InputText
-                                                                    label='Sibling Name'
-                                                                    id={`sibling_name_${index}`}
-                                                                    placeholder='Enter sibling name'
-                                                                    value={sibling.pasrS_SiblingsName}
-                                                                    onChange={(e) =>
-                                                                        updateSibling(index, 'pasrS_SiblingsName', e.target.value)
-                                                                    }
+                                                                <Controller
+                                                                    name={`siblingsDetails.${index}.pasrS_SiblingsName`}
+                                                                    control={control}
+                                                                    render={({ field }) => (
+                                                                        <InputText
+                                                                            label='Sibling Name'
+                                                                            id={`sibling_name_${index}`}
+                                                                            placeholder='Enter sibling name'
+                                                                            {...field}
+                                                                            error={
+                                                                                errors.siblingsDetails?.[index]?.pasrS_SiblingsName?.message
+                                                                            }
+                                                                        />
+                                                                    )}
                                                                 />
-                                                                <InputText
-                                                                    label='Class'
-                                                                    id={`sibling_class_${index}`}
-                                                                    placeholder='Enter class'
-                                                                    value={sibling.pasrS_SiblingsClass}
-                                                                    onChange={(e) =>
-                                                                        updateSibling(index, 'pasrS_SiblingsClass', e.target.value)
-                                                                    }
+                                                                <Controller
+                                                                    name={`siblingsDetails.${index}.pasrS_SiblingsClass`}
+                                                                    control={control}
+                                                                    render={({ field }) => (
+                                                                        <InputText
+                                                                            label='Class'
+                                                                            id={`sibling_class_${index}`}
+                                                                            placeholder='Enter class'
+                                                                            {...field}
+                                                                            error={
+                                                                                errors.siblingsDetails?.[index]?.pasrS_SiblingsClass
+                                                                                    ?.message
+                                                                            }
+                                                                        />
+                                                                    )}
                                                                 />
-                                                                <InputText
-                                                                    label='Admission No'
-                                                                    id={`sibling_admission_${index}`}
-                                                                    placeholder='Enter admission number'
-                                                                    value={sibling.pasrS_SiblingsAdmissionNo}
-                                                                    onChange={(e) =>
-                                                                        updateSibling(index, 'pasrS_SiblingsAdmissionNo', e.target.value)
-                                                                    }
+                                                                <Controller
+                                                                    name={`siblingsDetails.${index}.pasrS_SiblingsAdmissionNo`}
+                                                                    control={control}
+                                                                    render={({ field }) => (
+                                                                        <InputText
+                                                                            label='Admission No'
+                                                                            id={`sibling_admission_${index}`}
+                                                                            placeholder='Enter admission number'
+                                                                            {...field}
+                                                                            error={
+                                                                                errors.siblingsDetails?.[index]?.pasrS_SiblingsAdmissionNo
+                                                                                    ?.message
+                                                                            }
+                                                                        />
+                                                                    )}
                                                                 />
-                                                                <InputText
-                                                                    label='Section'
-                                                                    id={`sibling_section_${index}`}
-                                                                    placeholder='Enter section'
-                                                                    value={sibling.pasrS_SiblingsSection}
-                                                                    onChange={(e) =>
-                                                                        updateSibling(index, 'pasrS_SiblingsSection', e.target.value)
-                                                                    }
+                                                                <Controller
+                                                                    name={`siblingsDetails.${index}.pasrS_SiblingsSection`}
+                                                                    control={control}
+                                                                    render={({ field }) => (
+                                                                        <InputText
+                                                                            label='Section'
+                                                                            id={`sibling_section_${index}`}
+                                                                            placeholder='Enter section'
+                                                                            {...field}
+                                                                            error={
+                                                                                errors.siblingsDetails?.[index]?.pasrS_SiblingsSection
+                                                                                    ?.message
+                                                                            }
+                                                                        />
+                                                                    )}
                                                                 />
                                                             </div>
                                                         </div>
