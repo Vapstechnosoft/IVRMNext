@@ -98,7 +98,15 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
         mode: 'onChange',
         defaultValues: {
             pasA_WillingToContributeFlg: 0,
-            pasR_UndertakingFlag: 0
+            pasR_UndertakingFlag: 0,
+            previousSchoolDetails: {
+                pasrpS_PrvSchoolName: '',
+                pasrpS_PreviousClass: '',
+                pasrpS_Board: '',
+                pasrpS_LeftYear: '',
+                pasrpS_LeftReason: '',
+                pasrpS_Address: ''
+            }
         }
     });
 
@@ -2795,47 +2803,83 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
                                         <div className='space-y-4'>
                                             <h3 className='font-semibold text-gray-800 text-lg'>Previous School Details</h3>
                                             <div className='grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3'>
-                                                <InputText
-                                                    label='Previous School Name'
-                                                    id='pasrpS_PrvSchoolName'
-                                                    placeholder='Enter school name'
-                                                    value={previousSchool.pasrpS_PrvSchoolName}
-                                                    onChange={(e) => updatePreviousSchool('pasrpS_PrvSchoolName', e.target.value)}
+                                                <Controller
+                                                    name='previousSchoolDetails.pasrpS_PrvSchoolName'
+                                                    control={control}
+                                                    render={({ field }) => (
+                                                        <InputText
+                                                            label='Previous School Name'
+                                                            id='pasrpS_PrvSchoolName'
+                                                            placeholder='Enter school name'
+                                                            {...field}
+                                                            error={errors.previousSchoolDetails?.pasrpS_PrvSchoolName?.message}
+                                                        />
+                                                    )}
                                                 />
-                                                <InputText
-                                                    label='Previous Class'
-                                                    id='pasrpS_PreviousClass'
-                                                    placeholder='Enter class'
-                                                    value={previousSchool.pasrpS_PreviousClass}
-                                                    onChange={(e) => updatePreviousSchool('pasrpS_PreviousClass', e.target.value)}
+                                                <Controller
+                                                    name='previousSchoolDetails.pasrpS_PreviousClass'
+                                                    control={control}
+                                                    render={({ field }) => (
+                                                        <InputText
+                                                            label='Previous Class'
+                                                            id='pasrpS_PreviousClass'
+                                                            placeholder='Enter class'
+                                                            {...field}
+                                                            error={errors.previousSchoolDetails?.pasrpS_PreviousClass?.message}
+                                                        />
+                                                    )}
                                                 />
-                                                <InputText
-                                                    label='Board'
-                                                    id='pasrpS_Board'
-                                                    placeholder='Enter board'
-                                                    value={previousSchool.pasrpS_Board}
-                                                    onChange={(e) => updatePreviousSchool('pasrpS_Board', e.target.value)}
+                                                <Controller
+                                                    name='previousSchoolDetails.pasrpS_Board'
+                                                    control={control}
+                                                    render={({ field }) => (
+                                                        <InputText
+                                                            label='Board'
+                                                            id='pasrpS_Board'
+                                                            placeholder='Enter board'
+                                                            {...field}
+                                                            error={errors.previousSchoolDetails?.pasrpS_Board?.message}
+                                                        />
+                                                    )}
                                                 />
-                                                <InputText
-                                                    label='Left Year'
-                                                    id='pasrpS_LeftYear'
-                                                    placeholder='Enter year'
-                                                    value={previousSchool.pasrpS_LeftYear}
-                                                    onChange={(e) => updatePreviousSchool('pasrpS_LeftYear', e.target.value)}
+                                                <Controller
+                                                    name='previousSchoolDetails.pasrpS_LeftYear'
+                                                    control={control}
+                                                    render={({ field }) => (
+                                                        <InputText
+                                                            label='Left Year'
+                                                            id='pasrpS_LeftYear'
+                                                            placeholder='Enter year'
+                                                            {...field}
+                                                            error={errors.previousSchoolDetails?.pasrpS_LeftYear?.message}
+                                                        />
+                                                    )}
                                                 />
-                                                <InputText
-                                                    label='Reason for Leaving'
-                                                    id='pasrpS_LeftReason'
-                                                    placeholder='Enter reason'
-                                                    value={previousSchool.pasrpS_LeftReason}
-                                                    onChange={(e) => updatePreviousSchool('pasrpS_LeftReason', e.target.value)}
+                                                <Controller
+                                                    name='previousSchoolDetails.pasrpS_LeftReason'
+                                                    control={control}
+                                                    render={({ field }) => (
+                                                        <InputText
+                                                            label='Reason for Leaving'
+                                                            id='pasrpS_LeftReason'
+                                                            placeholder='Enter reason'
+                                                            {...field}
+                                                            error={errors.previousSchoolDetails?.pasrpS_LeftReason?.message}
+                                                        />
+                                                    )}
                                                 />
-                                                <InputText
-                                                    label='School Address'
-                                                    id='pasrpS_Address'
-                                                    placeholder='Enter address'
-                                                    value={previousSchool.pasrpS_Address}
-                                                    onChange={(e) => updatePreviousSchool('pasrpS_Address', e.target.value)}
+                                                <Controller
+                                                    name='previousSchoolDetails.pasrpS_Address'
+                                                    control={control}
+                                                    render={({ field }) => (
+                                                        <InputText
+                                                            label='School Address'
+                                                            id='pasrpS_Address'
+                                                            placeholder='Enter address'
+                                                            {...field}
+                                                            error={errors.previousSchoolDetails?.pasrpS_Address?.message}
+                                                        />
+                                                    )}
                                                 />
                                             </div>
                                         </div>

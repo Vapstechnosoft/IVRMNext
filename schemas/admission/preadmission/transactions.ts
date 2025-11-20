@@ -4,7 +4,9 @@ import {
     createAlphanumericSchemaPanCard,
     createEmailSchema,
     createOptionalAlphaNumericSchema,
+    createOptionalNumberOnlyStringSchema,
     createOptionalStringSchema,
+    createOptionalStringWithLettersSchema,
     createStringOnlyOptionalSchema,
     createStringOnlySchema,
     createStringSchema,
@@ -151,7 +153,7 @@ export const studentApplicationFormSchema = {
                     pasrS_Id: z.number().int().optional(),
                     pasrS_SiblingsName: createStringOnlyOptionalSchema('Sibling Name', 1, 100),
                     pasrS_SiblingsClass: createStringOnlyOptionalSchema('Sibling Class', 1, 100),
-                    pasrS_SiblingsAdmissionNo: createOptionalStringSchema('Sibling Admission No', 1, 50),
+                    pasrS_SiblingsAdmissionNo: createOptionalNumberOnlyStringSchema('Sibling Admission No', 1, 50),
                     pasrS_SiblingsSection: createOptionalStringSchema('Sibling Section', 1, 50)
                 })
             )
@@ -173,6 +175,15 @@ export const studentApplicationFormSchema = {
             .optional(),
         pasR_AltContactEmail: createEmailSchema('Alternate Contact Email', 1, 50, true),
 
+        // Previous School Details
+        previousSchoolDetails: z.object({
+            pasrpS_PrvSchoolName: createOptionalAlphaNumericSchema('Previous School Name', 1, 150),
+            pasrpS_PreviousClass: createOptionalNumberOnlyStringSchema('Previous Class', 1, 100),
+            pasrpS_Board: createStringOnlyOptionalSchema('Board', 1, 100),
+            pasrpS_LeftYear: createOptionalNumberOnlyStringSchema('Left Year', 1, 10),
+            pasrpS_LeftReason: createStringOnlyOptionalSchema('Reason for Leaving', 1, 150),
+            pasrpS_Address: createOptionalStringWithLettersSchema('School Address', 1, 200)
+        }),
         //Other Details
         pasA_AdmittingReason: createOptionalStringSchema('Admitting Reason', 1, 250),
         pasA_WillingToContributeRemarks: createOptionalStringSchema('Willing to Contribute Remarks', 1, 250),
@@ -335,10 +346,20 @@ export const studentApplicationFormUpdateSchema = {
                     pasrS_Id: z.number().int().optional(),
                     pasrS_SiblingsName: createStringOnlyOptionalSchema('Sibling Name', 1, 100),
                     pasrS_SiblingsClass: createStringOnlyOptionalSchema('Sibling Class', 1, 100),
-                    pasrS_SiblingsAdmissionNo: createOptionalStringSchema('Sibling Admission No', 1, 50),
+                    pasrS_SiblingsAdmissionNo: createOptionalNumberOnlyStringSchema('Sibling Admission No', 1, 50),
                     pasrS_SiblingsSection: createOptionalStringSchema('Sibling Section', 1, 50)
                 })
             )
-            .optional()
+            .optional(),
+
+        // Previous School Details
+        previousSchoolDetails: z.object({
+            pasrpS_PrvSchoolName: createOptionalAlphaNumericSchema('Previous School Name', 1, 150),
+            pasrpS_PreviousClass: createOptionalNumberOnlyStringSchema('Previous Class', 1, 100),
+            pasrpS_Board: createStringOnlyOptionalSchema('Board', 1, 100),
+            pasrpS_LeftYear: createOptionalNumberOnlyStringSchema('Left Year', 1, 10),
+            pasrpS_LeftReason: createStringOnlyOptionalSchema('Reason for Leaving', 1, 150),
+            pasrpS_Address: createOptionalStringWithLettersSchema('School Address', 1, 200)
+        })
     })
 };

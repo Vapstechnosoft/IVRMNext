@@ -34,6 +34,21 @@ export function createOptionalStringSchema(field: string, min: number, max: numb
         .or(z.literal('')); // Allow empty string explicitly
 }
 
+export function createOptionalNumberOnlyStringSchema(field: string, min: number, max: number) {
+    return z
+        .string()
+        .regex(/^\d*$/, { message: `${field} must contain only numbers` }) // allows only digits
+        .max(max, { message: `Maximum ${max} characters allowed for ${field}` })
+        .refine((value) => value.length === 0 || value.length >= min, {
+            message: `${field} must have at least ${min} digits or be empty.`
+        })
+        .refine((value) => value.length === 0 || value.trim() === value, {
+            message: `${field} cannot have leading or trailing spaces`
+        })
+        .optional()
+        .or(z.literal('')); // empty allowed
+}
+
 export function createOptionalStringSchemaNotAllowNumbersOnly(field: string, min: number, max: number) {
     return (
         z
@@ -233,4 +248,32 @@ export function createAlphanumericSchemaPanCard(field: string, optional = false)
     }
 
     return baseSchema;
+}
+
+//with  not have number and special character
+
+export function createOptionalStringWithLettersSchema(field: string, min: number, max: number) {
+    return (
+        z
+            .string()
+            .max(max, { message: `Maximum ${max} characters allowed for ${field}` })
+
+            // No leading/trailing spaces
+            .refine((value) => value.length === 0 || value.trim() === value, {
+                message: `${field} cannot have leading or trailing spaces`
+            })
+
+            // Must contain at least ONE letter (to avoid only numbers / only special chars)
+            .refine((value) => value.length === 0 || /[A-Za-z]/.test(value), {
+                message: `${field} must contain at least one letter`
+            })
+
+            // Min length (if not empty)
+            .refine((value) => value.length === 0 || value.length >= min, {
+                message: `${field} must have at least ${min} characters or be empty.`
+            })
+
+            .optional()
+            .or(z.literal(''))
+    ); // empty allowed
 }
