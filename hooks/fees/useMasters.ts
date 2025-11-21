@@ -1164,3 +1164,20 @@ export const useStudentFeeGroupList = () => {
         }
     };
 };
+
+export const useFeeOtherStudent = (searchParams?: ApiSearchparams) => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [FEES_QUERY_KEYS.FEE_OTHER_STUDENT, searchParams ?? {}],
+            queryFn: async () => getFeeOtherStudent(searchParams),
+            staleTime: 0
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [FEES_QUERY_KEYS.FEE_OTHER_STUDENT]
+            });
+        }
+    };
+};

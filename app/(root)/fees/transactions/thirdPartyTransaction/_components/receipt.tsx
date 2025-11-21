@@ -26,6 +26,7 @@ export default function ReceiptPage({ rowData, onClose }: ReceiptPageProps) {
         fyP_Id: rowData.fyP_Id,
         fyptP_Id: rowData.fyptP_Id
     };
+    console.log('Receipt Payload:', payload);
 
     // ───────────────────────────────────────────────
     //  FETCH RECEIPT DATA
@@ -34,6 +35,8 @@ export default function ReceiptPage({ rowData, onClose }: ReceiptPageProps) {
         const fetchData = async () => {
             try {
                 const raw = await receiptView(payload);
+
+                console.log('Receipt Raw Data:', raw);
                 const response = typeof raw === 'string' ? JSON.parse(raw) : raw;
 
                 setReceiptData(response);
@@ -171,8 +174,9 @@ export default function ReceiptPage({ rowData, onClose }: ReceiptPageProps) {
 
     // Extract Data ---------------------------------------------------------
     const d = receiptData.alldata[0];
-
-    const logo = receiptData.institute_logo || '';
+    const studentname = d.fyptP_Name || '';
+    const logo = d.mI_Logo || '';
+    console.info('Logo URL:', logo);
     const receiptNo = d.fyP_Receipt_No;
     const date = formatDate(d.fyP_Date);
     const headName = d.fmH_FeeName;
@@ -231,7 +235,7 @@ export default function ReceiptPage({ rowData, onClose }: ReceiptPageProps) {
                                         <strong>Year:</strong> {asmaY_Year}
                                     </span>
                                     <span>
-                                        <strong> Name:</strong> {}
+                                        <strong> Name:</strong> {studentname}
                                     </span>
                                 </div>
                             </div>
@@ -343,7 +347,7 @@ export default function ReceiptPage({ rowData, onClose }: ReceiptPageProps) {
                                         <strong>Year:</strong> {asmaY_Year}
                                     </span>
                                     <span>
-                                        <strong> Name:</strong> {}
+                                        <strong> Name:</strong> {studentname}
                                     </span>
                                 </div>
                             </div>

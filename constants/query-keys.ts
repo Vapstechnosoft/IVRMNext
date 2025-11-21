@@ -140,7 +140,8 @@ export const FEES_QUERY_KEYS = {
     STUDENT_FEE_GROUP_HEAD_MAPPING: 'student_fee_group_head_mapping',
     FEE_STUDENT_CLASS_DROP_DOWN: 'student_fee_class_drop_down',
     FEE_STUDENT_SECTION_DROP_DOWN: 'student_fee_csection_drop_down',
-    FEE_STUDENT_HEAD: 'student_fee_head'
+    FEE_STUDENT_HEAD: 'student_fee_head',
+    FEE_OTHER_STUDENT: 'fee_other_student'
 };
 
 export const EXAM_QUERY_KEYS = {

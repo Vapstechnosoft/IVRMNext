@@ -4,10 +4,13 @@ import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
 import { useMasterTermsPeriod } from '@/hooks/fees/useMasters';
-import type { IMasterTermFeeHeadDueDateList, IMasterTermsPeriodList } from '@/types/fees/masters/masters';
+import type { IMasterTermsPeriodList } from '@/types/fees/masters/masters';
 import { Plus, X } from 'lucide-react';
 import { use } from 'react';
+import AddFeeTermsPeriodForm from './_components/add-form';
 import { termsPeriodColumns } from './_components/columns';
+import DeleteMasterTermsPeriodForm from './_components/delete-form';
+import UpdateMasterTermsPeriodForm from './_components/update-form';
 
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 
@@ -45,7 +48,7 @@ function MasterFeeTermsPeriodPageContent({
                         onClick={openAddForm}
                         className='w-fit shadow-md transition-all duration-200 hover:scale-105 hover:shadow-lg'>
                         <Plus className='h-4 w-4' />
-                        Add Term Fee Head Due Date
+                        Add Term Fee Period
                     </Button>
                 </div>
 
@@ -61,10 +64,10 @@ function MasterFeeTermsPeriodPageContent({
                         isLoading={isLoading}
                         error={error}
                         columnPinning={{ right: ['actions'] }}
-                        loadingMessage='Loading fee term heads due dates...'
-                        noDataTitle='No fee term heads due dates found'
-                        noDataDescription='Please add a fee term head due date'
-                        errorTitle='Error loading fee term heads due dates'
+                        loadingMessage='Loading Master Terms Period...'
+                        noDataTitle='No Master Terms Period found'
+                        noDataDescription='Create a new Master Terms Period'
+                        errorTitle='Error loading Master Terms Period'
                     />
                 </CollapsibleSection>
 
@@ -87,7 +90,7 @@ function FormSections() {
         closeToggleForm,
         addFormRef,
         editFormRef
-    } = useFormContext<IMasterTermFeeHeadDueDateList>();
+    } = useFormContext<IMasterTermsPeriodList>();
 
     return (
         <>
@@ -95,8 +98,8 @@ function FormSections() {
             {isAddFormOpen && (
                 <div ref={addFormRef}>
                     <CollapsibleSection
-                        title='Add Fee Term Head Due Date'
-                        description='Fill in the details below to create a new fee term head due date.'
+                        title='Add New Master Terms Period'
+                        description='Create a new Master Terms Period'
                         defaultOpen={true}
                         variant='outline'
                         size='md'
@@ -110,7 +113,7 @@ function FormSections() {
                                 className='-top-[3.5rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
                                 <X className='h-4 w-4 text-destructive' /> Close
                             </Button>
-                            {/* <AddFeeTermsHeadDueDateFormForm onSuccess={closeAddForm} /> */}
+                            <AddFeeTermsPeriodForm onSuccess={closeAddForm} />
                         </div>
                     </CollapsibleSection>
                 </div>
@@ -120,7 +123,7 @@ function FormSections() {
             {isEditFormOpen && selectedRow && (
                 <div ref={editFormRef}>
                     <CollapsibleSection
-                        title='Edit Fee Term Head Due Date'
+                        title='Edit Master Terms Period'
                         defaultOpen={true}
                         variant='outline'
                         size='md'
@@ -134,14 +137,14 @@ function FormSections() {
                                 className='-top-[3.5rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
                                 <X className='h-4 w-4 text-destructive' /> Close
                             </Button>
-                            {/* <UpdateFeeTermsHeadDueDateForm selectedRow={selectedRow} onSuccess={closeEditForm} /> */}
+                            <UpdateMasterTermsPeriodForm selectedRow={selectedRow} onSuccess={closeEditForm} />
                         </div>
                     </CollapsibleSection>
                 </div>
             )}
 
             {/* Toggle Form */}
-            {/* {isDeleteFormOpen && selectedRow && <ToggleMasterTermFeeHeadDueDateForm rowData={selectedRow} onClose={closeToggleForm} />} */}
+            {isDeleteFormOpen && selectedRow && <DeleteMasterTermsPeriodForm rowData={selectedRow} onClose={closeToggleForm} />}
         </>
     );
 }

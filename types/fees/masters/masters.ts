@@ -737,3 +737,16 @@ export interface studentFeeGroup {
 export interface GroupStudentClassMapping {
     groups: studentFeeGroup[];
 }
+
+export interface IFeeSplitYearList {
+    fmtP_Year: string;
+}
+
+export interface MasterFeeOtherStudentType {
+    fmosT_Id: number;
+    mI_Id: number;
+    fmosT_StudentName: string;
+    fmosT_StudentMobileNo: number;
+    fmosT_StudentEmailId: string;
+    fmosT_ActiveFlag: boolean;
+}

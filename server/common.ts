@@ -382,14 +382,14 @@ export async function getUserAccessibleModules() {
                                             title: 'Master Term Fee Head Due Date',
                                             description: 'Manage Master Term Fee Head Due Date'
                                         },
-                                        // {
-                                        //     id: 2001,
-                                        //     name: 'Master Terms Period',
-                                        //     icon: 'Settings',
-                                        //     url: '/fees/masters/masterTermsPeriod',
-                                        //     title: 'Master Terms Period',
-                                        //     description: 'Manage Master Terms Period'
-                                        // },
+                                        {
+                                            id: 2001,
+                                            name: 'Master Terms Period',
+                                            icon: 'Settings',
+                                            url: '/fees/masters/masterTermsPeriod',
+                                            title: 'Master Terms Period',
+                                            description: 'Manage Master Terms Period'
+                                        },
                                         {
                                             id: 29,
                                             name: 'Class Category',
@@ -494,6 +494,14 @@ export async function getUserAccessibleModules() {
                                             url: '/fees/masters/studentfeegroupmapping',
                                             title: 'Student Fee Group Mapping',
                                             description: 'Manage Student Fee Group Mapping Details'
+                                        },
+                                        {
+                                            id: 501,
+                                            name: 'Fee Other Student',
+                                            icon: 'Settings',
+                                            url: '/fees/masters/feeotherstudent',
+                                            title: 'Fee Other Student',
+                                            description: 'Manage Fee Other Student Details'
                                         }
                                     ]
                                 },

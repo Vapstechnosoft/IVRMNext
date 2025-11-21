@@ -3,6 +3,7 @@
 import { api, getSearchParamsUrl } from '@/lib/apiService';
 import type { ApiSearchparams } from '@/types';
 import type {
+    IFeeSplitYearList,
     IFeeTermFeeHeadDueDateGridList,
     IMasterHeadDropdownList,
     IMasterInstallmentsDropdownList,
@@ -12,7 +13,7 @@ import type {
 
 export async function getMasterTermsPeriod(searchParams?: ApiSearchparams) {
     const urlParams = getSearchParamsUrl(searchParams ?? {}, 'termname,headnamed,yearname,fdate1,tdate1,aplc1,ddate1');
-    const url = `FeeMasterTerms/GetMasterTermsPeriodList/8?${urlParams}`;
+    const url = `FeeMasterTerms/GetMasterTermsPeriodList/21602?${urlParams}`;
 
     return await api.get<IMasterTermsPeriodList[]>('fees', url);
 }
@@ -22,15 +23,14 @@ export async function getFeeTermHeadDueDateGridList(asmay_id: number, fmt_id: nu
     return await api.get<IFeeTermFeeHeadDueDateGridList[]>('fees', url);
 }
 
-export async function addOrUpdateFeeTermHeadDueDate(data: any) {
-    const url = '/FeeMasterTerms/AddOrUpdateMasterTermFeeHeadDueDate';
+export async function addOrUpdateTermsPeriod(data: any) {
+    const url = 'FeeMasterTerms/AddOrUpdateTermPeriod';
     return await api.post<any>('fees', url, data);
 }
 
-export async function deleteFeeTermHeadDueDate(id: number) {
-    const url = `/FeeMasterTerms/delete_term_feehead_duedates?fmtfhdd_Id=${id}`;
+export async function deleteMasterTermPeriod(id: number) {
+    const url = `FeeMasterTerms/delete_master-terms-period?id=${id}`;
     console.info('deleted url', url);
-
     return await api.delete('fees', url);
 }
 
@@ -50,4 +50,11 @@ export async function gettermsdropdown(searchParams?: ApiSearchparams) {
     const urlParams = getSearchParamsUrl(searchParams ?? {});
     const url = `/FeeMasterTerms/fee_term_Dropdown/30?${urlParams}`;
     return await api.get<IMasterTermDropdownList[]>('fees', url);
+}
+
+export async function get_split_year(academicYearId: number) {
+    const url = `/FeeMasterTerms/get-split-year/${academicYearId}`;
+
+    console.info('Split Year URL:', url); // Debugging line to check the URL
+    return await api.get<IFeeSplitYearList[]>('fees', url);
 }
