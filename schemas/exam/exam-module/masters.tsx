@@ -71,7 +71,7 @@ export const masterExamSchema = {
         mI_Id: z.number(),
         emE_ExamName: createCustomStringSchema('Exam Name', 1, 100),
         emE_ExamCode: z.string().min(1, { message: 'Exam Code is required' }),
-        emE_ExamDescription: z.string().min(1, { message: 'Exam Description is required' }),
+        emE_ExamDescription: createCustomStringSchema('Exam Description', 1, 100),
         emE_IVRSExamName: z.string().min(1, { message: 'IVRS Exam Name is required' }),
         emE_FinalExamFlag: z.boolean({
             required_error: 'Final Exam flag is required'
@@ -91,7 +91,7 @@ export const masterExamPaperSchema = {
         mI_Id: z.number().optional(),
         user_id: z.number().optional(),
         empatY_PaperTypeName: createCustomStringSchema('Paper Type Name', 1, 100),
-        empatY_Color: createStringSchema('Color', 1, 50),
+        empatY_Color: createCustomStringSchema('Color', 1, 50),
         empatY_PaperTypeDescription: createStringSchema('Paper Type Description', 1, 200)
     }),
 

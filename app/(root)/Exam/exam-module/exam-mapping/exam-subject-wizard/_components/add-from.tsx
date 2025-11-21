@@ -27,7 +27,7 @@ import { useExamSubjectWizardDetails } from '@/hooks/exam/exammodule/exam-mappin
 import { useMasterGrade } from '@/hooks/exam/exammodule/usemasters';
 import { useAcademicYearDropdown } from '@/hooks/fees/useMasters';
 import { ExamSubjectWizardSchema, SubSubjectSubExamSchema } from '@/schemas/exam/exam-module/exam-mapping';
-import { getCategoryDropDownByAcademicYearlist } from '@/server/exam/exam-module/exam-mapping/exam-subject-group-mapping';
+import { getCategoryDropDowByExamYearCategoryList } from '@/server/exam/exam-module/exam-mapping/exam-subject-group-mapping';
 import {
     addOrUpdateExamSubjectWizard,
     getSubExamsMappedList,
@@ -85,7 +85,7 @@ export default function AddExamSubjectWizard({ onSuccess, rowData }: { onSuccess
         }
     });
 
-    const { watch, setValue, getValues, handleSubmit, formState, trigger } = methods;
+    const { watch, setValue, getValues, handleSubmit, formState, trigger, control, reset } = methods;
     const { errors, isSubmitting } = formState;
 
     // dropdown states
@@ -94,7 +94,8 @@ export default function AddExamSubjectWizard({ onSuccess, rowData }: { onSuccess
     const [exams, setExams] = useState<{ EME_Id: number; EME_ExamName: string; checked?: boolean }[]>([]);
     const [subjects, setSubjects] = useState<any[]>([]);
     const [gradeList, setGradeList] = useState<IMasterGrade[]>([]);
-
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
     const watchYear = watch('ASMAY_Id');
     const watchCategory = watch('EYC_Id');
     const watchEMCA_ID = watch('EMCA_Id');
@@ -167,8 +168,9 @@ export default function AddExamSubjectWizard({ onSuccess, rowData }: { onSuccess
         if (!watchYear) return;
         async function fetchRelated() {
             try {
-                const { data: cats } = await getCategoryDropDownByAcademicYearlist(30, Number(watchYear));
+                const { data: cats } = await getCategoryDropDowByExamYearCategoryList(30, Number(watchYear));
                 setCategories(Array.isArray(cats) ? cats : []);
+                console.log('🟡 [HOOK] fetchRelated categories:', cats);
             } catch (err: any) {
                 toast.error(err?.message ?? 'Failed to load categories');
                 setCategories([]);
@@ -723,6 +725,24 @@ export default function AddExamSubjectWizard({ onSuccess, rowData }: { onSuccess
             toast.error(err?.message ?? 'Failed to save Exam Subject Wizard');
         }
     };
+    const handleReset = () => {
+        reset({
+            UserId: 0,
+            MI_Id: 0,
+            ASMAY_Id: 0,
+            ASMAY_Year: '',
+            EYCE_BestOfApplicableFlg: true,
+            EYCE_BestOf: 5,
+            EYCE_AttendanceFromDate: '',
+            EYCE_AttendanceToDate: '',
+            exams_list: [],
+            //yearly_category_exam_subjects: [],
+            exm_subject_subexams_list: [],
+            exm_subject_subsubjects_list: [],
+            exm_subject_subsubjects_subexam: [],
+            Temp_Subject_Order: []
+        });
+    };
 
     const isTopFieldsFilled = watchYear && watchCategory;
 
@@ -733,22 +753,33 @@ export default function AddExamSubjectWizard({ onSuccess, rowData }: { onSuccess
                     <div className='grid grid-cols-1 gap-6 md:grid-cols-2'>
                         {/* Left */}
                         <div className='space-y-4'>
-                            <div>
-                                <Label>Academic Year *</Label>
-                                <Select value={watchYear?.toString() ?? ''} onValueChange={(val) => setValue('ASMAY_Id', Number(val))}>
-                                    <SelectTrigger>
-                                        <SelectValue placeholder='Select Academic Year' />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        {academicYears.map((y) => (
-                                            <SelectItem key={y.asmaY_Id} value={y.asmaY_Id.toString()}>
-                                                {y.asmaY_Year}
-                                            </SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                </Select>
-                                {errors.ASMAY_Id && <FormError>{errors.ASMAY_Id.message}</FormError>}
-                            </div>
+                            <Controller
+                                control={control}
+                                name='ASMAY_Id'
+                                render={({ field, fieldState }) => (
+                                    <div>
+                                        <Label>
+                                            Academic Year <span className='text-red-500'>*</span>
+                                        </Label>
+                                        <Select
+                                            key={field.value} // <— forces remount when value changes
+                                            value={field.value && field.value !== 0 ? String(field.value) : undefined}
+                                            onValueChange={(val) => field.onChange(Number(val))}>
+                                            <SelectTrigger>
+                                                <SelectValue placeholder='Select Academic Year' />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                {academicYears.map((y) => (
+                                                    <SelectItem key={y.asmaY_Id} value={String(y.asmaY_Id)}>
+                                                        {y.asmaY_Year}
+                                                    </SelectItem>
+                                                ))}
+                                            </SelectContent>
+                                        </Select>
+                                        {fieldState.error && <FormError>{fieldState.error.message}</FormError>}
+                                    </div>
+                                )}
+                            />
 
                             <div>
                                 <Label>Category *</Label>
@@ -766,7 +797,7 @@ export default function AddExamSubjectWizard({ onSuccess, rowData }: { onSuccess
                                     </SelectTrigger>
                                     <SelectContent>
                                         {categories.map((c) => (
-                                            <SelectItem key={c.emcA_Id} value={c.eyC_Id.toString()}>
+                                            <SelectItem key={c.eyC_Id} value={c.eyC_Id.toString()}>
                                                 {c.emcA_CategoryName}
                                             </SelectItem>
                                         ))}
@@ -826,7 +857,7 @@ export default function AddExamSubjectWizard({ onSuccess, rowData }: { onSuccess
                                             fieldState={fieldState}
                                             label='Attendance From'
                                             placeholder='Select Attendance From Date'
-                                            fromDate={new Date()}
+                                            fromDate={today}
                                         />
                                     )}
                                 />
@@ -890,11 +921,11 @@ export default function AddExamSubjectWizard({ onSuccess, rowData }: { onSuccess
                     </div>
 
                     <div className='mt-6 flex w-fit gap-4'>
+                        <Button type='button' variant='outline' onClick={handleReset}>
+                            Reset
+                        </Button>
                         <Button type='submit' disabled={isSubmitting}>
                             {isSubmitting ? 'Saving...' : 'Save'}
-                        </Button>
-                        <Button type='button' variant='outline' onClick={() => window.location.reload()}>
-                            Cancel
                         </Button>
                     </div>
                 </CollapsibleSection>

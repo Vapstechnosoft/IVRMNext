@@ -16,8 +16,8 @@ export const lifeSkillsColumns: ColumnDef<ILifeSkill>[] = [
             const continuousIndex = pageIndex * pageSize + row.index + 1;
             return <div>{continuousIndex}</div>;
         },
-        enableSorting: false,
-        enableHiding: false
+        enableHiding: true,
+        enableSorting: false
     },
     {
         accessorKey: 'ecS_SkillName',

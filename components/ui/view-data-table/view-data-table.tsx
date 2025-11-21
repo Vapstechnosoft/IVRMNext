@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { getCommonPinningStyles, tableSearchVariables } from '@/lib/data-table.config';
+import type { ApiSearchparams } from '@/types';
 import { DoubleArrowLeftIcon, DoubleArrowRightIcon } from '@radix-ui/react-icons';
 import {
     type ColumnDef,
@@ -32,7 +33,10 @@ interface DataTableProps<TData, TValue> {
     showExportOptions?: boolean;
     showViewOptions?: boolean;
     showPagination?: boolean;
+    showSearch?: boolean;
+    showSorting?: boolean;
     columnPinning?: ColumnPinningState | undefined;
+    onSearchQueryChange?: (value: ApiSearchparams) => void;
 
     // ✅ updated
     maxSelectableRows?: number;
@@ -53,9 +57,12 @@ export const DataTable = forwardRef<DataTableRef, DataTableProps<any, any>>(func
         showExportOptions = false,
         showViewOptions = true,
         showPagination = false,
+        showSearch,
+        showSorting = false,
         columnPinning,
         maxSelectableRows = 0,
-        onRowSelectionChange
+        onRowSelectionChange,
+        onSearchQueryChange
     }: DataTableProps<TData, TValue>,
     ref: React.Ref<DataTableRef>
 ) {
@@ -64,6 +71,7 @@ export const DataTable = forwardRef<DataTableRef, DataTableProps<any, any>>(func
         tableSearchVariables.page,
         parseAsInteger.withOptions({ shallow: false }).withDefault(1)
     );
+    const [localSearchQuery, setLocalSearchQuery] = useState('');
     const [pageSize, setPageSize] = useQueryState(
         tableSearchVariables.page_size,
         parseAsInteger.withOptions({ shallow: false, history: 'push' }).withDefault(10)
@@ -158,11 +166,33 @@ export const DataTable = forwardRef<DataTableRef, DataTableProps<any, any>>(func
             }
         }
     }));
+    useEffect(() => {
+        const params: ApiSearchparams = {
+            page: currentPage,
+            page_size: pageSize,
+            search_query: localSearchQuery || '', // from toolbar
+            sort_column: sortBy || '',
+            sort_direction: order || '',
+            search_columns: ''
+        };
+
+        onSearchQueryChange?.(params);
+    }, [currentPage, pageSize, sortBy, order, localSearchQuery]);
 
     return (
         <div className='w-full space-y-2.5'>
             {/* Toolbar */}
-            <DataTableToolbar table={table} data={data} showExportOptions={showExportOptions} showViewOptions={showViewOptions} />
+            <DataTableToolbar
+                table={table}
+                data={data}
+                showExportOptions={showExportOptions}
+                showViewOptions={showViewOptions}
+                showSearch={showSearch}
+                showSorting={showSorting}
+                onSearchQueryChange={(value) => {
+                    setLocalSearchQuery(value);
+                }}
+            />
 
             {/* Table Content */}
             {isLoading ? (

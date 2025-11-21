@@ -19,8 +19,8 @@ export const LifeSkillAreaMappingColumns: ColumnDef<ILifeSkillAreaMapping>[] = [
             const pageSize = table.getState().pagination.pageSize;
             return <div>{pageIndex * pageSize + row.index + 1}</div>;
         },
-        enableSorting: false,
-        enableHiding: false
+        enableHiding: true,
+        enableSorting: false
     },
 
     // Academic Year

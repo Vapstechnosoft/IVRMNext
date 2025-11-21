@@ -184,6 +184,8 @@ export const EXAM_QUERY_KEYS = {
     LIFE_SKILLS_MAPPING: 'life-skills-mapping',
     LIFE_SKILLS_AREA_MAPPING: 'life-skills-area-mapping',
 
+    EXAM_MARKS_PROCESS_CONDITION: 'exam-marks-process-condition',
+
     EXAM_STANDARD: 'exam-standared'
 };
 
