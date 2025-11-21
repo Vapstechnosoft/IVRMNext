@@ -16,8 +16,8 @@ export const CategoryClassMappingDetalisColumns: ColumnDef<ICategoryClassMapping
             const pageSize = table.getState().pagination.pageSize;
             return <div>{pageIndex * pageSize + row.index + 1}</div>;
         },
-        enableSorting: false,
-        enableHiding: true
+        enableHiding: true,
+        enableSorting: false
     },
     {
         accessorKey: 'asmcL_ClassName',

@@ -21,8 +21,8 @@ export const MasterExamColumns: ColumnDef<IMasterExam>[] = [
         cell: ({ row }) => (
             <Checkbox checked={row.getIsSelected()} onCheckedChange={(value) => row.toggleSelected(!!value)} aria-label='Select row' />
         ),
+        enableHiding: true,
         enableSorting: false,
-        enableHiding: false,
         size: 24
     },
     {
@@ -34,8 +34,8 @@ export const MasterExamColumns: ColumnDef<IMasterExam>[] = [
             const continuousIndex = pageIndex * pageSize + row.index + 1;
             return <div>{continuousIndex}</div>;
         },
-        enableSorting: true,
-        enableHiding: false
+        enableHiding: true,
+        enableSorting: false
     },
     {
         accessorKey: 'emE_ExamName',

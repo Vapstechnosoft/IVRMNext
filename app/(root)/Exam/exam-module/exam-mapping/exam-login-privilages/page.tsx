@@ -4,14 +4,10 @@ import { Button } from '@/components/ui/button';
 import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/generic-data-table';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
-// import type { IExamLoginPrivilegesView } from './_components/interface';
-// import ExamLoginPrivilegesDetailsPage from './_components/exam-login-privileges-details';
-// import AddExamLoginPrivilegesForm from './_components/add-exam-login-privileges-form';
 import { useExamLoginPrivileges } from '@/hooks/exam/exammodule/exam-mapping';
-import type { IExamLoginPrivilegesView } from '@/types/exam/exam-module/exam-mapping';
 import type { IExamLoginPrivileges } from '@/types/exam/exam-module/exam-mapping';
 import { Plus, X } from 'lucide-react';
-import { use } from 'react';
+import { use, useEffect } from 'react';
 import { ExamLoginPrivilegesColumns } from './_components/columns';
 
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
@@ -20,10 +16,14 @@ export default function ExamLoginPrivilegesPage(props: { searchParams: SearchPar
     const searchParams = use(props.searchParams);
     const { data, isLoading, error } = useExamLoginPrivileges(searchParams);
 
+    useEffect(() => {
+        console.log('login privileges data', data);
+    }, [data]);
+
     return (
-        <FormProvider<IExamLoginPrivilegesView>>
+        <FormProvider<IExamLoginPrivileges>>
             <ExamLoginPrivilegesPageContent
-                data={data?.data ?? null} // convert undefined to null
+                data={Array.isArray(data?.data) ? data.data : []} // always array
                 isLoading={isLoading}
                 error={error}
             />
@@ -36,12 +36,12 @@ function ExamLoginPrivilegesPageContent({
     isLoading,
     error
 }: {
-    data: any;
+    data: any[];
     isLoading: boolean;
     error: any;
 }) {
     const { openAddForm } = useFormContext<IExamLoginPrivileges>();
-    const tableProps = useDataTableProps(data);
+    const tableProps = useDataTableProps(data ?? []);
 
     return (
         <div className='min-h-screen'>
@@ -62,8 +62,9 @@ function ExamLoginPrivilegesPageContent({
                     variant='default'
                     size='lg'
                     className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
-                    <GenericDataTable<IExamLoginPrivilegesView>
+                    <GenericDataTable<IExamLoginPrivileges>
                         {...tableProps}
+                        data={data}
                         columns={ExamLoginPrivilegesColumns}
                         isLoading={isLoading}
                         error={error}
@@ -93,7 +94,7 @@ function FormSections() {
         addFormRef,
         editFormRef,
         selectedRow
-    } = useFormContext<IExamLoginPrivilegesView>();
+    } = useFormContext<IExamLoginPrivileges>();
 
     return (
         <>
@@ -116,7 +117,6 @@ function FormSections() {
                                 className='-top-[3.5rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
                                 <X className='h-4 w-4 text-destructive' /> Close
                             </Button>
-                            {/* <AddExamLoginPrivileges onSuccess={closeAddForm} /> */}
                         </div>
                     </CollapsibleSection>
                 </div>
@@ -140,16 +140,12 @@ function FormSections() {
                                 className='-top-[3.5rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
                                 <X className='h-4 w-4 text-destructive' /> Close
                             </Button>
-                            {/* <UpdateExamLoginPrivilegesForm initialData={selectedRow} onSuccess={closeEditForm} /> */}
                         </div>
                     </CollapsibleSection>
                 </div>
             )}
-
             {/* Details View */}
-            {/* {isDetailsViewOpen && selectedRow && (
-        <ExamLoginPrivilegesDetailsPage rowData={selectedRow} onClose={closeDetailsView} />
-      )} */}
+            {/* {isDetailsViewOpen && selectedRow && <ExamSubjectGroupingDetailsPage rowData={selectedRow} onClose={closeDetailsView} />} */}
         </>
     );
 }

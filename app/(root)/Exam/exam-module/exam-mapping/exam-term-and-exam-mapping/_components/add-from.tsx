@@ -75,6 +75,8 @@ export default function AddExamTermAndExamMapping({ onSuccess }: { onSuccess?: (
     const [entryNotApplicable, setEntryNotApplicable] = useState<boolean>(false);
     const { data: academicData, isLoading: loadingAcademic, error: academicError } = useAcademicYearDropdown();
     const topLocked = addedRows.length > 0;
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
 
     useEffect(() => {
         // Academic Years
@@ -468,7 +470,7 @@ export default function AddExamTermAndExamMapping({ onSuccess }: { onSuccess?: (
                                             fieldState={fieldState}
                                             label='Term Start Date'
                                             placeholder='Select Date'
-                                            fromDate={new Date()}
+                                            fromDate={today}
                                         />
                                     )}
                                 />
@@ -482,7 +484,9 @@ export default function AddExamTermAndExamMapping({ onSuccess }: { onSuccess?: (
                                             fieldState={fieldState}
                                             label='Term End Date'
                                             placeholder='Select Date'
-                                            fromDate={new Date(watch('ecT_TermStartDate'))}
+                                            fromDate={
+                                                methods.watch('ecT_TermStartDate') === '' ? today : new Date(watch('ecT_TermStartDate'))
+                                            }
                                         />
                                     )}
                                 />
@@ -495,7 +499,7 @@ export default function AddExamTermAndExamMapping({ onSuccess }: { onSuccess?: (
                                             fieldState={fieldState}
                                             label='Term Publish Date'
                                             placeholder='Select Date'
-                                            fromDate={new Date(watch('ecT_TermEndDate'))}
+                                            fromDate={methods.watch('ecT_TermEndDate') === '' ? today : new Date(watch('ecT_TermEndDate'))}
                                         />
                                     )}
                                 />

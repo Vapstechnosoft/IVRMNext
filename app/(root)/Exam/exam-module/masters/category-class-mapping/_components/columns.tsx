@@ -31,8 +31,8 @@ export const CategoryClassMappingColumns: ColumnDef<ICategoryMapping>[] = [
             const pageSize = table.getState().pagination.pageSize;
             return <div>{pageIndex * pageSize + row.index + 1}</div>;
         },
-        enableSorting: false,
-        enableHiding: false
+        enableHiding: true,
+        enableSorting: false
     },
     {
         accessorKey: 'asmaY_Year',

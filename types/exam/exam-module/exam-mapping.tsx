@@ -43,23 +43,6 @@ export interface IExamLoginPrivileges {
     asmS_Id: number;
     asmC_SectionName: string;
     asmaY_Order: number;
-    classList: {
-        asmcL_Id: number;
-        asmcL_ClassName: string;
-    }[];
-    sectionList: {
-        asmS_Id: number;
-        asmC_SectionName: string;
-    }[];
-    subjectList: {
-        ismS_Id: number;
-        ismS_SubjectName: string;
-    }[];
-    subSubjectList?: {
-        emsS_Id: number;
-        emsS_SubSubjectName: string;
-    }[];
-    activeStatus: boolean;
 }
 
 export interface IExamLoginPrivilegesForm {
@@ -330,4 +313,50 @@ export interface ILifeSkillAreaMapping {
     ecsaM_ActiveFlag: boolean;
     createdDate?: string;
     updatedDate?: string;
+}
+export interface CategoryDetail {
+    eycE_Id: number;
+    eycE_CategoryFlg: boolean;
+    mycL_CategoryName: string;
+    mycL_Id: number;
+}
+export interface ExamDetail {
+    eycE_Id: number;
+    eycE_ExamFlg: boolean;
+    emE_Id: number;
+    emE_ExamName: string;
+}
+
+export interface IExamMarksProcessCondition {
+    eycE_Id: number;
+    eamY_Year: string;
+    eypE_Flag: boolean;
+    eypE_SeviourFlg: boolean;
+    examName: string;
+    emgr_ExamGroup?: string;
+    estT_Description?: string;
+
+    eypdT_MonthDayFlg: boolean;
+    eypdT_CountFlg: boolean;
+    eypdT_WeekDayFlg: boolean;
+    eypdT_SpecifcDateFlg: boolean;
+    eypdT_Count: number;
+    eypdT_CountOfDays: number;
+
+    eycD_DaysFlg: boolean;
+    eycD_HoursFlg: boolean;
+    eycD_Count: number;
+    eycD_CountOfTime: number;
+
+    eycE_AttendanceFlg: boolean;
+    eycE_HomeWorkFlg: boolean;
+    eycE_DisciplineFlg: boolean;
+
+    eyp_CTFlg: boolean;
+
+    eycE_CategoryFlg: boolean;
+    categoryDetails: CategoryDetail[];
+
+    eycE_ExamFlg: boolean;
+    examDetails: ExamDetail[];
 }
