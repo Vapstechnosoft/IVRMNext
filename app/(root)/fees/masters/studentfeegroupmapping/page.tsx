@@ -23,7 +23,7 @@ import DeleteStudentFeeGroupMappingForm from './_components/delete-form';
 
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 
-export default function MasterOnlinePaymentHeadGroupPage(props: {
+export default function MasterStudentGroupMappingPage(props: {
     searchParams: SearchParams;
 }) {
     const searchParams = use(props.searchParams);

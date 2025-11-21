@@ -7,10 +7,10 @@ import { FormError, Label } from '@/components/ui/extension/field';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { GenericDataTable, useDataTableProps } from '@/components/ui/view-data-table/view-generic-data-table';
 import {
     useMasterStudentFeeGrouMappingAcademic,
     useStudentClassDropDown,
-    useStudentClassMapping,
     useStudentFeeBusRoutingDropDown,
     useStudentFeeCasteRoutingDropDown,
     useStudentFeeGroupAdmiClassCategoryDropDown,
@@ -19,21 +19,25 @@ import {
     useStudentSectionDropDown
 } from '@/hooks/fees/useMasters';
 import { masterStudentFeeGroupMappingSchema } from '@/schemas/fees/masters';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { RotateCcw, Save } from 'lucide-react';
-import { useEffect, useState } from 'react';
-import { Controller, useForm } from 'react-hook-form';
-import { toast } from 'sonner';
-import type { z } from 'zod';
-
-import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/generic-data-table';
-import { getStudentFeeHeadList, getStudentFeeInstallmentList, getStudentFeeSave } from '@/server/fees/masters/student_fee_group_mapping';
+import {
+    getStudentClassMapping,
+    getStudentFeeHeadList,
+    getStudentFeeInstallmentList,
+    getStudentFeeSave
+} from '@/server/fees/masters/student_fee_group_mapping';
+import type { ApiSearchparams } from '@/types';
 import type {
     IMasterFeeGroupList,
     IMasterFeeHeadList,
     IMasterFeeInstallmentList,
     IMasterStudentClassMappingList
 } from '@/types/fees/masters/masters';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { RotateCcw, Save } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { Controller, useForm } from 'react-hook-form';
+import { toast } from 'sonner';
+import type { z } from 'zod';
 import { masterFeeStudentClassMapping } from './student-list-columns';
 
 type FormFields = z.infer<typeof masterStudentFeeGroupMappingSchema.addOrUpdate>;
@@ -52,6 +56,13 @@ export default function StudentFeeGroupMappingFilter() {
     const [area, setArea] = useState<string>('');
     const [collapsedGroups, setCollapsedGroups] = useState<Record<number, boolean>>({});
     const [collapsedHeads, setCollapsedHeads] = useState<Record<string, boolean>>({});
+    const [apisearchParams_, setApisearchParams_] = useState<ApiSearchparams>({});
+    const [masterStudentClassMapping, setMasterStudentClassMapping] = useState<any[]>([]);
+    const [masterStudentClassMappingLoading, setMasterStudentClassMappingLoading] = useState(false);
+    const [masterStudentClassMappingError, setMasterStudentClassMappingError] = useState<any>(null);
+
+    // tableProps stored in state
+    const [tableProps, setTableProps] = useState<any>(null);
 
     const [selectedGroups, setSelectedGroups] = useState<number[]>([]);
     const [selectedHeads, setSelectedHeads] = useState<string[]>([]); // "groupId-headId"
@@ -71,15 +82,8 @@ export default function StudentFeeGroupMappingFilter() {
         mode: 'onChange',
         defaultValues: {
             mI_Id: '30',
+            asmaY_Id: 231,
             institutionName: 'vidya_vikas_vidya_samste'
-            // asmaY_Id: undefined,
-            // classCategory: "",
-            // busRouting: "",
-            // casteCategory: "",
-            // // area: "",
-            // class: "",
-            // section: "",
-            // asmaY_Year: "",
         }
     });
     const { data: academicYearData, isLoading: academicYearLoading, error: academicYearError } = useMasterStudentFeeGrouMappingAcademic();
@@ -121,13 +125,33 @@ export default function StudentFeeGroupMappingFilter() {
     } = useStudentSectionDropDown();
 
     const asmaY_Id = watch('asmaY_Id');
-    const {
-        data: masterStudentClassMapping,
-        isLoading: masterStudentClassMappingLoading,
-        error: masterStudentClassMappingError
-    } = useStudentClassMapping(Number(asmaY_Id || 231));
+    useEffect(() => {
+        fetchStudentClassMapping();
+    }, [academicYear, apisearchParams_]);
 
-    const tableProps = useDataTableProps(masterStudentClassMapping);
+    const fetchStudentClassMapping = async () => {
+        try {
+            setMasterStudentClassMappingLoading(true);
+            setMasterStudentClassMappingError(null);
+
+            const res = await getStudentClassMapping(asmaY_Id, apisearchParams_);
+            const saferes = Array.isArray(res) ? res : [];
+            setMasterStudentClassMapping(saferes);
+            setTableProps(useDataTableProps(res || []));
+        } catch (error) {
+            console.error('Error fetching student class mapping', error);
+            setMasterStudentClassMappingError(error);
+        } finally {
+            setMasterStudentClassMappingLoading(false);
+        }
+    };
+    const handleApiParmasChange = (apiparmas: ApiSearchparams) => {
+        setApisearchParams_((prev) => {
+            if (JSON.stringify(prev) === JSON.stringify(apiparmas)) return prev;
+            return apiparmas;
+        });
+    };
+
     useEffect(() => {
         // console.log(masterStudentClassMapping);
     }, [masterStudentClassMapping]);
@@ -190,13 +214,9 @@ export default function StudentFeeGroupMappingFilter() {
         }));
     };
 
-    // Handle group check/uncheck
-
-    // === KEY HELPERS ===
     const makeHeadKey = (groupId: number, headId: number) => `${groupId}-${headId}`;
     const makeInstKey = (groupId: number, headId: number, instId: number) => `${groupId}-${headId}-${instId}`;
 
-    // === HANDLE GROUP CHECK (FIXED & CLEAN) ===
     const handleGroupCheck = async (grp: IMasterFeeGroupList, checked: boolean) => {
         const groupId = grp.fmG_Id;
         if (!groupId) return;
@@ -250,7 +270,6 @@ export default function StudentFeeGroupMappingFilter() {
         }
     };
 
-    // === HANDLE HEAD CHECK (PERFECT) ===
     const handleHeadCheck = async (groupId: number, headId: number, checked: boolean) => {
         const headKey = makeHeadKey(groupId, headId);
 
@@ -288,7 +307,6 @@ export default function StudentFeeGroupMappingFilter() {
         });
     };
 
-    // === HANDLE INSTALLMENT CHECK (PERFECT) ===
     const handleInstallmentCheck = (inst: IMasterFeeInstallmentList, checked: boolean) => {
         const groupId = inst.fmG_Id;
         const headId = inst.fmH_Id;
@@ -315,6 +333,7 @@ export default function StudentFeeGroupMappingFilter() {
             return updated;
         });
     };
+
     const handleSelectStudent = (selectedRows: IMasterStudentClassMappingList[]) => {
         setSelectedStudents(selectedRows);
     };
@@ -814,6 +833,11 @@ export default function StudentFeeGroupMappingFilter() {
                             noDataTitle='No Student Student Class Mapping Found'
                             noDataDescription='Get started by creating your first Student Class Mapping'
                             errorTitle='Error Student Class Mapping'
+                            onSearchQueryChange={handleApiParmasChange}
+                            showSearch={true}
+                            searchQuery=''
+                            showPagination={true}
+                            currentApiParams={apisearchParams_}
                         />
                     </CollapsibleSection>
                     <div className='p-4'>
@@ -893,7 +917,6 @@ export default function StudentFeeGroupMappingFilter() {
                                                                         <ul className='pl-6'>
                                                                             {installment[groupId][headId].map((inst) => {
                                                                                 const installmentId = inst.ftI_Id;
-                                                                                // Optional: make it ultra-unique, but usually ftI_Id is globally unique
                                                                                 const installmentKey = `${groupId}-${headId}-${installmentId}`;
 
                                                                                 return (

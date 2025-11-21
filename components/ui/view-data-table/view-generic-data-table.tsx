@@ -48,6 +48,7 @@ interface GenericDataTableProps<T> {
     ErrorComponent?: React.ComponentType<{ error: Error; message: string }>;
     NoDataComponent?: React.ComponentType;
     searchQuery?: string;
+    currentApiParams?: ApiSearchparams;
 }
 
 export const GenericDataTable = forwardRef<DataTableRef, GenericDataTableProps<any>>(function GenericDataTable<T>(
@@ -73,7 +74,8 @@ export const GenericDataTable = forwardRef<DataTableRef, GenericDataTableProps<a
         LoadingIcon = RefreshCw,
         ErrorIcon = Database,
         LoadingComponent,
-        ErrorComponent
+        ErrorComponent,
+        currentApiParams
     }: GenericDataTableProps<T>,
     ref: React.Ref<DataTableRef>
 ) {
@@ -173,6 +175,7 @@ export const GenericDataTable = forwardRef<DataTableRef, GenericDataTableProps<a
                         onSearchQueryChange(value);
                     }
                 }}
+                currentApiParams={currentApiParams}
             />
         </div>
     );

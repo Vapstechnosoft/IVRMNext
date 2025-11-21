@@ -3,37 +3,40 @@
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { InputText } from '@/components/ui/extension/input-text';
+import { useFeeOtherStudent } from '@/hooks/fees/useMasters';
+import { masterFeeOtherStudentSchema } from '@/schemas/fees/masters';
 import { saveFeeOtherStudent } from '@/server/fees/masters/fee_other_student';
+import { zodResolver } from '@hookform/resolvers/zod';
 import { RotateCcw, Save } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
+import type { z } from 'zod';
 
 interface AddFeeOtherStudentFromProps {
     onSuccess?: () => void;
     className?: string;
+    onClose?: () => void;
 }
 
-interface FormData {
-    studentName: string;
-    mobileno: string;
-    emailno: string;
-}
+type FormFields = z.infer<typeof masterFeeOtherStudentSchema.addOrUpdate>;
 
-export default function AddFeeOtherStudentFrom({ onSuccess, className = '' }: AddFeeOtherStudentFromProps) {
+export default function AddFeeOtherStudentFrom({ onSuccess, className = '', onClose }: AddFeeOtherStudentFromProps) {
+    const { refetchAll } = useFeeOtherStudent();
     const {
-        register,
         handleSubmit,
         reset,
         watch,
-        formState: { errors, isSubmitting, isValid }
-    } = useForm<FormData>({
+        register,
+        formState: { errors, isSubmitting }
+    } = useForm<FormFields>({
+        resolver: zodResolver(masterFeeOtherStudentSchema.addOrUpdate),
         mode: 'onChange',
         defaultValues: {
-            studentName: '',
-            mobileno: '',
-            emailno: ''
+            mI_Id: '30',
+            institutionName: 'vidya_vikas_vidya_samste'
         }
     });
+
     const studentName = watch('studentName');
     const studentMobileNo = watch('mobileno');
     const studentEmailNo = watch('emailno');
@@ -51,8 +54,10 @@ export default function AddFeeOtherStudentFrom({ onSuccess, className = '' }: Ad
             const res = await saveFeeOtherStudent(payload);
             if (res?.success) {
                 toast.success(res.message || 'Saved successfully');
+                refetchAll();
                 handleReset();
                 onSuccess?.();
+                onClose?.();
             } else {
                 toast.error(res?.message || 'Save failed');
             }
@@ -76,9 +81,7 @@ export default function AddFeeOtherStudentFrom({ onSuccess, className = '' }: Ad
                             required
                             id='studentName'
                             placeholder='Enter Student Name'
-                            {...register('studentName', {
-                                required: 'Student name is required'
-                            })}
+                            {...register('studentName', {})}
                             error={errors.studentName?.message}
                         />
 
@@ -87,6 +90,7 @@ export default function AddFeeOtherStudentFrom({ onSuccess, className = '' }: Ad
                             required
                             id='mobileno'
                             placeholder='Enter Student Mobile Number'
+                            type='tel'
                             {...register('mobileno', {
                                 required: 'Mobile number is required',
                                 pattern: {
@@ -94,6 +98,15 @@ export default function AddFeeOtherStudentFrom({ onSuccess, className = '' }: Ad
                                     message: 'Enter a valid 10-digit mobile number'
                                 }
                             })}
+                            onInput={(e: React.FormEvent<HTMLInputElement>) => {
+                                const input = e.currentTarget;
+                                // Remove non-digit characters
+                                input.value = input.value.replace(/\D/g, '');
+                                // Limit to 10 digits
+                                if (input.value.length > 10) {
+                                    input.value = input.value.slice(0, 10);
+                                }
+                            }}
                             error={errors.mobileno?.message}
                         />
 
@@ -125,7 +138,7 @@ export default function AddFeeOtherStudentFrom({ onSuccess, className = '' }: Ad
                                 Reset
                             </Button>
 
-                            <Button type='submit' disabled={isSubmitting || !isValid} className='flex items-center gap-2'>
+                            <Button type='submit' disabled={isSubmitting} className='flex items-center gap-2'>
                                 <Save className='h-4 w-4' />
                                 {isSubmitting ? 'Saving...' : 'Save'}
                             </Button>

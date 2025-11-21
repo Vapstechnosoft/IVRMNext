@@ -23,6 +23,7 @@ interface DataTableToolbarProps<TData> {
     showSearch?: boolean;
     showSorting?: boolean;
     onSearchQueryChange?: (value: string) => void;
+    currentSearchQuery?: string;
 }
 
 export function DataTableToolbar<TData>({
@@ -33,9 +34,10 @@ export function DataTableToolbar<TData>({
     showSearchColumns = false,
     showSearch,
     showSorting = false,
-    onSearchQueryChange
+    onSearchQueryChange,
+    currentSearchQuery
 }: DataTableToolbarProps<TData>) {
-    const [searchQuery, setSearchQuery] = useState('');
+    const [searchQuery, setSearchQuery] = useState(currentSearchQuery ? currentSearchQuery : '');
 
     // Add local state for immediate input feedback
     const [localSearchQuery, setLocalSearchQuery] = useState(searchQuery || ''); // Initialize with searchQuery

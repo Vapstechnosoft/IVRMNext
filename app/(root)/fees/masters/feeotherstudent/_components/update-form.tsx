@@ -3,6 +3,7 @@
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { InputText } from '@/components/ui/extension/input-text';
+import { useFeeOtherStudent } from '@/hooks/fees/useMasters';
 import { saveFeeOtherStudent } from '@/server/fees/masters/fee_other_student';
 import type { MasterFeeOtherStudentType } from '@/types/fees/masters/masters';
 import { RotateCcw, Save } from 'lucide-react';
@@ -23,13 +24,13 @@ interface FormData {
     emailno: string;
 }
 
-export default function UpdtaeFeeOtherStudentFrom({ onSuccess, className = '', selectedRow }: UpdateFeeOtherStudentFromProps) {
+export default function UpdtaeFeeOtherStudentFrom({ onSuccess, className = '', selectedRow, onClose }: UpdateFeeOtherStudentFromProps) {
+    const { refetchAll } = useFeeOtherStudent();
     const {
         register,
         handleSubmit,
         reset,
         watch,
-        setValue,
         formState: { errors, isSubmitting, isValid }
     } = useForm<FormData>({
         mode: 'onChange',
@@ -45,7 +46,6 @@ export default function UpdtaeFeeOtherStudentFrom({ onSuccess, className = '', s
 
     useEffect(() => {
         if (!selectedRow) return;
-
         reset({
             studentName: selectedRow.fmosT_StudentName,
             mobileno: selectedRow.fmosT_StudentMobileNo.toString(),
@@ -57,6 +57,7 @@ export default function UpdtaeFeeOtherStudentFrom({ onSuccess, className = '', s
         const buildpayload = () => {
             return {
                 mI_Id: 30,
+                fmosT_Id: selectedRow.fmosT_Id,
                 fmosT_StudentName: studentName,
                 fmosT_StudentMobileNo: studentMobileNo,
                 fmosT_StudentEmailId: studentEmailNo
@@ -67,8 +68,10 @@ export default function UpdtaeFeeOtherStudentFrom({ onSuccess, className = '', s
             const res = await saveFeeOtherStudent(payload);
             if (res?.success) {
                 toast.success(res.message || 'Saved successfully');
+                refetchAll();
                 handleReset();
                 onSuccess?.();
+                onClose?.();
             } else {
                 toast.error(res?.message || 'Save failed');
             }
