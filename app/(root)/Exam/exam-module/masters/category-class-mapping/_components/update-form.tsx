@@ -3,6 +3,7 @@
 import { Button } from '@/components/ui/button';
 import { CustomMultiSelectBox } from '@/components/ui/custom-multiselect';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useMasterCategoryClassMapping } from '@/hooks/exam/exammodule/usemasters';
 import { useAcademicYearDropdown } from '@/hooks/fees/useMasters';
 import { categoryClassMappingSchema } from '@/schemas/exam/exam-module/masters';
 import {
@@ -57,6 +58,7 @@ export default function UpdateCategoryClassForm({ selectedRow, onSuccess }: Prop
     const [classes, setClasses] = useState<ClassItem[]>([]);
     const [sections, setSections] = useState<SectionItem[]>([]);
     const [loadingSections, setLoadingSections] = useState(false);
+    const { refetchAll } = useMasterCategoryClassMapping();
 
     // Local mapping list (table) and edit state
     const [mappingList, setMappingList] = useState<
@@ -69,6 +71,11 @@ export default function UpdateCategoryClassForm({ selectedRow, onSuccess }: Prop
     >([]);
     const [editIndex, setEditIndex] = useState<number | null>(null);
     const tableRef = useRef<HTMLDivElement | null>(null);
+    const scrollToBottom = () => {
+        if (tableRef.current) {
+            tableRef.current.scrollTop = tableRef.current.scrollHeight;
+        }
+    };
 
     const watchedYear = watch('asmaY_Id');
     const watchedCategory = watch('emcA_Id');
@@ -292,7 +299,7 @@ export default function UpdateCategoryClassForm({ selectedRow, onSuccess }: Prop
             const selected = sections.filter((s) => found.section_list.some((sel) => sel.asmS_Id === s.asmS_Id));
             setValue(
                 'section_list',
-                selected.map((s) => ({ asmS_Id: s.asmS_Id }))
+                selected.map((s) => ({ asmS_Id: s.asmS_Id, asmC_SectionName: s.asmC_SectionName }))
             );
         } else {
             // No saved mapping in local list: clear selected sections (keeps sections options)
@@ -302,13 +309,13 @@ export default function UpdateCategoryClassForm({ selectedRow, onSuccess }: Prop
 
     // Add or update mapping row
     const handleAddOrUpdate = () => {
-        const year = Number(watch('asmaY_Id') ?? 0);
-        const cat = Number(watch('emcA_Id') ?? 0);
-        const cls = Number(watch('asmcL_Id') ?? 0);
-        const secs = (watch('section_list') ?? []) as SectionItem[];
+        const year = Number(watch('asmaY_Id') || 0);
+        const cat = Number(watch('emcA_Id') || 0);
+        const cls = Number(watch('asmcL_Id') || 0);
+        const secs = (watch('section_list') || []) as { asmS_Id: number; asmC_SectionName: string }[];
 
-        if (!year || !cat || !cls || !Array.isArray(secs) || secs.length === 0) {
-            toast.error('All fields are required to add a mapping');
+        if (!year || !cat || !cls || secs.length === 0) {
+            toast.error('All fields are required to add/update a mapping');
             return;
         }
 
@@ -318,41 +325,46 @@ export default function UpdateCategoryClassForm({ selectedRow, onSuccess }: Prop
             asmcL_Id: cls,
             section_list: secs.map((s) => ({
                 asmS_Id: Number(s.asmS_Id),
-                asmC_SectionName: s.asmC_SectionName ?? String(s.asmS_Id)
+                asmC_SectionName: s.asmC_SectionName
             }))
         };
 
-        if (editIndex !== null && editIndex >= 0 && editIndex < mappingList.length) {
+        if (editIndex !== null) {
+            // ✔ UPDATE existing row inside update modal
             setMappingList((prev) => {
-                const copy = [...prev];
-                copy[editIndex] = newEntry;
-                return copy;
+                const updated = [...prev];
+                updated[editIndex] = newEntry;
+                return updated;
             });
-            setEditIndex(null);
-            toast.success('Mapping updated');
+
+            toast.info('Mapping updated');
         } else {
-            const idx = mappingList.findIndex(
+            // ✔ ADD or replace if combination already exists
+            const existingIndex = mappingList.findIndex(
                 (m) => Number(m.asmaY_Id) === year && Number(m.emcA_Id) === cat && Number(m.asmcL_Id) === cls
             );
-            if (idx !== -1) {
+
+            if (existingIndex !== -1) {
                 setMappingList((prev) => {
-                    const copy = [...prev];
-                    copy[idx] = newEntry;
-                    return copy;
+                    const updated = [...prev];
+                    updated[existingIndex] = newEntry;
+                    return updated;
                 });
-                toast.info('Existing mapping updated with selected sections');
+                toast.info('Existing mapping updated');
             } else {
                 setMappingList((prev) => [...prev, newEntry]);
                 toast.success('Mapping added');
             }
         }
 
-        // After add/update: keep academicYear & category (they are disabled), reset class & sections only
-        setValue('asmcL_Id', 0);
+        // ❌ DO NOT reset class in update form
+        // In update page: keep user’s selected class & sections stable
+
+        setEditIndex(null);
+        setTimeout(scrollToBottom, 50);
         setValue('section_list', []);
-        setTimeout(() => {
-            if (tableRef.current) tableRef.current.scrollTop = tableRef.current.scrollHeight;
-        }, 50);
+        setValue('asmcL_Id', 0);
+        setSections([]);
     };
 
     const handleEdit = (index: number) => {
@@ -363,7 +375,7 @@ export default function UpdateCategoryClassForm({ selectedRow, onSuccess }: Prop
         // set the form values so user can edit class & sections
         setValue('asmaY_Id', Number(row.asmaY_Id));
         setValue('emcA_Id', Number(row.emcA_Id));
-        //setValue('asmcL_Id', Number(row.asmcL_Id));
+        setValue('asmcL_Id', Number(row.asmcL_Id));
         setValue('section_list', Array.isArray(row.section_list) ? row.section_list : []);
     };
 
@@ -396,6 +408,7 @@ export default function UpdateCategoryClassForm({ selectedRow, onSuccess }: Prop
             if (res?.success) {
                 toast.success(res.message ?? 'Updated successfully');
                 onSuccess?.();
+                refetchAll();
             } else {
                 toast.error(res?.message ?? 'Failed to save mappings');
             }
@@ -527,7 +540,7 @@ export default function UpdateCategoryClassForm({ selectedRow, onSuccess }: Prop
             </div>
 
             {/* ADD / CLEAR */}
-            <div className='flex justify-center gap-3 md:col-span-2'>
+            <div className='flex w-fit justify-center gap-3 md:col-span-2'>
                 <Button
                     variant='outline'
                     type='button'
@@ -612,7 +625,7 @@ export default function UpdateCategoryClassForm({ selectedRow, onSuccess }: Prop
                     </div>
 
                     {/* FINAL SAVE */}
-                    <div className='flex flex-col gap-3 border-t pt-4 sm:flex-row sm:justify-start md:col-span-2'>
+                    <div className='flex w-fit flex-col gap-3 border-t pt-4 sm:flex-row sm:justify-start md:col-span-2'>
                         <Button
                             variant='outline'
                             type='button'

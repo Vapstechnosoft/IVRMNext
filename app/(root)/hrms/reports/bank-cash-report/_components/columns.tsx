@@ -1,7 +1,7 @@
 'use client';
 
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
-import { type BaseEntity } from '@/lib/localdb';
+import type { BaseEntity } from '@/lib/localdb';
 import { cn } from '@/lib/utils';
 import type { ColumnDef } from '@tanstack/react-table';
 import { CreditCard, Wallet } from 'lucide-react';
@@ -142,9 +142,7 @@ export const bankCashColumns: ColumnDef<BankCashRecord>[] = [
     {
         accessorKey: 'netSalary',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Net Salary' />,
-        cell: ({ row }) => (
-            <div className='font-semibold text-green-600'>₹{(row.getValue('netSalary') as number).toLocaleString()}</div>
-        ),
+        cell: ({ row }) => <div className='font-semibold text-green-600'>₹{(row.getValue('netSalary') as number).toLocaleString()}</div>,
         enableSorting: true,
         enableHiding: true
     },
@@ -159,11 +157,7 @@ export const bankCashColumns: ColumnDef<BankCashRecord>[] = [
                 Failed: 'bg-red-100 text-red-700'
             };
             return (
-                <div
-                    className={cn(
-                        'inline-flex rounded px-2 py-1 font-medium text-xs',
-                        statusColors[status as keyof typeof statusColors]
-                    )}>
+                <div className={cn('inline-flex rounded px-2 py-1 font-medium text-xs', statusColors[status as keyof typeof statusColors])}>
                     {status}
                 </div>
             );
@@ -172,4 +166,3 @@ export const bankCashColumns: ColumnDef<BankCashRecord>[] = [
         enableHiding: true
     }
 ];
-

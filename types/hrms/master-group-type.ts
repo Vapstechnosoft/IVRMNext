@@ -1,9 +1,14 @@
 export interface MasterGroupTypeResponse {
-    success: boolean;
-    message: string;
-    data: {
+    success?: boolean;
+    message?: string;
+    data?: GroupTypeDetail[] | {
         grouptypeList: GroupTypeDetail[];
     };
+    grouptypeList?: GroupTypeDetail[];
+    retrunMsg?: string;
+    total?: number;
+    page?: number;
+    page_size?: number;
 }
 
 export interface GroupTypeDetail {

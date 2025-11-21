@@ -47,11 +47,14 @@ export default function SpecializationForm({ selectedRow, onSuccess }: Specializ
         try {
             const res = await saveMutation.mutateAsync(data);
             if (res?.success) {
-                toast.success(isEditMode ? 'Specialization updated successfully' : 'Specialization added successfully');
+                toast.success(res?.message || (isEditMode ? 'Specialization updated successfully' : 'Specialization added successfully'));
                 if (onSuccess) onSuccess();
+            } else {
+                toast.error(res?.message || (isEditMode ? 'Failed to update specialization' : 'Failed to add specialization'));
             }
-        } catch (_error) {
-            toast.error(isEditMode ? 'Failed to update specialization' : 'Failed to add specialization');
+        } catch (error: any) {
+            const errorMessage = error?.response?.data?.message || error?.message || (isEditMode ? 'Failed to update specialization' : 'Failed to add specialization');
+            toast.error(errorMessage);
         }
     };
 

@@ -4,12 +4,12 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { DataTable } from '@/components/ui/data-table/data-table';
 import { type BaseEntity, createLocalCrud } from '@/lib/localdb';
+import { format } from 'date-fns';
 import { Calculator, Download, FileText, Printer, TrendingUp, Users } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
-import { format } from 'date-fns';
 import { toast } from 'sonner';
-import { PFForm6AFilters, type Form6AFilters } from './_components/filters';
-import { form6AColumns, type Form6ARecord as Form6ARecordColumn } from './_components/columns';
+import { type Form6ARecord as Form6ARecordColumn, form6AColumns } from './_components/columns';
+import { type Form6AFilters, PFForm6AFilters } from './_components/filters';
 
 // Form 6A data structure (Annual Return of PF Contributions)
 interface Form6ARecord extends BaseEntity {
@@ -51,7 +51,6 @@ interface Form6ASummary {
     netContribution: number;
 }
 
-
 export default function PFForm6APage() {
     // Database instances
     const form6ADB = createLocalCrud<Form6ARecord>('report:pf-form6a');
@@ -90,7 +89,7 @@ export default function PFForm6APage() {
     };
 
     // Generate mock Form 6A data
-    const generateMockForm6AData = (referenceYear: number = 2024): Omit<Form6ARecord, 'id' | 'createdAt'>[] => {
+    const generateMockForm6AData = (referenceYear = 2024): Omit<Form6ARecord, 'id' | 'createdAt'>[] => {
         const employees = [
             {
                 code: 'EMP001',
@@ -280,7 +279,6 @@ export default function PFForm6APage() {
 
         return summary;
     }, [filteredRecords]);
-
 
     return (
         <div className='space-y-6'>

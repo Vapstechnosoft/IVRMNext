@@ -6,7 +6,9 @@ import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
 import { HRMS_MI_ID } from '@/constants/hrms-config';
 import { useMasterEmployeeType } from '@/hooks/hrms/useMasters';
+import type { ApiSearchparams } from '@/types';
 import type { EmployeeTypeDetail } from '@/types/hrms/master-employee-type';
+import { parseAsInteger, parseAsString, useQueryState } from 'nuqs';
 import { Plus, X } from 'lucide-react';
 import { useMemo } from 'react';
 import { columns } from '../../employee-type/_components/columns';
@@ -14,11 +16,34 @@ import EmployeeTypeForm from '../../employee-type/_components/employee-type-form
 
 export default function EmployeeTypeTab() {
     const roleId = HRMS_MI_ID;
-    const { listQuery } = useMasterEmployeeType(roleId);
+    
+    // Read pagination and search params from URL
+    const [page] = useQueryState('page', parseAsInteger.withDefault(1));
+    const [page_size] = useQueryState('page_size', parseAsInteger.withDefault(10));
+    const [search_query] = useQueryState('search_query', parseAsString.withDefault(''));
+    const [search_column] = useQueryState('search_column', parseAsString.withDefault(''));
+    const [sort_column] = useQueryState('sort_column', parseAsString.withDefault(''));
+    const [sort_direction] = useQueryState('sort_direction', parseAsString.withDefault(''));
+    
+    const searchParams: ApiSearchparams = {
+        page,
+        page_size,
+        search_query: search_query || undefined,
+        search_column: search_column || undefined,
+        sort_column: sort_column || undefined,
+        sort_direction: sort_direction || undefined
+    };
+    
+    const { listQuery, refetchAll } = useMasterEmployeeType(roleId, searchParams);
 
     return (
         <FormProvider<EmployeeTypeDetail>>
-            <EmployeeTypeTabContent response={listQuery.data} isLoading={listQuery.isLoading} error={listQuery.error} />
+            <EmployeeTypeTabContent
+                response={listQuery.data}
+                isLoading={listQuery.isLoading}
+                error={listQuery.error}
+                refetch={refetchAll}
+            />
         </FormProvider>
     );
 }
@@ -26,15 +51,23 @@ export default function EmployeeTypeTab() {
 function EmployeeTypeTabContent({
     response,
     isLoading,
-    error
+    error,
+    refetch
 }: {
     response: any;
     isLoading: boolean;
     error: any;
+    refetch: () => void;
 }) {
     const { openAddForm } = useFormContext<EmployeeTypeDetail>();
     // Memoize array to prevent unnecessary re-renders
-    const rows: EmployeeTypeDetail[] = useMemo(() => response?.employeeTypeList ?? [], [response?.employeeTypeList]);
+    // API now returns data as an array directly, or in employeeTypeList for backward compatibility
+    const rows: EmployeeTypeDetail[] = useMemo(() => {
+        if (Array.isArray(response?.data)) {
+            return response.data;
+        }
+        return response?.employeeTypeList ?? [];
+    }, [response?.data, response?.employeeTypeList]);
 
     return (
         <div className='space-y-4'>
@@ -59,7 +92,7 @@ function EmployeeTypeTabContent({
                 className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
                 <GenericDataTable<EmployeeTypeDetail>
                     data={rows}
-                    totalItems={rows.length}
+                    totalItems={response?.total ?? rows.length}
                     columns={columns}
                     isLoading={isLoading}
                     error={error}
@@ -71,12 +104,12 @@ function EmployeeTypeTabContent({
                 />
             </CollapsibleSection>
 
-            <FormSections />
+            <FormSections refetch={refetch} />
         </div>
     );
 }
 
-function FormSections() {
+function FormSections({ refetch }: { refetch: () => void }) {
     const { isAddFormOpen, isEditFormOpen, selectedRow, closeAddForm, closeEditForm, addFormRef, editFormRef } =
         useFormContext<EmployeeTypeDetail>();
 
@@ -100,7 +133,12 @@ function FormSections() {
                                 className='-top-[3.5rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
                                 <X className='h-4 w-4 text-destructive' /> Close
                             </Button>
-                            <EmployeeTypeForm onSuccess={closeAddForm} />
+                            <EmployeeTypeForm
+                                onSuccess={() => {
+                                    closeAddForm();
+                                    refetch();
+                                }}
+                            />
                         </div>
                     </CollapsibleSection>
                 </div>
@@ -123,7 +161,13 @@ function FormSections() {
                                 className='-top-[3.5rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
                                 <X className='h-4 w-4 text-destructive' /> Close
                             </Button>
-                            <EmployeeTypeForm selectedRow={selectedRow} onSuccess={closeEditForm} />
+                            <EmployeeTypeForm
+                                selectedRow={selectedRow}
+                                onSuccess={() => {
+                                    closeEditForm();
+                                    refetch();
+                                }}
+                            />
                         </div>
                     </CollapsibleSection>
                 </div>

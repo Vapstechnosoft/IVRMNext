@@ -25,8 +25,6 @@ export function PFForm3AFilters({ filters, employees, onFilterChange, onGenerate
 
     return (
         <CollapsibleSection
-            title='PF FORM 3A'
-            description='Generate individual employee account card for Provident Fund'
             defaultOpen={true}
             variant='default'
             size='lg'
@@ -85,4 +83,3 @@ export function PFForm3AFilters({ filters, employees, onFilterChange, onGenerate
         </CollapsibleSection>
     );
 }
-

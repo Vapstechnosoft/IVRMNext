@@ -1,8 +1,8 @@
 'use client';
 
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
-import type { ColumnDef } from '@tanstack/react-table';
 import type { SalaryReportRecord } from '@/types/hrms/reports/cumulative-salary-report';
+import type { ColumnDef } from '@tanstack/react-table';
 
 // Use API types directly
 export type CumulativeSalaryRecord = SalaryReportRecord;
@@ -159,4 +159,3 @@ export const cumulativeSalaryColumns: ColumnDef<CumulativeSalaryRecord>[] = [
         enableHiding: true
     }
 ];
-

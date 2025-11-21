@@ -1,10 +1,14 @@
 export interface MasterCourseResponse {
-    success: boolean;
-    message: string;
-    data: {
+    success?: boolean;
+    message?: string;
+    data?: CourseDetail[] | {
         CourseList: CourseDetail[];
     };
+    CourseList?: CourseDetail[];
     retrunMsg?: string;
+    total?: number;
+    page?: number;
+    page_size?: number;
 }
 
 export interface CourseDetail {

@@ -1,6 +1,5 @@
 'use client';
 
-import { Heading } from '@/components/layout/heading';
 import { GenericDataTable } from '@/components/ui/data-table/generic-data-table';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { useState } from 'react';
@@ -13,8 +12,10 @@ export default function LeaveOverallReportPage() {
         status: 'Applied',
         groupBy: 'Employee Wise',
         employee: '',
-        fromDate: '',
-        toDate: ''
+        company: '',
+        leaveName: '',
+        fromDate: undefined,
+        toDate: undefined
     });
 
     const handleFilterChange = (key: keyof FiltersType, value: any) => {
@@ -46,8 +47,10 @@ export default function LeaveOverallReportPage() {
             status: 'Applied',
             groupBy: 'Employee Wise',
             employee: '',
-            fromDate: '',
-            toDate: ''
+            company: '',
+            leaveName: '',
+            fromDate: undefined,
+            toDate: undefined
         });
         setRows([]);
     };
@@ -55,13 +58,12 @@ export default function LeaveOverallReportPage() {
     return (
         <div className='min-h-screen'>
             <div className='container space-y-4 p-1'>
-                <div className='flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between'>
-                    <div className='space-y-1'>
-                        <Heading title='Leave Management' description='VKS Overall Report' />
-                    </div>
-                </div>
-
-                <OverallReportFilters filters={filters} onFilterChange={handleFilterChange} onReport={handleReport} onCancel={handleClear} />
+                <OverallReportFilters
+                    filters={filters}
+                    onFilterChange={handleFilterChange}
+                    onReport={handleReport}
+                    onCancel={handleClear}
+                />
 
                 <CollapsibleSection
                     title='Report Result'

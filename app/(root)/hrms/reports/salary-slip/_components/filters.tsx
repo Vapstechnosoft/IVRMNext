@@ -2,16 +2,15 @@
 
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
+import { DataTable } from '@/components/ui/data-table/data-table';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
-import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { MultiSelect } from '@/components/ui/multi-select';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { DataTable } from '@/components/ui/data-table/data-table';
-import type { EmployeeSalarySlipDisplay } from './columns';
-import { getSalarySlipColumns } from './columns';
 import { FileText, X } from 'lucide-react';
 import { useEffect, useState } from 'react';
+import type { EmployeeSalarySlipDisplay } from './columns';
+import { getSalarySlipColumns } from './columns';
 
 export interface SalarySlipFilters {
     groupType: number[];
@@ -56,13 +55,13 @@ export function SalarySlipFilters({
     designations,
     months,
     years,
-    employees,
+    employees: _employees,
     filteredEmployees,
-    searchTerm,
+    searchTerm: _searchTerm,
     selectedCount,
     isLoading,
     onFilterChange,
-    onSearchChange,
+    onSearchChange: _onSearchChange,
     onOptionChange,
     onSelectAll,
     onSelectEmployee,
@@ -188,7 +187,7 @@ export function SalarySlipFilters({
             {/* Filter Section - Row 2 */}
             <div className='grid grid-cols-1 gap-4 md:grid-cols-3'>
                 {/* Month Filter */}
-                <div className='space-y-2 mt-3 mb-3'>
+                <div className='mt-3 mb-3 space-y-2'>
                     <label htmlFor='month-select' className='font-medium text-foreground text-sm'>
                         Month
                     </label>
@@ -197,27 +196,31 @@ export function SalarySlipFilters({
                             <SelectValue placeholder='Select month' />
                         </SelectTrigger>
                         <SelectContent>
-                            {months.map((month: any, index: number) => (
-                                <SelectItem
-                                    key={`month-${index}-${month.monthId || month.monthName || index}`}
-                                    value={month.monthName || month.monthId?.toString() || ''}>
-                                    {month.monthName || month.monthId}
-                                </SelectItem>
-                            ))}
-                            {months.length === 0 &&
-                                ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'].map(
-                                    (month, index) => (
-                                        <SelectItem key={`fallback-month-${index}`} value={month}>
-                                            {month}
+                            {months
+                                .filter((month: any) => {
+                                    const value = month.monthName || month.IVRM_Month_Name || month.monthId?.toString() || month.IVRM_Month_Id?.toString();
+                                    return value && value.trim() !== '';
+                                })
+                                .map((month: any, index: number) => {
+                                    const monthValue = month.monthName || month.IVRM_Month_Name || month.monthId?.toString() || month.IVRM_Month_Id?.toString();
+                                    const monthLabel = month.monthName || month.IVRM_Month_Name || month.monthId || month.IVRM_Month_Id;
+                                    return (
+                                        <SelectItem
+                                            key={`month-${index}-${monthValue}`}
+                                            value={monthValue}>
+                                            {monthLabel}
                                         </SelectItem>
-                                    )
-                                )}
+                                    );
+                                })}
+                            {months.length === 0 && (
+                                <div className='px-2 py-1.5 text-sm text-muted-foreground'>No months available</div>
+                            )}
                         </SelectContent>
                     </Select>
                 </div>
 
                 {/* Year Filter */}
-                <div className='space-y-2 mt-3 mb-3'>
+                <div className='mt-3 mb-3 space-y-2'>
                     <label htmlFor='year-select' className='font-medium text-foreground text-sm'>
                         Year
                     </label>
@@ -226,28 +229,31 @@ export function SalarySlipFilters({
                             <SelectValue placeholder='Select year' />
                         </SelectTrigger>
                         <SelectContent>
-                            {years.map((year: any, index: number) => (
-                                <SelectItem
-                                    key={`year-${index}-${year.yearId || year.yearName || index}`}
-                                    value={year.yearName || year.yearId?.toString() || ''}>
-                                    {year.yearName || year.yearId}
-                                </SelectItem>
-                            ))}
-                            {years.length === 0 && currentYear &&
-                                Array.from({ length: 5 }, (_, i) => {
-                                    const year = currentYear - 2 + i;
+                            {years
+                                .filter((year: any) => {
+                                    const value = year.yearName || year.HRMLY_LeaveYear || year.yearId?.toString() || year.HRMLY_Id?.toString();
+                                    return value && value.trim() !== '';
+                                })
+                                .map((year: any, index: number) => {
+                                    const yearValue = year.yearName || year.HRMLY_LeaveYear || year.yearId?.toString() || year.HRMLY_Id?.toString();
+                                    const yearLabel = year.yearName || year.HRMLY_LeaveYear || year.yearId || year.HRMLY_Id;
                                     return (
-                                        <SelectItem key={`fallback-year-${year}`} value={year.toString()}>
-                                            {year}
+                                        <SelectItem
+                                            key={`year-${index}-${yearValue}`}
+                                            value={yearValue}>
+                                            {yearLabel}
                                         </SelectItem>
                                     );
                                 })}
+                            {years.length === 0 && (
+                                <div className='px-2 py-1.5 text-sm text-muted-foreground'>No years available</div>
+                            )}
                         </SelectContent>
                     </Select>
                 </div>
 
                 {/* Slip/page Filter */}
-                <div className='space-y-2 mt-3 mb-3'>
+                <div className='mt-3 mb-3 space-y-2'>
                     <Label>Slip/page</Label>
                     <Select value={filters.slipPerPage} onValueChange={(value) => onFilterChange({ ...filters, slipPerPage: value })}>
                         <SelectTrigger>
@@ -273,11 +279,15 @@ export function SalarySlipFilters({
 
             {/* Options Section */}
             <div className='grid grid-cols-2 gap-4 md:grid-cols-4'>
-                <div className='flex cursor-pointer items-center gap-2 text-sm mt-3'>
-                    <Checkbox id='lop-days-checkbox' checked={filters.options.lopDays} onCheckedChange={(checked) => onOptionChange('lopDays', !!checked)} />
+                <div className='mt-3 flex cursor-pointer items-center gap-2 text-sm'>
+                    <Checkbox
+                        id='lop-days-checkbox'
+                        checked={filters.options.lopDays}
+                        onCheckedChange={(checked) => onOptionChange('lopDays', !!checked)}
+                    />
                     <Label htmlFor='lop-days-checkbox'>LOP Days</Label>
                 </div>
-                <div className='flex cursor-pointer items-center gap-2 text-sm mt-3'>
+                <div className='mt-3 flex cursor-pointer items-center gap-2 text-sm'>
                     <Checkbox
                         id='leave-details-checkbox'
                         checked={filters.options.leaveDetails}
@@ -285,11 +295,15 @@ export function SalarySlipFilters({
                     />
                     <Label htmlFor='leave-details-checkbox'>Leave Details</Label>
                 </div>
-                <div className='flex cursor-pointer items-center gap-2 text-sm mt-3'>
-                    <Checkbox id='pan-card-checkbox' checked={filters.options.panCardNo} onCheckedChange={(checked) => onOptionChange('panCardNo', !!checked)} />
+                <div className='mt-3 flex cursor-pointer items-center gap-2 text-sm'>
+                    <Checkbox
+                        id='pan-card-checkbox'
+                        checked={filters.options.panCardNo}
+                        onCheckedChange={(checked) => onOptionChange('panCardNo', !!checked)}
+                    />
                     <Label htmlFor='pan-card-checkbox'>Pan Card No.</Label>
                 </div>
-                <div className='flex cursor-pointer items-center gap-2 text-sm mt-3'>
+                <div className='mt-3 flex cursor-pointer items-center gap-2 text-sm'>
                     <Checkbox
                         id='bank-details-checkbox'
                         checked={filters.options.bankDetails}
@@ -301,7 +315,7 @@ export function SalarySlipFilters({
 
             {/* Employee Table with Search */}
             <div className='space-y-4'>
-                <div className='flex items-center justify-between mt-3'>
+                <div className='mt-3 flex items-center justify-between'>
                     <div className='font-medium text-foreground text-sm'>Employee List ({filteredEmployees.length} employees)</div>
                     {selectedCount > 0 && <span className='text-muted-foreground text-sm'>{selectedCount} selected</span>}
                 </div>
@@ -334,4 +348,3 @@ export function SalarySlipFilters({
         </CollapsibleSection>
     );
 }
-

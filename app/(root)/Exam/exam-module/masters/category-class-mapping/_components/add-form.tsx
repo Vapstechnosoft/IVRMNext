@@ -121,15 +121,6 @@ export default function AddCategoryClassForm({ onSuccess, initialData }: AddCate
                     if (sectionData.length === 0) {
                         toast.info('No sections are mapped for your selections');
                     }
-
-                    // If initialData provided, try to prefill sections (edge-case)
-                    if (initialData?.section_list?.length) {
-                        const selected = sectionData.filter((s) => initialData.section_list.some((sel) => sel.asmS_Id === s.asmS_Id));
-                        setValue('section_list', selected);
-                    } else {
-                        // Do NOT auto-clear here — we may set from mappingList in separate effect
-                        // setValue('section_list', []);
-                    }
                 } catch (err: any) {
                     toast.error(err.message || 'Failed to load sections');
                 } finally {

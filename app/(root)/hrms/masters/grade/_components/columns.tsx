@@ -15,7 +15,12 @@ export const columns: ColumnDef<GradeDetail>[] = [
     {
         id: 'slNo',
         header: () => <div className='text-center font-medium'>Sl No</div>,
-        cell: ({ row }) => <div className='text-center'>{row.index + 1}</div>,
+        cell: ({ row, table }) => {
+            const pageIndex = table.getState().pagination.pageIndex;
+            const pageSize = table.getState().pagination.pageSize;
+            const continuousIndex = pageIndex * pageSize + row.index + 1;
+            return <div className='text-center'>{continuousIndex}</div>;
+        },
         enableSorting: false,
         size: 60
     },
@@ -45,11 +50,15 @@ export const columns: ColumnDef<GradeDetail>[] = [
     },
     {
         accessorKey: 'HRMG_Order',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Order' className='whitespace-nowrap' />
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Order' className='whitespace-nowrap' />,
+        cell: ({ row }) => {
+            const orderValue = row.original.HRMG_Order;
+            return <div>{orderValue ?? '-'}</div>;
+        }
     },
     {
         id: 'actions',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Actions' className='text-start whitespace-nowrap' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Actions' className='whitespace-nowrap text-start' />,
         cell: ({ row }) => <ActionButtonsCell rowData={row.original} />,
         enableSorting: false
     }
@@ -68,35 +77,24 @@ function ActionButtonsCell({ rowData }: { rowData: GradeDetail }) {
 
     const handleToggle = useCallback(
         async (data: GradeDetail, newState: boolean) => {
-            console.log('🔵 [GRADE COLUMNS] handleToggle called:', { 
-                HRMG_Id: data.HRMG_Id, 
-                currentState: data.HRMG_ActiveFlag, 
-                newState 
-            });
-            
             try {
                 const result = await toggleMutation.mutateAsync({
                     HRMG_Id: data.HRMG_Id,
                     HRMG_ActiveFlag: newState
                 });
-                
-                console.log('🟢 [GRADE COLUMNS] Toggle result:', result);
-                
+
                 // Check if grade is mapped/in use
                 if (result && typeof result === 'object' && 'retrunMsg' in result) {
                     const retrunMsg = (result as any).retrunMsg;
-                    console.log('📝 [GRADE COLUMNS] retrunMsg:', retrunMsg);
-                    
+
                     if (retrunMsg === 'Mapped') {
-                        console.log('⚠️ [GRADE COLUMNS] Grade is mapped/in use');
                         toast.error('Cannot deactivate - Grade is currently assigned/in use');
                         return;
                     }
                 }
-                
+
                 toast.success(`Grade ${newState ? 'activated' : 'deactivated'} successfully`);
-            } catch (error: any) {
-                console.log('🔴 [GRADE COLUMNS] Toggle error:', error);
+            } catch (_error: any) {
                 toast.error(`Failed to ${newState ? 'activate' : 'deactivate'} grade`);
             }
         },
@@ -119,7 +117,12 @@ export function getEditableColumns(onOrderChange: (rowId: number, newOrder: numb
         {
             id: 'slNo',
             header: () => <div className='text-center font-medium'>Sl No</div>,
-            cell: ({ row }) => <div className='text-center'>{row.index + 1}</div>,
+            cell: ({ row, table }) => {
+                const pageIndex = table.getState().pagination.pageIndex;
+                const pageSize = table.getState().pagination.pageSize;
+                const continuousIndex = pageIndex * pageSize + row.index + 1;
+                return <div className='text-center'>{continuousIndex}</div>;
+            },
             enableSorting: false,
             size: 60
         },

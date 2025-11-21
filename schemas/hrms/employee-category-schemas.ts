@@ -25,11 +25,13 @@ export const groupTypeSchema = {
         MI_Id: z.number(),
         HRMGT_EmployeeGroupType: z
             .string()
+            .trim()
             .min(1, 'Group type name is required')
             .max(50, 'Group type must not exceed 50 characters')
             .regex(/^[a-zA-Z\s]+$/, 'Group type must contain only alphabets'),
         HRMGT_Code: z
             .string()
+            .trim()
             .min(1, 'Code is required')
             .max(20, 'Code must not exceed 20 characters')
             .regex(/^[a-zA-Z0-9]+$/, 'Code must be alphanumeric'),

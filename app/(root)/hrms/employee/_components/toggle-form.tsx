@@ -33,7 +33,7 @@ export default function ToggleEmployeeForm({ rowData, onClose }: ToggleEmployeeF
         reset();
     }
 
-    const onSubmit: SubmitHandler<any> = async (data) => {
+    const onSubmit: SubmitHandler<any> = async (_data) => {
         try {
             toggleEmployee(
                 {
@@ -54,7 +54,8 @@ export default function ToggleEmployeeForm({ rowData, onClose }: ToggleEmployeeF
         }
     };
 
-    const employeeName = `${rowData.HRME_EmployeeFirstName} ${rowData.HRME_EmployeeMiddleName || ''} ${rowData.HRME_EmployeeLastName || ''}`.trim();
+    const employeeName =
+        `${rowData.HRME_EmployeeFirstName} ${rowData.HRME_EmployeeMiddleName || ''} ${rowData.HRME_EmployeeLastName || ''}`.trim();
 
     return (
         <AdaptiveDialog title='Toggle Employee Status' isOpen={true} onClose={closeDialog}>
@@ -72,10 +73,7 @@ export default function ToggleEmployeeForm({ rowData, onClose }: ToggleEmployeeF
                     <Button variant='secondary' onClick={closeDialog} type='button'>
                         Cancel
                     </Button>
-                    <Button
-                        type='submit'
-                        isLoading={isSubmitting || isPending}
-                        variant={isActive ? 'destructive' : 'default'}>
+                    <Button type='submit' isLoading={isSubmitting || isPending} variant={isActive ? 'destructive' : 'default'}>
                         {isActive ? 'Deactivate' : 'Activate'}
                     </Button>
                 </AdaptiveFooter>
@@ -83,4 +81,3 @@ export default function ToggleEmployeeForm({ rowData, onClose }: ToggleEmployeeF
         </AdaptiveDialog>
     );
 }
-

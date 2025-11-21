@@ -1,19 +1,11 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
-import {
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuItem,
-    DropdownMenuLabel,
-    DropdownMenuTrigger
-} from '@/components/ui/dropdown-menu';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { useFormContext } from '@/components/ui/form/form-provider';
-import { useActivateDeactivateEmployeeLoan } from '@/hooks/hrms/useTransactions';
 import type { EmployeeLoanItem } from '@/types/hrms/employee-loan';
 import type { Row } from '@tanstack/react-table';
 import { Edit, MoreHorizontal, Power } from 'lucide-react';
-import { toast } from 'sonner';
 
 interface ActionsCellProps {
     row: Row<EmployeeLoanItem>;
@@ -54,4 +46,3 @@ export function ActionsCell({ row, onToggleActive }: ActionsCellProps) {
         </div>
     );
 }
-

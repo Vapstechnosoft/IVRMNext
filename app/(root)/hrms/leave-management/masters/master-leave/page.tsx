@@ -1,6 +1,5 @@
 'use client';
 
-import { Heading } from '@/components/layout/heading';
 import { Button } from '@/components/ui/button';
 import { GenericDataTable } from '@/components/ui/data-table/generic-data-table';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
@@ -110,11 +109,8 @@ export default function MasterLeavePage() {
     return (
         <div className='min-h-screen'>
             <div className='container space-y-4 p-1'>
-                <div className='flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between'>
-                    <div className='space-y-1'>
-                        <Heading title='Leave Management' description='Master Leave Management' />
-                    </div>
-                    <Button onClick={handleAddClick} className='bg-blue-600 hover:bg-blue-700'>
+                <div className='flex justify-end'>
+                    <Button onClick={handleAddClick} variant='default' className='w-fit'>
                         <Plus className='mr-2 h-4 w-4' />
                         Add Master Leave
                     </Button>

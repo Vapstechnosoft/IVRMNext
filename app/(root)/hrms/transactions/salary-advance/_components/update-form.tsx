@@ -307,4 +307,3 @@ export default function UpdateSalaryAdvanceForm({ selectedRow, onloadData, onSuc
         </div>
     );
 }
-

@@ -2,16 +2,16 @@
 
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { DatePickerWithYear } from '@/components/ui/date-picker-year';
 import { Checkbox } from '@/components/ui/checkbox';
+import { DatePickerWithYear } from '@/components/ui/date-picker-year';
 import { Label } from '@/components/ui/extension/field';
 import { InputText } from '@/components/ui/extension/input-text';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { format } from 'date-fns';
 import { CalendarIcon, Plus, Trash2 } from 'lucide-react';
-import { Controller, useFieldArray, useWatch } from 'react-hook-form';
 import { useState } from 'react';
+import { Controller, useFieldArray, useWatch } from 'react-hook-form';
 import { StandardTabActions } from './standard-tab-actions';
 
 interface QualificationTabProps {
@@ -22,19 +22,21 @@ interface QualificationTabProps {
     options?: any;
     countries?: any[];
     states?: any[];
+    onClear?: () => void;
 }
 
-export function QualificationTab({ control, register, errors, isSubmitting, options, countries = [], states = [] }: QualificationTabProps) {
+export function QualificationTab({ control, register, errors, isSubmitting, options, countries = [], states = [], onClear }: QualificationTabProps) {
     const { fields, append, remove } = useFieldArray({
         control,
         name: 'qualificationDetails'
     });
 
     // Watch all qualification details at once (must be at top level, not inside map)
-    const qualificationDetails = useWatch({
-        control,
-        name: 'qualificationDetails'
-    }) || [];
+    const qualificationDetails =
+        useWatch({
+            control,
+            name: 'qualificationDetails'
+        }) || [];
 
     const addEmptyRow = () => {
         append({
@@ -79,7 +81,7 @@ export function QualificationTab({ control, register, errors, isSubmitting, opti
                 {fields.map((field, index) => {
                     // Get values from watched array (not using hooks inside map)
                     const cgpaOrPercentage = qualificationDetails[index]?.cgpaOrPercentage || 'CGPA';
-                    const phdFlag = qualificationDetails[index]?.phdFlag || false;
+                    const _phdFlag = qualificationDetails[index]?.phdFlag || false;
 
                     return (
                         <div key={field.id} className='rounded-lg border bg-card p-4 shadow-sm'>
@@ -107,7 +109,7 @@ export function QualificationTab({ control, register, errors, isSubmitting, opti
                                         control={control}
                                         render={({ field }) => {
                                             const courses = options?.courses || [];
-                                            
+
                                             return (
                                                 <div className='flex flex-col gap-1.5'>
                                                     <Label>Course *</Label>
@@ -117,19 +119,25 @@ export function QualificationTab({ control, register, errors, isSubmitting, opti
                                                         </SelectTrigger>
                                                         <SelectContent>
                                                             {courses.map((course: any, courseIndex: number) => {
-                                                                const courseId = (course.HRMC_Id || course.id || course.value || course.HRMC_CourseId || courseIndex)?.toString();
-                                                                const courseName = course.HRMC_QualificationDesc || 
-                                                                                  course.HRMC_QulaificationName ||
-                                                                                  course.HRMC_CourseName || 
-                                                                                  course.CourseName || 
-                                                                                  course.courseName || 
-                                                                                  course.name || 
-                                                                                  course.label || 
-                                                                                  course.HRMC_Name || 
-                                                                                  course.text || 
-                                                                                  `Course ${courseId}`;
-                                                                
-                                                                
+                                                                const courseId = (
+                                                                    course.HRMC_Id ||
+                                                                    course.id ||
+                                                                    course.value ||
+                                                                    course.HRMC_CourseId ||
+                                                                    courseIndex
+                                                                )?.toString();
+                                                                const courseName =
+                                                                    course.HRMC_QualificationDesc ||
+                                                                    course.HRMC_QulaificationName ||
+                                                                    course.HRMC_CourseName ||
+                                                                    course.CourseName ||
+                                                                    course.courseName ||
+                                                                    course.name ||
+                                                                    course.label ||
+                                                                    course.HRMC_Name ||
+                                                                    course.text ||
+                                                                    `Course ${courseId}`;
+
                                                                 return (
                                                                     <SelectItem key={courseId} value={courseId}>
                                                                         {courseName}
@@ -192,8 +200,19 @@ export function QualificationTab({ control, register, errors, isSubmitting, opti
                                                     </SelectTrigger>
                                                     <SelectContent>
                                                         {countries.map((country: any, countryIndex: number) => {
-                                                            const countryId = (country.IVRMMC_Id || country.IVRMMCO_Id || country.id || country.value || countryIndex)?.toString();
-                                                            const countryName = country.IVRMMC_CountryName || country.IVRMMCO_CountryName || country.name || country.label || `Country ${countryId}`;
+                                                            const countryId = (
+                                                                country.IVRMMC_Id ||
+                                                                country.IVRMMCO_Id ||
+                                                                country.id ||
+                                                                country.value ||
+                                                                countryIndex
+                                                            )?.toString();
+                                                            const countryName =
+                                                                country.IVRMMC_CountryName ||
+                                                                country.IVRMMCO_CountryName ||
+                                                                country.name ||
+                                                                country.label ||
+                                                                `Country ${countryId}`;
                                                             return (
                                                                 <SelectItem key={countryId} value={countryId}>
                                                                     {countryName}
@@ -218,8 +237,18 @@ export function QualificationTab({ control, register, errors, isSubmitting, opti
                                                     </SelectTrigger>
                                                     <SelectContent>
                                                         {states.map((state: any, stateIndex: number) => {
-                                                            const stateId = (state.IVRMMS_Id || state.id || state.value || stateIndex)?.toString();
-                                                            const stateName = state.IVRMMS_Name || state.Name || state.name || state.label || `State ${stateId}`;
+                                                            const stateId = (
+                                                                state.IVRMMS_Id ||
+                                                                state.id ||
+                                                                state.value ||
+                                                                stateIndex
+                                                            )?.toString();
+                                                            const stateName =
+                                                                state.IVRMMS_Name ||
+                                                                state.Name ||
+                                                                state.name ||
+                                                                state.label ||
+                                                                `State ${stateId}`;
                                                             return (
                                                                 <SelectItem key={stateId} value={stateId}>
                                                                     {stateName}
@@ -284,7 +313,7 @@ export function QualificationTab({ control, register, errors, isSubmitting, opti
                                         control={control}
                                         render={({ field }) => {
                                             const specialisations = options?.specialisations || [];
-                                            
+
                                             return (
                                                 <div className='flex flex-col gap-1.5'>
                                                     <Label>Area Of Specialization*</Label>
@@ -295,24 +324,26 @@ export function QualificationTab({ control, register, errors, isSubmitting, opti
                                                         <SelectContent>
                                                             {specialisations.map((spec: any, specIndex: number) => {
                                                                 // Use HRMSPL_Id for ID and HRMSPL_SpecialisationName for name
-                                                                const specId = (spec.HRMSPL_Id || 
-                                                                               spec.id || 
-                                                                               spec.value || 
-                                                                               spec.SpecialisationId ||
-                                                                               specIndex)?.toString();
-                                                                
-                                                                const specName = spec.HRMSPL_SpecialisationName ||
-                                                                                spec.SpecialisationName ||
-                                                                                spec.name || 
-                                                                                spec.label || 
-                                                                                spec.specialisation ||
-                                                                                spec.HRMS_SpecialisationName ||
-                                                                                spec.areaOfSpecialisation ||
-                                                                                spec.AreaOfSpecialisation ||
-                                                                                (typeof spec === 'string' ? spec : '') ||
-                                                                                `Specialisation ${specId}`;
-                                                                
-                                                                
+                                                                const specId = (
+                                                                    spec.HRMSPL_Id ||
+                                                                    spec.id ||
+                                                                    spec.value ||
+                                                                    spec.SpecialisationId ||
+                                                                    specIndex
+                                                                )?.toString();
+
+                                                                const specName =
+                                                                    spec.HRMSPL_SpecialisationName ||
+                                                                    spec.SpecialisationName ||
+                                                                    spec.name ||
+                                                                    spec.label ||
+                                                                    spec.specialisation ||
+                                                                    spec.HRMS_SpecialisationName ||
+                                                                    spec.areaOfSpecialisation ||
+                                                                    spec.AreaOfSpecialisation ||
+                                                                    (typeof spec === 'string' ? spec : '') ||
+                                                                    `Specialisation ${specId}`;
+
                                                                 return (
                                                                     <SelectItem key={specId} value={specId}>
                                                                         {specName}
@@ -379,8 +410,7 @@ export function QualificationTab({ control, register, errors, isSubmitting, opti
                                                             <Button
                                                                 variant='outline'
                                                                 className='h-9 w-full justify-start text-left font-normal'
-                                                                type='button'
-                                                            >
+                                                                type='button'>
                                                                 <CalendarIcon className='mr-2 h-4 w-4' />
                                                                 {field.value ? field.value : <span>Select year</span>}
                                                             </Button>
@@ -423,10 +453,13 @@ export function QualificationTab({ control, register, errors, isSubmitting, opti
                                                             <Button
                                                                 variant='outline'
                                                                 className='h-9 w-full justify-start text-left font-normal'
-                                                                type='button'
-                                                            >
+                                                                type='button'>
                                                                 <CalendarIcon className='mr-2 h-4 w-4' />
-                                                                {field.value ? format(new Date(field.value), 'PPP') : <span>Select date</span>}
+                                                                {field.value ? (
+                                                                    format(new Date(field.value), 'PPP')
+                                                                ) : (
+                                                                    <span>Select date</span>
+                                                                )}
                                                             </Button>
                                                         </PopoverTrigger>
                                                         <PopoverContent className='w-auto p-0'>
@@ -453,7 +486,7 @@ export function QualificationTab({ control, register, errors, isSubmitting, opti
                 })}
             </div>
 
-            <StandardTabActions errors={errors} isSubmitting={isSubmitting} />
+            <StandardTabActions errors={errors} isSubmitting={isSubmitting} onClear={onClear} />
         </div>
     );
 }

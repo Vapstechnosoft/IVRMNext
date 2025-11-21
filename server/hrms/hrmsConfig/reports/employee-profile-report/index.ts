@@ -15,16 +15,16 @@ import type {
 /**
  * Get onload details for employee profile report
  * POST /api/EmployeeProfileReportFacade/onloadgetdetailsNew
+ * Request: { MI_Id: number, LogInUserId: number }
+ * Response: Returns dropdown data in groupTypedropdown, departmentdropdown, designationdropdown, employeedropdown fields
  */
-export async function getEmployeeProfileReportOnload(roleId = 30): Promise<ApiResponse<EmployeeProfileReportResponse>> {
-    const requestBody: EmployeeProfileReportOnloadRequest = {
-        MI_Id: roleId,
-        roleId: roleId,
-        retrunMsg: '',
-        groupTypedropdown: [],
-        departmentdropdown: [],
-        designationdropdown: [],
-        employeedropdown: []
+export async function getEmployeeProfileReportOnload(
+    MI_Id = 30,
+    LogInUserId = 0
+): Promise<ApiResponse<EmployeeProfileReportResponse>> {
+    const requestBody = {
+        MI_Id,
+        LogInUserId
     };
     const response = await api.post<EmployeeProfileReportResponse>('hrms', '/api/EmployeeProfileReportFacade/onloadgetdetailsNew', requestBody);
 
@@ -46,14 +46,16 @@ export async function getEmployeeProfileReportOnload(roleId = 30): Promise<ApiRe
 /**
  * Filter employees by selection criteria
  * POST /api/EmployeeProfileReportFacade/FilterEmployeedetailsBySelectionNew
+ * Request: { MI_Id: number, LogInUserId: number, hrmgT_IdList: number[], hrmD_IdList: number[], hrmdeS_IdList: number[] }
+ * Note: Arrays should be [0] when empty, not []
  */
 export async function filterEmployeesBySelection(request: EmployeeProfileReportFilterRequest): Promise<ApiResponse<{ employeedropdown?: EmployeeDropdown[] }>> {
     const requestBody = {
         MI_Id: request.MI_Id,
         LogInUserId: request.LogInUserId,
-        hrmgT_IdList: request.hrmgT_IdList || [0],
-        hrmD_IdList: request.hrmD_IdList || [0],
-        hrmdeS_IdList: request.hrmdeS_IdList || [0]
+        hrmgT_IdList: request.hrmgT_IdList && request.hrmgT_IdList.length > 0 ? request.hrmgT_IdList : [0],
+        hrmD_IdList: request.hrmD_IdList && request.hrmD_IdList.length > 0 ? request.hrmD_IdList : [0],
+        hrmdeS_IdList: request.hrmdeS_IdList && request.hrmdeS_IdList.length > 0 ? request.hrmdeS_IdList : [0]
     };
     const response = await api.post<any>('hrms', '/api/EmployeeProfileReportFacade/FilterEmployeedetailsBySelectionNew', requestBody);
 
@@ -79,6 +81,8 @@ export async function filterEmployeesBySelection(request: EmployeeProfileReportF
 /**
  * Search employee profile details
  * POST /api/EmployeeProfileReportFacade/getEmployeedetailsBySelectionNew
+ * Request: { MI_Id: number, hrmE_multiId: number[] }
+ * Note: hrmE_multiId should be [0] when empty, not []
  */
 export async function searchEmployeeProfileDetails(request: EmployeeProfileReportSearchRequest): Promise<ApiResponse<EmployeeProfileReportSearchResponse>> {
     const requestBody = {

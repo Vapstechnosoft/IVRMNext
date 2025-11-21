@@ -10,7 +10,7 @@ import { departmentSchema } from '@/schemas/hrms/employee-category-schemas';
 import type { DepartmentDetail } from '@/types/hrms/master-department';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Save } from 'lucide-react';
-import { useEffect, useRef } from 'react';
+import { useEffect } from 'react';
 import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import type { z } from 'zod';
@@ -49,33 +49,28 @@ export default function DepartmentForm({ selectedRow, onSuccess, className = '' 
 
     useEffect(() => {
         if (selectedRow) {
-            console.log('📝 [DEPARTMENT FORM] Edit mode - Loading selectedRow:', selectedRow);
-            reset({
-                HRMD_Id: selectedRow.HRMD_Id,
-                MI_Id: selectedRow.MI_Id,
-                HRMD_DepartmentName: selectedRow.HRMD_DepartmentName,
-                HRMD_Order: selectedRow.HRMD_Order,
-                HRMD_InternalTrainingMinimumHrs: selectedRow.HRMD_InternalTrainingMinimumHrs,
-                HRMD_ActiveFlag: selectedRow.HRMD_ActiveFlag
-            }, { keepDefaultValues: false });  // Reset default values to mark form as clean
-            console.log('📝 [DEPARTMENT FORM] Form reset complete');
+            reset(
+                {
+                    HRMD_Id: selectedRow.HRMD_Id,
+                    MI_Id: selectedRow.MI_Id,
+                    HRMD_DepartmentName: selectedRow.HRMD_DepartmentName,
+                    HRMD_Order: selectedRow.HRMD_Order,
+                    HRMD_InternalTrainingMinimumHrs: selectedRow.HRMD_InternalTrainingMinimumHrs,
+                    HRMD_ActiveFlag: selectedRow.HRMD_ActiveFlag
+                },
+                { keepDefaultValues: false }
+            ); // Reset default values to mark form as clean
         }
     }, [selectedRow, reset]);
-
-    console.log('📝 [DEPARTMENT FORM] Render - isDirty:', isDirty, 'isEditMode:', isEditMode, 'isSubmitting:', isSubmitting);
     if (isEditMode) {
-        console.log('📝 [DEPARTMENT FORM] Update button disabled?', isSubmitting || (isEditMode && !isDirty));
     }
 
     const onSubmit: SubmitHandler<FormFields> = async (data) => {
-        console.log('🔵 [FORM] Department submit - Data:', data);
-        console.log('🔵 [FORM] isDirty at submit:', isDirty);
         try {
             const response = await saveMutation.mutateAsync({
                 ...data,
                 HRMD_InternalTrainingMinimumHrs: data.HRMD_InternalTrainingMinimumHrs ?? 0
             });
-            console.log('🟢 [FORM] Department response:', response);
 
             if (response?.success) {
                 toast.success(response.message || (isEditMode ? 'Department updated successfully' : 'Department saved successfully'));
@@ -83,11 +78,9 @@ export default function DepartmentForm({ selectedRow, onSuccess, className = '' 
                 refetchAll();
                 onSuccess?.();
             } else {
-                console.log('❌ [FORM] Department failed:', response?.message);
                 toast.error(response?.message || (isEditMode ? 'Failed to update department' : 'Failed to save department'));
             }
         } catch (error: any) {
-            console.log('🔴 [FORM] Department error:', error);
             toast.error(error.message || 'An error occurred');
         }
     };
@@ -117,12 +110,14 @@ export default function DepartmentForm({ selectedRow, onSuccess, className = '' 
                                 // Callback ref to attach input listener when element is mounted
                                 const containerRefCallback = (containerElement: HTMLDivElement | null) => {
                                     if (!containerElement) return;
-                                    
+
                                     // Find the actual input element inside the NumberField
                                     const findInput = () => {
-                                        return containerElement.querySelector('input[type="text"], input[type="number"]') as HTMLInputElement;
+                                        return containerElement.querySelector(
+                                            'input[type="text"], input[type="number"]'
+                                        ) as HTMLInputElement;
                                     };
-                                    
+
                                     // Try to find input immediately, or after a short delay for React Aria rendering
                                     const attachListener = () => {
                                         const inputElement = findInput();
@@ -130,18 +125,18 @@ export default function DepartmentForm({ selectedRow, onSuccess, className = '' 
                                             setTimeout(attachListener, 50);
                                             return;
                                         }
-                                        
+
                                         // Check if listener is already attached to avoid duplicates
                                         if ((inputElement as any).__dirtyHandlerAttached) {
                                             return;
                                         }
-                                        
+
                                         const handleInput = (e: Event) => {
                                             const target = e.target as HTMLInputElement;
                                             const inputValue = target.value.trim();
-                                            
+
                                             // Only process if there's a valid number
-                                            if (inputValue !== '' && !isNaN(Number(inputValue))) {
+                                            if (inputValue !== '' && !Number.isNaN(Number(inputValue))) {
                                                 const numValue = Number(inputValue);
                                                 // Get current value from the field to compare
                                                 const currentValue = field.value || 0;
@@ -152,14 +147,14 @@ export default function DepartmentForm({ selectedRow, onSuccess, className = '' 
                                                 }
                                             }
                                         };
-                                        
+
                                         inputElement.addEventListener('input', handleInput, { passive: true });
                                         (inputElement as any).__dirtyHandlerAttached = true;
                                     };
-                                    
+
                                     attachListener();
                                 };
-                                
+
                                 return (
                                     <div ref={containerRefCallback}>
                                         <InputNumber
@@ -167,7 +162,6 @@ export default function DepartmentForm({ selectedRow, onSuccess, className = '' 
                                             id='HRMD_Order'
                                             value={field.value}
                                             onChange={(value) => {
-                                                console.log('📝 [DEPARTMENT FORM] Order field changed to:', value);
                                                 const numValue = value !== null && value !== undefined ? Number(value) : 0;
                                                 field.onChange(numValue);
                                                 // Explicitly mark field as dirty
@@ -188,12 +182,14 @@ export default function DepartmentForm({ selectedRow, onSuccess, className = '' 
                                 // Callback ref to attach input listener when element is mounted
                                 const containerRefCallback = (containerElement: HTMLDivElement | null) => {
                                     if (!containerElement) return;
-                                    
+
                                     // Find the actual input element inside the NumberField
                                     const findInput = () => {
-                                        return containerElement.querySelector('input[type="text"], input[type="number"]') as HTMLInputElement;
+                                        return containerElement.querySelector(
+                                            'input[type="text"], input[type="number"]'
+                                        ) as HTMLInputElement;
                                     };
-                                    
+
                                     // Try to find input immediately, or after a short delay for React Aria rendering
                                     const attachListener = () => {
                                         const inputElement = findInput();
@@ -201,36 +197,39 @@ export default function DepartmentForm({ selectedRow, onSuccess, className = '' 
                                             setTimeout(attachListener, 50);
                                             return;
                                         }
-                                        
+
                                         // Check if listener is already attached to avoid duplicates
                                         if ((inputElement as any).__dirtyHandlerAttached) {
                                             return;
                                         }
-                                        
+
                                         const handleInput = (e: Event) => {
                                             const target = e.target as HTMLInputElement;
                                             const inputValue = target.value.trim();
-                                            
+
                                             // Only process if there's a valid number
-                                            if (inputValue !== '' && !isNaN(Number(inputValue))) {
+                                            if (inputValue !== '' && !Number.isNaN(Number(inputValue))) {
                                                 const numValue = Number(inputValue);
                                                 // Get current value from the field to compare
                                                 const currentValue = field.value || 0;
                                                 // Check if value actually changed to avoid unnecessary updates
                                                 if (Math.abs(numValue - currentValue) > 0.0001) {
                                                     field.onChange(numValue);
-                                                    setValue('HRMD_InternalTrainingMinimumHrs', numValue, { shouldDirty: true, shouldValidate: true });
+                                                    setValue('HRMD_InternalTrainingMinimumHrs', numValue, {
+                                                        shouldDirty: true,
+                                                        shouldValidate: true
+                                                    });
                                                 }
                                             }
                                         };
-                                        
+
                                         inputElement.addEventListener('input', handleInput, { passive: true });
                                         (inputElement as any).__dirtyHandlerAttached = true;
                                     };
-                                    
+
                                     attachListener();
                                 };
-                                
+
                                 return (
                                     <div ref={containerRefCallback}>
                                         <InputNumber
@@ -238,11 +237,13 @@ export default function DepartmentForm({ selectedRow, onSuccess, className = '' 
                                             id='HRMD_InternalTrainingMinimumHrs'
                                             value={field.value}
                                             onChange={(value) => {
-                                                console.log('📝 [DEPARTMENT FORM] Training hours field changed to:', value);
                                                 const numValue = value !== null && value !== undefined ? Number(value) : 0;
                                                 field.onChange(numValue);
                                                 // Explicitly mark field as dirty
-                                                setValue('HRMD_InternalTrainingMinimumHrs', numValue, { shouldDirty: true, shouldValidate: true });
+                                                setValue('HRMD_InternalTrainingMinimumHrs', numValue, {
+                                                    shouldDirty: true,
+                                                    shouldValidate: true
+                                                });
                                             }}
                                             onBlur={field.onBlur}
                                             error={errors.HRMD_InternalTrainingMinimumHrs?.message}
@@ -278,9 +279,7 @@ export default function DepartmentForm({ selectedRow, onSuccess, className = '' 
                         </div>
                     </Button>
                     {isEditMode && !isDirty && (
-                        <span className='order-3 flex items-center text-sm text-muted-foreground sm:order-3'>
-                            No changes made
-                        </span>
+                        <span className='order-3 flex items-center text-muted-foreground text-sm sm:order-3'>No changes made</span>
                     )}
                 </div>
             </form>

@@ -1,6 +1,5 @@
 'use client';
 
-import { Heading } from '@/components/layout/heading';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { DataTable } from '@/components/ui/data-table/data-table';
@@ -8,8 +7,8 @@ import { type BaseEntity, createLocalCrud } from '@/lib/localdb';
 import { Calculator, Download, FileText, Printer, UserMinus, UserPlus } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';
-import { PFForm5Filters, type Form5Filters } from './_components/filters';
-import { form5Columns, type Form5Record as Form5RecordColumn } from './_components/columns';
+import { type Form5Record as Form5RecordColumn, form5Columns } from './_components/columns';
+import { type Form5Filters, PFForm5Filters } from './_components/filters';
 
 // Form 5 data structure (Register of Employees)
 interface Form5Record extends BaseEntity {
@@ -44,7 +43,6 @@ interface Form5Summary {
     totalPFEligibleSalary: number;
     averageSalary: number;
 }
-
 
 export default function Form5Page() {
     // Database instances
@@ -302,13 +300,8 @@ export default function Form5Page() {
     // Calculate average salary
     form5Summary.averageSalary = filteredRecords.length > 0 ? Math.round(form5Summary.totalBasicSalary / filteredRecords.length) : 0;
 
-
     return (
         <div className='space-y-6'>
-            <div className='flex-between flex-wrap gap-4'>
-                <Heading title='PF Form 5' description='Register of Employees under the Employees Provident Fund Scheme' />
-            </div>
-
             {/* Report Configuration Section */}
             <PFForm5Filters filters={filters} onFilterChange={handleFilterChange} onGenerate={handleGenerate} onCancel={handleCancel} />
 

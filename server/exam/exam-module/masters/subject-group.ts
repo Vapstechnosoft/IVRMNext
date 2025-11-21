@@ -39,3 +39,8 @@ export async function getMasterSubjectGroupDetailsById(groupId: number) {
     const url = `/master_subject_group/GetSubjectGroupDetailsViewById/${groupId}`;
     return await api.get<IMasterSubjectGroupDetails>('exam', url);
 }
+
+export async function getSubjectsGroupDropDownByList(mI_Id: number) {
+    const url = `/master_subject_group/subjects_group_drop_down_by_list/${mI_Id}`;
+    return await api.get<IMasterSubjectGroupDetails>('exam', url);
+}

@@ -5,7 +5,7 @@ import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { type BaseEntity, createLocalCrud } from '@/lib/localdb';
 import { useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';
-import { CandidateReportFilters, type CandidateReportFilters as CandidateFilters } from './_components/filters';
+import { type CandidateReportFilters as CandidateFilters, CandidateReportFilters } from './_components/filters';
 
 interface Candidate extends BaseEntity {
     firstName: string;

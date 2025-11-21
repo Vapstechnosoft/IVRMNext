@@ -178,31 +178,70 @@ export const subjectGroupDetailSchema = z.object({
     selected: z.boolean().optional()
 });
 
-// ✅ Master subject group schema
 export const masterSubjectGroupSchema = {
-    addOrUpdate: z.object({
-        emG_Id: z.number().optional(),
-        mI_Id: z.number().optional(),
-        emG_GroupName: createCustomStringSchema('Subject Group Name', 1, 100),
+    addOrUpdate: z
+        .object({
+            emG_Id: z.number().optional(),
+            mI_Id: z.number().optional(),
+            emG_GroupName: createCustomStringSchema('Subject Group Name', 1, 100),
 
-        emG_TotSubjects: z
-            .number({ required_error: 'Total Subjects is required' })
-            .min(1, { message: 'Total Subjects must be at least 1' }),
+            emG_TotSubjects: z
+                .number({ required_error: 'Total Subjects is required' })
+                .min(1, { message: 'Total Subjects must be at least 1' }),
 
-        emG_MaxAplSubjects: z
-            .number({ required_error: 'Max Applicable Subjects is required' })
-            .min(1, { message: 'Max Applicable Subjects must be at least 1' }),
+            emG_MaxAplSubjects: z
+                .number({ required_error: 'Max Applicable Subjects is required' })
+                .min(1, { message: 'Max Applicable Subjects must be at least 1' }),
 
-        emG_MinAplSubjects: z
-            .number({ required_error: 'Min Applicable Subjects is required' })
-            .min(1, { message: 'Min Applicable Subjects must be at least 1' }),
+            emG_MinAplSubjects: z
+                .number({ required_error: 'Min Applicable Subjects is required' })
+                .min(1, { message: 'Min Applicable Subjects must be at least 1' }),
 
-        emG_BestOff: z
-            .number({ required_error: 'Best Off Subjects is required' })
-            .min(0, { message: 'Best Off Subjects must be 0 or greater' }),
+            emG_BestOff: z
+                .number({ required_error: 'Best Off Subjects is required' })
+                .min(0, { message: 'Best Off Subjects must be 0 or greater' }),
 
-        subject_list: z.array(subjectGroupDetailSchema).optional()
-    }),
+            subject_list: z.array(subjectGroupDetailSchema).optional()
+        })
+        .superRefine((d, ctx) => {
+            const { emG_TotSubjects, emG_MaxAplSubjects, emG_MinAplSubjects, emG_BestOff } = d;
+
+            // RULE 1: Max <= Total
+            if (emG_MaxAplSubjects > emG_TotSubjects) {
+                ctx.addIssue({
+                    code: z.ZodIssueCode.custom,
+                    path: ['emG_MaxAplSubjects'],
+                    message: `Max Applicable Subjects must be less than or equal to Total Subjects [${emG_TotSubjects}]`
+                });
+            }
+
+            // RULE 2: Min <= Max
+            if (emG_MinAplSubjects > emG_MaxAplSubjects) {
+                ctx.addIssue({
+                    code: z.ZodIssueCode.custom,
+                    path: ['emG_MinAplSubjects'],
+                    message: `Min Applicable Subjects must be less than or equal to Max Applicable Subjects [${emG_MaxAplSubjects}]`
+                });
+            }
+
+            // RULE 3: BestOff > Max → ERROR
+            if (emG_BestOff > emG_MaxAplSubjects) {
+                ctx.addIssue({
+                    code: z.ZodIssueCode.custom,
+                    path: ['emG_BestOff'],
+                    message: `U can't set Best Off Subjects More Than Max. Applicable Subjects [${emG_MaxAplSubjects}]`
+                });
+            }
+
+            // RULE 4: BestOff < Min → ERROR
+            if (emG_BestOff < emG_MinAplSubjects) {
+                ctx.addIssue({
+                    code: z.ZodIssueCode.custom,
+                    path: ['emG_BestOff'],
+                    message: `U can't set Best Off Subjects Less Than Min. Applicable Subjects [${emG_MinAplSubjects}]`
+                });
+            }
+        }),
 
     delete: z.object({
         emG_Id: z.number({ required_error: 'emG_Id is required' })
@@ -238,7 +277,7 @@ export const categoryClassMappingSchema = {
         mI_Id: z.number().min(1, { message: 'MI Id is required' }),
         ecaC_Id: z.number().optional().default(0),
         asmaY_Id: z.number().min(1, { message: 'Academic Year is required' }),
-        asmcL_Id: z.number().min(1, { message: 'Class is required' }),
+        asmcL_Id: z.number().optional().default(0),
 
         section_list: z
             .array(
@@ -246,7 +285,7 @@ export const categoryClassMappingSchema = {
                     asmS_Id: z.number().min(1, { message: 'Section is required' })
                 })
             )
-            .min(1, { message: 'At least one section must be selected' })
+            .optional()
     })
 };
 export const coScholasticActivitySchema = {
@@ -277,7 +316,7 @@ export const masterLifeSkillSchema = {
         ecS_Id: z.number().int({ message: 'Life Skill ID is required' }).optional(),
         mI_Id: z.number().int({ message: 'MI ID is required' }).optional(),
         ecS_SkillName: createCustomStringSchema('Life Skill Name', 1, 100),
-        ecS_SkillCode: createStringSchema('Life Skill Code', 1, 50),
+        ecS_SkillCode: createCustomStringSchema('Life Skill Code', 1, 50),
         ecS_ActiveFlag: z.boolean({ required_error: 'Active Flag is required' }).default(true)
     }),
 
@@ -290,14 +329,8 @@ export const lifeSkillAreaSchema = {
     addOrUpdate: z.object({
         ecS_Id: z.number().default(0),
         mI_Id: z.number().default(30),
-        ecS_SkillName: z
-            .string()
-            .min(1, { message: 'Skill Name is required' })
-            .max(100, { message: 'Skill Name must be less than 100 characters' }),
-        ecS_SkillCode: z
-            .string()
-            .min(1, { message: 'Skill Code is required' })
-            .max(50, { message: 'Skill Code must be less than 50 characters' }),
+        ecS_SkillName: createCustomStringSchema('Life Skill Area Name', 1, 100),
+        ecS_SkillCode: createCustomStringSchema('Life Skill Area Code', 1, 50),
 
         subexamDTO: z
             .array(

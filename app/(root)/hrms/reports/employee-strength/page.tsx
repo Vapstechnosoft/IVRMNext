@@ -3,40 +3,18 @@
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { DataTable } from '@/components/ui/data-table/data-table';
-import { type BaseEntity, createLocalCrud } from '@/lib/localdb';
+import { HRMS_MI_ID } from '@/constants/hrms-config';
+import { useEmployeeStrengthReportOnload, useSearchEmployeeStrengthReport } from '@/hooks/hrms/useReports';
 import { format } from 'date-fns';
 import { BarChart3, Download, Printer } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';
+import { type EmployeeStrengthRecord as EmployeeStrengthRecordColumn, employeeStrengthColumns } from './_components/columns';
 import { EmployeeStrengthFilters, type StrengthReportFilters } from './_components/filters';
-import { employeeStrengthColumns, type EmployeeStrengthRecord as EmployeeStrengthRecordColumn } from './_components/columns';
-
-// Data interfaces from employee-category masters
-interface GroupType extends BaseEntity {
-    groupType: string;
-    groupCode: string;
-    order: number;
-    isActive: boolean;
-}
-
-interface Department extends BaseEntity {
-    departmentName: string;
-    internalTrainingHours: string;
-    order: number;
-    isActive: boolean;
-}
-
-interface Designation extends BaseEntity {
-    designationName: string;
-    basicAmount: string;
-    sanctionedSeats: string;
-    displaySanctionedSeats: boolean;
-    order: number;
-    isActive: boolean;
-}
 
 // Employee strength data structure
-interface EmployeeStrengthRecord extends BaseEntity {
+interface EmployeeStrengthRecord {
+    id?: string;
     departmentName: string;
     designationName: string;
     groupType: string;
@@ -49,22 +27,36 @@ interface EmployeeStrengthRecord extends BaseEntity {
     dateRange: string;
 }
 
-
 export default function EmployeeStrengthReportPage() {
-    // Database instances
-    const groupTypeDB = createLocalCrud<GroupType>('master:group-type');
-    const departmentDB = createLocalCrud<Department>('master:department');
-    const designationDB = createLocalCrud<Designation>('master:designation');
-    const strengthDB = createLocalCrud<EmployeeStrengthRecord>('report:employee-strength');
+    const roleId = HRMS_MI_ID;
+
+    // React Query hooks
+    const { data: onloadData, isLoading: isLoadingOnload, error: onloadError } = useEmployeeStrengthReportOnload(roleId, 0);
+    const searchMutation = useSearchEmployeeStrengthReport();
 
     // State
-    const [groupTypes, setGroupTypes] = useState<GroupType[]>([]);
-    const [departments, setDepartments] = useState<Department[]>([]);
-    const [designations, setDesignations] = useState<Designation[]>([]);
     const [strengthRecords, setStrengthRecords] = useState<EmployeeStrengthRecord[]>([]);
     const [filteredRecords, setFilteredRecords] = useState<EmployeeStrengthRecord[]>([]);
-    const [isLoading, setIsLoading] = useState(true);
     const [showReport, setShowReport] = useState(false);
+
+    // Memoize dropdown data from API
+    const groupTypes = useMemo(() => {
+        const data = onloadData?.data;
+        if (!data) return [];
+        return (data as any).groupTypedropdown || [];
+    }, [onloadData?.data]);
+
+    const departments = useMemo(() => {
+        const data = onloadData?.data;
+        if (!data) return [];
+        return (data as any).departmentdropdown || [];
+    }, [onloadData?.data]);
+
+    const designations = useMemo(() => {
+        const data = onloadData?.data;
+        if (!data) return [];
+        return (data as any).designationdropdown || [];
+    }, [onloadData?.data]);
 
     const [filters, setFilters] = useState<StrengthReportFilters>({
         groupType: 'All',
@@ -75,85 +67,63 @@ export default function EmployeeStrengthReportPage() {
             departmentWise: false,
             leftEmployee: false
         },
-        fromDate: new Date('2025-09-17'),
-        toDate: new Date('2025-09-17')
+        fromDate: null,
+        toDate: null
     });
 
-    // Load data on mount
+    // Show error if API fails
     useEffect(() => {
-        loadData();
-    }, []);
-
-    const loadData = () => {
-        try {
-            setGroupTypes(groupTypeDB.list().filter((g) => g.isActive));
-            setDepartments(departmentDB.list().filter((d) => d.isActive));
-            setDesignations(designationDB.list().filter((d) => d.isActive));
-
-            // Load strength records
-            let recordList = strengthDB.list();
-            if (recordList.length === 0) {
-                const mockData = generateMockStrengthData();
-                mockData.forEach((record) => strengthDB.create(record));
-                recordList = strengthDB.list(); // Reload data after creating mock records
-            }
-            setStrengthRecords(recordList);
-        } catch (_error) {
-            toast.error('Failed to load data');
-        } finally {
-            setIsLoading(false);
+        if (onloadError || (!isLoadingOnload && onloadData && !onloadData.success)) {
+            const errorMessage = onloadError?.message || onloadData?.message || 'Failed to load employee strength report data. Please check if the API endpoint is available.';
+            toast.error(errorMessage);
         }
-    };
+    }, [onloadError, isLoadingOnload, onloadData]);
 
-    // Generate mock employee strength data
-    const generateMockStrengthData = (): Omit<EmployeeStrengthRecord, 'id' | 'createdAt'>[] => {
-        const departments = ['JUNIOR SCHOOL', 'SENIOR SCHOOL', 'OFFICE STAFF', 'SERVICE STAFF', 'ADMINISTRATIVE'];
-        const designations = ['Assistant Teacher', 'Principal', 'Vice Principal', 'Office Assistant', 'System Manager', 'Teacher Helper'];
-        const groupTypes = ['Teaching', 'Non Teaching', 'Administrative'];
+    // Map API data to component format
+    const mappedGroupTypes = useMemo(() => {
+        return groupTypes.map((gt: any) => ({
+            id: gt.HRMGT_Id,
+            groupType: gt.HRMGT_EmployeeGroupType || gt.HRMGT_Code || '',
+            groupCode: gt.HRMGT_Code || '',
+            order: gt.HRMGT_Order || 0,
+            isActive: gt.HRMGT_ActiveFlag !== false
+        }));
+    }, [groupTypes]);
 
-        const mockRecords: Omit<EmployeeStrengthRecord, 'id' | 'createdAt'>[] = [];
+    const mappedDepartments = useMemo(() => {
+        return departments.map((dept: any) => ({
+            id: dept.HRMD_Id,
+            departmentName: dept.HRMD_DepartmentName || '',
+            internalTrainingHours: dept.HRMD_InternalTrainingMinimumHrs?.toString() || '0',
+            order: dept.HRMD_Order || 0,
+            isActive: dept.HRMD_ActiveFlag !== false
+        }));
+    }, [departments]);
 
-        departments.forEach((dept, _deptIndex) => {
-            designations.forEach((desig, _desigIndex) => {
-                groupTypes.forEach((group, _groupIndex) => {
-                    const totalEmployees = 5 + Math.floor(Math.random() * 15);
-                    const leftEmployees = Math.floor(Math.random() * 3);
-                    const activeEmployees = totalEmployees - leftEmployees;
-                    const newJoinees = Math.floor(Math.random() * 4);
-                    const maleEmployees = Math.floor(totalEmployees * 0.6);
-                    const femaleEmployees = totalEmployees - maleEmployees;
-
-                    mockRecords.push({
-                        departmentName: dept,
-                        designationName: desig,
-                        groupType: group,
-                        totalEmployees,
-                        activeEmployees,
-                        leftEmployees,
-                        newJoinees,
-                        maleEmployees,
-                        femaleEmployees,
-                        dateRange: '17-09-2025 to 17-09-2025'
-                    });
-                });
-            });
-        });
-
-        return mockRecords;
-    };
+    const mappedDesignations = useMemo(() => {
+        return designations.map((desig: any) => ({
+            id: desig.HRMDES_Id,
+            designationName: desig.HRMDES_DesignationName || '',
+            basicAmount: desig.HRMDES_BasicAmount?.toString() || '0',
+            sanctionedSeats: desig.HRMDES_SanctionedSeats?.toString() || '0',
+            displaySanctionedSeats: desig.HRMDES_DisplaySanctionedSeatsFlag || false,
+            order: desig.HRMDES_Order || 0,
+            isActive: desig.HRMDES_ActiveFlag !== false
+        }));
+    }, [designations]);
 
     // Cascading filter logic
     const availableDepartments = useMemo(() => {
-        if (filters.groupType === 'All') return departments;
+        if (filters.groupType === 'All') return mappedDepartments;
         // In a real app, departments would be filtered by groupType relationship
-        return departments;
-    }, [filters.groupType, departments]);
+        return mappedDepartments;
+    }, [filters.groupType, mappedDepartments]);
 
     const availableDesignations = useMemo(() => {
-        if (filters.department === 'All') return designations;
+        if (filters.department === 'All') return mappedDesignations;
         // In a real app, designations would be filtered by department relationship
-        return designations;
-    }, [filters.department, designations]);
+        return mappedDesignations;
+    }, [filters.department, mappedDesignations]);
 
     // Filter strength records based on selected criteria
     useEffect(() => {
@@ -223,22 +193,88 @@ export default function EmployeeStrengthReportPage() {
     };
 
     const handleCategoryChange = (category: keyof StrengthReportFilters['employeeCategories'], checked: boolean) => {
+        const newCategories = {
+            ...filters.employeeCategories,
+            [category]: checked
+        };
+
+        // If "All Employee" is checked, uncheck others
+        if (category === 'allEmployee' && checked) {
+            newCategories.departmentWise = false;
+            newCategories.leftEmployee = false;
+        }
+        // If others are checked, uncheck "All Employee"
+        else if ((category === 'departmentWise' || category === 'leftEmployee') && checked) {
+            newCategories.allEmployee = false;
+        }
+
         setFilters((prev) => ({
             ...prev,
-            employeeCategories: {
-                ...prev.employeeCategories,
-                [category]: checked
-            }
+            employeeCategories: newCategories
         }));
     };
 
     const handleSearch = () => {
-        if (!filters.fromDate || !filters.toDate) {
-            toast.error('Please select from and to dates');
-            return;
+        // Only validate dates if "All Employee" is not selected
+        if (!filters.employeeCategories.allEmployee) {
+            if (!filters.fromDate || !filters.toDate) {
+                toast.error('Please select from and to dates');
+                return;
+            }
         }
-        setShowReport(true);
-        toast.success('Employee strength report generated');
+
+        // Prepare search request
+        const searchRequest = {
+            MI_Id: roleId,
+            designationselected: filters.designation !== 'All' && mappedDesignations.find((d: any) => d.designationName === filters.designation)
+                ? [mappedDesignations.find((d: any) => d.designationName === filters.designation)!.id]
+                : [],
+            departmentselected: filters.department !== 'All' && mappedDepartments.find((d: any) => d.departmentName === filters.department)
+                ? [mappedDepartments.find((d: any) => d.departmentName === filters.department)!.id]
+                : [],
+            groupTypeselected: filters.groupType !== 'All' && mappedGroupTypes.find((g: any) => g.groupType === filters.groupType)
+                ? [mappedGroupTypes.find((g: any) => g.groupType === filters.groupType)!.id]
+                : [],
+            AllEmployee: filters.employeeCategories.allEmployee,
+            Departmentwise: filters.employeeCategories.departmentWise,
+            LeftEmployee: filters.employeeCategories.leftEmployee,
+            FromDate: filters.fromDate ? filters.fromDate.toISOString() : '',
+            ToDate: filters.toDate ? filters.toDate.toISOString() : ''
+        };
+
+        searchMutation.mutate(searchRequest, {
+            onSuccess: (response) => {
+                if (response.success && response.data) {
+                    // Map API response to EmployeeStrengthRecord format
+                    const employeeDetails = response.data.employeeDetails || [];
+                    const mappedRecords: EmployeeStrengthRecord[] = employeeDetails.map((emp: any, index: number) => ({
+                        id: `emp-${index}`,
+                        departmentName: emp.departmentName || emp.HRMD_DepartmentName || '',
+                        designationName: emp.designationName || emp.HRMDES_DesignationName || '',
+                        groupType: emp.groupType || emp.HRMGT_EmployeeGroupType || '',
+                        totalEmployees: emp.totalEmployees || 0,
+                        activeEmployees: emp.activeEmployees || emp.totalWorkingEmployees || 0,
+                        leftEmployees: emp.leftEmployees || emp.totalLeftEmployees || 0,
+                        newJoinees: emp.newJoinees || 0,
+                        maleEmployees: emp.maleEmployees || 0,
+                        femaleEmployees: emp.femaleEmployees || 0,
+                        dateRange: filters.fromDate && filters.toDate
+                            ? `${format(filters.fromDate, 'dd-MM-yyyy')} to ${format(filters.toDate, 'dd-MM-yyyy')}`
+                            : ''
+                    }));
+
+                    setStrengthRecords(mappedRecords);
+                    setShowReport(true);
+                    toast.success('Employee strength report generated successfully');
+                } else {
+                    toast.error(response.message || 'Failed to generate employee strength report');
+                }
+            },
+            onError: (error: Error) => {
+                console.error('Error searching employee strength report:', error);
+                toast.error(error.message || 'Failed to generate employee strength report');
+            }
+        });
     };
 
     const handleCancel = () => {
@@ -251,10 +287,12 @@ export default function EmployeeStrengthReportPage() {
                 departmentWise: false,
                 leftEmployee: false
             },
-            fromDate: new Date('2025-09-17'),
-            toDate: new Date('2025-09-17')
+            fromDate: null,
+            toDate: null
         });
         setShowReport(false);
+        setStrengthRecords([]);
+        setFilteredRecords([]);
         toast.info('Filters cleared');
     };
 
@@ -289,13 +327,12 @@ export default function EmployeeStrengthReportPage() {
         );
     }, [filteredRecords]);
 
-
     return (
         <div className='space-y-6'>
             {/* Report Configuration Section */}
             <EmployeeStrengthFilters
                 filters={filters}
-                groupTypes={groupTypes}
+                groupTypes={mappedGroupTypes}
                 availableDepartments={availableDepartments}
                 availableDesignations={availableDesignations}
                 onFilterChange={handleFilterChange}
@@ -383,7 +420,7 @@ export default function EmployeeStrengthReportPage() {
 
                     {/* Data Table */}
                     <DataTable
-                        isLoading={isLoading}
+                        isLoading={isLoadingOnload}
                         columns={employeeStrengthColumns}
                         data={filteredRecords as unknown as EmployeeStrengthRecordColumn[]}
                         totalItems={filteredRecords.length}

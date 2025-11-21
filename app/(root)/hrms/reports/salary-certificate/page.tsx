@@ -1,13 +1,19 @@
 'use client';
 
-import { Heading } from '@/components/layout/heading';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { type BaseEntity, createLocalCrud } from '@/lib/localdb';
 import { Download, Printer } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';
-import { SalaryCertificateFilters, type SalaryCertificateFilters as SalaryCertificateFiltersType, type GroupType, type Department, type Designation, type Employee } from './_components/filters';
+import {
+    type Department,
+    type Designation,
+    type Employee,
+    type GroupType,
+    SalaryCertificateFilters,
+    type SalaryCertificateFilters as SalaryCertificateFiltersType
+} from './_components/filters';
 
 // Salary certificate data structure
 interface SalaryCertificate extends BaseEntity {
@@ -434,10 +440,6 @@ export default function SalaryCertificatePage() {
 
     return (
         <div className='space-y-6'>
-            <div className='flex-between flex-wrap gap-4'>
-                <Heading title='Salary Certificate' description='Generate official salary certificates for employees' />
-            </div>
-
             {/* Report Configuration Section */}
             <SalaryCertificateFilters
                 filters={filters}

@@ -1,15 +1,19 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
+import { CalendarYear } from '@/components/ui/calendar_year';
 import { FormError } from '@/components/ui/extension/field';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
-import { InputText } from '@/components/ui/extension/input-text';
 import { MultiSelect } from '@/components/ui/multi-select';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { employeeLateInEarlyOutReportFilterSchema } from '@/schemas/hrms/attendance-management-schemas';
+import { cn } from '@/lib/utils';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { FileDown, Printer, RefreshCw, X } from 'lucide-react';
+import { format } from 'date-fns';
+import { CalendarIcon, FileDown, Printer, RefreshCw, X } from 'lucide-react';
 import { useForm } from 'react-hook-form';
+import { useEffect } from 'react';
 import type { z } from 'zod';
 
 export type EmployeeLateInEarlyOutReportFilters = z.infer<typeof employeeLateInEarlyOutReportFilterSchema>;
@@ -19,6 +23,8 @@ interface EmployeeLateInEarlyOutReportFiltersProps {
     departments: string[];
     designations: string[];
     types: string[];
+    groupTypes?: Array<{ label: string; value: string }>;
+    employees?: Array<{ label: string; value: string }>;
     onFilterChange: (filters: EmployeeLateInEarlyOutReportFilters) => void;
     onSearch: () => void;
     onCancel: () => void;
@@ -31,12 +37,27 @@ export function EmployeeLateInEarlyOutReportFilters({
     departments,
     designations,
     types,
+    groupTypes = [],
+    employees = [],
     onFilterChange,
     onSearch,
     onCancel,
     onExport,
     onPrint
 }: EmployeeLateInEarlyOutReportFiltersProps) {
+    // Debug logging for props
+    useEffect(() => {
+        console.log('🔵 ========== FILTERS COMPONENT PROPS DEBUG ==========');
+        console.log('🔵 [FILTERS] Received Props:', {
+            groupTypesCount: groupTypes.length,
+            groupTypes: groupTypes,
+            employeesCount: employees.length,
+            employees: employees.slice(0, 5), // First 5 for debugging
+            filters: filters
+        });
+        console.log('🔵 ========== END FILTERS COMPONENT PROPS DEBUG ==========');
+    }, [groupTypes, employees, filters]);
+    
     const {
         handleSubmit,
         setValue,
@@ -47,6 +68,24 @@ export function EmployeeLateInEarlyOutReportFilters({
         defaultValues: filters,
         mode: 'onChange'
     });
+
+    // Watch the allOrIndividual and query fields to reactively show/hide employee dropdown
+    // Use watch to get the current form value, which updates immediately when changed
+    const allOrIndividualValue = watch('allOrIndividual') || filters.allOrIndividual;
+    const queryValue = watch('query') || filters.query || '';
+
+    // Sync form when filters prop changes from parent
+    useEffect(() => {
+        setValue('allOrIndividual', filters.allOrIndividual, { shouldDirty: false, shouldValidate: false });
+        setValue('type', filters.type || [], { shouldDirty: false, shouldValidate: false });
+        setValue('department', filters.department || [], { shouldDirty: false, shouldValidate: false });
+        setValue('designation', filters.designation || [], { shouldDirty: false, shouldValidate: false });
+        setValue('query', filters.query || '', { shouldDirty: false, shouldValidate: false });
+        setValue('fromDate', filters.fromDate || '', { shouldDirty: false, shouldValidate: false });
+        setValue('toDate', filters.toDate || '', { shouldDirty: false, shouldValidate: false });
+        setValue('mode', filters.mode || 'Late By', { shouldDirty: false, shouldValidate: false });
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [filters.allOrIndividual, filters.type?.join(','), filters.department?.join(','), filters.designation?.join(','), filters.query, filters.fromDate, filters.toDate, filters.mode]);
 
     const handleFilterChange = (key: keyof EmployeeLateInEarlyOutReportFilters, value: any) => {
         const newFilters = { ...filters, [key]: value };
@@ -61,169 +100,223 @@ export function EmployeeLateInEarlyOutReportFilters({
 
     return (
         <CollapsibleSection
-            title='EMPLOYEE LATE IN EARLY OUT REPORT'
-            description='Configure filters to generate late in/early out attendance reports'
             defaultOpen={true}
             variant='default'
             size='lg'
             className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
             <form onSubmit={handleSubmit(onSubmit)}>
-            <div className='grid grid-cols-1 gap-4 md:grid-cols-12'>
-                <div className='md:col-span-4'>
-                    <label className='font-medium text-sm' htmlFor='type'>
-                        Type <span className='text-red-500'>*</span>
-                    </label>
-                    <MultiSelect
-                        options={types.map((t: string) => ({ label: t, value: t }))}
-                        onValueChange={(values) => handleFilterChange('type', values)}
-                        defaultValue={filters.type || []}
-                        placeholder='Select Types'
-                        className={`w-full ${errors.type ? 'border-red-500' : ''}`}
-                        maxHeight={240}
-                    />
-                    {errors.type && <FormError>{errors.type.message}</FormError>}
-                </div>
-                <div className='md:col-span-4'>
-                    <label className='font-medium text-sm' htmlFor='department'>
-                        Department <span className='text-red-500'>*</span>
-                    </label>
-                    <MultiSelect
-                        options={departments.map((d) => ({ label: d, value: d }))}
-                        onValueChange={(values) => handleFilterChange('department', values)}
-                        defaultValue={filters.department || []}
-                        placeholder='Select Departments'
-                        className={`w-full ${errors.department ? 'border-red-500' : ''}`}
-                        maxHeight={240}
-                    />
-                    {errors.department && <FormError>{errors.department.message}</FormError>}
-                </div>
-                <div className='md:col-span-4'>
-                    <label className='font-medium text-sm' htmlFor='designation'>
-                        Designation <span className='text-red-500'>*</span>
-                    </label>
-                    <MultiSelect
-                        options={designations.map((d) => ({ label: d, value: d }))}
-                        onValueChange={(values) => handleFilterChange('designation', values)}
-                        defaultValue={filters.designation || []}
-                        placeholder='Select Designations'
-                        className={`w-full ${errors.designation ? 'border-red-500' : ''}`}
-                        maxHeight={240}
-                    />
-                    {errors.designation && <FormError>{errors.designation.message}</FormError>}
-                </div>
-
-                <div className='md:col-span-3'>
-                    <label className='font-medium text-sm' htmlFor='allOrIndividual'>
-                        All / Individual <span className='text-red-500'>*</span>
-                    </label>
-                    <Select
-                        value={filters.allOrIndividual}
-                        onValueChange={(value) => handleFilterChange('allOrIndividual', value as 'All' | 'Individual')}>
-                        <SelectTrigger id='allOrIndividual' className={errors.allOrIndividual ? 'border-red-500' : ''}>
-                            <SelectValue placeholder='Select' />
-                        </SelectTrigger>
-                        <SelectContent>
-                            <SelectItem value='All'>All</SelectItem>
-                            <SelectItem value='Individual'>Individual</SelectItem>
-                        </SelectContent>
-                    </Select>
-                    {errors.allOrIndividual && <FormError>{errors.allOrIndividual.message}</FormError>}
-                </div>
-                {filters.allOrIndividual === 'Individual' && (
-                    <>
-                        <div className='md:col-span-3'>
-                            <label className='font-medium text-sm' htmlFor='codeOrName'>
-                                Code / Name <span className='text-red-500'>*</span>
-                            </label>
-                            <Select
-                                value={filters.codeOrName}
-                                onValueChange={(value) => handleFilterChange('codeOrName', value as 'Code' | 'Name')}>
-                                <SelectTrigger id='codeOrName' className={errors.codeOrName ? 'border-red-500' : ''}>
-                                    <SelectValue placeholder='Select' />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value='Code'>Code</SelectItem>
-                                    <SelectItem value='Name'>Name</SelectItem>
-                                </SelectContent>
-                            </Select>
-                            {errors.codeOrName && <FormError>{errors.codeOrName.message}</FormError>}
-                        </div>
-                        <div className='md:col-span-6'>
-                            <label className='font-medium text-sm' htmlFor='query'>
-                                Employee {filters.codeOrName === 'Code' ? 'Code' : 'Name'} <span className='text-red-500'>*</span>
-                            </label>
-                            <InputText
-                                id='query'
-                                placeholder={`Enter Employee ${filters.codeOrName === 'Code' ? 'Code' : 'Name'}`}
-                                value={filters.query || ''}
-                                onChange={(e) => handleFilterChange('query', e.target.value)}
-                                error={errors.query?.message}
-                            />
-                        </div>
-                    </>
-                )}
-
-                <div className='md:col-span-3'>
-                    <label className='font-medium text-sm' htmlFor='fromDate'>
-                        From Date <span className='text-red-500'>*</span>
-                    </label>
-                    <InputText
-                        id='fromDate'
-                        type='date'
-                        value={filters.fromDate}
-                        onChange={(e) => handleFilterChange('fromDate', e.target.value)}
-                        error={errors.fromDate?.message}
-                    />
-                </div>
-                <div className='md:col-span-3'>
-                    <label className='font-medium text-sm' htmlFor='toDate'>
-                        To Date <span className='text-red-500'>*</span>
-                    </label>
-                    <InputText
-                        id='toDate'
-                        type='date'
-                        value={filters.toDate}
-                        onChange={(e) => handleFilterChange('toDate', e.target.value)}
-                        error={errors.toDate?.message}
-                        min={filters.fromDate || undefined}
-                    />
-                </div>
-                <div className='md:col-span-3'>
-                    <label className='font-medium text-sm' htmlFor='mode'>
-                        Mode <span className='text-red-500'>*</span>
-                    </label>
-                    <Select onValueChange={(v) => handleFilterChange('mode', v as any)} value={filters.mode}>
-                        <SelectTrigger id='mode' className={errors.mode ? 'border-red-500' : ''}>
-                            <SelectValue placeholder='Mode' />
-                        </SelectTrigger>
-                        <SelectContent>
-                            <SelectItem value='Late By'>Late By</SelectItem>
-                            <SelectItem value='Early Out'>Early Out</SelectItem>
-                            <SelectItem value='Late In Early Out'>Late In Early Out</SelectItem>
-                        </SelectContent>
-                    </Select>
-                    {errors.mode && <FormError>{errors.mode.message}</FormError>}
-                </div>
-                {filters.allOrIndividual === 'Individual' && (
-                    <div className='md:col-span-12'>
-                        {errors.query && <FormError>{errors.query.message}</FormError>}
+                <div className='grid grid-cols-1 gap-4 md:grid-cols-12'>
+                    <div className='md:col-span-4'>
+                        <label className='font-medium text-sm' htmlFor='type'>
+                            Type <span className='text-red-500'>*</span>
+                        </label>
+                        {(() => {
+                            const options = groupTypes.length > 0 ? groupTypes : types.map((t: string) => ({ label: t, value: t }));
+                            console.log('🔵 [FILTERS] Type MultiSelect Options:', {
+                                groupTypesLength: groupTypes.length,
+                                typesLength: types.length,
+                                finalOptionsLength: options.length,
+                                finalOptions: options.slice(0, 5) // First 5 for debugging
+                            });
+                            return (
+                                <MultiSelect
+                                    options={options}
+                                    onValueChange={(values) => handleFilterChange('type', values)}
+                                    defaultValue={filters.type || []}
+                                    placeholder='Select Types'
+                                    className={`w-full ${errors.type ? 'border-red-500' : ''}`}
+                                    maxHeight={240}
+                                />
+                            );
+                        })()}
+                        {errors.type && <FormError>{errors.type.message}</FormError>}
                     </div>
-                )}
-                <div className='flex items-end gap-2 md:col-span-12'>
-                    <Button type='submit'>
-                        <RefreshCw className='mr-2 h-4 w-4' /> Report
-                    </Button>
-                    <Button type='button' variant='outline' onClick={onExport}>
-                        <FileDown className='mr-2 h-4 w-4' /> Export to Excel
-                    </Button>
-                    <Button type='button' variant='outline' onClick={onPrint}>
-                        <Printer className='mr-2 h-4 w-4' /> Print
-                    </Button>
-                    <Button type='button' variant='outline' onClick={onCancel}>
-                        <X className='mr-2 h-4 w-4' /> CANCEL
-                    </Button>
+                    <div className='md:col-span-4'>
+                        <label className='font-medium text-sm' htmlFor='department'>
+                            Department <span className='text-red-500'>*</span>
+                        </label>
+                        <MultiSelect
+                            options={departments.map((d) => ({ label: d, value: d }))}
+                            onValueChange={(values) => handleFilterChange('department', values)}
+                            defaultValue={filters.department || []}
+                            placeholder='Select Departments'
+                            className={`w-full ${errors.department ? 'border-red-500' : ''}`}
+                            maxHeight={240}
+                        />
+                        {errors.department && <FormError>{errors.department.message}</FormError>}
+                    </div>
+                    <div className='md:col-span-4'>
+                        <label className='font-medium text-sm' htmlFor='designation'>
+                            Designation <span className='text-red-500'>*</span>
+                        </label>
+                        <MultiSelect
+                            options={designations.map((d) => ({ label: d, value: d }))}
+                            onValueChange={(values) => handleFilterChange('designation', values)}
+                            defaultValue={filters.designation || []}
+                            placeholder='Select Designations'
+                            className={`w-full ${errors.designation ? 'border-red-500' : ''}`}
+                            maxHeight={240}
+                        />
+                        {errors.designation && <FormError>{errors.designation.message}</FormError>}
+                    </div>
+
+                    <div className='md:col-span-3'>
+                        <label className='font-medium text-sm' htmlFor='allOrIndividual'>
+                            All / Individual <span className='text-red-500'>*</span>
+                        </label>
+                        <Select
+                            value={allOrIndividualValue}
+                            onValueChange={(value) => handleFilterChange('allOrIndividual', value as 'All' | 'Individual')}>
+                            <SelectTrigger id='allOrIndividual' className={errors.allOrIndividual ? 'border-red-500' : ''}>
+                                <SelectValue placeholder='Select' />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value='All'>All</SelectItem>
+                                <SelectItem value='Individual'>Individual</SelectItem>
+                            </SelectContent>
+                        </Select>
+                        {errors.allOrIndividual && <FormError>{errors.allOrIndividual.message}</FormError>}
+                    </div>
+                    {/* Employee Dropdown - Only show when Individual is selected */}
+                    {allOrIndividualValue === 'Individual' && (
+                        <div className='md:col-span-3'>
+                            <label className='font-medium text-sm' htmlFor='employee'>
+                                Employee <span className='text-red-500'>*</span>
+                            </label>
+                            {(() => {
+                                console.log('🔵 [FILTERS] Employee Dropdown Render:', {
+                                    allOrIndividualValue,
+                                    employeesLength: employees.length,
+                                    employees: employees.slice(0, 5), // First 5 for debugging
+                                    queryValue
+                                });
+                                return (
+                                    <Select
+                                        value={queryValue || undefined}
+                                        onValueChange={(value) => handleFilterChange('query', value)}>
+                                        <SelectTrigger id='employee' className={errors.query ? 'border-red-500' : ''}>
+                                            <SelectValue placeholder='--Select--' />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            {employees.length > 0 ? (
+                                                employees.map((emp) => (
+                                                    <SelectItem key={emp.value} value={emp.value}>
+                                                        {emp.label}
+                                                    </SelectItem>
+                                                ))
+                                            ) : (
+                                                <>
+                                                    <SelectItem value='EMP001'>John Doe (EMP001)</SelectItem>
+                                                    <SelectItem value='EMP002'>Jane Smith (EMP002)</SelectItem>
+                                                    <SelectItem value='EMP003'>Bob Johnson (EMP003)</SelectItem>
+                                                    <SelectItem value='EMP004'>Alice Williams (EMP004)</SelectItem>
+                                                    <SelectItem value='EMP005'>Charlie Brown (EMP005)</SelectItem>
+                                                </>
+                                            )}
+                                        </SelectContent>
+                                    </Select>
+                                );
+                            })()}
+                            {errors.query && <FormError>{errors.query.message}</FormError>}
+                        </div>
+                    )}
+
+                    <div className='md:col-span-3'>
+                        <label className='font-medium text-sm' htmlFor='fromDate'>
+                            From Date <span className='text-red-500'>*</span>
+                        </label>
+                        <Popover>
+                            <PopoverTrigger asChild>
+                                <Button
+                                    id='fromDate'
+                                    variant='outline'
+                                    className={cn(
+                                        'mt-0 w-full justify-start text-left font-normal',
+                                        !filters.fromDate && 'text-muted-foreground',
+                                        errors.fromDate && 'border-red-500'
+                                    )}>
+                                    <CalendarIcon className='mr-2 h-4 w-4' />
+                                    {filters.fromDate ? format(new Date(filters.fromDate), 'dd-MM-yyyy') : 'Select date'}
+                                </Button>
+                            </PopoverTrigger>
+                            <PopoverContent className='w-auto p-0'>
+                                <CalendarYear
+                                    mode='single'
+                                    selected={filters.fromDate ? new Date(filters.fromDate) : undefined}
+                                    onDayClick={(day) => {
+                                        if (day) {
+                                            const dateStr = format(day, 'yyyy-MM-dd');
+                                            handleFilterChange('fromDate', dateStr);
+                                        }
+                                    }}
+                                    initialFocus
+                                />
+                            </PopoverContent>
+                        </Popover>
+                        {errors.fromDate && <FormError>{errors.fromDate.message}</FormError>}
+                    </div>
+                    <div className='md:col-span-3'>
+                        <label className='font-medium text-sm' htmlFor='toDate'>
+                            To Date <span className='text-red-500'>*</span>
+                        </label>
+                        <Popover>
+                            <PopoverTrigger asChild>
+                                <Button
+                                    id='toDate'
+                                    variant='outline'
+                                    className={cn(
+                                        'mt-0 w-full justify-start text-left font-normal',
+                                        !filters.toDate && 'text-muted-foreground',
+                                        errors.toDate && 'border-red-500'
+                                    )}>
+                                    <CalendarIcon className='mr-2 h-4 w-4' />
+                                    {filters.toDate ? format(new Date(filters.toDate), 'dd-MM-yyyy') : 'Select date'}
+                                </Button>
+                            </PopoverTrigger>
+                            <PopoverContent className='w-auto p-0'>
+                                <CalendarYear
+                                    mode='single'
+                                    selected={filters.toDate ? new Date(filters.toDate) : undefined}
+                                    onDayClick={(day) => {
+                                        if (day) {
+                                            const dateStr = format(day, 'yyyy-MM-dd');
+                                            handleFilterChange('toDate', dateStr);
+                                        }
+                                    }}
+                                    fromDate={filters.fromDate ? new Date(filters.fromDate) : undefined}
+                                    initialFocus
+                                />
+                            </PopoverContent>
+                        </Popover>
+                        {errors.toDate && <FormError>{errors.toDate.message}</FormError>}
+                    </div>
+                    <div className='md:col-span-3'>
+                        <label className='font-medium text-sm' htmlFor='mode'>
+                            Mode <span className='text-red-500'>*</span>
+                        </label>
+                        <Select
+                            value={filters.mode}
+                            onValueChange={(value) => handleFilterChange('mode', value as 'Late By' | 'Early Out' | 'Late In Early Out')}>
+                            <SelectTrigger id='mode' className={errors.mode ? 'border-red-500' : ''}>
+                                <SelectValue placeholder='Select Mode' />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value='Late By'>Late BY</SelectItem>
+                                <SelectItem value='Early Out'>Early Out</SelectItem>
+                                <SelectItem value='Late In Early Out'>Late In-Early Out</SelectItem>
+                            </SelectContent>
+                        </Select>
+                        {errors.mode && <FormError>{errors.mode.message}</FormError>}
+                    </div>
+                    <div className='flex items-end gap-2 md:col-span-12'>
+                        <Button type='submit' variant='default'>
+                            <RefreshCw className='mr-2 h-4 w-4' /> REPORT
+                        </Button>
+                        <Button type='button' variant='outline' onClick={onCancel}>
+                            <X className='mr-2 h-4 w-4' /> CANCEL
+                        </Button>
+                    </div>
                 </div>
-            </div>
             </form>
         </CollapsibleSection>
     );

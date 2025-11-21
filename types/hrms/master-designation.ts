@@ -1,18 +1,26 @@
 export interface MasterDesignationResponse {
-    HRMDES_Id: number;
-    MI_Id: number;
-    HRMDES_DesignationName: string | null;
-    HRMDES_BasicAmount: number;
-    HRMDES_SanctionedSeats: number | null;
-    HRMDES_DisplaySanctionedSeatsFlag: boolean | null;
-    HRMDES_Order: number | null;
-    HRMDES_ActiveFlag: boolean;
-    designationlList: DesignationDetail[];
-    retrunMsg: string;
-    roleId: number;
-    DesignationDTO: any;
-    CreatedDate: string | null;
-    UpdatedDate: string | null;
+    success?: boolean;
+    message?: string;
+    data?: DesignationDetail[] | {
+        designationlList: DesignationDetail[];
+    };
+    designationlList?: DesignationDetail[];
+    retrunMsg?: string;
+    roleId?: number;
+    HRMDES_Id?: number;
+    MI_Id?: number;
+    HRMDES_DesignationName?: string | null;
+    HRMDES_BasicAmount?: number;
+    HRMDES_SanctionedSeats?: number | null;
+    HRMDES_DisplaySanctionedSeatsFlag?: boolean | null;
+    HRMDES_Order?: number | null;
+    HRMDES_ActiveFlag?: boolean;
+    DesignationDTO?: any;
+    CreatedDate?: string | null;
+    UpdatedDate?: string | null;
+    total?: number;
+    page?: number;
+    page_size?: number;
 }
 
 export interface DesignationDetail {

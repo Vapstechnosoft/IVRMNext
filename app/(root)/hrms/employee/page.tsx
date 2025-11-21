@@ -1,16 +1,16 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { GenericDataTable } from '@/components/ui/data-table/generic-data-table';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
+import { Input } from '@/components/ui/input';
 import { useEmployeeRegisterList } from '@/hooks/hrms/useEmployeeRegister';
 import type { EmployeeListItem } from '@/types/hrms/employee';
-import { Plus, X, Search } from 'lucide-react';
-import { use, useState, useMemo } from 'react';
-import EmployeeRegisterForm from './_components/employee-register-form';
+import { Plus, Search, X } from 'lucide-react';
+import { use, useMemo, useState } from 'react';
 import { employeeColumns } from './_components/columns';
+import EmployeeRegisterForm from './_components/employee-register-form';
 import ToggleEmployeeForm from './_components/toggle-form';
 
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
@@ -19,8 +19,8 @@ export default function EmployeeRegisterPage(props: {
     searchParams: SearchParams;
 }) {
     // Safely unwrap searchParams - React's use() hook must be called unconditionally
-    const searchParams = use(props.searchParams);
-    
+    const _searchParams = use(props.searchParams);
+
     const { data: employeeList, isLoading, error } = useEmployeeRegisterList();
 
     // Transform employee list to match EmployeeListItem type - use useMemo for safety
@@ -28,14 +28,14 @@ export default function EmployeeRegisterPage(props: {
         if (!employeeList || !Array.isArray(employeeList)) {
             return [];
         }
-        
+
         try {
             return employeeList
                 .map((emp: any, index: number): EmployeeListItem | null => {
                     if (!emp || typeof emp !== 'object') {
                         return null;
                     }
-                    
+
                     return {
                         HRME_Id: emp.HRME_Id || emp.hrmE_Id || 0,
                         MI_Id: emp.MI_Id || emp.mI_Id || 0,
@@ -43,7 +43,7 @@ export default function EmployeeRegisterPage(props: {
                         HRME_EmployeeMiddleName: emp.HRME_EmployeeMiddleName || emp.hrmE_EmployeeMiddleName,
                         HRME_EmployeeLastName: emp.HRME_EmployeeLastName || emp.hrmE_EmployeeLastName || '',
                         HRME_EmployeeCode: emp.HRME_EmployeeCode || emp.hrmE_EmployeeCode || '',
-                        HRME_EmployeeOrder: emp.HRME_EmployeeOrder || emp.hrmE_EmployeeOrder || (index + 1),
+                        HRME_EmployeeOrder: emp.HRME_EmployeeOrder || emp.hrmE_EmployeeOrder || index + 1,
                         HRME_Photo: emp.HRME_Photo || emp.hrmE_Photo || '',
                         HRMET_EmployeeType: emp.HRMET_EmployeeType || emp.hrmET_EmployeeType || '',
                         HRMGT_EmployeeGroupType: emp.HRMGT_EmployeeGroupType || emp.hrmGT_EmployeeGroupType || '',
@@ -65,11 +65,7 @@ export default function EmployeeRegisterPage(props: {
 
     return (
         <FormProvider<EmployeeListItem>>
-            <EmployeeRegisterPageContent
-                response={transformedData}
-                isLoading={isLoading}
-                error={error}
-            />
+            <EmployeeRegisterPageContent response={transformedData} isLoading={isLoading} error={error} />
         </FormProvider>
     );
 }
@@ -84,7 +80,7 @@ function EmployeeRegisterPageContent({
     error: any;
 }) {
     const { openAddForm } = useFormContext<EmployeeListItem>();
-    
+
     // Client-side search and pagination
     const [searchQuery, setSearchQuery] = useState('');
     const [currentPage, setCurrentPage] = useState(1);
@@ -93,7 +89,7 @@ function EmployeeRegisterPageContent({
     // Filter data based on search query
     const filteredData = useMemo(() => {
         if (!searchQuery.trim()) return response;
-        
+
         const query = searchQuery.toLowerCase();
         return response.filter((employee) => {
             const firstName = employee.HRME_EmployeeFirstName?.toLowerCase() || '';
@@ -102,7 +98,7 @@ function EmployeeRegisterPageContent({
             const code = employee.HRME_EmployeeCode?.toLowerCase() || '';
             const email = employee.HRME_EmailId?.toLowerCase() || '';
             const mobile = employee.HRME_MobileNo?.toString() || '';
-            
+
             return (
                 firstName.includes(query) ||
                 middleName.includes(query) ||
@@ -155,20 +151,19 @@ function EmployeeRegisterPageContent({
                     {/* Search Input */}
                     <div className='mb-4'>
                         <div className='relative flex-1'>
-                            <Search className='absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground' />
+                            <Search className='-translate-y-1/2 absolute top-1/2 left-3 h-4 w-4 text-muted-foreground' />
                             <Input
                                 placeholder='Search by name, employee code, email, or mobile...'
                                 value={searchQuery}
                                 onChange={(e) => handleSearch(e.target.value)}
-                                className={searchQuery ? 'pl-10 pr-20' : 'pl-10'}
+                                className={searchQuery ? 'pr-20 pl-10' : 'pl-10'}
                             />
                             {searchQuery && (
                                 <Button
                                     variant='ghost'
                                     size='sm'
                                     onClick={() => handleSearch('')}
-                                    className='absolute right-1 top-1/2 h-7 -translate-y-1/2 px-2 text-xs hover:bg-muted'
-                                >
+                                    className='-translate-y-1/2 absolute top-1/2 right-1 h-7 px-2 text-xs hover:bg-muted'>
                                     Clear
                                 </Button>
                             )}
@@ -176,8 +171,10 @@ function EmployeeRegisterPageContent({
                     </div>
 
                     {/* Pagination Info */}
-                    <div className='mb-2 text-sm text-muted-foreground'>
-                        Showing {filteredData.length > 0 ? (currentPage - 1) * itemsPerPage + 1 : 0} - {Math.min(currentPage * itemsPerPage, filteredData.length)} of {filteredData.length} {searchQuery ? 'filtered' : 'total'} employees
+                    <div className='mb-2 text-muted-foreground text-sm'>
+                        Showing {filteredData.length > 0 ? (currentPage - 1) * itemsPerPage + 1 : 0} -{' '}
+                        {Math.min(currentPage * itemsPerPage, filteredData.length)} of {filteredData.length}{' '}
+                        {searchQuery ? 'filtered' : 'total'} employees
                         {totalPages > 1 && ` (Page ${currentPage} of ${totalPages})`}
                     </div>
 
@@ -198,24 +195,19 @@ function EmployeeRegisterPageContent({
                     {/* Custom Pagination Controls */}
                     {totalPages > 1 && (
                         <div className='mt-4 flex items-center justify-between'>
-                            <div className='text-sm text-muted-foreground'>
-                                Showing {(currentPage - 1) * itemsPerPage + 1} to {Math.min(currentPage * itemsPerPage, filteredData.length)} of {filteredData.length} entries
+                            <div className='text-muted-foreground text-sm'>
+                                Showing {(currentPage - 1) * itemsPerPage + 1} to{' '}
+                                {Math.min(currentPage * itemsPerPage, filteredData.length)} of {filteredData.length} entries
                             </div>
                             <div className='flex items-center gap-2'>
-                                <Button
-                                    variant='outline'
-                                    size='sm'
-                                    onClick={() => setCurrentPage(1)}
-                                    disabled={currentPage === 1}
-                                >
+                                <Button variant='outline' size='sm' onClick={() => setCurrentPage(1)} disabled={currentPage === 1}>
                                     {'<<'}
                                 </Button>
                                 <Button
                                     variant='outline'
                                     size='sm'
                                     onClick={() => setCurrentPage(currentPage - 1)}
-                                    disabled={currentPage === 1}
-                                >
+                                    disabled={currentPage === 1}>
                                     {'<'}
                                 </Button>
                                 <span className='text-sm'>
@@ -225,16 +217,14 @@ function EmployeeRegisterPageContent({
                                     variant='outline'
                                     size='sm'
                                     onClick={() => setCurrentPage(currentPage + 1)}
-                                    disabled={currentPage === totalPages}
-                                >
+                                    disabled={currentPage === totalPages}>
                                     {'>'}
                                 </Button>
                                 <Button
                                     variant='outline'
                                     size='sm'
                                     onClick={() => setCurrentPage(totalPages)}
-                                    disabled={currentPage === totalPages}
-                                >
+                                    disabled={currentPage === totalPages}>
                                     {'>>'}
                                 </Button>
                             </div>
@@ -314,9 +304,7 @@ function FormSections() {
             )}
 
             {/* Toggle Form */}
-            {isToggleFormOpen && selectedRow && (
-                <ToggleEmployeeForm rowData={selectedRow} onClose={closeToggleForm} />
-            )}
+            {isToggleFormOpen && selectedRow && <ToggleEmployeeForm rowData={selectedRow} onClose={closeToggleForm} />}
         </>
     );
 }

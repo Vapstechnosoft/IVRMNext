@@ -1331,22 +1331,22 @@ export async function getUserAccessibleModules() {
                                     name: 'Masters',
                                     icon: 'Database',
                                     pages: [
-                                        {
-                                            id: 1,
-                                            name: 'Master Shift',
-                                            icon: 'Clock',
-                                            url: '/hrms/attendance-management/masters/master-shift',
-                                            title: 'Master Shift',
-                                            description: 'Manage Shift Definitions'
-                                        },
-                                        {
-                                            id: 2,
-                                            name: 'Employee Missing Logs',
-                                            icon: 'AlertCircle',
-                                            url: '/hrms/attendance-management/masters/employee-missing-logs',
-                                            title: 'Employee Missing Logs',
-                                            description: 'Track Missing Attendance Logs'
-                                        },
+                                        // {
+                                        //     id: 1,
+                                        //     name: 'Master Shift',
+                                        //     icon: 'Clock',
+                                        //     url: '/hrms/attendance-management/masters/master-shift',
+                                        //     title: 'Master Shift',
+                                        //     description: 'Manage Shift Definitions'
+                                        // },
+                                        // {
+                                        //     id: 2,
+                                        //     name: 'Employee Missing Logs',
+                                        //     icon: 'AlertCircle',
+                                        //     url: '/hrms/attendance-management/masters/employee-missing-logs',
+                                        //     title: 'Employee Missing Logs',
+                                        //     description: 'Track Missing Attendance Logs'
+                                        // },
                                         {
                                             id: 3,
                                             name: 'Employee Shift Mapping',
@@ -1363,14 +1363,14 @@ export async function getUserAccessibleModules() {
                                             title: 'Master Holiday',
                                             description: 'Manage Holiday Calendar'
                                         },
-                                        {
-                                            id: 5,
-                                            name: 'Master Driver Shift',
-                                            icon: 'Truck',
-                                            url: '/hrms/attendance-management/masters/master-driver-shift',
-                                            title: 'Master Driver Shift',
-                                            description: 'Manage Driver Shifts'
-                                        },
+                                        // {
+                                        //     id: 5,
+                                        //     name: 'Master Driver Shift',
+                                        //     icon: 'Truck',
+                                        //     url: '/hrms/attendance-management/masters/master-driver-shift',
+                                        //     title: 'Master Driver Shift',
+                                        //     description: 'Manage Driver Shifts'
+                                        // },
                                         {
                                             id: 6,
                                             name: 'Shift Setting Master',
@@ -1378,15 +1378,15 @@ export async function getUserAccessibleModules() {
                                             url: '/hrms/attendance-management/masters/shift-setting-master',
                                             title: 'Shift Setting Master',
                                             description: 'Configure Shift Settings'
-                                        },
-                                        {
-                                            id: 7,
-                                            name: 'GPS Location Attendance',
-                                            icon: 'MapPin',
-                                            url: '/hrms/attendance-management/masters/gps-location-attendance',
-                                            title: 'GPS Location Attendance',
-                                            description: 'GPS-based Attendance'
                                         }
+                                        // {
+                                        //     id: 7,
+                                        //     name: 'GPS Location Attendance',
+                                        //     icon: 'MapPin',
+                                        //     url: '/hrms/attendance-management/masters/gps-location-attendance',
+                                        //     title: 'GPS Location Attendance',
+                                        //     description: 'GPS-based Attendance'
+                                        // }
                                     ]
                                 },
                                 {
@@ -1428,20 +1428,28 @@ export async function getUserAccessibleModules() {
                                         },
                                         {
                                             id: 5,
+                                            name: 'Employee Monthly Report',
+                                            icon: 'CalendarDays',
+                                            url: '/hrms/attendance-management/reports/employee-monthly-report',
+                                            title: 'Employee Monthly Report',
+                                            description: 'Monthly Attendance Report'
+                                        },
+                                        {
+                                            id: 6,
                                             name: 'Month End Report',
                                             icon: 'CalendarCheck',
                                             url: '/hrms/attendance-management/reports/fo-monthend-report',
                                             title: 'Month End Report',
                                             description: 'Monthly Attendance Summary'
                                         },
-                                        {
-                                            id: 6,
-                                            name: 'GPS Location Report',
-                                            icon: 'MapPin',
-                                            url: '/hrms/attendance-management/reports/gps-location-report',
-                                            title: 'GPS Location Report',
-                                            description: 'GPS Attendance Report'
-                                        },
+                                        // {
+                                        //     id: 6,
+                                        //     name: 'GPS Location Report',
+                                        //     icon: 'MapPin',
+                                        //     url: '/hrms/attendance-management/reports/gps-location-report',
+                                        //     title: 'GPS Location Report',
+                                        //     description: 'GPS Attendance Report'
+                                        // },
                                         {
                                             id: 7,
                                             name: 'Holiday Report',
@@ -1487,15 +1495,15 @@ export async function getUserAccessibleModules() {
                                             url: '/hrms/leave-management/masters/leave-authorization',
                                             title: 'Leave Authorization',
                                             description: 'Configure Leave Approvers'
-                                        },
-                                        {
-                                            id: 3,
-                                            name: 'Master Leave Year',
-                                            icon: 'CalendarRange',
-                                            url: '/hrms/leave-management/masters/master-leaveYear',
-                                            title: 'Master Leave Year',
-                                            description: 'Manage Leave Year'
                                         }
+                                        // {
+                                        //     id: 3,
+                                        //     name: 'Master Leave Year',
+                                        //     icon: 'CalendarRange',
+                                        //     url: '/hrms/leave-management/masters/master-leaveYear',
+                                        //     title: 'Master Leave Year',
+                                        //     description: 'Manage Leave Year'
+                                        // }
                                     ]
                                 },
                                 {
@@ -1520,46 +1528,30 @@ export async function getUserAccessibleModules() {
                                     pages: [
                                         {
                                             id: 1,
-                                            name: 'Leave Credit',
+                                            name: 'Leave Transfer',
                                             icon: 'Plus',
-                                            url: '/hrms/leave-management/transaction/leave-credit',
-                                            title: 'Leave Credit',
-                                            description: 'Credit Leave Balance'
+                                            url: '/hrms/leave-management/transaction/leave-transfer',
+                                            title: 'Leave Transfer',
+                                            description: 'Transfer Leave'
                                         },
-                                        {
-                                            id: 2,
-                                            name: 'Leave Credit Addition',
-                                            icon: 'PlusCircle',
-                                            url: '/hrms/leave-management/transaction/leave-credit-addition',
-                                            title: 'Leave Credit Addition',
-                                            description: 'Add Leave Credits'
-                                        },
-                                        {
-                                            id: 3,
-                                            name: 'Leave Credit Deduction',
-                                            icon: 'MinusCircle',
-                                            url: '/hrms/leave-management/transaction/leave-credit-deduction',
-                                            title: 'Leave Credit Deduction',
-                                            description: 'Deduct Leave Credits'
-                                        },
+                                        // {
+                                        //     id: 2,
+                                        //     name: 'Comp Off Approval',
+                                        //     icon: 'CheckSquare',
+                                        //     url: '/hrms/leave-management/transaction/comp-off-approval',
+                                        //     title: 'Comp Off Approval',
+                                        //     description: 'Approve Compensatory Off'
+                                        // },
+                                        // {
+                                        //     id: 3,
+                                        //     name: 'Comp Off Request',
+                                        //     icon: 'FileText',
+                                        //     url: '/hrms/leave-management/transaction/comp-off-request',
+                                        //     title: 'Comp Off Request',
+                                        //     description: 'Request Compensatory Off'
+                                        // },
                                         {
                                             id: 4,
-                                            name: 'Leave Carryforward',
-                                            icon: 'ArrowRight',
-                                            url: '/hrms/leave-management/transaction/leave-carryforward',
-                                            title: 'Leave Carryforward',
-                                            description: 'Carryforward Leave Balance'
-                                        },
-                                        {
-                                            id: 5,
-                                            name: 'Comp Off Approval',
-                                            icon: 'CheckSquare',
-                                            url: '/hrms/leave-management/transaction/comp-off-approval',
-                                            title: 'Comp Off Approval',
-                                            description: 'Approve Compensatory Off'
-                                        },
-                                        {
-                                            id: 6,
                                             name: 'Leave Credit Details',
                                             icon: 'Info',
                                             url: '/hrms/leave-management/transaction/leave-credit-details',
@@ -1567,12 +1559,12 @@ export async function getUserAccessibleModules() {
                                             description: 'View Leave Credit Details'
                                         },
                                         {
-                                            id: 7,
-                                            name: 'Leave Credit Transaction',
+                                            id: 5,
+                                            name: 'Leave Transaction',
                                             icon: 'List',
                                             url: '/hrms/leave-management/transaction/leave-credit-transaction',
-                                            title: 'Leave Credit Transaction',
-                                            description: 'Leave Transaction History'
+                                            title: 'Leave Transaction',
+                                            description: 'Leave Transaction'
                                         }
                                     ]
                                 },
@@ -1608,105 +1600,105 @@ export async function getUserAccessibleModules() {
                                     ]
                                 }
                             ]
-                        },
-                        {
-                            id: 5,
-                            name: 'Exit Management',
-                            icon: 'LogOut',
-                            sub_menu: [
-                                {
-                                    id: 1,
-                                    name: 'Exit',
-                                    icon: 'DoorOpen',
-                                    pages: [
-                                        {
-                                            id: 1,
-                                            name: 'Checklist Master',
-                                            icon: 'ListChecks',
-                                            url: '/hrms/exit-management/exit/checklist-master',
-                                            title: 'Checklist Master',
-                                            description: 'Manage Exit Checklist'
-                                        },
-                                        {
-                                            id: 2,
-                                            name: 'Leaving Reason',
-                                            icon: 'MessageSquare',
-                                            url: '/hrms/exit-management/exit/leaving-reason',
-                                            title: 'Leaving Reason',
-                                            description: 'Manage Leaving Reasons'
-                                        }
-                                    ]
-                                },
-                                {
-                                    id: 2,
-                                    name: 'Transaction',
-                                    icon: 'FileText',
-                                    pages: [
-                                        {
-                                            id: 1,
-                                            name: 'Employee Resign',
-                                            icon: 'UserMinus',
-                                            url: '/hrms/exit-management/transaction/employee-resign',
-                                            title: 'Employee Resign',
-                                            description: 'Process Employee Resignation'
-                                        }
-                                    ]
-                                },
-                                {
-                                    id: 3,
-                                    name: 'Reports',
-                                    icon: 'FileText',
-                                    pages: [
-                                        {
-                                            id: 1,
-                                            name: 'Employee Exit Report',
-                                            icon: 'FileSearch',
-                                            url: '/hrms/exit-management/reports/employee-exit-report',
-                                            title: 'Employee Exit Report',
-                                            description: 'Exit Summary Report'
-                                        },
-                                        {
-                                            id: 2,
-                                            name: 'Relieving Letter',
-                                            icon: 'FileCheck',
-                                            url: '/hrms/exit-management/reports/relieving-letter',
-                                            title: 'Relieving Letter',
-                                            description: 'Generate Relieving Letter'
-                                        }
-                                    ]
-                                }
-                            ]
-                        },
-                        {
-                            id: 6,
-                            name: 'Pre Config',
-                            icon: 'Settings',
-                            sub_menu: [
-                                {
-                                    id: 1,
-                                    name: 'Configuration',
-                                    icon: 'Sliders',
-                                    pages: [
-                                        {
-                                            id: 1,
-                                            name: 'HR Authorisation',
-                                            icon: 'Shield',
-                                            url: '/hrms/pre-config/configuration/hr-authorisation',
-                                            title: 'HR Authorisation',
-                                            description: 'Configure HR Authorizations'
-                                        },
-                                        {
-                                            id: 2,
-                                            name: 'Staff User Creation',
-                                            icon: 'UserPlus',
-                                            url: '/hrms/pre-config/configuration/staff-user-creation',
-                                            title: 'Staff User Creation',
-                                            description: 'Create Staff Users'
-                                        }
-                                    ]
-                                }
-                            ]
                         }
+                        // {
+                        //     id: 5,
+                        //     name: 'Exit Management',
+                        //     icon: 'LogOut',
+                        //     sub_menu: [
+                        //         {
+                        //             id: 1,
+                        //             name: 'Exit',
+                        //             icon: 'DoorOpen',
+                        //             pages: [
+                        //                 {
+                        //                     id: 1,
+                        //                     name: 'Checklist Master',
+                        //                     icon: 'ListChecks',
+                        //                     url: '/hrms/exit-management/exit/checklist-master',
+                        //                     title: 'Checklist Master',
+                        //                     description: 'Manage Exit Checklist'
+                        //                 },
+                        //                 {
+                        //                     id: 2,
+                        //                     name: 'Leaving Reason',
+                        //                     icon: 'MessageSquare',
+                        //                     url: '/hrms/exit-management/exit/leaving-reason',
+                        //                     title: 'Leaving Reason',
+                        //                     description: 'Manage Leaving Reasons'
+                        //                 }
+                        //             ]
+                        //         },
+                        //         {
+                        //             id: 2,
+                        //             name: 'Transaction',
+                        //             icon: 'FileText',
+                        //             pages: [
+                        //                 {
+                        //                     id: 1,
+                        //                     name: 'Employee Resign',
+                        //                     icon: 'UserMinus',
+                        //                     url: '/hrms/exit-management/transaction/employee-resign',
+                        //                     title: 'Employee Resign',
+                        //                     description: 'Process Employee Resignation'
+                        //                 }
+                        //             ]
+                        //         },
+                        //         {
+                        //             id: 3,
+                        //             name: 'Reports',
+                        //             icon: 'FileText',
+                        //             pages: [
+                        //                 {
+                        //                     id: 1,
+                        //                     name: 'Employee Exit Report',
+                        //                     icon: 'FileSearch',
+                        //                     url: '/hrms/exit-management/reports/employee-exit-report',
+                        //                     title: 'Employee Exit Report',
+                        //                     description: 'Exit Summary Report'
+                        //                 },
+                        //                 {
+                        //                     id: 2,
+                        //                     name: 'Relieving Letter',
+                        //                     icon: 'FileCheck',
+                        //                     url: '/hrms/exit-management/reports/relieving-letter',
+                        //                     title: 'Relieving Letter',
+                        //                     description: 'Generate Relieving Letter'
+                        //                 }
+                        //             ]
+                        //         }
+                        //     ]
+                        // },
+                        // {
+                        //     id: 6,
+                        //     name: 'Pre Config',
+                        //     icon: 'Settings',
+                        //     sub_menu: [
+                        //         {
+                        //             id: 1,
+                        //             name: 'Configuration',
+                        //             icon: 'Sliders',
+                        //             pages: [
+                        //                 {
+                        //                     id: 1,
+                        //                     name: 'HR Authorisation',
+                        //                     icon: 'Shield',
+                        //                     url: '/hrms/pre-config/configuration/hr-authorisation',
+                        //                     title: 'HR Authorisation',
+                        //                     description: 'Configure HR Authorizations'
+                        //                 },
+                        //                 {
+                        //                     id: 2,
+                        //                     name: 'Staff User Creation',
+                        //                     icon: 'UserPlus',
+                        //                     url: '/hrms/pre-config/configuration/staff-user-creation',
+                        //                     title: 'Staff User Creation',
+                        //                     description: 'Create Staff Users'
+                        //                 }
+                        //             ]
+                        //         }
+                        //     ]
+                        // }
                     ]
                 }
                 // {

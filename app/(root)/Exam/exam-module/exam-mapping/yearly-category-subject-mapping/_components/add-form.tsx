@@ -5,7 +5,7 @@ import { CustomMultiSelectBox } from '@/components/ui/custom-multiselect';
 import { FormError, Label } from '@/components/ui/extension/field';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useYearlyCategorySubjectMapping } from '@/hooks/exam/exammodule/exam-mapping';
-import { useMasterSubjectGroup } from '@/hooks/exam/exammodule/usemasters';
+import { useMasterSubjectGroupDropdownList } from '@/hooks/exam/exammodule/usemasters';
 import { useAcademicYearDropdown } from '@/hooks/fees/useMasters';
 import { categorySubjectMappingSchema } from '@/schemas/exam/exam-module/exam-mapping';
 import { getCategoryDropDownByAcademicYearlist } from '@/server/exam/exam-module/exam-mapping/yearly-category-dates-mapping';
@@ -45,7 +45,7 @@ export default function AddCategorySubjectMappingForm({ onSuccess }: { onSuccess
     const [subjectGroups, setSubjectGroups] = useState<{ emG_Id: number; emG_GroupName: string }[]>([]);
     const [subjects, setSubjects] = useState<{ ismS_Id: number; ismS_SubjectName: string }[]>([]);
     const { data: academicData, isLoading: loadingAcademic, error: academicError } = useAcademicYearDropdown();
-    const { data: subjectGroupList, error: subjectGroupError } = useMasterSubjectGroup();
+    const { data: subjectGroupList, error: subjectGroupError } = useMasterSubjectGroupDropdownList();
     useEffect(() => {
         reset({
             userId: 1,
@@ -142,6 +142,28 @@ export default function AddCategorySubjectMappingForm({ onSuccess }: { onSuccess
             toast.error(err?.message ?? 'Failed to save');
         }
     };
+    const handleReset = () => {
+        reset(
+            {
+                userId: 1,
+                eycG_Id: 0,
+                mI_Id: 30,
+                asmaY_Id: 0,
+                emcA_Id: 0,
+                emG_Id: 0,
+                subjects_list: [],
+                eyC_BasedOnPaperTypeFlg: false
+            },
+            {
+                keepErrors: false,
+                keepDirty: false,
+                keepTouched: false,
+                keepIsSubmitted: false,
+                keepSubmitCount: false,
+                keepValues: false // ensures placeholders reappear
+            }
+        );
+    };
 
     return (
         <div className='flex w-full flex-col gap-6'>
@@ -158,7 +180,7 @@ export default function AddCategorySubjectMappingForm({ onSuccess }: { onSuccess
                                         <Label>
                                             Academic Year <span className='text-red-500'>*</span>
                                         </Label>
-                                        <Select onValueChange={(val) => field.onChange(Number(val))}>
+                                        <Select value={field.value?.toString() ?? ''} onValueChange={(val) => field.onChange(Number(val))}>
                                             <SelectTrigger>
                                                 <SelectValue placeholder='Select Academic Year' />
                                             </SelectTrigger>
@@ -182,7 +204,7 @@ export default function AddCategorySubjectMappingForm({ onSuccess }: { onSuccess
                                         <Label>
                                             Category <span className='text-red-500'>*</span>
                                         </Label>
-                                        <Select onValueChange={(val) => field.onChange(Number(val))}>
+                                        <Select value={field.value?.toString() ?? ''} onValueChange={(val) => field.onChange(Number(val))}>
                                             <SelectTrigger>
                                                 <SelectValue placeholder='Select Category' />
                                             </SelectTrigger>
@@ -206,7 +228,7 @@ export default function AddCategorySubjectMappingForm({ onSuccess }: { onSuccess
                                         <Label>
                                             Subject Group <span className='text-red-500'>*</span>
                                         </Label>
-                                        <Select onValueChange={(val) => field.onChange(Number(val))}>
+                                        <Select value={field.value?.toString() ?? ''} onValueChange={(val) => field.onChange(Number(val))}>
                                             <SelectTrigger>
                                                 <SelectValue placeholder='Select Subject Group' />
                                             </SelectTrigger>
@@ -230,9 +252,10 @@ export default function AddCategorySubjectMappingForm({ onSuccess }: { onSuccess
                                         <input
                                             type='checkbox'
                                             checked={field.value}
+                                            value={field.value ? 'true' : 'false'}
                                             onChange={(e) => field.onChange(e.target.checked)}
-                                            className='h-4 w-4'
                                         />
+
                                         <span>Based on Paper Type</span>
                                     </label>
                                 )}
@@ -270,7 +293,7 @@ export default function AddCategorySubjectMappingForm({ onSuccess }: { onSuccess
                         <Button type='submit' className='w-fit' disabled={isSubmitting}>
                             {isSubmitting ? 'Saving...' : 'Save'}
                         </Button>
-                        <Button type='button' variant='outline' className='w-fit' onClick={() => reset()}>
+                        <Button type='button' variant='outline' className='w-fit' onClick={handleReset}>
                             Reset
                         </Button>
                     </div>

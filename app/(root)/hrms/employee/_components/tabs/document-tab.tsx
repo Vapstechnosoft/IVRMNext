@@ -7,9 +7,8 @@ import { InputText } from '@/components/ui/extension/input-text';
 import { Plus, Trash2, Upload } from 'lucide-react';
 import { useFieldArray } from 'react-hook-form';
 import { StandardTabActions } from './standard-tab-actions';
-import type { SalaryDetailItem } from '@/types/hrms/employee-register';
 
-export function UploadDocumentTab({ control, register, errors, isSubmitting, watch }: any) {
+export function UploadDocumentTab({ control, register, errors, isSubmitting, watch, onClear }: any) {
     const { fields, append, remove } = useFieldArray({
         control,
         name: 'documentList'
@@ -42,11 +41,11 @@ export function UploadDocumentTab({ control, register, errors, isSubmitting, wat
                     // Get the selected file for this document
                     const selectedFile = watchDocuments?.[index]?.document?.[0];
                     const fileName = selectedFile?.name;
-                    
+
                     // Get the existing document image name from the form data (for edit mode)
                     const existingFileName = watchDocuments?.[index]?.documentImageName;
                     const displayFileName = fileName || existingFileName;
-                    
+
                     return (
                         <div key={field.id} className='rounded-lg border bg-card p-4 shadow-sm'>
                             <div className='mb-3 flex items-center justify-between'>
@@ -117,26 +116,10 @@ export function UploadDocumentTab({ control, register, errors, isSubmitting, wat
                 })}
             </div>
 
-            <StandardTabActions errors={errors} isSubmitting={isSubmitting} />
+            <StandardTabActions errors={errors} isSubmitting={isSubmitting} onClear={onClear} />
         </div>
     );
 }
 
 // Payroll Tab Component - Dynamic with API Integration
-interface PayrollTabProps {
-    control: any;
-    register: any;
-    errors: any;
-    employeeId: number | null;
-    employeeCode: string;
-    earningsList: SalaryDetailItem[];
-    setEarningsList: React.Dispatch<React.SetStateAction<SalaryDetailItem[]>>;
-    deductionsList: SalaryDetailItem[];
-    setDeductionsList: React.Dispatch<React.SetStateAction<SalaryDetailItem[]>>;
-    arrearsList: SalaryDetailItem[];
-    setArrearsList: React.Dispatch<React.SetStateAction<SalaryDetailItem[]>>;
-    isLoadingPayroll: boolean;
-    setIsLoadingPayroll: React.Dispatch<React.SetStateAction<boolean>>;
-    activeTab?: string;
-}
-
+// Note: PayrollTabProps interface removed as it's not currently used

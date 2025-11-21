@@ -410,7 +410,348 @@ export const LEAVE_YEAR_VALIDATION = {
         pattern: {
             value: VALIDATION_PATTERNS.LEAVE_YEAR,
             message: 'Leave Year must be in format: YYYY-YYYY (e.g., 2024-2025)'
+        },
+        validate: (value: string) => {
+            // Additional validation: Must be a valid year from pre-populated list
+            // This can be enhanced with actual list validation if needed
+            if (value && !VALIDATION_PATTERNS.LEAVE_YEAR.test(value)) {
+                return 'Leave Year must be a valid year from the pre-populated list';
+            }
+            return true;
         }
+    },
+    fromDate: {
+        required: VALIDATION_MESSAGES.REQUIRED('From Date')
+    },
+    toDate: {
+        required: VALIDATION_MESSAGES.REQUIRED('To Date')
+    }
+};
+
+// Master Leave Validation
+export const MASTER_LEAVE_VALIDATION = {
+    leaveName: {
+        required: VALIDATION_MESSAGES.REQUIRED('Leave Name'),
+        maxLength: {
+            value: 100,
+            message: VALIDATION_MESSAGES.MAX_LENGTH('Leave Name', 100)
+        },
+        // Accepts alphanumeric and special characters
+        pattern: {
+            value: /^[A-Za-z0-9\s\-_.,!@#$%^&*()]+$/,
+            message: 'Leave Name accepts alphanumeric and special characters'
+        },
+        validate: async (value: string) => {
+            // Uniqueness validation should be checked against the database
+            // This is a placeholder - implement actual uniqueness check
+            return true;
+        }
+    },
+    leaveCode: {
+        required: VALIDATION_MESSAGES.REQUIRED('Leave Code'),
+        maxLength: {
+            value: 10,
+            message: VALIDATION_MESSAGES.MAX_LENGTH('Leave Code', 10)
+        },
+        // Accepts alphanumeric characters only
+        pattern: {
+            value: VALIDATION_PATTERNS.ALPHANUMERIC,
+            message: VALIDATION_MESSAGES.ALPHANUMERIC('Leave Code')
+        },
+        validate: async (value: string) => {
+            // Uniqueness validation should be checked against the database
+            // This is a placeholder - implement actual uniqueness check
+            return true;
+        }
+    },
+    leaveDetails: {
+        required: VALIDATION_MESSAGES.REQUIRED('Leave Details'),
+        maxLength: {
+            value: 250,
+            message: VALIDATION_MESSAGES.MAX_LENGTH('Leave Details', 250)
+        }
+    },
+    leaveType: {
+        required: VALIDATION_MESSAGES.REQUIRED('Leave Type'),
+        validate: (value: string) => {
+            const validTypes = ['On_Duty', 'Comp_Off', 'LWP', 'EL', 'SL'];
+            if (value && !validTypes.includes(value)) {
+                return 'Leave Type must be selected from the predefined list';
+            }
+            return true;
+        }
+    },
+    leaveApplyCriteria: {
+        required: VALIDATION_MESSAGES.REQUIRED('Leave Apply Criteria'),
+        validate: (value: string) => {
+            const validCriteria = ['Before', 'After', 'Same Day', 'Month', 'Quarter'];
+            if (value && !validCriteria.includes(value)) {
+                return 'Leave Apply Criteria must be selected from the predefined list';
+            }
+            return true;
+        }
+    },
+    daysForApplyCriteria: {
+        required: VALIDATION_MESSAGES.REQUIRED('Days for Apply Criteria'),
+        min: {
+            value: 1,
+            message: VALIDATION_MESSAGES.MIN_VALUE('Days for Apply Criteria', 1)
+        },
+        max: {
+            value: 999,
+            message: VALIDATION_MESSAGES.MAX_VALUE('Days for Apply Criteria', 999)
+        },
+        pattern: {
+            value: VALIDATION_PATTERNS.NUMERIC_ONLY,
+            message: VALIDATION_MESSAGES.NUMERIC_ONLY('Days for Apply Criteria')
+        },
+        validate: (value: string) => {
+            const numValue = parseInt(value, 10);
+            if (isNaN(numValue) || numValue <= 0) {
+                return 'Days for Apply Criteria must be a positive integer';
+            }
+            return true;
+        }
+    },
+    maxDaysForApply: {
+        required: VALIDATION_MESSAGES.REQUIRED('Max Days For Apply'),
+        min: {
+            value: 1,
+            message: VALIDATION_MESSAGES.MIN_VALUE('Max Days For Apply', 1)
+        },
+        max: {
+            value: 999,
+            message: VALIDATION_MESSAGES.MAX_VALUE('Max Days For Apply', 999)
+        },
+        pattern: {
+            value: VALIDATION_PATTERNS.NUMERIC_ONLY,
+            message: VALIDATION_MESSAGES.NUMERIC_ONLY('Max Days For Apply')
+        },
+        validate: (value: string) => {
+            const numValue = parseInt(value, 10);
+            if (isNaN(numValue) || numValue <= 0) {
+                return 'Max Days For Apply must be a positive integer';
+            }
+            return true;
+        }
+    },
+    leaveCredit: {
+        // Optional checkbox - no validation needed
+    },
+    lateDeduct: {
+        // Optional checkbox - no validation needed
+    },
+    probationNotApplicable: {
+        // Optional checkbox - no validation needed
+    }
+};
+
+// Master Leave List Validation (same as Master Leave but with different field lengths)
+export const MASTER_LEAVE_LIST_VALIDATION = {
+    leaveName: {
+        required: VALIDATION_MESSAGES.REQUIRED('Leave Name'),
+        maxLength: {
+            value: 50,
+            message: VALIDATION_MESSAGES.MAX_LENGTH('Leave Name', 50)
+        },
+        // Accepts alphanumeric and special characters
+        pattern: {
+            value: /^[A-Za-z0-9\s\-_.,!@#$%^&*()]+$/,
+            message: 'Leave Name accepts alphanumeric and special characters'
+        },
+        validate: async (value: string) => {
+            // Uniqueness validation should be checked against the database
+            return true;
+        }
+    },
+    leaveCode: {
+        required: VALIDATION_MESSAGES.REQUIRED('Leave Code'),
+        maxLength: {
+            value: 10,
+            message: VALIDATION_MESSAGES.MAX_LENGTH('Leave Code', 10)
+        },
+        // Accepts alphanumeric characters only
+        pattern: {
+            value: VALIDATION_PATTERNS.ALPHANUMERIC,
+            message: VALIDATION_MESSAGES.ALPHANUMERIC('Leave Code')
+        },
+        validate: async (value: string) => {
+            // Uniqueness validation should be checked against the database
+            return true;
+        }
+    },
+    leaveType: {
+        required: VALIDATION_MESSAGES.REQUIRED('Leave Type'),
+        maxLength: {
+            value: 20,
+            message: VALIDATION_MESSAGES.MAX_LENGTH('Leave Type', 20)
+        },
+        validate: (value: string) => {
+            const validTypes = ['On_Duty', 'Comp_Off', 'LWP', 'EL', 'SL'];
+            if (value && !validTypes.includes(value)) {
+                return 'Leave Type must be selected from the predefined list';
+            }
+            return true;
+        }
+    },
+    leaveApplyCriteria: {
+        required: VALIDATION_MESSAGES.REQUIRED('Leave Apply Criteria'),
+        maxLength: {
+            value: 20,
+            message: VALIDATION_MESSAGES.MAX_LENGTH('Leave Apply Criteria', 20)
+        },
+        validate: (value: string) => {
+            const validCriteria = ['Before', 'After', 'Same Day', 'Month', 'Quarter'];
+            if (value && !validCriteria.includes(value)) {
+                return 'Leave Apply Criteria must be selected from the predefined list';
+            }
+            return true;
+        }
+    },
+    daysForApplyCriteria: {
+        required: VALIDATION_MESSAGES.REQUIRED('Days for Apply Criteria'),
+        min: {
+            value: 1,
+            message: VALIDATION_MESSAGES.MIN_VALUE('Days for Apply Criteria', 1)
+        },
+        max: {
+            value: 999,
+            message: VALIDATION_MESSAGES.MAX_VALUE('Days for Apply Criteria', 999)
+        },
+        pattern: {
+            value: VALIDATION_PATTERNS.NUMERIC_ONLY,
+            message: VALIDATION_MESSAGES.NUMERIC_ONLY('Days for Apply Criteria')
+        },
+        validate: (value: string) => {
+            const numValue = parseInt(value, 10);
+            if (isNaN(numValue) || numValue <= 0) {
+                return 'Days for Apply Criteria must be a positive integer';
+            }
+            return true;
+        }
+    },
+    maxDaysForApply: {
+        // Optional but if provided, must be a positive integer
+        min: {
+            value: 1,
+            message: VALIDATION_MESSAGES.MIN_VALUE('Max Days For Apply', 1)
+        },
+        max: {
+            value: 999,
+            message: VALIDATION_MESSAGES.MAX_VALUE('Max Days For Apply', 999)
+        },
+        pattern: {
+            value: VALIDATION_PATTERNS.NUMERIC_ONLY,
+            message: VALIDATION_MESSAGES.NUMERIC_ONLY('Max Days For Apply')
+        },
+        validate: (value: string) => {
+            if (!value) return true; // Optional field
+            const numValue = parseInt(value, 10);
+            if (isNaN(numValue) || numValue <= 0) {
+                return 'Max Days For Apply must be a positive integer';
+            }
+            return true;
+        }
+    },
+    leaveDetails: {
+        required: VALIDATION_MESSAGES.REQUIRED('Leave Details'),
+        maxLength: {
+            value: 200,
+            message: VALIDATION_MESSAGES.MAX_LENGTH('Leave Details', 200)
+        }
+    },
+    leaveCredit: {
+        // Optional checkbox - no validation needed
+    },
+    lateDeduct: {
+        // Optional checkbox - no validation needed
+    },
+    probationNotApplicable: {
+        // Optional checkbox - no validation needed
+    }
+};
+
+// Leave Authorization Validation
+export const LEAVE_AUTHORIZATION_VALIDATION = {
+    gradeName: {
+        required: VALIDATION_MESSAGES.REQUIRED('Select Grade'),
+        validate: (value: string) => {
+            if (!value || value.trim() === '') {
+                return 'Select Grade is required. Must select a grade from the list';
+            }
+            return true;
+        }
+    },
+    groupTypeName: {
+        required: VALIDATION_MESSAGES.REQUIRED('Group Type'),
+        validate: (value: string) => {
+            if (!value || value.trim() === '') {
+                return 'Group Type is required. Must select a group type from the list';
+            }
+            return true;
+        }
+    },
+    departmentName: {
+        required: VALIDATION_MESSAGES.REQUIRED('Department Type'),
+        validate: (value: string) => {
+            if (!value || value.trim() === '') {
+                return 'Department Type is required. Must select a department from the list';
+            }
+            return true;
+        }
+    },
+    designationName: {
+        required: VALIDATION_MESSAGES.REQUIRED('Designation Type'),
+        validate: (value: string) => {
+            if (!value || value.trim() === '') {
+                return 'Designation Type is required. Must select a designation from the list';
+            }
+            return true;
+        }
+    },
+    leaveType: {
+        required: VALIDATION_MESSAGES.REQUIRED('Leave Type'),
+        validate: (value: string) => {
+            if (!value || value.trim() === '') {
+                return 'Leave Type is required. Must select a leave type from the list';
+            }
+            return true;
+        }
+    },
+    orderOfApproval: {
+        required: VALIDATION_MESSAGES.REQUIRED('Order of Approval'),
+        min: {
+            value: 1,
+            message: VALIDATION_MESSAGES.MIN_VALUE('Order of Approval', 1)
+        },
+        max: {
+            value: 999,
+            message: VALIDATION_MESSAGES.MAX_VALUE('Order of Approval', 999)
+        },
+        pattern: {
+            value: VALIDATION_PATTERNS.NUMERIC_ONLY,
+            message: VALIDATION_MESSAGES.NUMERIC_ONLY('Order of Approval')
+        },
+        validate: (value: string | number) => {
+            if (!value) return VALIDATION_MESSAGES.REQUIRED('Order of Approval');
+            const numValue = typeof value === 'number' ? value : parseInt(String(value), 10);
+            if (isNaN(numValue) || numValue <= 0) {
+                return 'Order of Approval must be a positive integer';
+            }
+            return true;
+        }
+    },
+    approvalPerson: {
+        required: VALIDATION_MESSAGES.REQUIRED('Approval Person'),
+        validate: (value: string) => {
+            if (!value || value.trim() === '') {
+                return 'Approval Person is required. Must select or enter a valid person\'s name';
+            }
+            return true;
+        }
+    },
+    finalFlag: {
+        // Optional checkbox - no validation needed
     }
 };
 
@@ -752,6 +1093,9 @@ export const HRMS_MASTER_VALIDATION = {
     EARNING_DEDUCTION: EARNING_DEDUCTION_VALIDATION,
     GENDER: GENDER_VALIDATION,
     LEAVE_YEAR: LEAVE_YEAR_VALIDATION,
+    MASTER_LEAVE: MASTER_LEAVE_VALIDATION,
+    MASTER_LEAVE_LIST: MASTER_LEAVE_LIST_VALIDATION,
+    LEAVE_AUTHORIZATION: LEAVE_AUTHORIZATION_VALIDATION,
     LOAN_TYPE: LOAN_TYPE_VALIDATION,
     MARITAL_STATUS: MARITAL_STATUS_VALIDATION,
     COURSE: COURSE_VALIDATION,

@@ -67,42 +67,26 @@ function ActionButtonsCell({ rowData }: { rowData: BankItem }) {
 
     const handleToggle = useCallback(
         async (data: BankItem, newState: boolean) => {
-            console.log('🔵 [BANK TOGGLE] handleToggle called');
-            console.log('🔵 [BANK TOGGLE] Record ID:', data.HRMBD_Id);
-            console.log('🔵 [BANK TOGGLE] Bank Name:', data.HRMBD_BankName);
-            console.log('🔵 [BANK TOGGLE] Current State:', data.HRMBD_ActiveFlag);
-            console.log('🔵 [BANK TOGGLE] New State:', newState);
-            console.log('🔵 [BANK TOGGLE] MI_Id:', HRMS_MI_ID);
-            
             try {
-                console.log('🟡 [BANK TOGGLE] Calling toggleMutation.mutateAsync...');
                 const result = await toggleMutation.mutateAsync({
                     HRMBD_Id: data.HRMBD_Id,
                     HRMBD_ActiveFlag: newState,
                     MI_Id: HRMS_MI_ID
                 });
-                
-                console.log('🟢 [BANK TOGGLE] Toggle result:', result);
-                
+
                 if (result?.success) {
                     const successMsg = result?.message || `Bank ${newState ? 'activated' : 'deactivated'} successfully`;
-                    console.log('✅ [BANK TOGGLE] Success! Message:', successMsg);
                     toast.success(successMsg);
                 } else {
                     const errorMsg = result?.message || `Failed to ${newState ? 'activate' : 'deactivate'} bank`;
-                    console.log('❌ [BANK TOGGLE] Failed. Message:', errorMsg);
                     toast.error(errorMsg);
                 }
             } catch (error: any) {
-                console.log('🔴 [BANK TOGGLE] Error caught');
                 console.error('🔴 [BANK TOGGLE] Error:', error);
                 console.error('🔴 [BANK TOGGLE] Error message:', error?.message);
-                
-                const errorMsg = error?.response?.data?.message 
-                    || error?.message 
-                    || `Failed to ${newState ? 'activate' : 'deactivate'} bank`;
-                
-                console.log('🔴 [BANK TOGGLE] Showing error toast:', errorMsg);
+
+                const errorMsg =
+                    error?.response?.data?.message || error?.message || `Failed to ${newState ? 'activate' : 'deactivate'} bank`;
                 toast.error(errorMsg);
             }
         },

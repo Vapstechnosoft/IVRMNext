@@ -15,7 +15,12 @@ export const columns: ColumnDef<DepartmentDetail>[] = [
     {
         id: 'slNo',
         header: () => <div className='text-center font-medium'>Sl No</div>,
-        cell: ({ row }) => <div className='text-center'>{row.index + 1}</div>,
+        cell: ({ row, table }) => {
+            const pageIndex = table.getState().pagination.pageIndex;
+            const pageSize = table.getState().pagination.pageSize;
+            const continuousIndex = pageIndex * pageSize + row.index + 1;
+            return <div className='text-center'>{continuousIndex}</div>;
+        },
         enableSorting: false,
         size: 60
     },
@@ -25,7 +30,11 @@ export const columns: ColumnDef<DepartmentDetail>[] = [
     },
     {
         accessorKey: 'HRMD_Order',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Order' className='whitespace-nowrap' />
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Order' className='whitespace-nowrap' />,
+        cell: ({ row }) => {
+            const orderValue = row.original.HRMD_Order;
+            return <div>{orderValue ?? '-'}</div>;
+        }
     },
     {
         accessorKey: 'HRMD_InternalTrainingMinimumHrs',
@@ -52,34 +61,21 @@ function ActionButtonsCell({ rowData }: { rowData: DepartmentDetail }) {
 
     const handleToggle = useCallback(
         async (data: DepartmentDetail, newState: boolean) => {
-            console.log('🔵 [TOGGLE] handleToggle called');
-            console.log('🔵 [TOGGLE] Record ID:', data.HRMD_Id);
-            console.log('🔵 [TOGGLE] Record Name:', data.HRMD_DepartmentName);
-            console.log('🔵 [TOGGLE] Current State:', data.HRMD_ActiveFlag);
-            console.log('🔵 [TOGGLE] New State:', newState);
-            
             try {
-                console.log('🟡 [TOGGLE] Calling toggleMutation.mutateAsync...');
                 const result = await toggleMutation.mutateAsync({
                     HRMD_Id: data.HRMD_Id,
                     HRMD_ActiveFlag: newState
                 });
-                
-                console.log('🟢 [TOGGLE] Toggle result:', result);
-                
+
                 // Check if the record is mapped/in use
                 const retrunMsg = (result as any)?.retrunMsg || '';
-                console.log('🟢 [TOGGLE] retrunMsg:', retrunMsg);
-                
+
                 if (retrunMsg === 'Mapped') {
-                    console.log('⚠️ [TOGGLE] Record is mapped - cannot deactivate');
                     toast.error('Cannot deactivate - Department is currently assigned/in use');
                 } else {
-                    console.log('✅ [TOGGLE] Success! Message: Department ' + (newState ? 'activated' : 'deactivated') + ' successfully');
                     toast.success(`Department ${newState ? 'activated' : 'deactivated'} successfully`);
                 }
-            } catch (error) {
-                console.log('🔴 [TOGGLE] Error:', error);
+            } catch (_error) {
                 toast.error(`Failed to ${newState ? 'activate' : 'deactivate'} department`);
             }
         },
@@ -103,7 +99,12 @@ export function getEditableColumns(onOrderChange: (rowId: number, newOrder: numb
         {
             id: 'slNo',
             header: () => <div className='text-center font-medium'>Sl No</div>,
-            cell: ({ row }) => <div className='text-center'>{row.index + 1}</div>,
+            cell: ({ row, table }) => {
+                const pageIndex = table.getState().pagination.pageIndex;
+                const pageSize = table.getState().pagination.pageSize;
+                const continuousIndex = pageIndex * pageSize + row.index + 1;
+                return <div className='text-center'>{continuousIndex}</div>;
+            },
             enableSorting: false,
             size: 60
         },

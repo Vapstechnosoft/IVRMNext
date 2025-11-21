@@ -1,7 +1,7 @@
 'use client';
 
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
-import { type BaseEntity } from '@/lib/localdb';
+import type { BaseEntity } from '@/lib/localdb';
 import type { ColumnDef } from '@tanstack/react-table';
 
 // Department Salary Report data structure
@@ -119,9 +119,7 @@ export const departmentSalaryColumns: ColumnDef<DepartmentSalaryRecord>[] = [
     {
         accessorKey: 'netSalary',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Net Salary' />,
-        cell: ({ row }) => (
-            <div className='font-semibold text-green-600'>₹{(row.getValue('netSalary') as number).toLocaleString()}</div>
-        ),
+        cell: ({ row }) => <div className='font-semibold text-green-600'>₹{(row.getValue('netSalary') as number).toLocaleString()}</div>,
         enableSorting: true,
         enableHiding: true
     },
@@ -188,4 +186,3 @@ export const departmentSummaryColumns: ColumnDef<DepartmentSummary>[] = [
         enableHiding: true
     }
 ];
-

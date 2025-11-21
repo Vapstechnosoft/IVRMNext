@@ -73,19 +73,6 @@ export const getMasterLeaveColumns = ({
         )
     },
     {
-        accessorKey: 'probationNotApplicable',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Probation' />,
-        cell: ({ row }) => (
-            <div className='flex justify-center'>
-                {row.original.probationNotApplicable ? (
-                    <Check className='h-4 w-4 text-green-600' />
-                ) : (
-                    <X className='h-4 w-4 text-red-600' />
-                )}
-            </div>
-        )
-    },
-    {
         id: 'actions',
         header: 'Action',
         cell: ({ row }) => {

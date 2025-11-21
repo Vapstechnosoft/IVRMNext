@@ -11,7 +11,7 @@ import { designationSchema } from '@/schemas/hrms/employee-category-schemas';
 import type { DesignationDetail } from '@/types/hrms/master-designation';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Save } from 'lucide-react';
-import { useEffect, useRef } from 'react';
+import { useEffect } from 'react';
 import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import type { z } from 'zod';
@@ -52,8 +52,6 @@ export default function DesignationForm({ selectedRow, onSuccess, className = ''
 
     useEffect(() => {
         if (selectedRow) {
-            console.log('📝 [DESIGNATION FORM] Edit mode - Loading selectedRow:', JSON.stringify(selectedRow, null, 2));
-            console.log('📝 [DESIGNATION FORM] Order value from selectedRow:', selectedRow.HRMDES_Order);
             reset({
                 HRMDES_Id: selectedRow.HRMDES_Id,
                 MI_Id: selectedRow.MI_Id,
@@ -64,22 +62,13 @@ export default function DesignationForm({ selectedRow, onSuccess, className = ''
                 HRMDES_Order: selectedRow.HRMDES_Order,
                 HRMDES_ActiveFlag: selectedRow.HRMDES_ActiveFlag
             });
-            console.log('📝 [DESIGNATION FORM] Form reset with edit data, order:', selectedRow.HRMDES_Order);
         } else {
-            console.log('📝 [DESIGNATION FORM] Add mode - No selectedRow');
         }
     }, [selectedRow, reset]);
 
     const onSubmit: SubmitHandler<FormFields> = async (data) => {
-        console.log('🔵 ========== DESIGNATION FORM SUBMIT ==========');
-        console.log('🔵 [FORM] Designation submit - Data:', JSON.stringify(data, null, 2));
-        console.log('🔵 [FORM] Is Edit Mode:', isEditMode);
-        console.log('🔵 [FORM] Order value in data:', data.HRMDES_Order);
-        console.log('🔵 [FORM] HRMDES_Id:', data.HRMDES_Id);
-        
         try {
             const response = await saveMutation.mutateAsync(data);
-            console.log('🟢 [FORM] Designation response:', JSON.stringify(response, null, 2));
 
             if (response?.success) {
                 toast.success(response.message || (isEditMode ? 'Designation updated successfully' : 'Designation saved successfully'));
@@ -87,15 +76,11 @@ export default function DesignationForm({ selectedRow, onSuccess, className = ''
                 refetchAll();
                 onSuccess?.();
             } else {
-                console.log('❌ [FORM] Designation failed:', response?.message);
                 toast.error(response?.message || (isEditMode ? 'Failed to update designation' : 'Failed to save designation'));
             }
         } catch (error: any) {
-            console.log('🔴 [FORM] Designation error:', error);
             toast.error(error.message || 'An error occurred');
         }
-        
-        console.log('🔵 ========== DESIGNATION FORM SUBMIT END ==========');
     };
 
     const handleReset = () => {
@@ -122,7 +107,8 @@ export default function DesignationForm({ selectedRow, onSuccess, className = ''
                             render={({ field }) => {
                                 const containerRefCallback = (containerElement: HTMLDivElement | null) => {
                                     if (!containerElement) return;
-                                    const findInput = () => containerElement.querySelector('input[type="text"], input[type="number"]') as HTMLInputElement;
+                                    const findInput = () =>
+                                        containerElement.querySelector('input[type="text"], input[type="number"]') as HTMLInputElement;
                                     const attachListener = () => {
                                         const inputElement = findInput();
                                         if (!inputElement) {
@@ -133,7 +119,7 @@ export default function DesignationForm({ selectedRow, onSuccess, className = ''
                                         const handleInput = (e: Event) => {
                                             const target = e.target as HTMLInputElement;
                                             const inputValue = target.value.trim();
-                                            if (inputValue !== '' && !isNaN(Number(inputValue))) {
+                                            if (inputValue !== '' && !Number.isNaN(Number(inputValue))) {
                                                 const numValue = Number(inputValue);
                                                 const currentValue = field.value || 0;
                                                 if (Math.abs(numValue - currentValue) > 0.0001) {
@@ -172,7 +158,8 @@ export default function DesignationForm({ selectedRow, onSuccess, className = ''
                             render={({ field }) => {
                                 const containerRefCallback = (containerElement: HTMLDivElement | null) => {
                                     if (!containerElement) return;
-                                    const findInput = () => containerElement.querySelector('input[type="text"], input[type="number"]') as HTMLInputElement;
+                                    const findInput = () =>
+                                        containerElement.querySelector('input[type="text"], input[type="number"]') as HTMLInputElement;
                                     const attachListener = () => {
                                         const inputElement = findInput();
                                         if (!inputElement) {
@@ -183,12 +170,15 @@ export default function DesignationForm({ selectedRow, onSuccess, className = ''
                                         const handleInput = (e: Event) => {
                                             const target = e.target as HTMLInputElement;
                                             const inputValue = target.value.trim();
-                                            if (inputValue !== '' && !isNaN(Number(inputValue))) {
+                                            if (inputValue !== '' && !Number.isNaN(Number(inputValue))) {
                                                 const numValue = Number(inputValue);
                                                 const currentValue = field.value || 0;
                                                 if (Math.abs(numValue - currentValue) > 0.0001) {
                                                     field.onChange(numValue);
-                                                    setValue('HRMDES_SanctionedSeats', numValue, { shouldDirty: true, shouldValidate: true });
+                                                    setValue('HRMDES_SanctionedSeats', numValue, {
+                                                        shouldDirty: true,
+                                                        shouldValidate: true
+                                                    });
                                                 }
                                             }
                                         };
@@ -222,7 +212,8 @@ export default function DesignationForm({ selectedRow, onSuccess, className = ''
                             render={({ field }) => {
                                 const containerRefCallback = (containerElement: HTMLDivElement | null) => {
                                     if (!containerElement) return;
-                                    const findInput = () => containerElement.querySelector('input[type="text"], input[type="number"]') as HTMLInputElement;
+                                    const findInput = () =>
+                                        containerElement.querySelector('input[type="text"], input[type="number"]') as HTMLInputElement;
                                     const attachListener = () => {
                                         const inputElement = findInput();
                                         if (!inputElement) {
@@ -233,7 +224,7 @@ export default function DesignationForm({ selectedRow, onSuccess, className = ''
                                         const handleInput = (e: Event) => {
                                             const target = e.target as HTMLInputElement;
                                             const inputValue = target.value.trim();
-                                            if (inputValue !== '' && !isNaN(Number(inputValue))) {
+                                            if (inputValue !== '' && !Number.isNaN(Number(inputValue))) {
                                                 const numValue = Number(inputValue);
                                                 const currentValue = field.value || 0;
                                                 if (Math.abs(numValue - currentValue) > 0.0001) {
@@ -254,7 +245,6 @@ export default function DesignationForm({ selectedRow, onSuccess, className = ''
                                             id='HRMDES_Order'
                                             value={field.value}
                                             onChange={(value) => {
-                                                console.log('📝 [DESIGNATION FORM] Order field changed to:', value);
                                                 const numValue = value !== null && value !== undefined ? Number(value) : 0;
                                                 field.onChange(numValue);
                                                 setValue('HRMDES_Order', numValue, { shouldDirty: true, shouldValidate: true });
@@ -309,9 +299,7 @@ export default function DesignationForm({ selectedRow, onSuccess, className = ''
                         </div>
                     </Button>
                     {isEditMode && !isDirty && (
-                        <span className='order-3 flex items-center text-sm text-muted-foreground sm:order-3'>
-                            No changes made
-                        </span>
+                        <span className='order-3 flex items-center text-muted-foreground text-sm sm:order-3'>No changes made</span>
                     )}
                 </div>
             </form>

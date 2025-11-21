@@ -9,10 +9,10 @@ import { Textarea } from '@/components/ui/textarea';
 import { gpsLocationAttendanceSchema } from '@/schemas/hrms/attendance-management-schemas';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { MapPin, RefreshCw, Save, X } from 'lucide-react';
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { type SubmitHandler, useForm } from 'react-hook-form';
-import type { z } from 'zod';
 import { toast } from 'sonner';
+import type { z } from 'zod';
 
 export type GPSForm = z.infer<typeof gpsLocationAttendanceSchema.addOrUpdate> & {
     designation?: string;
@@ -72,7 +72,7 @@ export function GPSAttendanceForm({ onSubmit, onCancel }: GPSAttendanceFormProps
             }
 
             const data = await response.json();
-            
+
             if (data.error) {
                 throw new Error(data.error);
             }
@@ -114,7 +114,7 @@ export function GPSAttendanceForm({ onSubmit, onCancel }: GPSAttendanceFormProps
             (error) => {
                 setIsGettingLocation(false);
                 let errorMessage = 'Failed to get current location';
-                
+
                 switch (error.code) {
                     case error.PERMISSION_DENIED:
                         errorMessage = 'Location access denied. Please enable location permissions.';
@@ -126,7 +126,7 @@ export function GPSAttendanceForm({ onSubmit, onCancel }: GPSAttendanceFormProps
                         errorMessage = 'Location request timed out.';
                         break;
                 }
-                
+
                 toast.error(errorMessage);
             },
             {
@@ -162,13 +162,13 @@ export function GPSAttendanceForm({ onSubmit, onCancel }: GPSAttendanceFormProps
     return (
         <form onSubmit={handleSubmit(handleFormSubmit)} className='space-y-6'>
             {/* Section 1: GPS LOCATION ATTENDANCE */}
-            <div className='border-t-2 border-primary pt-4'>
-                <h3 className='mb-4 text-base font-semibold text-foreground'>GPS LOCATION ATTENDANCE</h3>
+            <div className='border-primary border-t-2 pt-4'>
+                <h3 className='mb-4 font-semibold text-base text-foreground'>GPS LOCATION ATTENDANCE</h3>
                 <div className='grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3'>
                     <div className='space-y-2'>
-                    <label className='font-medium text-sm' htmlFor='employeeName'>
-                        Employee Name <span className='text-red-500'>*</span>
-                    </label>
+                        <label className='font-medium text-sm' htmlFor='employeeName'>
+                            Employee Name <span className='text-red-500'>*</span>
+                        </label>
                         <Select onValueChange={handleEmployeeChange} value={watch('employeeName')}>
                             <SelectTrigger id='employeeName' className={errors.employeeName ? 'border-red-500' : ''}>
                                 <SelectValue placeholder='Select Employee' />
@@ -188,11 +188,11 @@ export function GPSAttendanceForm({ onSubmit, onCancel }: GPSAttendanceFormProps
                             DOJ (Date of Joining)
                         </label>
                         <InputText id='doj' type='date' {...register('doj')} readOnly />
-                </div>
-                <div className='space-y-2'>
-                    <label className='font-medium text-sm' htmlFor='designation'>
-                        Designation
-                    </label>
+                    </div>
+                    <div className='space-y-2'>
+                        <label className='font-medium text-sm' htmlFor='designation'>
+                            Designation
+                        </label>
                         <InputText id='designation' placeholder='Designation' {...register('designation')} readOnly />
                     </div>
                     <div className='space-y-2'>
@@ -200,74 +200,75 @@ export function GPSAttendanceForm({ onSubmit, onCancel }: GPSAttendanceFormProps
                             Email
                         </label>
                         <InputText id='email' type='email' placeholder='Email' {...register('email')} readOnly />
-                </div>
-                <div className='space-y-2'>
+                    </div>
+                    <div className='space-y-2'>
                         <label className='font-medium text-sm' htmlFor='phone'>
                             Phone
-                    </label>
+                        </label>
                         <InputText id='phone' type='tel' placeholder='Phone' {...register('phone')} readOnly />
                     </div>
                 </div>
             </div>
 
             {/* Section 2: GPS LOCATION PARAMETERS */}
-            <div className='border-t-2 border-primary pt-4'>
-                <h3 className='mb-4 text-base font-semibold text-foreground'>GPS LOCATION PARAMETERS</h3>
+            <div className='border-primary border-t-2 pt-4'>
+                <h3 className='mb-4 font-semibold text-base text-foreground'>GPS LOCATION PARAMETERS</h3>
                 <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
                     <div className='space-y-2'>
-                    <label className='font-medium text-sm' htmlFor='clientName'>
-                        Client Name <span className='text-red-500'>*</span>
-                    </label>
+                        <label className='font-medium text-sm' htmlFor='clientName'>
+                            Client Name <span className='text-red-500'>*</span>
+                        </label>
                         <Select onValueChange={(v) => setValue('clientName', v)} value={watch('clientName')}>
                             <SelectTrigger id='clientName' className={errors.clientName ? 'border-red-500' : ''}>
-                            <SelectValue placeholder='Select or Search Client Name' />
-                        </SelectTrigger>
-                        <SelectContent>
-                            <SelectItem value='Client A'>Client A</SelectItem>
-                            <SelectItem value='Client B'>Client B</SelectItem>
+                                <SelectValue placeholder='Select or Search Client Name' />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value='Client A'>Client A</SelectItem>
+                                <SelectItem value='Client B'>Client B</SelectItem>
                                 <SelectItem value='Client C'>Client C</SelectItem>
-                        </SelectContent>
-                    </Select>
+                            </SelectContent>
+                        </Select>
                         {errors.clientName && <FormError>{errors.clientName.message}</FormError>}
-                </div>
+                    </div>
                     <div className='space-y-2'>
-                    <label className='font-medium text-sm' htmlFor='salesLead'>
+                        <label className='font-medium text-sm' htmlFor='salesLead'>
                             Sales Lead <span className='text-red-500'>*</span>
-                    </label>
+                        </label>
                         <Select onValueChange={(v) => setValue('salesLead', v)} value={watch('salesLead')}>
                             <SelectTrigger id='salesLead' className={errors.salesLead ? 'border-red-500' : ''}>
-                            <SelectValue placeholder='Select or Search Sales Lead' />
-                        </SelectTrigger>
-                        <SelectContent>
-                            <SelectItem value='Lead 1'>Lead 1</SelectItem>
-                            <SelectItem value='Lead 2'>Lead 2</SelectItem>
+                                <SelectValue placeholder='Select or Search Sales Lead' />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value='Lead 1'>Lead 1</SelectItem>
+                                <SelectItem value='Lead 2'>Lead 2</SelectItem>
                                 <SelectItem value='Lead 3'>Lead 3</SelectItem>
-                        </SelectContent>
-                    </Select>
+                            </SelectContent>
+                        </Select>
                         {errors.salesLead && <FormError>{errors.salesLead.message}</FormError>}
+                    </div>
                 </div>
-            </div>
 
                 <div className='mt-4 space-y-2'>
-                    <label className='font-medium text-sm'>Location Display</label>
+                    <div className='font-medium text-sm'>Location Display</div>
                     <div className='flex items-start gap-2 rounded-md border border-input bg-muted p-3'>
                         <button
-                        type='button'
-                        onClick={handleGetCurrentLocation}
-                        disabled={isGettingLocation}
+                            type='button'
+                            onClick={handleGetCurrentLocation}
+                            disabled={isGettingLocation}
                             className='mt-0.5 flex-shrink-0 cursor-pointer transition-all hover:scale-110 disabled:cursor-not-allowed disabled:opacity-50'
                             title='Click to capture current location'>
-                        {isGettingLocation ? (
+                            {isGettingLocation ? (
                                 <RefreshCw className='h-5 w-5 animate-spin text-destructive' />
-                        ) : (
+                            ) : (
                                 <MapPin className='h-5 w-5 text-destructive hover:text-destructive/80' />
-                        )}
+                            )}
                         </button>
-                        <span className='flex-1 text-sm text-muted-foreground break-words'>
-                            {watch('location') || 'Ringwood Circle, Doctor B R Ambedkar Veedhi, Gandhinagar, Bengaluru - 560001, Karnataka, India'}
+                        <span className='flex-1 break-words text-muted-foreground text-sm'>
+                            {watch('location') ||
+                                'Ringwood Circle, Doctor B R Ambedkar Veedhi, Gandhinagar, Bengaluru - 560001, Karnataka, India'}
                         </span>
+                    </div>
                 </div>
-            </div>
 
                 <div className='mt-4 space-y-2'>
                     <label className='font-medium text-sm' htmlFor='remarks'>
@@ -282,14 +283,12 @@ export function GPSAttendanceForm({ onSubmit, onCancel }: GPSAttendanceFormProps
                         className='resize-none'
                     />
                     {errors.remarks?.message && <FormError>{errors.remarks.message}</FormError>}
-                    <div className='text-right text-xs text-muted-foreground'>
-                        {watch('remarks')?.length || 0}/250 characters
-                    </div>
+                    <div className='text-right text-muted-foreground text-xs'>{watch('remarks')?.length || 0}/250 characters</div>
                 </div>
 
                 <div className='mt-4 flex items-center gap-2'>
                     <Checkbox checked={watch('punchFlag')} onCheckedChange={(v) => setValue('punchFlag', Boolean(v))} />
-                    <span className='text-sm font-medium'>Punch Flag</span>
+                    <span className='font-medium text-sm'>Punch Flag</span>
                 </div>
             </div>
 
@@ -297,9 +296,7 @@ export function GPSAttendanceForm({ onSubmit, onCancel }: GPSAttendanceFormProps
                 <Button type='button' variant='outline' onClick={onCancel}>
                     <X className='mr-2 h-4 w-4' /> CANCEL
                 </Button>
-                <Button 
-                    type='submit' 
-                    disabled={isSubmitting}>
+                <Button type='submit' disabled={isSubmitting}>
                     {isSubmitting ? (
                         <>
                             <RefreshCw className='mr-2 h-4 w-4 animate-spin' /> Saving...
@@ -314,4 +311,3 @@ export function GPSAttendanceForm({ onSubmit, onCancel }: GPSAttendanceFormProps
         </form>
     );
 }
-

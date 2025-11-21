@@ -1,20 +1,28 @@
 export interface MasterGradeResponse {
-    HRMG_Id: number;
-    MI_Id: number;
-    HRMG_GradeName: string | null;
-    HRMG_GradeDisplayName: string | null;
-    HRMG_PayScaleRange: string | null;
-    HRMG_PayScaleFrom: number;
-    HRMG_IncrementOf: number;
-    HRMG_PayScaleTo: number;
-    HRMG_Order: number | null;
-    HRMG_ActiveFlag: boolean;
-    gradelList: GradeDetail[];
-    retrunMsg: string;
-    roleId: number;
-    GradeDTO: any;
-    CreatedDate: string | null;
-    UpdatedDate: string | null;
+    success?: boolean;
+    message?: string;
+    data?: GradeDetail[] | {
+        gradelList: GradeDetail[];
+    };
+    gradelList?: GradeDetail[];
+    retrunMsg?: string;
+    roleId?: number;
+    HRMG_Id?: number;
+    MI_Id?: number;
+    HRMG_GradeName?: string | null;
+    HRMG_GradeDisplayName?: string | null;
+    HRMG_PayScaleRange?: string | null;
+    HRMG_PayScaleFrom?: number;
+    HRMG_IncrementOf?: number;
+    HRMG_PayScaleTo?: number;
+    HRMG_Order?: number | null;
+    HRMG_ActiveFlag?: boolean;
+    GradeDTO?: any;
+    CreatedDate?: string | null;
+    UpdatedDate?: string | null;
+    total?: number;
+    page?: number;
+    page_size?: number;
 }
 
 export interface GradeDetail {

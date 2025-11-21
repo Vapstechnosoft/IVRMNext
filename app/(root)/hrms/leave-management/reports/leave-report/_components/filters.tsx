@@ -2,8 +2,8 @@
 
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
-import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { InputText } from '@/components/ui/extension/input-text';
+import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { X } from 'lucide-react';
 
@@ -52,19 +52,11 @@ export function LeaveReportFilters({ filters, onFilterChange, onReport, onCancel
                 {/* Individual/All Selection */}
                 <div className='flex items-center gap-6'>
                     <label className='flex items-center gap-2 text-sm'>
-                        <input
-                            type='radio'
-                            checked={!filters.isIndividual}
-                            onChange={() => onFilterChange('isIndividual', false)}
-                        />
+                        <input type='radio' checked={!filters.isIndividual} onChange={() => onFilterChange('isIndividual', false)} />
                         All
                     </label>
                     <label className='flex items-center gap-2 text-sm'>
-                        <input
-                            type='radio'
-                            checked={filters.isIndividual}
-                            onChange={() => onFilterChange('isIndividual', true)}
-                        />
+                        <input type='radio' checked={filters.isIndividual} onChange={() => onFilterChange('isIndividual', true)} />
                         Individual
                     </label>
                 </div>
@@ -145,8 +137,8 @@ export function LeaveReportFilters({ filters, onFilterChange, onReport, onCancel
 
                     {/* Action Buttons */}
                     <div className='flex gap-2 md:col-span-3'>
-                        <Button onClick={onReport}>Report</Button>
-                        <Button variant='destructive' onClick={onCancel}>
+                        <Button onClick={onReport} variant='default'>Report</Button>
+                        <Button variant='outline' onClick={onCancel}>
                             <X className='mr-2 h-4 w-4' />
                             Clear
                         </Button>

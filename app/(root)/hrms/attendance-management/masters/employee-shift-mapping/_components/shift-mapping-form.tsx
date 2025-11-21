@@ -6,24 +6,18 @@ import { FormError } from '@/components/ui/extension/field';
 import { MultiSelect } from '@/components/ui/multi-select';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { cn } from '@/lib/utils';
 import { createLocalCrud } from '@/lib/localdb';
+import { cn } from '@/lib/utils';
 import { employeeShiftMappingSchema } from '@/schemas/hrms/attendance-management-schemas';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { format } from 'date-fns';
-import { CalendarIcon, RefreshCw, Save, X } from 'lucide-react';
-import React, { useEffect, useMemo } from 'react';
+import { CalendarIcon, RefreshCw, Save } from 'lucide-react';
+import React, { useEffect, useId, useMemo } from 'react';
 import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
 import type { z } from 'zod';
-import {
-    dayTypeOptions,
-    departmentOptions,
-    designationOptions,
-    employeeOptions,
-    typeOptions
-} from './columns';
-import { TimePicker12Hour } from '../../master-shift/_components/time-picker-12hour';
 import type { MasterShift } from '../../master-shift/_components/columns';
+import { TimePicker12Hour } from '../../master-shift/_components/time-picker-12hour';
+import { dayTypeOptions, departmentOptions, designationOptions, employeeOptions, typeOptions } from './columns';
 
 export type EmployeeShiftMappingForm = z.infer<typeof employeeShiftMappingSchema.addOrUpdate>;
 
@@ -38,27 +32,44 @@ function calculateTimeDifference(startTime: string, endTime: string): string {
     if (!startTime || !endTime) return '00:00';
     const [startHours, startMinutes] = startTime.split(':').map(Number);
     const [endHours, endMinutes] = endTime.split(':').map(Number);
-    
+
     const startTotalMinutes = startHours * 60 + startMinutes;
     const endTotalMinutes = endHours * 60 + endMinutes;
-    
+
     let diffMinutes = endTotalMinutes - startTotalMinutes;
     if (diffMinutes < 0) {
         diffMinutes += 24 * 60; // Handle next day
     }
-    
+
     const hours = Math.floor(diffMinutes / 60);
     const minutes = diffMinutes % 60;
-    
+
     return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
 }
 
-export function ShiftMappingForm({ editingMapping, onSubmit, onCancel }: ShiftMappingFormProps) {
+export function ShiftMappingForm({ editingMapping, onSubmit, onCancel: _onCancel }: ShiftMappingFormProps) {
     const shiftStore = createLocalCrud<MasterShift>('attendance:master-shift');
     const [availableShifts, setAvailableShifts] = React.useState<MasterShift[]>([]);
 
+    // Generate unique IDs for form fields
+    const typeId = useId();
+    const departmentId = useId();
+    const designationId = useId();
+    const dayTypeId = useId();
+    const shiftNameId = useId();
+    const applicableDateId = useId();
+    const employeesId = useId();
+    const shiftStartTimeId = useId();
+    const shiftEndTimeId = useId();
+    const totalWorkingHoursId = useId();
+    const lunchStartTimeId = useId();
+    const lunchEndTimeId = useId();
+    const lunchHoursId = useId();
+    const earlyPerShiftId = useId();
+    const delayPerShiftId = useId();
+    const halfDayWorkingHoursId = useId();
+
     const {
-        register,
         handleSubmit,
         control,
         watch,
@@ -73,7 +84,11 @@ export function ShiftMappingForm({ editingMapping, onSubmit, onCancel }: ShiftMa
                   type: editingMapping.type || [],
                   department: editingMapping.department || [],
                   designation: editingMapping.designation || [],
-                  dayType: Array.isArray(editingMapping.dayType) ? editingMapping.dayType : editingMapping.dayType ? [editingMapping.dayType] : [],
+                  dayType: Array.isArray(editingMapping.dayType)
+                      ? editingMapping.dayType
+                      : editingMapping.dayType
+                        ? [editingMapping.dayType]
+                        : [],
                   shiftName: editingMapping.shiftName || '',
                   applicableDate: editingMapping.applicableDate || '',
                   employees: editingMapping.employees || [],
@@ -112,7 +127,7 @@ export function ShiftMappingForm({ editingMapping, onSubmit, onCancel }: ShiftMa
         const loadShifts = () => {
             try {
                 let shifts = shiftStore.list();
-                
+
                 // Create sample shifts if database is empty
                 if (shifts.length === 0) {
                     const sampleShifts: Omit<MasterShift, 'id' | 'createdAt'>[] = [
@@ -152,16 +167,16 @@ export function ShiftMappingForm({ editingMapping, onSubmit, onCancel }: ShiftMa
                             specificDay: false
                         }
                     ];
-                    
+
                     sampleShifts.forEach((shift) => {
                         shiftStore.create(shift);
                     });
-                    
+
                     shifts = shiftStore.list();
                 }
-                
+
                 setAvailableShifts(shifts);
-                
+
                 // Auto-select first shift for testing timing fields if no shift is selected and not editing
                 if (shifts.length > 0 && !editingMapping?.shiftName && !watch('shiftName')) {
                     const firstShift = shifts[0];
@@ -178,13 +193,13 @@ export function ShiftMappingForm({ editingMapping, onSubmit, onCancel }: ShiftMa
                 console.error('Error loading shifts:', error);
             }
         };
-        
+
         // Load immediately
         loadShifts();
-        
+
         // Also try after a short delay in case of timing issues
         const timeoutId = setTimeout(loadShifts, 500);
-        
+
         return () => clearTimeout(timeoutId);
     }, [setValue, editingMapping, watch]);
 
@@ -231,7 +246,11 @@ export function ShiftMappingForm({ editingMapping, onSubmit, onCancel }: ShiftMa
                 type: editingMapping.type || [],
                 department: editingMapping.department || [],
                 designation: editingMapping.designation || [],
-                dayType: Array.isArray(editingMapping.dayType) ? editingMapping.dayType : editingMapping.dayType ? [editingMapping.dayType] : [],
+                dayType: Array.isArray(editingMapping.dayType)
+                    ? editingMapping.dayType
+                    : editingMapping.dayType
+                      ? [editingMapping.dayType]
+                      : [],
                 shiftName: editingMapping.shiftName || '',
                 applicableDate: editingMapping.applicableDate || '',
                 employees: editingMapping.employees || [],
@@ -271,6 +290,52 @@ export function ShiftMappingForm({ editingMapping, onSubmit, onCancel }: ShiftMa
         onSubmit(data);
     };
 
+    const handleReset = () => {
+        if (editingMapping) {
+            reset({
+                type: editingMapping.type || [],
+                department: editingMapping.department || [],
+                designation: editingMapping.designation || [],
+                dayType: Array.isArray(editingMapping.dayType)
+                    ? editingMapping.dayType
+                    : editingMapping.dayType
+                      ? [editingMapping.dayType]
+                      : [],
+                shiftName: editingMapping.shiftName || '',
+                applicableDate: editingMapping.applicableDate || '',
+                employees: editingMapping.employees || [],
+                shiftStartTime: editingMapping.shiftStartTime || '',
+                lunchStartTime: editingMapping.lunchStartTime || '',
+                shiftEndTime: editingMapping.shiftEndTime || '',
+                lunchEndTime: editingMapping.lunchEndTime || '',
+                totalWorkingHours: editingMapping.totalWorkingHours || '',
+                delayPerShift: editingMapping.delayPerShift || '',
+                halfDayWorkingHours: editingMapping.halfDayWorkingHours || '',
+                earlyPerShift: editingMapping.earlyPerShift || '',
+                lunchHours: editingMapping.lunchHours || ''
+            });
+        } else {
+            reset({
+                type: [],
+                department: [],
+                designation: [],
+                dayType: [],
+                shiftName: '',
+                applicableDate: '',
+                employees: [],
+                shiftStartTime: '',
+                lunchStartTime: '',
+                shiftEndTime: '',
+                lunchEndTime: '',
+                totalWorkingHours: '',
+                delayPerShift: '',
+                halfDayWorkingHours: '',
+                earlyPerShift: '',
+                lunchHours: ''
+            });
+        }
+    };
+
     // Prepare options for MultiSelect
     const typeMultiSelectOptions = typeOptions.map((opt) => ({ label: opt, value: opt }));
     const departmentMultiSelectOptions = departmentOptions.map((opt) => ({ label: opt, value: opt }));
@@ -287,7 +352,7 @@ export function ShiftMappingForm({ editingMapping, onSubmit, onCancel }: ShiftMa
             {/* Type, Department, Designation Row */}
             <div className='grid grid-cols-1 gap-4 md:grid-cols-3'>
                 <div className='space-y-2'>
-                    <label className='font-medium text-sm'>
+                    <label htmlFor={typeId} className='font-medium text-sm'>
                         Type <span className='text-red-500'>*</span>
                     </label>
                     <Controller
@@ -295,6 +360,7 @@ export function ShiftMappingForm({ editingMapping, onSubmit, onCancel }: ShiftMa
                         control={control}
                         render={({ field }) => (
                             <MultiSelect
+                                id={typeId}
                                 options={typeMultiSelectOptions}
                                 onValueChange={(values) => {
                                     field.onChange(values);
@@ -309,7 +375,7 @@ export function ShiftMappingForm({ editingMapping, onSubmit, onCancel }: ShiftMa
                 </div>
 
                 <div className='space-y-2'>
-                    <label className='font-medium text-sm'>
+                    <label htmlFor={departmentId} className='font-medium text-sm'>
                         Department <span className='text-red-500'>*</span>
                     </label>
                     <Controller
@@ -317,6 +383,7 @@ export function ShiftMappingForm({ editingMapping, onSubmit, onCancel }: ShiftMa
                         control={control}
                         render={({ field }) => (
                             <MultiSelect
+                                id={departmentId}
                                 options={departmentMultiSelectOptions}
                                 onValueChange={(values) => {
                                     field.onChange(values);
@@ -331,7 +398,7 @@ export function ShiftMappingForm({ editingMapping, onSubmit, onCancel }: ShiftMa
                 </div>
 
                 <div className='space-y-2'>
-                    <label className='font-medium text-sm'>
+                    <label htmlFor={designationId} className='font-medium text-sm'>
                         Designation <span className='text-red-500'>*</span>
                     </label>
                     <Controller
@@ -339,6 +406,7 @@ export function ShiftMappingForm({ editingMapping, onSubmit, onCancel }: ShiftMa
                         control={control}
                         render={({ field }) => (
                             <MultiSelect
+                                id={designationId}
                                 options={designationMultiSelectOptions}
                                 onValueChange={(values) => {
                                     field.onChange(values);
@@ -356,7 +424,7 @@ export function ShiftMappingForm({ editingMapping, onSubmit, onCancel }: ShiftMa
             {/* Day Type, Shift Name, Applicable Date Row */}
             <div className='grid grid-cols-1 gap-4 md:grid-cols-3'>
                 <div className='space-y-2'>
-                    <label className='font-medium text-sm'>
+                    <label htmlFor={dayTypeId} className='font-medium text-sm'>
                         Day Type <span className='text-red-500'>*</span>
                     </label>
                     <Controller
@@ -364,6 +432,7 @@ export function ShiftMappingForm({ editingMapping, onSubmit, onCancel }: ShiftMa
                         control={control}
                         render={({ field }) => (
                             <MultiSelect
+                                id={dayTypeId}
                                 options={dayTypeMultiSelectOptions}
                                 onValueChange={(values) => {
                                     field.onChange(values);
@@ -378,11 +447,14 @@ export function ShiftMappingForm({ editingMapping, onSubmit, onCancel }: ShiftMa
                 </div>
 
                 <div className='space-y-2'>
-                    <label className='font-medium text-sm' htmlFor='shiftName'>
+                    <label htmlFor={shiftNameId} className='font-medium text-sm'>
                         Shift Name <span className='text-red-500'>*</span>
                     </label>
-                    <Select value={watch('shiftName')} onValueChange={(value) => setValue('shiftName', value)} disabled={shiftNames.length === 0}>
-                        <SelectTrigger id='shiftName' className={errors.shiftName ? 'border-red-500' : ''}>
+                    <Select
+                        value={watch('shiftName')}
+                        onValueChange={(value) => setValue('shiftName', value)}
+                        disabled={shiftNames.length === 0}>
+                        <SelectTrigger id={shiftNameId} className={errors.shiftName ? 'border-red-500' : ''}>
                             <SelectValue placeholder={shiftNames.length === 0 ? 'No shifts available' : '--Select--'} />
                         </SelectTrigger>
                         <SelectContent>
@@ -397,7 +469,7 @@ export function ShiftMappingForm({ editingMapping, onSubmit, onCancel }: ShiftMa
                 </div>
 
                 <div className='space-y-2'>
-                    <label className='font-medium text-sm' htmlFor='applicableDate'>
+                    <label htmlFor={applicableDateId} className='font-medium text-sm'>
                         Applicable Date <span className='text-red-500'>*</span>
                     </label>
                     <Controller
@@ -447,7 +519,7 @@ export function ShiftMappingForm({ editingMapping, onSubmit, onCancel }: ShiftMa
 
             {/* Employee Selection */}
             <div className='space-y-2 md:w-1/3'>
-                <label className='font-medium text-sm'>
+                <label htmlFor={employeesId} className='font-medium text-sm'>
                     Employee <span className='text-red-500'>*</span>
                 </label>
                 <Controller
@@ -455,6 +527,7 @@ export function ShiftMappingForm({ editingMapping, onSubmit, onCancel }: ShiftMa
                     control={control}
                     render={({ field }) => (
                         <MultiSelect
+                            id={employeesId}
                             options={employeeOptions}
                             onValueChange={(values) => {
                                 field.onChange(values);
@@ -472,57 +545,44 @@ export function ShiftMappingForm({ editingMapping, onSubmit, onCancel }: ShiftMa
             {selectedShiftName && (
                 <div className='space-y-4 rounded-md border border-input bg-background p-4'>
                     <h3 className='font-semibold text-sm'>Timing Details</h3>
-                    
+
                     {/* First Row: Shift Start Time, Shift End Time, Total working hours per shift */}
                     <div className='grid grid-cols-1 gap-4 md:grid-cols-3'>
                         <div className='space-y-2'>
-                            <label className='font-medium text-sm'>
+                            <label htmlFor={shiftStartTimeId} className='font-medium text-sm'>
                                 Shift Start Time
                             </label>
                             <Controller
                                 name='shiftStartTime'
                                 control={control}
                                 render={({ field }) => (
-                                    <TimePicker12Hour
-                                        value={field.value}
-                                        onChange={field.onChange}
-                                        name='shiftStartTime'
-                                    />
+                                    <TimePicker12Hour value={field.value} onChange={field.onChange} name='shiftStartTime' />
                                 )}
                             />
                         </div>
 
                         <div className='space-y-2'>
-                            <label className='font-medium text-sm'>
+                            <label htmlFor={shiftEndTimeId} className='font-medium text-sm'>
                                 Shift End Time
                             </label>
                             <Controller
                                 name='shiftEndTime'
                                 control={control}
                                 render={({ field }) => (
-                                    <TimePicker12Hour
-                                        value={field.value}
-                                        onChange={field.onChange}
-                                        name='shiftEndTime'
-                                    />
+                                    <TimePicker12Hour value={field.value} onChange={field.onChange} name='shiftEndTime' />
                                 )}
                             />
                         </div>
 
                         <div className='space-y-2'>
-                            <label className='font-medium text-sm'>
+                            <label htmlFor={totalWorkingHoursId} className='font-medium text-sm'>
                                 Total working hours per shift
                             </label>
                             <Controller
                                 name='totalWorkingHours'
                                 control={control}
                                 render={({ field }) => (
-                                    <TimePicker12Hour
-                                        value={field.value}
-                                        onChange={field.onChange}
-                                        name='totalWorkingHours'
-                                        disabled
-                                    />
+                                    <TimePicker12Hour value={field.value} onChange={field.onChange} name='totalWorkingHours' disabled />
                                 )}
                             />
                         </div>
@@ -531,53 +591,40 @@ export function ShiftMappingForm({ editingMapping, onSubmit, onCancel }: ShiftMa
                     {/* Second Row: Lunch start time, Lunch End time, Lunch Hours */}
                     <div className='grid grid-cols-1 gap-4 md:grid-cols-3'>
                         <div className='space-y-2'>
-                            <label className='font-medium text-sm'>
+                            <label htmlFor={lunchStartTimeId} className='font-medium text-sm'>
                                 Lunch start time
                             </label>
                             <Controller
                                 name='lunchStartTime'
                                 control={control}
                                 render={({ field }) => (
-                                    <TimePicker12Hour
-                                        value={field.value}
-                                        onChange={field.onChange}
-                                        name='lunchStartTime'
-                                    />
+                                    <TimePicker12Hour value={field.value} onChange={field.onChange} name='lunchStartTime' />
                                 )}
                             />
                         </div>
 
                         <div className='space-y-2'>
-                            <label className='font-medium text-sm'>
+                            <label htmlFor={lunchEndTimeId} className='font-medium text-sm'>
                                 Lunch End time
                             </label>
                             <Controller
                                 name='lunchEndTime'
                                 control={control}
                                 render={({ field }) => (
-                                    <TimePicker12Hour
-                                        value={field.value}
-                                        onChange={field.onChange}
-                                        name='lunchEndTime'
-                                    />
+                                    <TimePicker12Hour value={field.value} onChange={field.onChange} name='lunchEndTime' />
                                 )}
                             />
                         </div>
 
                         <div className='space-y-2'>
-                            <label className='font-medium text-sm'>
+                            <label htmlFor={lunchHoursId} className='font-medium text-sm'>
                                 Lunch Hours
                             </label>
                             <Controller
                                 name='lunchHours'
                                 control={control}
                                 render={({ field }) => (
-                                    <TimePicker12Hour
-                                        value={field.value}
-                                        onChange={field.onChange}
-                                        name='lunchHours'
-                                        disabled
-                                    />
+                                    <TimePicker12Hour value={field.value} onChange={field.onChange} name='lunchHours' disabled />
                                 )}
                             />
                         </div>
@@ -586,52 +633,40 @@ export function ShiftMappingForm({ editingMapping, onSubmit, onCancel }: ShiftMa
                     {/* Third Row: Early per shift, Delay per shift, Half day working hours per shift */}
                     <div className='grid grid-cols-1 gap-4 md:grid-cols-3'>
                         <div className='space-y-2'>
-                            <label className='font-medium text-sm'>
+                            <label htmlFor={earlyPerShiftId} className='font-medium text-sm'>
                                 Early per shift
                             </label>
                             <Controller
                                 name='earlyPerShift'
                                 control={control}
                                 render={({ field }) => (
-                                    <TimePicker12Hour
-                                        value={field.value}
-                                        onChange={field.onChange}
-                                        name='earlyPerShift'
-                                    />
+                                    <TimePicker12Hour value={field.value} onChange={field.onChange} name='earlyPerShift' />
                                 )}
                             />
                         </div>
 
                         <div className='space-y-2'>
-                            <label className='font-medium text-sm'>
+                            <label htmlFor={delayPerShiftId} className='font-medium text-sm'>
                                 Delay per shift
                             </label>
                             <Controller
                                 name='delayPerShift'
                                 control={control}
                                 render={({ field }) => (
-                                    <TimePicker12Hour
-                                        value={field.value}
-                                        onChange={field.onChange}
-                                        name='delayPerShift'
-                                    />
+                                    <TimePicker12Hour value={field.value} onChange={field.onChange} name='delayPerShift' />
                                 )}
                             />
                         </div>
 
                         <div className='space-y-2'>
-                            <label className='font-medium text-sm'>
+                            <label htmlFor={halfDayWorkingHoursId} className='font-medium text-sm'>
                                 Half day working hours per shift
                             </label>
                             <Controller
                                 name='halfDayWorkingHours'
                                 control={control}
                                 render={({ field }) => (
-                                    <TimePicker12Hour
-                                        value={field.value}
-                                        onChange={field.onChange}
-                                        name='halfDayWorkingHours'
-                                    />
+                                    <TimePicker12Hour value={field.value} onChange={field.onChange} name='halfDayWorkingHours' />
                                 )}
                             />
                         </div>
@@ -641,8 +676,8 @@ export function ShiftMappingForm({ editingMapping, onSubmit, onCancel }: ShiftMa
 
             {/* Action Buttons */}
             <div className='flex justify-end gap-4 border-t pt-6'>
-                <Button type='button' variant='outline' onClick={onCancel}>
-                    <X className='mr-2 h-4 w-4' /> CANCEL
+                <Button type='button' variant='outline' onClick={handleReset}>
+                    <RefreshCw className='mr-2 h-4 w-4' /> RESET
                 </Button>
                 <Button type='submit' disabled={isSubmitting}>
                     {isSubmitting ? (

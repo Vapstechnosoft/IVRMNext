@@ -1,13 +1,11 @@
 'use client';
 
-import { Heading } from '@/components/layout/heading';
 import { Button } from '@/components/ui/button';
 import { GenericDataTable } from '@/components/ui/data-table/generic-data-table';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { createLocalCrud } from '@/lib/localdb';
 import { Plus } from 'lucide-react';
-import { useMemo, useState } from 'react';
-import { useEffect } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';
 import { getLeaveYearColumns, type LeaveYear } from './_components/columns';
 import { LeaveYearForm } from './_components/leave-year-form';
@@ -97,11 +95,8 @@ export default function MasterLeaveYearPage() {
     return (
         <div className='min-h-screen'>
             <div className='container space-y-4 p-1'>
-                <div className='flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between'>
-                    <div className='space-y-1'>
-                        <Heading title='Leave Management' description='Master Leave Year Management' />
-                    </div>
-                    <Button onClick={handleAddClick} className='bg-blue-600 hover:bg-blue-700'>
+                <div className='flex justify-end'>
+                    <Button onClick={handleAddClick} variant='default' className='w-fit'>
                         <Plus className='mr-2 h-4 w-4' />
                         Add Leave Year
                     </Button>

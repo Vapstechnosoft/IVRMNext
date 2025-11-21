@@ -32,11 +32,9 @@ export function CompOffApprovalForm({ editingCompOffApproval, onSubmit, onCancel
                     <X className='mr-2 h-4 w-4' />
                     Cancel
                 </Button>
-                <Button type='submit' disabled={false}>
-                    <div className='flex items-center'>
-                        <Save className='mr-2 h-4 w-4' />
-                        Save
-                    </div>
+                <Button type='submit' variant='default' disabled={false}>
+                    <Save className='mr-2 h-4 w-4' />
+                    Save
                 </Button>
             </div>
         </form>

@@ -2,7 +2,6 @@
 
 import { Button } from '@/components/ui/button';
 import { Calendar } from '@/components/ui/calendar';
-import { DatePickerWithYear } from '@/components/ui/date-picker-year';
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
 import { DataTable } from '@/components/ui/data-table/data-table';
 import { Label } from '@/components/ui/extension/field';
@@ -11,9 +10,9 @@ import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { cn } from '@/lib/utils';
 import { useDeleteSalaryIncrement, useSalaryIncrementOnload, useSaveSalaryIncrement } from '@/hooks/hrms/useTransactions';
-import type { EarningDeductionType, SalaryIncrementDeleteRequest, SalaryIncrementGridItem } from '@/types/hrms/salary-increment';
+import { cn } from '@/lib/utils';
+import type { SalaryIncrementDeleteRequest, SalaryIncrementGridItem } from '@/types/hrms/salary-increment';
 import type { ColumnDef } from '@tanstack/react-table';
 import { format } from 'date-fns';
 import { CalendarIcon, Plus, RefreshCw, TrendingUp, X } from 'lucide-react';
@@ -112,17 +111,9 @@ function SalaryIncrementProcessPageContent({
     const gridData = useMemo(() => onloadData?.griddata || [], [onloadData?.griddata]);
 
     useEffect(() => {
-        console.log('=== Salary Increment Onload Response ===');
-        console.log('Success:', onloadData ? 'Data received' : 'No data');
-        console.log('Full Response Data:', onloadData);
         if (onloadData) {
             const employeeList = onloadData.employeelist || [];
             const gridDataList = onloadData.griddata || [];
-            
-            console.log('Employee list length:', employeeList.length);
-            console.log('Grid data length:', gridDataList.length);
-            console.log('Sample employees:', employeeList.slice(0, 3));
-            console.log('Sample grid data:', gridDataList.slice(0, 3));
 
             let mappedEmployees: Employee[] = [];
 
@@ -196,13 +187,9 @@ function SalaryIncrementProcessPageContent({
                 });
             }
 
-            console.log('Mapped employees:', mappedEmployees.length);
-            console.log('Sample mapped employees:', mappedEmployees.slice(0, 3));
-            
             setEmployees(mappedEmployees);
             setFilteredEmployees(mappedEmployees);
         } else {
-            console.log('No onload data available');
             setEmployees([]);
             setFilteredEmployees([]);
         }
@@ -371,8 +358,6 @@ function SalaryIncrementProcessPageContent({
                 </div>
 
                 <CollapsibleSection
-                    title='Employee Increment Records'
-                    description={`View and process salary increments (${selectedEmployees.length} selected)`}
                     defaultOpen={true}
                     variant='default'
                     size='lg'
@@ -390,8 +375,6 @@ function SalaryIncrementProcessPageContent({
                 {isFormOpen && (
                     <div ref={formRef} className='slide-in-from-top-4 animate-in duration-300'>
                         <CollapsibleSection
-                            title='Salary Increment Process'
-                            description='Configure increment parameters for selected employees'
                             defaultOpen={true}
                             variant='outline'
                             size='lg'
@@ -422,9 +405,9 @@ function SalaryIncrementProcessPageContent({
                                                             <SelectTrigger>
                                                                 <SelectValue placeholder='Select Employee' />
                                                             </SelectTrigger>
-                                                    <SelectContent>
-                                                        <SelectItem value='All'>All</SelectItem>
-                                                        {employees.map((employee) => (
+                                                            <SelectContent>
+                                                                <SelectItem value='All'>All</SelectItem>
+                                                                {employees.map((employee) => (
                                                                     <SelectItem key={employee.HRME_Id} value={employee.HRME_Id.toString()}>
                                                                         {`${employee.HRME_EmployeeFirstName} ${employee.HRME_EmployeeMiddleName || ''} ${
                                                                             employee.HRME_EmployeeLastName || ''

@@ -26,13 +26,9 @@ export function LeaveForm({ editingLeave, onSubmit, onCancel }: LeaveFormProps) 
             leaveName: '',
             leaveCode: '',
             leaveType: '',
-            leaveApplyCriteria: '',
-            daysForApplyCriteria: '',
-            maxDaysForApply: '',
             leaveDetails: '',
             leaveCredit: false,
             lateDeduct: false,
-            probationNotApplicable: false,
             leaveOrder: 0,
             isActive: true
         }
@@ -90,47 +86,6 @@ export function LeaveForm({ editingLeave, onSubmit, onCancel }: LeaveFormProps) 
                     {errors.leaveType && <p className='mt-1 text-red-500 text-xs'>{errors.leaveType.message}</p>}
                 </div>
 
-                <div>
-                    <label htmlFor='leave-apply-criteria-select' className='font-medium text-sm'>
-                        Leave Apply Criteria *
-                    </label>
-                    <Select value={watch('leaveApplyCriteria')} onValueChange={(value) => setValue('leaveApplyCriteria', value)}>
-                        <SelectTrigger id='leave-apply-criteria-select' className={errors.leaveApplyCriteria ? 'border-red-500' : ''}>
-                            <SelectValue placeholder='Select Apply Criteria' />
-                        </SelectTrigger>
-                        <SelectContent>
-                            <SelectItem value='Before'>Before</SelectItem>
-                            <SelectItem value='After'>After</SelectItem>
-                            <SelectItem value='Same Day'>Same Day</SelectItem>
-                        </SelectContent>
-                    </Select>
-                    {errors.leaveApplyCriteria && <p className='mt-1 text-red-500 text-xs'>{errors.leaveApplyCriteria.message}</p>}
-                </div>
-
-                <div>
-                    <label htmlFor='days-apply-criteria-input' className='font-medium text-sm'>
-                        Days for Apply Criteria
-                    </label>
-                    <InputText
-                        id='days-apply-criteria-input'
-                        {...register('daysForApplyCriteria')}
-                        placeholder='Enter days'
-                        type='number'
-                    />
-                </div>
-
-                <div>
-                    <label htmlFor='max-days-apply-input' className='font-medium text-sm'>
-                        Max Days For Apply
-                    </label>
-                    <InputText
-                        id='max-days-apply-input'
-                        {...register('maxDaysForApply')}
-                        placeholder='Enter max days'
-                        type='number'
-                    />
-                </div>
-
                 <div className='md:col-span-3'>
                     <label htmlFor='leave-details-textarea' className='font-medium text-sm'>
                         Leave Details
@@ -168,17 +123,6 @@ export function LeaveForm({ editingLeave, onSubmit, onCancel }: LeaveFormProps) 
                     </label>
                 </div>
 
-                <div className='flex items-center space-x-2'>
-                    <Checkbox
-                        id='probationNotApplicable'
-                        checked={watch('probationNotApplicable')}
-                        onCheckedChange={(checked) => setValue('probationNotApplicable', checked as boolean)}
-                    />
-                    <label htmlFor='probationNotApplicable' className='font-medium text-sm'>
-                        Probation NOT Applicable
-                    </label>
-                </div>
-
                 <div>
                     <label htmlFor='leave-order-input' className='font-medium text-sm'>
                         Leave Order
@@ -193,7 +137,7 @@ export function LeaveForm({ editingLeave, onSubmit, onCancel }: LeaveFormProps) 
             </div>
 
             <div className='flex gap-2'>
-                <Button type='submit' className='bg-blue-600 hover:bg-blue-700'>
+                <Button type='submit' variant='default'>
                     {editingLeave ? 'Update' : 'Save'}
                 </Button>
                 <Button type='button' variant='outline' onClick={onCancel}>

@@ -15,7 +15,12 @@ export const columns: ColumnDef<DesignationDetail>[] = [
     {
         id: 'slNo',
         header: () => <div className='text-center font-medium'>Sl No</div>,
-        cell: ({ row }) => <div className='text-center'>{row.index + 1}</div>,
+        cell: ({ row, table }) => {
+            const pageIndex = table.getState().pagination.pageIndex;
+            const pageSize = table.getState().pagination.pageSize;
+            const continuousIndex = pageIndex * pageSize + row.index + 1;
+            return <div className='text-center'>{continuousIndex}</div>;
+        },
         enableSorting: false,
         size: 60
     },
@@ -33,7 +38,11 @@ export const columns: ColumnDef<DesignationDetail>[] = [
     },
     {
         accessorKey: 'HRMDES_Order',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Order' className='whitespace-nowrap' />
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Order' className='whitespace-nowrap' />,
+        cell: ({ row }) => {
+            const orderValue = row.original.HRMDES_Order;
+            return <div>{orderValue ?? '-'}</div>;
+        }
     },
     {
         id: 'actions',
@@ -56,34 +65,21 @@ function ActionButtonsCell({ rowData }: { rowData: DesignationDetail }) {
 
     const handleToggle = useCallback(
         async (data: DesignationDetail, newState: boolean) => {
-            console.log('🔵 [TOGGLE] handleToggle called');
-            console.log('🔵 [TOGGLE] Record ID:', data.HRMDES_Id);
-            console.log('🔵 [TOGGLE] Record Name:', data.HRMDES_DesignationName);
-            console.log('🔵 [TOGGLE] Current State:', data.HRMDES_ActiveFlag);
-            console.log('🔵 [TOGGLE] New State:', newState);
-            
             try {
-                console.log('🟡 [TOGGLE] Calling toggleMutation.mutateAsync...');
                 const result = await toggleMutation.mutateAsync({
                     HRMDES_Id: data.HRMDES_Id,
                     HRMDES_ActiveFlag: newState
                 });
-                
-                console.log('🟢 [TOGGLE] Toggle result:', result);
-                
+
                 // Check if the record is mapped/in use
                 const retrunMsg = (result as any)?.retrunMsg || '';
-                console.log('🟢 [TOGGLE] retrunMsg:', retrunMsg);
-                
+
                 if (retrunMsg === 'Mapped') {
-                    console.log('⚠️ [TOGGLE] Record is mapped - cannot deactivate');
                     toast.error('Cannot deactivate - Designation is currently assigned/in use');
                 } else {
-                    console.log('✅ [TOGGLE] Success! Message: Designation ' + (newState ? 'activated' : 'deactivated') + ' successfully');
                     toast.success(`Designation ${newState ? 'activated' : 'deactivated'} successfully`);
                 }
-            } catch (error) {
-                console.log('🔴 [TOGGLE] Error:', error);
+            } catch (_error) {
                 toast.error(`Failed to ${newState ? 'activate' : 'deactivate'} designation`);
             }
         },
@@ -106,7 +102,12 @@ export function getEditableColumns(onOrderChange: (rowId: number, newOrder: numb
         {
             id: 'slNo',
             header: () => <div className='text-center font-medium'>Sl No</div>,
-            cell: ({ row }) => <div className='text-center'>{row.index + 1}</div>,
+            cell: ({ row, table }) => {
+                const pageIndex = table.getState().pagination.pageIndex;
+                const pageSize = table.getState().pagination.pageSize;
+                const continuousIndex = pageIndex * pageSize + row.index + 1;
+                return <div className='text-center'>{continuousIndex}</div>;
+            },
             enableSorting: false,
             size: 60
         },

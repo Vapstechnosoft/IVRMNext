@@ -52,18 +52,15 @@ export default function ReligionCategoryMappingForm({ selectedRow, onSuccess, cl
             // In edit mode, use the single IMCC_Id as an array for multi-select
             // The API response has single IMCC_Id per row, so we convert it to array
             // Also check if categoryids exists in the response (for multi-select support)
-            const rowWithCategoryIds =
-                selectedRow as ReligionCategoryMappingDetail & {
-                    categoryids?: number[];
-                };
+            const rowWithCategoryIds = selectedRow as ReligionCategoryMappingDetail & {
+                categoryids?: number[];
+            };
             const categoryids =
-                rowWithCategoryIds.categoryids &&
-                Array.isArray(rowWithCategoryIds.categoryids) &&
-                rowWithCategoryIds.categoryids.length > 0
+                rowWithCategoryIds.categoryids && Array.isArray(rowWithCategoryIds.categoryids) && rowWithCategoryIds.categoryids.length > 0
                     ? rowWithCategoryIds.categoryids
                     : selectedRow.IMCC_Id
-                    ? [selectedRow.IMCC_Id]
-                    : [];
+                      ? [selectedRow.IMCC_Id]
+                      : [];
 
             reset({
                 IMRCC_Id: selectedRow.IRCC_Id,
@@ -92,26 +89,29 @@ export default function ReligionCategoryMappingForm({ selectedRow, onSuccess, cl
     const onSubmit: SubmitHandler<FormFields> = async (data) => {
         try {
             // Validate that required fields are selected - use strict validation
-            if (!data.IVRMMR_Id || data.IVRMMR_Id === 0 || isNaN(data.IVRMMR_Id)) {
+            if (!data.IVRMMR_Id || data.IVRMMR_Id === 0 || Number.isNaN(data.IVRMMR_Id)) {
                 toast.error('Please select a religion');
                 return;
             }
-            
-            if (!data.categoryids || !Array.isArray(data.categoryids) || data.categoryids.length === 0 || data.categoryids.every(id => !id || id === 0)) {
+
+            if (
+                !data.categoryids ||
+                !Array.isArray(data.categoryids) ||
+                data.categoryids.length === 0 ||
+                data.categoryids.every((id) => !id || id === 0)
+            ) {
                 toast.error('Please select at least one category');
                 return;
             }
-            
+
             // Filter out any invalid category IDs (0, null, undefined, NaN)
-            const validCategoryIds = data.categoryids.filter((id): id is number => 
-                typeof id === 'number' && !isNaN(id) && id > 0
-            );
-            
+            const validCategoryIds = data.categoryids.filter((id): id is number => typeof id === 'number' && !Number.isNaN(id) && id > 0);
+
             if (validCategoryIds.length === 0) {
                 toast.error('Please select at least one valid category');
                 return;
             }
-            
+
             // In edit mode, check if data has actually changed
             if (isEditMode && selectedRow) {
                 // Get category IDs for comparison - convert single IMCC_Id to array if needed
@@ -122,11 +122,11 @@ export default function ReligionCategoryMappingForm({ selectedRow, onSuccess, cl
                     rowWithCategoryIds.categoryids.length > 0
                         ? rowWithCategoryIds.categoryids.sort((a, b) => a - b)
                         : selectedRow.IMCC_Id
-                        ? [selectedRow.IMCC_Id]
-                        : [];
-                
+                          ? [selectedRow.IMCC_Id]
+                          : [];
+
                 const currentCategoryIds = (data.categoryids || []).sort((a, b) => a - b);
-                
+
                 // Compare all relevant fields
                 const hasChanges =
                     selectedRow.IVRMMR_Id !== data.IVRMMR_Id ||
@@ -136,7 +136,7 @@ export default function ReligionCategoryMappingForm({ selectedRow, onSuccess, cl
 
                 // If no changes, show info message and return early
                 if (!hasChanges) {
-                    toast.info("No changes detected. Nothing to update.");
+                    toast.info('No changes detected. Nothing to update.');
                     onSuccess?.();
                     return;
                 }
@@ -148,19 +148,17 @@ export default function ReligionCategoryMappingForm({ selectedRow, onSuccess, cl
                 toast.error('Selected religion not found. Please select again.');
                 return;
             }
-            
+
             // Get category names from dropdowns (for multi-select)
             // Use only valid category IDs (filter out 0, null, undefined, NaN)
             const categoryIds = validCategoryIds; // Use the filtered valid IDs
             const firstCategoryId = categoryIds.length > 0 ? categoryIds[0] : 0;
-            
+
             if (firstCategoryId === 0) {
                 toast.error('Please select at least one valid category');
                 return;
             }
-            const selectedCategories = categoryIds
-                .map((id) => categories.find((c: any) => c.IMCC_Id === id))
-                .filter(Boolean);
+            const selectedCategories = categoryIds.map((id) => categories.find((c: any) => c.IMCC_Id === id)).filter(Boolean);
 
             // Ensure IMCC_Id is set (can be 0 or the first category ID for backward compatibility)
             // In edit mode, explicitly include IRCC_Id to ensure backend knows it's an update, not a new record
@@ -205,9 +203,9 @@ export default function ReligionCategoryMappingForm({ selectedRow, onSuccess, cl
                         onSuccess?.();
                     } else {
                         // Check if it's a duplicate error
-                        const errorMessage = response.message || "";
-                        const isDuplicateError = errorMessage.toLowerCase().includes("duplicate");
-                        
+                        const errorMessage = response.message || '';
+                        const isDuplicateError = errorMessage.toLowerCase().includes('duplicate');
+
                         if (isDuplicateError && isEditMode) {
                             toast.error(
                                 `Duplicate entry detected. The combination of Religion and Category already exists. If you're updating this record, ensure IRCC_Id (${submitData.IRCC_Id || 0}) is being properly sent to the backend.`
@@ -218,20 +216,20 @@ export default function ReligionCategoryMappingForm({ selectedRow, onSuccess, cl
                     }
                 },
                 onError: (error: any) => {
-                    const errorMessage = error.message || "";
-                    const isDuplicateError = errorMessage.toLowerCase().includes("duplicate");
-                    
+                    const errorMessage = error.message || '';
+                    const isDuplicateError = errorMessage.toLowerCase().includes('duplicate');
+
                     if (isDuplicateError && isEditMode) {
                         toast.error(
                             `Duplicate entry: The combination already exists. Please check that you're not creating a duplicate record.`
                         );
                     } else {
-                        toast.error(error.message || "An error occurred");
+                        toast.error(error.message || 'An error occurred');
                     }
                 }
             });
         } catch (error: any) {
-            toast.error(error.message || "An error occurred");
+            toast.error(error.message || 'An error occurred');
         }
     };
 
@@ -241,7 +239,7 @@ export default function ReligionCategoryMappingForm({ selectedRow, onSuccess, cl
 
     const religions = response?.data?.religion_list || [];
     const categories = response?.data?.caste_list || [];
-    
+
     // Convert categories to options format for MultiSelect
     // Filter out duplicates by IMCC_Id to prevent React key errors
     const categoryOptions = useMemo(() => {
@@ -274,17 +272,16 @@ export default function ReligionCategoryMappingForm({ selectedRow, onSuccess, cl
                                 render={({ field }) => {
                                     // Ensure value is properly set - handle 0 vs undefined
                                     const selectValue = field.value && field.value > 0 ? field.value.toString() : '';
-                                    
+
                                     return (
-                                        <Select 
-                                            value={selectValue} 
+                                        <Select
+                                            value={selectValue}
                                             onValueChange={(value) => {
                                                 const numValue = Number(value);
                                                 if (numValue > 0) {
                                                     field.onChange(numValue);
                                                 }
-                                            }}
-                                        >
+                                            }}>
                                             <SelectTrigger id='IVRMMR_Id' className='transition-colors focus:ring-2 focus:ring-primary/20'>
                                                 <SelectValue placeholder='Select religion' />
                                             </SelectTrigger>
@@ -318,7 +315,7 @@ export default function ReligionCategoryMappingForm({ selectedRow, onSuccess, cl
                                         isEditMode && selectedRow
                                             ? `category-${selectedRow.IRCC_Id}-${stringValues.join(',')}`
                                             : `category-new-${stringValues.join(',')}`;
-                                    
+
                                     return (
                                         <MultiSelect
                                             key={multiSelectKey} // Force re-render when editing different rows or values change
@@ -330,8 +327,10 @@ export default function ReligionCategoryMappingForm({ selectedRow, onSuccess, cl
                                                 // Only update if values actually changed (prevents unnecessary re-renders)
                                                 const currentUnique = Array.from(new Set(field.value || [])).sort((a, b) => a - b);
                                                 const newUnique = uniqueNumbers.sort((a, b) => a - b);
-                                                if (currentUnique.length !== newUnique.length ||
-                                                    !currentUnique.every((val, idx) => val === newUnique[idx])) {
+                                                if (
+                                                    currentUnique.length !== newUnique.length ||
+                                                    !currentUnique.every((val, idx) => val === newUnique[idx])
+                                                ) {
                                                     field.onChange(uniqueNumbers);
                                                 }
                                             }}

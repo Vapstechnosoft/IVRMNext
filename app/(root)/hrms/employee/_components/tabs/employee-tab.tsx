@@ -1,8 +1,8 @@
 ﻿'use client';
 
 import { Button } from '@/components/ui/button';
-import { DatePickerWithYear } from '@/components/ui/date-picker-year';
 import { Checkbox } from '@/components/ui/checkbox';
+import { DatePickerWithYear } from '@/components/ui/date-picker-year';
 import { Label } from '@/components/ui/extension/field';
 import { InputText } from '@/components/ui/extension/input-text';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
@@ -10,6 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
 import { CalendarIcon, Plus, Trash2, Upload, X } from 'lucide-react';
+import { useState } from 'react';
 import { Controller } from 'react-hook-form';
 import { StandardTabActions } from './standard-tab-actions';
 
@@ -24,6 +25,7 @@ interface EmployeeTabProps {
     options: any;
     isSubmitting: boolean;
     watch: any;
+    onClear?: () => void;
 }
 
 export function EmployeeTab({
@@ -36,8 +38,16 @@ export function EmployeeTab({
     setPhotoFile,
     options,
     isSubmitting,
-    watch
+    watch,
+    onClear
 }: any) {
+    // State for controlling date picker popovers
+    const [dateOfJoiningOpen, setDateOfJoiningOpen] = useState(false);
+    const [dateOfConfirmationOpen, setDateOfConfirmationOpen] = useState(false);
+    const [pfDateOpen, setPfDateOpen] = useState(false);
+    const [esiDateOpen, setEsiDateOpen] = useState(false);
+    const [dateOfBirthOpen, setDateOfBirthOpen] = useState(false);
+    const [dateOfRetirementOpen, setDateOfRetirementOpen] = useState(false);
     return (
         <div className='space-y-6'>
             {/* Main Form Fields in Two Columns */}
@@ -936,23 +946,26 @@ export function EmployeeTab({
                                                             name={`bankDetails.${index}.employerBankName`}
                                                             control={control}
                                                             render={({ field }) => (
-                                                                <Select 
+                                                                <Select
                                                                     onValueChange={(value) => {
-                                                                        console.log('🔍 [BANK] Bank selected:', value);
                                                                         field.onChange(value);
-                                                                    }} 
+                                                                    }}
                                                                     value={field.value || ''}>
                                                                     <SelectTrigger>
                                                                         <SelectValue placeholder='--Select--' />
                                                                     </SelectTrigger>
                                                                     <SelectContent>
                                                                         {(options?.banks || []).map((b: any) => {
-                                                                            const bankId = (b.HRMBD_Id ?? b.BankId ?? b.value ?? b)?.toString();
-                                                                            const bankName = b.HRMBD_BankName || b.BankName || b.label || String(b);
+                                                                            const bankId = (
+                                                                                b.HRMBD_Id ??
+                                                                                b.BankId ??
+                                                                                b.value ??
+                                                                                b
+                                                                            )?.toString();
+                                                                            const bankName =
+                                                                                b.HRMBD_BankName || b.BankName || b.label || String(b);
                                                                             return (
-                                                                                <SelectItem
-                                                                                    key={bankId}
-                                                                                    value={bankId}>
+                                                                                <SelectItem key={bankId} value={bankId}>
                                                                                     {bankName}
                                                                                 </SelectItem>
                                                                             );
@@ -1026,7 +1039,7 @@ export function EmployeeTab({
                 </div>
             </div>
 
-            <StandardTabActions errors={errors} isSubmitting={isSubmitting} />
+            <StandardTabActions errors={errors} isSubmitting={isSubmitting} onClear={onClear} />
         </div>
     );
 }

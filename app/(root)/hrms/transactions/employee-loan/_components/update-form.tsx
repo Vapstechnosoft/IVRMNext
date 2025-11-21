@@ -340,4 +340,3 @@ export default function UpdateEmployeeLoanForm({ selectedRow, onloadData, onSucc
         </div>
     );
 }
-

@@ -55,28 +55,36 @@ export interface GroupDeptDessgMappingDetail {
 }
 
 export interface GroupDeptDessgMappingResponse {
-    HRGTDDS_Id: number;
-    MI_Id: number;
-    HRMGT_Id: number;
-    HRMD_Id: number;
-    HRMDES_Id: number;
-    HRGTDDS_ActiveFlg: boolean;
-    HRGTDDS_CreatedBy: number;
-    HRGTDDS_UpdatedBy: number;
-    HRGTDDS_CreatedDate: string;
-    HRGTDDS_UpdatedDate: string;
-    groupTypedropdown: GroupTypeDropdown[];
-    departmentdropdown: DepartmentDropdown[];
-    designationdropdown: DesignationDropdown[];
-    gridviewdata: GroupDeptDessgMappingDetail[];
-    editlist: any;
-    designationids: any;
-    LogInUserId: number;
-    HRMGT_EmployeeGroupType: string | null;
-    HRMD_DepartmentName: string | null;
-    HRMDES_DesignationName: string | null;
-    returnval: boolean;
-    msg: string | null;
+    success?: boolean;
+    message?: string;
+    data?: GroupDeptDessgMappingDetail[] | {
+        gridviewdata: GroupDeptDessgMappingDetail[];
+    };
+    gridviewdata?: GroupDeptDessgMappingDetail[];
+    HRGTDDS_Id?: number;
+    MI_Id?: number;
+    HRMGT_Id?: number;
+    HRMD_Id?: number;
+    HRMDES_Id?: number;
+    HRGTDDS_ActiveFlg?: boolean;
+    HRGTDDS_CreatedBy?: number;
+    HRGTDDS_UpdatedBy?: number;
+    HRGTDDS_CreatedDate?: string;
+    HRGTDDS_UpdatedDate?: string;
+    groupTypedropdown?: GroupTypeDropdown[];
+    departmentdropdown?: DepartmentDropdown[];
+    designationdropdown?: DesignationDropdown[];
+    editlist?: any;
+    designationids?: any;
+    LogInUserId?: number;
+    HRMGT_EmployeeGroupType?: string | null;
+    HRMD_DepartmentName?: string | null;
+    HRMDES_DesignationName?: string | null;
+    returnval?: boolean;
+    msg?: string | null;
+    total?: number;
+    page?: number;
+    page_size?: number;
 }
 
 export interface GroupDeptDessgMappingInput {

@@ -16,9 +16,6 @@ export interface LeaveAuthorization extends BaseEntity {
     orderOfApproval: string;
     approvalPerson: string;
     finalFlag: boolean;
-    emailId: string;
-    sanctionedUser: string;
-    sanctionedOrder: string;
 }
 
 interface LeaveAuthorizationColumnsProps {
@@ -59,21 +56,6 @@ export const getLeaveAuthorizationColumns = ({
         accessorKey: 'leaveType',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Leave Type' />,
         cell: ({ row }) => <div>{row.getValue('leaveType')}</div>
-    },
-    {
-        accessorKey: 'emailId',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Email Id' />,
-        cell: ({ row }) => <div className='text-sm'>{row.getValue('emailId')}</div>
-    },
-    {
-        accessorKey: 'sanctionedUser',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Sanctioned User' />,
-        cell: ({ row }) => <div>{row.getValue('sanctionedUser')}</div>
-    },
-    {
-        accessorKey: 'sanctionedOrder',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Sanctioned Order' />,
-        cell: ({ row }) => <div className='text-center'>{row.getValue('sanctionedOrder')}</div>
     },
     {
         accessorKey: 'finalFlag',

@@ -20,7 +20,8 @@ import { getMasterSubject } from '@/server/exam/exam-module/masters/subject';
 import {
     getAllMasterSubjectDetails,
     getMasterSubjectGroup,
-    getMasterSubjectGroupDetails
+    getMasterSubjectGroupDetails,
+    getSubjectsGroupDropDownByList
 } from '@/server/exam/exam-module/masters/subject-group';
 import { getMasterSubSubject } from '@/server/exam/exam-module/masters/sus-subject';
 import type { ApiSearchparams } from '@/types';
@@ -159,6 +160,23 @@ export const useMasterSubjectGroup = (searchParams?: ApiSearchparams) => {
         refetchAll: () => {
             return queryClient.invalidateQueries({
                 queryKey: [EXAM_QUERY_KEYS.MASTER_SUBJECT_GROUP_]
+            });
+        }
+    };
+};
+
+export const useMasterSubjectGroupDropdownList = () => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [EXAM_QUERY_KEYS.MASTER_SUBJECT_GROUP_DROPDOWN_LIST],
+            queryFn: async () => getSubjectsGroupDropDownByList(30),
+            staleTime: 0
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [EXAM_QUERY_KEYS.MASTER_SUBJECT_GROUP_DROPDOWN_LIST]
             });
         }
     };
