@@ -654,10 +654,10 @@ export const masterTermPeriodSchema = {
         asmay_Id: z.number({ message: 'Academic Year is required' }),
         fmt_id: z.number({ message: 'Term is required' }),
         // fmh_id: z.number({ message: 'Head is required' }),
-        fmtP_Year: z.string({ message: 'Year is required' }),
+        fmtP_Year: z.string().min(1, 'Please select year'),
         filterType: z.string().min(1, 'Please select a fee type'),
-        from_Month: z.string({ message: 'From Month is required' }),
-        to_Month: z.string({ message: 'To Month is required' })
+        from_Month: z.string().min(1, 'Please select from month'),
+        to_Month: z.string().min(1, 'Please select to month')
     }),
     delete: z.object({
         fmtP_Id: deleteIdSchema('fmtP_Id')

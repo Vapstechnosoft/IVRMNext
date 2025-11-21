@@ -583,7 +583,7 @@ export interface IFeeOnlinehaedgroupMappingList {
 }
 
 export interface IMasterTermsPeriodList {
-    yearname: number;
+    yearname: string;
     termname: string;
     fromMonth: string;
     fmtToMonth: string;
@@ -591,6 +591,8 @@ export interface IMasterTermsPeriodList {
     feeFlag: string;
     fmtP_Id: number;
     user_Id: number;
+    asmay_Id: number;
+    fmt_id: number;
 }
 
 export interface IMasterStudentFeeGroupMappingList {

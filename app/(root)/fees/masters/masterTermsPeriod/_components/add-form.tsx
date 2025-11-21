@@ -3,7 +3,6 @@
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { FormError, Label } from '@/components/ui/extension/field';
-import { InputText } from '@/components/ui/extension/input-text';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { MASTER_HEADS_DROPDOWN, TERM_DROPDOWN_DATA, useMasterTermsPeriod } from '@/hooks/fees/useMasters';
@@ -42,6 +41,7 @@ export default function AddFeeTermsPeriodForm({ onSuccess, termname = '' }: FeeT
     const [selectedSplitYear, setSelectedSplitYear] = useState<string | null>(null);
 
     const [filterType, setFilterType] = useState<string>('');
+    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
     const {
         control,
@@ -165,8 +165,8 @@ export default function AddFeeTermsPeriodForm({ onSuccess, termname = '' }: FeeT
                                                 Error loading
                                             </SelectItem>
                                         ) : (
-                                            academicYear?.data?.map((item: any, index: number) => (
-                                                <SelectItem key={`${item.asmaY_Id}-${index}`} value={item.asmaY_Id.toString()}>
+                                            academicYear?.data?.map((item: any) => (
+                                                <SelectItem key={item.asmaY_Id} value={item.asmaY_Id.toString()}>
                                                     {item.asmaY_Year}
                                                 </SelectItem>
                                             ))
@@ -238,22 +238,24 @@ export default function AddFeeTermsPeriodForm({ onSuccess, termname = '' }: FeeT
                                 <Select
                                     key={field.value || 'empty'}
                                     onValueChange={(val) => {
-                                        field.onChange(val); // keep string
+                                        field.onChange(val);
                                         setSelectedSplitYear(val);
                                     }}
                                     value={field.value || ''}
-                                    disabled={termsLoading}>
+                                    disabled={!selectedAcademicYear || !splitAcademicYear} // <-- FIXED
+                                >
                                     <SelectTrigger className='min-w-[400px] text-center'>
                                         <SelectValue placeholder='--Select Year--' />
                                     </SelectTrigger>
+
                                     <SelectContent>
-                                        {termsLoading ? (
+                                        {!selectedAcademicYear ? (
+                                            <SelectItem value='na' disabled>
+                                                Select Academic Year First
+                                            </SelectItem>
+                                        ) : !splitAcademicYear ? (
                                             <SelectItem value='loading' disabled>
                                                 Loading...
-                                            </SelectItem>
-                                        ) : termsError ? (
-                                            <SelectItem value='error' disabled>
-                                                Error loading
                                             </SelectItem>
                                         ) : (
                                             splitAcademicYear?.map((item: any) => (
@@ -270,7 +272,7 @@ export default function AddFeeTermsPeriodForm({ onSuccess, termname = '' }: FeeT
                         {errors.fmtP_Year && <FormError>{errors.fmtP_Year.message}</FormError>}
                     </div>
                 </div>
-
+                {/* 
                 <div className='flex items-center gap-6'>
                     <Label className='min-w-[150px] text-right'>
                         From Month :<span className='ml-1 text-red-500'>*</span>
@@ -330,6 +332,63 @@ export default function AddFeeTermsPeriodForm({ onSuccess, termname = '' }: FeeT
                                 </>
                             )}
                         />
+                    </div>
+                </div> */}
+                <div className='flex items-center gap-6'>
+                    <Label className='min-w-[150px] text-right'>
+                        From Month :<span className='ml-1 text-red-500'>*</span>
+                    </Label>
+
+                    <div className='flex w-full max-w-[400px] flex-col'>
+                        <Controller
+                            name='from_Month'
+                            control={control}
+                            render={({ field }) => (
+                                <Select value={field.value || ''} onValueChange={field.onChange}>
+                                    <SelectTrigger className='min-w-[400px] text-center'>
+                                        <SelectValue placeholder='--Select Month--' />
+                                    </SelectTrigger>
+
+                                    <SelectContent>
+                                        {months.map((month) => (
+                                            <SelectItem key={month} value={month}>
+                                                {month}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                            )}
+                        />
+                        {errors.from_Month && <FormError>{errors.from_Month.message}</FormError>}
+                    </div>
+                </div>
+
+                <div className='flex items-center gap-6'>
+                    <Label className='min-w-[150px] text-right'>
+                        To Month :<span className='ml-1 text-red-500'>*</span>
+                    </Label>
+
+                    <div className='flex w-full max-w-[400px] flex-col'>
+                        <Controller
+                            name='to_Month'
+                            control={control}
+                            render={({ field }) => (
+                                <Select value={field.value || ''} onValueChange={field.onChange}>
+                                    <SelectTrigger className='min-w-[400px] text-center'>
+                                        <SelectValue placeholder='--Select Month--' />
+                                    </SelectTrigger>
+
+                                    <SelectContent>
+                                        {months.map((month) => (
+                                            <SelectItem key={month} value={month}>
+                                                {month}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                            )}
+                        />
+                        {errors.to_Month && <FormError>{errors.to_Month.message}</FormError>}
                     </div>
                 </div>
 
