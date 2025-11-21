@@ -12,9 +12,9 @@ import { cn } from '@/lib/utils';
 import { PreAdmissionAcademicYearSchema } from '@/schemas/admission/preadmission/academic-year';
 import { addOrUpdatePreAdmissionYear } from '@/server/admission/preadmission/configuration/academic_year_master';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { format } from 'date-fns';
+import { addDays, format } from 'date-fns';
 import { CalendarIcon, Save } from 'lucide-react';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { Controller, type SubmitHandler, useForm, useWatch } from 'react-hook-form';
 import { toast } from 'sonner';
 import type { z } from 'zod';
@@ -28,6 +28,7 @@ interface AddMasterAcademicYearFormProps {
 
 export default function AddMasterAcademicYearForm({ onSuccess, className = '' }: AddMasterAcademicYearFormProps) {
     const { refetchAll } = usePreAdmissionAcademicYear();
+    const [openPopover, setOpenPopover] = useState<string | null>(null);
 
     const {
         control,
@@ -52,6 +53,20 @@ export default function AddMasterAcademicYearForm({ onSuccess, className = '' }:
     // Watch From/To Year to auto-fill asmaY_Year
     const academicFromYear = useWatch({ control, name: 'academicFromYear' });
     const academicToYear = useWatch({ control, name: 'academicToYear' });
+
+    // Auto-increment logic: when From Year changes, set To Year to From Year + 1 if From Year is a valid number
+    useEffect(() => {
+        if (academicFromYear && academicFromYear.length === 4 && !Number.isNaN(Number(academicFromYear))) {
+            const fromYearNum = Number(academicFromYear);
+            const toYearNum = Number(academicToYear);
+            // Only auto-set if To Year is empty or not matching From+1
+            if (!academicToYear || toYearNum !== fromYearNum + 1) {
+                setValue('academicToYear', String(fromYearNum + 1), {
+                    shouldValidate: true
+                });
+            }
+        }
+    }, [academicFromYear, academicToYear, setValue]);
 
     // Watch all "From" dates to restrict "To" dates
     const academicFromDate = useWatch({ control, name: 'asmaY_From_Date' });
@@ -184,7 +199,9 @@ export default function AddMasterAcademicYearForm({ onSuccess, className = '' }:
                                         <Label>
                                             Start Date<span className='text-red-600'> *</span>
                                         </Label>
-                                        <Popover>
+                                        <Popover
+                                            open={openPopover === 'asmaY_From_Date'}
+                                            onOpenChange={(open) => setOpenPopover(open ? 'asmaY_From_Date' : null)}>
                                             <PopoverTrigger asChild>
                                                 <Button
                                                     type='button'
@@ -202,7 +219,10 @@ export default function AddMasterAcademicYearForm({ onSuccess, className = '' }:
                                                 <CalendarYear
                                                     mode='single'
                                                     selected={field.value ? new Date(field.value) : undefined}
-                                                    onSelect={(date) => field.onChange(date?.toISOString())}
+                                                    onSelect={(date) => {
+                                                        field.onChange(date?.toISOString());
+                                                        setOpenPopover(null);
+                                                    }}
                                                     toDate={new Date(new Date().getFullYear() + 1, 11, 31)}
                                                 />
                                             </PopoverContent>
@@ -221,7 +241,9 @@ export default function AddMasterAcademicYearForm({ onSuccess, className = '' }:
                                         <Label>
                                             End Date<span className='text-red-600'> *</span>
                                         </Label>
-                                        <Popover>
+                                        <Popover
+                                            open={openPopover === 'asmaY_To_Date'}
+                                            onOpenChange={(open) => setOpenPopover(open ? 'asmaY_To_Date' : null)}>
                                             <PopoverTrigger asChild>
                                                 <Button
                                                     type='button'
@@ -239,8 +261,11 @@ export default function AddMasterAcademicYearForm({ onSuccess, className = '' }:
                                                 <CalendarYear
                                                     mode='single'
                                                     selected={field.value ? new Date(field.value) : undefined}
-                                                    onSelect={(date) => field.onChange(date?.toISOString())}
-                                                    fromDate={academicFromDate ? new Date(academicFromDate) : undefined}
+                                                    onSelect={(date) => {
+                                                        field.onChange(date?.toISOString());
+                                                        setOpenPopover(null);
+                                                    }}
+                                                    fromDate={academicFromDate ? addDays(new Date(academicFromDate), 1) : undefined}
                                                     toDate={new Date(new Date().getFullYear() + 2, 11, 31)}
                                                 />
                                             </PopoverContent>
@@ -264,7 +289,9 @@ export default function AddMasterAcademicYearForm({ onSuccess, className = '' }:
                                             Pre Admission Start Date
                                             <span className='text-red-600'> *</span>
                                         </Label>
-                                        <Popover>
+                                        <Popover
+                                            open={openPopover === 'asmaY_PreAdm_F_Date'}
+                                            onOpenChange={(open) => setOpenPopover(open ? 'asmaY_PreAdm_F_Date' : null)}>
                                             <PopoverTrigger asChild>
                                                 <Button
                                                     type='button'
@@ -282,7 +309,10 @@ export default function AddMasterAcademicYearForm({ onSuccess, className = '' }:
                                                 <CalendarYear
                                                     mode='single'
                                                     selected={field.value ? new Date(field.value) : undefined}
-                                                    onSelect={(date) => field.onChange(date?.toISOString())}
+                                                    onSelect={(date) => {
+                                                        field.onChange(date?.toISOString());
+                                                        setOpenPopover(null);
+                                                    }}
                                                     toDate={new Date(new Date().getFullYear() + 1, 11, 31)}
                                                 />
                                             </PopoverContent>
@@ -303,7 +333,9 @@ export default function AddMasterAcademicYearForm({ onSuccess, className = '' }:
                                             Pre Admission End Date
                                             <span className='text-red-600'> *</span>
                                         </Label>
-                                        <Popover>
+                                        <Popover
+                                            open={openPopover === 'asmaY_PreAdm_T_Date'}
+                                            onOpenChange={(open) => setOpenPopover(open ? 'asmaY_PreAdm_T_Date' : null)}>
                                             <PopoverTrigger asChild>
                                                 <Button
                                                     type='button'
@@ -321,8 +353,11 @@ export default function AddMasterAcademicYearForm({ onSuccess, className = '' }:
                                                 <CalendarYear
                                                     mode='single'
                                                     selected={field.value ? new Date(field.value) : undefined}
-                                                    onSelect={(date) => field.onChange(date?.toISOString())}
-                                                    fromDate={preAdmFromDate ? new Date(preAdmFromDate) : undefined}
+                                                    onSelect={(date) => {
+                                                        field.onChange(date?.toISOString());
+                                                        setOpenPopover(null);
+                                                    }}
+                                                    fromDate={preAdmFromDate ? addDays(new Date(preAdmFromDate), 1) : undefined}
                                                     toDate={new Date(new Date().getFullYear() + 2, 11, 31)}
                                                 />
                                             </PopoverContent>
@@ -348,7 +383,9 @@ export default function AddMasterAcademicYearForm({ onSuccess, className = '' }:
                                             Pre Admission Age Cut off Date
                                             <span className='text-red-600'> *</span>
                                         </Label>
-                                        <Popover>
+                                        <Popover
+                                            open={openPopover === 'asmaY_Cut_Of_Date'}
+                                            onOpenChange={(open) => setOpenPopover(open ? 'asmaY_Cut_Of_Date' : null)}>
                                             <PopoverTrigger asChild>
                                                 <Button
                                                     type='button'
@@ -366,7 +403,10 @@ export default function AddMasterAcademicYearForm({ onSuccess, className = '' }:
                                                 <CalendarYear
                                                     mode='single'
                                                     selected={field.value ? new Date(field.value) : undefined}
-                                                    onSelect={(date) => field.onChange(date?.toISOString())}
+                                                    onSelect={(date) => {
+                                                        field.onChange(date?.toISOString());
+                                                        setOpenPopover(null);
+                                                    }}
                                                     toDate={new Date(new Date().getFullYear() + 1, 11, 31)}
                                                 />
                                             </PopoverContent>
@@ -384,7 +424,9 @@ export default function AddMasterAcademicYearForm({ onSuccess, className = '' }:
                                 render={({ field }) => (
                                     <div className='flex flex-col gap-1.5'>
                                         <Label>Reference Date</Label>
-                                        <Popover>
+                                        <Popover
+                                            open={openPopover === 'asmaY_ReferenceDate'}
+                                            onOpenChange={(open) => setOpenPopover(open ? 'asmaY_ReferenceDate' : null)}>
                                             <PopoverTrigger asChild>
                                                 <Button
                                                     type='button'
@@ -401,7 +443,10 @@ export default function AddMasterAcademicYearForm({ onSuccess, className = '' }:
                                                 <CalendarYear
                                                     mode='single'
                                                     selected={field.value ? new Date(field.value) : undefined}
-                                                    onSelect={(date) => field.onChange(date?.toISOString())}
+                                                    onSelect={(date) => {
+                                                        field.onChange(date?.toISOString());
+                                                        setOpenPopover(null);
+                                                    }}
                                                 />
                                             </PopoverContent>
                                         </Popover>
@@ -420,7 +465,9 @@ export default function AddMasterAcademicYearForm({ onSuccess, className = '' }:
                                 render={({ field }) => (
                                     <div className='flex flex-col gap-1.5'>
                                         <Label>Transport Start Date</Label>
-                                        <Popover>
+                                        <Popover
+                                            open={openPopover === 'asmaY_TransportSDate'}
+                                            onOpenChange={(open) => setOpenPopover(open ? 'asmaY_TransportSDate' : null)}>
                                             <PopoverTrigger asChild>
                                                 <Button
                                                     type='button'
@@ -437,7 +484,10 @@ export default function AddMasterAcademicYearForm({ onSuccess, className = '' }:
                                                 <CalendarYear
                                                     mode='single'
                                                     selected={field.value ? new Date(field.value) : undefined}
-                                                    onSelect={(date) => field.onChange(date?.toISOString())}
+                                                    onSelect={(date) => {
+                                                        field.onChange(date?.toISOString());
+                                                        setOpenPopover(null);
+                                                    }}
                                                 />
                                             </PopoverContent>
                                         </Popover>
@@ -451,7 +501,9 @@ export default function AddMasterAcademicYearForm({ onSuccess, className = '' }:
                                 render={({ field }) => (
                                     <div className='flex flex-col gap-1.5'>
                                         <Label>Transport End Date</Label>
-                                        <Popover>
+                                        <Popover
+                                            open={openPopover === 'asmaY_TransportEDate'}
+                                            onOpenChange={(open) => setOpenPopover(open ? 'asmaY_TransportEDate' : null)}>
                                             <PopoverTrigger asChild>
                                                 <Button
                                                     type='button'
@@ -468,8 +520,11 @@ export default function AddMasterAcademicYearForm({ onSuccess, className = '' }:
                                                 <CalendarYear
                                                     mode='single'
                                                     selected={field.value ? new Date(field.value) : undefined}
-                                                    onSelect={(date) => field.onChange(date?.toISOString())}
-                                                    fromDate={transportFromDate ? new Date(transportFromDate) : undefined}
+                                                    onSelect={(date) => {
+                                                        field.onChange(date?.toISOString());
+                                                        setOpenPopover(null);
+                                                    }}
+                                                    fromDate={transportFromDate ? addDays(new Date(transportFromDate), 1) : undefined}
                                                 />
                                             </PopoverContent>
                                         </Popover>
@@ -488,7 +543,9 @@ export default function AddMasterAcademicYearForm({ onSuccess, className = '' }:
                                 render={({ field }) => (
                                     <div className='flex flex-col gap-1.5'>
                                         <Label>Financial Year Start Date</Label>
-                                        <Popover>
+                                        <Popover
+                                            open={openPopover === 'asmaY_RegularFeeFDate'}
+                                            onOpenChange={(open) => setOpenPopover(open ? 'asmaY_RegularFeeFDate' : null)}>
                                             <PopoverTrigger asChild>
                                                 <Button
                                                     type='button'
@@ -505,7 +562,10 @@ export default function AddMasterAcademicYearForm({ onSuccess, className = '' }:
                                                 <CalendarYear
                                                     mode='single'
                                                     selected={field.value ? new Date(field.value) : undefined}
-                                                    onSelect={(date) => field.onChange(date?.toISOString())}
+                                                    onSelect={(date) => {
+                                                        field.onChange(date?.toISOString());
+                                                        setOpenPopover(null);
+                                                    }}
                                                 />
                                             </PopoverContent>
                                         </Popover>
@@ -519,7 +579,9 @@ export default function AddMasterAcademicYearForm({ onSuccess, className = '' }:
                                 render={({ field }) => (
                                     <div className='flex flex-col gap-1.5'>
                                         <Label>Financial Year End Date</Label>
-                                        <Popover>
+                                        <Popover
+                                            open={openPopover === 'asmaY_RegularFeeTDate'}
+                                            onOpenChange={(open) => setOpenPopover(open ? 'asmaY_RegularFeeTDate' : null)}>
                                             <PopoverTrigger asChild>
                                                 <Button
                                                     type='button'
@@ -536,8 +598,11 @@ export default function AddMasterAcademicYearForm({ onSuccess, className = '' }:
                                                 <CalendarYear
                                                     mode='single'
                                                     selected={field.value ? new Date(field.value) : undefined}
-                                                    onSelect={(date) => field.onChange(date?.toISOString())}
-                                                    fromDate={regularFeeFromDate ? new Date(regularFeeFromDate) : undefined}
+                                                    onSelect={(date) => {
+                                                        field.onChange(date?.toISOString());
+                                                        setOpenPopover(null);
+                                                    }}
+                                                    fromDate={regularFeeFromDate ? addDays(new Date(regularFeeFromDate), 1) : undefined}
                                                 />
                                             </PopoverContent>
                                         </Popover>
@@ -553,7 +618,9 @@ export default function AddMasterAcademicYearForm({ onSuccess, className = '' }:
                                 render={({ field }) => (
                                     <div className='flex flex-col gap-1.5'>
                                         <Label>Advance Date</Label>
-                                        <Popover>
+                                        <Popover
+                                            open={openPopover === 'asmaY_AdvanceFeeDate'}
+                                            onOpenChange={(open) => setOpenPopover(open ? 'asmaY_AdvanceFeeDate' : null)}>
                                             <PopoverTrigger asChild>
                                                 <Button
                                                     type='button'
@@ -570,7 +637,10 @@ export default function AddMasterAcademicYearForm({ onSuccess, className = '' }:
                                                 <CalendarYear
                                                     mode='single'
                                                     selected={field.value ? new Date(field.value) : undefined}
-                                                    onSelect={(date) => field.onChange(date?.toISOString())}
+                                                    onSelect={(date) => {
+                                                        field.onChange(date?.toISOString());
+                                                        setOpenPopover(null);
+                                                    }}
                                                 />
                                             </PopoverContent>
                                         </Popover>
@@ -584,7 +654,9 @@ export default function AddMasterAcademicYearForm({ onSuccess, className = '' }:
                                 render={({ field }) => (
                                     <div className='flex flex-col gap-1.5'>
                                         <Label>Arrear Date</Label>
-                                        <Popover>
+                                        <Popover
+                                            open={openPopover === 'asmaY_ArrearFeeDate'}
+                                            onOpenChange={(open) => setOpenPopover(open ? 'asmaY_ArrearFeeDate' : null)}>
                                             <PopoverTrigger asChild>
                                                 <Button
                                                     type='button'
@@ -601,7 +673,10 @@ export default function AddMasterAcademicYearForm({ onSuccess, className = '' }:
                                                 <CalendarYear
                                                     mode='single'
                                                     selected={field.value ? new Date(field.value) : undefined}
-                                                    onSelect={(date) => field.onChange(date?.toISOString())}
+                                                    onSelect={(date) => {
+                                                        field.onChange(date?.toISOString());
+                                                        setOpenPopover(null);
+                                                    }}
                                                 />
                                             </PopoverContent>
                                         </Popover>

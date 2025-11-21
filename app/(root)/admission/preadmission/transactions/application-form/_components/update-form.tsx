@@ -10,6 +10,8 @@ import { InputText } from '@/components/ui/extension/input-text';
 import { InputTextarea } from '@/components/ui/extension/input-textarea';
 import { MultiSelect } from '@/components/ui/multi-select';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import PhoneInput from 'react-phone-input-2';
+import 'react-phone-input-2/lib/style.css';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useAcademicYearMasterConfiguration } from '@/hooks/admission/preadmission/useConfigurations';
@@ -34,8 +36,8 @@ import type { IPreadmissionClassDropdown } from '@/types/admission/preadmission/
 import { zodResolver } from '@hookform/resolvers/zod';
 import { format } from 'date-fns';
 import { CalendarIcon, Check, ChevronLeft, ChevronRight, Eye, Save, Trash } from 'lucide-react';
-import { useEffect, useRef, useState } from 'react';
-import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { Controller, type SubmitHandler, useFieldArray, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import type { z } from 'zod';
 import { IneligibleClassesDialog } from './InEligibleDialog';
@@ -85,6 +87,7 @@ const steps = [
 
 export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, className = '' }: UpdateStudentApplicationFormProps) {
     const [currentStep, setCurrentStep] = useState(1);
+    const [phoneValues, setPhoneValues] = useState<Record<string, string>>({});
 
     const {
         watch,
@@ -95,6 +98,8 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
         trigger,
         setValue,
         getValues,
+        setError,
+        clearErrors,
         formState: { errors, isSubmitting }
     } = useForm<FormFields>({
         resolver: zodResolver(studentApplicationFormUpdateSchema.update),
@@ -105,12 +110,39 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
         }
     });
 
+    // Sibling details controlled by react-hook-form
+    const {
+        fields: siblingFields,
+        append: appendSibling,
+        remove,
+        replace: replaceSiblings
+    } = useFieldArray({
+        control,
+        name: 'siblingsDetails'
+    });
+
+    // Previous School Details controlled by react-hook-form
+    const {
+        fields: previousSchoolFields,
+        append: appendPreviousSchool,
+        remove: removePreviousSchool,
+        replace: replacePreviousSchools
+    } = useFieldArray({
+        control,
+        name: 'previousSchoolDetails'
+    });
+
     useEffect(() => {
         if (rowData) {
             const existingId = rowData.pasr_id ?? rowData.pasR_Id ?? rowData.pasRId ?? 0;
             setValue('pasR_Id', existingId);
 
             Object.entries(rowData).forEach(([key, value]) => {
+                // Skip siblingsDetails and previousSchoolDetails - handle them separately
+                if (key === 'siblingsDetails' || key === 'previousSchoolDetails') {
+                    return;
+                }
+
                 if (key === 'pasR_DOB' && value) {
                     setValue(key, new Date(value as string));
                     return;
@@ -152,8 +184,18 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
 
                 setValue(key as any, normalized);
             });
+
             setValue('pasA_WillingToContributeFlg', rowData.pasA_WillingToContributeFlg ? 1 : 0);
             setValue('pasA_WillingToContributeRemarks', rowData.pasA_WillingToContributeRemarks ?? undefined);
+
+            // Handle siblingsDetails and previousSchoolDetails arrays AFTER all other fields
+            if (rowData.siblingsDetails && Array.isArray(rowData.siblingsDetails) && rowData.siblingsDetails.length > 0) {
+                replaceSiblings(rowData.siblingsDetails);
+            }
+
+            if (rowData.previousSchoolDetails && Array.isArray(rowData.previousSchoolDetails) && rowData.previousSchoolDetails.length > 0) {
+                replacePreviousSchools(rowData.previousSchoolDetails);
+            }
 
             if (rowData.selectedSourceDetails) {
                 setSelectedSourceItems(rowData.selectedSourceDetails);
@@ -161,11 +203,8 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
             if (rowData.selectedRefrenceDetails) {
                 setSelectedReferenceItems(rowData.selectedRefrenceDetails);
             }
-            if (rowData.siblingsDetails) {
-                setSiblings(rowData.siblingsDetails);
-            }
-            if (rowData.previousSchoolList?.[0]) {
-                setPreviousSchool(rowData.previousSchoolList[0]);
+            if (rowData.previousSchoolDetails?.[0]) {
+                setPreviousSchool(rowData.previousSchoolDetails[0]);
             }
             if (rowData.selectedDocuments) {
                 setUploadedDocuments(rowData.selectedDocuments);
@@ -192,7 +231,7 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                 });
             }
         }
-    }, [rowData, setValue]);
+    }, [rowData, setValue, replaceSiblings, replacePreviousSchools]);
 
     const [isDobOpen, setIsDobOpen] = useState(false);
     const [filteredClasses, setFilteredClasses] = useState<IPreadmissionClassDropdown[]>([]);
@@ -202,16 +241,6 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
     const [selectedSourceItems, setSelectedSourceItems] = useState<{ pamS_Id: string; pamS_SourceName: string }[]>([]);
     const [selectedReferenceItems, setSelectedReferenceItems] = useState<{ pamR_Id: string; pamR_ReferenceName: string }[]>([]);
     const [sameAsResidential, setSameAsResidential] = useState(false);
-    const [siblings, setSiblings] = useState<
-        Array<{
-            pasrS_Id: number;
-            pasR_Id: number;
-            pasrS_SiblingsName: string;
-            pasrS_SiblingsClass: string;
-            pasrS_SiblingsAdmissionNo: string;
-            pasrS_SiblingsSection: string;
-        }>
-    >([]);
 
     const [previousSchool, setPreviousSchool] = useState({
         pasrpS_Id: 0,
@@ -361,12 +390,18 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                 'pasR_ConCountry',
                 'pasR_ConState',
                 'pasR_ConCity',
+                // include pincode fields so their validation runs when moving to next step
+                'pasR_ConPincode',
                 'pasR_PerStreet',
                 'pasR_PerArea',
                 'pasR_PerCountry',
                 'pasR_PerState',
                 'pasR_PerCity'
             ];
+            // Only validate Permanent pincode when it's not marked same as residential
+            if (!sameAsResidential) {
+                fieldsToValidate.push('pasR_PerPincode');
+            }
         } else if (currentStep === 3) {
             fieldsToValidate = ['pasR_FatherName', 'pasR_FatherNationality', 'pasR_MotherName', 'pasR_MotherNationality'];
 
@@ -406,7 +441,30 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
 
         const isValid = await trigger(fieldsToValidate as any);
 
+        // Additional client-side checks for pincode length because schema is static
         if (isValid) {
+            if (currentStep === 2) {
+                const conPincodeVal = String(watch('pasR_ConPincode') ?? '');
+                if (conZipLength && conPincodeVal !== '' && conPincodeVal.length !== conZipLength) {
+                    setError('pasR_ConPincode', {
+                        type: 'manual',
+                        message: `Pin code must be ${conZipLength} digits`
+                    });
+                    return;
+                }
+
+                if (!sameAsResidential) {
+                    const perPincodeVal = String(watch('pasR_PerPincode') ?? '');
+                    if (perZipLength && perPincodeVal !== '' && perPincodeVal.length !== perZipLength) {
+                        setError('pasR_PerPincode', {
+                            type: 'manual',
+                            message: `Pin code must be ${perZipLength} digits`
+                        });
+                        return;
+                    }
+                }
+            }
+
             setCurrentStep((prev) => Math.min(prev + 1, steps.length));
         }
     };
@@ -415,8 +473,26 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
         setCurrentStep((prev) => Math.max(prev - 1, 1));
     };
 
-    const goToStep = (step: number) => {
-        setCurrentStep(step);
+    const handlePhoneChange = (phone: string, countryData: any, fieldName: string) => {
+        // If empty or equal to dial code only, clear
+        if (!phone || phone === countryData?.dialCode) {
+            setPhoneValues((prev) => ({ ...prev, [fieldName]: '' }));
+            setValue(fieldName as any, '');
+            // trigger validation for this field
+            trigger(fieldName as any);
+            return;
+        }
+
+        const countryCode = countryData?.dialCode || '91';
+        let numberPart = phone.replace(/[^\d]/g, '');
+        if (numberPart.startsWith(countryCode)) {
+            numberPart = numberPart.slice(String(countryCode).length);
+        }
+        const formattedPhone = `+${countryCode} ${numberPart}`;
+        setPhoneValues((prev) => ({ ...prev, [fieldName]: formattedPhone }));
+        // Store only digits as a number in form state
+        setValue(fieldName as any, formattedPhone);
+        trigger(fieldName as any);
     };
 
     const onSubmit: SubmitHandler<FormFields | any> = async (data: FormFields) => {
@@ -492,7 +568,7 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                 selectedRefrenceDetails: selectedReferenceItems.map((item) => ({
                     pamR_Id: item.pamR_Id
                 })),
-                siblingsDetails: siblings.map((sibling) => ({
+                siblingsDetails: (getValues('siblingsDetails') || []).map((sibling: any) => ({
                     ...Object.fromEntries(Object.entries(sibling).filter(([k]) => k !== 'createdDate' && k !== 'updatedDate')),
                     verrejstatus: '',
                     pasrS_SchoolName: '',
@@ -501,20 +577,14 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                     pasrS_Institution: '',
                     pasrS_DOB: ''
                 })),
-                previousSchoolList: previousSchool.pasrpS_PrvSchoolName
-                    ? [
-                          {
-                              ...Object.fromEntries(
-                                  Object.entries(previousSchool).filter(([k]) => k !== 'createdDate' && k !== 'updatedDate')
-                              ),
-                              pasrpS_TcNo: '',
-                              pasrpS_PreviousPer: '',
-                              pasrpS_PreviousGrade: '',
-                              pasrpS_PreviousMarks: '',
-                              pasrpS_ConcOrScholarshipFlg: ''
-                          }
-                      ]
-                    : [],
+                previousSchoolList: (getValues('previousSchoolDetails') || []).map((school: any) => ({
+                    ...school,
+                    pasrpS_TcNo: '',
+                    pasrpS_PreviousPer: '',
+                    pasrpS_PreviousGrade: '',
+                    pasrpS_PreviousMarks: '',
+                    pasrpS_ConcOrScholarshipFlg: ''
+                })),
                 examSubjectDTO: [],
                 elesubsubject: [],
                 selectedDocuments: uploadedDocuments.map((doc) => ({
@@ -530,7 +600,7 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
             const response = await addStudentApplicationForm(payload);
 
             if (response && (response.success === true || response.status === 200)) {
-                toast.success(response.message || 'Form data captured successfully');
+                toast.success('Successfully Updated Student Application ');
                 reset();
                 refetchDropdowns();
                 handleReset();
@@ -551,7 +621,6 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
         setSelectedSourceItems([]);
         setSelectedReferenceItems([]);
         setSameAsResidential(false);
-        setSiblings([]);
         setPreviousSchool({
             pasrpS_Id: 0,
             pasR_Id: 0,
@@ -596,43 +665,41 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
             setValue('pasR_PerState', conState ? Number(conState) : undefined);
             setValue('pasR_PerCity', conCity);
             setValue('pasR_PerPincode', conPincode);
+
+            if (perZipLength && typeof conPincode === 'string') {
+                setValue('pasR_PerPincode', conPincode.slice(0, perZipLength));
+            } else if (perZipLength && typeof conPincode === 'number') {
+                setValue('pasR_PerPincode', String(conPincode).slice(0, perZipLength));
+            } else {
+                setValue('pasR_PerPincode', conPincode);
+            }
         }
     };
 
     const addSibling = () => {
-        setSiblings([
-            ...siblings,
-            {
-                pasrS_Id: 0,
-                pasR_Id: 0,
-                pasrS_SiblingsName: '',
-                pasrS_SiblingsClass: '',
-                pasrS_SiblingsAdmissionNo: '',
-                pasrS_SiblingsSection: ''
-            }
-        ]);
-    };
-
-    const removeSibling = (index: number) => {
-        setSiblings(siblings.filter((_, i) => i !== index));
-    };
-
-    const updateSibling = (index: number, field: string, value: string) => {
-        const updatedSiblings = siblings.map((sibling, i) => {
-            if (i === index) {
-                return { ...sibling, [field]: value };
-            }
-            return sibling;
+        appendSibling({
+            pasrS_Id: 0,
+            pasrS_SiblingsName: '',
+            pasrS_SiblingsClass: '',
+            pasrS_SiblingsAdmissionNo: '',
+            pasrS_SiblingsSection: ''
         });
-        setSiblings(updatedSiblings);
-    };
-
-    const updatePreviousSchool = (field: string, value: string) => {
-        setPreviousSchool({ ...previousSchool, [field]: value });
     };
 
     const handleDocumentUpload = async (amsmD_Id: number, file: File, documentName: string) => {
         try {
+            // Restrict file size to 5MB
+            if (file.size > 5 * 1024 * 1024) {
+                toast.error('File size should not exceed 5MB');
+                return;
+            }
+
+            const allowedTypes = ['application/pdf', 'image/jpeg', 'image/jpg', 'image/png'];
+
+            if (!allowedTypes.includes(file.type)) {
+                toast.error(' Only Pdf, PNG, JPG, and JPEG formats are allowed');
+                return;
+            }
             setUploadedDocuments((prev) => {
                 const existingIndex = prev.findIndex((doc) => doc.amsmD_Id === amsmD_Id);
 
@@ -725,6 +792,18 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
 
     const handleStudentPhotoUpload = async (file: File) => {
         try {
+            // Validate file type
+            const allowedFormats = ['image/jpeg', 'image/jpg', 'image/png'];
+            if (!allowedFormats.includes(file.type)) {
+                toast.error('Only PNG, JPG, and JPEG formats are allowed');
+                return;
+            }
+            // Restrict photo size to 5MB
+            if (file.size > 5 * 1024 * 1024) {
+                toast.error('Photo size should not exceed 5MB');
+                return;
+            }
+
             setStudentPhoto({ pasR_Student_Pic_Path: '', isUploading: true });
             setStudentPhotoError(null);
 
@@ -770,6 +849,18 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
 
     const handleFatherPhotoUpload = async (file: File) => {
         try {
+            // Validate file type
+            const allowedFormats = ['image/jpeg', 'image/jpg', 'image/png'];
+            if (!allowedFormats.includes(file.type)) {
+                toast.error('Only PNG, JPG, and JPEG formats are allowed');
+                return;
+            }
+            // Restrict photo size to 5MB
+            if (file.size > 5 * 1024 * 1024) {
+                toast.error('Photo size should not exceed 5MB');
+                return;
+            }
+
             setFatherPhoto({ pasR_FatherPhoto: '', isUploading: true });
             setFatherPhotoError(null);
 
@@ -815,6 +906,18 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
 
     const handleMotherPhotoUpload = async (file: File) => {
         try {
+            // Validate file type
+            const allowedFormats = ['image/jpeg', 'image/jpg', 'image/png'];
+            if (!allowedFormats.includes(file.type)) {
+                toast.error('Only PNG, JPG, and JPEG formats are allowed');
+                return;
+            }
+            // Restrict photo size to 5MB
+            if (file.size > 5 * 1024 * 1024) {
+                toast.error('Photo size should not exceed 5MB');
+                return;
+            }
+
             setMotherPhoto({ pasR_MotherPhoto: '', isUploading: true });
             setMotherPhotoError(null);
 
@@ -953,6 +1056,37 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
             }
         }
     };
+    // derive zip/pincode length allowed from selected country (useMemo to wait for data)
+
+    const conCountryObj = useMemo(() => {
+        if (!country?.data || conConuntryId === undefined || conConuntryId === null || conConuntryId === '') return undefined;
+        return country.data.find((c: any) => String(c.ivrmmC_Id) === String(conConuntryId));
+    }, [country?.data, conConuntryId]);
+
+    const perCountryObj = useMemo(() => {
+        if (!country?.data || perConuntryId === undefined || perConuntryId === null || perConuntryId === '') return undefined;
+        return country.data.find((c: any) => String(c.ivrmmC_Id) === String(perConuntryId));
+    }, [country?.data, perConuntryId]);
+
+    const conZipLength: number | undefined = conCountryObj?.ivrmmC_ZipNoLength ?? undefined;
+    const perZipLength: number | undefined = perCountryObj?.ivrmmC_ZipNoLength ?? undefined;
+
+    const prevConCountryRef = useRef<any>(undefined);
+    const prevPerCountryRef = useRef<any>(undefined);
+
+    useEffect(() => {
+        if (prevConCountryRef.current !== undefined && String(prevConCountryRef.current) !== String(conConuntryId)) {
+            setValue('pasR_ConPincode', '');
+        }
+        prevConCountryRef.current = conConuntryId;
+    }, [conConuntryId, setValue]);
+
+    useEffect(() => {
+        if (prevPerCountryRef.current !== undefined && String(prevPerCountryRef.current) !== String(perConuntryId)) {
+            setValue('pasR_PerPincode', '');
+        }
+        prevPerCountryRef.current = perConuntryId;
+    }, [perConuntryId, setValue]);
 
     return (
         <>
@@ -1172,7 +1306,7 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                                                                         Click to upload
                                                                     </span>
                                                                     <span className='mt-1 max-w-[250px] text-gray-600 text-sm'>
-                                                                        Upload recent passport-size photo (Max size: 1MB, Format: JPG, PNG)
+                                                                        Upload recent passport-size photo (Max size: 5MB, Format: JPG, PNG)
                                                                     </span>
                                                                 </>
                                                             )}
@@ -1185,8 +1319,8 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                                                                 onChange={(e) => {
                                                                     const file = e.target.files?.[0];
                                                                     if (file) {
-                                                                        if (file.size > 1 * 1024 * 1024) {
-                                                                            toast.error('File size must be less than 1MB');
+                                                                        if (file.size > 5 * 1024 * 1024) {
+                                                                            toast.error('File size must be less than 5MB');
                                                                             e.target.value = '';
                                                                             return;
                                                                         }
@@ -1321,20 +1455,45 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                                                 />
                                                 {errors.pasR_DOB && <FormError>{errors.pasR_DOB.message}</FormError>}
                                             </div>
-                                            <div className='flex flex-col gap-1.5'>
+                                            <div className='flex flex-col gap-1.5 '>
                                                 <Controller
                                                     name='pasR_MobileNo'
                                                     control={control}
                                                     render={({ field }) => (
-                                                        <MobileNumberInput
-                                                            label='Mobile No.'
-                                                            id='pasR_MobileNo'
-                                                            required
-                                                            value={field.value === '' || field.value == null ? '' : field.value}
-                                                            onChange={(value) => field.onChange(value)}
-                                                            type='number'
-                                                            showSpinner={false}
-                                                        />
+                                                        <div>
+                                                            <Label htmlFor='pasR_MobileNo'>
+                                                                Mobile No.
+                                                                <span className='ml-1 text-red-500'>*</span>
+                                                            </Label>
+                                                            <PhoneInput
+                                                                country='in'
+                                                                value={
+                                                                    phoneValues['pasR_MobileNo'] ??
+                                                                    (field.value != null ? String(field.value) : null)
+                                                                }
+                                                                onChange={(phone: any, countryData: any) =>
+                                                                    handlePhoneChange(phone, countryData, 'pasR_MobileNo')
+                                                                }
+                                                                onBlur={() => trigger('pasR_MobileNo')}
+                                                                inputProps={{
+                                                                    id: 'pasR_MobileNo',
+                                                                    name: 'pasR_MobileNo',
+                                                                    required: false,
+                                                                    style: {
+                                                                        width: '87%',
+                                                                        height: '36px',
+                                                                        marginLeft: '40px',
+                                                                        boxSizing: 'border-box',
+                                                                        borderRadius: '4px',
+                                                                        padding: '16.5px 14px',
+                                                                        fontSize: '16px'
+                                                                    }
+                                                                }}
+                                                                containerClass='w-full'
+                                                                inputClass='w-full px-4 py-2 rounded border text-sm focus:outline-none focus:ring-2 focus:ring-blue-500'
+                                                                enableSearch
+                                                            />
+                                                        </div>
                                                     )}
                                                 />
                                                 {errors.pasR_MobileNo && <FormError>{errors.pasR_MobileNo.message}</FormError>}
@@ -1784,15 +1943,61 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                                                         <Controller
                                                             name='pasR_ConPincode'
                                                             control={control}
+                                                            rules={
+                                                                conZipLength
+                                                                    ? {
+                                                                          minLength: {
+                                                                              value: conZipLength,
+                                                                              message: `Pin code must be ${conZipLength} digits`
+                                                                          },
+                                                                          maxLength: {
+                                                                              value: conZipLength,
+                                                                              message: `Pin code must be ${conZipLength} digits`
+                                                                          }
+                                                                      }
+                                                                    : undefined
+                                                            }
                                                             render={({ field }) => (
-                                                                <MobileNumberInput
-                                                                    label='Pin Code/Zip Code'
-                                                                    id='pasR_ConPincode'
-                                                                    value={field.value === '' || field.value == null ? '' : field.value}
-                                                                    onChange={(value) => field.onChange(value)}
-                                                                    type='number'
-                                                                    showSpinner={false}
-                                                                />
+                                                                <>
+                                                                    <MobileNumberInput
+                                                                        label='Pin Code/Zip Code'
+                                                                        id='pasR_ConPincode'
+                                                                        value={field.value}
+                                                                        onChange={(valueOrEvent: any) => {
+                                                                            // MobileNumberInput forwards the input event; accept either event or string
+                                                                            const raw = valueOrEvent?.target?.value ?? valueOrEvent;
+                                                                            const str = raw == null ? '' : String(raw).replace(/\D/g, '');
+                                                                            const truncated = conZipLength
+                                                                                ? str.slice(0, conZipLength)
+                                                                                : str;
+                                                                            field.onChange(truncated);
+                                                                            // Set/clear manual error so message appears immediately
+                                                                            if (
+                                                                                conZipLength &&
+                                                                                truncated !== '' &&
+                                                                                String(truncated).length !== conZipLength
+                                                                            ) {
+                                                                                setError('pasR_ConPincode', {
+                                                                                    type: 'manual',
+                                                                                    message: `Pin code must be ${conZipLength} digits`
+                                                                                });
+                                                                            } else {
+                                                                                clearErrors('pasR_ConPincode');
+                                                                            }
+                                                                            // trigger resolver validation as well
+                                                                            trigger('pasR_ConPincode');
+                                                                        }}
+                                                                        minLength={conZipLength}
+                                                                        maxLength={conZipLength}
+                                                                        type='number'
+                                                                        showSpinner={false}
+                                                                    />
+                                                                    {conCountryObj && conZipLength && (
+                                                                        <span className='mt-1 text-muted-foreground text-xs'>
+                                                                            {`Pin code must be ${conZipLength} digits for ${conCountryObj.ivrmmC_CountryName}`}
+                                                                        </span>
+                                                                    )}
+                                                                </>
                                                             )}
                                                         />
                                                         {errors.pasR_ConPincode && <FormError>{errors.pasR_ConPincode.message}</FormError>}
@@ -1917,16 +2122,61 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                                                         <Controller
                                                             name='pasR_PerPincode'
                                                             control={control}
+                                                            rules={
+                                                                perZipLength
+                                                                    ? {
+                                                                          minLength: {
+                                                                              value: perZipLength,
+                                                                              message: `Pin code must be ${perZipLength} digits`
+                                                                          },
+                                                                          maxLength: {
+                                                                              value: perZipLength,
+                                                                              message: `Pin code must be ${perZipLength} digits`
+                                                                          }
+                                                                      }
+                                                                    : undefined
+                                                            }
                                                             render={({ field }) => (
-                                                                <MobileNumberInput
-                                                                    label='Pin Code/Zip Code'
-                                                                    id='pasR_PerPincode'
-                                                                    value={field.value === '' || field.value == null ? '' : field.value}
-                                                                    onChange={(value) => field.onChange(value)}
-                                                                    type='number'
-                                                                    showSpinner={false}
-                                                                    disabled={sameAsResidential}
-                                                                />
+                                                                <>
+                                                                    <MobileNumberInput
+                                                                        label='Pin Code/Zip Code'
+                                                                        id='pasR_PerPincode'
+                                                                        value={field.value}
+                                                                        onChange={(valueOrEvent: any) => {
+                                                                            const raw = valueOrEvent?.target?.value ?? valueOrEvent;
+                                                                            const str = raw == null ? '' : String(raw).replace(/\D/g, '');
+                                                                            const truncated = perZipLength
+                                                                                ? str.slice(0, perZipLength)
+                                                                                : str;
+                                                                            field.onChange(truncated);
+                                                                            // Set/clear manual error so message appears immediately
+                                                                            if (
+                                                                                perZipLength &&
+                                                                                truncated !== '' &&
+                                                                                String(truncated).length !== perZipLength
+                                                                            ) {
+                                                                                setError('pasR_PerPincode', {
+                                                                                    type: 'manual',
+                                                                                    message: `Pin code must be ${perZipLength} digits`
+                                                                                });
+                                                                            } else {
+                                                                                clearErrors('pasR_PerPincode');
+                                                                            }
+                                                                            // trigger resolver validation as well
+                                                                            trigger('pasR_PerPincode');
+                                                                        }}
+                                                                        minLength={perZipLength}
+                                                                        maxLength={perZipLength}
+                                                                        type='number'
+                                                                        showSpinner={false}
+                                                                        disabled={sameAsResidential}
+                                                                    />
+                                                                    {perCountryObj && perZipLength && (
+                                                                        <span className='mt-1 text-muted-foreground text-xs'>
+                                                                            {`Pin code must be ${perZipLength} digits for ${perCountryObj.ivrmmC_CountryName}`}
+                                                                        </span>
+                                                                    )}
+                                                                </>
                                                             )}
                                                         />
                                                         {errors.pasR_PerPincode && <FormError>{errors.pasR_PerPincode.message}</FormError>}
@@ -2031,7 +2281,7 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                                                                                 Click to upload
                                                                             </span>
                                                                             <span className='mt-1 max-w-[250px] text-gray-600 text-sm'>
-                                                                                Upload recent passport-size photo (Max size: 1MB, Format:
+                                                                                Upload recent passport-size photo (Max size: 5MB, Format:
                                                                                 JPG, PNG)
                                                                             </span>
                                                                         </>
@@ -2045,8 +2295,8 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                                                                         onChange={(e) => {
                                                                             const file = e.target.files?.[0];
                                                                             if (file) {
-                                                                                if (file.size > 1 * 1024 * 1024) {
-                                                                                    toast.error('File size must be less than 1MB');
+                                                                                if (file.size > 5 * 1024 * 1024) {
+                                                                                    toast.error('File size must be less than 5MB');
                                                                                     e.target.value = '';
                                                                                     return;
                                                                                 }
@@ -2189,19 +2439,42 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                                                         {...register('pasR_FatherOfficeAddr')}
                                                         error={errors.pasR_FatherOfficeAddr?.message}
                                                     />
-                                                    <div className='flex flex-col gap-1.5'>
+                                                    <div className='flex flex-col gap-1.5 '>
                                                         <Controller
                                                             name='pasR_FatherMobleNo'
                                                             control={control}
                                                             render={({ field }) => (
-                                                                <MobileNumberInput
-                                                                    label='Mobile No.'
-                                                                    id='pasR_FatherMobleNo'
-                                                                    value={field.value === '' || field.value == null ? '' : field.value}
-                                                                    onChange={(value) => field.onChange(value)}
-                                                                    type='number'
-                                                                    showSpinner={false}
-                                                                />
+                                                                <div>
+                                                                    <Label htmlFor='pasR_FatherMobleNo'>Mobile No.</Label>
+                                                                    <PhoneInput
+                                                                        country='in'
+                                                                        value={
+                                                                            phoneValues['pasR_FatherMobleNo'] ??
+                                                                            (field.value != null ? String(field.value) : null)
+                                                                        }
+                                                                        onChange={(phone: any, countryData: any) =>
+                                                                            handlePhoneChange(phone, countryData, 'pasR_FatherMobleNo')
+                                                                        }
+                                                                        onBlur={() => trigger('pasR_FatherMobleNo')}
+                                                                        inputProps={{
+                                                                            id: 'pasR_FatherMobleNo',
+                                                                            name: 'pasR_FatherMobleNo',
+                                                                            required: false,
+                                                                            style: {
+                                                                                width: '87%',
+                                                                                height: '36px',
+                                                                                marginLeft: '40px',
+                                                                                boxSizing: 'border-box',
+                                                                                borderRadius: '4px',
+                                                                                padding: '16.5px 14px',
+                                                                                fontSize: '16px'
+                                                                            }
+                                                                        }}
+                                                                        containerClass='w-full'
+                                                                        inputClass='w-full px-4 py-2 rounded border text-sm focus:outline-none focus:ring-2 focus:ring-blue-500'
+                                                                        enableSearch
+                                                                    />
+                                                                </div>
                                                             )}
                                                         />
                                                         {errors.pasR_FatherMobleNo && (
@@ -2219,6 +2492,7 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                                                                     value={field.value || 0}
                                                                     onChange={(value) => field.onChange(Number.isNaN(value) ? 0 : value)}
                                                                     minValue={0}
+                                                                    maxDigits={15}
                                                                 />
                                                             )}
                                                         />
@@ -2342,7 +2616,7 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                                                                                 Click to upload
                                                                             </span>
                                                                             <span className='mt-1 max-w-[250px] text-gray-600 text-sm'>
-                                                                                Upload recent passport-size photo (Max size: 1MB, Format:
+                                                                                Upload recent passport-size photo (Max size: 5MB, Format:
                                                                                 JPG, PNG)
                                                                             </span>
                                                                         </>
@@ -2356,8 +2630,8 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                                                                         onChange={(e) => {
                                                                             const file = e.target.files?.[0];
                                                                             if (file) {
-                                                                                if (file.size > 1 * 1024 * 1024) {
-                                                                                    toast.error('File size must be less than 1MB');
+                                                                                if (file.size > 5 * 1024 * 1024) {
+                                                                                    toast.error('File size must be less than 5MB');
                                                                                     e.target.value = '';
                                                                                     return;
                                                                                 }
@@ -2500,19 +2774,42 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                                                         {...register('pasR_MotherOfficeAddr')}
                                                         error={errors.pasR_MotherOfficeAddr?.message}
                                                     />
-                                                    <div className='flex flex-col gap-1.5'>
+                                                    <div className='flex flex-col gap-1.5 '>
                                                         <Controller
                                                             name='pasR_MotherMobleNo'
                                                             control={control}
                                                             render={({ field }) => (
-                                                                <MobileNumberInput
-                                                                    label='Mobile No.'
-                                                                    id='pasR_MotherMobleNo'
-                                                                    value={field.value === '' || field.value == null ? '' : field.value}
-                                                                    onChange={(value) => field.onChange(value)}
-                                                                    type='number'
-                                                                    showSpinner={false}
-                                                                />
+                                                                <div>
+                                                                    <Label htmlFor='pasR_MotherMobleNo'>Mobile No.</Label>
+                                                                    <PhoneInput
+                                                                        country='in'
+                                                                        value={
+                                                                            phoneValues['pasR_MotherMobleNo'] ??
+                                                                            (field.value != null ? String(field.value) : null)
+                                                                        }
+                                                                        onChange={(phone: any, countryData: any) =>
+                                                                            handlePhoneChange(phone, countryData, 'pasR_MotherMobleNo')
+                                                                        }
+                                                                        onBlur={() => trigger('pasR_MotherMobleNo')}
+                                                                        inputProps={{
+                                                                            id: 'pasR_MotherMobleNo',
+                                                                            name: 'pasR_MotherMobleNo',
+                                                                            required: false,
+                                                                            style: {
+                                                                                width: '87%',
+                                                                                height: '36px',
+                                                                                marginLeft: '40px',
+                                                                                boxSizing: 'border-box',
+                                                                                borderRadius: '4px',
+                                                                                padding: '16.5px 14px',
+                                                                                fontSize: '16px'
+                                                                            }
+                                                                        }}
+                                                                        containerClass='w-full'
+                                                                        inputClass='w-full px-4 py-2 rounded border text-sm focus:outline-none focus:ring-2 focus:ring-blue-500'
+                                                                        enableSearch
+                                                                    />
+                                                                </div>
                                                             )}
                                                         />
                                                         {errors.pasR_MotherMobleNo && (
@@ -2571,19 +2868,42 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                                             <div className='space-y-4'>
                                                 <h3 className='font-semibold text-gray-800 text-lg'>Additional Contact</h3>
                                                 <div className='grid grid-cols-1 gap-6 md:grid-cols-2'>
-                                                    <div className='flex flex-col gap-1.5'>
+                                                    <div className='flex flex-col gap-1.5 '>
                                                         <Controller
                                                             name='pasR_AltContactNo'
                                                             control={control}
                                                             render={({ field }) => (
-                                                                <MobileNumberInput
-                                                                    label='Alternate Contact No.'
-                                                                    id='pasR_AltContactNo'
-                                                                    value={field.value === '' || field.value == null ? '' : field.value}
-                                                                    onChange={(value) => field.onChange(value)}
-                                                                    type='number'
-                                                                    showSpinner={false}
-                                                                />
+                                                                <div>
+                                                                    <Label htmlFor='pasR_AltContactNo'>Mobile No.</Label>
+                                                                    <PhoneInput
+                                                                        country='in'
+                                                                        value={
+                                                                            phoneValues['pasR_AltContactNo'] ??
+                                                                            (field.value != null ? String(field.value) : null)
+                                                                        }
+                                                                        onChange={(phone: any, countryData: any) =>
+                                                                            handlePhoneChange(phone, countryData, 'pasR_AltContactNo')
+                                                                        }
+                                                                        onBlur={() => trigger('pasR_AltContactNo')}
+                                                                        inputProps={{
+                                                                            id: 'pasR_AltContactNo',
+                                                                            name: 'pasR_AltContactNo',
+                                                                            required: false,
+                                                                            style: {
+                                                                                width: '87%',
+                                                                                height: '36px',
+                                                                                marginLeft: '40px',
+                                                                                boxSizing: 'border-box',
+                                                                                borderRadius: '4px',
+                                                                                padding: '16.5px 14px',
+                                                                                fontSize: '16px'
+                                                                            }
+                                                                        }}
+                                                                        containerClass='w-full'
+                                                                        inputClass='w-full px-4 py-2 rounded border text-sm focus:outline-none focus:ring-2 focus:ring-blue-500'
+                                                                        enableSearch
+                                                                    />
+                                                                </div>
                                                             )}
                                                         />
                                                         {errors.pasR_AltContactNo && (
@@ -2791,9 +3111,9 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                                                                                     onChange={(e) => {
                                                                                         const file = e.target.files?.[0];
                                                                                         if (file) {
-                                                                                            if (file.size > 1 * 1024 * 1024) {
+                                                                                            if (file.size > 5 * 1024 * 1024) {
                                                                                                 toast.error(
-                                                                                                    'File size must be less than 1MB'
+                                                                                                    'File size must be less than 5MB'
                                                                                                 );
                                                                                                 e.target.value = ''; // Reset input
                                                                                                 return;
@@ -2917,7 +3237,7 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                                             </p>
                                         </div>
 
-                                        {/* Sibling Details Section */}
+                                        {/* Sibling Details Section (controlled) */}
                                         <div className='space-y-4'>
                                             <div className='flex items-center justify-between'>
                                                 <h3 className='font-semibold text-gray-800 text-lg'>Sibling Details</h3>
@@ -2933,62 +3253,89 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                                                 </Button>
                                             </div>
 
-                                            {siblings.length === 0 ? (
+                                            {siblingFields.length === 0 ? (
                                                 <p className='text-gray-500 text-sm'>
                                                     No siblings added yet. Click "Add Sibling" to add details.
                                                 </p>
                                             ) : (
                                                 <div className='space-y-4'>
-                                                    {siblings.map((sibling, index) => (
-                                                        <div key={index} className='rounded-lg border border-gray-200 bg-gray-50 p-4'>
+                                                    {siblingFields.map((field, index) => (
+                                                        <div key={field.id} className='rounded-lg border border-gray-200 bg-gray-50 p-4'>
                                                             <div className='mb-3 flex items-center justify-between'>
                                                                 <h4 className='font-medium text-gray-700 text-sm'>Sibling {index + 1}</h4>
                                                                 <Button
                                                                     type='button'
                                                                     variant='ghost'
                                                                     size='sm'
-                                                                    onClick={() => removeSibling(index)}
+                                                                    onClick={() => remove(index)}
                                                                     disabled={isSubmitting}
                                                                     className='h-8 w-fit bg-error text-white'>
                                                                     Remove
                                                                 </Button>
                                                             </div>
                                                             <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
-                                                                <InputText
-                                                                    label='Sibling Name'
-                                                                    id={`sibling_name_${index}`}
-                                                                    placeholder='Enter sibling name'
-                                                                    value={sibling.pasrS_SiblingsName}
-                                                                    onChange={(e) =>
-                                                                        updateSibling(index, 'pasrS_SiblingsName', e.target.value)
-                                                                    }
+                                                                <Controller
+                                                                    name={`siblingsDetails.${index}.pasrS_SiblingsName`}
+                                                                    control={control}
+                                                                    render={({ field }) => (
+                                                                        <InputText
+                                                                            label='Sibling Name'
+                                                                            id={`sibling_name_${index}`}
+                                                                            placeholder='Enter sibling name'
+                                                                            {...field}
+                                                                            error={
+                                                                                errors.siblingsDetails?.[index]?.pasrS_SiblingsName?.message
+                                                                            }
+                                                                        />
+                                                                    )}
                                                                 />
-                                                                <InputText
-                                                                    label='Class'
-                                                                    id={`sibling_class_${index}`}
-                                                                    placeholder='Enter class'
-                                                                    value={sibling.pasrS_SiblingsClass}
-                                                                    onChange={(e) =>
-                                                                        updateSibling(index, 'pasrS_SiblingsClass', e.target.value)
-                                                                    }
+                                                                <Controller
+                                                                    name={`siblingsDetails.${index}.pasrS_SiblingsClass`}
+                                                                    control={control}
+                                                                    render={({ field }) => (
+                                                                        <InputText
+                                                                            label='Class'
+                                                                            id={`sibling_class_${index}`}
+                                                                            placeholder='Enter class'
+                                                                            {...field}
+                                                                            error={
+                                                                                errors.siblingsDetails?.[index]?.pasrS_SiblingsClass
+                                                                                    ?.message
+                                                                            }
+                                                                        />
+                                                                    )}
                                                                 />
-                                                                <InputText
-                                                                    label='Admission No'
-                                                                    id={`sibling_admission_${index}`}
-                                                                    placeholder='Enter admission number'
-                                                                    value={sibling.pasrS_SiblingsAdmissionNo}
-                                                                    onChange={(e) =>
-                                                                        updateSibling(index, 'pasrS_SiblingsAdmissionNo', e.target.value)
-                                                                    }
+                                                                <Controller
+                                                                    name={`siblingsDetails.${index}.pasrS_SiblingsAdmissionNo`}
+                                                                    control={control}
+                                                                    render={({ field }) => (
+                                                                        <InputText
+                                                                            label='Admission No'
+                                                                            id={`sibling_admission_${index}`}
+                                                                            placeholder='Enter admission number'
+                                                                            {...field}
+                                                                            error={
+                                                                                errors.siblingsDetails?.[index]?.pasrS_SiblingsAdmissionNo
+                                                                                    ?.message
+                                                                            }
+                                                                        />
+                                                                    )}
                                                                 />
-                                                                <InputText
-                                                                    label='Section'
-                                                                    id={`sibling_section_${index}`}
-                                                                    placeholder='Enter section'
-                                                                    value={sibling.pasrS_SiblingsSection}
-                                                                    onChange={(e) =>
-                                                                        updateSibling(index, 'pasrS_SiblingsSection', e.target.value)
-                                                                    }
+                                                                <Controller
+                                                                    name={`siblingsDetails.${index}.pasrS_SiblingsSection`}
+                                                                    control={control}
+                                                                    render={({ field }) => (
+                                                                        <InputText
+                                                                            label='Section'
+                                                                            id={`sibling_section_${index}`}
+                                                                            placeholder='Enter section'
+                                                                            {...field}
+                                                                            error={
+                                                                                errors.siblingsDetails?.[index]?.pasrS_SiblingsSection
+                                                                                    ?.message
+                                                                            }
+                                                                        />
+                                                                    )}
                                                                 />
                                                             </div>
                                                         </div>
@@ -3000,50 +3347,149 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                                         {/* Previous School Details Section */}
                                         <div className='space-y-4'>
                                             <h3 className='font-semibold text-gray-800 text-lg'>Previous School Details</h3>
-                                            <div className='grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3'>
-                                                <InputText
-                                                    label='Previous School Name'
-                                                    id='pasrpS_PrvSchoolName'
-                                                    placeholder='Enter school name'
-                                                    value={previousSchool.pasrpS_PrvSchoolName}
-                                                    onChange={(e) => updatePreviousSchool('pasrpS_PrvSchoolName', e.target.value)}
-                                                />
-                                                <InputText
-                                                    label='Previous Class'
-                                                    id='pasrpS_PreviousClass'
-                                                    placeholder='Enter class'
-                                                    value={previousSchool.pasrpS_PreviousClass}
-                                                    onChange={(e) => updatePreviousSchool('pasrpS_PreviousClass', e.target.value)}
-                                                />
-                                                <InputText
-                                                    label='Board'
-                                                    id='pasrpS_Board'
-                                                    placeholder='Enter board'
-                                                    value={previousSchool.pasrpS_Board}
-                                                    onChange={(e) => updatePreviousSchool('pasrpS_Board', e.target.value)}
-                                                />
-                                                <InputText
-                                                    label='Left Year'
-                                                    id='pasrpS_LeftYear'
-                                                    placeholder='Enter year'
-                                                    value={previousSchool.pasrpS_LeftYear}
-                                                    onChange={(e) => updatePreviousSchool('pasrpS_LeftYear', e.target.value)}
-                                                />
-                                                <InputText
-                                                    label='Reason for Leaving'
-                                                    id='pasrpS_LeftReason'
-                                                    placeholder='Enter reason'
-                                                    value={previousSchool.pasrpS_LeftReason}
-                                                    onChange={(e) => updatePreviousSchool('pasrpS_LeftReason', e.target.value)}
-                                                />
-                                                <InputText
-                                                    label='School Address'
-                                                    id='pasrpS_Address'
-                                                    placeholder='Enter address'
-                                                    value={previousSchool.pasrpS_Address}
-                                                    onChange={(e) => updatePreviousSchool('pasrpS_Address', e.target.value)}
-                                                />
+                                            <div className='mb-2'>
+                                                <Button
+                                                    type='button'
+                                                    variant='outline'
+                                                    onClick={() =>
+                                                        appendPreviousSchool({
+                                                            pasrpS_PrvSchoolName: '',
+                                                            pasrpS_PreviousClass: '',
+                                                            pasrpS_Board: '',
+                                                            pasrpS_LeftYear: '',
+                                                            pasrpS_LeftReason: '',
+                                                            pasrpS_Address: ''
+                                                        })
+                                                    }
+                                                    disabled={isSubmitting}
+                                                    className='w-fit'>
+                                                    <span className='mr-2'>+</span>
+                                                    Add Previous School
+                                                </Button>
                                             </div>
+                                            {previousSchoolFields.length === 0 ? (
+                                                <p className='text-gray-500 text-sm'>
+                                                    No previous school details added yet. Click "Add Previous School" to add details.
+                                                </p>
+                                            ) : (
+                                                <div className='space-y-4'>
+                                                    {previousSchoolFields.map((field, index) => (
+                                                        <div key={field.id} className='rounded-lg border border-gray-200 bg-gray-50 p-4'>
+                                                            <div className='mb-3 flex items-center justify-between'>
+                                                                <h4 className='font-medium text-gray-700 text-sm'>
+                                                                    Previous School {index + 1}
+                                                                </h4>
+                                                                <Button
+                                                                    type='button'
+                                                                    variant='ghost'
+                                                                    size='sm'
+                                                                    onClick={() => removePreviousSchool(index)}
+                                                                    disabled={isSubmitting}
+                                                                    className='h-8 w-fit bg-error text-white'>
+                                                                    Remove
+                                                                </Button>
+                                                            </div>
+                                                            <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
+                                                                <Controller
+                                                                    name={`previousSchoolDetails.${index}.pasrpS_PrvSchoolName`}
+                                                                    control={control}
+                                                                    render={({ field }) => (
+                                                                        <InputText
+                                                                            label='Previous School Name'
+                                                                            id={`prev_school_name_${index}`}
+                                                                            placeholder='Enter school name'
+                                                                            {...field}
+                                                                            error={
+                                                                                errors.previousSchoolDetails?.[index]?.pasrpS_PrvSchoolName
+                                                                                    ?.message
+                                                                            }
+                                                                        />
+                                                                    )}
+                                                                />
+                                                                <Controller
+                                                                    name={`previousSchoolDetails.${index}.pasrpS_PreviousClass`}
+                                                                    control={control}
+                                                                    render={({ field }) => (
+                                                                        <InputText
+                                                                            label='Previous Class'
+                                                                            id={`prev_class_${index}`}
+                                                                            placeholder='Enter class'
+                                                                            {...field}
+                                                                            error={
+                                                                                errors.previousSchoolDetails?.[index]?.pasrpS_PreviousClass
+                                                                                    ?.message
+                                                                            }
+                                                                        />
+                                                                    )}
+                                                                />
+                                                                <Controller
+                                                                    name={`previousSchoolDetails.${index}.pasrpS_Board`}
+                                                                    control={control}
+                                                                    render={({ field }) => (
+                                                                        <InputText
+                                                                            label='Board'
+                                                                            id={`prev_board_${index}`}
+                                                                            placeholder='Enter board'
+                                                                            {...field}
+                                                                            error={
+                                                                                errors.previousSchoolDetails?.[index]?.pasrpS_Board?.message
+                                                                            }
+                                                                        />
+                                                                    )}
+                                                                />
+                                                                <Controller
+                                                                    name={`previousSchoolDetails.${index}.pasrpS_LeftYear`}
+                                                                    control={control}
+                                                                    render={({ field }) => (
+                                                                        <InputText
+                                                                            label='Left Year'
+                                                                            id={`prev_left_year_${index}`}
+                                                                            placeholder='Enter year'
+                                                                            {...field}
+                                                                            error={
+                                                                                errors.previousSchoolDetails?.[index]?.pasrpS_LeftYear
+                                                                                    ?.message
+                                                                            }
+                                                                        />
+                                                                    )}
+                                                                />
+                                                                <Controller
+                                                                    name={`previousSchoolDetails.${index}.pasrpS_LeftReason`}
+                                                                    control={control}
+                                                                    render={({ field }) => (
+                                                                        <InputText
+                                                                            label='Reason for Leaving'
+                                                                            id={`prev_left_reason_${index}`}
+                                                                            placeholder='Enter reason'
+                                                                            {...field}
+                                                                            error={
+                                                                                errors.previousSchoolDetails?.[index]?.pasrpS_LeftReason
+                                                                                    ?.message
+                                                                            }
+                                                                        />
+                                                                    )}
+                                                                />
+                                                                <Controller
+                                                                    name={`previousSchoolDetails.${index}.pasrpS_Address`}
+                                                                    control={control}
+                                                                    render={({ field }) => (
+                                                                        <InputText
+                                                                            label='School Address'
+                                                                            id={`prev_address_${index}`}
+                                                                            placeholder='Enter address'
+                                                                            {...field}
+                                                                            error={
+                                                                                errors.previousSchoolDetails?.[index]?.pasrpS_Address
+                                                                                    ?.message
+                                                                            }
+                                                                        />
+                                                                    )}
+                                                                />
+                                                            </div>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            )}
                                         </div>
 
                                         <InputTextarea

@@ -3,7 +3,8 @@
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { DataTable } from '@/components/ui/data-table/data-table';
-import { type BaseEntity, createLocalCrud } from '@/lib/localdb';
+import { HRMS_MI_ID } from '@/constants/hrms-config';
+import { useMonthEndReportOnload, useSearchMonthEndReport } from '@/hooks/hrms/useReports';
 import { Building, Calculator, Download, Printer, TrendingUp, UserCheck, Users } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';
@@ -11,7 +12,8 @@ import { type MonthEndRecord as MonthEndRecordColumn, monthEndReportColumns } fr
 import { type FilterOptions, HRMSMonthEndFilters, type MonthEndFilters } from './_components/filters';
 
 // Month End Report data structure
-interface MonthEndRecord extends BaseEntity {
+interface MonthEndRecord {
+    id?: string;
     employeeCode: string;
     employeeName: string;
     groupType: string;
@@ -51,18 +53,15 @@ interface MonthEndSummary {
 }
 
 export default function HRMSMonthEndReportPage() {
-    // Database instances
-    const monthEndDB = createLocalCrud<MonthEndRecord>('report:hrms-monthend');
+    const roleId = HRMS_MI_ID;
+
+    // React Query hooks
+    const { data: onloadData, isLoading: isLoadingOnload, error: onloadError } = useMonthEndReportOnload(roleId);
+    const searchMutation = useSearchMonthEndReport();
 
     // State
     const [monthEndRecords, setMonthEndRecords] = useState<MonthEndRecord[]>([]);
     const [filteredRecords, setFilteredRecords] = useState<MonthEndRecord[]>([]);
-    const [filterOptions, setFilterOptions] = useState<FilterOptions>({
-        groupTypes: [],
-        departments: [],
-        designations: []
-    });
-    const [isLoading, setIsLoading] = useState(true);
     const [showReport, setShowReport] = useState(false);
 
     const [filters, setFilters] = useState<MonthEndFilters>({
@@ -74,146 +73,80 @@ export default function HRMSMonthEndReportPage() {
         ieName: ''
     });
 
-    // Load data on mount
+    // Memoize dropdown data from API
+    const months = useMemo(() => {
+        const data = onloadData?.data;
+        if (!data) return [];
+        return (data as any).monthdropdown || [];
+    }, [onloadData?.data]);
+
+    const years = useMemo(() => {
+        const data = onloadData?.data;
+        if (!data) return [];
+        return (data as any).leaveyeardropdown || [];
+    }, [onloadData?.data]);
+
+    const groupTypes = useMemo(() => {
+        const data = onloadData?.data;
+        if (!data) return [];
+        return (data as any).groupTypedropdown || [];
+    }, [onloadData?.data]);
+
+    const departments = useMemo(() => {
+        const data = onloadData?.data;
+        if (!data) return [];
+        return (data as any).departmentdropdown || [];
+    }, [onloadData?.data]);
+
+    const designations = useMemo(() => {
+        const data = onloadData?.data;
+        if (!data) return [];
+        return (data as any).designationdropdown || [];
+    }, [onloadData?.data]);
+
+    // Get institution details from API
+    const institutionDetails = useMemo(() => {
+        const data = onloadData?.data;
+        if (!data) return null;
+        return (data as any).institutionDetails || null;
+    }, [onloadData?.data]);
+
+    // Filter options for filters component
+    const filterOptions: FilterOptions = useMemo(() => {
+        return {
+            groupTypes: groupTypes
+                .filter((gt: any) => gt.hrmgT_Id && gt.HRMGT_GroupTypeName)
+                .map((gt: any) => ({
+                    id: gt.hrmgT_Id,
+                    groupType: gt.HRMGT_GroupTypeName
+                })),
+            departments: departments
+                .filter((dept: any) => dept.hrmD_Id && dept.HRMD_DepartmentName)
+                .map((dept: any) => ({
+                    id: dept.hrmD_Id,
+                    departmentName: dept.HRMD_DepartmentName
+                })),
+            designations: designations
+                .filter((desg: any) => desg.hrmdeS_Id && desg.HRMDES_DesignationName)
+                .map((desg: any) => ({
+                    id: desg.hrmdeS_Id,
+                    designationName: desg.HRMDES_DesignationName
+                }))
+        };
+    }, [groupTypes, departments, designations]);
+
+    // Show error if API fails
     useEffect(() => {
-        loadData();
-    }, []);
-
-    const loadData = () => {
-        try {
-            // Load Month End records
-            let recordList = monthEndDB.list();
-            if (recordList.length === 0) {
-                const mockData = generateMockMonthEndData();
-                mockData.forEach((record) => monthEndDB.create(record));
-                recordList = monthEndDB.list(); // Reload data after creating mock records
-            }
-            setMonthEndRecords(recordList);
-
-            // Extract filter options
-            const groupTypes = [...new Set(recordList.map((r) => r.groupType))];
-            const departments = [...new Set(recordList.map((r) => r.department))];
-            const designations = [...new Set(recordList.map((r) => r.designation))];
-
-            setFilterOptions({
-                groupTypes,
-                departments,
-                designations
-            });
-        } catch (_error) {
-            toast.error('Failed to load data');
-        } finally {
-            setIsLoading(false);
+        if (onloadError || (!isLoadingOnload && onloadData && !onloadData.success)) {
+            const errorMessage =
+                onloadError?.message ||
+                onloadData?.message ||
+                'Failed to load month end report data. Please check if the API endpoint is available.';
+            toast.error(errorMessage);
         }
-    };
+    }, [onloadError, isLoadingOnload, onloadData]);
 
-    // Generate mock Month End data
-    const generateMockMonthEndData = (): Omit<MonthEndRecord, 'id' | 'createdAt'>[] => {
-        const groupTypes = ['Test NON Teaching', 'Test Insurance', 'Teaching', 'Owner of the company', 'Non Teaching', 'Administrative'];
-        const departments = [
-            'Teaching',
-            'JUNIOR SCHOOL',
-            'SENIOR SCHOOL',
-            'OFFICE STAFF',
-            'Service Staff',
-            'Administrative',
-            'Chief executive officer'
-        ];
-        const designations = [
-            'Assistant Teacher',
-            'Principal',
-            'Vice Principal',
-            'Office Assistant',
-            'System Manager',
-            'Teacher Helper',
-            'Electrician'
-        ];
-        const ieNames = ['John Smith', 'Sarah Johnson', 'Michael Brown', 'Emily Davis', 'David Wilson'];
-
-        const employees = [
-            'MR SUDIPTA RANJAN BHADURI',
-            'MS RUPLEKHA CHATTERJEE',
-            'MR JOHN SHAH',
-            'MRS BHASWATI DAS',
-            'MR SANTANU MUKHERJEE',
-            'MRS PRIYA SHARMA',
-            'MR RAJESH KUMAR',
-            'MS ANITA SINGH',
-            'MR AMIT KUMAR',
-            'MS DEEPIKA PATEL',
-            'MR ROHIT GUPTA',
-            'MRS KAVITA SINGH'
-        ];
-
-        const months = [
-            'January',
-            'February',
-            'March',
-            'April',
-            'May',
-            'June',
-            'July',
-            'August',
-            'September',
-            'October',
-            'November',
-            'December'
-        ];
-        const mockRecords: Omit<MonthEndRecord, 'id' | 'createdAt'>[] = [];
-
-        employees.forEach((empName, empIndex) => {
-            months.forEach((month) => {
-                const basicSalary = 25000 + empIndex * 3000 + Math.random() * 5000;
-                const allowances = basicSalary * 0.3; // 30% allowances
-                const grossSalary = basicSalary + allowances;
-                const pfContribution = Math.min(basicSalary, 15000) * 0.12; // 12% PF on eligible salary
-                const esiContribution = grossSalary <= 21000 ? grossSalary * 0.0075 : 0; // 0.75% ESI if eligible
-                const incomeTax = grossSalary > 50000 ? grossSalary * 0.1 : 0; // 10% tax if applicable
-                const otherDeductions = Math.random() * 2000; // Random other deductions
-                const totalDeductions = pfContribution + esiContribution + incomeTax + otherDeductions;
-                const netSalary = grossSalary - totalDeductions;
-
-                const workingDays = 22 + Math.floor(Math.random() * 4); // 22-25 working days
-                const absentDays = Math.floor(Math.random() * 3); // 0-2 absent days
-                const leavesTaken = Math.floor(Math.random() * 2); // 0-1 leaves
-                const presentDays = workingDays - absentDays - leavesTaken;
-                const overtime = Math.random() > 0.7 ? Math.floor(Math.random() * 10) : 0; // Some overtime
-
-                const statuses: ('Active' | 'On Leave' | 'Absent' | 'Resigned')[] = ['Active', 'On Leave', 'Absent', 'Resigned'];
-                const status = statuses[Math.floor(Math.random() * statuses.length)];
-
-                mockRecords.push({
-                    employeeCode: `EMP${String(empIndex + 1).padStart(3, '0')}`,
-                    employeeName: empName,
-                    groupType: groupTypes[empIndex % groupTypes.length],
-                    department: departments[empIndex % departments.length],
-                    designation: designations[empIndex % designations.length],
-                    basicSalary: Math.round(basicSalary),
-                    allowances: Math.round(allowances),
-                    grossSalary: Math.round(grossSalary),
-                    pfContribution: Math.round(pfContribution),
-                    esiContribution: Math.round(esiContribution),
-                    incomeTax: Math.round(incomeTax),
-                    otherDeductions: Math.round(otherDeductions),
-                    totalDeductions: Math.round(totalDeductions),
-                    netSalary: Math.round(netSalary),
-                    workingDays: workingDays,
-                    presentDays: presentDays,
-                    absentDays: absentDays,
-                    leavesTaken: leavesTaken,
-                    overtime: overtime,
-                    status: status,
-                    month: month,
-                    year: '2025',
-                    ieName: ieNames[empIndex % ieNames.length]
-                });
-            });
-        });
-
-        return mockRecords;
-    };
-
-    // Filter records based on selected criteria
+    // Filter records based on selected filters
     useEffect(() => {
         let filtered = monthEndRecords;
 
@@ -254,45 +187,137 @@ export default function HRMSMonthEndReportPage() {
         setFilteredRecords(filtered);
     }, [filters, monthEndRecords]);
 
-    const handleCheckboxChange = (
-        category: 'selectedGroupTypes' | 'selectedDepartments' | 'selectedDesignations',
-        value: string,
-        checked: boolean
-    ) => {
-        setFilters((prev) => ({
-            ...prev,
-            [category]: checked ? [...prev[category], value] : prev[category].filter((item) => item !== value)
-        }));
-    };
-
-    const handleSelectAllChange = (category: 'selectedGroupTypes' | 'selectedDepartments' | 'selectedDesignations', checked: boolean) => {
-        let allOptions: string[] = [];
-
-        switch (category) {
-            case 'selectedGroupTypes':
-                allOptions = filterOptions.groupTypes;
-                break;
-            case 'selectedDepartments':
-                allOptions = filterOptions.departments;
-                break;
-            case 'selectedDesignations':
-                allOptions = filterOptions.designations;
-                break;
-        }
-
-        setFilters((prev) => ({
-            ...prev,
-            [category]: checked ? allOptions : []
-        }));
-    };
-
     const handleFilterChange = (newFilters: MonthEndFilters) => {
         setFilters(newFilters);
     };
 
     const handleSearch = () => {
-        setShowReport(true);
-        toast.success('Month End Report generated');
+        if (!filters.month || !filters.year) {
+            toast.error('Please select both month and year');
+            return;
+        }
+
+        // Find month name from selected month
+        const selectedMonthObj = months.find((m: any) => m.IVRM_Month_Name?.trim() === filters.month);
+        const monthName = selectedMonthObj?.IVRM_Month_Name?.trim() || filters.month;
+
+        // Find selected group type IDs
+        const selectedGroupTypeIds = filters.selectedGroupTypes
+            .map((name) => {
+                const groupType = groupTypes.find((gt: any) => gt.HRMGT_GroupTypeName === name);
+                return groupType?.hrmgT_Id;
+            })
+            .filter((id): id is number => id !== undefined);
+
+        // Find selected department IDs
+        const selectedDepartmentIds = filters.selectedDepartments
+            .map((name) => {
+                const dept = departments.find((d: any) => d.HRMD_DepartmentName === name);
+                return dept?.hrmD_Id;
+            })
+            .filter((id): id is number => id !== undefined);
+
+        // Find selected designation IDs
+        const selectedDesignationIds = filters.selectedDesignations
+            .map((name) => {
+                const desg = designations.find((d: any) => d.HRMDES_DesignationName === name);
+                return desg?.hrmdeS_Id;
+            })
+            .filter((id): id is number => id !== undefined);
+
+        // Prepare search request
+        const searchRequest = {
+            MI_Id: roleId,
+            retrunMsg: '',
+            roleId: 0,
+            HRES_Year: filters.year,
+            HRES_Month: monthName,
+            monthdropdown: [],
+            leaveyeardropdown: [],
+            employeeDetails: [],
+            groupTypeIdList: selectedGroupTypeIds.length > 0 ? selectedGroupTypeIds : [],
+            hrmD_IdList: selectedDepartmentIds.length > 0 ? selectedDepartmentIds : [],
+            hrmdeS_IdList: selectedDesignationIds.length > 0 ? selectedDesignationIds : [],
+            empid: []
+        };
+
+        // Call search API to get month end report data
+        searchMutation.mutate(searchRequest, {
+            onSuccess: (response) => {
+                if (response.success && response.data) {
+                    // Extract employee details from response
+                    const employeeData = response.data.employeeDetails || [];
+
+                    if (Array.isArray(employeeData) && employeeData.length > 0) {
+                        // Map API response to MonthEndRecord format
+                        const mappedRecords: MonthEndRecord[] = employeeData.map((item: any, index: number) => {
+                            const basicSalary = item.basicamount || item.basicSalary || item.HRESD_Amount || 0;
+                            const allowances = item.allowances || item.DAamount || item.Othersamount || 0;
+                            const grossSalary = item.empGrossSal || item.grossSalary || basicSalary + allowances;
+                            const pfContribution = item.HRES_EPF || item.pfContribution || 0;
+                            const esiContribution = item.esiContribution || 0;
+                            const incomeTax = item.incomeTax || item.professionaltaxamount || 0;
+                            const otherDeductions = item.otherDeductions || 0;
+                            const totalDeductions = pfContribution + esiContribution + incomeTax + otherDeductions;
+                            const netSalary = item.netsalary || item.netSalary || grossSalary - totalDeductions;
+
+                            // Determine status
+                            let status: 'Active' | 'On Leave' | 'Absent' | 'Resigned' = 'Active';
+                            if (item.HRME_DOL || item.dateOfLeaving) {
+                                status = 'Resigned';
+                            } else if (item.status) {
+                                status = item.status;
+                            }
+
+                            return {
+                                id: `monthend-${item.HRME_Id || item.HRES_Id || index}`,
+                                employeeCode: item.HRME_EmployeeCode || item.EmployeeCode || item.employeeCode || '',
+                                employeeName:
+                                    `${item.HRME_EmployeeFirstName || ''} ${item.HRME_EmployeeMiddleName || ''} ${item.HRME_EmployeeLastName || ''}`.trim() ||
+                                    item.EmployeeName ||
+                                    '',
+                                groupType: item.groupTypeName || item.HRMGT_GroupTypeName || 'N/A',
+                                department: item.departmentName || item.HRMD_DepartmentName || 'N/A',
+                                designation: item.DesignationName || item.HRMDES_DesignationName || 'N/A',
+                                basicSalary: Math.round(basicSalary),
+                                allowances: Math.round(allowances),
+                                grossSalary: Math.round(grossSalary),
+                                pfContribution: Math.round(pfContribution),
+                                esiContribution: Math.round(esiContribution),
+                                incomeTax: Math.round(incomeTax),
+                                otherDeductions: Math.round(otherDeductions),
+                                totalDeductions: Math.round(totalDeductions),
+                                netSalary: Math.round(netSalary),
+                                workingDays: item.HRES_WorkingDays || item.workingDays || 0,
+                                presentDays: item.presentDays || item.HRES_WorkingDays || 0,
+                                absentDays: item.absentDays || 0,
+                                leavesTaken: item.leavesTaken || 0,
+                                overtime: item.overtime || 0,
+                                status: status,
+                                month: filters.month,
+                                year: filters.year,
+                                ieName: filters.ieName || 'HR Department'
+                            };
+                        });
+
+                        setMonthEndRecords(mappedRecords);
+                        setShowReport(true);
+                        toast.success('Month End Report generated successfully');
+                    } else {
+                        // No data returned
+                        setMonthEndRecords([]);
+                        setShowReport(true);
+                        toast.warning('Month End Report generated but no data found for selected period');
+                    }
+                } else {
+                    toast.error(response.message || 'Failed to generate Month End Report');
+                }
+            },
+            onError: (error: Error) => {
+                console.error('Error searching month end report:', error);
+                toast.error(error.message || 'Failed to generate Month End Report');
+            }
+        });
     };
 
     const handleCancel = () => {
@@ -304,6 +329,8 @@ export default function HRMSMonthEndReportPage() {
             year: '',
             ieName: ''
         });
+        setMonthEndRecords([]);
+        setFilteredRecords([]);
         setShowReport(false);
         toast.info('Filters cleared');
     };
@@ -355,16 +382,16 @@ export default function HRMSMonthEndReportPage() {
 
     return (
         <div className='space-y-6'>
-
             {/* Report Configuration Section */}
             <HRMSMonthEndFilters
                 filters={filters}
                 filterOptions={filterOptions}
+                months={months}
+                years={years}
                 onFilterChange={handleFilterChange}
                 onSearch={handleSearch}
                 onCancel={handleCancel}
-                onCheckboxChange={handleCheckboxChange}
-                onSelectAllChange={handleSelectAllChange}
+                isLoading={isLoadingOnload}
             />
 
             {/* Report Results */}
@@ -505,13 +532,17 @@ export default function HRMSMonthEndReportPage() {
                                     <span className='text-sm'>Generated By:</span>
                                     <span className='font-semibold'>{filters.ieName || 'HR Department'}</span>
                                 </div>
+                                <div className='flex justify-between'>
+                                    <span className='text-sm'>Organization:</span>
+                                    <span className='font-semibold'>{institutionDetails?.MI_Name || 'N/A'}</span>
+                                </div>
                             </CardContent>
                         </Card>
                     </div>
 
                     {/* Data Table */}
                     <DataTable
-                        isLoading={isLoading}
+                        isLoading={isLoadingOnload}
                         columns={monthEndReportColumns}
                         data={filteredRecords as unknown as MonthEndRecordColumn[]}
                         totalItems={filteredRecords.length}

@@ -124,7 +124,31 @@ export const getCandidateColumns = ({ onEdit, onDelete }: CandidateColumnsProps)
         cell: ({ row }) => <div className='font-medium'>{row.index + 1}</div>,
         enableSorting: false
     },
-    // TODO: Add other columns based on the entity fields
+    {
+        accessorKey: 'firstName',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Candidate Name' />,
+        cell: ({ row }) => {
+            const candidate = row.original;
+            return (
+                <div className='font-medium'>{`${candidate.firstName} ${candidate.middleName || ''} ${candidate.lastName}`.trim()}</div>
+            );
+        }
+    },
+    {
+        accessorKey: 'applicationDate',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Date Of Application' />,
+        cell: ({ row }) => <div>{new Date(row.getValue('applicationDate')).toLocaleDateString()}</div>
+    },
+    {
+        accessorKey: 'jobTitle',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Applied Position' />,
+        cell: ({ row }) => <div>{row.getValue('jobTitle')}</div>
+    },
+    {
+        accessorKey: 'status',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Status' />,
+        cell: ({ row }) => <div>{row.getValue('status')}</div>
+    },
     {
         id: 'actions',
         header: 'Action',
@@ -143,3 +167,8 @@ export const getCandidateColumns = ({ onEdit, onDelete }: CandidateColumnsProps)
         }
     }
 ];
+
+export const candidateColumns = getCandidateColumns({
+    onEdit: () => {},
+    onDelete: () => {}
+});

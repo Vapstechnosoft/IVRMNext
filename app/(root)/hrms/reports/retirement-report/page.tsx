@@ -67,7 +67,11 @@ export default function RetirementReportPage() {
         fromDate: new Date('2025-01-01'),
         toDate: new Date('2025-12-31'),
         employeeStatus: 'working',
-        reportScope: 'all'
+        reportScope: 'all',
+        // Format 2 filters
+        selectedGroupTypes: [],
+        selectedDepartments: [],
+        selectedDesignations: []
     });
 
     // Load data on mount
@@ -301,7 +305,13 @@ export default function RetirementReportPage() {
             fromDate: undefined,
             toDate: undefined,
             employeeStatus: 'working',
-            reportScope: 'all'
+            reportScope: 'all',
+            selectionType: null,
+            selectedType: '',
+            selectedEmployee: '',
+            selectedGroupTypes: [],
+            selectedDepartments: [],
+            selectedDesignations: []
         });
         setShowReport(false);
         toast.info('Filters cleared');
@@ -365,12 +375,18 @@ export default function RetirementReportPage() {
             {/* Report Configuration Section */}
             <RetirementReportFilters
                 filters={filters}
+                employeeTypes={[]} // TODO: Will be populated from API
+                employees={[]} // TODO: Will be populated from API
+                groupTypes={[]} // TODO: Will be populated from API
+                departments={[]} // TODO: Will be populated from API
+                designations={[]} // TODO: Will be populated from API
                 onFilterChange={handleFilterChange}
                 onHeaderChange={handleHeaderChange}
                 onHeaderSelectAll={handleHeaderSelectAll}
                 onDateChange={handleDateChange}
                 onSearch={handleSearch}
                 onCancel={handleCancel}
+                isLoading={isLoading}
             />
 
             {/* Report Results */}

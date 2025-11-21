@@ -1,15 +1,15 @@
 'use server';
 
-import { api, type ApiResponse } from '@/lib/apiService';
+import { type ApiResponse, api } from '@/lib/apiService';
 import type { ApiSearchparams } from '@/types';
 import type {
-    CumulativeSalaryReportOnloadResponse,
     CumulativeSalaryReportListRequest,
     CumulativeSalaryReportListResponse,
+    CumulativeSalaryReportOnloadResponse,
     CumulativeSalaryReportSearchRequest,
     CumulativeSalaryReportSearchResponse,
-    SalaryReportRecord,
-    DesignationDropdown
+    DesignationDropdown,
+    SalaryReportRecord
 } from '@/types/hrms/reports/cumulative-salary-report';
 
 /**
@@ -26,7 +26,7 @@ export async function getCumulativeSalaryReportOnload(
     page_size = 10
 ): Promise<ApiResponse<CumulativeSalaryReportOnloadResponse>> {
     const url = '/api/CumulativeSalaryReportFacade/onloadgetdetails';
-    
+
     // Build request body matching the exact API structure
     const requestBody: CumulativeSalaryReportListRequest = {
         page,
@@ -40,14 +40,14 @@ export async function getCumulativeSalaryReportOnload(
         LoginUserId,
         UserRole
     };
-    
+
     const response = await api.post<any>('hrms', url, requestBody);
-    
+
     // The backend returns data in ApiResponse format
     // Structure: { success: true, message: "Success", data: { dropdown: {...}, rows: [...] }, total, page, page_size }
     if (response && typeof response === 'object' && 'success' in response && 'data' in response) {
         const dropdownData = response.data?.dropdown;
-        
+
         if (dropdownData) {
             return {
                 success: response.success,
@@ -63,7 +63,7 @@ export async function getCumulativeSalaryReportOnload(
             };
         }
     }
-    
+
     // Return empty dropdowns if response structure is unexpected
     return {
         success: false,
@@ -93,7 +93,7 @@ export async function getCumulativeSalaryReportOnloadFull(
     page_size = 10
 ): Promise<ApiResponse<CumulativeSalaryReportListResponse>> {
     const url = '/api/CumulativeSalaryReportFacade/onloadgetdetails';
-    
+
     // Build request body matching the exact API structure
     const requestBody: CumulativeSalaryReportListRequest = {
         page,
@@ -107,15 +107,15 @@ export async function getCumulativeSalaryReportOnloadFull(
         LoginUserId,
         UserRole
     };
-    
+
     const response = await api.post<any>('hrms', url, requestBody);
-    
+
     // The backend returns data in ApiResponse format
     // Structure: { success: true, message: "Success", data: { dropdown: {...}, rows: [...] }, total, page, page_size }
     if (response && typeof response === 'object' && 'success' in response && 'data' in response) {
         const dropdownData = response.data?.dropdown;
         const rows = response.data?.rows || [];
-        
+
         if (dropdownData) {
             return {
                 success: response.success,
@@ -139,7 +139,7 @@ export async function getCumulativeSalaryReportOnloadFull(
             };
         }
     }
-    
+
     // Return empty response if structure is unexpected
     return {
         success: false,
@@ -172,7 +172,7 @@ export async function searchCumulativeSalaryReport(
     requestBody: CumulativeSalaryReportSearchRequest
 ): Promise<ApiResponse<CumulativeSalaryReportSearchResponse>> {
     const url = '/api/CumulativeSalaryReportFacade/GetEmployeedetailsBySelection';
-    
+
     // Prepare request body - ensure arrays are [0] when empty, as API expects
     const request: CumulativeSalaryReportSearchRequest = {
         MI_Id: requestBody.MI_Id || 30,
@@ -183,23 +183,58 @@ export async function searchCumulativeSalaryReport(
         groupTypeIdList: requestBody.groupTypeIdList && requestBody.groupTypeIdList.length > 0 ? requestBody.groupTypeIdList : [],
         LogInUserId: requestBody.LogInUserId || 0
     };
-    
-    const response = await api.post<CumulativeSalaryReportSearchResponse>('hrms', url, request);
-    
-    // The backend returns raw data, not wrapped in ApiResponse format
-    // Wrap it to match the expected ApiResponse structure
-    if (response && typeof response === 'object' && 'success' in response && 'data' in response) {
-        // Already wrapped
-        return response as ApiResponse<CumulativeSalaryReportSearchResponse>;
+
+    console.log('🔵 [CUMULATIVE SALARY] Server action - searchCumulativeSalaryReport called', {
+        url,
+        request,
+        timestamp: new Date().toISOString()
+    });
+
+    try {
+        const response = await api.post<CumulativeSalaryReportSearchResponse>('hrms', url, request);
+
+        console.log('🔵 [CUMULATIVE SALARY] Server action - API response received', {
+            hasResponse: !!response,
+            responseType: typeof response,
+            hasSuccess: response && typeof response === 'object' && 'success' in response,
+            timestamp: new Date().toISOString()
+        });
+
+        // The backend returns raw data, not wrapped in ApiResponse format
+        // Wrap it to match the expected ApiResponse structure
+        if (response && typeof response === 'object' && 'success' in response && 'data' in response) {
+            // Already wrapped
+            return response as ApiResponse<CumulativeSalaryReportSearchResponse>;
+        }
+
+        // Wrap raw response data
+        const rawResponse = response as unknown as CumulativeSalaryReportSearchResponse;
+        return {
+            success: true,
+            message: rawResponse?.retrunMsg || 'Search completed successfully',
+            data: rawResponse
+        };
+    } catch (error: any) {
+        console.error('🔴 [CUMULATIVE SALARY] Server action - API error:', {
+            error,
+            message: error?.message,
+            status: error?.status,
+            statusText: error?.statusText,
+            response: error?.response,
+            request: {
+                url,
+                body: request
+            },
+            timestamp: new Date().toISOString()
+        });
+
+        // Return error response
+        return {
+            success: false,
+            message: error?.message || 'Failed to fetch cumulative salary report data',
+            data: null as any
+        };
     }
-    
-    // Wrap raw response data
-    const rawResponse = response as unknown as CumulativeSalaryReportSearchResponse;
-    return {
-        success: true,
-        message: rawResponse?.retrunMsg || 'Search completed successfully',
-        data: rawResponse
-    };
 }
 
 /**
@@ -231,10 +266,10 @@ export async function getCumulativeSalaryReportList(
         groupTypeIdList: filterParams?.groupTypeIdList || [],
         LogInUserId: filterParams?.LoginUserId || 0
     };
-    
+
     // Call the search endpoint
     const searchResponse = await searchCumulativeSalaryReport(searchRequest);
-    
+
     // Transform the search response to match CumulativeSalaryReportListResponse format
     if (searchResponse.success && searchResponse.data) {
         return {
@@ -258,7 +293,7 @@ export async function getCumulativeSalaryReportList(
             }
         };
     }
-    
+
     // Return empty response on error
     return {
         success: false,

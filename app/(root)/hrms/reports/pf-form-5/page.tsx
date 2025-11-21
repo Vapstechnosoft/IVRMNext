@@ -3,7 +3,8 @@
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { DataTable } from '@/components/ui/data-table/data-table';
-import { type BaseEntity, createLocalCrud } from '@/lib/localdb';
+import { HRMS_MI_ID } from '@/constants/hrms-config';
+import { useFilterPFForm5EmployeeData, usePFForm5ReportOnload, useSearchPFForm5Report } from '@/hooks/hrms/useReports';
 import { Calculator, Download, FileText, Printer, UserMinus, UserPlus } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';
@@ -11,7 +12,8 @@ import { type Form5Record as Form5RecordColumn, form5Columns } from './_componen
 import { type Form5Filters, PFForm5Filters } from './_components/filters';
 
 // Form 5 data structure (Register of Employees)
-interface Form5Record extends BaseEntity {
+interface Form5Record {
+    id?: string;
     serialNo: number;
     employeeCode: string;
     employeeName: string;
@@ -45,13 +47,16 @@ interface Form5Summary {
 }
 
 export default function Form5Page() {
-    // Database instances
-    const form5DB = createLocalCrud<Form5Record>('report:form-5');
+    const roleId = HRMS_MI_ID;
+
+    // React Query hooks
+    const { data: onloadData, isLoading: isLoadingOnload, error: onloadError } = usePFForm5ReportOnload(roleId);
+    const _filterMutation = useFilterPFForm5EmployeeData();
+    const searchMutation = useSearchPFForm5Report();
 
     // State
     const [form5Records, setForm5Records] = useState<Form5Record[]>([]);
     const [filteredRecords, setFilteredRecords] = useState<Form5Record[]>([]);
-    const [isLoading, setIsLoading] = useState(true);
     const [showForm, setShowForm] = useState(false);
 
     const [filters, setFilters] = useState<Form5Filters>({
@@ -59,164 +64,36 @@ export default function Form5Page() {
         year: ''
     });
 
-    // Load data on mount
+    // Memoize dropdown data from API
+    const months = useMemo(() => {
+        const data = onloadData?.data;
+        if (!data) return [];
+        return (data as any).monthdropdown || [];
+    }, [onloadData?.data]);
+
+    const years = useMemo(() => {
+        const data = onloadData?.data;
+        if (!data) return [];
+        return (data as any).leaveyeardropdown || [];
+    }, [onloadData?.data]);
+
+    // Get institution details from API
+    const institutionDetails = useMemo(() => {
+        const data = onloadData?.data;
+        if (!data) return null;
+        return (data as any).institutionDetails || null;
+    }, [onloadData?.data]);
+
+    // Show error if API fails
     useEffect(() => {
-        loadData();
-    }, []);
-
-    const loadData = () => {
-        try {
-            // Load Form 5 records
-            let recordList = form5DB.list();
-            if (recordList.length === 0) {
-                const mockData = generateMockForm5Data();
-                mockData.forEach((record) => form5DB.create(record));
-                recordList = form5DB.list(); // Reload data after creating mock records
-            }
-            setForm5Records(recordList);
-        } catch (_error) {
-            toast.error('Failed to load data');
-        } finally {
-            setIsLoading(false);
+        if (onloadError || (!isLoadingOnload && onloadData && !onloadData.success)) {
+            const errorMessage =
+                onloadError?.message ||
+                onloadData?.message ||
+                'Failed to load PF Form 5 report data. Please check if the API endpoint is available.';
+            toast.error(errorMessage);
         }
-    };
-
-    // Generate mock Form 5 data
-    const generateMockForm5Data = (): Omit<Form5Record, 'id' | 'createdAt'>[] => {
-        const employees = [
-            {
-                code: 'EMP001',
-                name: 'MR SUDIPTA RANJAN BHADURI',
-                father: 'LATE RANJAN BHADURI',
-                dob: '1985-03-15',
-                joining: '2020-04-01',
-                designation: 'Senior Teacher',
-                department: 'Mathematics'
-            },
-            {
-                code: 'EMP002',
-                name: 'MS RUPLEKHA CHATTERJEE',
-                father: 'MR SUBRATA CHATTERJEE',
-                dob: '1988-07-22',
-                joining: '2021-06-15',
-                designation: 'Teacher',
-                department: 'English'
-            },
-            {
-                code: 'EMP003',
-                name: 'MR JOHN SHAH',
-                father: 'MR DINESH SHAH',
-                dob: '1982-11-10',
-                joining: '2019-08-20',
-                designation: 'Head Teacher',
-                department: 'Science'
-            },
-            {
-                code: 'EMP004',
-                name: 'MRS BHASWATI DAS',
-                father: 'MR KRISHNA DAS',
-                dob: '1990-05-18',
-                joining: '2022-01-10',
-                designation: 'Teacher',
-                department: 'Social Studies'
-            },
-            {
-                code: 'EMP005',
-                name: 'MR SANTANU MUKHERJEE',
-                father: 'MR BIMAL MUKHERJEE',
-                dob: '1987-09-25',
-                joining: '2020-11-25',
-                designation: 'Physical Education Teacher',
-                department: 'Sports'
-            },
-            {
-                code: 'EMP006',
-                name: 'MRS PRIYA SHARMA',
-                father: 'MR RAJESH SHARMA',
-                dob: '1989-12-03',
-                joining: '2021-03-12',
-                designation: 'Art Teacher',
-                department: 'Fine Arts'
-            },
-            {
-                code: 'EMP007',
-                name: 'MR RAJESH KUMAR',
-                father: 'MR SURESH KUMAR',
-                dob: '1984-08-14',
-                joining: '2020-07-08',
-                designation: 'Computer Teacher',
-                department: 'Computer Science'
-            },
-            {
-                code: 'EMP008',
-                name: 'MS ANITA SINGH',
-                father: 'MR VIJAY SINGH',
-                dob: '1991-04-30',
-                joining: '2022-09-05',
-                designation: 'Music Teacher',
-                department: 'Music'
-            }
-        ];
-
-        const months = [
-            'January',
-            'February',
-            'March',
-            'April',
-            'May',
-            'June',
-            'July',
-            'August',
-            'September',
-            'October',
-            'November',
-            'December'
-        ];
-        const mockRecords: Omit<Form5Record, 'id' | 'createdAt'>[] = [];
-
-        employees.forEach((emp, empIndex) => {
-            months.forEach((month, monthIndex) => {
-                const basicSalary = 25000 + empIndex * 3000 + Math.random() * 5000;
-                const pfEligibleSalary = Math.min(basicSalary, 15000); // PF ceiling
-                const employeePFRate = 12; // 12% employee PF rate
-                const employerPFRate = 12; // 12% employer PF rate
-                const vpfRate = Math.random() > 0.7 ? 5 : 0; // 5% VPF for some employees
-
-                // Some employees may have left during the year
-                const hasLeft = Math.random() > 0.9;
-                const status = hasLeft
-                    ? (['Left', 'Resigned', 'Terminated'][Math.floor(Math.random() * 3)] as 'Left' | 'Resigned' | 'Terminated')
-                    : 'Active';
-                const dateOfLeaving = hasLeft
-                    ? `2024-${String(monthIndex + 1).padStart(2, '0')}-${String(Math.floor(Math.random() * 28) + 1).padStart(2, '0')}`
-                    : undefined;
-
-                mockRecords.push({
-                    serialNo: empIndex + 1,
-                    employeeCode: emp.code,
-                    employeeName: emp.name,
-                    fatherName: emp.father,
-                    dateOfBirth: emp.dob,
-                    dateOfJoining: emp.joining,
-                    dateOfLeaving: dateOfLeaving,
-                    pfNumber: `PF${emp.code.slice(-3)}/${month.slice(0, 3).toUpperCase()}/2025`,
-                    designation: emp.designation,
-                    department: emp.department,
-                    basicSalary: Math.round(basicSalary),
-                    pfEligibleSalary: Math.round(pfEligibleSalary),
-                    employeePFRate: employeePFRate,
-                    employerPFRate: employerPFRate,
-                    vpfRate: vpfRate,
-                    nomineeDetails: `${emp.father} (Father)`,
-                    status: status,
-                    month: month,
-                    year: '2025'
-                });
-            });
-        });
-
-        return mockRecords;
-    };
+    }, [onloadError, isLoadingOnload, onloadData]);
 
     // Filter Form 5 records based on selected month/year
     useEffect(() => {
@@ -242,8 +119,97 @@ export default function Form5Page() {
             toast.error('Please select month and year');
             return;
         }
-        setShowForm(true);
-        toast.success('Form 5 generated');
+
+        // Find month name from selected month
+        const selectedMonthObj = months.find((m: any) => m.IVRM_Month_Name?.trim() === filters.month);
+        const monthName = selectedMonthObj?.IVRM_Month_Name?.trim() || filters.month;
+
+        // Prepare search request
+        const searchRequest = {
+            MI_Id: roleId,
+            HRES_Month: monthName,
+            HRES_Year: filters.year
+        };
+
+        // Call search API to get PF Form 5 data
+        searchMutation.mutate(searchRequest, {
+            onSuccess: (response) => {
+                if (response.success && response.data) {
+                    // Extract PF Form 5 data from response
+                    const pfData = response.data.getpfgriddata || response.data.pfreport || response.data.employeeDetails || [];
+
+                    if (Array.isArray(pfData) && pfData.length > 0) {
+                        // Map API response to Form5Record format
+                        const mappedRecords: Form5Record[] = pfData.map((item: any, index: number) => {
+                            const basicSalary = item.basicamount || item.basicSalary || item.AmountofWages || 0;
+                            const pfEligibleSalary = item.pfEligibleSalary || Math.min(basicSalary, 15000); // PF ceiling
+                            const employeePFRate = 12; // 12% employee PF rate
+                            const employerPFRate = 12; // 12% employer PF rate
+                            const vpfRate = item.VPFAmount ? 5 : 0; // 5% VPF if VPF amount exists
+
+                            // Determine status based on leaving date
+                            let status: 'Active' | 'Left' | 'Resigned' | 'Terminated' = 'Active';
+                            if (item.HRME_DOL || item.dateOfLeaving) {
+                                const leavingDate = new Date(item.HRME_DOL || item.dateOfLeaving);
+                                const filterDate = new Date(`${filters.month} 1, ${filters.year}`);
+                                if (leavingDate <= filterDate) {
+                                    status = item.HRME_LeavingReason?.toLowerCase().includes('resign')
+                                        ? 'Resigned'
+                                        : item.HRME_LeavingReason?.toLowerCase().includes('terminat')
+                                          ? 'Terminated'
+                                          : 'Left';
+                                }
+                            }
+
+                            return {
+                                id: `form5-${item.HRME_Id || item.HRES_Id || index}`,
+                                serialNo: index + 1,
+                                employeeCode: item.HRME_EmployeeCode || item.EmployeeCode || item.employeeCode || '',
+                                employeeName:
+                                    `${item.HRME_EmployeeFirstName || ''} ${item.HRME_EmployeeMiddleName || ''} ${item.HRME_EmployeeLastName || ''}`.trim() ||
+                                    item.EmployeeName ||
+                                    '',
+                                fatherName: item.HRME_FatherName || item.FatherHusbandName || item.fatherName || '',
+                                dateOfBirth: item.HRME_DOB || item.dateOfBirth || '',
+                                dateOfJoining: item.HRME_DOJ || item.dateOfJoining || '',
+                                dateOfLeaving: item.HRME_DOL || item.dateOfLeaving,
+                                pfNumber:
+                                    item.HRME_PFAccNo ||
+                                    item.HRME_PFuAN ||
+                                    item.pfNumber ||
+                                    `PF${(item.HRME_EmployeeCode || '').slice(-3)}/${filters.month.slice(0, 3).toUpperCase()}/${filters.year}`,
+                                designation: item.DesignationName || item.HRMDES_DesignationName || item.designation || '',
+                                department: item.departmentName || item.HRMD_DepartmentName || item.department || '',
+                                basicSalary: Math.round(basicSalary),
+                                pfEligibleSalary: Math.round(pfEligibleSalary),
+                                employeePFRate: employeePFRate,
+                                employerPFRate: employerPFRate,
+                                vpfRate: vpfRate,
+                                nomineeDetails: item.HRME_FatherName || item.FatherHusbandName || 'N/A',
+                                status: status,
+                                month: filters.month,
+                                year: filters.year
+                            };
+                        });
+
+                        setForm5Records(mappedRecords);
+                        setShowForm(true);
+                        toast.success('Form 5 generated successfully');
+                    } else {
+                        // No data returned, but still show the form structure
+                        setForm5Records([]);
+                        setShowForm(true);
+                        toast.warning('Form 5 generated but no data found for selected period');
+                    }
+                } else {
+                    toast.error(response.message || 'Failed to generate Form 5');
+                }
+            },
+            onError: (error: Error) => {
+                console.error('Error searching PF Form 5 report:', error);
+                toast.error(error.message || 'Failed to generate Form 5');
+            }
+        });
     };
 
     const handleCancel = () => {
@@ -251,6 +217,8 @@ export default function Form5Page() {
             month: '',
             year: ''
         });
+        setForm5Records([]);
+        setFilteredRecords([]);
         setShowForm(false);
         toast.info('Filters cleared');
     };
@@ -303,7 +271,15 @@ export default function Form5Page() {
     return (
         <div className='space-y-6'>
             {/* Report Configuration Section */}
-            <PFForm5Filters filters={filters} onFilterChange={handleFilterChange} onGenerate={handleGenerate} onCancel={handleCancel} />
+            <PFForm5Filters
+                filters={filters}
+                months={months}
+                years={years}
+                onFilterChange={handleFilterChange}
+                onGenerate={handleGenerate}
+                onCancel={handleCancel}
+                isLoading={isLoadingOnload}
+            />
 
             {/* Form 5 Results */}
             {showForm && (
@@ -416,11 +392,11 @@ export default function Form5Page() {
                                 </div>
                                 <div className='flex justify-between'>
                                     <span className='text-sm'>Organization:</span>
-                                    <span className='font-semibold'>VAPS SCHOOL</span>
+                                    <span className='font-semibold'>{institutionDetails?.MI_Name || 'N/A'}</span>
                                 </div>
                                 <div className='flex justify-between'>
                                     <span className='text-sm'>PF Code:</span>
-                                    <span className='font-semibold'>WB/KOL/12345</span>
+                                    <span className='font-semibold'>{institutionDetails?.MI_Code || 'N/A'}</span>
                                 </div>
                                 <div className='flex justify-between'>
                                     <span className='text-sm'>New Joinings:</span>
@@ -432,7 +408,7 @@ export default function Form5Page() {
 
                     {/* Data Table */}
                     <DataTable
-                        isLoading={isLoading}
+                        isLoading={isLoadingOnload}
                         columns={form5Columns}
                         data={filteredRecords as unknown as Form5RecordColumn[]}
                         totalItems={filteredRecords.length}
@@ -453,16 +429,18 @@ export default function Form5Page() {
                                 <div className='grid grid-cols-2 gap-8 text-sm'>
                                     <div className='space-y-2'>
                                         <div>
-                                            <strong>Name of Establishment:</strong> VAPS SCHOOL
+                                            <strong>Name of Establishment:</strong> {institutionDetails?.MI_Name || 'N/A'}
                                         </div>
                                         <div>
-                                            <strong>Establishment Code:</strong> WB/KOL/12345
+                                            <strong>Establishment Code:</strong> {institutionDetails?.MI_Code || 'N/A'}
                                         </div>
                                         <div>
-                                            <strong>Establishment ID:</strong> WBKOL12345000
+                                            <strong>Establishment ID:</strong> {institutionDetails?.MI_Id || 'N/A'}
                                         </div>
                                         <div>
-                                            <strong>Address:</strong> Kolkata, West Bengal
+                                            <strong>Address:</strong> {institutionDetails?.MI_Address1 || 'N/A'}
+                                            {institutionDetails?.MI_Address2 && `, ${institutionDetails.MI_Address2}`}
+                                            {institutionDetails?.MI_Address3 && `, ${institutionDetails.MI_Address3}`}
                                         </div>
                                     </div>
                                     <div className='space-y-2'>

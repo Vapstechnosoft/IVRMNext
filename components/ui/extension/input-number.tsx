@@ -74,6 +74,7 @@ interface NumberFieldProps extends AriaNumberFieldProps {
     inputFieldClassName?: string;
     step?: number;
     formatOptions?: Intl.NumberFormatOptions;
+    maxDigits?: number;
 }
 
 function InputNumber({
@@ -86,16 +87,20 @@ function InputNumber({
     optional,
     step = 1,
     formatOptions = { minimumFractionDigits: 0, maximumFractionDigits: 1 },
+    maxDigits,
     ...props
 }: NumberFieldProps) {
     // Ensure defaultValue is never NaN
     const safeDefaultValue = props.defaultValue === undefined || Number.isNaN(Number(props.defaultValue)) ? 0 : props.defaultValue;
+    // Compute a maxValue from maxDigits if provided and no explicit maxValue passed
+    const computedMaxValue = props.maxValue ?? (maxDigits ? 10 ** maxDigits - 1 : undefined);
     return (
         <NumberField
             className={composeRenderProps(className, (className) => cn('group flex flex-col gap-1.5', className))}
             step={step}
             formatOptions={formatOptions}
             defaultValue={safeDefaultValue}
+            {...(computedMaxValue !== undefined ? { maxValue: computedMaxValue } : {})}
             {...props}>
             <Label aria-label={label}>
                 {label}
@@ -103,7 +108,7 @@ function InputNumber({
                 {optional && <span className='text-muted-foreground'>(optional)</span>}
             </Label>
             <FieldGroup className={cn('w-full', inputFieldClassName)}>
-                <NumberFieldInput />
+                <NumberFieldInput maxLength={maxDigits} inputMode='numeric' />
                 <NumberFieldSteppers />
             </FieldGroup>
             {description && !error && (

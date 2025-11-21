@@ -5,8 +5,10 @@ import { FormError } from '@/components/ui/extension/field';
 import { MultiSelect } from '@/components/ui/multi-select';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
+import { useLeaveTransferBasicData } from '@/hooks/hrms/leave-management/useTransactions';
 import { Save, X } from 'lucide-react';
 import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
+import { useMemo } from 'react';
 
 export interface LeaveTransferFormData {
     type: string[];
@@ -23,55 +25,45 @@ interface LeaveTransferFormProps {
     defaultValues?: Partial<LeaveTransferFormData>;
 }
 
-// Mock data - replace with actual API calls
-const typeOptions = [
-    { label: 'Testing group', value: 'Testing group' },
-    { label: 'hr', value: 'hr' },
-    { label: 'Hour', value: 'Hour' },
-    { label: 'VAPS GROUP', value: 'VAPS GROUP' },
-    { label: 'Test Extra', value: 'Test Extra' },
-    { label: 'VB', value: 'VB' },
-    { label: 'garden group', value: 'garden group' }
-];
+export function LeaveTransferForm({ activeTab: _activeTab, onSubmit, onCancel, defaultValues }: LeaveTransferFormProps) {
+    // Fetch basic data from API
+    const { data: basicDataResponse, isLoading: isLoadingBasicData } = useLeaveTransferBasicData();
 
-const departmentOptions = [
-    { label: 'Teaching', value: 'Teaching' },
-    { label: 'Non Teaching', value: 'Non Teaching' },
-    { label: 'JUNIOR SCHOOL', value: 'JUNIOR SCHOOL' },
-    { label: 'PRIMARY SCHOOL', value: 'PRIMARY SCHOOL' },
-    { label: 'SENIOR SCHOOL', value: 'SENIOR SCHOOL' },
-    { label: 'OFFICE STAFF', value: 'OFFICE STAFF' },
-    { label: 'Service Staff', value: 'Service Staff' }
-];
+    // Extract dropdown options from API response
+    const typeOptions = useMemo(() => {
+        if (!basicDataResponse?.data?.typeOptions || !Array.isArray(basicDataResponse.data.typeOptions)) {
+            return [];
+        }
+        return basicDataResponse.data.typeOptions;
+    }, [basicDataResponse]);
 
-const designationOptions = [
-    { label: 'Assistant Teacher', value: 'Assistant Teacher' },
-    { label: 'Principal', value: 'Principal' },
-    { label: 'Vice Principal', value: 'Vice Principal' },
-    { label: 'Office Assistant', value: 'Office Assistant' },
-    { label: 'System Manager', value: 'System Manager' },
-    { label: 'Teacher Helper', value: 'Teacher Helper' },
-    { label: 'Electrician', value: 'Electrician' }
-];
+    const departmentOptions = useMemo(() => {
+        if (!basicDataResponse?.data?.departmentOptions || !Array.isArray(basicDataResponse.data.departmentOptions)) {
+            return [];
+        }
+        return basicDataResponse.data.departmentOptions;
+    }, [basicDataResponse]);
 
-const leaveYearOptions = [
-    { label: '2025', value: '2025' },
-    { label: '2024', value: '2024' },
-    { label: '2023', value: '2023' },
-    { label: '2022', value: '2022' },
-    { label: '2021', value: '2021' }
-];
+    const designationOptions = useMemo(() => {
+        if (!basicDataResponse?.data?.designationOptions || !Array.isArray(basicDataResponse.data.designationOptions)) {
+            return [];
+        }
+        return basicDataResponse.data.designationOptions;
+    }, [basicDataResponse]);
 
-const leaveNameOptions = [
-    { label: 'Casual Leave', value: 'Casual Leave' },
-    { label: 'Sick Leave', value: 'Sick Leave' },
-    { label: 'Earned Leave (EL)/Privilege Leave (PL)', value: 'Earned Leave (EL)/Privilege Leave (PL)' },
-    { label: 'Maternity leave', value: 'Maternity leave' },
-    { label: 'Optional Leave', value: 'Optional Leave' },
-    { label: 'Emergency Leave', value: 'Emergency Leave' }
-];
+    const leaveYearOptions = useMemo(() => {
+        if (!basicDataResponse?.data?.leaveYearOptions || !Array.isArray(basicDataResponse.data.leaveYearOptions)) {
+            return [];
+        }
+        return basicDataResponse.data.leaveYearOptions;
+    }, [basicDataResponse]);
 
-export function LeaveTransferForm({ activeTab, onSubmit, onCancel, defaultValues }: LeaveTransferFormProps) {
+    const leaveNameOptions = useMemo(() => {
+        if (!basicDataResponse?.data?.leaveNameOptions || !Array.isArray(basicDataResponse.data.leaveNameOptions)) {
+            return [];
+        }
+        return basicDataResponse.data.leaveNameOptions;
+    }, [basicDataResponse]);
     const {
         control,
         handleSubmit,
@@ -104,9 +96,10 @@ export function LeaveTransferForm({ activeTab, onSubmit, onCancel, defaultValues
                                 options={typeOptions}
                                 onValueChange={field.onChange}
                                 defaultValue={field.value || []}
-                                placeholder='Select Types'
+                                placeholder={isLoadingBasicData ? 'Loading...' : 'Select Types'}
                                 className='w-full'
                                 maxHeight={240}
+                                disabled={isLoadingBasicData}
                             />
                         )}
                     />
@@ -123,9 +116,10 @@ export function LeaveTransferForm({ activeTab, onSubmit, onCancel, defaultValues
                                 options={departmentOptions}
                                 onValueChange={field.onChange}
                                 defaultValue={field.value || []}
-                                placeholder='Select Departments'
+                                placeholder={isLoadingBasicData ? 'Loading...' : 'Select Departments'}
                                 className='w-full'
                                 maxHeight={240}
+                                disabled={isLoadingBasicData}
                             />
                         )}
                     />
@@ -142,9 +136,10 @@ export function LeaveTransferForm({ activeTab, onSubmit, onCancel, defaultValues
                                 options={designationOptions}
                                 onValueChange={field.onChange}
                                 defaultValue={field.value || []}
-                                placeholder='Select Designations'
+                                placeholder={isLoadingBasicData ? 'Loading...' : 'Select Designations'}
                                 className='w-full'
                                 maxHeight={240}
+                                disabled={isLoadingBasicData}
                             />
                         )}
                     />
@@ -162,16 +157,22 @@ export function LeaveTransferForm({ activeTab, onSubmit, onCancel, defaultValues
                         control={control}
                         rules={{ required: 'Leave Year is required' }}
                         render={({ field }) => (
-                            <Select value={field.value} onValueChange={field.onChange}>
+                            <Select value={field.value} onValueChange={field.onChange} disabled={isLoadingBasicData}>
                                 <SelectTrigger id='leave-year-select' className={errors.leaveYear ? 'border-red-500' : ''}>
-                                    <SelectValue placeholder='Select' />
+                                    <SelectValue placeholder={isLoadingBasicData ? 'Loading...' : 'Select'} />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    {leaveYearOptions.map((option) => (
-                                        <SelectItem key={option.value} value={option.value}>
-                                            {option.label}
-                                        </SelectItem>
-                                    ))}
+                                    {leaveYearOptions.length > 0 ? (
+                                        leaveYearOptions.map((option) => (
+                                            <SelectItem key={option.value} value={option.value}>
+                                                {option.label}
+                                            </SelectItem>
+                                        ))
+                                    ) : (
+                                        <div className='px-2 py-1.5 text-sm text-muted-foreground'>
+                                            {isLoadingBasicData ? 'Loading options...' : 'No options available'}
+                                        </div>
+                                    )}
                                 </SelectContent>
                             </Select>
                         )}
@@ -188,16 +189,22 @@ export function LeaveTransferForm({ activeTab, onSubmit, onCancel, defaultValues
                         control={control}
                         rules={{ required: 'Leave Name is required' }}
                         render={({ field }) => (
-                            <Select value={field.value} onValueChange={field.onChange}>
+                            <Select value={field.value} onValueChange={field.onChange} disabled={isLoadingBasicData}>
                                 <SelectTrigger id='leave-name-select' className={errors.leaveName ? 'border-red-500' : ''}>
-                                    <SelectValue placeholder='Select' />
+                                    <SelectValue placeholder={isLoadingBasicData ? 'Loading...' : 'Select'} />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    {leaveNameOptions.map((option) => (
-                                        <SelectItem key={option.value} value={option.value}>
-                                            {option.label}
-                                        </SelectItem>
-                                    ))}
+                                    {leaveNameOptions.length > 0 ? (
+                                        leaveNameOptions.map((option) => (
+                                            <SelectItem key={option.value} value={option.value}>
+                                                {option.label}
+                                            </SelectItem>
+                                        ))
+                                    ) : (
+                                        <div className='px-2 py-1.5 text-sm text-muted-foreground'>
+                                            {isLoadingBasicData ? 'Loading options...' : 'No options available'}
+                                        </div>
+                                    )}
                                 </SelectContent>
                             </Select>
                         )}

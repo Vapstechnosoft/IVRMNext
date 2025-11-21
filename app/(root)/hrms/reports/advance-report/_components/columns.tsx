@@ -2,12 +2,11 @@
 
 import { Badge } from '@/components/ui/badge';
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
-import type { BaseEntity } from '@/lib/localdb';
 import type { ColumnDef } from '@tanstack/react-table';
 
 // Employee Advance Record
-export interface EmployeeAdvanceRecord extends BaseEntity {
-    id: number;
+export interface EmployeeAdvanceRecord {
+    id?: string;
     employeeCode: string;
     employeeName: string;
     groupType: string;

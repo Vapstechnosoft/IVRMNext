@@ -220,3 +220,14 @@ export interface IAcademicYearMasterConfiguration {
     ispaC_DOBMaxAgeFlag: 0 | 1;
     asmaY_Cut_Of_Date: string | null;
 }
+
+export interface IMasterClassSetOrderList {
+    asmcL_Id: number;
+    asmcL_ClassName: string;
+    asmcL_Order: number;
+}
+export interface IMasterSectionSetOrderList {
+    asmS_Id: number;
+    asmC_SectionName: string;
+    asmC_Order: number;
+}

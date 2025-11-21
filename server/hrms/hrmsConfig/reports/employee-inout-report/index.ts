@@ -5,7 +5,13 @@ import type { ApiSearchparams } from '@/types';
 import type {
     EmployeeInOutReportOnloadRequest,
     EmployeeInOutReportOnloadResponse,
-    EmployeeInOutReportGetDataResponse
+    EmployeeInOutReportGetDataResponse,
+    EmployeeInOutReportDepartmentRequest,
+    EmployeeInOutReportDepartment,
+    EmployeeInOutReportDesignationRequest,
+    EmployeeInOutReportDesignation,
+    EmployeeInOutReportEmployeeRequest,
+    EmployeeInOutReportEmployee
 } from '@/types/hrms/reports/employee-inout-report';
 
 /**
@@ -147,5 +153,258 @@ export async function getEmployeeInOutReportList(
             page_size: searchParams?.page_size || 10
         }
     };
+}
+
+/**
+ * Get departments based on selected types
+ * POST /api/EmployeeInOutReportFacade/get_departments
+ */
+export async function getEmployeeInOutReportDepartments(
+    MI_Id = 30,
+    UserId = 0,
+    IVRMRT_Id = 0,
+    multipletype = ''
+): Promise<ApiResponse<EmployeeInOutReportDepartment[]>> {
+    const url = '/api/EmployeeInOutReportFacade/get_departments';
+    
+    const requestBody: EmployeeInOutReportDepartmentRequest = {
+        MI_Id,
+        UserId,
+        IVRMRT_Id,
+        multipletype
+    };
+    
+    try {
+        const response = await api.post<any>('hrmsfrontoffice', url, requestBody);
+        
+        // Debug logging (remove in production if needed)
+        if (process.env.NODE_ENV === 'development') {
+            console.log('📋 [getEmployeeInOutReportDepartments] Response:', JSON.stringify(response, null, 2));
+        }
+        
+        if (response && typeof response === 'object') {
+            let dataArray: any[] = [];
+            
+            // Handle case where response itself is an array
+            if (Array.isArray(response)) {
+                dataArray = response;
+            }
+            // Handle case where response has 'success' property
+            else if ('success' in response) {
+                // Handle different response structures
+                if (Array.isArray(response.data)) {
+                    dataArray = response.data;
+                } else if (response.data && typeof response.data === 'object') {
+                    // Try to find array in nested structure
+                    if (Array.isArray(response.data.$values)) {
+                        dataArray = response.data.$values;
+                    } else if (Array.isArray(response.data.departmentList)) {
+                        dataArray = response.data.departmentList;
+                    } else if (Array.isArray(response.data.departmentdropdown)) {
+                        dataArray = response.data.departmentdropdown;
+                    } else if (Array.isArray(response.data.DepartmentTempDto)) {
+                        dataArray = response.data.DepartmentTempDto;
+                    } else if (Array.isArray(response.data.departmentdropdownlist)) {
+                        dataArray = response.data.departmentdropdownlist;
+                    } else if (Array.isArray(response.data)) {
+                        dataArray = response.data;
+                    }
+                }
+            }
+            // Handle case where response.data might be directly accessible
+            else if ((response as any).data) {
+                if (Array.isArray((response as any).data)) {
+                    dataArray = (response as any).data;
+                }
+            }
+            
+            return {
+                success: response.success ?? true,
+                message: response.message || 'Data loaded successfully',
+                data: dataArray
+            };
+        }
+        
+        return {
+            success: false,
+            message: 'Failed to load departments - unexpected response format',
+            data: []
+        };
+    } catch (error) {
+        console.error('❌ [getEmployeeInOutReportDepartments] Error:', error);
+        return {
+            success: false,
+            message: 'Error loading departments',
+            data: []
+        };
+    }
+}
+
+/**
+ * Get designations based on selected departments
+ * POST /api/EmployeeInOutReportFacade/get_designation
+ */
+export async function getEmployeeInOutReportDesignations(
+    MI_Id = 30,
+    multipledep = ''
+): Promise<ApiResponse<EmployeeInOutReportDesignation[]>> {
+    const url = '/api/EmployeeInOutReportFacade/get_designation';
+    
+    const requestBody: EmployeeInOutReportDesignationRequest = {
+        MI_Id,
+        multipledep
+    };
+    
+    try {
+        const response = await api.post<any>('hrmsfrontoffice', url, requestBody);
+        
+        // Debug logging (remove in production if needed)
+        if (process.env.NODE_ENV === 'development') {
+            console.log('📋 [getEmployeeInOutReportDesignations] Response:', JSON.stringify(response, null, 2));
+        }
+        
+        if (response && typeof response === 'object') {
+            let dataArray: any[] = [];
+            
+            // Handle case where response itself is an array
+            if (Array.isArray(response)) {
+                dataArray = response;
+            }
+            // Handle case where response has 'success' property
+            else if ('success' in response) {
+                // Handle different response structures
+                if (Array.isArray(response.data)) {
+                    dataArray = response.data;
+                } else if (response.data && typeof response.data === 'object') {
+                    // Try to find array in nested structure
+                    if (Array.isArray(response.data.$values)) {
+                        dataArray = response.data.$values;
+                    } else if (Array.isArray(response.data.designationlList)) {
+                        dataArray = response.data.designationlList;
+                    } else if (Array.isArray(response.data.designationdropdown)) {
+                        dataArray = response.data.designationdropdown;
+                    } else if (Array.isArray(response.data.DesignationTempDto)) {
+                        dataArray = response.data.DesignationTempDto;
+                    } else if (Array.isArray(response.data.designationdropdownlist)) {
+                        dataArray = response.data.designationdropdownlist;
+                    } else if (Array.isArray(response.data.designationarray)) {
+                        dataArray = response.data.designationarray;
+                    } else if (Array.isArray(response.data)) {
+                        dataArray = response.data;
+                    }
+                }
+            }
+            // Handle case where response.data might be directly accessible
+            else if ((response as any).data) {
+                if (Array.isArray((response as any).data)) {
+                    dataArray = (response as any).data;
+                }
+            }
+            
+            return {
+                success: response.success ?? true,
+                message: response.message || 'Data loaded successfully',
+                data: dataArray
+            };
+        }
+        
+        return {
+            success: false,
+            message: 'Failed to load designations - unexpected response format',
+            data: []
+        };
+    } catch (error) {
+        console.error('❌ [getEmployeeInOutReportDesignations] Error:', error);
+        return {
+            success: false,
+            message: 'Error loading designations',
+            data: []
+        };
+    }
+}
+
+/**
+ * Get employees based on selected types, departments, and designations
+ * POST /api/EmployeeInOutReportFacade/get_employee
+ */
+export async function getEmployeeInOutReportEmployees(
+    MI_Id = 30,
+    multipledes = '',
+    multipledep = '',
+    multipletype = ''
+): Promise<ApiResponse<EmployeeInOutReportEmployee[]>> {
+    const url = '/api/EmployeeInOutReportFacade/get_employee';
+    
+    const requestBody: EmployeeInOutReportEmployeeRequest = {
+        MI_Id,
+        multipledes,
+        multipledep,
+        multipletype
+    };
+    
+    try {
+        const response = await api.post<any>('hrmsfrontoffice', url, requestBody);
+        
+        // Debug logging (remove in production if needed)
+        if (process.env.NODE_ENV === 'development') {
+            console.log('📋 [getEmployeeInOutReportEmployees] Response:', JSON.stringify(response, null, 2));
+        }
+        
+        if (response && typeof response === 'object') {
+            let dataArray: any[] = [];
+            
+            // Handle case where response itself is an array
+            if (Array.isArray(response)) {
+                dataArray = response;
+            }
+            // Handle case where response has 'success' property
+            else if ('success' in response) {
+                // Handle different response structures
+                if (Array.isArray(response.data)) {
+                    dataArray = response.data;
+                } else if (response.data && typeof response.data === 'object') {
+                    // Try to find array in nested structure
+                    if (Array.isArray(response.data.$values)) {
+                        dataArray = response.data.$values;
+                    } else if (Array.isArray(response.data.employeeList)) {
+                        dataArray = response.data.employeeList;
+                    } else if (Array.isArray(response.data.employees)) {
+                        dataArray = response.data.employees;
+                    } else if (Array.isArray(response.data.EmployeeTempDto)) {
+                        dataArray = response.data.EmployeeTempDto;
+                    } else if (Array.isArray(response.data.employeedropdownlist)) {
+                        dataArray = response.data.employeedropdownlist;
+                    } else if (Array.isArray(response.data)) {
+                        dataArray = response.data;
+                    }
+                }
+            }
+            // Handle case where response.data might be directly accessible
+            else if ((response as any).data) {
+                if (Array.isArray((response as any).data)) {
+                    dataArray = (response as any).data;
+                }
+            }
+            
+            return {
+                success: response.success ?? true,
+                message: response.message || 'Data loaded successfully',
+                data: dataArray
+            };
+        }
+        
+        return {
+            success: false,
+            message: 'Failed to load employees - unexpected response format',
+            data: []
+        };
+    } catch (error) {
+        console.error('❌ [getEmployeeInOutReportEmployees] Error:', error);
+        return {
+            success: false,
+            message: 'Error loading employees',
+            data: []
+        };
+    }
 }
 
