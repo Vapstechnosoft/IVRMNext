@@ -1,13 +1,15 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
 import { FormError, Label } from '@/components/ui/extension/field';
+import { InputText } from '@/components/ui/extension/input-text';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { MASTER_HEADS_DROPDOWN, TERM_DROPDOWN_DATA, useMasterTermsHeadDueDate } from '@/hooks/fees/useMasters';
+import { MASTER_HEADS_DROPDOWN, TERM_DROPDOWN_DATA, useMasterTermsPeriod } from '@/hooks/fees/useMasters';
 import { useacademicyerdropdowndatafee } from '@/hooks/fees/useTrasactions';
-import { masterTermFeeHeadDuedateSchema } from '@/schemas/fees/masters';
-import { addOrUpdateFeeTermHeadDueDate, getFeeTermHeadDueDateGridList } from '@/server/fees/masters/fee-term-head-duedate';
-import type { IFeeTermFeeHeadDueDateGridList } from '@/types/fees/masters/masters';
+import { masterTermPeriodSchema } from '@/schemas/fees/masters';
+import { addOrUpdateTermsPeriod, get_split_year } from '@/server/fees/masters/fee_terms_period';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Save } from 'lucide-react';
 import { useEffect, useState } from 'react';
@@ -15,15 +17,15 @@ import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import type { z } from 'zod';
 
-type FormFields = z.infer<typeof masterTermFeeHeadDuedateSchema.addOrUpdate>;
+type FormFields = z.infer<typeof masterTermPeriodSchema.addOrUpdate>;
 
-interface FeeTermsHeadFormProps {
+interface FeeTermsPeriodFormProps {
     onSuccess?: () => void;
     termname?: string;
 }
 
-export default function AddFeeTermsHeadDueDateFormForm({ onSuccess, termname = '' }: FeeTermsHeadFormProps) {
-    const { refetchAll } = useMasterTermsHeadDueDate();
+export default function AddFeeTermsPeriodForm({ onSuccess, termname = '' }: FeeTermsPeriodFormProps) {
+    const { refetchAll } = useMasterTermsPeriod();
 
     // Fetch hooks
     const { data: academicYear, isLoading: academicYearLoading, error: academicYearError } = useacademicyerdropdowndatafee();
@@ -35,17 +37,27 @@ export default function AddFeeTermsHeadDueDateFormForm({ onSuccess, termname = '
     const [selectedAcademicYear, setSelectedAcademicYear] = useState<number | null>(null);
     const [selectedTerm, setSelectedTerm] = useState<number | null>(null);
     const [selectedHead, setSelectedHead] = useState<number | null>(null);
+    const [splitAcademicYear, setSplitAcademicYear] = useState<any>(null); // store API result
 
-    const [gridData, setGridData] = useState<IFeeTermFeeHeadDueDateGridList[]>([]);
+    const [selectedSplitYear, setSelectedSplitYear] = useState<string | null>(null);
+
+    const [filterType, setFilterType] = useState<string>('');
 
     const {
         control,
+        register,
         handleSubmit,
         reset,
         formState: { errors, isSubmitting }
     } = useForm<FormFields>({
-        resolver: zodResolver(masterTermFeeHeadDuedateSchema.addOrUpdate),
-        mode: 'onChange'
+        resolver: zodResolver(masterTermPeriodSchema.addOrUpdate),
+        mode: 'onChange',
+        defaultValues: {
+            fmtP_Year: '',
+            filterType: '',
+            from_Month: '',
+            to_Month: ''
+        }
     });
 
     // ✅ useEffect to auto-fetch dropdown data
@@ -55,74 +67,56 @@ export default function AddFeeTermsHeadDueDateFormForm({ onSuccess, termname = '
     }, [refetchterms, refetchMasterHeads]);
 
     function OnReset() {
-        reset();
+        // reset();
+        reset({
+            from_Month: '',
+            to_Month: '',
+            filterType: ''
+        });
         refetchAll();
         refetchterms();
         refetchMasterHeads();
-        setGridData([]);
     }
+
+    const handleFilterChange = (value: string) => {
+        setFilterType(value);
+    };
+
     useEffect(() => {
-        async function fetchFeeTermHeadDueDateList() {
-            if (selectedAcademicYear && selectedTerm && selectedHead) {
-                const loadingToast = toast.loading('Fetching Due Date details...');
+        if (selectedAcademicYear !== null) {
+            const fetchSplitAcademicYear = async () => {
                 try {
-                    const response = await getFeeTermHeadDueDateGridList(selectedAcademicYear, selectedTerm, selectedHead);
-
-                    if (response?.success && Array.isArray(response.data)) {
-                        console.log('Response data:', response.data);
-
-                        if (response.data.length > 0) {
-                            setGridData(response.data);
-                            toast.success('Due Date details loaded successfully', {
-                                id: loadingToast
-                            });
-                        } else {
-                            setGridData([]);
-                            toast.error('No Due Date details found for the selected criteria', {
-                                id: loadingToast
-                            });
-                        }
-                    } else {
-                        setGridData([]);
-                        toast.error(response?.message || 'Failed to fetch data', {
-                            id: loadingToast
-                        });
-                    }
-                } catch (err: any) {
-                    setGridData([]);
-                    toast.error(err?.message || 'Error while fetching data', {
-                        id: loadingToast
-                    });
+                    const response = await get_split_year(Number(selectedAcademicYear));
+                    console.log('Split Academic Year:', response);
+                    setSplitAcademicYear(response.data); // store result if needed
+                } catch (err) {
+                    console.error('Failed to fetch split academic year', err);
                 }
-            }
-        }
+            };
 
-        fetchFeeTermHeadDueDateList();
-    }, [selectedAcademicYear, selectedTerm, selectedHead]);
+            fetchSplitAcademicYear();
+        }
+    }, [selectedAcademicYear]);
     //getFeeTermHeadDueDateGridList
     const onSubmit: SubmitHandler<FormFields> = async (data) => {
         try {
-            const { asmay_Id, fmt_id, fmh_id } = data;
+            const { asmay_Id, fmt_id } = data;
 
             const payload = {
-                MI_Id: 30,
-                term_year_id: selectedAcademicYear ?? 0,
-                // fmT_Id: selectedTerm ?? 0,
-                // fmH_Id: selectedHead ?? 0,
-
-                feetfhddd: gridData.map((item) => ({
-                    FMTFH_Id: item.fmtfH_Id ?? 0,
-                    FMTP_Id: item.fmtP_Id ?? 0,
-                    FMTFHDD_FromDate: item.fmtfhdD_FromDate || null,
-                    FMTFHDD_ToDate: item.fmtfhdD_ToDate || null,
-                    FMTFHDD_ApplicableDate: item.fmtfhdD_ApplicableDate || null,
-                    FMTFHDD_DueDate: item.fmtfhdD_DueDate || null
-                }))
+                mi_id: 30,
+                asmay_Id: asmay_Id,
+                fmt_id: fmt_id,
+                // fmh_id: selectedHead,
+                fmtP_Year: data.fmtP_Year,
+                feeflag: filterType,
+                fmtP_FROM_MONTH: data.from_Month,
+                fmtP_TO_MONTH: data.to_Month,
+                user_id: 21602
             };
 
             console.log('Payload JSON:', JSON.stringify(payload));
 
-            const response = await addOrUpdateFeeTermHeadDueDate(payload);
+            const response = await addOrUpdateTermsPeriod(payload);
 
             if (response.success) {
                 toast.success(response.message);
@@ -231,41 +225,40 @@ export default function AddFeeTermsHeadDueDateFormForm({ onSuccess, termname = '
                     </div>
                 </div>
 
-                {/* Fees Head */}
+                {/* Split Academic Year */}
                 <div className='flex items-center gap-6'>
                     <Label className='min-w-[150px] text-right'>
-                        Fees Head :<span className='ml-1 text-red-500'>*</span>
+                        Year :<span className='ml-1 text-red-500'>*</span>
                     </Label>
                     <div className='flex w-full max-w-[400px] flex-col'>
                         <Controller
-                            name='fmh_id'
+                            name='fmtP_Year'
                             control={control}
                             render={({ field }) => (
                                 <Select
                                     key={field.value || 'empty'}
                                     onValueChange={(val) => {
-                                        const id = Number(val);
-                                        field.onChange(id);
-                                        setSelectedHead(id);
+                                        field.onChange(val); // keep string
+                                        setSelectedSplitYear(val);
                                     }}
-                                    value={typeof field.value === 'number' || typeof field.value === 'string' ? String(field.value) : ''}
-                                    disabled={masterHeadsLoading}>
+                                    value={field.value || ''}
+                                    disabled={termsLoading}>
                                     <SelectTrigger className='min-w-[400px] text-center'>
-                                        <SelectValue placeholder='--Select Fees Head--' />
+                                        <SelectValue placeholder='--Select Year--' />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        {masterHeadsLoading ? (
+                                        {termsLoading ? (
                                             <SelectItem value='loading' disabled>
                                                 Loading...
                                             </SelectItem>
-                                        ) : headerror ? (
+                                        ) : termsError ? (
                                             <SelectItem value='error' disabled>
                                                 Error loading
                                             </SelectItem>
                                         ) : (
-                                            masterHeads?.data?.map((item: any, index: number) => (
-                                                <SelectItem key={`${item.fmH_Id}-${index}`} value={item.fmH_Id.toString()}>
-                                                    {item.fmH_FeeName}
+                                            splitAcademicYear?.map((item: any) => (
+                                                <SelectItem key={item.fmtP_Year} value={item.fmtP_Year}>
+                                                    {item.fmtP_Year}
                                                 </SelectItem>
                                             ))
                                         )}
@@ -273,120 +266,135 @@ export default function AddFeeTermsHeadDueDateFormForm({ onSuccess, termname = '
                                 </Select>
                             )}
                         />
-                        {errors.fmh_id && <FormError>{errors.fmh_id.message}</FormError>}
+
+                        {errors.fmtP_Year && <FormError>{errors.fmtP_Year.message}</FormError>}
                     </div>
                 </div>
 
-                <div className='mt-6 w-full'>
-                    {gridData.length > 0 && (
-                        <div className='overflow-x-auto rounded-lg border border-gray-300 shadow-sm'>
-                            <table className='w-full border-collapse text-sm'>
-                                <thead>
-                                    <tr>
-                                        <th className='border border-gray-300 px-4 py-2'>SL No</th>
-                                        <th className='border border-gray-300 px-4 py-2'>Installment Name</th>
-                                        <th className='border border-gray-300 px-4 py-2'>From Date</th>
-                                        <th className='border border-gray-300 px-4 py-2'>To Date</th>
-                                        <th className='border border-gray-300 px-4 py-2'>Applicable Date</th>
-                                        <th className='border border-gray-300 px-4 py-2'>Due Date</th>
-                                    </tr>
-                                </thead>
+                <div className='flex items-center gap-6'>
+                    <Label className='min-w-[150px] text-right'>
+                        From Month :<span className='ml-1 text-red-500'>*</span>
+                    </Label>
+                    <div className='flex w-full max-w-[400px] flex-col'>
+                        <Controller
+                            name='from_Month'
+                            control={control}
+                            render={({ field }) => (
+                                <>
+                                    <InputText
+                                        {...field}
+                                        id='from_Month'
+                                        required
+                                        onKeyDown={(e) => {
+                                            const allowed = /^[A-Za-z0-9 ]$/;
+                                            if (e.key.length === 1 && !allowed.test(e.key)) e.preventDefault();
+                                        }}
+                                        onPaste={(e) => {
+                                            const pasteText = e.clipboardData.getData('text');
+                                            if (!/^[A-Za-z0-9 ]*$/.test(pasteText)) e.preventDefault();
+                                        }}
+                                        className='transition-colors focus:ring-2 focus:ring-primary/20'
+                                    />
+                                    {errors.from_Month && <FormError>{errors.from_Month.message}</FormError>}
+                                </>
+                            )}
+                        />
+                    </div>
+                </div>
 
-                                <tbody className='bg-white text-center'>
-                                    {gridData.map((item, index) => (
-                                        <tr key={index} className='border border-gray-300 transition-colors hover:bg-gray-50'>
-                                            <td className='border border-gray-300 px-4 py-2 font-medium'>{index + 1}</td>
-                                            <td className='border border-gray-300 px-4 py-2 font-semibold text-gray-700'>{item.insname}</td>
+                <div className='flex items-center gap-6'>
+                    <Label className='min-w-[150px] text-right'>
+                        To Month :<span className='ml-1 text-red-500'>*</span>
+                    </Label>
+                    <div className='flex w-full max-w-[400px] flex-col'>
+                        <Controller
+                            name='to_Month'
+                            control={control}
+                            render={({ field }) => (
+                                <>
+                                    <InputText
+                                        {...field}
+                                        id='to_Month'
+                                        required
+                                        onKeyDown={(e) => {
+                                            const allowed = /^[A-Za-z0-9 ]$/;
+                                            if (e.key.length === 1 && !allowed.test(e.key)) e.preventDefault();
+                                        }}
+                                        onPaste={(e) => {
+                                            const pasteText = e.clipboardData.getData('text');
+                                            if (!/^[A-Za-z0-9 ]*$/.test(pasteText)) e.preventDefault();
+                                        }}
+                                        className='transition-colors focus:ring-2 focus:ring-primary/20'
+                                    />
+                                    {errors.to_Month && <FormError>{errors.to_Month.message}</FormError>}
+                                </>
+                            )}
+                        />
+                    </div>
+                </div>
 
-                                            {/* From Date */}
-                                            <td className='border border-gray-300 px-2 py-1'>
-                                                <input
-                                                    type='date'
-                                                    className='w-full rounded-md border border-gray-300 px-2 py-1 text-gray-700 outline-none focus:border-blue-400 focus:ring focus:ring-blue-100'
-                                                    value={item.fmtfhdD_FromDate?.split('T')[0] || ''}
-                                                    onChange={(e) => {
-                                                        const updated = [...gridData];
-                                                        updated[index].fmtfhdD_FromDate = e.target.value;
-                                                        setGridData(updated);
-                                                    }}
-                                                />
-                                            </td>
+                <div className='flex justify-center'>
+                    <Controller
+                        name='filterType'
+                        control={control}
+                        render={({ field }) => (
+                            <div className='flex flex-col items-center'>
+                                <Card className='p-4'>
+                                    <RadioGroup
+                                        value={field.value}
+                                        onValueChange={(val) => {
+                                            field.onChange(val);
+                                            setFilterType(val);
+                                        }}>
+                                        <div className='grid grid-cols-2 gap-3 sm:grid-cols-4 md:grid-cols-5'>
+                                            {[
+                                                { value: 'N', label: 'New Admission Fee' },
+                                                { value: 'F', label: 'Regular Fee' },
+                                                { value: 'T', label: 'TransportFee' },
+                                                { value: 'R', label: 'Registration Fee' }
+                                            ].map((item) => (
+                                                <div key={item.value} className='flex items-center space-x-2'>
+                                                    <RadioGroupItem value={item.value} id={item.value} />
+                                                    <Label htmlFor={item.value} className='cursor-pointer text-sm'>
+                                                        {item.label}
+                                                    </Label>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </RadioGroup>
+                                </Card>
 
-                                            {/* To Date */}
-                                            <td className='border border-gray-300 px-2 py-1'>
-                                                <input
-                                                    type='date'
-                                                    className='w-full rounded-md border border-gray-300 px-2 py-1 text-gray-700 outline-none focus:border-blue-400 focus:ring focus:ring-blue-100'
-                                                    value={item.fmtfhdD_ToDate?.split('T')[0] || ''}
-                                                    onChange={(e) => {
-                                                        const updated = [...gridData];
-                                                        updated[index].fmtfhdD_ToDate = e.target.value;
-                                                        setGridData(updated);
-                                                    }}
-                                                />
-                                            </td>
-
-                                            {/* Applicable Date */}
-                                            <td className='border border-gray-300 px-2 py-1'>
-                                                <input
-                                                    type='date'
-                                                    className='w-full rounded-md border border-gray-300 px-2 py-1 text-gray-700 outline-none focus:border-blue-400 focus:ring focus:ring-blue-100'
-                                                    value={item.fmtfhdD_ApplicableDate?.split('T')[0] || ''}
-                                                    onChange={(e) => {
-                                                        const updated = [...gridData];
-                                                        updated[index].fmtfhdD_ApplicableDate = e.target.value;
-                                                        setGridData(updated);
-                                                    }}
-                                                />
-                                            </td>
-
-                                            {/* Due Date */}
-                                            <td className='border border-gray-300 px-2 py-1'>
-                                                <input
-                                                    type='date'
-                                                    className='w-full rounded-md border border-gray-300 px-2 py-1 text-gray-700 outline-none focus:border-blue-400 focus:ring focus:ring-blue-100'
-                                                    value={item.fmtfhdD_DueDate?.split('T')[0] || ''}
-                                                    onChange={(e) => {
-                                                        const updated = [...gridData];
-                                                        updated[index].fmtfhdD_DueDate = e.target.value;
-                                                        setGridData(updated);
-                                                    }}
-                                                />
-                                            </td>
-                                        </tr>
-                                    ))}
-                                </tbody>
-                            </table>
-                        </div>
-                    )}
+                                {/* Error BELOW the card */}
+                                {errors.filterType && <FormError className='mt-2'>{errors.filterType.message}</FormError>}
+                            </div>
+                        )}
+                    />
                 </div>
 
                 {/* Buttons */}
                 <div className='flex flex-col gap-3 pt-4 sm:flex-row sm:justify-start'>
-                    {gridData.length > 0 && (
-                        <>
-                            <Button
-                                type='button'
-                                variant='outline'
-                                onClick={OnReset}
-                                disabled={isSubmitting}
-                                className='order-2 w-fit transition-all duration-200 hover:scale-105 sm:order-1'>
-                                Reset
-                            </Button>
+                    <>
+                        <Button
+                            type='button'
+                            variant='outline'
+                            onClick={OnReset}
+                            disabled={isSubmitting}
+                            className='order-2 w-fit transition-all duration-200 hover:scale-105 sm:order-1'>
+                            Reset
+                        </Button>
 
-                            <Button
-                                type='submit'
-                                disabled={isSubmitting}
-                                className='order-1 w-fit transition-all duration-200 hover:scale-105 sm:order-2'
-                                isLoading={isSubmitting}
-                                loadingText='Saving...'>
-                                <div className='flex items-center'>
-                                    <Save className='mr-2 h-4 w-4' />
-                                    Save
-                                </div>
-                            </Button>
-                        </>
-                    )}
+                        <Button
+                            type='submit'
+                            disabled={isSubmitting}
+                            className='order-1 w-fit transition-all duration-200 hover:scale-105 sm:order-2'
+                            isLoading={isSubmitting}
+                            loadingText='Saving...'>
+                            <div className='flex items-center'>
+                                <Save className='mr-2 h-4 w-4' />
+                                Save
+                            </div>
+                        </Button>
+                    </>
                 </div>
             </form>
         </div>

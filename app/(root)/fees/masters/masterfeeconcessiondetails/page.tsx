@@ -7,7 +7,7 @@ import { useMasterConcessionDetails } from '@/hooks/fees/useMasters';
 import type { IMasterConcessionDetailsList } from '@/types/fees/masters';
 import { Plus, X } from 'lucide-react';
 import { use } from 'react';
-import AddMasterConcessionForm from '../masterfeeconcession/_components/add-form';
+import AddMasterConcessionDetailsForm from './_components/add-form';
 import { feeMasterConcessionDetailsColumns } from './_components/columns';
 import ToggleFeesConcessionDetails from './_components/toggle-form';
 import UpdateMasterConcessionDetailsForm from './_components/update-form';
@@ -48,7 +48,7 @@ function MasterFeeConcessionPageContent({
                         onClick={openAddForm}
                         className='w-fit shadow-md transition-all duration-200 hover:scale-105 hover:shadow-lg'>
                         <Plus className='h-4 w-4' />
-                        Add Fees Master Concession
+                        Add Concession Category Details
                     </Button>
                 </div>
 
@@ -112,7 +112,7 @@ function FormSections() {
                                 className='-top-[3.5rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
                                 <X className='h-4 w-4 text-destructive' /> Close
                             </Button>
-                            <AddMasterConcessionForm onSuccess={closeAddForm} />
+                            <AddMasterConcessionDetailsForm onSuccess={closeAddForm} />
                         </div>
                     </CollapsibleSection>
                 </div>

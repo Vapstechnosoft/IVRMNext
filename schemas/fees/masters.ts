@@ -526,16 +526,16 @@ export const feePrivilegeSchema = {
     })
 };
 
-export const masterTermFeeHeadDueDateSchema = {
-    addOrUpdate: z.object({
-        asmaY_Id: z.number().int({ message: 'Academic Year is required' }).optional(),
-        fmT_Id: z.number().int({ message: 'Term is required' }),
-        fmH_Id: z.number().int({ message: 'Category is required' })
-    }),
-    delete: z.object({
-        fmA_Id: deleteIdSchema('fmA_Id')
-    })
-};
+// export const masterTermFeeHeadDueDateSchema = {
+//     addOrUpdate: z.object({
+//         asmaY_Id: z.number().int({ message: 'Academic Year is required' }).optional(),
+//         fmT_Id: z.number().int({ message: 'Term is required' }),
+//         fmH_Id: z.number().int({ message: 'Category is required' })
+//     }),
+//     delete: z.object({
+//         fmA_Id: deleteIdSchema('fmA_Id')
+//     })
+// };
 
 export const masterOnlinePaymentHeadGroupSchema = {
     addOrUpdate: z.object({
@@ -653,10 +653,14 @@ export const masterTermPeriodSchema = {
     addOrUpdate: z.object({
         asmay_Id: z.number({ message: 'Academic Year is required' }),
         fmt_id: z.number({ message: 'Term is required' }),
-        fmh_id: z.number({ message: 'Head is required' })
+        // fmh_id: z.number({ message: 'Head is required' }),
+        fmtP_Year: z.string({ message: 'Year is required' }),
+        filterType: z.string().min(1, 'Please select a fee type'),
+        from_Month: z.string({ message: 'From Month is required' }),
+        to_Month: z.string({ message: 'To Month is required' })
     }),
     delete: z.object({
-        fmtfhdD_Id: deleteIdSchema('fmtfhdD_Id')
+        fmtP_Id: deleteIdSchema('fmtP_Id')
     })
 };
 
@@ -671,6 +675,19 @@ export const masterStudentFeeGroupMappingSchema = {
         class: z.string().optional(),
         section: z.string().optional(),
         area: z.string().optional()
+    }),
+    delete: z.object({
+        fopM_Id: deleteIdSchema('fopM_Id')
+    })
+};
+
+export const masterFeeOtherStudentSchema = {
+    addOrUpdate: z.object({
+        mI_Id: z.string().min(1, { message: 'Institution is required' }),
+        institutionName: z.string().min(1, { message: 'Institution Name is required' }),
+        studentName: z.string().min(1, { message: 'Student Name is required' }),
+        mobileno: z.string().min(1, { message: 'Mobile Number is required' }),
+        emailno: z.string().min(1, { message: 'Email Number is required' })
     }),
     delete: z.object({
         fopM_Id: deleteIdSchema('fopM_Id')

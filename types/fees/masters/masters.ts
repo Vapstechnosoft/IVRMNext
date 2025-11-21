@@ -738,6 +738,10 @@ export interface GroupStudentClassMapping {
     groups: studentFeeGroup[];
 }
 
+export interface IFeeSplitYearList {
+    fmtP_Year: string;
+}
+
 export interface MasterFeeOtherStudentType {
     fmosT_Id: number;
     mI_Id: number;
