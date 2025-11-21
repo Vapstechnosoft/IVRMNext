@@ -21,29 +21,41 @@ export type EmployeeInOutReportFilters = z.infer<typeof employeeInOutReportFilte
 interface EmployeeInOutReportFiltersProps {
     filters: EmployeeInOutReportFilters;
     branches: string[];
-    departments: string[];
-    designations: string[];
+    departments: Array<{ label: string; value: string }>;
+    designations: Array<{ label: string; value: string }>;
     groupTypes?: Array<{ label: string; value: string }>;
     employees?: Array<{ label: string; value: string }>;
     onFilterChange: (filters: EmployeeInOutReportFilters) => void;
+    onTypeChange?: (types: string[]) => void;
+    onDepartmentChange?: (departments: string[]) => void;
+    onDesignationChange?: (designations: string[]) => void;
     onSearch: () => void;
     onCancel: () => void;
     onExport: () => void;
     onPrint: () => void;
+    isLoadingDepartments?: boolean;
+    isLoadingDesignations?: boolean;
+    isLoadingEmployees?: boolean;
 }
 
 export function EmployeeInOutReportFilters({
     filters,
-    branches,
-    departments,
-    designations,
+    branches: _branches,
+    departments = [],
+    designations = [],
     groupTypes = [],
     employees = [],
     onFilterChange,
+    onTypeChange,
+    onDepartmentChange,
+    onDesignationChange,
     onSearch,
     onCancel,
-    onExport,
-    onPrint
+    onExport: _onExport,
+    onPrint: _onPrint,
+    isLoadingDepartments = false,
+    isLoadingDesignations = false,
+    isLoadingEmployees = false
 }: EmployeeInOutReportFiltersProps) {
     const {
         handleSubmit,
@@ -98,12 +110,18 @@ export function EmployeeInOutReportFilters({
                             Type
                         </label>
                         <MultiSelect
-                            options={groupTypes.length > 0 ? groupTypes : [
-                                { label: 'Permanent', value: 'Permanent' },
-                                { label: 'Contract', value: 'Contract' }
-                            ]}
-                            onValueChange={(values) => handleFilterChange('type', values)}
-                            defaultValue={filters.type || []}
+                            key={`type-${groupTypes.length}-${groupTypes.map(o => o.value).join(',')}`}
+                            options={groupTypes}
+                            onValueChange={(values) => {
+                                handleFilterChange('type', values);
+                                // Clear dependent dropdowns when type changes
+                                handleFilterChange('department', []);
+                                handleFilterChange('designation', []);
+                                handleFilterChange('query', '');
+                                // Trigger cascading load
+                                onTypeChange?.(values);
+                            }}
+                            defaultValue={Array.isArray(filters.type) ? filters.type.map(String) : []}
                             placeholder='Select Types'
                             className='w-full'
                             maxHeight={240}
@@ -114,12 +132,21 @@ export function EmployeeInOutReportFilters({
                             Department <span className='text-red-500'>*</span>
                         </label>
                         <MultiSelect
-                            options={departments.map((d) => ({ label: d, value: d }))}
-                            onValueChange={(values) => handleFilterChange('department', values)}
-                            defaultValue={filters.department || []}
-                            placeholder='Select Departments'
+                            key={`dept-${departments.length}-${departments.map(o => o.value).join(',')}`}
+                            options={departments}
+                            onValueChange={(values) => {
+                                handleFilterChange('department', values);
+                                // Clear dependent dropdowns when department changes
+                                handleFilterChange('designation', []);
+                                handleFilterChange('query', '');
+                                // Trigger cascading load
+                                onDepartmentChange?.(values);
+                            }}
+                            defaultValue={Array.isArray(filters.department) ? filters.department.map(String) : []}
+                            placeholder={isLoadingDepartments ? 'Loading...' : departments.length === 0 ? 'No departments available' : 'Select Departments'}
                             className={`w-full ${errors.department ? 'border-red-500' : ''}`}
                             maxHeight={240}
+                            disabled={isLoadingDepartments || (filters.type?.length === 0 && groupTypes.length > 0)}
                         />
                         {errors.department && <FormError>{errors.department.message}</FormError>}
                     </div>
@@ -128,12 +155,20 @@ export function EmployeeInOutReportFilters({
                             Designation <span className='text-red-500'>*</span>
                         </label>
                         <MultiSelect
-                            options={designations.map((d) => ({ label: d, value: d }))}
-                            onValueChange={(values) => handleFilterChange('designation', values)}
-                            defaultValue={filters.designation || []}
-                            placeholder='Select Designations'
+                            key={`desg-${designations.length}-${designations.map(o => o.value).join(',')}`}
+                            options={designations}
+                            onValueChange={(values) => {
+                                handleFilterChange('designation', values);
+                                // Clear employee when designation changes
+                                handleFilterChange('query', '');
+                                // Trigger cascading load
+                                onDesignationChange?.(values);
+                            }}
+                            defaultValue={Array.isArray(filters.designation) ? filters.designation.map(String) : []}
+                            placeholder={isLoadingDesignations ? 'Loading...' : designations.length === 0 ? 'No designations available' : 'Select Designations'}
                             className={`w-full ${errors.designation ? 'border-red-500' : ''}`}
                             maxHeight={240}
+                            disabled={isLoadingDesignations || (filters.department?.length === 0 && departments.length > 0)}
                         />
                         {errors.designation && <FormError>{errors.designation.message}</FormError>}
                     </div>
@@ -163,25 +198,22 @@ export function EmployeeInOutReportFilters({
                             </label>
                             <Select
                                 value={queryValue || undefined}
-                                onValueChange={(value) => handleFilterChange('query', value)}>
+                                onValueChange={(value) => handleFilterChange('query', value)}
+                                disabled={isLoadingEmployees || employees.length === 0}>
                                 <SelectTrigger id='employee' className={errors.query ? 'border-red-500' : ''}>
-                                    <SelectValue placeholder='--Select--' />
+                                    <SelectValue placeholder={isLoadingEmployees ? 'Loading...' : employees.length === 0 ? 'No employees available' : '--Select--'} />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    {employees.length > 0 ? (
+                                    {isLoadingEmployees ? (
+                                        <SelectItem value='loading' disabled>Loading...</SelectItem>
+                                    ) : employees.length > 0 ? (
                                         employees.map((emp) => (
                                             <SelectItem key={emp.value} value={emp.value}>
                                                 {emp.label}
                                             </SelectItem>
                                         ))
                                     ) : (
-                                        <>
-                                            <SelectItem value='EMP001'>John Doe (EMP001)</SelectItem>
-                                            <SelectItem value='EMP002'>Jane Smith (EMP002)</SelectItem>
-                                            <SelectItem value='EMP003'>Bob Johnson (EMP003)</SelectItem>
-                                            <SelectItem value='EMP004'>Alice Williams (EMP004)</SelectItem>
-                                            <SelectItem value='EMP005'>Charlie Brown (EMP005)</SelectItem>
-                                        </>
+                                        <SelectItem value='no-data' disabled>No employees available</SelectItem>
                                     )}
                                 </SelectContent>
                             </Select>

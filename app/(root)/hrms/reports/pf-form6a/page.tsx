@@ -3,7 +3,8 @@
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { DataTable } from '@/components/ui/data-table/data-table';
-import { type BaseEntity, createLocalCrud } from '@/lib/localdb';
+import { HRMS_MI_ID } from '@/constants/hrms-config';
+import { useFilterPFForm6AEmployeeData, usePFForm6AReportOnload, useSearchPFForm6AReport } from '@/hooks/hrms/useReports';
 import { format } from 'date-fns';
 import { Calculator, Download, FileText, Printer, TrendingUp, Users } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
@@ -12,7 +13,8 @@ import { type Form6ARecord as Form6ARecordColumn, form6AColumns } from './_compo
 import { type Form6AFilters, PFForm6AFilters } from './_components/filters';
 
 // Form 6A data structure (Annual Return of PF Contributions)
-interface Form6ARecord extends BaseEntity {
+interface Form6ARecord {
+    id?: string;
     employeeCode: string;
     employeeName: string;
     pfNumber: string;
@@ -52,145 +54,40 @@ interface Form6ASummary {
 }
 
 export default function PFForm6APage() {
-    // Database instances
-    const form6ADB = createLocalCrud<Form6ARecord>('report:pf-form6a');
+    const roleId = HRMS_MI_ID;
+
+    // React Query hooks
+    const { data: onloadData, isLoading: isLoadingOnload, error: onloadError } = usePFForm6AReportOnload(roleId);
+    const filterMutation = useFilterPFForm6AEmployeeData();
+    const searchMutation = useSearchPFForm6AReport();
 
     // State
     const [form6ARecords, setForm6ARecords] = useState<Form6ARecord[]>([]);
     const [filteredRecords, setFilteredRecords] = useState<Form6ARecord[]>([]);
-    const [isLoading, setIsLoading] = useState(true);
     const [showForm, setShowForm] = useState(false);
 
     const [filters, setFilters] = useState<Form6AFilters>({
-        fromDate: new Date('2025-04-01'), // Default to financial year start
-        toDate: new Date('2025-03-31') // Default to financial year end
+        fromDate: undefined,
+        toDate: undefined
     });
 
-    // Load data on mount
+    // Get institution details from API
+    const institutionDetails = useMemo(() => {
+        const data = onloadData?.data;
+        if (!data) return null;
+        return (data as any).institutionDetails || null;
+    }, [onloadData?.data]);
+
+    // Show error if API fails
     useEffect(() => {
-        loadData();
-    }, []);
-
-    const loadData = () => {
-        try {
-            // Load Form 6A records
-            let recordList = form6ADB.list();
-            if (recordList.length === 0) {
-                const mockData = generateMockForm6AData();
-                mockData.forEach((record) => form6ADB.create(record));
-                recordList = form6ADB.list(); // Reload data after creating mock records
-            }
-            setForm6ARecords(recordList);
-        } catch (_error) {
-            toast.error('Failed to load data');
-        } finally {
-            setIsLoading(false);
+        if (onloadError || (!isLoadingOnload && onloadData && !onloadData.success)) {
+            const errorMessage =
+                onloadError?.message ||
+                onloadData?.message ||
+                'Failed to load PF Form 6A report data. Please check if the API endpoint is available.';
+            toast.error(errorMessage);
         }
-    };
-
-    // Generate mock Form 6A data
-    const generateMockForm6AData = (referenceYear = 2024): Omit<Form6ARecord, 'id' | 'createdAt'>[] => {
-        const employees = [
-            {
-                code: 'EMP001',
-                name: 'MR SUDIPTA RANJAN BHADURI',
-                father: 'LATE RANJAN BHADURI',
-                joining: '2020-04-01'
-            },
-            {
-                code: 'EMP002',
-                name: 'MS RUPLEKHA CHATTERJEE',
-                father: 'MR SUBRATA CHATTERJEE',
-                joining: '2021-06-15'
-            },
-            {
-                code: 'EMP003',
-                name: 'MR JOHN SHAH',
-                father: 'MR DINESH SHAH',
-                joining: '2019-08-20'
-            },
-            {
-                code: 'EMP004',
-                name: 'MRS BHASWATI DAS',
-                father: 'MR KRISHNA DAS',
-                joining: '2022-01-10'
-            },
-            {
-                code: 'EMP005',
-                name: 'MR SANTANU MUKHERJEE',
-                father: 'MR BIMAL MUKHERJEE',
-                joining: '2020-11-25'
-            },
-            {
-                code: 'EMP006',
-                name: 'MRS PRIYA SHARMA',
-                father: 'MR RAJESH SHARMA',
-                joining: '2021-03-12'
-            },
-            {
-                code: 'EMP007',
-                name: 'MR RAJESH KUMAR',
-                father: 'MR SURESH KUMAR',
-                joining: '2020-07-08'
-            },
-            {
-                code: 'EMP008',
-                name: 'MS ANITA SINGH',
-                father: 'MR VIJAY SINGH',
-                joining: '2022-09-05'
-            }
-        ];
-
-        const mockRecords: Omit<Form6ARecord, 'id' | 'createdAt'>[] = [];
-
-        employees.forEach((emp, empIndex) => {
-            const yearsOfService = referenceYear - new Date(emp.joining).getFullYear();
-            const openingBalance = Math.max(0, (yearsOfService - 1) * 30000 + empIndex * 15000);
-            const monthlyContribution = 2000 + empIndex * 300;
-            const contributionMonths = 12; // Full year
-            const employeeContribution = monthlyContribution * contributionMonths;
-            const employerContribution = monthlyContribution * contributionMonths;
-            const vpfContribution = Math.random() > 0.6 ? monthlyContribution * 6 : 0; // Some employees have VPF
-            const interestEarned = (openingBalance + employeeContribution + employerContribution) * 0.085; // 8.5% interest
-            const withdrawalAmount = Math.random() > 0.85 ? Math.random() * 75000 : 0; // Some withdrawals
-            const refundAmount = Math.random() > 0.95 ? Math.random() * 25000 : 0; // Rare refunds
-            const transferInAmount = Math.random() > 0.9 ? Math.random() * 50000 : 0; // Some transfers in
-            const transferOutAmount = Math.random() > 0.9 ? Math.random() * 40000 : 0; // Some transfers out
-            const totalAdditions = employeeContribution + employerContribution + vpfContribution + interestEarned + transferInAmount;
-            const totalDeductions = withdrawalAmount + refundAmount + transferOutAmount;
-            const closingBalance = openingBalance + totalAdditions - totalDeductions;
-            const averageBalance = (openingBalance + closingBalance) / 2;
-
-            // Some employees may have left during the year
-            const hasLeft = Math.random() > 0.9;
-            const dateOfLeaving = hasLeft ? '2024-12-31' : undefined;
-
-            mockRecords.push({
-                employeeCode: emp.code,
-                employeeName: emp.name,
-                pfNumber: `PF${emp.code.slice(-3)}/2024-25`,
-                fatherName: emp.father,
-                dateOfJoining: emp.joining,
-                dateOfLeaving: dateOfLeaving,
-                openingBalance: Math.round(openingBalance),
-                employeeContribution: Math.round(employeeContribution),
-                employerContribution: Math.round(employerContribution),
-                vpfContribution: Math.round(vpfContribution),
-                interestEarned: Math.round(interestEarned),
-                withdrawalAmount: Math.round(withdrawalAmount),
-                refundAmount: Math.round(refundAmount),
-                transferInAmount: Math.round(transferInAmount),
-                transferOutAmount: Math.round(transferOutAmount),
-                closingBalance: Math.round(closingBalance),
-                contributionMonths: contributionMonths,
-                averageBalance: Math.round(averageBalance),
-                period: '2024-25',
-                financialYear: '2024-25'
-            });
-        });
-
-        return mockRecords;
-    };
+    }, [onloadError, isLoadingOnload, onloadData]);
 
     // Filter Form 6A records based on selected date range
     useEffect(() => {
@@ -219,8 +116,113 @@ export default function PFForm6APage() {
             toast.error('From date cannot be later than to date');
             return;
         }
-        setShowForm(true);
-        toast.success('PF Form 6A generated');
+
+        // Prepare search request
+        const searchRequest = {
+            MI_Id: roleId,
+            FromDate: filters.fromDate.toISOString(),
+            ToDate: filters.toDate.toISOString()
+        };
+
+        // Call search API to get PF Form 6A data
+        searchMutation.mutate(searchRequest, {
+            onSuccess: (response) => {
+                if (response.success && response.data) {
+                    // Extract PF Form 6A data from response
+                    const pfData = response.data.getpfgriddata || response.data.pfreport || response.data.employeeDetails || [];
+
+                    if (Array.isArray(pfData) && pfData.length > 0) {
+                        // Map API response to Form6ARecord format
+                        const mappedRecords: Form6ARecord[] = pfData.map((item: any, index: number) => {
+                            // Calculate financial year from date range
+                            const fromYear = filters.fromDate!.getFullYear();
+                            const toYear = filters.toDate!.getFullYear();
+                            const financialYear =
+                                fromYear === toYear
+                                    ? `${fromYear}-${String(toYear + 1).slice(-2)}`
+                                    : `${fromYear}-${String(toYear).slice(-2)}`;
+
+                            // Calculate months between dates
+                            const monthsDiff = Math.max(
+                                1,
+                                Math.round((filters.toDate!.getTime() - filters.fromDate!.getTime()) / (1000 * 60 * 60 * 24 * 30))
+                            );
+
+                            // Extract PF amounts
+                            const employeeContribution = item.HRES_EPF || item.employeeContribution || 0;
+                            const employerContribution = item.HRES_FPF || item.employerContribution || 0;
+                            const vpfContribution = item.VPFAmount || item.vpfContribution || 0;
+                            const openingBalance = item.openingBalance || 0;
+                            const interestEarned =
+                                item.interestEarned || (openingBalance + employeeContribution + employerContribution) * 0.085; // 8.5% interest
+                            const withdrawalAmount =
+                                item.withdrawalAmount || item.DepositWithdrow === 'Withdraw' ? item.TransAmount || 0 : 0;
+                            const refundAmount = item.refundAmount || 0;
+                            const transferInAmount = item.transferInAmount || 0;
+                            const transferOutAmount = item.transferOutAmount || 0;
+
+                            // Calculate closing balance
+                            const totalAdditions =
+                                openingBalance +
+                                employeeContribution +
+                                employerContribution +
+                                vpfContribution +
+                                interestEarned +
+                                transferInAmount;
+                            const totalDeductions = withdrawalAmount + refundAmount + transferOutAmount;
+                            const closingBalance = totalAdditions - totalDeductions;
+                            const averageBalance = (openingBalance + closingBalance) / 2;
+
+                            return {
+                                id: `form6a-${item.HRME_Id || item.HRES_Id || index}`,
+                                employeeCode: item.HRME_EmployeeCode || item.EmployeeCode || item.employeeCode || '',
+                                employeeName:
+                                    `${item.HRME_EmployeeFirstName || ''} ${item.HRME_EmployeeMiddleName || ''} ${item.HRME_EmployeeLastName || ''}`.trim() ||
+                                    item.EmployeeName ||
+                                    '',
+                                pfNumber:
+                                    item.HRME_PFAccNo ||
+                                    item.HRME_PFuAN ||
+                                    item.pfNumber ||
+                                    `PF${(item.HRME_EmployeeCode || '').slice(-3)}/${financialYear}`,
+                                fatherName: item.HRME_FatherName || item.FatherHusbandName || item.fatherName || '',
+                                dateOfJoining: item.HRME_DOJ || item.dateOfJoining || '',
+                                dateOfLeaving: item.HRME_DOL || item.dateOfLeaving,
+                                openingBalance: Math.round(openingBalance),
+                                employeeContribution: Math.round(employeeContribution),
+                                employerContribution: Math.round(employerContribution),
+                                vpfContribution: Math.round(vpfContribution),
+                                interestEarned: Math.round(interestEarned),
+                                withdrawalAmount: Math.round(withdrawalAmount),
+                                refundAmount: Math.round(refundAmount),
+                                transferInAmount: Math.round(transferInAmount),
+                                transferOutAmount: Math.round(transferOutAmount),
+                                closingBalance: Math.round(closingBalance),
+                                contributionMonths: monthsDiff,
+                                averageBalance: Math.round(averageBalance),
+                                period: `${format(filters.fromDate!, 'dd/MM/yyyy')} to ${format(filters.toDate!, 'dd/MM/yyyy')}`,
+                                financialYear: financialYear
+                            };
+                        });
+
+                        setForm6ARecords(mappedRecords);
+                        setShowForm(true);
+                        toast.success('PF Form 6A generated successfully');
+                    } else {
+                        // No data returned, but still show the form structure
+                        setForm6ARecords([]);
+                        setShowForm(true);
+                        toast.warning('PF Form 6A generated but no data found for selected period');
+                    }
+                } else {
+                    toast.error(response.message || 'Failed to generate PF Form 6A');
+                }
+            },
+            onError: (error: Error) => {
+                console.error('Error searching PF Form 6A report:', error);
+                toast.error(error.message || 'Failed to generate PF Form 6A');
+            }
+        });
     };
 
     const handleCancel = () => {
@@ -228,6 +230,8 @@ export default function PFForm6APage() {
             fromDate: undefined,
             toDate: undefined
         });
+        setForm6ARecords([]);
+        setFilteredRecords([]);
         setShowForm(false);
         toast.info('Filters cleared');
     };
@@ -280,10 +284,24 @@ export default function PFForm6APage() {
         return summary;
     }, [filteredRecords]);
 
+    // Calculate financial year from date range
+    const financialYear = useMemo(() => {
+        if (!filters.fromDate || !filters.toDate) return '';
+        const fromYear = filters.fromDate.getFullYear();
+        const toYear = filters.toDate.getFullYear();
+        return fromYear === toYear ? `${fromYear}-${String(toYear + 1).slice(-2)}` : `${fromYear}-${String(toYear).slice(-2)}`;
+    }, [filters.fromDate, filters.toDate]);
+
     return (
         <div className='space-y-6'>
             {/* Report Configuration Section */}
-            <PFForm6AFilters filters={filters} onDateChange={handleDateChange} onGenerate={handleGenerate} onCancel={handleCancel} />
+            <PFForm6AFilters
+                filters={filters}
+                onDateChange={handleDateChange}
+                onGenerate={handleGenerate}
+                onCancel={handleCancel}
+                isLoading={isLoadingOnload}
+            />
 
             {/* Form 6A Results */}
             {showForm && (
@@ -421,11 +439,11 @@ export default function PFForm6APage() {
                                 </div>
                                 <div className='flex justify-between border-t pt-2'>
                                     <span className='text-sm'>Financial Year:</span>
-                                    <span className='font-semibold'>2024-25</span>
+                                    <span className='font-semibold'>{financialYear || 'N/A'}</span>
                                 </div>
                                 <div className='flex justify-between'>
                                     <span className='text-sm'>Organization:</span>
-                                    <span className='font-semibold'>VAPS SCHOOL</span>
+                                    <span className='font-semibold'>{institutionDetails?.MI_Name || 'N/A'}</span>
                                 </div>
                                 <div className='flex justify-between border-t pt-2 font-semibold'>
                                     <span>Closing Balance:</span>
@@ -437,7 +455,7 @@ export default function PFForm6APage() {
 
                     {/* Data Table */}
                     <DataTable
-                        isLoading={isLoading}
+                        isLoading={isLoadingOnload}
                         columns={form6AColumns}
                         data={filteredRecords as unknown as Form6ARecordColumn[]}
                         totalItems={filteredRecords.length}
@@ -460,21 +478,23 @@ export default function PFForm6APage() {
                                 <div className='grid grid-cols-2 gap-8 text-sm'>
                                     <div className='space-y-2'>
                                         <div>
-                                            <strong>Name of Establishment:</strong> VAPS SCHOOL
+                                            <strong>Name of Establishment:</strong> {institutionDetails?.MI_Name || 'N/A'}
                                         </div>
                                         <div>
-                                            <strong>Establishment Code:</strong> WB/KOL/12345
+                                            <strong>Establishment Code:</strong> {institutionDetails?.MI_Code || 'N/A'}
                                         </div>
                                         <div>
-                                            <strong>Establishment ID:</strong> WBKOL12345000
+                                            <strong>Establishment ID:</strong> {institutionDetails?.MI_Id || 'N/A'}
                                         </div>
                                         <div>
-                                            <strong>Address:</strong> Kolkata, West Bengal
+                                            <strong>Address:</strong> {institutionDetails?.MI_Address1 || 'N/A'}
+                                            {institutionDetails?.MI_Address2 && `, ${institutionDetails.MI_Address2}`}
+                                            {institutionDetails?.MI_Address3 && `, ${institutionDetails.MI_Address3}`}
                                         </div>
                                     </div>
                                     <div className='space-y-2'>
                                         <div>
-                                            <strong>Financial Year:</strong> 2024-25
+                                            <strong>Financial Year:</strong> {financialYear || 'N/A'}
                                         </div>
                                         <div>
                                             <strong>Period:</strong> {filters.fromDate ? format(filters.fromDate, 'dd/MM/yyyy') : ''} to{' '}
@@ -576,7 +596,7 @@ export default function PFForm6APage() {
                                     <p className='text-xs'>
                                         I hereby certify that the above return is correct and complete to the best of my knowledge and
                                         belief and that the amounts shown as contributions have been deposited in the Fund in accordance
-                                        with the provisions of the Employees&apos; Provident Funds and Miscellaneous Provisions Act, 1952.
+                                        with the provisions of the Employees' Provident Funds and Miscellaneous Provisions Act, 1952.
                                     </p>
                                 </div>
 

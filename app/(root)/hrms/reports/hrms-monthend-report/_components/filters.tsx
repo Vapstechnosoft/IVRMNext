@@ -1,17 +1,17 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
-import { Checkbox } from '@/components/ui/checkbox';
 import { InputText } from '@/components/ui/extension/input-text';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
+import { Label } from '@/components/ui/label';
+import { MultiSelect } from '@/components/ui/multi-select';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Search, X } from 'lucide-react';
-import { useEffect, useState } from 'react';
 
 export interface FilterOptions {
-    groupTypes: string[];
-    departments: string[];
-    designations: string[];
+    groupTypes: Array<{ id: number; groupType: string }>;
+    departments: Array<{ id: number; departmentName: string }>;
+    designations: Array<{ id: number; designationName: string }>;
 }
 
 export interface MonthEndFilters {
@@ -26,32 +26,24 @@ export interface MonthEndFilters {
 interface HRMSMonthEndFiltersProps {
     filters: MonthEndFilters;
     filterOptions: FilterOptions;
+    months: Array<{ IVRM_Month_Id: number; IVRM_Month_Name: string; [key: string]: any }>;
+    years: Array<{ HRMLY_Id: number; HRMLY_LeaveYear: string; [key: string]: any }>;
     onFilterChange: (filters: MonthEndFilters) => void;
     onSearch: () => void;
     onCancel: () => void;
-    onCheckboxChange: (
-        category: 'selectedGroupTypes' | 'selectedDepartments' | 'selectedDesignations',
-        value: string,
-        checked: boolean
-    ) => void;
-    onSelectAllChange: (category: 'selectedGroupTypes' | 'selectedDepartments' | 'selectedDesignations', checked: boolean) => void;
+    isLoading?: boolean;
 }
 
 export function HRMSMonthEndFilters({
     filters,
     filterOptions,
+    months,
+    years,
     onFilterChange,
     onSearch,
     onCancel,
-    onCheckboxChange,
-    onSelectAllChange
+    isLoading = false
 }: HRMSMonthEndFiltersProps) {
-    const [currentYear, setCurrentYear] = useState<number | null>(null);
-
-    useEffect(() => {
-        setCurrentYear(new Date().getFullYear());
-    }, []);
-
     const handleSelectChange = (key: keyof MonthEndFilters, value: string) => {
         onFilterChange({ ...filters, [key]: value });
     };
@@ -65,99 +57,90 @@ export function HRMSMonthEndFilters({
             {/* Filter Sections */}
             <div className='grid grid-cols-1 gap-6 lg:grid-cols-3'>
                 {/* Group Type Section */}
-                <div className='space-y-3'>
-                    <div className='flex items-center gap-2'>
-                        <span className='font-medium text-foreground text-sm'>Group Type:</span>
-                        <span className='text-red-500'>*</span>
-                        <div className='flex items-center gap-2'>
-                            <Checkbox
-                                id='all-groups'
-                                checked={filters.selectedGroupTypes.length === filterOptions.groupTypes.length}
-                                onCheckedChange={(checked) => onSelectAllChange('selectedGroupTypes', checked as boolean)}
-                            />
-                            <label htmlFor='all-groups' className='cursor-pointer text-sm'>
-                                All
-                            </label>
-                        </div>
-                    </div>
-                    <div className='h-32 space-y-2 overflow-y-auto rounded-lg border p-3'>
-                        {filterOptions.groupTypes.map((groupType) => (
-                            <div key={groupType} className='flex items-center gap-2'>
-                                <Checkbox
-                                    id={`group-${groupType}`}
-                                    checked={filters.selectedGroupTypes.includes(groupType)}
-                                    onCheckedChange={(checked) => onCheckboxChange('selectedGroupTypes', groupType, checked as boolean)}
-                                />
-                                <label htmlFor={`group-${groupType}`} className='cursor-pointer text-sm'>
-                                    {groupType}
-                                </label>
-                            </div>
-                        ))}
-                    </div>
+                <div className='space-y-2'>
+                    <Label htmlFor='group-type' className='font-medium text-foreground text-sm'>
+                        Group Type: <span className='text-red-500'>*</span>
+                    </Label>
+                    {isLoading ? (
+                        <div className='h-10 w-full animate-pulse rounded-md bg-muted' />
+                    ) : filterOptions.groupTypes.length === 0 ? (
+                        <div className='text-muted-foreground text-sm'>No group types available</div>
+                    ) : (
+                        <MultiSelect
+                            options={filterOptions.groupTypes.map((gt) => ({
+                                label: gt.groupType,
+                                value: gt.groupType
+                            }))}
+                            defaultValue={filters.selectedGroupTypes}
+                            onValueChange={(values) =>
+                                onFilterChange({
+                                    ...filters,
+                                    selectedGroupTypes: values
+                                })
+                            }
+                            placeholder='Select Group Types'
+                            className='w-full'
+                            maxHeight={240}
+                        />
+                    )}
                 </div>
 
                 {/* Department Section */}
-                <div className='space-y-3'>
-                    <div className='flex items-center gap-2'>
-                        <span className='font-medium text-foreground text-sm'>Department:</span>
-                        <span className='text-red-500'>*</span>
-                        <div className='flex items-center gap-2'>
-                            <Checkbox
-                                id='all-departments'
-                                checked={filters.selectedDepartments.length === filterOptions.departments.length}
-                                onCheckedChange={(checked) => onSelectAllChange('selectedDepartments', checked as boolean)}
-                            />
-                            <label htmlFor='all-departments' className='cursor-pointer text-sm'>
-                                All
-                            </label>
-                        </div>
-                    </div>
-                    <div className='h-32 space-y-2 overflow-y-auto rounded-lg border p-3'>
-                        {filterOptions.departments.map((department) => (
-                            <div key={department} className='flex items-center gap-2'>
-                                <Checkbox
-                                    id={`dept-${department}`}
-                                    checked={filters.selectedDepartments.includes(department)}
-                                    onCheckedChange={(checked) => onCheckboxChange('selectedDepartments', department, checked as boolean)}
-                                />
-                                <label htmlFor={`dept-${department}`} className='cursor-pointer text-sm'>
-                                    {department}
-                                </label>
-                            </div>
-                        ))}
-                    </div>
+                <div className='space-y-2'>
+                    <Label htmlFor='department' className='font-medium text-foreground text-sm'>
+                        Department: <span className='text-red-500'>*</span>
+                    </Label>
+                    {isLoading ? (
+                        <div className='h-10 w-full animate-pulse rounded-md bg-muted' />
+                    ) : filterOptions.departments.length === 0 ? (
+                        <div className='text-muted-foreground text-sm'>No departments available</div>
+                    ) : (
+                        <MultiSelect
+                            options={filterOptions.departments.map((dept) => ({
+                                label: dept.departmentName,
+                                value: dept.departmentName
+                            }))}
+                            defaultValue={filters.selectedDepartments}
+                            onValueChange={(values) =>
+                                onFilterChange({
+                                    ...filters,
+                                    selectedDepartments: values
+                                })
+                            }
+                            placeholder='Select Departments'
+                            className='w-full'
+                            maxHeight={240}
+                        />
+                    )}
                 </div>
 
                 {/* Designation Section */}
-                <div className='space-y-3'>
-                    <div className='flex items-center gap-2'>
-                        <span className='font-medium text-foreground text-sm'>Designation:</span>
-                        <span className='text-red-500'>*</span>
-                        <div className='flex items-center gap-2'>
-                            <Checkbox
-                                id='all-designations'
-                                checked={filters.selectedDesignations.length === filterOptions.designations.length}
-                                onCheckedChange={(checked) => onSelectAllChange('selectedDesignations', checked as boolean)}
-                            />
-                            <label htmlFor='all-designations' className='cursor-pointer text-sm'>
-                                All
-                            </label>
-                        </div>
-                    </div>
-                    <div className='h-32 space-y-2 overflow-y-auto rounded-lg border p-3'>
-                        {filterOptions.designations.map((designation) => (
-                            <div key={designation} className='flex items-center gap-2'>
-                                <Checkbox
-                                    id={`desig-${designation}`}
-                                    checked={filters.selectedDesignations.includes(designation)}
-                                    onCheckedChange={(checked) => onCheckboxChange('selectedDesignations', designation, checked as boolean)}
-                                />
-                                <label htmlFor={`desig-${designation}`} className='cursor-pointer text-sm'>
-                                    {designation}
-                                </label>
-                            </div>
-                        ))}
-                    </div>
+                <div className='space-y-2'>
+                    <Label htmlFor='designation' className='font-medium text-foreground text-sm'>
+                        Designation: <span className='text-red-500'>*</span>
+                    </Label>
+                    {isLoading ? (
+                        <div className='h-10 w-full animate-pulse rounded-md bg-muted' />
+                    ) : filterOptions.designations.length === 0 ? (
+                        <div className='text-muted-foreground text-sm'>No designations available</div>
+                    ) : (
+                        <MultiSelect
+                            options={filterOptions.designations.map((desg) => ({
+                                label: desg.designationName,
+                                value: desg.designationName
+                            }))}
+                            defaultValue={filters.selectedDesignations}
+                            onValueChange={(values) =>
+                                onFilterChange({
+                                    ...filters,
+                                    selectedDesignations: values
+                                })
+                            }
+                            placeholder='Select Designations'
+                            className='w-full'
+                            maxHeight={240}
+                        />
+                    )}
                 </div>
             </div>
 
@@ -165,65 +148,65 @@ export function HRMSMonthEndFilters({
             <div className='flex items-center justify-center gap-6 pt-4'>
                 {/* Month Filter */}
                 <div className='space-y-2'>
-                    <span className='font-medium text-foreground text-sm'>
+                    <Label htmlFor='month' className='font-medium text-foreground text-sm'>
                         Month: <span className='text-red-500'>*</span>
-                    </span>
-                    <Select value={filters.month} onValueChange={(value) => handleSelectChange('month', value)}>
-                        <SelectTrigger className='w-40'>
-                            <SelectValue placeholder='Select' />
-                        </SelectTrigger>
-                        <SelectContent>
-                            {[
-                                'January',
-                                'February',
-                                'March',
-                                'April',
-                                'May',
-                                'June',
-                                'July',
-                                'August',
-                                'September',
-                                'October',
-                                'November',
-                                'December'
-                            ].map((month) => (
-                                <SelectItem key={month} value={month}>
-                                    {month}
-                                </SelectItem>
-                            ))}
-                        </SelectContent>
-                    </Select>
+                    </Label>
+                    {isLoading ? (
+                        <div className='h-10 w-40 animate-pulse rounded-md bg-muted' />
+                    ) : months.length === 0 ? (
+                        <div className='text-muted-foreground text-sm'>No months available</div>
+                    ) : (
+                        <Select value={filters.month} onValueChange={(value) => handleSelectChange('month', value)}>
+                            <SelectTrigger id='month' className='w-40'>
+                                <SelectValue placeholder='Select' />
+                            </SelectTrigger>
+                            <SelectContent>
+                                {months
+                                    .filter((m) => m.IVRM_Month_Name && m.Is_Active)
+                                    .map((month) => (
+                                        <SelectItem key={month.IVRM_Month_Id} value={month.IVRM_Month_Name.trim()}>
+                                            {month.IVRM_Month_Name.trim()}
+                                        </SelectItem>
+                                    ))}
+                            </SelectContent>
+                        </Select>
+                    )}
                 </div>
 
                 {/* Year Filter */}
                 <div className='space-y-2'>
-                    <span className='font-medium text-foreground text-sm'>
+                    <Label htmlFor='year' className='font-medium text-foreground text-sm'>
                         Year: <span className='text-red-500'>*</span>
-                    </span>
-                    <Select value={filters.year} onValueChange={(value) => handleSelectChange('year', value)}>
-                        <SelectTrigger className='w-32'>
-                            <SelectValue placeholder='Select' />
-                        </SelectTrigger>
-                        <SelectContent>
-                            {currentYear &&
-                                Array.from({ length: 5 }, (_, i) => {
-                                    const year = currentYear - 2 + i;
-                                    return (
-                                        <SelectItem key={`year-${year}`} value={year.toString()}>
-                                            {year}
+                    </Label>
+                    {isLoading ? (
+                        <div className='h-10 w-32 animate-pulse rounded-md bg-muted' />
+                    ) : years.length === 0 ? (
+                        <div className='text-muted-foreground text-sm'>No years available</div>
+                    ) : (
+                        <Select value={filters.year} onValueChange={(value) => handleSelectChange('year', value)}>
+                            <SelectTrigger id='year' className='w-32'>
+                                <SelectValue placeholder='Select' />
+                            </SelectTrigger>
+                            <SelectContent>
+                                {years
+                                    .filter((y) => y.HRMLY_LeaveYear && y.HRMLY_ActiveFlag)
+                                    .map((year) => (
+                                        <SelectItem key={year.HRMLY_Id} value={year.HRMLY_LeaveYear}>
+                                            {year.HRMLY_LeaveYear}
                                         </SelectItem>
-                                    );
-                                })}
-                        </SelectContent>
-                    </Select>
+                                    ))}
+                            </SelectContent>
+                        </Select>
+                    )}
                 </div>
 
                 {/* IE Name Filter */}
                 <div className='space-y-2'>
-                    <span className='font-medium text-foreground text-sm'>
+                    <Label htmlFor='ie-name' className='font-medium text-foreground text-sm'>
                         IE Name: <span className='text-red-500'>*</span>
-                    </span>
+                    </Label>
                     <InputText
+                        id='ie-name'
                         placeholder='Enter name'
                         value={filters.ieName}
                         onChange={(e) => handleSelectChange('ieName', e.target.value)}
@@ -233,7 +216,7 @@ export function HRMSMonthEndFilters({
             </div>
 
             {/* Action Buttons */}
-            <div className='flex justify-center gap-2 pt-4'>
+            <div className='flex gap-2 pt-4'>
                 <Button onClick={onSearch}>
                     <Search className='mr-2 h-4 w-4' />
                     SEARCH

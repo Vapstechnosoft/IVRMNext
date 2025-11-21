@@ -3,14 +3,12 @@
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { DataTable } from '@/components/ui/data-table/data-table';
-import { createLocalCrud } from '@/lib/localdb';
 import { Building, Calculator, DollarSign, Download, Printer, TrendingUp, Users } from 'lucide-react';
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { toast } from 'sonner';
 import {
     type DepartmentSalaryRecord,
     type DepartmentSummary,
-    type FilterOptions,
     departmentSalaryColumns,
     departmentSummaryColumns
 } from './_components/columns';
@@ -31,18 +29,10 @@ interface OverallSummary {
 }
 
 export default function DepartmentSalaryReportPage() {
-    // Database instances
-    const deptSalaryDB = createLocalCrud<DepartmentSalaryRecord>('report:department-salary');
-
     // State
     const [salaryRecords, setSalaryRecords] = useState<DepartmentSalaryRecord[]>([]);
     const [filteredRecords, setFilteredRecords] = useState<DepartmentSalaryRecord[]>([]);
-    const [filterOptions, setFilterOptions] = useState<FilterOptions>({
-        groupTypes: [],
-        departments: [],
-        designations: []
-    });
-    const [isLoading, setIsLoading] = useState(true);
+    const [isLoading, setIsLoading] = useState(false);
     const [showReport, setShowReport] = useState(false);
 
     const [filters, setFilters] = useState<DepartmentSalaryFilters>({
@@ -53,168 +43,39 @@ export default function DepartmentSalaryReportPage() {
         year: ''
     });
 
-    // Load data on mount
-    useEffect(() => {
-        loadData();
-    }, []);
-
-    const loadData = () => {
-        try {
-            // Load Department Salary records
-            let recordList = deptSalaryDB.list();
-            if (recordList.length === 0) {
-                const mockData = generateMockDepartmentSalaryData();
-                mockData.forEach((record) => deptSalaryDB.create(record));
-                recordList = deptSalaryDB.list(); // Reload data after creating mock records
-            }
-            setSalaryRecords(recordList);
-
-            // Extract filter options
-            const groupTypes = [...new Set(recordList.map((r) => r.groupType))];
-            const departments = [...new Set(recordList.map((r) => r.department))];
-            const designations = [...new Set(recordList.map((r) => r.designation))];
-
-            setFilterOptions({
-                groupTypes,
-                departments,
-                designations
-            });
-        } catch (_error) {
-            toast.error('Failed to load data');
-        } finally {
-            setIsLoading(false);
-        }
-    };
-
-    // Generate mock Department Salary data
-    const generateMockDepartmentSalaryData = (): Omit<DepartmentSalaryRecord, 'id' | 'createdAt'>[] => {
-        const groupTypes = ['Test NON Teaching', 'Test Insurance', 'Teaching', 'Owner of the company', 'Non Teaching', 'Administrative'];
-        const departments = [
-            'Teaching',
-            'JUNIOR SCHOOL',
-            'SENIOR SCHOOL',
-            'OFFICE STAFF',
-            'Service Staff',
-            'Administrative',
-            'Chief executive officer'
-        ];
-        const designations = [
-            'Assistant Teacher',
-            'Principal',
-            'Vice Principal',
-            'Office Assistant',
-            'System Manager',
-            'Teacher Helper',
-            'Electrician'
-        ];
-
-        const employees = [
-            'MR SUDIPTA RANJAN BHADURI',
-            'MS RUPLEKHA CHATTERJEE',
-            'MR JOHN SHAH',
-            'MRS BHASWATI DAS',
-            'MR SANTANU MUKHERJEE',
-            'MRS PRIYA SHARMA',
-            'MR RAJESH KUMAR',
-            'MS ANITA SINGH',
-            'MR AMIT KUMAR',
-            'MS DEEPIKA PATEL',
-            'MR ROHIT GUPTA',
-            'MRS KAVITA SINGH',
-            'MR VIKRAM SHAH',
-            'MS NEHA AGARWAL',
-            'MR SANJAY KUMAR',
-            'MRS SUNITA VERMA'
-        ];
-
-        const months = [
-            'January',
-            'February',
-            'March',
-            'April',
-            'May',
-            'June',
-            'July',
-            'August',
-            'September',
-            'October',
-            'November',
-            'December'
-        ];
-        const mockRecords: Omit<DepartmentSalaryRecord, 'id' | 'createdAt'>[] = [];
-
-        employees.forEach((empName, empIndex) => {
-            months.forEach((month) => {
-                const basicSalary = 30000 + empIndex * 2500 + Math.random() * 8000;
-                const allowances = basicSalary * (0.25 + Math.random() * 0.15); // 25-40% allowances
-                const grossSalary = basicSalary + allowances;
-
-                const pfContribution = Math.min(basicSalary, 15000) * 0.12; // 12% PF on eligible salary
-                const esiContribution = grossSalary <= 21000 ? grossSalary * 0.0075 : 0; // 0.75% ESI if eligible
-                const incomeTax = grossSalary > 50000 ? grossSalary * 0.1 : grossSalary > 30000 ? grossSalary * 0.05 : 0;
-                const professionalTax = grossSalary > 20000 ? 200 : 150; // PT based on salary slab
-                const otherDeductions = Math.random() * 1500; // Random other deductions
-                const totalDeductions = pfContribution + esiContribution + incomeTax + professionalTax + otherDeductions;
-                const netSalary = grossSalary - totalDeductions;
-
-                const overtimeAmount = Math.random() > 0.7 ? Math.random() * 5000 : 0; // Some overtime
-                const bonusAmount = Math.random() > 0.8 ? Math.random() * 10000 : 0; // Some bonus
-                const incrementAmount = Math.random() > 0.9 ? Math.random() * 3000 : 0; // Some increment
-
-                const workingDays = 22 + Math.floor(Math.random() * 4); // 22-25 working days
-                const absentDays = Math.floor(Math.random() * 3); // 0-2 absent days
-                const leavesTaken = Math.floor(Math.random() * 2); // 0-1 leaves
-                const presentDays = workingDays - absentDays - leavesTaken;
-
-                mockRecords.push({
-                    employeeCode: `EMP${String(empIndex + 1).padStart(3, '0')}`,
-                    employeeName: empName,
-                    groupType: groupTypes[empIndex % groupTypes.length],
-                    department: departments[empIndex % departments.length],
-                    designation: designations[empIndex % designations.length],
-                    basicSalary: Math.round(basicSalary),
-                    allowances: Math.round(allowances),
-                    grossSalary: Math.round(grossSalary),
-                    pfContribution: Math.round(pfContribution),
-                    esiContribution: Math.round(esiContribution),
-                    incomeTax: Math.round(incomeTax),
-                    professionalTax: Math.round(professionalTax),
-                    otherDeductions: Math.round(otherDeductions),
-                    totalDeductions: Math.round(totalDeductions),
-                    netSalary: Math.round(netSalary),
-                    overtimeAmount: Math.round(overtimeAmount),
-                    bonusAmount: Math.round(bonusAmount),
-                    incrementAmount: Math.round(incrementAmount),
-                    workingDays: workingDays,
-                    presentDays: presentDays,
-                    absentDays: absentDays,
-                    leavesTaken: leavesTaken,
-                    month: month,
-                    year: '2025'
-                });
-            });
-        });
-
-        return mockRecords;
-    };
+    // TODO: Will be populated from API when available
+    const groupTypes = useMemo(() => [], []);
+    const departments = useMemo(() => [], []);
+    const designations = useMemo(() => [], []);
+    const months = useMemo(() => [], []);
+    const years = useMemo(() => [], []);
 
     // Filter records based on selected criteria
-    useEffect(() => {
+    useMemo(() => {
         let filtered = salaryRecords;
 
-        // Filter by group types
+        // Filter by group types (by ID)
         if (filters.selectedGroupTypes.length > 0) {
-            filtered = filtered.filter((record) => filters.selectedGroupTypes.includes(record.groupType));
+            filtered = filtered.filter((record) => {
+                // TODO: Map group type ID to name when API is integrated
+                return filters.selectedGroupTypes.includes(record.groupType);
+            });
         }
 
-        // Filter by departments
+        // Filter by departments (by ID)
         if (filters.selectedDepartments.length > 0) {
-            filtered = filtered.filter((record) => filters.selectedDepartments.includes(record.department));
+            filtered = filtered.filter((record) => {
+                // TODO: Map department ID to name when API is integrated
+                return filters.selectedDepartments.includes(record.department);
+            });
         }
 
-        // Filter by designations
+        // Filter by designations (by ID)
         if (filters.selectedDesignations.length > 0) {
-            filtered = filtered.filter((record) => filters.selectedDesignations.includes(record.designation));
+            filtered = filtered.filter((record) => {
+                // TODO: Map designation ID to name when API is integrated
+                return filters.selectedDesignations.includes(record.designation);
+            });
         }
 
         // Filter by month
@@ -230,43 +91,18 @@ export default function DepartmentSalaryReportPage() {
         setFilteredRecords(filtered);
     }, [filters, salaryRecords]);
 
-    const handleCheckboxChange = (
-        category: 'selectedGroupTypes' | 'selectedDepartments' | 'selectedDesignations',
-        value: string,
-        checked: boolean
-    ) => {
-        setFilters((prev) => ({
-            ...prev,
-            [category]: checked ? [...prev[category], value] : prev[category].filter((item) => item !== value)
-        }));
-    };
-
-    const handleSelectAllChange = (category: 'selectedGroupTypes' | 'selectedDepartments' | 'selectedDesignations', checked: boolean) => {
-        let allOptions: string[] = [];
-
-        switch (category) {
-            case 'selectedGroupTypes':
-                allOptions = filterOptions.groupTypes;
-                break;
-            case 'selectedDepartments':
-                allOptions = filterOptions.departments;
-                break;
-            case 'selectedDesignations':
-                allOptions = filterOptions.designations;
-                break;
-        }
-
-        setFilters((prev) => ({
-            ...prev,
-            [category]: checked ? allOptions : []
-        }));
-    };
-
-    const handleFilterChange = (key: keyof DepartmentSalaryFilters, value: string) => {
-        setFilters((prev) => ({ ...prev, [key]: value }));
+    const handleFilterChange = (newFilters: DepartmentSalaryFilters) => {
+        setFilters(newFilters);
     };
 
     const handleSearch = () => {
+        if (!filters.month || !filters.year) {
+            toast.error('Please select both month and year');
+            return;
+        }
+
+        // TODO: Call API when available
+        // For now, just show the report structure
         setShowReport(true);
         toast.success('Department Salary Report generated');
     };
@@ -279,6 +115,8 @@ export default function DepartmentSalaryReportPage() {
             month: '',
             year: ''
         });
+        setSalaryRecords([]);
+        setFilteredRecords([]);
         setShowReport(false);
         toast.info('Filters cleared');
     };
@@ -367,12 +205,15 @@ export default function DepartmentSalaryReportPage() {
             {/* Report Configuration Section */}
             <DepartmentSalaryReportFilters
                 filters={filters}
-                filterOptions={filterOptions}
-                onCheckboxChange={handleCheckboxChange}
-                onSelectAllChange={handleSelectAllChange}
+                groupTypes={groupTypes}
+                departments={departments}
+                designations={designations}
+                months={months}
+                years={years}
                 onFilterChange={handleFilterChange}
                 onSearch={handleSearch}
                 onCancel={handleCancel}
+                isLoading={isLoading}
             />
 
             {/* Report Results */}

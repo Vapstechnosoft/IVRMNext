@@ -1,14 +1,16 @@
 'use client';
 
+import { HRMS_MI_ID } from '@/constants/hrms-config';
 import { HRMS_QUERY_KEYS } from '@/constants/query-keys';
 import { getLeaveCredit, addOrUpdateLeaveCredit, deleteLeaveCredit } from '@/server/hrms/leave-management/transactions/leave-credit';
 import { getLeaveCreditTransaction, addOrUpdateLeaveCreditTransaction, deleteLeaveCreditTransaction } from '@/server/hrms/leave-management/transactions/leave-credit-transaction';
-import { getLeaveCreditDetails, addOrUpdateLeaveCreditDetails, deleteLeaveCreditDetails } from '@/server/hrms/leave-management/transactions/leave-credit-details';
+import { getLeaveCreditDetails, addOrUpdateLeaveCreditDetails, deleteLeaveCreditDetails, getLeaveCode, getLeaveCreditDepartments, getLeaveCreditDesignation, getLeaveCreditGrade, getLeaveMaster, saveLeaveCreditDetails, getLeaveDetailsCreditMonth, getLeaveDetailsCF, getLeaveDetailsCFMonth, getLeaveDetailsEnCash } from '@/server/hrms/leave-management/transactions/leave-credit-details';
 import { getLeaveCreditDeduction, addOrUpdateLeaveCreditDeduction, deleteLeaveCreditDeduction } from '@/server/hrms/leave-management/transactions/leave-credit-deduction';
 import { getLeaveCreditAddition, addOrUpdateLeaveCreditAddition, deleteLeaveCreditAddition } from '@/server/hrms/leave-management/transactions/leave-credit-addition';
 import { getLeaveCarryForward, addOrUpdateLeaveCarryForward, deleteLeaveCarryForward } from '@/server/hrms/leave-management/transactions/leave-carryforward';
 import { getCompOffApproval, updateCompOffApprovalStatus } from '@/server/hrms/leave-management/transactions/comp-off-approval';
 import { getCompOffRequestData, submitCompOffRequest, cancelCompOffRequest } from '@/server/hrms/leave-management/transactions/comp-off-request';
+import { getLeaveTransferBasicData, getLeaveOB, getDepartments, getDesignation, saveLeaveTransferDetails, leaveCarryForward, deleteLeaveTransfer } from '@/server/hrms/leave-management/transactions/leave-transfer';
 import type { LeaveCredit } from '@/app/(root)/hrms/leave-management/transaction/leave-transfer/_components/columns';
 import type { LeaveCreditTransaction } from '@/app/(root)/hrms/leave-management/transaction/leave-credit-transaction/_components/columns';
 import type { LeaveCreditDetail } from '@/app/(root)/hrms/leave-management/transaction/leave-credit-details/_components/columns';
@@ -143,13 +145,23 @@ export const useDeleteLeaveCreditTransaction = () => {
 };
 
 // Leave Credit Details Hooks
-export const useLeaveCreditDetails = () => {
+export const useLeaveCreditDetails = (request?: { MI_Id?: number }) => {
     const queryClient = useQueryClient();
 
     return {
         ...useQuery({
-            queryKey: [HRMS_QUERY_KEYS.LEAVE_CREDIT_DETAILS],
-            queryFn: async () => getLeaveCreditDetails(),
+            queryKey: [HRMS_QUERY_KEYS.LEAVE_CREDIT_DETAILS, request?.MI_Id],
+            queryFn: async () => {
+                try {
+                    const response = await getLeaveCreditDetails(request);
+                    if (!response.success || !response.data) {
+                        throw new Error(response.message || 'Failed to fetch leave credit details');
+                    }
+                    return response;
+                } catch (error: any) {
+                    throw new Error(error?.message || 'Failed to fetch leave credit details');
+                }
+            },
             staleTime: 0
         }),
         refetchAll: () => {
@@ -160,16 +172,74 @@ export const useLeaveCreditDetails = () => {
     };
 };
 
+/**
+ * Hook to save leave credit details using the API
+ */
 export const useSaveLeaveCreditDetails = () => {
     const queryClient = useQueryClient();
 
     return useMutation({
-        mutationFn: async (detail: LeaveCreditDetail) => addOrUpdateLeaveCreditDetails(detail),
+        mutationFn: async (data: {
+            MI_Id?: number;
+            HRML_Id: number;
+            HRMLD_NoOfDays: string;
+            HRMLD_MaxLeaveApplicable: number;
+            LoginId?: number;
+            Emp_types: any[];
+            dept_types: any[];
+            desig_types: any[];
+            grade_types: any[];
+            HRMLD_CarryForFlg: boolean;
+            HRMLD_EncashFlg: boolean;
+            HRMLDCF_MaxLeaveAplFlg: boolean;
+            HRMLDCF_MaxLeaveCF: number;
+            selectedcarryMonthList: number[];
+            selectedMonthList: number[];
+            [key: string]: any;
+        }) => {
+            try {
+                const response = await saveLeaveCreditDetails({
+                    ...data,
+                    MI_Id: data.MI_Id || HRMS_MI_ID,
+                    HRML_Id: data.HRML_Id || 0,
+                    HRMLD_NoOfDays: data.HRMLD_NoOfDays || '',
+                    HRMLD_MaxLeaveApplicable: data.HRMLD_MaxLeaveApplicable || 0,
+                    LoginId: data.LoginId || 0,
+                    Emp_types: data.Emp_types || [],
+                    dept_types: data.dept_types || [],
+                    desig_types: data.desig_types || [],
+                    grade_types: data.grade_types || [],
+                    HRMLD_CarryForFlg: data.HRMLD_CarryForFlg ?? false,
+                    HRMLD_EncashFlg: data.HRMLD_EncashFlg ?? false,
+                    HRMLDCF_MaxLeaveAplFlg: data.HRMLDCF_MaxLeaveAplFlg ?? false,
+                    HRMLDCF_MaxLeaveCF: data.HRMLDCF_MaxLeaveCF || 0,
+                    selectedcarryMonthList: data.selectedcarryMonthList || [],
+                    selectedMonthList: data.selectedMonthList || []
+                });
+                
+                if (!response.success) {
+                    throw new Error(response.message || 'Failed to save leave credit details');
+                }
+
+                return {
+                    success: true,
+                    message: response.message || 'Leave credit details saved successfully',
+                    data: response.data
+                };
+            } catch (error: any) {
+                throw new Error(error?.message || 'Failed to save leave credit details');
+            }
+        },
         onSuccess: (response) => {
-            toast.success(response.message);
-            queryClient.invalidateQueries({ queryKey: [HRMS_QUERY_KEYS.LEAVE_CREDIT_DETAILS] });
+            if (response.success) {
+                toast.success(response.message);
+                queryClient.invalidateQueries({ queryKey: [HRMS_QUERY_KEYS.LEAVE_CREDIT_DETAILS] });
+            } else {
+                toast.error(response.message);
+            }
         },
         onError: (error: Error) => {
+            // Error message from API is already in error.message
             toast.error(error.message || 'Failed to save leave credit details');
         }
     });
@@ -203,6 +273,622 @@ export const useDeleteLeaveCreditDetails = () => {
             toast.error(error.message || 'Failed to delete leave credit details');
         }
     });
+};
+
+/**
+ * Hook to fetch leave code
+ */
+export const useLeaveCode = (leavecode: number, enabled: boolean = true) => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [HRMS_QUERY_KEYS.LEAVE_CREDIT_DETAILS, 'leaveCode', leavecode],
+            queryFn: async () => {
+                try {
+                    const response = await getLeaveCode({ leavecode: leavecode || 0 });
+                    if (!response.success || !response.data) {
+                        throw new Error(response.message || 'Failed to fetch leave code');
+                    }
+
+                    // Extract leave code list from response
+                    const data = response.data;
+                    let codeList: any[] = [];
+                    
+                    if (data.GridviewDetails && Array.isArray(data.GridviewDetails)) {
+                        codeList = data.GridviewDetails;
+                    } else if (data.leaveCodeList && Array.isArray(data.leaveCodeList)) {
+                        codeList = data.leaveCodeList;
+                    } else if (data.leaveList && Array.isArray(data.leaveList)) {
+                        codeList = data.leaveList;
+                    } else if (data.leaveCodes && Array.isArray(data.leaveCodes)) {
+                        codeList = data.leaveCodes;
+                    } else if (Array.isArray(data)) {
+                        codeList = data;
+                    }
+
+                    return {
+                        success: true,
+                        data: codeList,
+                        rawData: data,
+                        message: response.message || 'Leave code fetched successfully'
+                    };
+                } catch (error: any) {
+                    throw new Error(error?.message || 'Failed to fetch leave code');
+                }
+            },
+            enabled: enabled && leavecode !== undefined,
+            staleTime: 0
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [HRMS_QUERY_KEYS.LEAVE_CREDIT_DETAILS, 'leaveCode']
+            });
+        }
+    };
+};
+
+/**
+ * Hook to fetch departments for leave credit details based on selected employee types
+ * This is typically called when employee types are selected to filter departments
+ */
+export const useLeaveCreditDepartments = (request?: { MI_Id?: number; emptypes?: any[] }, enabled: boolean = true) => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [HRMS_QUERY_KEYS.LEAVE_CREDIT_DETAILS, 'departments', request?.MI_Id, request?.emptypes],
+            queryFn: async () => {
+                try {
+                    const response = await getLeaveCreditDepartments({
+                        MI_Id: request?.MI_Id || HRMS_MI_ID,
+                        emptypes: request?.emptypes || []
+                    });
+
+                    if (!response.success || !response.data) {
+                        throw new Error(response.message || 'Failed to fetch departments');
+                    }
+
+                    // Extract and map department options from API response
+                    const data = response.data;
+                    
+                    // Map DepartmentTempDto to departmentOptions
+                    const departmentOptions = (data.DepartmentTempDto || []).map((item: any) => ({
+                        label: item.HRMD_DepartmentName || item.label || '',
+                        value: String(item.HRMD_Id || item.value || '')
+                    })).filter((item: { label: string; value: string }) => item.label && item.value);
+
+                    // Also check other possible locations
+                    if (departmentOptions.length === 0 && data.departmentdropdownlist && Array.isArray(data.departmentdropdownlist)) {
+                        const mapped = data.departmentdropdownlist.map((item: any) => ({
+                            label: item.HRMD_DepartmentName || item.label || item.name || '',
+                            value: String(item.HRMD_Id || item.value || item.id || '')
+                        })).filter((item: { label: string; value: string }) => item.label && item.value);
+                        if (mapped.length > 0) {
+                            departmentOptions.push(...mapped);
+                        }
+                    }
+
+                    // Check GridviewDetails as fallback
+                    if (departmentOptions.length === 0 && data.GridviewDetails && Array.isArray(data.GridviewDetails)) {
+                        const mapped = data.GridviewDetails.map((item: any) => ({
+                            label: item.HRMD_DepartmentName || item.label || item.name || '',
+                            value: String(item.HRMD_Id || item.value || item.id || '')
+                        })).filter((item: { label: string; value: string }) => item.label && item.value);
+                        if (mapped.length > 0) {
+                            departmentOptions.push(...mapped);
+                        }
+                    }
+
+                    return {
+                        success: true,
+                        data: {
+                            departmentOptions
+                        },
+                        rawData: data,
+                        message: response.message || 'Departments fetched successfully'
+                    };
+                } catch (error: any) {
+                    throw new Error(error?.message || 'Failed to fetch departments');
+                }
+            },
+            enabled: enabled && (request?.emptypes?.length ?? 0) > 0, // Only fetch when emptypes are provided
+            staleTime: 0 // Don't cache as this is filter-dependent
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [HRMS_QUERY_KEYS.LEAVE_CREDIT_DETAILS, 'departments']
+            });
+        }
+    };
+};
+
+/**
+ * Hook to fetch designations for leave credit details based on selected employee types
+ * This is typically called when employee types are selected to filter designations
+ */
+export const useLeaveCreditDesignations = (request?: { MI_Id?: number; emptypes?: any[] }, enabled: boolean = true) => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [HRMS_QUERY_KEYS.LEAVE_CREDIT_DETAILS, 'designations', request?.MI_Id, request?.emptypes],
+            queryFn: async () => {
+                try {
+                    const response = await getLeaveCreditDesignation({
+                        MI_Id: request?.MI_Id || HRMS_MI_ID,
+                        emptypes: request?.emptypes || []
+                    });
+
+                    if (!response.success || !response.data) {
+                        throw new Error(response.message || 'Failed to fetch designations');
+                    }
+
+                    // Extract and map designation options from API response
+                    const data = response.data;
+                    
+                    // Map DesignationTempDto to designationOptions
+                    const designationOptions = (data.DesignationTempDto || []).map((item: any) => ({
+                        label: item.HRMDES_DesignationName || item.label || '',
+                        value: String(item.HRMDES_Id || item.value || '')
+                    })).filter((item: { label: string; value: string }) => item.label && item.value);
+
+                    // Also check designationarray
+                    if (designationOptions.length === 0 && data.designationarray && Array.isArray(data.designationarray)) {
+                        const mapped = data.designationarray.map((item: any) => ({
+                            label: item.HRMDES_DesignationName || item.label || item.name || '',
+                            value: String(item.HRMDES_Id || item.value || item.id || '')
+                        })).filter((item: { label: string; value: string }) => item.label && item.value);
+                        if (mapped.length > 0) {
+                            designationOptions.push(...mapped);
+                        }
+                    }
+
+                    // Also check designationdropdownlist as fallback
+                    if (designationOptions.length === 0 && data.designationdropdownlist && Array.isArray(data.designationdropdownlist)) {
+                        const mapped = data.designationdropdownlist.map((item: any) => ({
+                            label: item.HRMDES_DesignationName || item.label || item.name || '',
+                            value: String(item.HRMDES_Id || item.value || item.id || '')
+                        })).filter((item: { label: string; value: string }) => item.label && item.value);
+                        if (mapped.length > 0) {
+                            designationOptions.push(...mapped);
+                        }
+                    }
+
+                    // Check GridviewDetails as fallback
+                    if (designationOptions.length === 0 && data.GridviewDetails && Array.isArray(data.GridviewDetails)) {
+                        const mapped = data.GridviewDetails.map((item: any) => ({
+                            label: item.HRMDES_DesignationName || item.label || item.name || '',
+                            value: String(item.HRMDES_Id || item.value || item.id || '')
+                        })).filter((item: { label: string; value: string }) => item.label && item.value);
+                        if (mapped.length > 0) {
+                            designationOptions.push(...mapped);
+                        }
+                    }
+
+                    return {
+                        success: true,
+                        data: {
+                            designationOptions
+                        },
+                        rawData: data,
+                        message: response.message || 'Designations fetched successfully'
+                    };
+                } catch (error: any) {
+                    throw new Error(error?.message || 'Failed to fetch designations');
+                }
+            },
+            enabled: enabled && (request?.emptypes?.length ?? 0) > 0, // Only fetch when emptypes are provided
+            staleTime: 0 // Don't cache as this is filter-dependent
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [HRMS_QUERY_KEYS.LEAVE_CREDIT_DETAILS, 'designations']
+            });
+        }
+    };
+};
+
+/**
+ * Hook to fetch grades for leave credit details based on selected employee types
+ * This is typically called when employee types are selected to filter grades
+ */
+export const useLeaveCreditGrades = (request?: { MI_Id?: number; emptypes?: any[] }, enabled: boolean = true) => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [HRMS_QUERY_KEYS.LEAVE_CREDIT_DETAILS, 'grades', request?.MI_Id, request?.emptypes],
+            queryFn: async () => {
+                try {
+                    const response = await getLeaveCreditGrade({
+                        MI_Id: request?.MI_Id || HRMS_MI_ID,
+                        emptypes: request?.emptypes || []
+                    });
+
+                    if (!response.success || !response.data) {
+                        throw new Error(response.message || 'Failed to fetch grades');
+                    }
+
+                    // Extract and map grade options from API response
+                    const data = response.data;
+                    
+                    // Map GradeTempDto to gradeOptions
+                    const gradeOptions = (data.GradeTempDto || []).map((item: any) => ({
+                        label: item.HRMG_GradeName || item.HRMG_GradeDisplayName || item.label || '',
+                        value: String(item.HRMG_Id || item.value || '')
+                    })).filter((item: { label: string; value: string }) => item.label && item.value);
+
+                    // Also check gradeList
+                    if (gradeOptions.length === 0 && data.gradeList && Array.isArray(data.gradeList)) {
+                        const mapped = data.gradeList.map((item: any) => ({
+                            label: item.HRMG_GradeName || item.HRMG_GradeDisplayName || item.label || item.name || '',
+                            value: String(item.HRMG_Id || item.value || item.id || '')
+                        })).filter((item: { label: string; value: string }) => item.label && item.value);
+                        if (mapped.length > 0) {
+                            gradeOptions.push(...mapped);
+                        }
+                    }
+
+                    // Check GridviewDetails as fallback
+                    if (gradeOptions.length === 0 && data.GridviewDetails && Array.isArray(data.GridviewDetails)) {
+                        const mapped = data.GridviewDetails.map((item: any) => ({
+                            label: item.HRMG_GradeName || item.HRMG_GradeDisplayName || item.label || item.name || '',
+                            value: String(item.HRMG_Id || item.value || item.id || '')
+                        })).filter((item: { label: string; value: string }) => item.label && item.value);
+                        if (mapped.length > 0) {
+                            gradeOptions.push(...mapped);
+                        }
+                    }
+
+                    return {
+                        success: true,
+                        data: {
+                            gradeOptions
+                        },
+                        rawData: data,
+                        message: response.message || 'Grades fetched successfully'
+                    };
+                } catch (error: any) {
+                    throw new Error(error?.message || 'Failed to fetch grades');
+                }
+            },
+            enabled: enabled && (request?.emptypes?.length ?? 0) > 0, // Only fetch when emptypes are provided
+            staleTime: 0 // Don't cache as this is filter-dependent
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [HRMS_QUERY_KEYS.LEAVE_CREDIT_DETAILS, 'grades']
+            });
+        }
+    };
+};
+
+/**
+ * Hook to fetch leave details credit month data
+ * This is typically called when HRMLDCM_Id or HRMLDCM_LCMonthCode is provided
+ */
+export const useLeaveDetailsCreditMonth = (request?: { HRMLDCM_Id?: number; HRMLDCM_LCMonthCode?: string }, enabled: boolean = true) => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [HRMS_QUERY_KEYS.LEAVE_CREDIT_DETAILS, 'leaveDetailsCreditMonth', request?.HRMLDCM_Id, request?.HRMLDCM_LCMonthCode],
+            queryFn: async () => {
+                try {
+                    const response = await getLeaveDetailsCreditMonth({
+                        HRMLDCM_Id: request?.HRMLDCM_Id || 0,
+                        HRMLDCM_LCMonthCode: request?.HRMLDCM_LCMonthCode || ''
+                    });
+
+                    if (!response.success || !response.data) {
+                        throw new Error(response.message || 'Failed to fetch leave details credit month');
+                    }
+
+                    // Extract leave details credit month list from API response
+                    const data = response.data;
+                    
+                    // Map leaveCM, GridviewDetails, creditMonthList, or leaveDetailsCreditMonthList to monthOptions
+                    let monthList: any[] = [];
+                    
+                    if (data.leaveCM && Array.isArray(data.leaveCM)) {
+                        monthList = data.leaveCM;
+                    } else if (data.GridviewDetails && Array.isArray(data.GridviewDetails)) {
+                        monthList = data.GridviewDetails;
+                    } else if (data.creditMonthList && Array.isArray(data.creditMonthList)) {
+                        monthList = data.creditMonthList;
+                    } else if (data.leaveDetailsCreditMonthList && Array.isArray(data.leaveDetailsCreditMonthList)) {
+                        monthList = data.leaveDetailsCreditMonthList;
+                    } else if (Array.isArray(data)) {
+                        monthList = data;
+                    }
+
+                    // Map to month options format
+                    const monthOptions = monthList.map((item: any) => ({
+                        id: item.HRMLDCM_Id || item.id || 0,
+                        monthCode: item.HRMLDCM_LCMonthCode || item.monthCode || item.monthName || '',
+                        monthName: item.HRMLDCM_LCMonthCode || item.monthName || item.monthCode || '',
+                        monthId: item.monthId || item.id || 0,
+                        HRMLD_Id: item.HRMLD_Id || item.leaveDetailId || 0,
+                        HRML_Id: item.HRML_Id || item.leaveId || 0
+                    })).filter((item: { id: number; monthCode: string }) => item.id && item.monthCode);
+
+                    return {
+                        success: true,
+                        data: {
+                            monthOptions,
+                            monthList
+                        },
+                        rawData: data,
+                        message: response.message || 'Leave details credit month fetched successfully'
+                    };
+                } catch (error: any) {
+                    throw new Error(error?.message || 'Failed to fetch leave details credit month');
+                }
+            },
+            enabled: enabled && (request?.HRMLDCM_Id !== undefined || !!request?.HRMLDCM_LCMonthCode), // Only fetch when parameters are provided
+            staleTime: 0 // Don't cache as this is filter-dependent
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [HRMS_QUERY_KEYS.LEAVE_CREDIT_DETAILS, 'leaveDetailsCreditMonth']
+            });
+        }
+    };
+};
+
+/**
+ * Hook to fetch leave details CF (Carry Forward) data
+ * This is typically called when HRMLDCF_Id or HRMLDCF_MaxLeaveAplFlg is provided
+ */
+export const useLeaveDetailsCF = (request?: { HRMLDCF_Id?: number; HRMLDCF_MaxLeaveAplFlg?: boolean }, enabled: boolean = true) => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [HRMS_QUERY_KEYS.LEAVE_CREDIT_DETAILS, 'leaveDetailsCF', request?.HRMLDCF_Id, request?.HRMLDCF_MaxLeaveAplFlg],
+            queryFn: async () => {
+                try {
+                    const response = await getLeaveDetailsCF({
+                        HRMLDCF_Id: request?.HRMLDCF_Id || 0,
+                        HRMLDCF_MaxLeaveAplFlg: request?.HRMLDCF_MaxLeaveAplFlg ?? true
+                    });
+
+                    if (!response.success || !response.data) {
+                        throw new Error(response.message || 'Failed to fetch leave details CF');
+                    }
+
+                    // Extract leave details CF list from API response
+                    const data = response.data;
+                    
+                    // Map leaveCf, GridviewDetails, carryForwardList, or leaveDetailsCFList to cfOptions
+                    let cfList: any[] = [];
+                    
+                    if (data.leaveCf && Array.isArray(data.leaveCf)) {
+                        cfList = data.leaveCf;
+                    } else if (data.GridviewDetails && Array.isArray(data.GridviewDetails)) {
+                        cfList = data.GridviewDetails;
+                    } else if (data.carryForwardList && Array.isArray(data.carryForwardList)) {
+                        cfList = data.carryForwardList;
+                    } else if (data.leaveDetailsCFList && Array.isArray(data.leaveDetailsCFList)) {
+                        cfList = data.leaveDetailsCFList;
+                    } else if (Array.isArray(data)) {
+                        cfList = data;
+                    }
+
+                    // Map to carry forward options format
+                    const cfOptions = cfList.map((item: any) => ({
+                        id: item.HRMLDCF_Id || item.id || 0,
+                        maxLeaveAplFlg: item.HRMLDCF_MaxLeaveAplFlg ?? item.maxLeaveAplFlg ?? true,
+                        maxLeaveCF: item.HRMLDCF_MaxLeaveCF || item.maxLeaveCF || 0,
+                        HRMLD_Id: item.HRMLD_Id || item.leaveDetailId || 0,
+                        HRML_Id: item.HRML_Id || item.leaveId || 0,
+                        monthId: item.monthId || item.id || 0,
+                        monthName: item.monthName || ''
+                    }));
+
+                    return {
+                        success: true,
+                        data: {
+                            cfOptions,
+                            cfList
+                        },
+                        rawData: data,
+                        message: response.message || 'Leave details CF fetched successfully'
+                    };
+                } catch (error: any) {
+                    throw new Error(error?.message || 'Failed to fetch leave details CF');
+                }
+            },
+            enabled: enabled && request?.HRMLDCF_Id !== undefined, // Only fetch when HRMLDCF_Id is provided
+            staleTime: 0 // Don't cache as this is filter-dependent
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [HRMS_QUERY_KEYS.LEAVE_CREDIT_DETAILS, 'leaveDetailsCF']
+            });
+        }
+    };
+};
+
+/**
+ * Hook to fetch leave details CF Month (Carry Forward Month) data
+ * This is typically called when HRMLDCFM_Id or HRMLDCFM_MonthId is provided
+ */
+export const useLeaveDetailsCFMonth = (request?: { HRMLDCFM_Id?: number; HRMLDCFM_MonthId?: number }, enabled: boolean = true) => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [HRMS_QUERY_KEYS.LEAVE_CREDIT_DETAILS, 'leaveDetailsCFMonth', request?.HRMLDCFM_Id, request?.HRMLDCFM_MonthId],
+            queryFn: async () => {
+                try {
+                    const response = await getLeaveDetailsCFMonth({
+                        HRMLDCFM_Id: request?.HRMLDCFM_Id || 0,
+                        HRMLDCFM_MonthId: request?.HRMLDCFM_MonthId || 0
+                    });
+
+                    if (!response.success || !response.data) {
+                        throw new Error(response.message || 'Failed to fetch leave details CF month');
+                    }
+
+                    // Extract leave details CF month list from API response
+                    const data = response.data;
+                    
+                    // Map leaveCf, GridviewDetails, carryForwardMonthList, or leaveDetailsCFMonthList to cfMonthOptions
+                    let cfMonthList: any[] = [];
+                    
+                    if (data.leaveCf && Array.isArray(data.leaveCf)) {
+                        cfMonthList = data.leaveCf;
+                    } else if (data.GridviewDetails && Array.isArray(data.GridviewDetails)) {
+                        cfMonthList = data.GridviewDetails;
+                    } else if (data.carryForwardMonthList && Array.isArray(data.carryForwardMonthList)) {
+                        cfMonthList = data.carryForwardMonthList;
+                    } else if (data.leaveDetailsCFMonthList && Array.isArray(data.leaveDetailsCFMonthList)) {
+                        cfMonthList = data.leaveDetailsCFMonthList;
+                    } else if (Array.isArray(data)) {
+                        cfMonthList = data;
+                    }
+
+                    // Map to carry forward month options format
+                    const cfMonthOptions = cfMonthList.map((item: any) => ({
+                        id: item.HRMLDCFM_Id || item.id || 0,
+                        monthId: item.HRMLDCFM_MonthId || item.monthId || item.id || 0,
+                        monthName: item.monthName || item.monthCode || '',
+                        monthCode: item.monthCode || item.monthName || '',
+                        HRMLDCF_Id: item.HRMLDCF_Id || item.carryForwardId || 0,
+                        HRMLD_Id: item.HRMLD_Id || item.leaveDetailId || 0,
+                        HRML_Id: item.HRML_Id || item.leaveId || 0
+                    }));
+
+                    return {
+                        success: true,
+                        data: {
+                            cfMonthOptions,
+                            cfMonthList
+                        },
+                        rawData: data,
+                        message: response.message || 'Leave details CF month fetched successfully'
+                    };
+                } catch (error: any) {
+                    throw new Error(error?.message || 'Failed to fetch leave details CF month');
+                }
+            },
+            enabled: enabled && (request?.HRMLDCFM_Id !== undefined || request?.HRMLDCFM_MonthId !== undefined), // Only fetch when parameters are provided
+            staleTime: 0 // Don't cache as this is filter-dependent
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [HRMS_QUERY_KEYS.LEAVE_CREDIT_DETAILS, 'leaveDetailsCFMonth']
+            });
+        }
+    };
+};
+
+/**
+ * Hook to fetch leave details EnCash (Encashment) data
+ * This is typically called when encashment details are needed
+ */
+export const useLeaveDetailsEnCash = (request?: {
+    HRMLDEC_Id?: number;
+    HRMLDEC_ServiceAplFlg?: boolean;
+    HRMLDEC_ServiceYear?: string;
+    HRMLDEC_ServiceMonth?: string;
+    HRMLDEC_ServiceDays?: string;
+    HRMLDEC_MaxLeaveFlg?: boolean;
+    HRMLDEC_MaxLeaves?: number;
+    HRMLDEC_MinLeaveFlg?: boolean;
+    HRMLDEC_MinLeaves?: number;
+    HRMLDEC_ScheduleFlg?: string;
+    HRMLDEC_ScheduleYear?: string;
+    HRMLDEC_ScheduleMonth?: string;
+}, enabled: boolean = true) => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [HRMS_QUERY_KEYS.LEAVE_CREDIT_DETAILS, 'leaveDetailsEnCash', request?.HRMLDEC_Id, request?.HRMLDEC_ServiceAplFlg],
+            queryFn: async () => {
+                try {
+                    const response = await getLeaveDetailsEnCash({
+                        HRMLDEC_Id: request?.HRMLDEC_Id || 0,
+                        HRMLDEC_ServiceAplFlg: request?.HRMLDEC_ServiceAplFlg ?? true,
+                        HRMLDEC_ServiceYear: request?.HRMLDEC_ServiceYear || '',
+                        HRMLDEC_ServiceMonth: request?.HRMLDEC_ServiceMonth || '',
+                        HRMLDEC_ServiceDays: request?.HRMLDEC_ServiceDays || '',
+                        HRMLDEC_MaxLeaveFlg: request?.HRMLDEC_MaxLeaveFlg ?? true,
+                        HRMLDEC_MaxLeaves: request?.HRMLDEC_MaxLeaves || 0,
+                        HRMLDEC_MinLeaveFlg: request?.HRMLDEC_MinLeaveFlg ?? true,
+                        HRMLDEC_MinLeaves: request?.HRMLDEC_MinLeaves || 0,
+                        HRMLDEC_ScheduleFlg: request?.HRMLDEC_ScheduleFlg || '',
+                        HRMLDEC_ScheduleYear: request?.HRMLDEC_ScheduleYear || '',
+                        HRMLDEC_ScheduleMonth: request?.HRMLDEC_ScheduleMonth || ''
+                    });
+
+                    if (!response.success || !response.data) {
+                        throw new Error(response.message || 'Failed to fetch leave details encash');
+                    }
+
+                    // Extract leave details encash list from API response
+                    const data = response.data;
+                    
+                    // Map encashList, GridviewDetails, encashmentList, or leaveDetailsEnCashList to encashOptions
+                    let encashList: any[] = [];
+                    
+                    if (data.encashList && Array.isArray(data.encashList)) {
+                        encashList = data.encashList;
+                    } else if (data.GridviewDetails && Array.isArray(data.GridviewDetails)) {
+                        encashList = data.GridviewDetails;
+                    } else if (data.encashmentList && Array.isArray(data.encashmentList)) {
+                        encashList = data.encashmentList;
+                    } else if (data.leaveDetailsEnCashList && Array.isArray(data.leaveDetailsEnCashList)) {
+                        encashList = data.leaveDetailsEnCashList;
+                    } else if (Array.isArray(data)) {
+                        encashList = data;
+                    }
+
+                    // Map to encashment options format
+                    const encashOptions = encashList.map((item: any) => ({
+                        id: item.HRMLDEC_Id || item.id || 0,
+                        HRMLD_Id: item.HRMLD_Id || item.leaveDetailId || 0,
+                        HRML_Id: item.HRML_Id || item.leaveId || 0,
+                        serviceAplFlg: item.HRMLDEC_ServiceAplFlg ?? item.serviceAplFlg ?? true,
+                        serviceYear: item.HRMLDEC_ServiceYear || item.serviceYear || '',
+                        serviceMonth: item.HRMLDEC_ServiceMonth || item.serviceMonth || '',
+                        serviceDays: item.HRMLDEC_ServiceDays || item.serviceDays || '',
+                        maxLeaveFlg: item.HRMLDEC_MaxLeaveFlg ?? item.maxLeaveFlg ?? true,
+                        maxLeaves: item.HRMLDEC_MaxLeaves || item.maxLeaves || 0,
+                        minLeaveFlg: item.HRMLDEC_MinLeaveFlg ?? item.minLeaveFlg ?? true,
+                        minLeaves: item.HRMLDEC_MinLeaves || item.minLeaves || 0,
+                        scheduleFlg: item.HRMLDEC_ScheduleFlg || item.scheduleFlg || '',
+                        scheduleYear: item.HRMLDEC_ScheduleYear || item.scheduleYear || '',
+                        scheduleMonth: item.HRMLDEC_ScheduleMonth || item.scheduleMonth || '',
+                        variableFixedFlg: item.HRMLDEC_VariableFixedFlg ?? item.variableFixedFlg ?? false,
+                        fixedAmount: item.HRMLDEC_FixedAmount || item.fixedAmount || 0
+                    }));
+
+                    return {
+                        success: true,
+                        data: {
+                            encashOptions,
+                            encashList
+                        },
+                        rawData: data,
+                        message: response.message || 'Leave details encash fetched successfully'
+                    };
+                } catch (error: any) {
+                    throw new Error(error?.message || 'Failed to fetch leave details encash');
+                }
+            },
+            enabled: enabled && request?.HRMLDEC_Id !== undefined, // Only fetch when HRMLDEC_Id is provided
+            staleTime: 0 // Don't cache as this is filter-dependent
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [HRMS_QUERY_KEYS.LEAVE_CREDIT_DETAILS, 'leaveDetailsEnCash']
+            });
+        }
+    };
 };
 
 // Leave Credit Deduction Hooks
@@ -472,6 +1158,435 @@ export const useCancelCompOffRequest = () => {
         },
         onError: (error: Error) => {
             toast.error(error.message || 'Failed to cancel comp off request');
+        }
+    });
+};
+
+// Leave Transfer Hooks
+export const useLeaveTransferBasicData = (request?: { MI_Id?: number }) => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [HRMS_QUERY_KEYS.LEAVE_TRANSFER, 'basicData', request?.MI_Id],
+            queryFn: async () => {
+                try {
+                    const response = await getLeaveTransferBasicData({
+                        MI_Id: request?.MI_Id || HRMS_MI_ID
+                    });
+
+                    if (!response.success || !response.data) {
+                        throw new Error(response.message || 'Failed to fetch leave transfer basic data');
+                    }
+
+                    // Extract and map dropdown options from API response
+                    const data = response.data;
+                    
+                    // Map GroupTypeTempDto to typeOptions
+                    const typeOptions = (data.GroupTypeTempDto || []).map((item: any) => ({
+                        label: item.HRMGT_EmployeeGroupType || item.label || '',
+                        value: String(item.HRMGT_Id || item.value || '')
+                    })).filter((item: { label: string; value: string }) => item.label && item.value);
+
+                    // Map DepartmentTempDto to departmentOptions
+                    const departmentOptions = (data.DepartmentTempDto || []).map((item: any) => ({
+                        label: item.HRMD_DepartmentName || item.label || '',
+                        value: String(item.HRMD_Id || item.value || '')
+                    })).filter((item: { label: string; value: string }) => item.label && item.value);
+
+                    // Map DesignationTempDto to designationOptions
+                    const designationOptions = (data.DesignationTempDto || []).map((item: any) => ({
+                        label: item.HRMDES_DesignationName || item.label || '',
+                        value: String(item.HRMDES_Id || item.value || '')
+                    })).filter((item: { label: string; value: string }) => item.label && item.value);
+
+                    // Map leavearrayyear to leaveYearOptions
+                    const leaveYearOptions = (data.leavearrayyear || []).map((item: any) => ({
+                        label: item.HRMLY_LeaveYear || item.label || '',
+                        value: String(item.HRMLY_Id || item.value || '')
+                    })).filter((item: { label: string; value: string }) => item.label && item.value);
+
+                    // Map master_eventlist to leaveNameOptions
+                    const leaveNameOptions = (data.master_eventlist || []).map((item: any) => ({
+                        label: item.HRML_LeaveName || item.label || '',
+                        value: String(item.HRML_Id || item.value || '')
+                    })).filter((item: { label: string; value: string }) => item.label && item.value);
+
+                    return {
+                        success: true,
+                        data: {
+                            typeOptions,
+                            departmentOptions,
+                            designationOptions,
+                            leaveYearOptions,
+                            leaveNameOptions
+                        },
+                        message: response.message || 'Leave transfer basic data fetched successfully'
+                    };
+                } catch (error: any) {
+                    throw new Error(error?.message || 'Failed to fetch leave transfer basic data');
+                }
+            },
+                    staleTime: 5 * 60 * 1000 // Cache for 5 minutes
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [HRMS_QUERY_KEYS.LEAVE_TRANSFER]
+            });
+        }
+    };
+};
+
+/**
+ * Hook to fetch leave OB (Outstanding Balance) data
+ * This can be used to fetch employee leave balance data
+ */
+export const useLeaveOB = (request?: { MI_Id?: number }) => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [HRMS_QUERY_KEYS.LEAVE_TRANSFER, 'leaveOB', request?.MI_Id],
+            queryFn: async () => {
+                try {
+                    const response = await getLeaveOB({
+                        MI_Id: request?.MI_Id || HRMS_MI_ID
+                    });
+
+                    if (!response.success || !response.data) {
+                        throw new Error(response.message || 'Failed to fetch leave OB data');
+                    }
+
+                    // Extract leave OB data from response
+                    const data = response.data;
+                    
+                    // The API might return list in GridviewDetails, leaveOBList, or other fields
+                    let leaveOBList: any[] = [];
+                    
+                    if (data.GridviewDetails && Array.isArray(data.GridviewDetails)) {
+                        leaveOBList = data.GridviewDetails;
+                    } else if (data.leaveOBList && Array.isArray(data.leaveOBList)) {
+                        leaveOBList = data.leaveOBList;
+                    } else if (data.employeeList && Array.isArray(data.employeeList)) {
+                        leaveOBList = data.employeeList;
+                    } else if (data.leaveBalanceList && Array.isArray(data.leaveBalanceList)) {
+                        leaveOBList = data.leaveBalanceList;
+                    } else if (Array.isArray(data)) {
+                        leaveOBList = data;
+                    }
+
+                    return {
+                        success: true,
+                        data: leaveOBList,
+                        rawData: data,
+                        message: response.message || 'Leave OB data fetched successfully'
+                    };
+                } catch (error: any) {
+                    throw new Error(error?.message || 'Failed to fetch leave OB data');
+                }
+            },
+            staleTime: 0 // Don't cache as this might be filter-dependent
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [HRMS_QUERY_KEYS.LEAVE_TRANSFER, 'leaveOB']
+            });
+        }
+    };
+};
+
+/**
+ * Hook to fetch departments based on selected employee types
+ * This is typically called when employee types are selected to filter departments
+ */
+export const useDepartments = (request?: { MI_Id?: number; emptypes?: any[] }, enabled: boolean = true) => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [HRMS_QUERY_KEYS.LEAVE_TRANSFER, 'departments', request?.MI_Id, request?.emptypes],
+            queryFn: async () => {
+                try {
+                    const response = await getDepartments({
+                        MI_Id: request?.MI_Id || HRMS_MI_ID,
+                        emptypes: request?.emptypes || []
+                    });
+
+                    if (!response.success || !response.data) {
+                        throw new Error(response.message || 'Failed to fetch departments');
+                    }
+
+                    // Extract and map department options from API response
+                    const data = response.data;
+                    
+                    // Map DepartmentTempDto to departmentOptions
+                    const departmentOptions = (data.DepartmentTempDto || []).map((item: any) => ({
+                        label: item.HRMD_DepartmentName || item.label || '',
+                        value: String(item.HRMD_Id || item.value || '')
+                    })).filter((item: { label: string; value: string }) => item.label && item.value);
+
+                    // Also check other possible locations
+                    if (departmentOptions.length === 0 && data.departmentdropdownlist && Array.isArray(data.departmentdropdownlist)) {
+                        const mapped = data.departmentdropdownlist.map((item: any) => ({
+                            label: item.HRMD_DepartmentName || item.label || item.name || '',
+                            value: String(item.HRMD_Id || item.value || item.id || '')
+                        })).filter((item: { label: string; value: string }) => item.label && item.value);
+                        if (mapped.length > 0) {
+                            departmentOptions.push(...mapped);
+                        }
+                    }
+
+                    return {
+                        success: true,
+                        data: {
+                            departmentOptions
+                        },
+                        rawData: data,
+                        message: response.message || 'Departments fetched successfully'
+                    };
+                } catch (error: any) {
+                    throw new Error(error?.message || 'Failed to fetch departments');
+                }
+            },
+            enabled: enabled && (request?.emptypes?.length ?? 0) > 0, // Only fetch when emptypes are provided
+            staleTime: 0 // Don't cache as this is filter-dependent
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [HRMS_QUERY_KEYS.LEAVE_TRANSFER, 'departments']
+            });
+        }
+    };
+};
+
+/**
+ * Hook to fetch designations based on selected employee types
+ * This is typically called when employee types are selected to filter designations
+ */
+export const useDesignations = (request?: { MI_Id?: number; emptypes?: any[] }, enabled: boolean = true) => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [HRMS_QUERY_KEYS.LEAVE_TRANSFER, 'designations', request?.MI_Id, request?.emptypes],
+            queryFn: async () => {
+                try {
+                    const response = await getDesignation({
+                        MI_Id: request?.MI_Id || HRMS_MI_ID,
+                        emptypes: request?.emptypes || []
+                    });
+
+                    if (!response.success || !response.data) {
+                        throw new Error(response.message || 'Failed to fetch designations');
+                    }
+
+                    // Extract and map designation options from API response
+                    const data = response.data;
+                    
+                    // Map DesignationTempDto to designationOptions
+                    const designationOptions = (data.DesignationTempDto || []).map((item: any) => ({
+                        label: item.HRMDES_DesignationName || item.label || '',
+                        value: String(item.HRMDES_Id || item.value || '')
+                    })).filter((item: { label: string; value: string }) => item.label && item.value);
+
+                    // Also check designationarray
+                    if (designationOptions.length === 0 && data.designationarray && Array.isArray(data.designationarray)) {
+                        const mapped = data.designationarray.map((item: any) => ({
+                            label: item.HRMDES_DesignationName || item.label || item.name || '',
+                            value: String(item.HRMDES_Id || item.value || item.id || '')
+                        })).filter((item: { label: string; value: string }) => item.label && item.value);
+                        if (mapped.length > 0) {
+                            designationOptions.push(...mapped);
+                        }
+                    }
+
+                    // Also check designationdropdownlist as fallback
+                    if (designationOptions.length === 0 && data.designationdropdownlist && Array.isArray(data.designationdropdownlist)) {
+                        const mapped = data.designationdropdownlist.map((item: any) => ({
+                            label: item.HRMDES_DesignationName || item.label || item.name || '',
+                            value: String(item.HRMDES_Id || item.value || item.id || '')
+                        })).filter((item: { label: string; value: string }) => item.label && item.value);
+                        if (mapped.length > 0) {
+                            designationOptions.push(...mapped);
+                        }
+                    }
+
+                    return {
+                        success: true,
+                        data: {
+                            designationOptions
+                        },
+                        rawData: data,
+                        message: response.message || 'Designations fetched successfully'
+                    };
+                } catch (error: any) {
+                    throw new Error(error?.message || 'Failed to fetch designations');
+                }
+            },
+            enabled: enabled && (request?.emptypes?.length ?? 0) > 0, // Only fetch when emptypes are provided
+            staleTime: 0 // Don't cache as this is filter-dependent
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [HRMS_QUERY_KEYS.LEAVE_TRANSFER, 'designations']
+            });
+        }
+    };
+};
+
+/**
+ * Hook to save leave transfer details
+ */
+export const useSaveLeaveTransferDetails = () => {
+    const queryClient = useQueryClient();
+
+    return useMutation({
+        mutationFn: async (data: {
+            MI_Id?: number;
+            HRME_SubstituteFlag: string;
+            HRELAP_Id: number;
+            HRML_Id: number;
+            monthid: number;
+            yearid: number;
+            emplist: Array<{
+                HRME_Id: number;
+                HRELS_CreditedLeaves: number;
+                HRELS_TotalLeaves: number;
+                HRELS_Id: number;
+                HRELS_CBLeaves: number;
+                HRMLY_Id: number;
+                HRML_Id: number;
+            }>;
+            UserId: string;
+            HRELS_Id: number;
+            HRME_Id: number;
+            HRELS_OBLeaves: number;
+            HRELS_CreditedLeaves: number;
+            HRELS_TotalLeaves: number;
+            HRELS_TransLeaves: number;
+            HRMLY_Id: number;
+            HRELS_EncashedLeaves: number;
+            HRELS_CBLeaves: number;
+        }) => {
+            try {
+                const response = await saveLeaveTransferDetails(data as any);
+                
+                if (!response.success) {
+                    throw new Error(response.message || 'Failed to save leave transfer details');
+                }
+
+                return {
+                    success: true,
+                    message: response.message || 'Leave transfer details saved successfully'
+                };
+            } catch (error: any) {
+                throw new Error(error?.message || 'Failed to save leave transfer details');
+            }
+        },
+        onSuccess: (response) => {
+            if (response.success) {
+                toast.success(response.message);
+                queryClient.invalidateQueries({
+                    queryKey: [HRMS_QUERY_KEYS.LEAVE_TRANSFER]
+                });
+            } else {
+                toast.error(response.message);
+            }
+        },
+        onError: (error: Error) => {
+            // Error message from API is already in error.message
+            toast.error(error.message || 'Failed to save leave transfer details');
+        }
+    });
+};
+
+/**
+ * Hook to process leave carry forward for Leave Transfer
+ */
+export const useProcessLeaveTransferCarryForward = () => {
+    const queryClient = useQueryClient();
+
+    return useMutation({
+        mutationFn: async (data: {
+            MI_Id?: number;
+            emplist: Array<{
+                HRME_Id: number;
+                HRELS_CreditedLeaves: number;
+                HRELS_TotalLeaves: number;
+                HRELS_Id: number;
+                HRELS_CBLeaves: number;
+                HRMLY_Id: number;
+                HRML_Id: number;
+            }>;
+        }) => {
+            try {
+                const response = await leaveCarryForward(data as any);
+                
+                if (!response.success) {
+                    throw new Error(response.message || 'Failed to process leave carry forward');
+                }
+
+                return {
+                    success: true,
+                    message: response.message || 'Leave carry forward processed successfully'
+                };
+            } catch (error: any) {
+                throw new Error(error?.message || 'Failed to process leave carry forward');
+            }
+        },
+        onSuccess: (response) => {
+            if (response.success) {
+                toast.success(response.message);
+                queryClient.invalidateQueries({
+                    queryKey: [HRMS_QUERY_KEYS.LEAVE_TRANSFER]
+                });
+            } else {
+                toast.error(response.message);
+            }
+        },
+        onError: (error: Error) => {
+            // Error message from API is already in error.message
+            toast.error(error.message || 'Failed to process leave carry forward');
+        }
+    });
+};
+
+/**
+ * Hook to delete leave transfer record
+ */
+export const useDeleteLeaveTransfer = () => {
+    const queryClient = useQueryClient();
+
+    return useMutation({
+        mutationFn: async (HRELS_Id: number) => {
+            try {
+                const response = await deleteLeaveTransfer({ HRELS_Id });
+                
+                if (!response.success) {
+                    throw new Error(response.message || 'Failed to delete leave transfer');
+                }
+
+                return {
+                    success: true,
+                    message: response.message || 'Leave transfer deleted successfully'
+                };
+            } catch (error: any) {
+                throw new Error(error?.message || 'Failed to delete leave transfer');
+            }
+        },
+        onSuccess: (response) => {
+            if (response.success) {
+                toast.success(response.message);
+                queryClient.invalidateQueries({
+                    queryKey: [HRMS_QUERY_KEYS.LEAVE_TRANSFER]
+                });
+            } else {
+                toast.error(response.message);
+            }
+        },
+        onError: (error: Error) => {
+            // Error message from API is already in error.message
+            toast.error(error.message || 'Failed to delete leave transfer');
         }
     });
 };

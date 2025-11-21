@@ -150,9 +150,9 @@ export default function MasterPositionPage() {
             <div className='container space-y-4 p-1'>
                 {/* Header */}
                 <div className='flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between'>
-                    <div className='space-y-1'>
+                    {/* <div className='space-y-1'>
                         <Heading title='Master Position Management' description='Manage position details with skills and descriptions' />
-                    </div>
+                    </div> */}
                     <Button
                         type='button'
                         onClick={handleAddClick}
@@ -165,8 +165,8 @@ export default function MasterPositionPage() {
 
                 {/* Data Table Section - Collapsible but default open */}
                 <CollapsibleSection
-                    title='Master Positions Data'
-                    description='View, search, and manage all position details in the system'
+                    // title='Master Positions Data'
+                    // description='View, search, and manage all position details in the system'
                     defaultOpen={true}
                     variant='default'
                     size='lg'
