@@ -237,8 +237,11 @@ export default function ReligionCategoryMappingForm({ selectedRow, onSuccess, cl
         reset();
     };
 
-    const religions = response?.data?.religion_list || [];
-    const categories = response?.data?.caste_list || [];
+    // Extract religion_list and caste_list from the new response structure
+    // Response structure: { data: { data: { mapping, religion_list, caste_list }, religion_list, caste_list, ... } }
+    const data = response?.data as any;
+    const religions = data?.religion_list || data?.data?.religion_list || [];
+    const categories = data?.caste_list || data?.data?.caste_list || [];
 
     // Convert categories to options format for MultiSelect
     // Filter out duplicates by IMCC_Id to prevent React key errors

@@ -72,6 +72,11 @@ export function EmployeeInOutReportFilters({
     // Use watch to get the current form value, which updates immediately when changed
     const allOrIndividualValue = watch('allOrIndividual') || filters.allOrIndividual;
     const queryValue = watch('query') || filters.query || '';
+    
+    // Watch form values for MultiSelect defaultValue to prevent reset issues
+    const typeValue = watch('type') || filters.type || [];
+    const departmentValue = watch('department') || filters.department || [];
+    const designationValue = watch('designation') || filters.designation || [];
 
     // Sync form when filters prop changes from parent
     useEffect(() => {
@@ -110,7 +115,7 @@ export function EmployeeInOutReportFilters({
                             Type
                         </label>
                         <MultiSelect
-                            key={`type-${groupTypes.length}-${groupTypes.map(o => o.value).join(',')}`}
+                            key={`type-${groupTypes.length}`}
                             options={groupTypes}
                             onValueChange={(values) => {
                                 handleFilterChange('type', values);
@@ -118,10 +123,12 @@ export function EmployeeInOutReportFilters({
                                 handleFilterChange('department', []);
                                 handleFilterChange('designation', []);
                                 handleFilterChange('query', '');
-                                // Trigger cascading load
-                                onTypeChange?.(values);
+                                // Trigger cascading load - use setTimeout to prevent immediate re-render
+                                setTimeout(() => {
+                                    onTypeChange?.(values);
+                                }, 0);
                             }}
-                            defaultValue={Array.isArray(filters.type) ? filters.type.map(String) : []}
+                            defaultValue={Array.isArray(typeValue) ? typeValue.map(String) : []}
                             placeholder='Select Types'
                             className='w-full'
                             maxHeight={240}
@@ -132,21 +139,23 @@ export function EmployeeInOutReportFilters({
                             Department <span className='text-red-500'>*</span>
                         </label>
                         <MultiSelect
-                            key={`dept-${departments.length}-${departments.map(o => o.value).join(',')}`}
+                            key={`dept-${departments.length}`}
                             options={departments}
                             onValueChange={(values) => {
                                 handleFilterChange('department', values);
                                 // Clear dependent dropdowns when department changes
                                 handleFilterChange('designation', []);
                                 handleFilterChange('query', '');
-                                // Trigger cascading load
-                                onDepartmentChange?.(values);
+                                // Trigger cascading load - use setTimeout to prevent immediate re-render
+                                setTimeout(() => {
+                                    onDepartmentChange?.(values);
+                                }, 0);
                             }}
-                            defaultValue={Array.isArray(filters.department) ? filters.department.map(String) : []}
+                            defaultValue={Array.isArray(departmentValue) ? departmentValue.map(String) : []}
                             placeholder={isLoadingDepartments ? 'Loading...' : departments.length === 0 ? 'No departments available' : 'Select Departments'}
                             className={`w-full ${errors.department ? 'border-red-500' : ''}`}
                             maxHeight={240}
-                            disabled={isLoadingDepartments || (filters.type?.length === 0 && groupTypes.length > 0)}
+                            disabled={isLoadingDepartments || (typeValue?.length === 0 && groupTypes.length > 0)}
                         />
                         {errors.department && <FormError>{errors.department.message}</FormError>}
                     </div>
@@ -155,20 +164,22 @@ export function EmployeeInOutReportFilters({
                             Designation <span className='text-red-500'>*</span>
                         </label>
                         <MultiSelect
-                            key={`desg-${designations.length}-${designations.map(o => o.value).join(',')}`}
+                            key={`desg-${designations.length}`}
                             options={designations}
                             onValueChange={(values) => {
                                 handleFilterChange('designation', values);
                                 // Clear employee when designation changes
                                 handleFilterChange('query', '');
-                                // Trigger cascading load
-                                onDesignationChange?.(values);
+                                // Trigger cascading load - use setTimeout to prevent immediate re-render
+                                setTimeout(() => {
+                                    onDesignationChange?.(values);
+                                }, 0);
                             }}
-                            defaultValue={Array.isArray(filters.designation) ? filters.designation.map(String) : []}
+                            defaultValue={Array.isArray(designationValue) ? designationValue.map(String) : []}
                             placeholder={isLoadingDesignations ? 'Loading...' : designations.length === 0 ? 'No designations available' : 'Select Designations'}
                             className={`w-full ${errors.designation ? 'border-red-500' : ''}`}
                             maxHeight={240}
-                            disabled={isLoadingDesignations || (filters.department?.length === 0 && departments.length > 0)}
+                            disabled={isLoadingDesignations || (departmentValue?.length === 0 && departments.length > 0)}
                         />
                         {errors.designation && <FormError>{errors.designation.message}</FormError>}
                     </div>

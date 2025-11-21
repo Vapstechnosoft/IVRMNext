@@ -106,11 +106,13 @@ function GroupDeptDessgMappingPageContent({
                     className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
                     <GenericDataTable<GroupDeptDessgMappingDetail>
                         data={
-                            Array.isArray(response?.data?.data)
-                                ? response.data.data
-                                : (response?.data?.gridviewdata ?? [])
+                            Array.isArray(response?.data?.data?.gridviewdata)
+                                ? response.data.data.gridviewdata
+                                : Array.isArray(response?.data?.gridviewdata)
+                                  ? response.data.gridviewdata
+                                  : []
                         }
-                        totalItems={response?.data?.total ?? (Array.isArray(response?.data?.gridviewdata) ? response.data.gridviewdata.length : 0)}
+                        totalItems={response?.data?.total ?? (Array.isArray(response?.data?.data?.gridviewdata) ? response.data.data.gridviewdata.length : Array.isArray(response?.data?.gridviewdata) ? response.data.gridviewdata.length : 0)}
                         columns={groupDeptDessgMappingColumns}
                         isLoading={isLoading}
                         error={error}

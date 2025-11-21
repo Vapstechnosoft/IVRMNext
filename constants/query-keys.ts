@@ -290,6 +290,7 @@ export const HRMS_QUERY_KEYS = {
     LEAVE_CREDIT_ADDITION: 'leave_leave_credit_addition',
     LEAVE_CARRYFORWARD: 'leave_leave_carryforward',
     LEAVE_TRANSFER: 'leave_leave_transfer',
+    LEAVE_OPENING_BALANCE: 'leave_leave_opening_balance',
     COMP_OFF_APPROVAL: 'leave_comp_off_approval',
     COMP_OFF_REQUEST: 'leave_comp_off_request',
     // Leave Management Apply Leave
