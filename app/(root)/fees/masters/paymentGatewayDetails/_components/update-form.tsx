@@ -141,14 +141,54 @@ export default function UpdatePaymentGatewayDetailsForm({ onSuccess, selectedRow
                     <label htmlFor='fpgD_Image'>
                         Image<span className='text-red-500'>*</span>
                     </label>
-                    <InputText id='fpgD_Image' {...register('fpgD_Image')} error={errors.fpgD_Image?.message} />
+                    <InputText
+                        id='fpgD_Image'
+                        {...register('fpgD_Image')}
+                        error={errors.fpgD_Image?.message}
+                        onKeyDown={(e) => {
+                            // Block minus, plus, special chars used in number inputs
+                            if (['-', '+', 'e', 'E', ' '].includes(e.key)) {
+                                e.preventDefault();
+                            }
+
+                            // Block other special characters
+                            if (!/^[a-zA-Z0-9]$/.test(e.key) && e.key.length === 1) {
+                                e.preventDefault();
+                            }
+                        }}
+                        onInput={(e) => {
+                            const input = e.target as HTMLInputElement;
+                            // Keep only alphanumeric values
+                            input.value = input.value.replace(/[^A-Za-z0-9]/g, '');
+                        }}
+                    />
                 </div>
 
                 <div className='flex flex-col gap-1.5'>
                     <label htmlFor='fpgD_URL'>
                         URL<span className='text-red-500'>*</span>
                     </label>
-                    <InputText id='fpgD_URL' {...register('fpgD_URL')} error={errors.fpgD_URL?.message} />
+                    <InputText
+                        id='fpgD_URL'
+                        {...register('fpgD_URL')}
+                        error={errors.fpgD_URL?.message}
+                        onKeyDown={(e) => {
+                            // Block minus, plus, special chars used in number inputs
+                            if (['-', '+', 'e', 'E', ' '].includes(e.key)) {
+                                e.preventDefault();
+                            }
+
+                            // Block other special characters
+                            if (!/^[a-zA-Z0-9]$/.test(e.key) && e.key.length === 1) {
+                                e.preventDefault();
+                            }
+                        }}
+                        onInput={(e) => {
+                            const input = e.target as HTMLInputElement;
+                            // Keep only alphanumeric values
+                            input.value = input.value.replace(/[^A-Za-z0-9]/g, '');
+                        }}
+                    />
                 </div>
             </div>
 
@@ -157,14 +197,54 @@ export default function UpdatePaymentGatewayDetailsForm({ onSuccess, selectedRow
                     <label htmlFor='fpgD_AccNo'>
                         Account Number<span className='text-red-500'>*</span>
                     </label>
-                    <InputText id='fpgD_AccNo' {...register('fpgD_AccNo')} error={errors.fpgD_AccNo?.message} />
+                    <InputText
+                        id='fpgD_AccNo'
+                        {...register('fpgD_AccNo')}
+                        error={errors.fpgD_AccNo?.message}
+                        onKeyDown={(e) => {
+                            // Block minus, plus, special chars used in number inputs
+                            if (['-', '+', 'e', 'E', ' '].includes(e.key)) {
+                                e.preventDefault();
+                            }
+
+                            // Block other special characters
+                            if (!/^[a-zA-Z0-9]$/.test(e.key) && e.key.length === 1) {
+                                e.preventDefault();
+                            }
+                        }}
+                        onInput={(e) => {
+                            const input = e.target as HTMLInputElement;
+                            // Keep only alphanumeric values
+                            input.value = input.value.replace(/[^A-Za-z0-9]/g, '');
+                        }}
+                    />
                 </div>
 
                 <div className='flex flex-col gap-1.5'>
                     <label htmlFor='Merchent Key'>
                         Merchent Key<span className='text-red-500'>*</span>
                     </label>
-                    <InputText id='fpgD_MerchantKey' {...register('fpgD_MerchantKey')} error={errors.fpgD_MerchantKey?.message} />
+                    <InputText
+                        id='fpgD_MerchantKey'
+                        {...register('fpgD_MerchantKey')}
+                        error={errors.fpgD_MerchantKey?.message}
+                        onKeyDown={(e) => {
+                            // Block minus, plus, special chars used in number inputs
+                            if (['-', '+', 'e', 'E', ' '].includes(e.key)) {
+                                e.preventDefault();
+                            }
+
+                            // Block other special characters
+                            if (!/^[a-zA-Z0-9]$/.test(e.key) && e.key.length === 1) {
+                                e.preventDefault();
+                            }
+                        }}
+                        onInput={(e) => {
+                            const input = e.target as HTMLInputElement;
+                            // Keep only alphanumeric values
+                            input.value = input.value.replace(/[^A-Za-z0-9]/g, '');
+                        }}
+                    />
                 </div>
 
                 <div className='group flex flex-col gap-1.5'>
@@ -220,6 +300,22 @@ export default function UpdatePaymentGatewayDetailsForm({ onSuccess, selectedRow
                                 type='text'
                                 {...register(`submerchantIds.${index}.id`, { required: true })}
                                 className='w-full rounded-md border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary'
+                                onKeyDown={(e) => {
+                                    // Block minus, plus, special chars used in number inputs
+                                    if (['-', '+', 'e', 'E', ' '].includes(e.key)) {
+                                        e.preventDefault();
+                                    }
+
+                                    // Block other special characters
+                                    if (!/^[a-zA-Z0-9]$/.test(e.key) && e.key.length === 1) {
+                                        e.preventDefault();
+                                    }
+                                }}
+                                onInput={(e) => {
+                                    const input = e.target as HTMLInputElement;
+                                    // Keep only alphanumeric values
+                                    input.value = input.value.replace(/[^A-Za-z0-9]/g, '');
+                                }}
                             />
 
                             {index === fields.length - 1 && fields.length < 5 && (

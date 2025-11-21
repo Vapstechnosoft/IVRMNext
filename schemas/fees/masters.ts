@@ -659,3 +659,20 @@ export const masterTermPeriodSchema = {
         fmtfhdD_Id: deleteIdSchema('fmtfhdD_Id')
     })
 };
+
+export const masterStudentFeeGroupMappingSchema = {
+    addOrUpdate: z.object({
+        mI_Id: z.string().min(1, { message: 'Institution is required' }),
+        institutionName: z.string().min(1, { message: 'Institution Name is required' }),
+        asmaY_Id: z.number({ message: 'Academic Year is required' }),
+        classCategory: z.string().optional(),
+        busRouting: z.string().optional(),
+        casteCategory: z.string().optional(),
+        class: z.string().optional(),
+        section: z.string().optional(),
+        area: z.string().optional()
+    }),
+    delete: z.object({
+        fopM_Id: deleteIdSchema('fopM_Id')
+    })
+};

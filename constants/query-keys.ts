@@ -129,7 +129,18 @@ export const FEES_QUERY_KEYS = {
     FEE_THIRDPARTY_STUDENTDROPDOWN: 'fee_thirdparty_studentdropdown',
     FEE_THIRDPARTY_RECEIPTDATA: 'fee_thirdparty_receiptdata',
     FEE_THIRDPARTY_EDITDATA: 'fee_thirdparty_editdata',
-    FEE_TERMS_PERIOD: 'fee_terms_period'
+    FEE_TERMS_PERIOD: 'fee_terms_period',
+    STUDENT_FEE_GROUP_MAPPING: 'student_fee_group_mapping',
+    STUDENT_FEE_GROUP_MAPPING_ADM_CLASS_CATEGORY: 'student_fee_group_mapping_adm_class_category',
+    STUDENT_FEE_GROUP_MAPPING_ACADEMIC_DROPDOWN: 'student_fee_group_mapping_academic_dropdown',
+    STUDENT_FEE_GROUP_MAPPING_FEECLASS_CATEGORY_DROPDOWN: 'student_fee_group_mapping_feeclass_category_dropdown',
+    STUDENT_FEE_GROUP_MAPPING_BUS_ROUTING_DROPDOWN: 'student_fee_group_mapping_bus_routing_dropdown',
+    STUDENT_FEE_GROUP_MAPPING_CASTE_CATEGORY_DROPDOWN: 'student_fee_group_mapping_caste_category_dropdown',
+    STUDENT_CLASS_MAPPING: 'student_class_mapping',
+    STUDENT_FEE_GROUP_HEAD_MAPPING: 'student_fee_group_head_mapping',
+    FEE_STUDENT_CLASS_DROP_DOWN: 'student_fee_class_drop_down',
+    FEE_STUDENT_SECTION_DROP_DOWN: 'student_fee_csection_drop_down',
+    FEE_STUDENT_HEAD: 'student_fee_head'
 };
 
 export const EXAM_QUERY_KEYS = {
