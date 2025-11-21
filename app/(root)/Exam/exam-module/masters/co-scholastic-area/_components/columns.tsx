@@ -16,8 +16,8 @@ export const CoScholasticAreaColumns: ColumnDef<ICoScholasticArea>[] = [
             const continuousIndex = pageIndex * pageSize + row.index + 1;
             return <div>{continuousIndex}</div>;
         },
-        enableSorting: false,
-        enableHiding: false
+        enableHiding: true,
+        enableSorting: false
     },
     {
         accessorKey: 'ecactA_SkillArea',

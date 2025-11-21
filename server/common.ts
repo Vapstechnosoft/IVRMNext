@@ -736,6 +736,14 @@ export async function getUserAccessibleModules() {
                                             url: '/Exam/exam-module/exam-mapping/lifeskill-area-mapping',
                                             title: 'Life Skill Area Mapping',
                                             description: 'Manage Life Skill Area Mapping Details'
+                                        },
+                                        {
+                                            id: 61,
+                                            name: 'Exam Marks Process Condition',
+                                            icon: 'BookOpen',
+                                            url: '/Exam/exam-module/exam-mapping/exam-marks-process-condition',
+                                            title: 'Exam Marks Process Condition',
+                                            description: 'Manage Exam Marks Process Condition Details'
                                         }
                                     ]
                                 }
@@ -1692,44 +1700,44 @@ export async function getUserAccessibleModules() {
                         //     ]
                         // }
                     ]
+                },
+                {
+                    id: 5,
+                    name: 'IFrame',
+                    icon: 'Users',
+                    menu: [
+                        {
+                            id: 1,
+                            name: 'IFrame',
+                            icon: 'BookOpen',
+                            sub_menu: [
+                                {
+                                    id: 1,
+                                    name: 'IFrame',
+                                    icon: 'Database',
+                                    pages: [
+                                        {
+                                            id: 1,
+                                            name: 'AI Assignment',
+                                            icon: 'BookOpen',
+                                            url: '/iframe/ai-assignment',
+                                            title: 'IFrame',
+                                            description: 'Manage AI Assignment Details'
+                                        },
+                                        {
+                                            id: 2,
+                                            name: 'Question Generator',
+                                            icon: 'BookOpen',
+                                            url: '/iframe/question-generator',
+                                            title: 'IFrame',
+                                            description: 'Manage Question Generator Details'
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    ]
                 }
-                // {
-                //     id: 5,
-                //     name: 'IFrame',
-                //     icon: 'Users',
-                //     menu: [
-                //         {
-                //             id: 1,
-                //             name: 'IFrame',
-                //             icon: 'BookOpen',
-                //             sub_menu: [
-                //                 {
-                //                     id: 1,
-                //                     name: 'IFrame',
-                //                     icon: 'Database',
-                //                     pages: [
-                //                         {
-                //                             id: 1,
-                //                             name: 'AI Assignment',
-                //                             icon: 'BookOpen',
-                //                             url: '/iframe/ai-assignment',
-                //                             title: 'IFrame',
-                //                             description: 'Manage AI Assignment Details'
-                //                         },
-                //                         {
-                //                             id: 2,
-                //                             name: 'Question Generator',
-                //                             icon: 'BookOpen',
-                //                             url: '/iframe/question-generator',
-                //                             title: 'IFrame',
-                //                             description: 'Manage Question Generator Details'
-                //                         }
-                //                     ]
-                //                 }
-                //             ]
-                //         }
-                //     ]
-                // }
             ]
         };
     } else {

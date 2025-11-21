@@ -1,6 +1,7 @@
 'use client';
 
 import { DataTable } from '@/components/ui/view-data-table/view-data-table';
+import type { ApiSearchparams } from '@/types';
 import type { ColumnDef } from '@tanstack/react-table';
 import { Database, RefreshCw } from 'lucide-react';
 import { forwardRef } from 'react';
@@ -20,11 +21,15 @@ interface GenericDataTableProps<T> {
     errorMessage?: string;
     // Table configuration
     showViewOptions?: boolean;
+    showSearch?: boolean;
+    showSorting?: boolean;
+    showPagination?: boolean;
     columnPinning?: { left?: string[]; right?: string[] };
 
     // Row selection
     maxSelectableRows?: number;
     onRowSelectionChange?: (selectedRows: T[]) => void;
+    onSearchQueryChange?: (value: ApiSearchparams) => void;
 
     // Custom messages
     loadingMessage?: string;
@@ -55,9 +60,13 @@ export const GenericDataTable = forwardRef<DataTableRef, GenericDataTableProps<a
         success = true,
         errorMessage,
         showViewOptions = false,
+        showSearch = false,
+        showSorting = false,
+        showPagination = false,
         columnPinning,
         maxSelectableRows = 0,
         onRowSelectionChange,
+        onSearchQueryChange,
         loadingMessage = 'Loading data...',
         errorTitle = 'Error Loading Data',
         requestFailedTitle = 'Request Failed',
@@ -123,9 +132,16 @@ export const GenericDataTable = forwardRef<DataTableRef, GenericDataTableProps<a
                     showViewOptions={showViewOptions}
                     columnPinning={columnPinning}
                     maxSelectableRows={maxSelectableRows}
+                    showSearch={showSearch}
+                    showSorting={showSorting}
                     onRowSelectionChange={(selectedRows) => {
                         if (onRowSelectionChange) {
                             onRowSelectionChange(selectedRows);
+                        }
+                    }}
+                    onSearchQueryChange={(value) => {
+                        if (onSearchQueryChange) {
+                            onSearchQueryChange(value);
                         }
                     }}
                 />
@@ -142,11 +158,19 @@ export const GenericDataTable = forwardRef<DataTableRef, GenericDataTableProps<a
                 data={data}
                 totalItems={totalItems}
                 showViewOptions={false}
+                showSearch={showSearch}
+                showSorting={showSorting}
+                showPagination={showPagination}
                 columnPinning={columnPinning}
                 maxSelectableRows={maxSelectableRows}
                 onRowSelectionChange={(selectedRows) => {
                     if (onRowSelectionChange) {
                         onRowSelectionChange(selectedRows);
+                    }
+                }}
+                onSearchQueryChange={(value) => {
+                    if (onSearchQueryChange) {
+                        onSearchQueryChange(value);
                     }
                 }}
             />

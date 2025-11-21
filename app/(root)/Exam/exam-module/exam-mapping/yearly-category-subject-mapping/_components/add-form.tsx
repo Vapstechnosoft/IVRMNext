@@ -180,7 +180,10 @@ export default function AddCategorySubjectMappingForm({ onSuccess }: { onSuccess
                                         <Label>
                                             Academic Year <span className='text-red-500'>*</span>
                                         </Label>
-                                        <Select value={field.value?.toString() ?? ''} onValueChange={(val) => field.onChange(Number(val))}>
+                                        <Select
+                                            key={field.value} // <— forces remount when value changes
+                                            value={field.value && field.value !== 0 ? String(field.value) : undefined}
+                                            onValueChange={(val) => field.onChange(Number(val))}>
                                             <SelectTrigger>
                                                 <SelectValue placeholder='Select Academic Year' />
                                             </SelectTrigger>
@@ -204,7 +207,10 @@ export default function AddCategorySubjectMappingForm({ onSuccess }: { onSuccess
                                         <Label>
                                             Category <span className='text-red-500'>*</span>
                                         </Label>
-                                        <Select value={field.value?.toString() ?? ''} onValueChange={(val) => field.onChange(Number(val))}>
+                                        <Select
+                                            key={field.value} // <— forces remount when value changes
+                                            value={field.value && field.value !== 0 ? String(field.value) : undefined}
+                                            onValueChange={(val) => field.onChange(Number(val))}>
                                             <SelectTrigger>
                                                 <SelectValue placeholder='Select Category' />
                                             </SelectTrigger>
@@ -228,7 +234,10 @@ export default function AddCategorySubjectMappingForm({ onSuccess }: { onSuccess
                                         <Label>
                                             Subject Group <span className='text-red-500'>*</span>
                                         </Label>
-                                        <Select value={field.value?.toString() ?? ''} onValueChange={(val) => field.onChange(Number(val))}>
+                                        <Select
+                                            key={field.value} // <— forces remount when value changes
+                                            value={field.value && field.value !== 0 ? String(field.value) : undefined}
+                                            onValueChange={(val) => field.onChange(Number(val))}>
                                             <SelectTrigger>
                                                 <SelectValue placeholder='Select Subject Group' />
                                             </SelectTrigger>

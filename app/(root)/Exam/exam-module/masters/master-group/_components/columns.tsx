@@ -35,7 +35,9 @@ export const MasterSubjectGroupColumns: ColumnDef<IMasterSubjectGroup>[] = [
             const pageSize = table.getState().pagination.pageSize;
             const continuousIndex = pageIndex * pageSize + row.index + 1;
             return <div>{continuousIndex}</div>;
-        }
+        },
+        enableHiding: true,
+        enableSorting: false
     },
     {
         accessorKey: 'emG_GroupName',

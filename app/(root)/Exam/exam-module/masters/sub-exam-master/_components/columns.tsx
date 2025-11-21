@@ -34,8 +34,8 @@ export const MasterSubExamColumns: ColumnDef<IMasterSubExam>[] = [
             const continuousIndex = pageIndex * pageSize + row.index + 1;
             return <div>{continuousIndex}</div>;
         },
-        enableSorting: true,
-        enableHiding: false
+        enableHiding: true,
+        enableSorting: false
     },
     {
         accessorKey: 'emsE_SubExamName',

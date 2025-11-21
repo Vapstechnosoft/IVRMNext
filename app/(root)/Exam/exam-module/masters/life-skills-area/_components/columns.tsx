@@ -18,8 +18,8 @@ export const LifeSkillAreaColumns: ColumnDef<ILifeSkillArea>[] = [
             const continuousIndex = pageIndex * pageSize + row.index + 1;
             return <div>{continuousIndex}</div>;
         },
-        enableSorting: false,
-        enableHiding: false
+        enableHiding: true,
+        enableSorting: false
     },
     {
         accessorKey: 'ecsA_SkillArea',

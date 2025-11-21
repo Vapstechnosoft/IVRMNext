@@ -11,7 +11,7 @@ import { useAcademicYearDropdown } from '@/hooks/fees/useMasters';
 import { ExamSubjectGroupSchema } from '@/schemas/exam/exam-module/exam-mapping';
 import {
     addOrUpdateYearlyCategoryDatesMapping,
-    getCategoryDropDownByAcademicYearlist,
+    getCategoryDropDowByExamYearCategoryList,
     getExamGroupsByCategory,
     getSubjectsForIndividualExam,
     getSubjectsForPromotionalExam
@@ -84,7 +84,7 @@ export default function AddExamSubjectGroup({ mI_Id = 30, onSuccess }: { mI_Id?:
         if (!asmaY_Id) return;
         async function fetchCategories() {
             try {
-                const { data: response } = await getCategoryDropDownByAcademicYearlist(mI_Id, asmaY_Id);
+                const { data: response } = await getCategoryDropDowByExamYearCategoryList(mI_Id, asmaY_Id);
                 setCategories((response ?? []) as ICategory[]);
                 setValue('emcA_Id', 0);
             } catch (err: any) {
@@ -177,7 +177,10 @@ export default function AddExamSubjectGroup({ mI_Id = 30, onSuccess }: { mI_Id?:
                                                 <Label>
                                                     Academic Year <span className='text-red-500'>*</span>
                                                 </Label>
-                                                <Select onValueChange={(val) => field.onChange(Number(val))}>
+                                                <Select
+                                                    key={field.value}
+                                                    value={field.value && field.value !== 0 ? String(field.value) : undefined}
+                                                    onValueChange={(val) => field.onChange(Number(val))}>
                                                     <SelectTrigger>
                                                         <SelectValue placeholder='Select Academic Year' />
                                                     </SelectTrigger>
@@ -203,13 +206,16 @@ export default function AddExamSubjectGroup({ mI_Id = 30, onSuccess }: { mI_Id?:
                                                 <Label>
                                                     Exam Category <span className='text-red-500'>*</span>
                                                 </Label>
-                                                <Select onValueChange={(val) => field.onChange(Number(val))}>
+                                                <Select
+                                                    key={field.value}
+                                                    value={field.value && field.value !== 0 ? String(field.value) : undefined}
+                                                    onValueChange={(val) => field.onChange(Number(val))}>
                                                     <SelectTrigger>
                                                         <SelectValue placeholder='Select Category' />
                                                     </SelectTrigger>
                                                     <SelectContent>
                                                         {categories.map((c) => (
-                                                            <SelectItem key={c.emcA_Id} value={String(c.emcA_Id)}>
+                                                            <SelectItem key={c.eyC_Id} value={String(c.emcA_Id)}>
                                                                 {c.emcA_CategoryName}
                                                             </SelectItem>
                                                         ))}
@@ -229,7 +235,10 @@ export default function AddExamSubjectGroup({ mI_Id = 30, onSuccess }: { mI_Id?:
                                                 <Label>
                                                     Exam <span className='text-red-500'>*</span>
                                                 </Label>
-                                                <Select onValueChange={(val) => field.onChange(Number(val))}>
+                                                <Select
+                                                    key={field.value} // <— forces remount when value changes
+                                                    value={field.value && field.value !== 0 ? String(field.value) : undefined}
+                                                    onValueChange={(val) => field.onChange(Number(val))}>
                                                     <SelectTrigger>
                                                         <SelectValue placeholder='Select Exam' />
                                                     </SelectTrigger>

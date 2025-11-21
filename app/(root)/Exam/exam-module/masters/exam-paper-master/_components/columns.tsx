@@ -34,8 +34,8 @@ export const MasterExamPaperColumns: ColumnDef<IMasterExamPaper>[] = [
             const continuousIndex = pageIndex * pageSize + row.index + 1;
             return <div>{continuousIndex}</div>;
         },
-        enableSorting: true,
-        enableHiding: false
+        enableHiding: true,
+        enableSorting: false
     },
     {
         accessorKey: 'empatY_PaperTypeName',

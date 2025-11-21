@@ -6,7 +6,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { useDebounce } from '@/hooks/utils/use-debounce';
 import { tableSearchVariables } from '@/lib/data-table.config';
 import { exportToExcel } from '@/lib/utils';
-import type { Table } from '@tanstack/react-table';
+import type { ColumnDef, Table } from '@tanstack/react-table';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { DownloadIcon, FileSpreadsheet, FileText, Settings2, X } from 'lucide-react';
@@ -14,14 +14,21 @@ import { parseAsString, useQueryState } from 'nuqs';
 import { useEffect, useRef, useState } from 'react';
 import { DropdownMenu, DropdownMenuCheckboxItem, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '../dropdown-menu';
 
-interface DataTableToolbarProps<TData> {
+interface DataTableToolbarProps<TData, TValue> {
     table: Table<TData>;
     data: TData[];
+    columns: ColumnDef<TData, TValue>[];
     showExportOptions?: boolean;
     showViewOptions?: boolean;
 }
 
-export function DataTableToolbar<TData>({ table, data, showExportOptions = true, showViewOptions = true }: DataTableToolbarProps<TData>) {
+export function DataTableToolbar<TData, TValue>({
+    table,
+    data,
+    columns,
+    showExportOptions = true,
+    showViewOptions = true
+}: DataTableToolbarProps<TData, TValue>) {
     const [searchQuery, setSearchQuery] = useQueryState(
         tableSearchVariables.search,
         parseAsString.withOptions({ shallow: false }).withDefault('')
@@ -36,6 +43,7 @@ export function DataTableToolbar<TData>({ table, data, showExportOptions = true,
     // Only sync from URL to local state on mount or when URL changes externally
     // Use a ref to track if this is user input or external change
     const isUserInputRef = useRef(false);
+    const [showSearchColumns, setShowSearchColumns] = useState(false);
 
     useEffect(() => {
         if (!isUserInputRef.current) {

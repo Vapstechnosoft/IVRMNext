@@ -6,7 +6,7 @@ import type { IExamLoginPrivileges } from '@/types/exam/exam-module/exam-mapping
 
 export async function getExamLoginPrivileges(searchParams?: ApiSearchparams) {
     const urlParams = getSearchParamsUrl(searchParams ?? {});
-    const url = `ExamLoginPrivilagesFacade/30?${urlParams}`;
+    const url = `exam_login_privileges/30?${urlParams}`;
     console.log(url);
     return await api.get<IExamLoginPrivileges>('exam', url);
 }
