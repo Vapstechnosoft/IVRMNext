@@ -494,6 +494,14 @@ export async function getUserAccessibleModules() {
                                             url: '/fees/masters/studentfeegroupmapping',
                                             title: 'Student Fee Group Mapping',
                                             description: 'Manage Student Fee Group Mapping Details'
+                                        },
+                                        {
+                                            id: 501,
+                                            name: 'Fee Other Student',
+                                            icon: 'Settings',
+                                            url: '/fees/masters/feeotherstudent',
+                                            title: 'Fee Other Student',
+                                            description: 'Manage Fee Other Student Details'
                                         }
                                     ]
                                 },

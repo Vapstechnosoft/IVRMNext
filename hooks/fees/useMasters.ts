@@ -36,6 +36,7 @@ import {
     getcategorygroupdropdown,
     getcategoryheadsdropdown
 } from '@/server/fees/masters/concession_category_head_group_mapping';
+import { getFeeOtherStudent } from '@/server/fees/masters/fee_other_student';
 import { getMasterTermsPeriod } from '@/server/fees/masters/fee_terms_period';
 import { getfeeInstallmentDueDate } from '@/server/fees/masters/feeinstallmentduedate';
 import { getMasterFeeYearlyRebateSettinFacade } from '@/server/fees/masters/feeyearlyrebatesettingfacade';
@@ -1160,6 +1161,23 @@ export const useStudentFeeGroupList = () => {
         refetchAll: () => {
             return queryClient.invalidateQueries({
                 queryKey: [FEES_QUERY_KEYS.FEE_STUDENT_HEAD]
+            });
+        }
+    };
+};
+
+export const useFeeOtherStudent = (searchParams?: ApiSearchparams) => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [FEES_QUERY_KEYS.FEE_OTHER_STUDENT, searchParams ?? {}],
+            queryFn: async () => getFeeOtherStudent(searchParams),
+            staleTime: 0
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [FEES_QUERY_KEYS.FEE_OTHER_STUDENT]
             });
         }
     };

@@ -1,0 +1,26 @@
+'use server';
+
+import { api, getSearchParamsUrl } from '@/lib/apiService';
+import type { ApiSearchparams } from '@/types';
+import type { MasterFeeOtherStudentType } from '@/types/fees/masters/masters';
+
+export async function getFeeOtherStudent(searchParams?: ApiSearchparams) {
+    const urlParams = getSearchParamsUrl(searchParams ?? {});
+    const url = `/FeeMasterOtherStudent/get_master_other_student_list/30?${urlParams}`;
+    return await api.get<MasterFeeOtherStudentType[]>('fees', url);
+}
+
+export async function saveFeeOtherStudent(payload: any) {
+    const url = '/FeeMasterOtherStudent/AddOrUpdate';
+    return await api.post<any[]>('fees', url, payload);
+}
+
+export async function editFeeOtherStudent(id: number) {
+    const url = `/FeeMasterOtherStudent/GetMasterOtherStudentsById?id=${id}`;
+    return await api.put<any[]>('fees', url);
+}
+
+export async function deleteFeeOtherStudent(id: number) {
+    const url = `/FeeMasterOtherStudent/Toggle/${id}`;
+    return await api.put<any[]>('fees', url);
+}
