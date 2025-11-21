@@ -624,79 +624,79 @@ export const lifeSkillAreaMappingSchema = {
     })
 };
 
-export const ExamMarksProcessConditionSchema = {
+export const examMarksProcessConditionSchema = {
     addOrUpdate: z
         .object({
-            eyC_Id: z.number().optional().default(0),
+            mI_Id: z.number().min(1).default(30),
 
             asmaY_Id: z.number().min(1, { message: 'Academic Year is required' }),
-            emcA_Id: z.number().min(1, { message: 'Category is required' }),
-            mI_Id: z.number().min(1, { message: 'Organization ID is required' }).default(30),
 
-            eyC_ExamStartDate: z
+            emcA_Id: z.number().min(1, { message: 'Category is required' }),
+
+            emE_Id: z.number().min(1, { message: 'Exam is required' }),
+            eycE_ExamStartDate: z
                 .string()
                 .nonempty({ message: 'Exam start date is required' })
                 .refine((v) => parseDate(v) !== null, { message: 'Exam start date must be valid' }),
 
-            eyC_ExamEndDate: z
+            eycE_ExamEndDate: z
                 .string()
                 .nonempty({ message: 'Exam end date is required' })
                 .refine((v) => parseDate(v) !== null, { message: 'Exam end date must be valid' }),
 
-            eyC_MarksEntryLastDate: z
+            eycE_MarksEntryLastDate: z
                 .string()
                 .nonempty({ message: 'Marks entry last date is required' })
-                .refine((v) => parseDate(v) !== null, { message: 'Marks entry last date must be valid' }),
+                .refine((v) => parseDate(v) !== null, {
+                    message: 'Marks entry last date must be valid'
+                }),
 
-            eyC_MarksProcessLastDate: z
+            eycE_MarksProcessLastDate: z
                 .string()
                 .nonempty({ message: 'Marks process last date is required' })
-                .refine((v) => parseDate(v) !== null, { message: 'Marks process last date must be valid' }),
+                .refine((v) => parseDate(v) !== null, {
+                    message: 'Marks process last date must be valid'
+                }),
 
-            eyC_MarksPublishDate: z
+            eycE_MarksPublishDate: z
                 .string()
                 .nonempty({ message: 'Marks publish date is required' })
-                .refine((v) => parseDate(v) !== null, { message: 'Marks publish date must be valid' })
+                .refine((v) => parseDate(v) !== null, {
+                    message: 'Marks publish date must be valid'
+                })
         })
 
-        // Validation: exam start ≤ exam end
+        /** VALIDATIONS */
         .refine(
             (data) => {
-                const start = parseDate(data.eyC_ExamStartDate);
-                const end = parseDate(data.eyC_ExamEndDate);
-                if (!start || !end) return true;
-                return start.getTime() <= end.getTime();
+                const start = parseDate(data.eycE_ExamStartDate);
+                const end = parseDate(data.eycE_ExamEndDate);
+                return !start || !end || start <= end;
             },
             {
-                path: ['eyC_ExamStartDate'],
+                path: ['eycE_ExamStartDate'],
                 message: 'Exam start date cannot be after exam end date'
             }
         )
-
-        // Validation: marks entry ≤ publish
         .refine(
             (data) => {
-                const entry = parseDate(data.eyC_MarksEntryLastDate);
-                const publish = parseDate(data.eyC_MarksPublishDate);
-                if (!entry || !publish) return true;
-                return entry.getTime() <= publish.getTime();
+                const entry = parseDate(data.eycE_MarksEntryLastDate);
+                const publish = parseDate(data.eycE_MarksPublishDate);
+                return !entry || !publish || entry <= publish;
             },
             {
-                path: ['eyC_MarksEntryLastDate'],
+                path: ['eycE_MarksEntryLastDate'],
                 message: 'Marks entry last date cannot be after marks publish date'
             }
         )
-
-        // Validation: marks process ≤ publish
         .refine(
             (data) => {
-                const process = parseDate(data.eyC_MarksProcessLastDate);
-                const publish = parseDate(data.eyC_MarksPublishDate);
-                if (!process || !publish) return true;
-                return process.getTime() <= publish.getTime();
+                const process = parseDate(data.eycE_MarksProcessLastDate);
+                const publish = parseDate(data.eycE_MarksPublishDate);
+                return !process || !publish || process <= publish;
             },
             {
-                path: ['eyC_MarksProcessLastDate'],
+                path: ['eycE_MarksProcessLastDate'],
                 message: 'Marks process last date cannot be after marks publish date'
             }
         )

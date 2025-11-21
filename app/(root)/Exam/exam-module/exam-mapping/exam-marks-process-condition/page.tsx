@@ -5,10 +5,10 @@ import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
 import { Plus, X } from 'lucide-react';
-import { use } from 'react';
 
 import { useExamMarksProcessCondition } from '@/hooks/exam/exammodule/exam-mapping';
 import type { IExamMarksProcessCondition } from '@/types/exam/exam-module/exam-mapping';
+import { use } from 'react';
 import AddExamMarksProcessCondition from './_components/add-form';
 import { ExamMarksProcessConditionColumns } from './_components/columns';
 
@@ -87,8 +87,7 @@ function ExamMarksProcessConditionContent({
 // FORM SECTIONS
 // ------------------------------------------------ //
 function FormSections() {
-    const { isAddFormOpen, isEditFormOpen, selectedRow, closeAddForm, closeEditForm, addFormRef, editFormRef } =
-        useFormContext<IExamMarksProcessCondition>();
+    const { isAddFormOpen, closeAddForm, addFormRef } = useFormContext<IExamMarksProcessCondition>();
 
     return (
         <>

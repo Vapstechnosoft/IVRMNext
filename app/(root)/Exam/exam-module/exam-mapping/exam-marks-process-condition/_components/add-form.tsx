@@ -4,13 +4,11 @@ import { Button } from '@/components/ui/button';
 import { DateField } from '@/components/ui/dateField';
 import { FormError, Label } from '@/components/ui/extension/field';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { useYearlyCategoryDateMapping } from '@/hooks/exam/exammodule/exam-mapping';
 import { useAcademicYearDropdown } from '@/hooks/fees/useMasters';
-import { yearlyCategoryDatesMappingSchema } from '@/schemas/exam/exam-module/exam-mapping';
-import {
-    addOrUpdateYearlyCategoryDatesMapping,
-    getCategoryDropDownByAcademicYearlist
-} from '@/server/exam/exam-module/exam-mapping/yearly-category-dates-mapping';
+import { examMarksProcessConditionSchema } from '@/schemas/exam/exam-module/exam-mapping';
+import { addOrUpdateExamMarksProcessCondition } from '@/server/exam/exam-module/exam-mapping/exam-marks-process-condition';
+import { getCategoryDropDownByAcademicYearlist } from '@/server/exam/exam-module/exam-mapping/exam-subject-group-mapping';
+import { getExamsByCategoryandAcademicYear } from '@/server/exam/exam-module/masters/exam';
 import type { IAcademicYearDropDown } from '@/types/admission/preadmission/masters';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useEffect, useState } from 'react';
@@ -18,84 +16,113 @@ import { Controller, FormProvider, useForm, useWatch } from 'react-hook-form';
 import { toast } from 'sonner';
 import type { z } from 'zod';
 
-type FormFields = z.infer<typeof yearlyCategoryDatesMappingSchema.addOrUpdate>;
+type FormFields = z.infer<typeof examMarksProcessConditionSchema.addOrUpdate>;
 
-export default function AddYearlyCategoryDatesMapping({ onSuccess }: { onSuccess?: () => void }) {
+export default function AddExamMarksProcessCondition({ onSuccess }: { onSuccess?: () => void }) {
     const orgId = 30;
-
-    const methods = useForm<FormFields>({
-        resolver: zodResolver(yearlyCategoryDatesMappingSchema.addOrUpdate),
-        mode: 'all',
-        defaultValues: {
-            eyC_Id: 0,
-            mI_Id: orgId,
-            asmaY_Id: 0,
-            emcA_Id: 0,
-            eyC_ExamStartDate: '',
-            eyC_ExamEndDate: '',
-            eyC_MarksEntryLastDate: '',
-            eyC_MarksProcessLastDate: '',
-            eyC_MarksPublishDate: ''
-        }
-    });
-    const { refetchAll } = useYearlyCategoryDateMapping();
-    const { control, handleSubmit, reset, setValue, formState } = methods;
-    const { isSubmitting } = formState;
     const today = new Date();
     today.setHours(0, 0, 0, 0);
-    const [academicYears, setAcademicYears] = useState<{ asmaY_Id: number; asmaY_Year: string }[]>([]);
-    const [categories, setCategories] = useState<{ emcA_Id: number; emcA_CategoryName: string }[]>([]);
-    const { data: academicData, isLoading: loadingAcademic, error: academicError } = useAcademicYearDropdown();
 
-    // Fetch academic years on mount
-    useEffect(() => {
-        // Academic Years
-        if (academicError) {
-            toast.error(academicError.message || 'Error fetching academic years');
-            setAcademicYears([]);
-        } else if (academicData?.data && Array.isArray(academicData.data)) {
-            const formattedYears: IAcademicYearDropDown[] = academicData.data.map((item: any) => ({
-                asmaY_Id: item.asmaY_Id?.toString() ?? '',
-                asmaY_Year: item.asmaY_Year ?? '',
-                asmaY_Order: item.asmaY_Order ?? 0
-            }));
-            setAcademicYears(formattedYears);
-            setValue('asmaY_Id', methods.watch('asmaY_Id') || 0);
-        } else {
-            setAcademicYears([]);
+    const methods = useForm<FormFields>({
+        resolver: zodResolver(examMarksProcessConditionSchema.addOrUpdate),
+        mode: 'all',
+        defaultValues: {
+            mI_Id: orgId,
+            asmaY_Id: 0,
+            emE_Id: 0,
+            eycE_ExamStartDate: '',
+            eycE_ExamEndDate: '',
+            eycE_MarksEntryLastDate: '',
+            eycE_MarksProcessLastDate: '',
+            eycE_MarksPublishDate: '',
+            emcA_Id: 0
         }
-    }, [academicData, academicError, setValue, methods.watch('asmaY_Id')]);
-    // Watch selected Academic Year
-    const selectedYearId = useWatch({
-        control,
-        name: 'asmaY_Id'
     });
 
-    // Fetch categories whenever Academic Year changes
+    const { control, handleSubmit, reset, setValue, formState } = methods;
+    const { isSubmitting } = formState;
+
+    // Academic years (from your existing hook)
+    const { data: academicData, isLoading: loadingAcademic, error: academicError } = useAcademicYearDropdown();
+    const [academicYears, setAcademicYears] = useState<IAcademicYearDropDown[]>([]);
+
+    // categories and exams
+    const [categories, setCategories] = useState<{ emcA_Id: number; emcA_CategoryName: string }[]>([]);
+    const [exams, setExams] = useState<{ emE_Id: number; emE_ExamName: string }[]>([]);
+
+    // map academicData
+    useEffect(() => {
+        if (academicError) {
+            toast.error(academicError.message || 'Failed to load academic years');
+            setAcademicYears([]);
+            return;
+        }
+        if (!academicData?.data || !Array.isArray(academicData.data)) {
+            setAcademicYears([]);
+            return;
+        }
+        const formatted: IAcademicYearDropDown[] = academicData.data.map((it: any) => ({
+            asmaY_Id: Number(it.asmaY_Id),
+            asmaY_Year: it.asmaY_Year || '',
+            asmaY_Order: it.asmaY_Order ?? 0
+        }));
+        setAcademicYears(formatted);
+    }, [academicData, academicError]);
+
+    // When academic year changes -> load categories
+    const selectedYearId = useWatch({ control, name: 'asmaY_Id' });
     useEffect(() => {
         if (!selectedYearId || Number(selectedYearId) === 0) {
             setCategories([]);
+            setValue('emcA_Id', 0);
+            setExams([]);
+            setValue('emE_Id', 0);
             return;
         }
-        async function fetchCategories() {
-            try {
-                const { data: cats } = await getCategoryDropDownByAcademicYearlist(orgId, selectedYearId);
-                setCategories(Array.isArray(cats) ? cats : []);
-                setValue('emcA_Id', 0);
-            } catch (err: any) {
-                toast.error(err?.message);
-            }
-        }
-        fetchCategories();
-    }, [selectedYearId]);
 
-    const onSubmit = async (data: FormFields) => {
+        (async () => {
+            try {
+                const { data: cats } = await getCategoryDropDownByAcademicYearlist(orgId, Number(selectedYearId));
+                setCategories(Array.isArray(cats) ? cats : []);
+                // reset selected category & exams
+                setValue('emcA_Id', 0);
+                setExams([]);
+                setValue('emE_Id', 0);
+            } catch (err: any) {
+                toast.error(err?.message ?? 'Failed to load categories');
+                setCategories([]);
+            }
+        })();
+    }, [selectedYearId, setValue]);
+
+    // When category (eyC_Id or emcA_Id) changes -> load exams
+    const selectedCategoryId = useWatch({ control, name: 'emcA_Id' });
+    useEffect(() => {
+        if (!selectedCategoryId || Number(selectedCategoryId) === 0) {
+            setExams([]);
+            setValue('emE_Id', 0);
+            return;
+        }
+
+        (async () => {
+            try {
+                // server helper to fetch exam list for category (I added this helper in server file)
+                const { data: ex } = await getExamsByCategoryandAcademicYear(orgId, Number(selectedYearId), Number(selectedCategoryId));
+                setExams(Array.isArray(ex) ? ex : []);
+                setValue('emE_Id', 0);
+            } catch (err: any) {
+                toast.error(err?.message ?? 'Failed to load exams');
+                setExams([]);
+            }
+        })();
+    }, [selectedCategoryId, setValue]);
+
+    const onSubmit = async (payload: FormFields) => {
         try {
-            const res = await addOrUpdateYearlyCategoryDatesMapping(data);
+            const res = await addOrUpdateExamMarksProcessCondition(payload);
             if (res?.success) {
-                toast.success('Yearly category dates mapping saved successfully');
-                reset();
-                refetchAll();
+                toast.success(res.message ?? 'Saved successfully');
+                reset(); // reset shows placeholders and empty selects
                 onSuccess?.();
             } else {
                 toast.error(res?.message ?? 'Save failed');
@@ -104,22 +131,24 @@ export default function AddYearlyCategoryDatesMapping({ onSuccess }: { onSuccess
             toast.error(err?.message ?? 'Failed to save');
         }
     };
+
     const handleReset = () => {
         reset({
+            mI_Id: orgId,
             asmaY_Id: 0,
-            emcA_Id: 0,
-            eyC_ExamStartDate: '',
-            eyC_ExamEndDate: '',
-            eyC_MarksEntryLastDate: '',
-            eyC_MarksProcessLastDate: '',
-            eyC_MarksPublishDate: ''
+            emE_Id: 0,
+            eycE_ExamStartDate: '',
+            eycE_ExamEndDate: '',
+            eycE_MarksEntryLastDate: '',
+            eycE_MarksProcessLastDate: '',
+            eycE_MarksPublishDate: '',
+            emcA_Id: 0
         });
-
         setCategories([]);
+        setExams([]);
     };
 
-    // Reusable DateField component
-
+    // Render
     return (
         <div className='flex w-full flex-col gap-6'>
             <FormProvider {...methods}>
@@ -136,11 +165,11 @@ export default function AddYearlyCategoryDatesMapping({ onSuccess }: { onSuccess
                                             Academic Year <span className='text-red-500'>*</span>
                                         </Label>
                                         <Select
-                                            key={field.value} // <— forces remount when value changes
+                                            key={field.value}
                                             value={field.value && field.value !== 0 ? String(field.value) : undefined}
                                             onValueChange={(val) => field.onChange(Number(val))}>
                                             <SelectTrigger>
-                                                <SelectValue placeholder='Select Academic Year' />
+                                                <SelectValue placeholder='--Select--' />
                                             </SelectTrigger>
                                             <SelectContent>
                                                 {academicYears.map((y) => (
@@ -154,9 +183,10 @@ export default function AddYearlyCategoryDatesMapping({ onSuccess }: { onSuccess
                                     </div>
                                 )}
                             />
+
                             <Controller
                                 control={control}
-                                name='eyC_ExamStartDate'
+                                name='eycE_ExamStartDate'
                                 render={({ field, fieldState }) => (
                                     <DateField
                                         field={field}
@@ -170,7 +200,7 @@ export default function AddYearlyCategoryDatesMapping({ onSuccess }: { onSuccess
 
                             <Controller
                                 control={control}
-                                name='eyC_MarksEntryLastDate'
+                                name='eycE_MarksEntryLastDate'
                                 render={({ field, fieldState }) => (
                                     <DateField
                                         field={field}
@@ -178,7 +208,7 @@ export default function AddYearlyCategoryDatesMapping({ onSuccess }: { onSuccess
                                         label='Marks Entry Last Date'
                                         placeholder='Select Marks Entry Last Date'
                                         fromDate={
-                                            methods.watch('eyC_ExamEndDate') === '' ? today : new Date(methods.watch('eyC_ExamEndDate'))
+                                            methods.watch('eycE_ExamEndDate') === '' ? today : new Date(methods.watch('eycE_ExamEndDate'))
                                         }
                                     />
                                 )}
@@ -186,7 +216,7 @@ export default function AddYearlyCategoryDatesMapping({ onSuccess }: { onSuccess
 
                             <Controller
                                 control={control}
-                                name='eyC_MarksPublishDate'
+                                name='eycE_MarksPublishDate'
                                 render={({ field, fieldState }) => (
                                     <DateField
                                         field={field}
@@ -194,9 +224,9 @@ export default function AddYearlyCategoryDatesMapping({ onSuccess }: { onSuccess
                                         label='Marks Publish Date'
                                         placeholder='Select Marks Publish Date'
                                         fromDate={
-                                            methods.watch('eyC_MarksProcessLastDate') === ''
+                                            methods.watch('eycE_MarksProcessLastDate') === ''
                                                 ? today
-                                                : new Date(methods.watch('eyC_MarksProcessLastDate'))
+                                                : new Date(methods.watch('eycE_MarksProcessLastDate'))
                                         }
                                     />
                                 )}
@@ -214,16 +244,19 @@ export default function AddYearlyCategoryDatesMapping({ onSuccess }: { onSuccess
                                             Category <span className='text-red-500'>*</span>
                                         </Label>
                                         <Select
-                                            key={field.value} // <— forces remount when value changes
+                                            key={field.value}
                                             value={field.value && field.value !== 0 ? String(field.value) : undefined}
-                                            onValueChange={(val) => field.onChange(Number(val))}>
+                                            onValueChange={(val) => {
+                                                // set both category id (emcA_Id) and eyC_Id (if your backend uses eyC_Id differently adjust accordingly)
+                                                field.onChange(Number(val));
+                                            }}>
                                             <SelectTrigger>
-                                                <SelectValue placeholder='Select Category' />
+                                                <SelectValue placeholder='--Select--' />
                                             </SelectTrigger>
                                             <SelectContent>
-                                                {categories.map((cats) => (
-                                                    <SelectItem key={cats.emcA_Id} value={String(cats.emcA_Id)}>
-                                                        {cats.emcA_CategoryName}
+                                                {categories.map((c) => (
+                                                    <SelectItem key={c.emcA_Id} value={String(c.emcA_Id)}>
+                                                        {c.emcA_CategoryName}
                                                     </SelectItem>
                                                 ))}
                                             </SelectContent>
@@ -232,9 +265,10 @@ export default function AddYearlyCategoryDatesMapping({ onSuccess }: { onSuccess
                                     </div>
                                 )}
                             />
+
                             <Controller
                                 control={control}
-                                name='eyC_ExamEndDate'
+                                name='eycE_ExamEndDate'
                                 render={({ field, fieldState }) => (
                                     <DateField
                                         field={field}
@@ -242,7 +276,9 @@ export default function AddYearlyCategoryDatesMapping({ onSuccess }: { onSuccess
                                         label='Exam End Date'
                                         placeholder='Select Exam End Date'
                                         fromDate={
-                                            methods.watch('eyC_ExamStartDate') === '' ? today : new Date(methods.watch('eyC_ExamStartDate'))
+                                            methods.watch('eycE_ExamStartDate') === ''
+                                                ? today
+                                                : new Date(methods.watch('eycE_ExamStartDate'))
                                         }
                                     />
                                 )}
@@ -250,7 +286,7 @@ export default function AddYearlyCategoryDatesMapping({ onSuccess }: { onSuccess
 
                             <Controller
                                 control={control}
-                                name='eyC_MarksProcessLastDate'
+                                name='eycE_MarksProcessLastDate'
                                 render={({ field, fieldState }) => (
                                     <DateField
                                         field={field}
@@ -258,11 +294,46 @@ export default function AddYearlyCategoryDatesMapping({ onSuccess }: { onSuccess
                                         label='Marks Process Last Date'
                                         placeholder='Select Marks Process Last Date'
                                         fromDate={
-                                            methods.watch('eyC_MarksEntryLastDate') === ''
+                                            methods.watch('eycE_MarksEntryLastDate') === ''
                                                 ? today
-                                                : new Date(methods.watch('eyC_MarksEntryLastDate'))
+                                                : new Date(methods.watch('eycE_MarksEntryLastDate'))
                                         }
                                     />
+                                )}
+                            />
+
+                            {/* Exam select - populated when category selected */}
+                            <Controller
+                                control={control}
+                                name='emE_Id'
+                                render={({ field, fieldState }) => (
+                                    <div className='mt-4'>
+                                        <Label>
+                                            Exam <span className='text-red-500'>*</span>
+                                        </Label>
+                                        <Select
+                                            key={field.value}
+                                            value={field.value && field.value !== 0 ? String(field.value) : undefined}
+                                            onValueChange={(val) => field.onChange(Number(val))}>
+                                            <SelectTrigger>
+                                                <SelectValue placeholder='--Select--' />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                {exams.length === 0 ? (
+                                                    <SelectItem value='0' disabled>
+                                                        No exams found
+                                                    </SelectItem>
+                                                ) : (
+                                                    exams.map((e) => (
+                                                        <SelectItem key={e.emE_Id} value={String(e.emE_Id)}>
+                                                            {e.emE_ExamName}
+                                                        </SelectItem>
+                                                    ))
+                                                )}
+                                            </SelectContent>
+                                        </Select>
+                                        {fieldState.error && <FormError>{fieldState.error.message}</FormError>}
+                                    </div>
                                 )}
                             />
                         </div>
