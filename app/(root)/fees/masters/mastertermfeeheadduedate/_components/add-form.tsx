@@ -128,6 +128,7 @@ export default function AddFeeTermsHeadDueDateFormForm({ onSuccess, termname = '
                 toast.success(response.message);
                 OnReset();
                 onSuccess?.();
+                refetchAll();
             } else {
                 toast.error(response.message);
             }

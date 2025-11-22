@@ -3,20 +3,20 @@
 import { Button } from '@/components/ui/button';
 import { AdaptiveBody, AdaptiveDialog, AdaptiveFooter } from '@/components/ui/extension/adaptive-dialog';
 import { Label } from '@/components/ui/extension/field';
-import { useMasterFeeInstallmentList } from '@/hooks/fees/useMasters';
+import { useMasterFeeInstallmentDueDateList } from '@/hooks/fees/useMasters';
 import { deleteInstallmentDueDate } from '@/server/fees/masters/feeinstallmentduedate';
-import type { IMasterFeesInstallmentList } from '@/types/fees/masters';
+import type { IMasterFeesInstallmentDuedateList } from '@/types/fees/masters';
 import { useState } from 'react';
 import { toast } from 'sonner';
 
 interface DeleteInstallmentDueDateListProps {
-    rowData: IMasterFeesInstallmentList;
+    rowData: IMasterFeesInstallmentDuedateList;
     onClose: () => void;
     onSuccess?: () => void;
 }
 
 export default function DeleteInstallmentDueDateListForm({ rowData, onClose, onSuccess }: DeleteInstallmentDueDateListProps) {
-    const { refetchAll } = useMasterFeeInstallmentList();
+    const { refetchAll } = useMasterFeeInstallmentDueDateList();
     const [isSubmitting, setIsSubmitting] = useState(false);
 
     const closeDialog = () => {
@@ -29,12 +29,13 @@ export default function DeleteInstallmentDueDateListForm({ rowData, onClose, onS
 
         setIsSubmitting(true);
         try {
+            console.log('Deleting rowData:', rowData);
             const response = await deleteInstallmentDueDate(rowData.ftidD_Id);
 
             if (response.success) {
-                toast.success(`${rowData.ftI_Name} deleted successfully`);
-                await refetchAll();
+                toast.success(response.message);
                 onSuccess?.();
+                refetchAll();
                 closeDialog();
             } else {
                 toast.error(response.message || 'Failed to delete record');

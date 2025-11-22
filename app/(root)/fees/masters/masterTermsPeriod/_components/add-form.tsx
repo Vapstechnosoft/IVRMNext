@@ -122,6 +122,7 @@ export default function AddFeeTermsPeriodForm({ onSuccess, termname = '' }: FeeT
                 toast.success(response.message);
                 OnReset();
                 onSuccess?.();
+                refetchAll();
             } else {
                 toast.error(response.message);
             }

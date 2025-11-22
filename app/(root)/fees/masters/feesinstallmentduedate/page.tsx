@@ -6,8 +6,8 @@ import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
 
-import { useMasterFeeInstallmentList } from '@/hooks/fees/useMasters';
-import type { IMasterFeesInstallmentList } from '@/types/fees/masters';
+import { useMasterFeeInstallmentDueDateList } from '@/hooks/fees/useMasters';
+import type { IMasterFeesInstallmentDuedateList } from '@/types/fees/masters';
 import { Plus, X } from 'lucide-react';
 import { use } from 'react';
 import AddMasterInstallmentDueDateForm from './_components/add-form';
@@ -21,10 +21,10 @@ export default function MasterFeeInstallmentDueDate(props: {
     searchParams: SearchParams;
 }) {
     const searchParams = use(props.searchParams);
-    const { data: response, isLoading, error } = useMasterFeeInstallmentList(searchParams);
+    const { data: response, isLoading, error } = useMasterFeeInstallmentDueDateList(searchParams);
 
     return (
-        <FormProvider<IMasterFeesInstallmentList>>
+        <FormProvider<IMasterFeesInstallmentDuedateList>>
             <MasterFeeDueDateContent response={response as any} isLoading={isLoading} error={error} />
         </FormProvider>
     );
@@ -35,11 +35,11 @@ function MasterFeeDueDateContent({
     isLoading,
     error
 }: {
-    response: IMasterFeesInstallmentList[];
+    response: IMasterFeesInstallmentDuedateList[];
     isLoading: boolean;
     error: any;
 }) {
-    const { openAddForm } = useFormContext<IMasterFeesInstallmentList>();
+    const { openAddForm } = useFormContext<IMasterFeesInstallmentDuedateList>();
     const tableProps = useDataTableProps(response);
 
     return (
@@ -63,7 +63,7 @@ function MasterFeeDueDateContent({
                     variant='default'
                     size='lg'
                     className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
-                    <GenericDataTable<IMasterFeesInstallmentList>
+                    <GenericDataTable<IMasterFeesInstallmentDuedateList>
                         {...tableProps}
                         columns={masterInstallmentColumns}
                         isLoading={isLoading}
@@ -94,7 +94,7 @@ function FormSections() {
         closeDeleteForm,
         addFormRef,
         editFormRef
-    } = useFormContext<IMasterFeesInstallmentList>();
+    } = useFormContext<IMasterFeesInstallmentDuedateList>();
 
     return (
         <>

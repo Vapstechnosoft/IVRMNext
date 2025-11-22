@@ -2,16 +2,28 @@
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
 import { ActionButtons } from '@/components/ui/form/action-buttons';
 import { useFormContext } from '@/components/ui/form/form-provider';
-import type { IMasterFeesInstallmentList } from '@/types/fees/masters';
+import type { IMasterFeesInstallmentDuedateList } from '@/types/fees/masters';
 import type { ColumnDef } from '@tanstack/react-table';
 import { useCallback } from 'react';
 
-export const masterInstallmentColumns: ColumnDef<IMasterFeesInstallmentList>[] = [
+export const masterInstallmentColumns: ColumnDef<IMasterFeesInstallmentDuedateList>[] = [
+    // {
+    //     accessorKey: 'ftidD_Id',
+    //     header: ({ column }) => <DataTableColumnHeader column={column} title='SL NO' />,
+    //     cell: ({ row }) => <div>{row.index + 1}</div>,
+    //     enableSorting: false,
+    //     enableHiding: false
+    // },
     {
         accessorKey: 'ftidD_Id',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='SL NO' />,
-        cell: ({ row }) => <div>{row.index + 1}</div>,
-        enableSorting: false,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Sl.No' className='pl-6' />,
+        cell: ({ row, table }) => {
+            const pageIndex = table.getState().pagination.pageIndex;
+            const pageSize = table.getState().pagination.pageSize;
+            const continuousIndex = pageIndex * pageSize + row.index + 1;
+            return <div className='pl-6'>{continuousIndex} </div>;
+        },
+        enableSorting: true,
         enableHiding: false
     },
     {
@@ -61,19 +73,19 @@ function formatDate(dateString: string) {
 function ActionButtonsCell({
     rowData
 }: {
-    rowData: IMasterFeesInstallmentList;
+    rowData: IMasterFeesInstallmentDuedateList;
 }) {
-    const { openEditForm, openDeleteForm } = useFormContext<IMasterFeesInstallmentList>();
+    const { openEditForm, openDeleteForm } = useFormContext<IMasterFeesInstallmentDuedateList>();
 
     const handleEdit = useCallback(
-        (data: IMasterFeesInstallmentList) => {
+        (data: IMasterFeesInstallmentDuedateList) => {
             openEditForm(data);
         },
         [openEditForm]
     );
 
     const handleDelete = useCallback(
-        (data: IMasterFeesInstallmentList) => {
+        (data: IMasterFeesInstallmentDuedateList) => {
             openDeleteForm(data);
         },
         [openDeleteForm]

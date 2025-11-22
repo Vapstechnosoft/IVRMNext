@@ -38,6 +38,7 @@ import {
 } from '@/server/fees/masters/concession_category_head_group_mapping';
 import { getFeeOtherStudent } from '@/server/fees/masters/fee_other_student';
 import { getMasterTermsPeriod } from '@/server/fees/masters/fee_terms_period';
+import { getInstallmentDropDown, getfeeInstallmentDueDateList } from '@/server/fees/masters/feeinstallmentduedate';
 import { getMasterFeeYearlyRebateSettinFacade } from '@/server/fees/masters/feeyearlyrebatesettingfacade';
 import { getFineSlab } from '@/server/fees/masters/fineSlab';
 import { getFeeGroup, getFeeGroupGrouping } from '@/server/fees/masters/groupsgrouping';
@@ -363,13 +364,13 @@ export const useMasterGroup = (searchParams?: ApiSearchparams) => {
 //     };
 // };
 
-export const useMasterFeeInstallmentList = (searchParams?: ApiSearchparams) => {
+export const useMasterFeeInstallmentDueDateList = (searchParams?: ApiSearchparams) => {
     const queryClient = useQueryClient();
 
     return {
         ...useQuery({
             queryKey: [FEES_QUERY_KEYS.FEE_INSTALLMENT_DUE_DATE, searchParams ?? {}],
-            queryFn: async () => getfeeInstallmentList(searchParams),
+            queryFn: async () => getfeeInstallmentDueDateList(searchParams),
             staleTime: 0
         }),
         refetchAll: () => {

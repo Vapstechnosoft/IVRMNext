@@ -1,7 +1,8 @@
 'use server';
 import { api, getSearchParamsUrl } from '@/lib/apiService';
 import type { ApiSearchparams } from '@/types';
-import type { IMasterFeeInstallmentDropDown, IMasterFeesInstallmentList } from '@/types/fees/masters';
+import type { IMasterFeesInstallmentList } from '@/types/fees/masters';
+import type { IMasterFeeInstallmentDropDown } from '@/types/fees/masters/masters';
 
 export async function addOrUpdateInsallmentDueDate(data: any) {
     const url = '/fee_installment/Getduedates';
@@ -12,7 +13,7 @@ export async function toggleMasterfeeInstallmentDueDate(_mi_id: 30, id: number) 
     const url = `/demo/${id}`;
     return await api.put('fees', url);
 }
-export async function getfeeInstallmentList(searchParams?: ApiSearchparams) {
+export async function getfeeInstallmentDueDateList(searchParams?: ApiSearchparams) {
     const urlParams = getSearchParamsUrl(searchParams ?? {});
     // const url = `/fee_installment/GetUsedInstallmentList/30?${urlParams}`;
     const url = `/fee_installment/GetUsedInstallmentList/30?${urlParams}`;
@@ -31,6 +32,7 @@ export async function getInstallmentDueDateList(asmayId: number, fmiId: number) 
 
 export async function deleteInstallmentDueDate(ftidd_id: number) {
     const url = `/fee_installment/deletedetailsY/${ftidd_id}`;
+    console.info('Delete Installment Due Date URL:', url);
     return await api.put('fees', url);
 }
 

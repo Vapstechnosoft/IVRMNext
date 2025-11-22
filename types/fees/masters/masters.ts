@@ -357,26 +357,26 @@ export interface FeeInstallmentList {
     ftI_Name: string;
 }
 
-// export interface IMasterFeesInstallmentList {
-//     fmI_Id: number;
-//     mI_Id: number;
-//     fmI_Name: string;
-//     fmI_No_Of_Installments: number;
-//     fmI_Installment_Type: string;
-//     ftI_Name?: string;
-//     fmI_ActiceFlag?: boolean | number;
-//     installments?: Array<{
-//         sno?: number;
-//         ftI_Id?: number;
-//         ftI_Name?: string;
-//         fdate?: string;
-//         tdate?: string;
-//         aplc?: string;
-//         ddate?: string;
-//     }>;
-// }
-
 export interface IMasterFeesInstallmentList {
+    fmI_Id: number;
+    mI_Id: number;
+    fmI_Name: string;
+    fmI_No_Of_Installments: number;
+    fmI_Installment_Type: string;
+    ftI_Name?: string;
+    fmI_ActiceFlag?: boolean | number;
+    installments?: Array<{
+        sno?: number;
+        ftI_Id?: number;
+        ftI_Name?: string;
+        fdate?: string;
+        tdate?: string;
+        aplc?: string;
+        ddate?: string;
+    }>;
+}
+
+export interface IMasterFeesInstallmentDuedateList {
     ftidD_Id: number;
     ftI_Name: string;
     ftidD_FromDate: string;

@@ -12,11 +12,12 @@ import { FormError, Label } from '@/components/ui/extension/field';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { GenericDataTable, useDataTableProps } from '@/components/ui/view-data-table/view-generic-data-table';
-import { useAcademicYearDropdown, useMasterFeeInstallmentDropDown } from '@/hooks/fees/useMasters';
+import { useAcademicYearDropdown, useMasterFeeInstallmentDropDown, useMasterFeeInstallmentDueDateList } from '@/hooks/fees/useMasters';
 import { cn } from '@/lib/utils';
 import { masterInstallmentDueDateSchema } from '@/schemas/fees/masters';
 import { getInstallmentDueDateList, saveInstallmentDueDate } from '@/server/fees/masters/feeinstallmentduedate';
-import type { IMasterFeeInstallmentDropDown, IMasterFeesInstallmentDueDateList } from '@/types/fees/masters';
+import type { IMasterFeesInstallmentDueDateList } from '@/types/fees/masters';
+import type { IMasterFeeInstallmentDropDown } from '@/types/fees/masters/masters';
 import { masterFeeInstallmentDueDateColumn } from './fee_due_date_column';
 
 // type MasterInstallmentFormSchema = z.infer<typeof masterInstallmentDueDateSchema>;
@@ -31,6 +32,7 @@ interface AddMasterInstallmentDueDateFormProps {
 }
 
 export default function AddMasterInstallmentDueDateForm({ onSuccess }: AddMasterInstallmentDueDateFormProps) {
+    const { refetchAll } = useMasterFeeInstallmentDueDateList();
     const [masterInstallmentDueData, setMasterInstallmentDueData] = useState<IMasterFeesInstallmentDueDateList[]>([]);
     const [masterInstallmentDueDataLoading, setMasterInstallmentDueDataLoading] = useState(false);
     const [masterInstallmentDueDataError, setMasterInstallmentDueDataError] = useState<any>(null);
@@ -89,9 +91,9 @@ export default function AddMasterInstallmentDueDateForm({ onSuccess }: AddMaster
         try {
             const buildPayload = () => {
                 return {
-                    fmI_Id: fmI_Installment_Type,
-                    mI_Id: 30,
-                    temyrid: asmayId,
+                    // fmI_Id: fmI_Installment_Type,
+
+                    asmay_id: asmayId,
                     fidddto: masterInstallmentDueData.map((item: IMasterFeesInstallmentDueDateList) => ({
                         ftidD_Id: item.ftidD_Id ?? 0,
                         ftI_Id: item.ftI_Id,
@@ -104,11 +106,14 @@ export default function AddMasterInstallmentDueDateForm({ onSuccess }: AddMaster
             };
 
             const _payload = buildPayload();
+            const updatedpayload = JSON.stringify(_payload);
+            console.log('Add Payload:', updatedpayload);
             const response = await saveInstallmentDueDate(_payload);
 
             if (response?.success) {
                 toast.success(response.message || 'Saved successfully');
                 handleReset();
+                refetchAll();
             } else {
                 toast.error(response?.message || 'Save failed');
             }
