@@ -44,7 +44,18 @@ export default function UpdateMasterTermsPeriodForm({ onSuccess, feeheadname = '
         formState: { errors, isSubmitting }
     } = useForm<FormFields>({
         resolver: zodResolver(masterTermPeriodSchema.addOrUpdate),
-        mode: 'onChange'
+        mode: 'onChange',
+
+        defaultValues: {
+            // asmay_Id: row.asmay_Id || 0,
+            // fmt_id: row.fmt_id || 0,
+            asmay_Id: 231,
+            fmt_id: 187,
+            fmtP_Year: row.fmtP_Year ? String(row.fmtP_Year) : '',
+            from_Month: row.fromMonth || '',
+            to_Month: row.fmtToMonth || '',
+            filterType: row.feeFlag || ''
+        }
     });
 
     function OnReset() {
@@ -56,8 +67,8 @@ export default function UpdateMasterTermsPeriodForm({ onSuccess, feeheadname = '
         if (!row) return;
 
         console.log('Loaded row data:', row);
-        row.fmt_id = 187; // Temporary fix for term id
-        row.asmay_Id = 231; // Temporary fix for academic year id
+        // row.fmt_id = 187; // Temporary fix for term id
+        // row.asmay_Id = 231; // Temporary fix for academic year id
 
         // Reset form data with the row data
         reset({
@@ -79,7 +90,7 @@ export default function UpdateMasterTermsPeriodForm({ onSuccess, feeheadname = '
         });
 
         // Set selected academic year and fetch split years
-        setSelectedAcademicYear(row.asmay_Id);
+        setSelectedAcademicYear(231);
     }, [row, reset]);
 
     // Load Split Academic Year

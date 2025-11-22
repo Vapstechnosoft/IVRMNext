@@ -48,10 +48,10 @@ export default function MasterYearlyRebateSettings(props: {
                             isLoading={isLoading}
                             error={error}
                             columnPinning={{ right: ['actions'] }}
-                            loadingMessage='Loading yearly groups...'
-                            noDataTitle='No Yearly Groups Found'
-                            noDataDescription='Get started by creating your first yearly group'
-                            errorTitle='Error Loading Yearly Groups'
+                            loadingMessage='Loading yearly Rebate Settings...'
+                            noDataTitle='No Yearly Rebate Settings Found'
+                            noDataDescription='There are no yearly rebate settings to display. Please add new yearly rebate settings.'
+                            errorTitle='Error Loading Yearly Rebate Settings'
                         />
                     </CollapsibleSection>
 
@@ -67,7 +67,7 @@ function AddButton() {
     return (
         <Button type='button' onClick={openAddForm} className='w-fit shadow-md transition-all duration-200 hover:scale-105 hover:shadow-lg'>
             <Plus className='h-4 w-4' />
-            Add Yearly Group
+            Add Yearly Rebate Settings
         </Button>
     );
 }
@@ -114,8 +114,8 @@ function FormSections() {
             {isEditFormOpen && selectedRow && (
                 <div ref={editFormRef}>
                     <CollapsibleSection
-                        title='Edit Yearly Group'
-                        description='Update the details of the selected yearly group'
+                        title='Edit Rebate Setting'
+                        description='Update the details of the selected rebate setting'
                         defaultOpen
                         variant='outline'
                         size='md'
