@@ -3,20 +3,44 @@
 import { GenericDataTable } from '@/components/ui/data-table/generic-data-table';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { useState } from 'react';
-import { leaveReportColumns, type LeaveReportRow } from './_components/columns';
-import { LeaveReportFilters, type LeaveReportFilters as FiltersType } from './_components/filters';
+import { type LeaveReportRow, leaveReportColumns } from './_components/columns';
+import { type LeaveReportFilters as FiltersType, LeaveReportFilters } from './_components/filters';
+
+// TODO: Replace with actual API hooks
+// Example structure:
+// const { data: typesData, isLoading: isLoadingTypes } = useLeaveReportTypes();
+// const { data: departmentsData, isLoading: isLoadingDepartments } = useLeaveReportDepartments();
+// const { data: designationsData, isLoading: isLoadingDesignations } = useLeaveReportDesignations();
+// const { data: employeesData, isLoading: isLoadingEmployees } = useLeaveReportEmployees({
+//     types: filters.selectedTypes,
+//     departments: filters.selectedDepartments,
+//     designations: filters.selectedDesignations
+// });
 
 export default function LeaveReportPage() {
     const [rows, setRows] = useState<LeaveReportRow[]>([]);
     const [filters, setFilters] = useState<FiltersType>({
-        company: '',
+        selectedTypes: [],
+        selectedDepartments: [],
+        selectedDesignations: [],
         isIndividual: false,
-        employee: '',
+        selectedEmployeeId: null,
         leave: 'All',
         fromDate: '',
         toDate: '',
         showEmployeeLeaveBalance: false
     });
+
+    // TODO: Replace with actual API calls
+    // These will be populated from API responses
+    const types: Array<{ id: number; name: string }> = [];
+    const departments: Array<{ id: number; name: string }> = [];
+    const designations: Array<{ id: number; name: string }> = [];
+    const employees: Array<{ id: number; employeeCode: string; employeeName: string; designation?: string; department?: string }> = [];
+    const isLoadingTypes = false;
+    const isLoadingDepartments = false;
+    const isLoadingDesignations = false;
+    const isLoadingEmployees = false;
 
     const handleFilterChange = (key: keyof FiltersType, value: any) => {
         setFilters((prev) => ({ ...prev, [key]: value }));
@@ -40,9 +64,11 @@ export default function LeaveReportPage() {
 
     const handleClear = () => {
         setFilters({
-            company: '',
+            selectedTypes: [],
+            selectedDepartments: [],
+            selectedDesignations: [],
             isIndividual: false,
-            employee: '',
+            selectedEmployeeId: null,
             leave: 'All',
             fromDate: '',
             toDate: '',
@@ -54,7 +80,20 @@ export default function LeaveReportPage() {
     return (
         <div className='min-h-screen'>
             <div className='container space-y-4 p-1'>
-                <LeaveReportFilters filters={filters} onFilterChange={handleFilterChange} onReport={handleReport} onCancel={handleClear} />
+                <LeaveReportFilters
+                    filters={filters}
+                    types={types}
+                    departments={departments}
+                    designations={designations}
+                    employees={employees}
+                    isLoadingTypes={isLoadingTypes}
+                    isLoadingDepartments={isLoadingDepartments}
+                    isLoadingDesignations={isLoadingDesignations}
+                    isLoadingEmployees={isLoadingEmployees}
+                    onFilterChange={handleFilterChange}
+                    onReport={handleReport}
+                    onCancel={handleClear}
+                />
 
                 <CollapsibleSection
                     title='Leave Report'

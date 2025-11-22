@@ -24,7 +24,9 @@ export const ADMISSION_QUERY_KEYS = {
     UNMAPPED_CASTE_CATEGORY_DROPDOWN: 'unmapped_caste_category_dropdown',
     MASTER_CLASS_TEACHER: 'master_class_teacher',
     MASTER_CLASS_TEACHER_EMPLOYEE: 'master_class_teacher_employee',
-    MASTER_EXCHANGE_CLASS_TEACHER_MAPPING: 'exchange_class_teacher_mapping'
+    MASTER_EXCHANGE_CLASS_TEACHER_MAPPING: 'exchange_class_teacher_mapping',
+    MASTER_CLASS_SET_ORDER: 'master_class_set_order',
+    MASTER_SECTION_SET_ORDER: 'master_section_set_order'
 };
 
 export const PREADMISSION_QUERY_KEYS = {
@@ -169,6 +171,8 @@ export const EXAM_QUERY_KEYS = {
     LIFE_SKILLS_MAPPING: 'life-skills-mapping',
     LIFE_SKILLS_AREA_MAPPING: 'life-skills-area-mapping',
 
+    EXAM_MARKS_PROCESS_CONDITION: 'exam-marks-process-condition',
+
     EXAM_STANDARD: 'exam-standared'
 };
 
@@ -220,12 +224,28 @@ export const HRMS_QUERY_KEYS = {
     PF_CHALLAN_REPORT_ONLOAD: 'hrms_pf_challan_report_onload',
     PF_CHALLAN_REPORT_FILTER: 'hrms_pf_challan_report_filter',
     PF_CHALLAN_REPORT_SEARCH: 'hrms_pf_challan_report_search',
+    PF_FORM_10_REPORT_ONLOAD: 'hrms_pf_form_10_report_onload',
+    PF_FORM_10_REPORT_FILTER: 'hrms_pf_form_10_report_filter',
+    PF_FORM_10_REPORT_SEARCH: 'hrms_pf_form_10_report_search',
+    PF_FORM_5_REPORT_ONLOAD: 'hrms_pf_form_5_report_onload',
+    PF_FORM_5_REPORT_FILTER: 'hrms_pf_form_5_report_filter',
+    PF_FORM_5_REPORT_SEARCH: 'hrms_pf_form_5_report_search',
+    PF_FORM_6A_REPORT_ONLOAD: 'hrms_pf_form_6a_report_onload',
+    PF_FORM_6A_REPORT_FILTER: 'hrms_pf_form_6a_report_filter',
+    PF_FORM_6A_REPORT_SEARCH: 'hrms_pf_form_6a_report_search',
+    PF_FORM_3A_REPORT_ONLOAD: 'hrms_pf_form_3a_report_onload',
+    PF_FORM_3A_REPORT_FILTER: 'hrms_pf_form_3a_report_filter',
+    PF_FORM_3A_REPORT_SEARCH: 'hrms_pf_form_3a_report_search',
+    MONTH_END_REPORT_ONLOAD: 'hrms_month_end_report_onload',
+    MONTH_END_REPORT_SEARCH: 'hrms_month_end_report_search',
     SALARY_SLIP_ONLOAD: 'hrms_salary_slip_onload',
     SALARY_SLIP_FILTER: 'hrms_salary_slip_filter',
     SALARY_SLIP_GENERATE: 'hrms_salary_slip_generate',
     LOAN_REPORT_ONLOAD: 'hrms_loan_report_onload',
     LOAN_REPORT_FILTER: 'hrms_loan_report_filter',
     LOAN_REPORT_SEARCH: 'hrms_loan_report_search',
+    ADVANCE_REPORT_ONLOAD: 'hrms_advance_report_onload',
+    ADVANCE_REPORT_SEARCH: 'hrms_advance_report_search',
     // Attendance Management Masters
     MASTER_SHIFT: 'attendance_master_shift',
     MASTER_HOLIDAY: 'attendance_master_holiday',
@@ -238,6 +258,9 @@ export const HRMS_QUERY_KEYS = {
     EMPLOYEE_INOUT_REPORT: 'attendance_employee_inout_report',
     EMPLOYEE_INOUT_REPORT_ONLOAD: 'attendance_employee_inout_report_onload',
     EMPLOYEE_INOUT_REPORT_SEARCH: 'attendance_employee_inout_report_search',
+    EMPLOYEE_INOUT_REPORT_DEPARTMENTS: 'attendance_employee_inout_report_departments',
+    EMPLOYEE_INOUT_REPORT_DESIGNATIONS: 'attendance_employee_inout_report_designations',
+    EMPLOYEE_INOUT_REPORT_EMPLOYEES: 'attendance_employee_inout_report_employees',
     EMPLOYEE_ABSENT_REPORT: 'attendance_employee_absent_report',
     EMPLOYEE_LATEIN_EARLYOUT_REPORT: 'attendance_employee_latein_earlyout_report',
     EMPLOYEE_LATEIN_EARLYOUT_REPORT_ONLOAD: 'attendance_employee_latein_earlyout_report_onload',
@@ -268,10 +291,12 @@ export const HRMS_QUERY_KEYS = {
     LEAVE_CREDIT_DEDUCTION: 'leave_leave_credit_deduction',
     LEAVE_CREDIT_ADDITION: 'leave_leave_credit_addition',
     LEAVE_CARRYFORWARD: 'leave_leave_carryforward',
+    LEAVE_TRANSFER: 'leave_leave_transfer',
     COMP_OFF_APPROVAL: 'leave_comp_off_approval',
     COMP_OFF_REQUEST: 'leave_comp_off_request',
     // Leave Management Apply Leave
     LEAVE_BALANCE: 'leave_leave_balance',
     LEAVE_HISTORY: 'leave_leave_history',
-    APPLY_LEAVE: 'leave_apply_leave'
+    APPLY_LEAVE: 'leave_apply_leave',
+    LEAVE_APPROVAL: 'leave_leave_approval'
 };

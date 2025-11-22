@@ -10,6 +10,7 @@ import { Plus, X } from 'lucide-react';
 import { use } from 'react';
 import AddMasterClassForm from './_components/add-form';
 import { masterClassColumns } from './_components/columns';
+import ReorderClassForm from './_components/reorder-form';
 import ToggleMasterClassForm from './_components/toggle-form';
 import UpdateMasterClassForm from './_components/update-form';
 
@@ -58,6 +59,9 @@ function MasterClassPageContent({
                     variant='default'
                     size='lg'
                     className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
+                    <div className='flex justify-end'>
+                        <ReorderClassForm />
+                    </div>
                     <GenericDataTable<IMasterClassList>
                         {...tableProps}
                         columns={masterClassColumns}

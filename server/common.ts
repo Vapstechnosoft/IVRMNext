@@ -736,6 +736,14 @@ export async function getUserAccessibleModules() {
                                             url: '/Exam/exam-module/exam-mapping/lifeskill-area-mapping',
                                             title: 'Life Skill Area Mapping',
                                             description: 'Manage Life Skill Area Mapping Details'
+                                        },
+                                        {
+                                            id: 61,
+                                            name: 'Exam Marks Process Condition',
+                                            icon: 'BookOpen',
+                                            url: '/Exam/exam-module/exam-mapping/exam-marks-process-condition',
+                                            title: 'Exam Marks Process Condition',
+                                            description: 'Manage Exam Marks Process Condition Details'
                                         }
                                     ]
                                 },
@@ -1225,92 +1233,76 @@ export async function getUserAccessibleModules() {
                                         },
                                         {
                                             id: 2,
-                                            name: 'MRF',
-                                            icon: 'FileText',
-                                            url: '/hrms/recruitment/transaction/mrf',
-                                            title: 'Manpower Requisition Form',
-                                            description: 'Create MRF'
+                                            name: 'Add Candidate Interview',
+                                            icon: 'Calendar',
+                                            url: '/hrms/recruitment/transaction/add-candidate-interview',
+                                            title: 'Add Candidate Interview',
+                                            description: 'Add Candidate Interview'
                                         },
                                         {
                                             id: 3,
-                                            name: 'Job Posting',
-                                            icon: 'Send',
-                                            url: '/hrms/recruitment/transaction/job-posting',
-                                            title: 'Job Posting',
-                                            description: 'Post Job Openings'
+                                            name: 'Candidate Interview List',
+                                            icon: 'List',
+                                            url: '/hrms/recruitment/transaction/candidate-interview-list',
+                                            title: 'Candidate Interview List',
+                                            description: 'View All Candidate Interviews'
                                         },
                                         {
                                             id: 4,
-                                            name: 'Schedule Interview',
-                                            icon: 'Calendar',
-                                            url: '/hrms/recruitment/transaction/shedule-interview',
-                                            title: 'Schedule Interview',
-                                            description: 'Schedule Candidate Interviews'
+                                            name: 'Interviewer Feedback',
+                                            icon: 'MessageSquare',
+                                            url: '/hrms/recruitment/transaction/interviewer-feedback',
+                                            title: 'Interviewer Feedback',
+                                            description: 'Manage Interviewer Feedback'
                                         },
                                         {
                                             id: 5,
-                                            name: 'Call Letter',
-                                            icon: 'Mail',
-                                            url: '/hrms/recruitment/transaction/call-letter',
-                                            title: 'Call Letter',
-                                            description: 'Generate Call Letters'
+                                            name: 'Job List',
+                                            icon: 'Briefcase',
+                                            url: '/hrms/recruitment/transaction/job-list',
+                                            title: 'Job List',
+                                            description: 'View All Jobs'
                                         },
                                         {
                                             id: 6,
-                                            name: 'Appointment Letter',
-                                            icon: 'FileCheck',
-                                            url: '/hrms/recruitment/transaction/appointment-letter',
-                                            title: 'Appointment Letter',
-                                            description: 'Generate Appointment Letters'
-                                        },
-                                        {
-                                            id: 7,
-                                            name: 'Add to HRMS',
-                                            icon: 'UserCheck',
-                                            url: '/hrms/recruitment/transaction/addTo-hrms',
-                                            title: 'Add to HRMS',
-                                            description: 'Add Selected Candidates to HRMS'
-                                        },
-                                        {
-                                            id: 8,
-                                            name: 'Job Post List',
-                                            icon: 'List',
-                                            url: '/hrms/recruitment/transaction/jobPost-list',
-                                            title: 'Job Post List',
+                                            name: 'Job Posting List',
+                                            icon: 'FileText',
+                                            url: '/hrms/recruitment/transaction/job-posting-list',
+                                            title: 'Job Posting List',
                                             description: 'View All Job Postings'
                                         }
                                     ]
                                 },
-                                {
-                                    id: 3,
-                                    name: 'MRF Approval',
-                                    icon: 'CheckSquare',
-                                    pages: [
-                                        {
-                                            id: 1,
-                                            name: 'MRF Requisition Form',
-                                            icon: 'FileCheck',
-                                            url: '/hrms/recruitment/mrf-approval/mrf-requisition-form',
-                                            title: 'MRF Requisition Form',
-                                            description: 'Approve MRF Requests'
-                                        }
-                                    ]
-                                },
-                                {
-                                    id: 4,
-                                    name: 'Feedback',
-                                    icon: 'MessageSquare',
-                                    pages: [
-                                        {
-                                            id: 1,
-                                            name: 'Candidate Feedback',
-                                            icon: 'Star',
-                                            url: '/hrms/recruitment/feedback/candidate-feedback',
-                                            title: 'Candidate Feedback',
-                                            description: 'Record Candidate Feedback'
-                                        }
-                                    ]
-                                },
+                                // {
+                                //     id: 3,
+                                //     name: 'MRF Approval',
+                                //     icon: 'CheckSquare',
+                                //     pages: [
+                                //         {
+                                //             id: 1,
+                                //             name: 'MRF Requisition Form',
+                                //             icon: 'FileCheck',
+                                //             url: '/hrms/recruitment/mrf-approval/mrf-requisition-form',
+                                //             title: 'MRF Requisition Form',
+                                //             description: 'Approve MRF Requests'
+                                //         }
+                                //     ]
+                                // },
+                                // {
+                                //     id: 4,
+                                //     name: 'Feedback',
+                                //     icon: 'MessageSquare',
+                                //     pages: [
+                                //         {
+                                //             id: 1,
+                                //             name: 'Candidate Feedback',
+                                //             icon: 'Star',
+                                //             url: '/hrms/recruitment/feedback/candidate-feedback',
+                                //             title: 'Candidate Feedback',
+                                //             description: 'Record Candidate Feedback'
+                                //         }
+                                //     ]
+                                // },
                                 {
                                     id: 5,
                                     name: 'Reports',
@@ -1533,6 +1525,14 @@ export async function getUserAccessibleModules() {
                                             url: '/hrms/leave-management/apply-leave',
                                             title: 'Apply Leave',
                                             description: 'Submit Leave Application'
+                                        },
+                                        {
+                                            id: 2,
+                                            name: 'Leave Approval',
+                                            icon: 'CheckCircle',
+                                            url: '/hrms/leave-management/leave-approval',
+                                            title: 'Leave Approval',
+                                            description: 'Approve or Reject Leave Requests'
                                         }
                                     ]
                                 },
@@ -1570,7 +1570,7 @@ export async function getUserAccessibleModules() {
                                             name: 'Leave Credit Details',
                                             icon: 'Info',
                                             url: '/hrms/leave-management/transaction/leave-credit-details',
-                                            title: 'Leave Credit Details',
+                                            title: 'Leave  Details',
                                             description: 'View Leave Credit Details'
                                         },
                                         {
@@ -1580,6 +1580,14 @@ export async function getUserAccessibleModules() {
                                             url: '/hrms/leave-management/transaction/leave-credit-transaction',
                                             title: 'Leave Transaction',
                                             description: 'Leave Transaction'
+                                        },
+                                        {
+                                            id: 6,
+                                            name: 'Leave Opening Balance',
+                                            icon: 'Database',
+                                            url: '/hrms/leave-management/transaction/leave-opening-balance',
+                                            title: 'Leave Opening Balance',
+                                            description: 'Manage Leave Opening Balance'
                                         }
                                     ]
                                 },
@@ -1595,23 +1603,23 @@ export async function getUserAccessibleModules() {
                                             url: '/hrms/leave-management/reports/leave-report',
                                             title: 'Leave Report',
                                             description: 'Leave Summary Report'
-                                        },
-                                        {
-                                            id: 2,
-                                            name: 'Overall Report',
-                                            icon: 'BarChart3',
-                                            url: '/hrms/leave-management/reports/overAll-report',
-                                            title: 'Overall Report',
-                                            description: 'Overall Leave Analysis'
-                                        },
-                                        {
-                                            id: 3,
-                                            name: 'Unauthorized Leave Report',
-                                            icon: 'AlertTriangle',
-                                            url: '/hrms/leave-management/reports/unauthorizedLeaveCount-report',
-                                            title: 'Unauthorized Leave Report',
-                                            description: 'Unauthorized Leave Count'
                                         }
+                                        // {
+                                        //     id: 2,
+                                        //     name: 'Overall Report',
+                                        //     icon: 'BarChart3',
+                                        //     url: '/hrms/leave-management/reports/overAll-report',
+                                        //     title: 'Overall Report',
+                                        //     description: 'Overall Leave Analysis'
+                                        // },
+                                        // {
+                                        //     id: 3,
+                                        //     name: 'Unauthorized Leave Report',
+                                        //     icon: 'AlertTriangle',
+                                        //     url: '/hrms/leave-management/reports/unauthorizedLeaveCount-report',
+                                        //     title: 'Unauthorized Leave Report',
+                                        //     description: 'Unauthorized Leave Count'
+                                        // }
                                     ]
                                 }
                             ]
@@ -1715,44 +1723,44 @@ export async function getUserAccessibleModules() {
                         //     ]
                         // }
                     ]
+                },
+                {
+                    id: 5,
+                    name: 'IFrame',
+                    icon: 'Users',
+                    menu: [
+                        {
+                            id: 1,
+                            name: 'IFrame',
+                            icon: 'BookOpen',
+                            sub_menu: [
+                                {
+                                    id: 1,
+                                    name: 'IFrame',
+                                    icon: 'Database',
+                                    pages: [
+                                        {
+                                            id: 1,
+                                            name: 'AI Assignment',
+                                            icon: 'BookOpen',
+                                            url: '/iframe/ai-assignment',
+                                            title: 'IFrame',
+                                            description: 'Manage AI Assignment Details'
+                                        },
+                                        {
+                                            id: 2,
+                                            name: 'Question Generator',
+                                            icon: 'BookOpen',
+                                            url: '/iframe/question-generator',
+                                            title: 'IFrame',
+                                            description: 'Manage Question Generator Details'
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    ]
                 }
-                // {
-                //     id: 5,
-                //     name: 'IFrame',
-                //     icon: 'Users',
-                //     menu: [
-                //         {
-                //             id: 1,
-                //             name: 'IFrame',
-                //             icon: 'BookOpen',
-                //             sub_menu: [
-                //                 {
-                //                     id: 1,
-                //                     name: 'IFrame',
-                //                     icon: 'Database',
-                //                     pages: [
-                //                         {
-                //                             id: 1,
-                //                             name: 'AI Assignment',
-                //                             icon: 'BookOpen',
-                //                             url: '/iframe/ai-assignment',
-                //                             title: 'IFrame',
-                //                             description: 'Manage AI Assignment Details'
-                //                         },
-                //                         {
-                //                             id: 2,
-                //                             name: 'Question Generator',
-                //                             icon: 'BookOpen',
-                //                             url: '/iframe/question-generator',
-                //                             title: 'IFrame',
-                //                             description: 'Manage Question Generator Details'
-                //                         }
-                //                     ]
-                //                 }
-                //             ]
-                //         }
-                //     ]
-                // }
             ]
         };
     } else {

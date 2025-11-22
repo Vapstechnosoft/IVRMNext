@@ -6,22 +6,32 @@ import { FormError } from '@/components/ui/extension/field';
 import { InputText } from '@/components/ui/extension/input-text';
 import { InputTextarea } from '@/components/ui/extension/input-textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { useMasterLeave, useUpdateMasterLeave } from '@/hooks/hrms/leave-management/useMasters';
+import { useMasterLeave, useMasterLeaveDropdowns, useUpdateMasterLeave } from '@/hooks/hrms/leave-management/useMasters';
 import { MASTER_LEAVE_VALIDATION } from '@/lib/validation/hrms-master-validation';
-import { Save } from 'lucide-react';
-import { useEffect } from 'react';
+import { Save, X } from 'lucide-react';
+import { useEffect, useMemo } from 'react';
 import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
 import type { MasterLeave } from './columns';
 
 interface UpdateMasterLeaveFormProps {
     onSuccess?: () => void;
+    onCancel?: () => void;
     className?: string;
     selectedRow: MasterLeave;
 }
 
-export default function UpdateMasterLeaveForm({ onSuccess, className = '', selectedRow: row }: UpdateMasterLeaveFormProps) {
+export default function UpdateMasterLeaveForm({ onSuccess, onCancel, className = '', selectedRow: row }: UpdateMasterLeaveFormProps) {
     const { refetchAll } = useMasterLeave();
     const { mutate: updateMasterLeave, isPending } = useUpdateMasterLeave();
+    const { data: dropdownData, isLoading: isLoadingDropdowns } = useMasterLeaveDropdowns();
+
+    // Extract leave type options from API
+    const leaveTypeOptions = useMemo(() => {
+        if (!dropdownData?.data?.leaveTypes || !Array.isArray(dropdownData.data.leaveTypes)) {
+            return [];
+        }
+        return dropdownData.data.leaveTypes;
+    }, [dropdownData]);
 
     const {
         register,
@@ -103,23 +113,32 @@ export default function UpdateMasterLeaveForm({ onSuccess, className = '', selec
                                     <label htmlFor='leaveType' className='mb-2 block font-medium text-sm'>
                                         Leave Type <span className='text-red-500'>*</span>
                                     </label>
-                                    <Select value={field.value} onValueChange={field.onChange}>
+                                    <Select 
+                                        value={field.value} 
+                                        onValueChange={field.onChange}
+                                        disabled={isLoadingDropdowns}
+                                    >
                                         <SelectTrigger id='leaveType' className={errors.leaveType ? 'border-red-500' : ''}>
-                                            <SelectValue placeholder='Select Leave Type' />
+                                            <SelectValue placeholder={isLoadingDropdowns ? 'Loading...' : 'Select Leave Type'} />
                                         </SelectTrigger>
                                         <SelectContent>
-                                            <SelectItem value='On_Duty'>On Duty</SelectItem>
-                                            <SelectItem value='Comp_Off'>Comp Off</SelectItem>
-                                            <SelectItem value='LWP'>LWP</SelectItem>
-                                            <SelectItem value='EL'>Emergency Leave</SelectItem>
-                                            <SelectItem value='SL'>Sick Leave</SelectItem>
+                                            {leaveTypeOptions.length > 0 ? (
+                                                leaveTypeOptions.map((option) => (
+                                                    <SelectItem key={option.value} value={option.value}>
+                                                        {option.label}
+                                                    </SelectItem>
+                                                ))
+                                            ) : (
+                                                <div className='px-2 py-1.5 text-sm text-muted-foreground'>
+                                                    {isLoadingDropdowns ? 'Loading options...' : 'No options available'}
+                                                </div>
+                                            )}
                                         </SelectContent>
                                     </Select>
                                     {errors.leaveType && <FormError>{errors.leaveType.message}</FormError>}
                                 </div>
                             )}
                         />
-
                     </div>
 
                     <div className='grid grid-cols-1 gap-4 md:grid-cols-1'>
@@ -169,6 +188,12 @@ export default function UpdateMasterLeaveForm({ onSuccess, className = '', selec
                 </div>
 
                 <div className='flex justify-end gap-2'>
+                    {onCancel && (
+                        <Button type='button' variant='outline' onClick={onCancel} disabled={isPending || isSubmitting}>
+                            <X className='mr-2 h-4 w-4' />
+                            CANCEL
+                        </Button>
+                    )}
                     <Button type='button' variant='outline' onClick={handleReset} disabled={isPending || isSubmitting}>
                         Reset
                     </Button>

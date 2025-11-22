@@ -1,6 +1,7 @@
 import { EXAM_QUERY_KEYS } from '@/constants/query-keys';
 import { getCoScholasticActivityAreaMapping } from '@/server/exam/exam-module/exam-mapping/co-scholastic-activitiy-area-mapping';
 import { getExamLoginPrivileges } from '@/server/exam/exam-module/exam-mapping/exam-login-privilages';
+import { getExamMarksProcessCondition } from '@/server/exam/exam-module/exam-mapping/exam-marks-process-condition';
 import {
     getExamSubjectGroupMapping,
     getExamSubjectGroupMappingDetails
@@ -249,6 +250,24 @@ export const useCoScholasticActivityAreaMapping = (searchParams?: ApiSearchparam
         refetchAll: () => {
             return queryClient.invalidateQueries({
                 queryKey: [EXAM_QUERY_KEYS.CO_SCHOLASTIC_ACTIVITY_AREA_MAPPING]
+            });
+        }
+    };
+};
+
+export const useExamMarksProcessCondition = (searchParams?: ApiSearchparams) => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [EXAM_QUERY_KEYS.EXAM_MARKS_PROCESS_CONDITION, searchParams ?? {}],
+            queryFn: async () => getExamMarksProcessCondition(searchParams),
+            staleTime: 0
+        }),
+
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [EXAM_QUERY_KEYS.EXAM_MARKS_PROCESS_CONDITION]
             });
         }
     };

@@ -6,7 +6,7 @@ import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
-import { CalendarIcon, X } from 'lucide-react';
+import { CalendarIcon, Search, X } from 'lucide-react';
 
 export interface Form6AFilters {
     fromDate: Date | undefined;
@@ -18,9 +18,10 @@ interface PFForm6AFiltersProps {
     onDateChange: (key: 'fromDate' | 'toDate', date: Date | undefined) => void;
     onGenerate: () => void;
     onCancel: () => void;
+    isLoading?: boolean;
 }
 
-export function PFForm6AFilters({ filters, onDateChange, onGenerate, onCancel }: PFForm6AFiltersProps) {
+export function PFForm6AFilters({ filters, onDateChange, onGenerate, onCancel, isLoading = false }: PFForm6AFiltersProps) {
     return (
         <CollapsibleSection
             defaultOpen={true}
@@ -80,8 +81,9 @@ export function PFForm6AFilters({ filters, onDateChange, onGenerate, onCancel }:
             </div>
 
             {/* Action Buttons */}
-            <div className='flex justify-center gap-2 pt-4'>
-                <Button onClick={onGenerate} className='bg-blue-600 hover:bg-blue-700'>
+            <div className='flex gap-2 pt-4'>
+                <Button onClick={onGenerate}>
+                    <Search className='mr-2 h-4 w-4' />
                     GENERATE
                 </Button>
                 <Button variant='outline' onClick={onCancel}>

@@ -36,7 +36,9 @@ export const ExamSubjectGroupMappingColumns: ColumnDef<IExamSubjectGroupMapping>
             const pageIndex = table.getState().pagination.pageIndex;
             const pageSize = table.getState().pagination.pageSize;
             return <div>{pageIndex * pageSize + row.index + 1}</div>;
-        }
+        },
+        enableHiding: true,
+        enableSorting: false
     },
 
     // Academic Year

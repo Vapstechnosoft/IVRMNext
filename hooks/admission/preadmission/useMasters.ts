@@ -2,7 +2,7 @@ import { ADMISSION_QUERY_KEYS } from '@/constants/query-keys';
 import { getMasterCaste, getMasterCasteCategoryDropdown } from '@/server/admission/preadmission/masters/caste';
 import { getMasterCasteCategory, getMasterCasteCategoryCodeDropdown } from '@/server/admission/preadmission/masters/caste_category';
 import { getMasterCategory } from '@/server/admission/preadmission/masters/category';
-import { getMasterClass } from '@/server/admission/preadmission/masters/class';
+import { getClassSetOrder, getMasterClass } from '@/server/admission/preadmission/masters/class';
 import {
     getAcademicYearDropdown,
     getMasterCategoryDropdown,
@@ -18,7 +18,7 @@ import {
     getMasterReligionCasteCategory,
     getUnmappedCasteCategoryDropdown
 } from '@/server/admission/preadmission/masters/religion_caste_category';
-import { getMasterSection } from '@/server/admission/preadmission/masters/section';
+import { getMasterSection, getSectionSetOrder } from '@/server/admission/preadmission/masters/section';
 import { getMasterSource } from '@/server/admission/preadmission/masters/source';
 import type { ApiSearchparams } from '@/types';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
@@ -384,6 +384,38 @@ export const usegetExchangeClassSection = (asmaY_Id?: number, hrmE_Id?: number) 
         refetchAll: (year?: number, emp?: number) => {
             return queryClient.invalidateQueries({
                 queryKey: [ADMISSION_QUERY_KEYS.MASTER_EXCHANGE_CLASS_TEACHER_MAPPING, year ?? {}, emp ?? {}]
+            });
+        }
+    };
+};
+export const useclassSetOrder = () => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [ADMISSION_QUERY_KEYS.MASTER_CLASS_SET_ORDER],
+            queryFn: async () => getClassSetOrder(),
+            staleTime: 0
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [ADMISSION_QUERY_KEYS.MASTER_CLASS_SET_ORDER]
+            });
+        }
+    };
+};
+export const useSectionSetOrder = () => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [ADMISSION_QUERY_KEYS.MASTER_SECTION_SET_ORDER],
+            queryFn: async () => getSectionSetOrder(),
+            staleTime: 0
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [ADMISSION_QUERY_KEYS.MASTER_SECTION_SET_ORDER]
             });
         }
     };

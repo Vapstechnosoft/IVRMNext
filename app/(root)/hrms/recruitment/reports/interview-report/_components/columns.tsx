@@ -1,51 +1,75 @@
 'use client';
 
-import { Button } from '@/components/ui/button';
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
 import type { ColumnDef } from '@tanstack/react-table';
-import { Edit, Trash2 } from 'lucide-react';
 
 export interface InterviewRecord {
     id: number;
     candidateName: string;
     interviewRound: string;
-    interviewType: string;
+    interviewerName: string;
     interviewDate: string;
     interviewVenue: string;
     interviewFeedback: string;
     candidateStatus: 'Short Listed' | 'Selected' | 'Rejected' | 'In Progress';
-
     createdAt: string;
 }
 
 interface InterviewRecordColumnsProps {
-    onEdit: (row: InterviewRecord) => void;
-    onDelete: (row: InterviewRecord) => void;
+    onEdit?: (row: InterviewRecord) => void;
+    onDelete?: (row: InterviewRecord) => void;
 }
 
-export const getInterviewRecordColumns = ({ onEdit, onDelete }: InterviewRecordColumnsProps): ColumnDef<InterviewRecord>[] => [
+export const getInterviewRecordColumns = ({ onEdit, onDelete }: InterviewRecordColumnsProps = {}): ColumnDef<InterviewRecord>[] => [
     {
         id: 'sl',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='SL.NO' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='SL. No.' />,
         cell: ({ row }) => <div className='font-medium'>{row.index + 1}</div>,
         enableSorting: false
     },
-    // TODO: Add other columns based on the entity fields
     {
-        id: 'actions',
-        header: 'Action',
+        accessorKey: 'candidateName',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Candidate Name' />,
+        cell: ({ row }) => <div className='font-medium'>{row.getValue('candidateName')}</div>
+    },
+    {
+        accessorKey: 'interviewRound',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Interview Round' />,
+        cell: ({ row }) => <div>{row.getValue('interviewRound')}</div>
+    },
+    {
+        accessorKey: 'interviewerName',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Interviewer Name' />,
+        cell: ({ row }) => <div>{row.getValue('interviewerName')}</div>
+    },
+    {
+        accessorKey: 'interviewDate',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Interview Date' />,
         cell: ({ row }) => {
-            const entity = row.original;
-            return (
-                <div className='flex items-center gap-2'>
-                    <Button variant='outline' size='sm' onClick={() => onEdit(entity)}>
-                        <Edit className='h-4 w-4' />
-                    </Button>
-                    <Button variant='outline' size='sm' className='text-red-600' onClick={() => onDelete(entity)}>
-                        <Trash2 className='h-4 w-4' />
-                    </Button>
-                </div>
-            );
+            const date = row.getValue('interviewDate') as string;
+            // Format date as DD-MM-YYYY to match image format
+            if (date) {
+                const d = new Date(date);
+                return <div>{d.toLocaleDateString('en-GB')}</div>;
+            }
+            return <div>-</div>;
         }
+    },
+    {
+        accessorKey: 'interviewVenue',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Interview Venue' />,
+        cell: ({ row }) => <div>{row.getValue('interviewVenue')}</div>
+    },
+    {
+        accessorKey: 'interviewFeedback',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Interview Feedback' />,
+        cell: ({ row }) => <div>{row.getValue('interviewFeedback')}</div>
+    },
+    {
+        accessorKey: 'candidateStatus',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Candidate Status' />,
+        cell: ({ row }) => <div>{row.getValue('candidateStatus')}</div>
     }
 ];
+
+export const interviewReportColumns = getInterviewRecordColumns();

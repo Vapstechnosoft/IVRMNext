@@ -4,8 +4,8 @@ import { Button } from '@/components/ui/button';
 import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/generic-data-table';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
+import { useApplyLeave, useLeaveHistory } from '@/hooks/hrms/leave-management/useApplyLeave';
 import { Plus, X } from 'lucide-react';
-import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 import { ApplyLeaveForm } from './_components/apply-leave-form';
 import { leaveHistoryColumns, type ApplyLeave, type LeaveHistoryRow } from './_components/columns';
@@ -27,63 +27,36 @@ const defaultEmployee: DefaultEmployee = {
 };
 
 export default function ApplyLeavePage() {
-    const [history, setHistory] = useState<LeaveHistoryRow[]>([]);
-    const [isLoading, setIsLoading] = useState(false);
+    const { data: response, isLoading, error } = useLeaveHistory();
 
-    // Seed demo data
-    useEffect(() => {
-        setIsLoading(true);
-        // Simulate API call
-        setTimeout(() => {
-            setHistory([
-                {
-                    leaveType: 'Sick Leave',
-                    fromDate: '2025-01-03',
-                    toDate: '2025-01-04',
-                    days: 2,
-                    status: 'Approved',
-                    remark: 'Medical certificate submitted'
-                },
-                {
-                    leaveType: 'Casual Leave',
-                    fromDate: '2025-01-10',
-                    toDate: '2025-01-11',
-                    days: 2,
-                    status: 'Pending',
-                    remark: ''
-                }
-            ]);
-            setIsLoading(false);
-        }, 500);
-    }, []);
-
-    // Create mock response for useDataTableProps
+    // Create response for useDataTableProps
     const mockResponse = {
-        data: history,
-        total: history.length,
+        data: response?.data || [],
+        total: response?.data?.length || 0,
         page: 1,
         pageSize: 10
     };
 
     return (
         <FormProvider<LeaveHistoryRow>>
-            <ApplyLeavePageContent history={history} isLoading={isLoading} mockResponse={mockResponse} setHistory={setHistory} />
+            <ApplyLeavePageContent response={response} isLoading={isLoading} error={error} mockResponse={mockResponse} />
         </FormProvider>
     );
 }
 
 function ApplyLeavePageContent({
-    history,
+    response: _response,
     isLoading,
-    mockResponse,
-    setHistory
+    error,
+    mockResponse
 }: {
-    history: LeaveHistoryRow[];
+    response: any;
     isLoading: boolean;
+    error: any;
     mockResponse: any;
-    setHistory: (history: LeaveHistoryRow[]) => void;
 }) {
-    const { openAddForm } = useFormContext();
+    const { openAddForm, closeAddForm } = useFormContext();
+    const { mutate: applyLeave, isPending: _isApplying } = useApplyLeave();
     const tableProps = useDataTableProps(mockResponse);
     const todayISO = new Date().toISOString().slice(0, 10);
 
@@ -104,17 +77,18 @@ function ApplyLeavePageContent({
             return;
         }
 
-        // Add to history
-        const newLeave: LeaveHistoryRow = {
-            leaveType: data.leaveType || 'N/A',
-            fromDate: data.fromDate || '',
-            toDate: data.toDate || '',
-            days: data.numDays || 0,
-            status: 'Applied',
-            remark: data.reason
-        };
-        setHistory([newLeave, ...history]);
-        toast.success('Leave application submitted successfully');
+        // Apply leave via API
+        applyLeave(
+            {
+                data,
+                HRME_Id: 0 // TODO: Get from session/user context
+            },
+            {
+                onSuccess: () => {
+                    closeAddForm();
+                }
+            }
+        );
     };
 
     return (
@@ -143,6 +117,7 @@ function ApplyLeavePageContent({
                         {...tableProps}
                         columns={leaveHistoryColumns}
                         isLoading={isLoading}
+                        error={error}
                         loadingMessage='Loading leave history...'
                         noDataTitle='No Leave Applications Found'
                         noDataDescription='Get started by applying for your first leave'
@@ -187,7 +162,11 @@ function FormSections({
                                 className='-top-[3.5rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
                                 <X className='h-4 w-4 text-destructive' /> Close
                             </Button>
-                            <ApplyLeaveForm defaultEmployee={defaultEmployee} onSubmit={onSubmit} onCancel={closeAddForm} />
+                            <ApplyLeaveForm 
+                                defaultEmployee={defaultEmployee} 
+                                onSubmit={onSubmit} 
+                                onCancel={closeAddForm} 
+                            />
                         </div>
                     </CollapsibleSection>
                 </div>

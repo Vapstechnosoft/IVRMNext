@@ -147,9 +147,7 @@ export default function MasterJobPage() {
             <div className='container space-y-4 p-1'>
                 {/* Header */}
                 <div className='flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between'>
-                    <div className='space-y-1'>
-                        <Heading title='Master Job Management' description='Manage job positions and their details' />
-                    </div>
+                    
                     <Button
                         type='button'
                         onClick={handleAddClick}
@@ -162,8 +160,8 @@ export default function MasterJobPage() {
 
                 {/* Data Table Section - Collapsible but default open */}
                 <CollapsibleSection
-                    title='Master Jobs Data'
-                    description='View, search, and manage all job positions in the system'
+                    // title='Master Jobs Data'
+                    // description='View, search, and manage all job positions in the system'
                     defaultOpen={true}
                     variant='default'
                     size='lg'
@@ -241,17 +239,7 @@ export default function MasterJobPage() {
                                                 {errors.jobLocation && <FormError>{errors.jobLocation.message}</FormError>}
                                             </div>
 
-                                            <div className='flex items-center space-y-2 pt-6'>
-                                                <input
-                                                    type='checkbox'
-                                                    id='isActive'
-                                                    {...register('isActive')}
-                                                    className='mr-2 border-border text-primary focus:ring-primary'
-                                                />
-                                                <label htmlFor='isActive' className='font-medium text-foreground text-sm'>
-                                                    Active
-                                                </label>
-                                            </div>
+                                           
                                         </div>
 
                                         {/* Root Error */}

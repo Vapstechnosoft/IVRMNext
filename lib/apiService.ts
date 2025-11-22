@@ -25,7 +25,7 @@ import type { ApiSearchparams } from '@/types';
 import axios, { type AxiosInstance, type AxiosRequestConfig } from 'axios';
 
 // Define available API base URLs
-export type ApiBaseUrlKey = 'default' | 'preadmission' | 'admission' | 'fees' | 'exam' | 'hrms' | 'hrmsfrontoffice';
+export type ApiBaseUrlKey = 'default' | 'preadmission' | 'admission' | 'fees' | 'exam' | 'hrms' | 'hrmsfrontoffice' | 'hmslms';
 
 class ApiService {
     private instances: Map<string, AxiosInstance>;
@@ -42,8 +42,16 @@ class ApiService {
             fees: process.env.NEXT_PUBLIC_FEES_API_BASE_URL || process.env.NEXT_PUBLIC_API_BASE_URL || '',
             exam: process.env.NEXT_PUBLIC_EXAM_API_BASE_URL || process.env.NEXT_PUBLIC_API_BASE_URL || '',
             hrms: process.env.NEXT_PUBLIC_HRMS_API_BASE_URL || process.env.NEXT_PUBLIC_API_BASE_URL || '',
-            hrmsfrontoffice: process.env.NEXT_PUBLIC_HRMS_FRONTOFFICE_BASE_URL || process.env.NEXT_PUBLIC_API_BASE_URL || ''
+            hrmsfrontoffice: process.env.NEXT_PUBLIC_HRMS_FRONTOFFICE_BASE_URL || process.env.NEXT_PUBLIC_API_BASE_URL || '',
+            hmslms: process.env.NEXT_PUBLIC_HRMS_LMS_BASE_URL || process.env.NEXT_PUBLIC_API_BASE_URL || ''
         };
+
+        // Debug: Log base URLs in development
+        if (process.env.NODE_ENV === 'development') {
+            console.log('🔵 [API SERVICE] Base URLs initialized:');
+            console.log('🔵 [API SERVICE] hmslms:', this.baseUrls.hmslms || 'NOT SET');
+            console.log('🔵 [API SERVICE] NEXT_PUBLIC_HRMS_LMS_BASE_URL:', process.env.NEXT_PUBLIC_HRMS_LMS_BASE_URL || 'NOT SET');
+        }
 
         // Initialize default instance
         this.getOrCreateInstance('default');
@@ -127,11 +135,18 @@ class ApiService {
             console.log('📤 [API SERVICE] Request details:', {
                 method,
                 baseUrlKey,
+                baseURL: baseURL || 'NOT SET - Check environment variable',
                 url,
                 fullUrl,
                 hasData: !!data,
                 dataSize: data ? JSON.stringify(data).length : 0
             });
+            
+            // Warn if base URL is not set
+            if (!baseURL && baseUrlKey === 'hmslms') {
+                console.warn('⚠️ [API SERVICE] WARNING: hmslms base URL is not set!');
+                console.warn('⚠️ [API SERVICE] Check NEXT_PUBLIC_HRMS_LMS_BASE_URL environment variable');
+            }
             
             if (data && method === 'POST') {
                 console.log('📦 [API SERVICE] Request payload:', JSON.stringify(data, null, 2));
@@ -228,6 +243,13 @@ class ApiService {
     // Helper method to add custom base URLs at runtime
     public addBaseUrl(key: string, baseUrl: string): void {
         this.baseUrls[key as ApiBaseUrlKey] = baseUrl;
+    }
+
+    /**
+     * Get the base URL for a given key (useful for debugging)
+     */
+    public getBaseUrl(key: ApiBaseUrlKey): string {
+        return this.baseUrls[key] || '';
     }
 
     public async postMultipart<T>(

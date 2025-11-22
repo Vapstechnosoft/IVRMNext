@@ -70,7 +70,7 @@ export default function AddApplyLeaveForm({ onSuccess, className = '', defaultEm
             reason: data.reason
         };
 
-        applyLeave(leaveData, {
+        applyLeave({ data: leaveData }, {
             onSuccess: () => {
                 reset();
                 const fileInput = document.getElementById('leave-document-file') as HTMLInputElement;
@@ -131,7 +131,7 @@ export default function AddApplyLeaveForm({ onSuccess, className = '', defaultEm
 
                 {/* File Upload */}
                 <div className='space-y-2'>
-                    <label className='font-medium text-sm'>Document</label>
+                    <label htmlFor='leave-document-file' className='font-medium text-sm'>Document</label>
                     <div className='flex items-center gap-2'>
                         <input
                             id='leave-document-file'
