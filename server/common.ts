@@ -303,26 +303,26 @@ export async function getUserAccessibleModules() {
                                     pages: [
                                         {
                                             id: 22,
-                                            name: 'Fee Head',
+                                            name: 'Master Fee Head',
                                             icon: 'Settings',
                                             url: '/fees/masters/feehead',
-                                            title: 'Fee Head',
+                                            title: 'Master Fee Head',
                                             description: 'Manage Fee Head Details'
                                         },
                                         {
                                             id: 23,
-                                            name: 'Mode Of Payment',
+                                            name: 'Master Mode Of Payment',
                                             icon: 'Settings',
                                             url: '/fees/masters/modeofpayment',
-                                            title: 'Mode Of Payment',
+                                            title: 'Master Mode Of Payment',
                                             description: 'Manage Mode Of Payment Details'
                                         },
                                         {
                                             id: 24,
-                                            name: 'Payment Gateway Details',
+                                            name: 'Master Payment Gateway Details',
                                             icon: 'Settings',
                                             url: '/fees/masters/paymentGatewayDetails',
-                                            title: 'Payment Gateway Details',
+                                            title: 'Master Payment Gateway Details',
                                             description: 'Manage Payment Gateway Details'
                                         },
                                         {
@@ -335,7 +335,7 @@ export async function getUserAccessibleModules() {
                                         },
                                         {
                                             id: 26,
-                                            name: 'Fee Master Concession',
+                                            name: 'Master Fee Master Concession',
                                             icon: 'Settings',
                                             url: '/fees/masters/masterfeeconcession',
                                             title: 'Fee Master Concession',
@@ -344,7 +344,7 @@ export async function getUserAccessibleModules() {
 
                                         {
                                             id: 600,
-                                            name: ' Concession Category Details',
+                                            name: 'Master Concession Category Details',
                                             icon: 'Settings',
                                             url: '/fees/masters/masterfeeconcessiondetails',
                                             title: 'Concession Category Details',
@@ -352,7 +352,7 @@ export async function getUserAccessibleModules() {
                                         },
                                         //  {
                                         //     id: 650,
-                                        //     name: ' Concession Category Group Head Mapping',
+                                        //     name: 'Master Concession Category Group Head Mapping',
                                         //     icon: 'Settings',
                                         //     url: '/fees/masters/concessioncategorygroupheadmapping',
                                         //     title: 'Concession Category Group Head Mapping',
@@ -360,7 +360,7 @@ export async function getUserAccessibleModules() {
                                         // },
                                         {
                                             id: 27,
-                                            name: 'Fee Terms',
+                                            name: 'Master Fee Terms',
                                             icon: 'Settings',
                                             url: '/fees/masters/feemasterterms',
                                             title: 'Fee Terms',
@@ -392,7 +392,7 @@ export async function getUserAccessibleModules() {
                                         },
                                         {
                                             id: 29,
-                                            name: 'Class Category',
+                                            name: 'Master Class Category',
                                             icon: 'Settings',
                                             url: '/fees/masters/classcategory',
                                             title: 'Class Category',
@@ -400,7 +400,7 @@ export async function getUserAccessibleModules() {
                                         },
                                         {
                                             id: 30,
-                                            name: 'Yearly Category',
+                                            name: 'Master Yearly Category',
                                             icon: 'Settings',
                                             url: '/fees/masters/category',
                                             title: 'Yearly Category',
@@ -408,7 +408,7 @@ export async function getUserAccessibleModules() {
                                         },
                                         {
                                             id: 31,
-                                            name: 'Fee Installment',
+                                            name: 'Master Fee Installment',
                                             icon: 'Settings',
                                             url: '/fees/masters/feesinstallment',
                                             title: 'Fee Installment',
@@ -416,7 +416,7 @@ export async function getUserAccessibleModules() {
                                         },
                                         {
                                             id: 32,
-                                            name: 'Installment due date',
+                                            name: 'Master Installment due date',
                                             icon: 'Settings',
                                             url: '/fees/masters/feesinstallmentduedate',
                                             title: 'Installment due date',
@@ -424,7 +424,7 @@ export async function getUserAccessibleModules() {
                                         },
                                         {
                                             id: 33,
-                                            name: 'Fee Group Grouping',
+                                            name: 'Master Fee Group Grouping',
                                             icon: 'Settings',
                                             url: '/fees/masters/groupsgrouping',
                                             title: 'Group Grouping',
@@ -432,7 +432,7 @@ export async function getUserAccessibleModules() {
                                         },
                                         {
                                             id: 34,
-                                            name: 'Fee Groups',
+                                            name: 'Master Fee Groups',
                                             icon: 'Settings',
                                             url: '/fees/masters/mastergroup',
                                             title: 'Groups',
@@ -449,7 +449,7 @@ export async function getUserAccessibleModules() {
 
                                         {
                                             id: 36,
-                                            name: 'Fee Yearly Groups Mapping',
+                                            name: 'Master Fee Yearly Groups Mapping',
                                             icon: 'Settings',
                                             url: '/fees/masters/yearlygroupmapping',
                                             title: 'Yearly Groups Mapping',
@@ -457,7 +457,7 @@ export async function getUserAccessibleModules() {
                                         },
                                         {
                                             id: 37,
-                                            name: 'Fee Group wise  Auto Receipt',
+                                            name: 'Master Fee Group wise  Auto Receipt',
                                             icon: 'Settings',
                                             url: '/fees/masters/groupwiseautoreceipt',
                                             title: 'Group wise  Auto Receipt',
@@ -465,7 +465,7 @@ export async function getUserAccessibleModules() {
                                         },
                                         {
                                             id: 38,
-                                            name: 'Fee Yearly Rebate Settings',
+                                            name: 'Master Fee Yearly Rebate Settings',
                                             icon: 'Settings',
                                             url: '/fees/masters/yearlyrebatesetting',
                                             title: 'Yearly Rebate Settings',
@@ -473,7 +473,7 @@ export async function getUserAccessibleModules() {
                                         },
                                         {
                                             id: 39,
-                                            name: 'Fee Privilege',
+                                            name: 'Master Fee Privilege',
                                             icon: 'Settings',
                                             url: '/fees/masters/feeprevilege',
                                             title: 'Fee Privilege',
@@ -481,7 +481,7 @@ export async function getUserAccessibleModules() {
                                         },
                                         {
                                             id: 40,
-                                            name: 'Online Payment Head Group',
+                                            name: 'Master Online Payment Head Group',
                                             icon: 'Settings',
                                             url: '/fees/masters/onlinepaymentheadgroupmapping',
                                             title: 'Online Payment Head Group',
@@ -489,7 +489,7 @@ export async function getUserAccessibleModules() {
                                         },
                                         // {
                                         //     id: 900,
-                                        //     name: 'Student Fee Group Mapping',
+                                        //     name: 'Master Student Fee Group Mapping',
                                         //     icon: 'Settings',
                                         //     url: '/fees/masters/studentfeegroupmapping',
                                         //     title: 'Student Fee Group Mapping',
@@ -497,7 +497,7 @@ export async function getUserAccessibleModules() {
                                         // },
                                         {
                                             id: 501,
-                                            name: 'Fee Other Student',
+                                            name: 'Master Fee Other Student',
                                             icon: 'Settings',
                                             url: '/fees/masters/feeotherstudent',
                                             title: 'Fee Other Student',
