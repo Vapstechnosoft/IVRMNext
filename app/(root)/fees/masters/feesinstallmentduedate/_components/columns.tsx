@@ -2,27 +2,11 @@
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
 import { ActionButtons } from '@/components/ui/form/action-buttons';
 import { useFormContext } from '@/components/ui/form/form-provider';
-import type { IMasterFeesInstallmentDueDateList } from '@/types/fees/masters';
+import type { IMasterFeesInstallmentList } from '@/types/fees/masters';
 import type { ColumnDef } from '@tanstack/react-table';
 import { useCallback } from 'react';
 
-export const masterInstallmentDueDateColumns: ColumnDef<IMasterFeesInstallmentDueDateList>[] = [
-    // {
-    //     id: 'select',
-    //     header: ({ table }) => (
-    //         <Checkbox
-    //             checked={table.getIsAllPageRowsSelected() || (table.getIsSomePageRowsSelected() && 'indeterminate')}
-    //             onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
-    //             aria-label='Select all'
-    //         />
-    //     ),
-    //     cell: ({ row }) => (
-    //         <Checkbox checked={row.getIsSelected()} onCheckedChange={(value) => row.toggleSelected(!!value)} aria-label='Select row' />
-    //     ),
-    //     enableSorting: false,
-    //     enableHiding: false,
-    //     size: 24
-    // },
+export const masterInstallmentColumns: ColumnDef<IMasterFeesInstallmentList>[] = [
     {
         accessorKey: 'ftidD_Id',
         header: ({ column }) => <DataTableColumnHeader column={column} title='SL NO' />,
@@ -77,30 +61,30 @@ function formatDate(dateString: string) {
 function ActionButtonsCell({
     rowData
 }: {
-    rowData: IMasterFeesInstallmentDueDateList;
+    rowData: IMasterFeesInstallmentList;
 }) {
-    const { openEditForm, openToggleForm } = useFormContext<IMasterFeesInstallmentDueDateList>();
+    const { openEditForm, openDeleteForm } = useFormContext<IMasterFeesInstallmentList>();
 
     const handleEdit = useCallback(
-        (data: IMasterFeesInstallmentDueDateList) => {
+        (data: IMasterFeesInstallmentList) => {
             openEditForm(data);
         },
         [openEditForm]
     );
 
-    const handleToggle = useCallback(
-        (data: IMasterFeesInstallmentDueDateList) => {
-            openToggleForm(data);
+    const handleDelete = useCallback(
+        (data: IMasterFeesInstallmentList) => {
+            openDeleteForm(data);
         },
-        [openToggleForm]
+        [openDeleteForm]
     );
 
     return (
         <ActionButtons
             rowData={rowData}
-            buttons={{ edit: true, toggle: true, delete: false }}
+            buttons={{ edit: true, toggle: false, delete: true }}
             onEdit={handleEdit}
-            onToggle={handleToggle}
+            onDelete={handleDelete}
             toggleConditionKey='returnval'
         />
     );
