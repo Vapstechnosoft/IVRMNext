@@ -48,6 +48,7 @@ interface GenericDataTableProps<T> {
     ErrorComponent?: React.ComponentType<{ error: Error; message: string }>;
     NoDataComponent?: React.ComponentType;
     searchQuery?: string;
+    currentApiParams?: ApiSearchparams;
 }
 
 export const GenericDataTable = forwardRef<DataTableRef, GenericDataTableProps<any>>(function GenericDataTable<T>(

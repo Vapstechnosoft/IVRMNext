@@ -18,6 +18,7 @@ interface CustomMultiSelectBoxProps {
     height?: string;
     isSearchRequired?: boolean;
     error?: string;
+    placeholder?: string;
 }
 
 export const CustomMultiSelectBox: React.FC<CustomMultiSelectBoxProps> = ({

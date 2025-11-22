@@ -738,6 +738,29 @@ export async function getUserAccessibleModules() {
                                             description: 'Manage Life Skill Area Mapping Details'
                                         }
                                     ]
+                                },
+                                {
+                                    id: 10,
+                                    name: 'Reports',
+                                    icon: 'Settings',
+                                    pages: [
+                                        {
+                                            id: 61,
+                                            name: 'Cumulative Report',
+                                            icon: 'BookOpen',
+                                            url: '/Exam/exam-module/reports/cumulative-report',
+                                            title: 'Cumulative Report',
+                                            description: 'Manage Cumulative Report Details'
+                                        },
+                                        {
+                                            id: 62,
+                                            name: 'VVEHPC_ExamReportCard',
+                                            icon: 'BookOpen',
+                                            url: '/Exam/exam-module/reports/vvehpc_exam-report-card',
+                                            title: 'VVEHPC_ExamReportCard',
+                                            description: 'Manage VVEHPC_ExamReportCard Details'
+                                        }
+                                    ]
                                 }
                             ]
                         }
