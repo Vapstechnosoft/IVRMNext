@@ -18,13 +18,13 @@ import type {
 export async function getFeePreadmissionTransactionList(searchParams?: ApiSearchparams) {
     const urlParams = getSearchParamsUrl(
         searchParams ?? {},
-        'modeOfPayment,paidAmount,paidDate,receiptNo,studentEmail,studentMobile,studentRegNo,studentName'
+        'modeOfPayment,paidAmount,paidDate,receiptNo,studentEmail,studentMobile,studentRegNo,studentName,classname'
     );
-    const url = '/FeePreadmission/gettransactionlist?MI_Id=30&ASMAY_Id=231';
+    const url = `/FeePreadmission/gettransactionlist?ASMAY_Id=231&${urlParams}`;
     console.info('preadmissiontransactiondetials api', url, urlParams);
+    console.info(searchParams);
     return await api.get<IFeePreAdmissionTransactionDetails[]>('fees', url);
 }
-
 export async function getPreadmissionStudentDropdownData(
     searchText: string,
     radiovalue: string
@@ -125,8 +125,7 @@ export async function getAmountentrydetails(mi_id: number, asmay_id: number, fmc
     return await api.get<IMasterAmountEntryDetails[]>('fees', url);
 }
 
-export async function getPrintdetails(data: any) {
-    const url = 'FeePreadmission/print_receipt?fyp_id=49537&asmay_id=231&filterinitialdata=Preadmission&pasr_id=467';
-    console.log(data);
-    return await api.get<IFeePreAdmissionTransactionDetails[]>('fees', url, data);
+export async function getPrintdetails(fyp_id: number, asmay_id: number, filterinitialdata: string, pasr_id: number) {
+    const url = `FeePreadmission/print_receipt?fyp_id=${fyp_id}&asmay_id=${asmay_id}&filterinitialdata=${filterinitialdata}&pasr_id=${pasr_id}`;
+    return await api.get<IFeePreAdmissionTransactionDetails[]>('fees', url);
 }
